@@ -1,0 +1,82 @@
+[
+  {
+    "id": "empty_block",
+    "message0": "",
+    "args0": [],
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "frankenblock",
+    "message0": "text %1 %2 %3 %4 %5 %6 %7 %8 %9",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "text_input",
+        "text": "something"
+      },
+      {
+        "type": "field_checkbox",
+        "name": "checkbox",
+        "checked": true
+      },
+      {
+        "type": "input_value",
+        "name": "value_input"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "dropdown",
+        "options": [
+          [
+            "option1",
+            "OPTIONNAME1"
+          ],
+          [
+            "option2",
+            "OPTIONNAME2"
+          ],
+          [
+            "option3",
+            "OPTIONNAME3"
+          ]
+        ]
+      },
+      {
+        "type": "field_variable",
+        "name": "variable",
+        "variable": "item"
+      },
+      {
+        "type": "input_statement",
+        "name": "NAME"
+      },
+      {
+        "type": "field_angle",
+        "name": "angle",
+        "angle": 90
+      },
+      {
+        "type": "field_colour",
+        "name": "colour",
+        "colour": "#ff0000"
+      },
+      {
+        "type": "field_image",
+        "src": "https://www.gstatic.com/codesite/ph/images/star_on.gif",
+        "width": 15,
+        "height": 15,
+        "alt": "*"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": [
+      "Boolean",
+      "Number",
+      "Array"
+    ],
+    "colour": 20,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  }
+]

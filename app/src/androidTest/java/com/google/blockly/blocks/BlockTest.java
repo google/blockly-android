@@ -1,0 +1,123 @@
+package com.google.blockly.blocks;
+
+import android.test.AndroidTestCase;
+import android.text.TextUtils;
+
+import com.google.blockly.R;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+
+/**
+ * Tests for {@link Block}.
+ */
+public class BlockTest extends AndroidTestCase {
+
+    private static final String TEST_JSON_STRING = "{"
+            + "  \"id\": \"test_block\","
+            + "  \"message0\": \"%1 %2 %3 %4  %5 for each %6 %7 in %8 do %9\","
+            + "  \"args0\": ["
+            + "    {"
+            + "      \"type\": \"field_image\","
+            + "      \"src\": \"https://www.gstatic.com/codesite/ph/images/star_on.gif\","
+            + "      \"width\": 15,"
+            + "      \"height\": 15,"
+            + "      \"alt\": \"*\""
+            + "    },"
+            + "    {"
+            + "      \"type\": \"field_variable\","
+            + "      \"name\": \"NAME\","
+            + "      \"variable\": \"item\""
+            + "    },"
+            + "    {"
+            + "      \"type\": \"field_colour\","
+            + "      \"name\": \"NAME\","
+            + "      \"colour\": \"#ff0000\""
+            + "    },"
+            + "    {"
+            + "      \"type\": \"field_angle\","
+            + "      \"name\": \"NAME\","
+            + "      \"angle\": 90"
+            + "    },"
+            + "    {"
+            + "      \"type\": \"field_input\","
+            + "      \"name\": \"NAME\","
+            + "      \"text\": \"default\""
+            + "    },"
+            + "    {"
+            + "      \"type\": \"field_variable\","
+            + "      \"name\": \"NAME\","
+            + "      \"variable\": \"item\""
+            + "    },"
+            + "    {"
+            + "      \"type\": \"field_checkbox\","
+            + "      \"name\": \"NAME\","
+            + "      \"checked\": true"
+            + "    },"
+            + "    {"
+            + "      \"type\": \"input_value\","
+            + "      \"name\": \"NAME\","
+            + "      \"check\": \"Array\","
+            + "      \"align\": \"CENTRE\""
+            + "    },"
+            + "    {"
+            + "      \"type\": \"input_statement\","
+            + "      \"name\": \"NAME\""
+            + "    }"
+            + "  ],"
+            + "  \"tooltip\": \"\","
+            + "  \"helpUrl\": \"http://www.example.com/\""
+            + "}";
+
+    public void testJson() {
+        JSONObject blockJson;
+        try {
+            blockJson = new JSONObject(TEST_JSON_STRING);
+        } catch (JSONException e) {
+            throw new RuntimeException("Failure parsing test JSON.", e);
+        }
+        Block block = Block.fromJson(blockJson.optString("id"), blockJson);
+
+        assertNotNull("Block was null after initializing from JSON", block);
+        assertEquals("name not set correctly", "test_block", block.getName());
+        assertEquals("Wrong number of inputs", 2, block.getInputs().size());
+        assertEquals("Wrong number of fields in first input",
+                9, block.getInputs().get(0).getFields().size());
+    }
+
+    public void testMessageTokenizer() {
+        String testMessage = "%%5 should have %1 %12 6 tokens %999 in the end";
+        List<String> tokens = Block.tokenizeMessage(testMessage);
+        assertEquals("Should have 6 tokens: " + tokens.toString(), 6, tokens.size());
+
+        testMessage = "This has no args %%5";
+        tokens = Block.tokenizeMessage(testMessage);
+        assertEquals("Should have 1 token: " + tokens.toString(), 1, tokens.size());
+        assertTrue("Only token should be the original string: " + tokens.toString(),
+                TextUtils.equals(testMessage, tokens.get(0)));
+
+        testMessage = "%1";
+        tokens = Block.tokenizeMessage(testMessage);
+        assertEquals("Should have 1 token: " + tokens.toString(), 1, tokens.size());
+        assertTrue("Only token should be the original string: " + tokens.toString(),
+                TextUtils.equals(testMessage, tokens.get(0)));
+    }
+
+    public void testBlockFactory() {
+        // TODO: Move rest_blocks.json to the testapp's resources once
+        // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
+        BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
+        List<Block> blocks = bf.getAllBlocks();
+        assertEquals("BlockFactory failed to load all blocks.", 2, blocks.size());
+        Block emptyBlock = bf.obtainBlock("empty_block");
+        assertNotNull("Failed to create the empty block.", emptyBlock);
+        assertEquals("Empty block has the wrong name", "empty_block", emptyBlock.getName());
+
+        Block frankenblock = bf.obtainBlock("frankenblock");
+        assertNotNull("Failed to create the frankenblock.", frankenblock);
+        assertEquals("Frankenblock has the wrong number of inputs", 3,
+                frankenblock.getInputs().size());
+    }
+}
