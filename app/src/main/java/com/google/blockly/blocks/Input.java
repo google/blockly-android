@@ -67,10 +67,23 @@ public abstract class Input {
         mAlign = align;
     }
 
+    /**
+     * Checks if a given type is a known input type.
+     *
+     * @param type The type to check.
+     * @return True if the type is known to be an input type, false otherwise.
+     */
     public static boolean isInputType(String type) {
         return INPUT_TYPES.contains(type);
     }
 
+    /**
+     * Generate an Input instance from a JSON definition. The type must be a known input type. If
+     * the type is not supported an alternate Input type should be used instead.
+     *
+     * @param json The JSONObject that describes the Input.
+     * @return An Input instance generated from the json.
+     */
     public static Input fromJSON(JSONObject json) {
         String type = null;
         try {
@@ -90,23 +103,40 @@ public abstract class Input {
             case TYPE_DUMMY:
                 input = new InputValue(json);
                 break;
-
+            default:
+                throw new IllegalArgumentException("Unknown input type: " + type);
         }
         return input;
     }
 
+    /**
+     * Adds all of the given fields to this Input.
+     *
+     * @param fields The fields to add.
+     */
     public void addAll(List<Field> fields) {
         mFields.addAll(fields);
     }
 
+    /**
+     * Adds a single field to the end of this Input.
+     *
+     * @param field The field to add.
+     */
     public void add(Field field) {
         mFields.add(field);
     }
 
+    /**
+     * @return The list of fields in this Input.
+     */
     public List<Field> getFields() {
         return mFields;
     }
 
+    /**
+     * An Input that takes a value. This will add an input connection to a Block.
+     */
     public static final class InputValue extends Input {
 
         public InputValue(String name, String align, String check) {
@@ -119,6 +149,10 @@ public abstract class Input {
         }
     }
 
+    /**
+     * An Input that accepts one or more statement blocks. This will add a wrapped code connection
+     * to a Block.
+     */
     public static final class InputStatement extends Input {
 
         public InputStatement(String name, String align, String check) {
@@ -131,6 +165,9 @@ public abstract class Input {
         }
     }
 
+    /**
+     * An Input that only wraps fields and does not provide its own input connection.
+     */
     public static final class InputDummy extends Input {
 
         public InputDummy(String name, String align) {

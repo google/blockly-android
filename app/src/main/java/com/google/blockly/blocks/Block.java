@@ -15,7 +15,6 @@
 
 package com.google.blockly.blocks;
 
-import android.graphics.Color;
 import android.graphics.Point;
 import android.text.TextUtils;
 import android.util.Log;
@@ -34,22 +33,22 @@ import java.util.UUID;
 public class Block {
     private static final String TAG = "Block";
 
-    private static final int DEFAULT_HUE_COLOR = 0;
+    private static final int DEFAULT_HUE_COLOUR = 0;
 
     // These values are immutable once a block is created
     private final String mUuid;
     private final String mName;
     private int mCategory;
     private int mColourHue;
-    private Connection mOutput;
-    private Connection mNext;
-    private Connection mPrevious;
-    private ArrayList<Input> mInputs;
+    private Connection mOutputConnection;
+    private Connection mNextConnection;
+    private Connection mPreviousConnection;
+    private ArrayList<Input> mInputList;
     private boolean mInputsInline;
 
     // These values can be changed after creating the block
-    private ArrayList<Block> mChildren;
-    private Block mParent;
+    private ArrayList<Block> mChildBlocks;
+    private Block mParentBlock;
     private String mTooltip;
     private String mComment;
     private boolean mHasContextMenu;
@@ -60,30 +59,30 @@ public class Block {
     private boolean mDisabled;
     private Point mPosition;
 
-    private Block(String uuid, String name, int category, int colourHue,
-                  Connection output, Connection next, Connection previous, ArrayList<Input> inputs,
-                  boolean inputsInline) {
+    private Block(String uuid, String name, int category, int colourHue, Connection outputConnection,
+                  Connection nextConnection, Connection previousConnection,
+                  ArrayList<Input> inputList, boolean inputsInline) {
         mUuid = uuid;
         mName = name;
         mCategory = category;
         mColourHue = colourHue;
-        mOutput = output;
-        mNext = next;
-        mPrevious = previous;
-        mInputs = inputs;
+        mOutputConnection = outputConnection;
+        mNextConnection = nextConnection;
+        mPreviousConnection = previousConnection;
+        mInputList = inputList;
         mInputsInline = inputsInline;
     }
 
     public List<Block> getChildren() {
-        return mChildren;
+        return mChildBlocks;
     }
 
     public void addChild(int position, Block child) {
-        mChildren.add(position, child);
+        mChildBlocks.add(position, child);
     }
 
     public void removeChild(int position) {
-        mChildren.remove(position);
+        mChildBlocks.remove(position);
     }
 
     public String getName() {
@@ -91,7 +90,7 @@ public class Block {
     }
 
     public List<Input> getInputs() {
-        return mInputs;
+        return mInputList;
     }
 
     /**
@@ -115,7 +114,7 @@ public class Block {
             throw new IllegalArgumentException(
                     "Blocks cannot have both an output and a previous statement");
         }
-        int colour = json.optInt("colour", DEFAULT_HUE_COLOR);
+        int colour = json.optInt("colour", DEFAULT_HUE_COLOUR);
         bob.setColour(colour);
 
         ArrayList<Input> inputs = new ArrayList<>();
@@ -160,20 +159,26 @@ public class Block {
                     } catch (JSONException e) {
                         throw new RuntimeException("Error reading arg %" + index, e);
                     }
-                    String type = element.optString("type");
-                    if (TextUtils.isEmpty(type)) {
-                        throw new IllegalArgumentException("No type for arg %" + index);
-                    }
+                    while (element != null) {
+                        String type = element.optString("type");
+                        if (TextUtils.isEmpty(type)) {
+                            throw new IllegalArgumentException("No type for arg %" + index);
+                        }
 
-                    if (Field.isFieldType(type)) {
-                        fields.add(Field.fromJSON(element));
-                    } else if (Input.isInputType(type)) {
-                        Input input = Input.fromJSON(element);
-                        input.addAll(fields);
-                        fields.clear();
-                        inputs.add(input);
-                    } else {
-                        Log.w(TAG, "Unknown element type: " + type);
+                        if (Field.isFieldType(type)) {
+                            fields.add(Field.fromJSON(element));
+                            break;
+                        } else if (Input.isInputType(type)) {
+                            Input input = Input.fromJSON(element);
+                            input.addAll(fields);
+                            fields.clear();
+                            inputs.add(input);
+                            break;
+                        } else {
+                            // Try getting the fallback block if it exists
+                            Log.w(TAG, "Unknown element type: " + type);
+                            element = element.optJSONObject("alt");
+                        }
                     }
                 } else {
                     token = token.replace("%%", "%").trim();
@@ -275,15 +280,15 @@ public class Block {
         private String mName;
         private int mCategory;
         private int mColourHue;
-        private Connection mOutput;
-        private Connection mNext;
-        private Connection mPrevious;
+        private Connection mOutputConnection;
+        private Connection mNextConnection;
+        private Connection mPreviousConnection;
         private ArrayList<Input> mInputs;
         private boolean mInputsInline;
 
         // These values can be changed after creating the block
-        private ArrayList<Block> mChildren;
-        private Block mParent;
+        private ArrayList<Block> mChildBlocks;
+        private Block mParentBlock;
         private String mTooltip;
         private String mComment;
         private boolean mHasContextMenu;
@@ -302,7 +307,7 @@ public class Block {
             mName = name;
             mUuid = uuid;
             mInputs = new ArrayList<>();
-            mChildren = new ArrayList<>();
+            mChildBlocks = new ArrayList<>();
             mPosition = new Point(0, 0);
         }
 
@@ -312,10 +317,10 @@ public class Block {
             mCategory = block.mCategory;
 
 
-            mOutput = block.mOutput;
-            mNext = block.mNext;
-            mPrevious = block.mPrevious;
-            mInputs.addAll(block.mInputs); // TODO: make copies of the inputs/fields
+            mOutputConnection = block.mOutputConnection;
+            mNextConnection = block.mNextConnection;
+            mPreviousConnection = block.mPreviousConnection;
+            mInputs.addAll(block.mInputList); // TODO: make copies of the inputs/fields
             mInputsInline = block.mInputsInline;
 
             // TODO: Reconsider the defaults for these
@@ -351,18 +356,18 @@ public class Block {
             return this;
         }
 
-        public Builder setOutput(Connection output) {
-            this.mOutput = output;
+        public Builder setOutput(Connection outputConnection) {
+            this.mOutputConnection = outputConnection;
             return this;
         }
 
-        public Builder setNext(Connection next) {
-            this.mNext = next;
+        public Builder setNext(Connection nextConnection) {
+            this.mNextConnection = nextConnection;
             return this;
         }
 
-        public Builder setPrevious(Connection previous) {
-            this.mPrevious = previous;
+        public Builder setPrevious(Connection previousConnection) {
+            this.mPreviousConnection = previousConnection;
             return this;
         }
 
@@ -389,20 +394,20 @@ public class Block {
             if (child == null) {
                 throw new IllegalArgumentException("child may not be null.");
             }
-            mChildren.add(child);
+            mChildBlocks.add(child);
             return this;
         }
 
-        public Builder setChildren(ArrayList<Block> children) {
-            if (children == null) {
+        public Builder setChildren(ArrayList<Block> childBlocks) {
+            if (childBlocks == null) {
                 throw new IllegalArgumentException("children may not be null.");
             }
-            mChildren = children;
+            mChildBlocks = childBlocks;
             return this;
         }
 
-        public Builder setParent(Block parent) {
-            mParent = parent;
+        public Builder setParent(Block parentBlock) {
+            mParentBlock = parentBlock;
             return this;
         }
 
@@ -453,13 +458,13 @@ public class Block {
         }
 
         public Block build() {
-            Block b = new Block(mUuid, mName, mCategory, mColourHue, mOutput, mNext,
-                    mPrevious, mInputs, mInputsInline);
-            for (int i = 0; i < mChildren.size(); i++) {
-                mChildren.get(i).mParent = b;
+            Block b = new Block(mUuid, mName, mCategory, mColourHue, mOutputConnection, mNextConnection,
+                    mPreviousConnection, mInputs, mInputsInline);
+            for (int i = 0; i < mChildBlocks.size(); i++) {
+                mChildBlocks.get(i).mParentBlock = b;
             }
-            b.mChildren = mChildren;
-            b.mParent = mParent;
+            b.mChildBlocks = mChildBlocks;
+            b.mParentBlock = mParentBlock;
             b.mTooltip = mTooltip;
             b.mComment = mComment;
             b.mHasContextMenu = mHasContextMenu;

@@ -141,6 +141,10 @@ public abstract class Field {
         return field;
     }
 
+    /**
+     * Adds a text to an Input. This can be used to add text to the block or label
+     * another field. The text is not modifiable by the user.
+     */
     public static final class FieldLabel extends Field {
         private final String mText;
 
@@ -153,11 +157,17 @@ public abstract class Field {
             this(json.optString("name", null), json.optString("text", ""));
         }
 
+        /**
+         * @return The text for this label.
+         */
         public String getText() {
             return mText;
         }
     }
 
+    /**
+     * Adds an editable text input to an Input.
+     */
     public static final class FieldInput extends Field {
         private String mText;
 
@@ -171,15 +181,26 @@ public abstract class Field {
             // TODO: consider replacing default text with string resource
         }
 
+        /**
+         * @return The text the user has entered.
+         */
         public String getText() {
             return mText;
         }
 
+        /**
+         * Sets the current text in this Field.
+         *
+         * @param text The text to replace the contents with.
+         */
         public void setText(String text) {
             mText = text;
         }
     }
 
+    /**
+     * Adds an angle (0-360) picker to an Input.
+     */
     public static final class FieldAngle extends Field {
         private int mAngle;
 
@@ -192,15 +213,35 @@ public abstract class Field {
             this(json.optString("name", "NAME"), json.optInt("angle", 90));
         }
 
+        /**
+         * @return The angle set by the user.
+         */
         public int getAngle() {
             return mAngle;
         }
 
+        /**
+         * Set the current angle in this field. The angle will be wrapped to be in the range
+         * 0-360.
+         *
+         * @param angle The angle to set this field to.
+         */
         public void setAngle(int angle) {
-            mAngle = angle % 360;
+            if (angle == 360) {
+                mAngle = angle;
+            } else {
+                angle = angle % 360;
+                if (angle < 0) {
+                    angle += 360;
+                }
+                mAngle = angle;
+            }
         }
     }
 
+    /**
+     * Adds a toggleable checkbox to an Input.
+     */
     public static final class FieldCheckbox extends Field {
         private boolean mChecked;
 
@@ -213,15 +254,24 @@ public abstract class Field {
             this(json.optString("name", "NAME"), json.optBoolean("checked", true));
         }
 
+        /**
+         * @return The current state of the checkbox.
+         */
         public boolean isChecked() {
             return mChecked;
         }
 
+        /**
+         * Sets the state of the checkbox.
+         */
         public void setChecked(boolean checked) {
             mChecked = checked;
         }
     }
 
+    /**
+     * Adds a colour picker to an Input.
+     */
     public static final class FieldColour extends Field {
         private int mColour;
 
@@ -238,15 +288,26 @@ public abstract class Field {
             }
         }
 
+        /**
+         * @return The current colour in this field.
+         */
         public int getColour() {
             return mColour;
         }
 
+        /**
+         * Sets the colour stored in this field.
+         *
+         * @param colour A colour in the form 0xRRGGBB
+         */
         public void setColour(int colour) {
             mColour = colour;
         }
     }
 
+    /**
+     * Adds a date picker to an Input.
+     */
     public static final class FieldDate extends Field {
         private final Date mDate;
 
@@ -271,15 +332,36 @@ public abstract class Field {
             this(json.optString("name", "NAME"), json.optString("date"));
         }
 
+        /**
+         * @return The date in this field.
+         */
         public Date getDate() {
             return mDate;
         }
 
+        /**
+         * Sets this field to a specific time.
+         *
+         * @param millis The time in millis since UNIX Epoch.
+         */
         public void setTime(long millis) {
             mDate.setTime(millis);
         }
+
+        /**
+         * Sets this field to the specified {@link Date}.
+         */
+        public void setDate(Date date) {
+            if (date == null) {
+                throw new IllegalArgumentException("Date may not be null.");
+            }
+            mDate.setTime(date.getTime());
+        }
     }
 
+    /**
+     * Adds a variable to an Input.
+     */
     public static final class FieldVariable extends Field {
         private String mVariable;
 
@@ -292,15 +374,25 @@ public abstract class Field {
             this(json.optString("name", "NAME"), json.optString("variable", "item"));
         }
 
+        /**
+         * @return The name of the variable that is set.
+         */
         public String getVariable() {
             return mVariable;
         }
 
+        /**
+         * Sets the variable in this field. All variables are considered global and must be unique.
+         * Two variables with the same name will be considered the same variable at generation.
+         */
         public void setVariable(String variable) {
             mVariable = variable;
         }
     }
 
+    /**
+     * Adds a dropdown list to an Input.
+     */
     public static final class FieldDropdown extends Field {
         // TODO: consider other data structures
         private ArrayList<Pair<String, String>> mOptions = new ArrayList<>();
@@ -345,22 +437,39 @@ public abstract class Field {
             }
         }
 
+        /**
+         * @return The list of options available in this dropdown.
+         */
         public List<Pair<String, String>> getOptions() {
             return mOptions;
         }
 
+        /**
+         * @return The value of the currently selected option.
+         */
         public String getSelectedValue() {
             return mOptions.size() == 0 ? null : mOptions.get(mCurrentSelection).second;
         }
 
+        /**
+         * @return The display name of the currently selected option.
+         */
         public String getSelectedDisplayName() {
             return mOptions.size() == 0 ? null : mOptions.get(mCurrentSelection).first;
         }
 
+        /**
+         * @return The index of the currently selected option.
+         */
         public int getSelectedIndex() {
             return mCurrentSelection;
         }
 
+        /**
+         * Sets the current selected option.
+         *
+         * @param index The index to select.
+         */
         public void setSelectedIndex(int index) {
             if (index < 0 || index >= mOptions.size()) {
                 throw new IllegalArgumentException(
@@ -369,6 +478,13 @@ public abstract class Field {
             mCurrentSelection = index;
         }
 
+        /**
+         * Set the list of options this field displays. The parameters must be two arrays of equal
+         * length.
+         *
+         * @param displayNames The names to display for the options.
+         * @param values The values for the options.
+         */
         public void setOptions(String[] displayNames, String[] values) {
             String previousValue = getSelectedValue();
             if (displayNames != null) {
@@ -420,6 +536,12 @@ public abstract class Field {
             }
         }
 
+        /**
+         * Sets the list of options. Each Pair in the list must have a display name as the first
+         * parameter and the value as the second parameter.
+         *
+         * @param options A list of options consisting of pairs of displayName/value.
+         */
         public void setOptions(List<Pair<String, String>> options) {
             String previousValue = getSelectedValue();
             mOptions.clear();
@@ -430,6 +552,9 @@ public abstract class Field {
         }
     }
 
+    /**
+     * Adds an image to an Input.
+     */
     public static final class FieldImage extends Field {
         private String mSrc;
         private int mWidth;
@@ -451,28 +576,50 @@ public abstract class Field {
                     json.optString("alt", "*"));
         }
 
+        /**
+         * @return The source for the image.
+         */
         public String getSource() {
             return mSrc;
         }
 
+        /**
+         * @return The display width of the image in dips.
+         */
         public int getWidth() {
             return mWidth;
         }
 
+        /**
+         * @return The display height of the image in dips.
+         */
         public int getHeight() {
             return mHeight;
         }
 
+        /**
+         * @return The alt-text for the image.
+         */
         public String getAltText() {
             return mAltText;
         }
 
+        /**
+         * Sets a new image to be shown.
+         *
+         * @param src A web address or Blockly reference to the image.
+         * @param width The display width of the image in dips.
+         * @param height The display height of the image in dips.
+         */
         public void setImage(String src, int width, int height) {
             mSrc = src;
             mWidth = width;
             mHeight = height;
         }
 
+        /**
+         * Sets the alt-text for the image.
+         */
         public void setAltText(String altText) {
             mAltText = altText;
         }
