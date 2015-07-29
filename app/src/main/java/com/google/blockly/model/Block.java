@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-package com.google.blockly.blocks;
+package com.google.blockly.model;
 
+import android.graphics.Color;
 import android.graphics.Point;
 import android.text.TextUtils;
 import android.util.Log;
@@ -34,6 +35,8 @@ public class Block {
     private static final String TAG = "Block";
 
     private static final int DEFAULT_HUE_COLOUR = 0;
+    private static final float DEFAULT_SATURATION = 0.7f;
+    private static final float DEFAULT_VALUE = 0.8f;
 
     // These values are immutable once a block is created
     private final String mUuid;
@@ -43,12 +46,13 @@ public class Block {
     private Connection mOutputConnection;
     private Connection mNextConnection;
     private Connection mPreviousConnection;
+    private Block mRootBlock;
     private ArrayList<Input> mInputList;
+    private int mColour;
     private boolean mInputsInline;
 
     // These values can be changed after creating the block
     private ArrayList<Block> mChildBlocks;
-    private Block mParentBlock;
     private String mTooltip;
     private String mComment;
     private boolean mHasContextMenu;
@@ -71,6 +75,9 @@ public class Block {
         mPreviousConnection = previousConnection;
         mInputList = inputList;
         mInputsInline = inputsInline;
+        mPosition = new Point(0,0);
+
+        mColour = Color.HSVToColor(new float[]{mColourHue, DEFAULT_SATURATION, DEFAULT_VALUE});
     }
 
     public List<Block> getChildren() {
@@ -89,8 +96,60 @@ public class Block {
         return mName;
     }
 
+    public int getColourHue() {
+        return mColourHue;
+    }
+
+    public int getColour() {
+        return mColour;
+    }
+
+    public Point getPosition() {
+        return mPosition;
+    }
+
+    /**
+     * Set the position of this block in the workspace.
+     *
+     * @param x The workspace x position.
+     * @param y The workspace y position.
+     */
+    public void setPosition(int x, int y) {
+        mPosition.x = x;
+        mPosition.y = y;
+    }
+
     public List<Input> getInputs() {
         return mInputList;
+    }
+
+    /**
+     * Sets the block at the root of the chain of blocks this block is in. A root block (also called
+     * a top level block) is the first block in a set of connected blocks in a workspace. If this
+     * block is itself a root block this should be set to null.
+     *
+     * @param block The root for this block.
+     */
+    public void setRootBlock(Block block) {
+        if (mRootBlock == this) {
+            throw new IllegalArgumentException("A block cannot be its own root");
+        }
+        mRootBlock = block;
+    }
+
+    /**
+     * @return This block's root or null if this block is a root block.
+     */
+    public Block getRootBlock() {
+        return mRootBlock;
+    }
+
+    public Block getPreviousBlock() {
+        return mPreviousConnection == null ? null : mPreviousConnection.getTargetBlock();
+    }
+
+    public Block getNextBlock() {
+        return mNextConnection == null ? null : mNextConnection.getTargetBlock();
     }
 
     /**
@@ -292,8 +351,6 @@ public class Block {
         private boolean mInputsInline;
 
         // These values can be changed after creating the block
-        private ArrayList<Block> mChildBlocks;
-        private Block mParentBlock;
         private String mTooltip;
         private String mComment;
         private boolean mHasContextMenu;
@@ -312,7 +369,6 @@ public class Block {
             mName = name;
             mUuid = uuid;
             mInputs = new ArrayList<>();
-            mChildBlocks = new ArrayList<>();
             mPosition = new Point(0, 0);
         }
 
@@ -396,27 +452,6 @@ public class Block {
             return this;
         }
 
-        public Builder addChild(Block child) {
-            if (child == null) {
-                throw new IllegalArgumentException("child may not be null.");
-            }
-            mChildBlocks.add(child);
-            return this;
-        }
-
-        public Builder setChildren(ArrayList<Block> childBlocks) {
-            if (childBlocks == null) {
-                throw new IllegalArgumentException("children may not be null.");
-            }
-            mChildBlocks = childBlocks;
-            return this;
-        }
-
-        public Builder setParent(Block parentBlock) {
-            mParentBlock = parentBlock;
-            return this;
-        }
-
         public Builder setTooltip(String tooltip) {
             mTooltip = tooltip;
             return this;
@@ -466,11 +501,6 @@ public class Block {
         public Block build() {
             Block b = new Block(mUuid, mName, mCategory, mColourHue, mOutputConnection, mNextConnection,
                     mPreviousConnection, mInputs, mInputsInline);
-            for (int i = 0; i < mChildBlocks.size(); i++) {
-                mChildBlocks.get(i).mParentBlock = b;
-            }
-            b.mChildBlocks = mChildBlocks;
-            b.mParentBlock = mParentBlock;
             b.mTooltip = mTooltip;
             b.mComment = mComment;
             b.mHasContextMenu = mHasContextMenu;
@@ -485,7 +515,4 @@ public class Block {
 
     }
 
-    public class Connection {
-
-    }
 }

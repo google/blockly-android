@@ -1,4 +1,4 @@
-package com.google.blockly.blocks;
+package com.google.blockly.model;
 
 import android.graphics.Color;
 import android.text.TextUtils;

@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-package com.google.blockly.blocks;
+package com.google.blockly.model;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;

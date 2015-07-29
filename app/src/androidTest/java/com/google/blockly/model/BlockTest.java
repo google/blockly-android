@@ -1,14 +1,12 @@
-package com.google.blockly.blocks;
+package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
-import android.text.TextUtils;
 
 import com.google.blockly.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

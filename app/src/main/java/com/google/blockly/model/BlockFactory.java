@@ -13,20 +13,16 @@
  * limitations under the License.
  */
 
-package com.google.blockly.blocks;
+package com.google.blockly.model;
 
 import android.content.Context;
 import android.content.res.Resources;
 import android.text.TextUtils;
-import android.util.JsonReader;
 import android.util.Log;
-import android.util.Xml;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
