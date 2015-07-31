@@ -132,6 +132,10 @@ public class Block {
                 // If there's no args for this message use an empty array.
                 args = new JSONArray();
             }
+
+            if (message.matches("^%[a-zA-Z_][a-zA-Z_0-9]*$")) {
+                // TODO: load the message from resources.
+            }
             // Split on all argument indices of the form "%N" where N is a number from 1 to
             // the number of args without removing them.
             List<String> tokens = tokenizeMessage(message);
@@ -210,7 +214,9 @@ public class Block {
 
     /**
      * Breaks a block message up into args and text. The returned Strings should all either
-     * exactly match "^%\\d+$" if they are an arg or else are just text for a label.
+     * exactly match "^%\\d+$" if they are an arg or else are just text for a label. %[0-9]+ will
+     * always be treated as an argument regardless of where in the string it appears, unless the
+     * % is escaped (eg "Escaped %%5 has no args")
      *
      * @param message The message to tokenize.
      * @return A list of Strings that are either an arg or plain text.
@@ -229,24 +235,21 @@ public class Block {
             if (currChar == '%') {
                 if (i + 1 < length) {
                     char nextChar = message.charAt(i + 1);
-                    if (nextChar == '%') {
+                    if (nextChar == '%' || !Character.isDigit(nextChar)) {
+                        // If we have %% or this is not an arg don't pull it out of the string.
                         i++;
                         continue;
-                    } else if (!Character.isDigit(nextChar)) {
-                        throw new IllegalArgumentException(
-                                "% must be escaped by another % when not denoting an arg."
-                                + " Bad message: " + message);
                     }
                 } else {
-                    throw new IllegalArgumentException(
-                            "Messages may not end in an unescaped %. Bad message: " + message);
+                    // Done processing the string. Final % will be included in the last token.
+                    continue;
                 }
                 foundPercent = true;
                 lastPercent = i;
             } else if (foundPercent) {
                 if (Character.isDigit(currChar)) {
                     continue;
-                } else if (currChar == ' ') {
+                } else {
                     String potentialText = message.substring(lastSplit, lastPercent).trim();
                     if (!TextUtils.isEmpty(potentialText)) {
                         result.add(potentialText);
@@ -254,20 +257,22 @@ public class Block {
                     result.add(message.substring(lastPercent, i));
                     lastSplit = i;
                     foundPercent = false;
-                } else {
-                    throw new IllegalArgumentException(
-                            "Message args may only contain a % followed by numbers, then a space."
-                            + " Bad message:" + message);
                 }
             }
         }
         if (lastSplit != message.length() - 1) {
             // We have remaining pieces to split
             if (lastPercent > lastSplit) {
-                result.add(message.substring(lastSplit, lastPercent));
+                String potentialText = message.substring(lastSplit, lastPercent).trim();
+                if (!TextUtils.isEmpty(potentialText)) {
+                    result.add(potentialText);
+                }
                 result.add(message.substring(lastPercent, message.length()));
             } else {
-                result.add(message.substring(lastSplit, message.length()));
+                String potentialText = message.substring(lastSplit, message.length()).trim();
+                if (!TextUtils.isEmpty(potentialText)) {
+                    result.add(potentialText);
+                }
             }
         }
 
@@ -347,6 +352,7 @@ public class Block {
         }
 
         public Builder setColour(int hsvColor) {
+            hsvColor = Math.min(360, Math.max(0, hsvColor));
             mColourHue = hsvColor;
             return this;
         }

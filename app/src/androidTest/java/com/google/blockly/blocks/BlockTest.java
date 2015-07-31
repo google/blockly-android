@@ -8,6 +8,8 @@ import com.google.blockly.R;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -90,19 +92,33 @@ public class BlockTest extends AndroidTestCase {
     public void testMessageTokenizer() {
         String testMessage = "%%5 should have %1 %12 6 tokens %999 in the end";
         List<String> tokens = Block.tokenizeMessage(testMessage);
-        assertEquals("Should have 6 tokens: " + tokens.toString(), 6, tokens.size());
+        List<String> expected = Arrays.asList(
+                new String[] {"%%5 should have", "%1", "%12", "6 tokens", "%999", "in the end"});
+        assertListsMatch(expected, tokens);
 
         testMessage = "This has no args %%5";
         tokens = Block.tokenizeMessage(testMessage);
         assertEquals("Should have 1 token: " + tokens.toString(), 1, tokens.size());
-        assertTrue("Only token should be the original string: " + tokens.toString(),
-                TextUtils.equals(testMessage, tokens.get(0)));
+        assertEquals("Only token should be the original string: " + tokens.toString(),
+                testMessage, tokens.get(0));
 
         testMessage = "%1";
         tokens = Block.tokenizeMessage(testMessage);
         assertEquals("Should have 1 token: " + tokens.toString(), 1, tokens.size());
-        assertTrue("Only token should be the original string: " + tokens.toString(),
-                TextUtils.equals(testMessage, tokens.get(0)));
+        assertEquals("Only token should be the original string: " + tokens.toString(),
+                testMessage, tokens.get(0));
+
+        testMessage = "%Hello";
+        tokens = Block.tokenizeMessage(testMessage);
+        assertEquals("Should have 1 token: " + tokens.toString(), 1, tokens.size());
+        assertEquals("Only token should be the original string: " + tokens.toString(),
+                testMessage, tokens.get(0));
+
+
+        testMessage = "%Hello%1World%";
+        tokens = Block.tokenizeMessage(testMessage);
+        expected = Arrays.asList(new String[] {"%Hello", "%1", "World%"});
+        assertListsMatch(expected, tokens);
     }
 
     public void testBlockFactory() {
@@ -119,5 +135,12 @@ public class BlockTest extends AndroidTestCase {
         assertNotNull("Failed to create the frankenblock.", frankenblock);
         assertEquals("Frankenblock has the wrong number of inputs", 3,
                 frankenblock.getInputs().size());
+    }
+
+    private void assertListsMatch(List<String> expected, List<String> actual) {
+        assertEquals("Wrong number of items in the list.", expected.size(), actual.size());
+        for (int i = 0; i < expected.size(); i++) {
+            assertEquals("Item " + i + " does not match.", expected.get(i), actual.get(i));
+        }
     }
 }
