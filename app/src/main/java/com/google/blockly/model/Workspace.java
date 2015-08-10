@@ -29,9 +29,6 @@ public class Workspace {
     private static final String TAG = "Workspace";
     private static final boolean DEBUG = true;
 
-    private static final int DEFAULT_WORKSPACE_HEIGHT = 2048;
-    private static final int DEFAULT_WORKSPACE_WIDTH = 1024;
-
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
 
     public Workspace(Context context) {
@@ -68,17 +65,14 @@ public class Workspace {
             throw new IllegalArgumentException("Connections may not be connected.");
         }
 
-        boolean updateRoot = false;
         if (a.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
             if (removeRootBlock(a.getBlock()) && DEBUG) {
                 Log.d(TAG, "Removed root block before connecting it.");
             }
-            updateRoot = true;
         } else if (b.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
             if (removeRootBlock(b.getBlock()) && DEBUG) {
                 Log.d(TAG, "Removed root block before connecting it.");
             }
-            updateRoot = true;
         }
 
         a.connect(b);

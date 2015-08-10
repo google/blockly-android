@@ -2,11 +2,18 @@ package com.google.blockly.ui;
 
 import android.content.Context;
 import android.graphics.Point;
+import android.util.Log;
 
 /**
  * Provides helper methods for converting coordinates between the workspace and the views.
  */
 public class WorkspaceHelper {
+    private static final String TAG = "WorkspaceHelper";
+
+    // TODO: Pull from config file
+    private static final float SCALE_MIN = 0.1f;
+    private static final float SCALE_MAX = 3f;
+
     private float mScale = 1;
     private float mDensity;
     private Point mOffset;
@@ -20,6 +27,10 @@ public class WorkspaceHelper {
      */
     public WorkspaceHelper(Context context, int leftOffset, int topOffset) {
         mDensity = context.getResources().getDisplayMetrics().density;
+        if (mDensity == 0) {
+            Log.e(TAG, "Density is not defined for this context. Defaulting to 1.");
+            mDensity = 1f;
+        }
         mOffset = new Point(leftOffset, topOffset);
     }
 
@@ -32,7 +43,7 @@ public class WorkspaceHelper {
      * @param scale The scale of the view.
      */
     public void setScale(float scale) {
-        mScale = scale;
+        mScale = Math.min(SCALE_MAX, Math.max(SCALE_MIN, scale));
     }
 
     /**

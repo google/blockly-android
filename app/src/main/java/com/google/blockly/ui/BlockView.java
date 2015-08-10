@@ -32,9 +32,13 @@ import java.util.List;
  */
 public class BlockView extends FrameLayout {
     // TODO: Replace these with dimens so they get scaled correctly
+    // The minimum height of a rendered block, in dips.
     private static final float BASE_HEIGHT = 48;
+    // The minimum width of a rendered block, in dips.
     private static final float BASE_WIDTH = 48;
+    // The distance between fields, in dips.
     private static final float FIELD_SPACING = 4;
+    // The radius for rounding corners of a block, in dips.
     private static final float CORNER_RADIUS = 4;
 
     private final WorkspaceHelper mHelper;

@@ -41,6 +41,12 @@ public class WorkspaceView extends ViewGroup {
     private static final int GRID_RADIUS = 2;
     private static final float MIN_SCALE_TO_DRAW_GRID = 0.2f;
 
+    // TODO: Replace with more intelligent defaults
+    // Default desired width of the view in pixels.
+    private static final int DESIRED_WIDTH = 2048;
+    // Default desired height of the view in pixels.
+    private static final int DESIRED_HEIGHT = 4096;
+
 
     private Workspace mWorkspace;
     private WorkspaceHelper mHelper;
@@ -98,8 +104,8 @@ public class WorkspaceView extends ViewGroup {
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int desiredWidth = 2048; // TODO: replace with configurable values or better defaults
-        int desiredHeight = 4096;
+        int desiredWidth = DESIRED_WIDTH;
+        int desiredHeight = DESIRED_HEIGHT;
         int width, height;
 
         int mode = MeasureSpec.getMode(widthMeasureSpec);
@@ -152,6 +158,6 @@ public class WorkspaceView extends ViewGroup {
     }
 
     private boolean shouldDrawGrid() {
-        return mDrawGrid && mHelper.getScale() > MIN_SCALE_TO_DRAW_GRID;
+        return mDrawGrid && mHelper.getScale() > MIN_SCALE_TO_DRAW_GRID && mGridSpacing > 0;
     }
 }

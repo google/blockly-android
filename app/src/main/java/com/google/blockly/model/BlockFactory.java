@@ -31,7 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Created by epastern on 5/21/15.
+ * Helper class for building a set of master blocks and then obtaining copies of them for use in
+ * a workspace or toolbar.
  */
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
@@ -39,6 +40,12 @@ public class BlockFactory {
     private Resources mResources;
     private HashMap<String, Block> mBlockTemplates = new HashMap<>();
 
+    /**
+     * Create a factory with an initial set of blocks from json resources.
+     *
+     * @param context The context for loading resources.
+     * @param blockSourceIds A list of JSON resources containing blocks.
+     */
     public BlockFactory(Context context, int[] blockSourceIds) {
         mResources = context.getResources();
         if (blockSourceIds != null) {
@@ -48,6 +55,11 @@ public class BlockFactory {
         }
     }
 
+    /**
+     * Adds a block to the set of blocks that can be created.
+     *
+     * @param block The master block to add.
+     */
     public void addBlockTemplate(Block block) {
         if (mBlockTemplates.containsKey(block.getName())) {
             throw new IllegalArgumentException("There is already a block named " + block.getName());
@@ -55,6 +67,23 @@ public class BlockFactory {
         mBlockTemplates.put(block.getName(), new Block.Builder(block).build());
     }
 
+    /**
+     * Removes a block type from the factory.
+     *
+     * @param prototypeName The name of the block to remove.
+     * @return The master block that was removed or null if it wasn't found.
+     */
+    public Block removeBlockTemplate(String prototypeName) {
+        return mBlockTemplates.remove(prototypeName);
+    }
+
+    /**
+     * Creates a block of the specified type using one of the master blocks known to this factory.
+     * If the prototypeName is not one of the known block types null will be returned instead.
+     *
+     * @param prototypeName The name of the block type to create.
+     * @return A new block of that type or null.
+     */
     public Block obtainBlock(String prototypeName) {
         if (!mBlockTemplates.containsKey(prototypeName)) {
             Log.w(TAG, "Block " + prototypeName + " not found.");
@@ -64,10 +93,18 @@ public class BlockFactory {
         return bob.build();
     }
 
+    /**
+     * @return The list of known blocks that can be created.
+     */
     public List<Block> getAllBlocks() {
         return new ArrayList<Block>(mBlockTemplates.values());
     }
 
+    /**
+     * Adds a set of master blocks from a JSON resource.
+     *
+     * @param resId The id of the JSON resource to load blocks from.
+     */
     public void loadBlocksFromResource(int resId) {
         InputStream blockIs = mResources.openRawResource(resId);
         loadBlocks(blockIs);

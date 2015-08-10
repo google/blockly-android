@@ -34,9 +34,9 @@ import java.util.UUID;
 public class Block {
     private static final String TAG = "Block";
 
-    private static final int DEFAULT_HUE_COLOUR = 0;
-    private static final float DEFAULT_SATURATION = 0.7f;
-    private static final float DEFAULT_VALUE = 0.8f;
+    private static final int DEFAULT_HSV_HUE = 0;
+    private static final float DEFAULT_HSV_SATURATION = 0.7f;
+    private static final float DEFAULT_HSV_VALUE = 0.8f;
 
     // These values are immutable once a block is created
     private final String mUuid;
@@ -46,13 +46,11 @@ public class Block {
     private Connection mOutputConnection;
     private Connection mNextConnection;
     private Connection mPreviousConnection;
-    private Block mRootBlock;
     private ArrayList<Input> mInputList;
     private int mColour;
     private boolean mInputsInline;
 
     // These values can be changed after creating the block
-    private ArrayList<Block> mChildBlocks;
     private String mTooltip;
     private String mComment;
     private boolean mHasContextMenu;
@@ -77,33 +75,56 @@ public class Block {
         mInputsInline = inputsInline;
         mPosition = new Point(0,0);
 
-        mColour = Color.HSVToColor(new float[]{mColourHue, DEFAULT_SATURATION, DEFAULT_VALUE});
+        mColour = Color.HSVToColor(new float[]{mColourHue, DEFAULT_HSV_SATURATION, DEFAULT_HSV_VALUE});
+
+        if (mInputList != null) {
+            for (int i = 0; i < mInputList.size(); i++) {
+                mInputList.get(i).setBlock(this);
+            }
+        }
+        if (mOutputConnection != null) {
+            mOutputConnection.setBlock(this);
+        }
+        if (mPreviousConnection != null) {
+            mPreviousConnection.setBlock(this);
+        }
+        if (mNextConnection != null) {
+            mNextConnection.setBlock(this);
+        }
     }
 
-    public List<Block> getChildren() {
-        return mChildBlocks;
-    }
-
-    public void addChild(int position, Block child) {
-        mChildBlocks.add(position, child);
-    }
-
-    public void removeChild(int position) {
-        mChildBlocks.remove(position);
-    }
-
+    /**
+     * @return The name of the block. Not for display.
+     */
     public String getName() {
         return mName;
     }
 
+    /**
+     * Gets the hue for this block. The hue is combined with the configured saturation and value to
+     * create the final colour used for this block.
+     *
+     * @return The hue for this block.
+     */
     public int getColourHue() {
         return mColourHue;
     }
 
+    /**
+     * @return The colour this block should be drawn in.
+     */
     public int getColour() {
         return mColour;
     }
 
+    /**
+     * Gets the position of this block. The position is the top left for LtR configurations and the
+     * top right for RtL configurations. This position is only meaningful for top level blocks. All
+     * other blocks will have a position that is dependent on the block rendering relative to the
+     * top level block.
+     *
+     * @return The x,y coordinates of the start corner of this block.
+     */
     public Point getPosition() {
         return mPosition;
     }
@@ -119,35 +140,23 @@ public class Block {
         mPosition.y = y;
     }
 
+    /**
+     * @return The set of inputs on this block.
+     */
     public List<Input> getInputs() {
         return mInputList;
     }
 
     /**
-     * Sets the block at the root of the chain of blocks this block is in. A root block (also called
-     * a top level block) is the first block in a set of connected blocks in a workspace. If this
-     * block is itself a root block this should be set to null.
-     *
-     * @param block The root for this block.
+     * @return The block connected to this block's previous connection or null.
      */
-    public void setRootBlock(Block block) {
-        if (mRootBlock == this) {
-            throw new IllegalArgumentException("A block cannot be its own root");
-        }
-        mRootBlock = block;
-    }
-
-    /**
-     * @return This block's root or null if this block is a root block.
-     */
-    public Block getRootBlock() {
-        return mRootBlock;
-    }
-
     public Block getPreviousBlock() {
         return mPreviousConnection == null ? null : mPreviousConnection.getTargetBlock();
     }
 
+    /**
+     * @return The block connected to this block's next connection or null.
+     */
     public Block getNextBlock() {
         return mNextConnection == null ? null : mNextConnection.getTargetBlock();
     }
@@ -173,7 +182,24 @@ public class Block {
             throw new IllegalArgumentException(
                     "Blocks cannot have both an output and a previous statement");
         }
-        int colour = json.optInt("colour", DEFAULT_HUE_COLOUR);
+
+        // Parse any connections that are present.
+        if (json.has("output")) {
+            String[] checks = Input.getChecksFromJson(json, "output");
+            Connection output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, checks);
+            bob.setOutput(output);
+        } else if (json.has("previous")) {
+            String[] checks = Input.getChecksFromJson(json, "previous");
+            Connection previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, checks);
+            bob.setPrevious(previous);
+        }
+        if (json.has("next")) {
+            String[] checks = Input.getChecksFromJson(json, "next");
+            Connection next = new Connection(Connection.CONNECTION_TYPE_NEXT, checks);
+            bob.setNext(next);
+        }
+
+        int colour = json.optInt("colour", DEFAULT_HSV_HUE);
         bob.setColour(colour);
 
         ArrayList<Input> inputs = new ArrayList<>();
@@ -510,6 +536,7 @@ public class Block {
             b.mCollapsed = mCollapsed;
             b.mDisabled = mDisabled;
             b.mPosition = mPosition;
+
             return b;
         }
 

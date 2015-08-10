@@ -1,16 +1,35 @@
 package com.google.blockly.model;
 
 import android.text.TextUtils;
-import android.util.Log;
+
+import org.json.JSONObject;
 
 /**
  * Describes a connection on a Block. This can be a previous/next connection, an output, or
  * the connection on an {@link Input}.
  */
 public class Connection {
+    /**
+     * A previous connection on a block. May only be connected to a next connection. A block may
+     * not have both a previous and an output connection. This is only used for the previous link
+     * on a block.
+     */
     public static final int CONNECTION_TYPE_PREVIOUS = 0;
+    /**
+     * A next connection on a block. May only be connected to a previous connection. This is used
+     * for the next link on a block and for inputs that connect to a set of statement blocks.
+     */
     public static final int CONNECTION_TYPE_NEXT = 1;
+    /**
+     * An input connection on a block. May only be connected to an output connection. This is used
+     * by inputs that take a single value block.
+     */
     public static final int CONNECTION_TYPE_INPUT = 2;
+    /**
+     * An output connection on a block. May only be connected to an input connection. A block may
+     * not have both an output and a previous connection. This is only used for the output link on
+     * a block.
+     */
     public static final int CONNECTION_TYPE_OUTPUT = 3;
 
     private static final int[] OPPOSITE_TYPES = new int[]{
@@ -25,19 +44,17 @@ public class Connection {
     private static final int REASON_WRONG_TYPE = 2;
     private static final int REASON_MUST_DISCONNECT = 3;
     private static final int REASON_TARGET_NULL = 4;
-    private static final int REASON_CHECK_FAILED = 5;
+    private static final int REASON_CHECKS_FAILED = 5;
 
 
     private final int mConnectionType;
-    private final Block mBlock;
-    private final Input mInput;
+    private Block mBlock;
+    private Input mInput;
     private String[] mConnectionChecks;
     private Connection mTargetConnection;
 
-    public Connection(int type, String[] checks, Block block, Input input) {
+    public Connection(int type, String[] checks) {
         mConnectionType = type;
-        mBlock = block;
-        mInput = input;
         mConnectionChecks = checks;
     }
 
@@ -77,6 +94,20 @@ public class Connection {
         Connection target = mTargetConnection;
         disconnectInternal();
         target.disconnectInternal();
+    }
+
+    /**
+     * Sets the block that this connection is part of.
+     */
+    public void setBlock(Block block) {
+        mBlock = block;
+    }
+
+    /**
+     * Sets the input this connection is part of.
+     */
+    public void setInput(Input input) {
+        mInput = input;
     }
 
     /**
@@ -148,7 +179,7 @@ public class Connection {
             return REASON_MUST_DISCONNECT;
         }
         if (!checksMatch(target)) {
-            return REASON_CHECK_FAILED;
+            return REASON_CHECKS_FAILED;
         }
         return CAN_CONNECT;
     }
@@ -166,7 +197,7 @@ public class Connection {
                         "Must disconnect from current block before connecting to a new one.");
             case REASON_TARGET_NULL:
                 throw new IllegalArgumentException("Cannot connect to a null connection");
-            case REASON_CHECK_FAILED:
+            case REASON_CHECKS_FAILED:
                 throw new IllegalArgumentException("Cannot connect, checks do not match.");
             default:
                 throw new IllegalArgumentException(
