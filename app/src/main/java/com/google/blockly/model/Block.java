@@ -411,6 +411,104 @@ public class Block {
         return bob.build();
     }
 
+
+    public static Block fromXml(XmlPullParser parser) throws XmlPullParserException, IOException {
+        String type = parser.getAttributeValue(null, "type");   // prototype name.
+        String id = parser.getAttributeValue(null, "id");
+        // TODO(fenichel): Throw error if no name.
+        // TODO(fenichel): Generate random ID if there is no id.
+        Block resultBlock = new Builder(type, id).build();
+
+        // Set position.  Only if this is a top level block.
+        String x = parser.getAttributeValue(null, "x");
+        String y = parser.getAttributeValue(null, "y");
+        if (x != null && y != null) {
+            resultBlock.setPosition(Integer.parseInt(x), Integer.parseInt(y));
+        }
+
+        int eventType = parser.getEventType();
+        String text = "";
+        String fieldName = "";
+        Block childBlock = null;
+        Input valueInput = null;
+        Input statementInput = null;
+
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            String tagname = parser.getName();
+            switch (eventType) {
+                case XmlPullParser.START_TAG:
+                    if (tagname.equalsIgnoreCase("block")) {
+                        childBlock = fromXml(parser);
+                    }
+                    else if (tagname.equalsIgnoreCase("field")){
+                        fieldName = parser.getAttributeValue(null, "name");
+                    }
+                    else if (tagname.equalsIgnoreCase("value")){
+                        valueInput = resultBlock.getInputByName(
+                                parser.getAttributeValue(null, "name"));
+                    }
+                    else if (tagname.equalsIgnoreCase("statement")){
+                        statementInput = resultBlock.getInputByName(
+                                parser.getAttributeValue(null, "name"));
+                    }
+                    else if (tagname.equalsIgnoreCase("mutation")){
+                        // TODO(fenichel): Handle mutations.
+                    }
+                    break;
+
+                case XmlPullParser.TEXT:
+                    text = parser.getText();
+                    break;
+
+                case XmlPullParser.END_TAG:
+                    if (tagname.equalsIgnoreCase("block")) {
+                        return resultBlock;
+                    }
+                    else if (tagname.equalsIgnoreCase("field")){
+                        Field toSet = resultBlock.getFieldByName(fieldName);
+                        if (toSet != null) {
+                            // TODO(fenichel): Use the return value of setFromXmlText?
+                            toSet.setFromXmlText(text);
+                        }
+                    }
+                    else if (tagname.equalsIgnoreCase("value")){
+                        // TODO(fenichel): Handle exceptions when the connections have problems.
+                        // TODO(fenichel): Handle the case where the input or child block is null.
+                        if (valueInput != null && childBlock != null) {
+                            valueInput.getConnection().connect(childBlock.getOutputConnection());
+                            valueInput = null;
+                            childBlock = null;
+                        }
+                    }
+                    else if (tagname.equalsIgnoreCase("statement")){
+                        // TODO(fenichel): Handle exceptions when the connections have problems.
+                        // TODO(fenichel): Handle the case where the input or child block is null.
+                        if (statementInput != null && childBlock != null) {
+                            statementInput.getConnection().connect(
+                                    childBlock.getPreviousConnection());
+                            valueInput = null;
+                            childBlock = null;
+                        }
+                    }
+                    else if (tagname.equalsIgnoreCase("comment")){
+                        resultBlock.setComment(text);
+                    }
+                    else if (tagname.equalsIgnoreCase("next")){
+                        // TODO(fenichel): Handle exceptions when the connections have problems.
+                        // TODO(fenichel): Handle the case where the input or child block is null.
+                        resultBlock.getNextConnection().connect(childBlock.getPreviousConnection());
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+            eventType = parser.next();
+        }
+        // Should never reach here, since this is called from a workspace fromXml function.
+        return null;
+    }
+
     /**
      * Breaks a block message up into args and text. The returned Strings should all either
      * exactly match "^%\\d+$" if they are an arg or else are just text for a label. %[0-9]+ will
