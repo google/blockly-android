@@ -17,13 +17,18 @@ package com.google.blockly.model;
 
 import android.graphics.Color;
 import android.graphics.Point;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
+import java.io.PipedInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -141,10 +146,60 @@ public class Block {
     }
 
     /**
+     * Set the comment on this block.
+     *
+     * @param comment The text of the comment.
+     */
+    public void setComment(String comment) {
+        mComment = comment;
+    }
+
+    /**
+     * @return The comment on this block.
+     */
+    public String getComment() {
+        return mComment;
+    }
+
+    /**
      * @return The set of inputs on this block.
      */
     public List<Input> getInputs() {
         return mInputList;
+    }
+
+    /**
+     * Searches through the block's list of inputs and returns the first one with the given name.
+     *
+     * @param targetName The name of the input to search for.
+     * @return The first Input with that name.
+     */
+    public Input getInputByName(String targetName) {
+        for (Input input : mInputList) {
+            if (input.getName().equalsIgnoreCase(targetName)) {
+                return input;
+            }
+        }
+        Log.d(TAG, "Couldn't find field " + targetName);
+        return null;
+    }
+
+    /**
+     * Searches through all of the fields on all of the block's inputs.  Returns the first field
+     * with the given name.
+     * @param targetName The name of the field to search for.
+     * @return The first Field with that name.
+     */
+    public Field getFieldByName(String targetName) {
+        for (Input input : mInputList) {
+            for (Field field : input.getFields()) {
+                if (field.getName().equalsIgnoreCase(targetName)) {
+                    return field;
+                }
+            }
+        }
+        Log.d(TAG, "Couldn't find field " + targetName);
+        return null;
     }
 
     /**
@@ -159,6 +214,30 @@ public class Block {
      */
     public Block getNextBlock() {
         return mNextConnection == null ? null : mNextConnection.getTargetBlock();
+    }
+
+    /**
+     * @return The block's output Connection.
+     */
+    @Nullable
+    public Connection getOutputConnection() {
+        return mOutputConnection;
+    }
+
+    /**
+     * @return The block's previous Connection.
+     */
+    @Nullable
+    public Connection getPreviousConnection() {
+        return mPreviousConnection;
+    }
+
+    /**
+     * @return The block's next Connection.
+     */
+    @Nullable
+    public Connection getNextConnection() {
+        return mNextConnection;
     }
 
     /**
@@ -539,7 +618,6 @@ public class Block {
 
             return b;
         }
-
     }
 
 }

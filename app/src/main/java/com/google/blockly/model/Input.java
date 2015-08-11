@@ -96,7 +96,9 @@ public abstract class Input {
         mName = name;
         mType = type;
         mConnection = connection;
-        mAlign = align;
+        if (align != null) {
+            mAlign = align;
+        }
 
         if (mConnection != null) {
             mConnection.setInput(this);
@@ -187,6 +189,21 @@ public abstract class Input {
      */
     public Block getBlock() {
         return mBlock;
+    }
+
+    /**
+     * @return The name of this input.
+     */
+    public String getName() { return mName; }
+
+    /**
+     * @return The input's Connection, or null if it is a dummy input.
+     */
+    public Connection getConnection() {
+        if (mType.equals(TYPE_DUMMY)) {
+            return null;
+        }
+        return mConnection;
     }
 
     /**
