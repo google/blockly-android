@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -76,6 +77,15 @@ public abstract class Field {
     public String getType() {
         return mType;
     }
+
+    /**
+     * Sets the values of the field when loading a workspace from XML.
+     * There should be a concrete implementation for each field type.
+     *
+     * @param text The text value for this field from the XML.
+     * @return True if the value was set, false otherwise.
+     */
+    public boolean setFromXmlText(String text) { return false; }
 
     /**
      * Checks if the given type is a known field type.
@@ -176,6 +186,12 @@ public abstract class Field {
             mText = text;
         }
 
+        @Override
+        public boolean setFromXmlText(String text) {
+            setText(text);
+            return true;
+        }
+
         private FieldInput(JSONObject json) {
             super(json.optString("name", "NAME"), json.optString("text", "default"));
             // TODO: consider replacing default text with string resource
@@ -207,6 +223,12 @@ public abstract class Field {
         public FieldAngle(String name, int angle) {
             super(name, TYPE_ANGLE);
             mAngle = angle;
+        }
+
+        @Override
+        public boolean setFromXmlText(String text) {
+            setAngle(Integer.parseInt(text));
+            return true;
         }
 
         private FieldAngle(JSONObject json) {
@@ -250,6 +272,12 @@ public abstract class Field {
             mChecked = checked;
         }
 
+        @Override
+        public boolean setFromXmlText(String text) {
+            Boolean.parseBoolean(text);
+            return true;
+        }
+
         private FieldCheckbox(JSONObject json) {
             this(json.optString("name", "NAME"), json.optBoolean("checked", true));
         }
@@ -278,6 +306,12 @@ public abstract class Field {
         public FieldColour(String name, int colour) {
             super(name, TYPE_COLOUR);
             mColour = colour;
+        }
+
+        @Override
+        public boolean setFromXmlText(String text) {
+            setColour(Color.parseColor(text));
+            return true;
         }
 
         private FieldColour(JSONObject json) {
@@ -309,6 +343,7 @@ public abstract class Field {
      * Adds a date picker to an Input.
      */
     public static final class FieldDate extends Field {
+        private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
         private final Date mDate;
 
         public FieldDate(String name, String dateString) {
@@ -316,7 +351,7 @@ public abstract class Field {
             Date date = null;
             if (!TextUtils.isEmpty(dateString)) {
                 try {
-                    date = DateFormat.getDateInstance().parse(dateString);
+                    date = DATE_FORMAT.parse(dateString);
                 } catch (ParseException e) {
                     Log.e(TAG, "Unable to parse date " + dateString, e);
                 }
@@ -326,6 +361,24 @@ public abstract class Field {
             }
             mDate = date;
 
+        }
+
+        @Override
+        public boolean setFromXmlText(String text) {
+            Date date = null;
+            if (!TextUtils.isEmpty(text)) {
+                try {
+                    date = DATE_FORMAT.parse(text);
+                } catch (ParseException e) {
+                    Log.e(TAG, "Unable to parse date " + text, e);
+                }
+            }
+            if (date == null) {
+                setTime(System.currentTimeMillis());
+            } else {
+                setDate(date);
+            }
+            return true;
         }
 
         private FieldDate(JSONObject json) {
@@ -370,6 +423,12 @@ public abstract class Field {
             mVariable = variable;
         }
 
+        @Override
+        public boolean setFromXmlText(String text) {
+            setVariable(text);
+            return true;
+        }
+
         private FieldVariable(JSONObject json) {
             this(json.optString("name", "NAME"), json.optString("variable", "item"));
         }
@@ -385,9 +444,7 @@ public abstract class Field {
          * Sets the variable in this field. All variables are considered global and must be unique.
          * Two variables with the same name will be considered the same variable at generation.
          */
-        public void setVariable(String variable) {
-            mVariable = variable;
-        }
+        public void setVariable(String variable) { mVariable = variable; }
     }
 
     /**
@@ -406,6 +463,12 @@ public abstract class Field {
         public FieldDropdown(String name, List<Pair<String, String>> options) {
             super(name, TYPE_DROPDOWN);
             setOptions(options);
+        }
+
+        @Override
+        public boolean setFromXmlText(String text) {
+            // TODO(fenichel): Implement.
+            return false;
         }
 
         private FieldDropdown(JSONObject json) {
