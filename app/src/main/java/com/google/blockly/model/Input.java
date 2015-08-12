@@ -28,7 +28,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * An input on a Blockly block. This generally wraps one or more {@link Field fields}.
+ * An input on a Blockly block. This generally wraps one or more {@link Field fields}. An input can
+ * be created by calling {@link #fromJson(JSONObject) Input.fromJson} or by creating a new instance
+ * of a concrete input class and adding fields to it.
  */
 public abstract class Input {
     private static final String TAG = "Input";
@@ -120,7 +122,7 @@ public abstract class Input {
      * @param json The JSONObject that describes the input.
      * @return An instance of {@link Input} generated from the json.
      */
-    public static Input fromJSON(JSONObject json) {
+    public static Input fromJson(JSONObject json) {
         String type = null;
         try {
             type = json.getString("type");

@@ -255,10 +255,10 @@ public class Block {
                         }
 
                         if (Field.isFieldType(type)) {
-                            fields.add(Field.fromJSON(element));
+                            fields.add(Field.fromJson(element));
                             break;
                         } else if (Input.isInputType(type)) {
-                            Input input = Input.fromJSON(element);
+                            Input input = Input.fromJson(element);
                             input.addAll(fields);
                             fields.clear();
                             inputs.add(input);

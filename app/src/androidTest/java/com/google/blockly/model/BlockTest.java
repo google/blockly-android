@@ -23,7 +23,7 @@ public class BlockTest extends AndroidTestCase {
             + "      \"type\": \"field_image\","
             + "      \"src\": \"https://www.gstatic.com/codesite/ph/images/star_on.gif\","
             + "      \"width\": 15,"
-            + "      \"height\": 15,"
+            + "      \"height\": 20,"
             + "      \"alt\": \"*\""
             + "    },"
             + "    {"
@@ -131,8 +131,15 @@ public class BlockTest extends AndroidTestCase {
 
         Block frankenblock = bf.obtainBlock("frankenblock");
         assertNotNull("Failed to create the frankenblock.", frankenblock);
-        assertEquals("Frankenblock has the wrong number of inputs", 3,
-                frankenblock.getInputs().size());
+
+        List<Input> inputs = frankenblock.getInputs();
+        assertEquals("Frankenblock has the wrong number of inputs", 3, inputs.size());
+        assertTrue("First input should be a value input.",
+                inputs.get(0) instanceof Input.InputValue);
+        assertTrue("Second input should be a statement input.",
+                inputs.get(1) instanceof Input.InputStatement);
+        assertTrue("Third input should be a dummy input.",
+                inputs.get(2) instanceof Input.InputDummy);
     }
 
     private void assertListsMatch(List<String> expected, List<String> actual) {
