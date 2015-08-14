@@ -82,14 +82,18 @@ public class BlockFactory {
      * If the prototypeName is not one of the known block types null will be returned instead.
      *
      * @param prototypeName The name of the block type to create.
+     * @param uuid The id of the block if loaded from XML; null otherwise.
      * @return A new block of that type or null.
      */
-    public Block obtainBlock(String prototypeName) {
+    public Block obtainBlock(String prototypeName, String uuid) {
         if (!mBlockTemplates.containsKey(prototypeName)) {
             Log.w(TAG, "Block " + prototypeName + " not found.");
             return null;
         }
         Block.Builder bob = new Block.Builder(mBlockTemplates.get(prototypeName));
+        if (uuid != null) {
+            bob.setUuid(uuid);
+        }
         return bob.build();
     }
 

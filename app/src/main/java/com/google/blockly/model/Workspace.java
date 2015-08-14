@@ -92,13 +92,13 @@ public class Workspace {
         return mWorkspaceHelper;
     }
 
-    public void loadFromXml(InputStream is) {
-        XmlPullParserFactory factory = null;
+    public void loadFromXml(InputStream is, BlockFactory blockFactory) {
+        XmlPullParserFactory Xppfactory = null;
         XmlPullParser parser = null;
         try {
-            factory = XmlPullParserFactory.newInstance();
-            factory.setNamespaceAware(true);
-            parser = factory.newPullParser();
+            Xppfactory = XmlPullParserFactory.newInstance();
+            Xppfactory.setNamespaceAware(true);
+            parser = Xppfactory.newPullParser();
 
             parser.setInput(is, null);
 
@@ -107,7 +107,7 @@ public class Workspace {
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
                         if (parser.getName().equalsIgnoreCase("block")) {
-                            addRootBlock(Block.fromXml(parser));
+                            addRootBlock(Block.fromXml(parser, blockFactory));
                         }
                         break;
 

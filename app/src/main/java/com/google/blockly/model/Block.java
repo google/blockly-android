@@ -179,11 +179,11 @@ public class Block {
      */
     public Input getInputByName(String targetName) {
         for (int i = 0; i < mInputList.size(); i++) {
-            if (mInputList.get(i).getName().equalsIgnoreCase(targetName)) {
+            if (mInputList.get(i).getName() != null
+                    && mInputList.get(i).getName().equalsIgnoreCase(targetName)) {
                 return mInputList.get(i);
             }
         }
-        Log.d(TAG, "Couldn't find field " + targetName);
         return null;
     }
 
@@ -200,12 +200,11 @@ public class Block {
         input = mInputList.get(i);
         for (int j = 0; j < input.getFields().size(); j++) {
           field = input.getFields().get(j);
-          if (field.getName().equalsIgnoreCase(targetName)) {
+          if (field.getName() != null && field.getName().equalsIgnoreCase(targetName)) {
             return field;
           }
         }
       }
-      Log.d(TAG, "Couldn't find field " + targetName);
       return null;
     }
 
@@ -302,13 +301,13 @@ public class Block {
             String[] checks = Input.getChecksFromJson(json, "output");
             Connection output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, checks);
             bob.setOutput(output);
-        } else if (json.has("previous")) {
-            String[] checks = Input.getChecksFromJson(json, "previous");
+        } else if (json.has("previousStatement")) {
+            String[] checks = Input.getChecksFromJson(json, "previousStatement");
             Connection previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, checks);
             bob.setPrevious(previous);
         }
-        if (json.has("next")) {
-            String[] checks = Input.getChecksFromJson(json, "next");
+        if (json.has("nextStatement")) {
+            String[] checks = Input.getChecksFromJson(json, "nextStatement");
             Connection next = new Connection(Connection.CONNECTION_TYPE_NEXT, checks);
             bob.setNext(next);
         }
@@ -412,16 +411,22 @@ public class Block {
     }
 
 
-    public static Block fromXml(XmlPullParser parser) throws XmlPullParserException, IOException,
+    public static Block fromXml(XmlPullParser parser, BlockFactory factory) throws XmlPullParserException, IOException,
             BlocklyParserException {
+        // TODO(fenichel): What if there are multiple blocks with the same id?
         String type = parser.getAttributeValue(null, "type");   // prototype name
         String id = parser.getAttributeValue(null, "id");
-        if (type == null || type.isEmpty() || id == null || id.isEmpty()) {
-            Log.d(TAG, "Block was missing a type or id.");
+        if (type == null || type.isEmpty()) {
+            // If the id was empty the blockfactory will just generate one.
+            Log.d(TAG, "Block was missing a type.");
             throw new BlocklyParserException();
         }
 
-        Block resultBlock = new Builder(type, id).build();
+        Block resultBlock = factory.obtainBlock(type, id);
+        if (resultBlock == null) {
+            Log.d(TAG, "Tried to obtain a block of an unknown type " + type);
+            throw new BlocklyParserException();
+        }
 
         // Set position.  Only if this is a top level block.
         String x = parser.getAttributeValue(null, "x");
@@ -442,7 +447,7 @@ public class Block {
             switch (eventType) {
                 case XmlPullParser.START_TAG:
                     if (tagname.equalsIgnoreCase("block")) {
-                        childBlock = fromXml(parser);
+                        childBlock = fromXml(parser, factory);
                     }
                     else if (tagname.equalsIgnoreCase("field")){
                         fieldName = parser.getAttributeValue(null, "name");
@@ -450,6 +455,10 @@ public class Block {
                     else if (tagname.equalsIgnoreCase("value")){
                         valueInput = resultBlock.getInputByName(
                                 parser.getAttributeValue(null, "name"));
+                        if (valueInput == null) {
+                            Log.d(TAG, "The value input was null!");
+                            throw new BlocklyParserException();
+                        }
                     }
                     else if (tagname.equalsIgnoreCase("statement")){
                         statementInput = resultBlock.getInputByName(
@@ -516,12 +525,12 @@ public class Block {
                         resultBlock.setComment(text);
                     }
                     else if (tagname.equalsIgnoreCase("next")) {
-                        resultBlock.getNextConnection().connect(childBlock.getPreviousConnection());
                         if (resultBlock.getNextConnection() == null
                                 || childBlock.getPreviousConnection() == null) {
                             Log.d(TAG, "A connection was null.");
                             throw new BlocklyParserException();
                         }
+                        resultBlock.getNextConnection().connect(childBlock.getPreviousConnection());
                     }
                     break;
 

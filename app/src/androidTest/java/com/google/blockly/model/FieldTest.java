@@ -29,6 +29,7 @@ public class FieldTest extends AndroidTestCase {
 
         // xml parsing
         assertFalse(field.setFromXmlText("text"));
+
     }
 
     public void testFieldInput() {

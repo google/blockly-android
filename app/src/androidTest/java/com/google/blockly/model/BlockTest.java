@@ -17,7 +17,6 @@ package com.google.blockly.model;
 
 import android.graphics.Point;
 import android.test.AndroidTestCase;
-import android.util.Xml;
 
 import com.google.blockly.R;
 
@@ -29,7 +28,6 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,78 +37,11 @@ import java.util.List;
 public class BlockTest extends AndroidTestCase {
     XmlPullParserFactory factory = null;
 
-    private static final String TEST_JSON_STRING = "{"
-            + "  \"id\": \"test_block\","
-            + "  \"message0\": \"%1 %2 %3 %4  %5 for each %6 %7 in %8 do %9\","
-            + "  \"args0\": ["
-            + "    {"
-            + "      \"type\": \"field_image\","
-            + "      \"src\": \"https://www.gstatic.com/codesite/ph/images/star_on.gif\","
-            + "      \"width\": 15,"
-            + "      \"height\": 20,"
-            + "      \"alt\": \"*\""
-            + "    },"
-            + "    {"
-            + "      \"type\": \"field_variable\","
-            + "      \"name\": \"NAME\","
-            + "      \"variable\": \"item\""
-            + "    },"
-            + "    {"
-            + "      \"type\": \"field_colour\","
-            + "      \"name\": \"NAME\","
-            + "      \"colour\": \"#ff0000\""
-            + "    },"
-            + "    {"
-            + "      \"type\": \"field_angle\","
-            + "      \"name\": \"NAME\","
-            + "      \"angle\": 90"
-            + "    },"
-            + "    {"
-            + "      \"type\": \"field_input\","
-            + "      \"name\": \"NAME\","
-            + "      \"text\": \"default\""
-            + "    },"
-            + "    {"
-            + "      \"type\": \"field_variable\","
-            + "      \"name\": \"NAME\","
-            + "      \"variable\": \"item\""
-            + "    },"
-            + "    {"
-            + "      \"type\": \"field_checkbox\","
-            + "      \"name\": \"NAME\","
-            + "      \"checked\": true"
-            + "    },"
-            + "    {"
-            + "      \"type\": \"input_value\","
-            + "      \"name\": \"NAME\","
-            + "      \"check\": \"Array\","
-            + "      \"align\": \"CENTRE\""
-            + "    },"
-            + "    {"
-            + "      \"type\": \"input_statement\","
-            + "      \"name\": \"NAME\""
-            + "    }"
-            + "  ],"
-            + "  \"tooltip\": \"\","
-            + "  \"helpUrl\": \"http://www.example.com/\""
-            + "}";
-
-    public static final String SIMPLE_XML_STRING = "<xml xmlns=\"http://www.w3.org/1999/xhtml\">"
-            + "<block type=\"variables_get\" id=\"364\" x=\"37\" y=\"13\">"
-            + "<field name=\"VAR\">item</field>"
-            + "</block>"
-            + "</xml>";
-
-    public static final String BAD_SIMPLE_XML_STRING = "<xml xmlns=\"http://www.w3.org/1999/xhtml\">"
-            + "<block id=\"364\" x=\"37\" y=\"13\">"
-            + "<field name=\"VAR\">item</field>"
-            + "</block>"
-            + "</xml>";
 
     public void testJson() {
         JSONObject blockJson;
         try {
-            blockJson = new JSONObject(TEST_JSON_STRING);
+            blockJson = new JSONObject(BlockTestStrings.TEST_JSON_STRING);
         } catch (JSONException e) {
             throw new RuntimeException("Failure parsing test JSON.", e);
         }
@@ -160,13 +91,19 @@ public class BlockTest extends AndroidTestCase {
         // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
         List<Block> blocks = bf.getAllBlocks();
-        assertEquals("BlockFactory failed to load all blocks.", 2, blocks.size());
-        Block emptyBlock = bf.obtainBlock("empty_block");
+        assertEquals("BlockFactory failed to load all blocks.", 4, blocks.size());
+        Block emptyBlock = bf.obtainBlock("empty_block", null);
         assertNotNull("Failed to create the empty block.", emptyBlock);
         assertEquals("Empty block has the wrong name", "empty_block", emptyBlock.getName());
 
-        Block frankenblock = bf.obtainBlock("frankenblock");
+        Block frankenblock = bf.obtainBlock("frankenblock", null);
         assertNotNull("Failed to create the frankenblock.", frankenblock);
+        assertNotNull("Missing previous connection", frankenblock.getPreviousConnection());
+        assertNotNull("Missing next connection", frankenblock.getNextConnection());
+
+
+        Block frankenblock2 = bf.obtainBlock("frankenblock", null);
+        assertNotSame(frankenblock, frankenblock2);
 
         List<Input> inputs = frankenblock.getInputs();
         assertEquals("Frankenblock has the wrong number of inputs", 3, inputs.size());
@@ -176,18 +113,96 @@ public class BlockTest extends AndroidTestCase {
                 inputs.get(1) instanceof Input.InputStatement);
         assertTrue("Third input should be a dummy input.",
                 inputs.get(2) instanceof Input.InputDummy);
+
+        // Check getting inputs and fields by name.
+        assertEquals(inputs.get(1), frankenblock.getInputByName("NAME"));
+        Field foundField = frankenblock.getFieldByName("checkbox");
+        assertTrue(foundField.isFieldType(Field.TYPE_CHECKBOX));
+        assertTrue(((Field.FieldCheckbox)foundField).isChecked());
     }
 
     public void testLoadFromXml() throws IOException, XmlPullParserException {
-        XmlPullParser parser = getXmlPullParser(SIMPLE_XML_STRING, "block");
-        Block loaded = Block.fromXml(parser);
-        assertNotNull(loaded);
-        assertEquals("variables_get", loaded.getName());
+        // TODO: Move rest_blocks.json to the testapp's resources once
+        // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
+        BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
+
+        Block loaded = testParseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK, bf);
+        assertEquals("frankenblock", loaded.getName());
         assertEquals(new Point(37, 13), loaded.getPosition());
 
-        parser = getXmlPullParser(BAD_SIMPLE_XML_STRING, "block");
+        // All blocks need a type. Ids can be generated by the BlockFactory.
+        testParseBlockFromXmlFailure(BlockTestStrings.NO_BLOCK_TYPE, bf);
+        testParseBlockFromXml(BlockTestStrings.NO_BLOCK_ID, bf);
+
+        // Only top level blocks need a position.
+        testParseBlockFromXml(BlockTestStrings.NO_BLOCK_POSITION, bf);
+
+        // Values.
+        testParseBlockFromXml(BlockTestStrings.assembleBlock(
+                BlockTestStrings.VALUE_GOOD), bf);
+        // TODO(fenichel): Value: no input connection
+        // Value: no output connection on child
+        testParseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+                BlockTestStrings.VALUE_NO_OUTPUT), bf);
+        // value: null child block
+        testParseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+                BlockTestStrings.VALUE_NO_CHILD), bf);
+        // Value: no input with that name
+        testParseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+                BlockTestStrings.VALUE_BAD_NAME), bf);
+        // Value: multiple values in one block
+        testParseBlockFromXml(BlockTestStrings.assembleBlock(
+                BlockTestStrings.VALUE_REPEATED), bf);
+
+        // Comment: with text
+        testParseBlockFromXml(BlockTestStrings.assembleBlock(
+                BlockTestStrings.COMMENT_GOOD), bf);
+        // Comment: empty string
+        testParseBlockFromXml(BlockTestStrings.assembleBlock(
+                BlockTestStrings.COMMENT_NO_TEXT), bf);
+
+        // Fields
+        testParseBlockFromXml(BlockTestStrings.assembleBlock(
+                BlockTestStrings.FIELD_HAS_NAME), bf);
+        // A missing or unknown field name isn't an error, it's just ignored.
+        testParseBlockFromXml(BlockTestStrings.assembleBlock(
+                BlockTestStrings.FIELD_MISSING_NAME), bf);
+        testParseBlockFromXml(BlockTestStrings.assembleBlock(
+                BlockTestStrings.FIELD_UNKNOWN_NAME), bf);
+        testParseBlockFromXml(BlockTestStrings.assembleBlock(
+                BlockTestStrings.FIELD_MISSING_TEXT), bf);
+
+        // Statement: null child block
+        testParseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+                BlockTestStrings.STATEMENT_NO_CHILD), bf);
+        // Statement: no previous connection on child block
+        testParseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+                BlockTestStrings.STATEMENT_BAD_CHILD), bf);
+        // Statement: no input with that name
+        testParseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+                BlockTestStrings.STATEMENT_BAD_NAME), bf);
+
+        //TODO(fenichel): Enable this test when the BlockFactory properly does deep
+        // copies.
+        // Statement
+        //testParseBlockFromXml(BlockTestStrings.assembleBlock(
+        //        BlockTestStrings.STATEMENT_GOOD), bf);
+    }
+
+    private Block testParseBlockFromXml(String testString, BlockFactory bf)
+            throws IOException, XmlPullParserException {
+        XmlPullParser parser = getXmlPullParser(testString, "block");
+        Block loaded = Block.fromXml(parser, bf);
+        assertNotNull(loaded);
+        return loaded;
+    }
+
+    private void testParseBlockFromXmlFailure(String testString, BlockFactory bf)
+            throws IOException, XmlPullParserException {
+
+        XmlPullParser parser = getXmlPullParser(testString, "block");
         try {
-            loaded = Block.fromXml(parser);
+            Block loaded = Block.fromXml(parser, bf);
             fail("Should have thrown a BlocklyParseException");
         } catch (BlocklyParserException e ) {
             // expected
