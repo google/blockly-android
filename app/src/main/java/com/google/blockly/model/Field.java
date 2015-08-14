@@ -314,13 +314,13 @@ public abstract class Field {
         }
         public FieldColour(String name, int colour) {
             super(name, TYPE_COLOUR);
-            mColour = colour;
+            setColour(colour);
         }
 
         @Override
         public boolean setFromXmlText(String text) {
             try {
-                setColour(0xFFFFFF & Color.parseColor(text));
+                setColour(Color.parseColor(text));
             } catch (IllegalArgumentException e) {
                 return false;
             }
@@ -331,7 +331,7 @@ public abstract class Field {
             this(json.optString("name", "NAME"), DEFAULT_COLOUR);
             String colourString = json.optString("colour");
             if (!TextUtils.isEmpty(colourString)) {
-                setColour(0xFFFFFF & Color.parseColor(colourString));
+                setColour(Color.parseColor(colourString));
             }
         }
 

@@ -26,6 +26,8 @@ public class FieldTest extends AndroidTestCase {
         field = new Field.FieldLabel("name", null);
         assertEquals("name", field.getName());
         assertEquals("", field.getText());
+
+        // xml parsing
         assertFalse(field.setFromXmlText("text"));
     }
 
@@ -37,6 +39,8 @@ public class FieldTest extends AndroidTestCase {
 
         field.setText("new text");
         assertEquals("new text", field.getText());
+
+        // xml parsing
         assertTrue(field.setFromXmlText("newest text"));
         assertEquals("newest text", field.getText());
     }
@@ -70,6 +74,7 @@ public class FieldTest extends AndroidTestCase {
         field.setAngle(-10001);
         assertEquals(79, field.getAngle());
 
+        // xml parsing
         assertTrue(field.setFromXmlText("-180"));
         assertEquals(180, field.getAngle());
         assertTrue(field.setFromXmlText("27"));
@@ -98,8 +103,13 @@ public class FieldTest extends AndroidTestCase {
         assertTrue(field.setFromXmlText("True"));
         assertTrue(field.isChecked());
 
-        // Boolean.parseBoolean returns false here
+        // xml parsing
+        // Boolean.parseBoolean checks the lowercased value against "true" and returns false
+        // otherwise.
         assertTrue(field.setFromXmlText("This is not a boolean"));
+        assertFalse(field.isChecked());
+        field.setChecked(true);
+        assertTrue(field.setFromXmlText("t"));
         assertFalse(field.isChecked());
     }
 
@@ -116,6 +126,7 @@ public class FieldTest extends AndroidTestCase {
         field.setColour(0xb0bb1e);
         assertEquals(0xb0bb1e, field.getColour());
 
+        // xml parsing
         assertTrue(field.setFromXmlText("#ffcc66"));
         assertEquals(0xffcc66, field.getColour());
         assertTrue(field.setFromXmlText("#00cc66"));
@@ -123,6 +134,11 @@ public class FieldTest extends AndroidTestCase {
         assertTrue(field.setFromXmlText("#1000cc66"));
         assertEquals(0x00cc66, field.getColour());
         assertFalse(field.setFromXmlText("This is not a color"));
+        // Color does not change
+        assertEquals(0x00cc66, field.getColour());
+        assertFalse(field.setFromXmlText("#fc6"));
+        // Color does not change
+        assertEquals(0x00cc66, field.getColour());
     }
 
     public void testFieldDate() {
@@ -141,6 +157,7 @@ public class FieldTest extends AndroidTestCase {
         assertTrue(field.setFromXmlText("2017-03-03"));
         assertEquals("2017-03-03", field.getDateString());
 
+        // xml parsing
         assertFalse(field.setFromXmlText("today"));
         assertFalse(field.setFromXmlText("2017/03/03"));
         assertFalse(field.setFromXmlText(""));
@@ -155,9 +172,9 @@ public class FieldTest extends AndroidTestCase {
         field.setVariable("newVar");
         assertEquals("newVar", field.getVariable());
 
+        // xml parsing
         assertTrue(field.setFromXmlText("newestVar"));
         assertEquals("newestVar", field.getVariable());
-
         assertFalse(field.setFromXmlText(""));
     }
 
@@ -208,13 +225,13 @@ public class FieldTest extends AndroidTestCase {
         assertEquals(displayNames[2], field.getSelectedDisplayName());
         assertEquals(values[2], field.getSelectedValue());
 
-        // test setting from xml
+        // xml parsing
         assertTrue(field.setFromXmlText(values[1]));
         assertEquals(1, field.getSelectedIndex());
         assertEquals(displayNames[1], field.getSelectedDisplayName());
         assertEquals(values[1], field.getSelectedValue());
 
-        // default to 0
+        // xml parsing; setting a non-existent value defaults to 0
         assertTrue(field.setFromXmlText(""));
         assertEquals(0, field.getSelectedIndex());
         assertEquals(displayNames[0], field.getSelectedDisplayName());
@@ -255,6 +272,7 @@ public class FieldTest extends AndroidTestCase {
         assertEquals(21, field.getHeight());
         assertEquals("altText", field.getAltText());
 
+        // xml parsing
         assertFalse(field.setFromXmlText("any text"));
     }
 }
