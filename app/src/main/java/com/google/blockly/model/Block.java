@@ -245,7 +245,6 @@ public class Block {
     }
 
     /**
-    /**
      * Generate a Blockly Block from JSON. If the JSON is misformatted a {@link RuntimeException}
      * will be thrown. All inputs and fields for the block will also be generated.
      *
