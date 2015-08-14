@@ -200,9 +200,6 @@ public abstract class Input {
      * @return The input's Connection, or null if it is a dummy input.
      */
     public Connection getConnection() {
-        if (mType.equals(TYPE_DUMMY)) {
-            return null;
-        }
         return mConnection;
     }
 

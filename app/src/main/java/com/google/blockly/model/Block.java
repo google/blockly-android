@@ -175,9 +175,9 @@ public class Block {
      * @return The first Input with that name.
      */
     public Input getInputByName(String targetName) {
-        for (Input input : mInputList) {
-            if (input.getName().equalsIgnoreCase(targetName)) {
-                return input;
+        for (int i = 0; i < mInputList.size(); i++) {
+            if (mInputList.get(i).getName().equalsIgnoreCase(targetName)) {
+                return mInputList.get(i);
             }
         }
         Log.d(TAG, "Couldn't find field " + targetName);
@@ -191,15 +191,18 @@ public class Block {
      * @return The first Field with that name.
      */
     public Field getFieldByName(String targetName) {
-        for (Input input : mInputList) {
-            for (Field field : input.getFields()) {
-                if (field.getName().equalsIgnoreCase(targetName)) {
-                    return field;
-                }
-            }
+      Input input;
+      for (int i = 0; i < mInputList.size(); i++) {
+        input = mInputList.get(i);
+        for (int j = 0; j < input.getFields().size(); j++) {
+          Field field = input.getFields().get(j);
+          if (field.getName().equalsIgnoreCase(targetName)) {
+            return field;
+          }
         }
-        Log.d(TAG, "Couldn't find field " + targetName);
-        return null;
+      }
+      Log.d(TAG, "Couldn't find field " + targetName);
+      return null;
     }
 
     /**
@@ -240,6 +243,7 @@ public class Block {
         return mNextConnection;
     }
 
+    /**
     /**
      * Generate a Blockly Block from JSON. If the JSON is misformatted a {@link RuntimeException}
      * will be thrown. All inputs and fields for the block will also be generated.
@@ -511,7 +515,6 @@ public class Block {
             mUuid = uuid;
             return this;
         }
-
         public Builder setColour(int hsvColor) {
             hsvColor = Math.min(360, Math.max(0, hsvColor));
             mColourHue = hsvColor;
