@@ -412,11 +412,15 @@ public class Block {
     }
 
 
-    public static Block fromXml(XmlPullParser parser) throws XmlPullParserException, IOException {
-        String type = parser.getAttributeValue(null, "type");   // prototype name.
+    public static Block fromXml(XmlPullParser parser) throws XmlPullParserException, IOException,
+            BlocklyParserException {
+        String type = parser.getAttributeValue(null, "type");   // prototype name
         String id = parser.getAttributeValue(null, "id");
-        // TODO(fenichel): Throw error if no name.
-        // TODO(fenichel): Generate random ID if there is no id.
+        if (type == null || type.isEmpty() || id == null || id.isEmpty()) {
+            Log.d(TAG, "Block was missing a type or id.");
+            throw new BlocklyParserException();
+        }
+
         Block resultBlock = new Builder(type, id).build();
 
         // Set position.  Only if this is a top level block.
@@ -426,7 +430,7 @@ public class Block {
             resultBlock.setPosition(Integer.parseInt(x), Integer.parseInt(y));
         }
 
-        int eventType = parser.getEventType();
+        int eventType = parser.next();
         String text = "";
         String fieldName = "";
         Block childBlock = null;
@@ -462,41 +466,62 @@ public class Block {
 
                 case XmlPullParser.END_TAG:
                     if (tagname.equalsIgnoreCase("block")) {
+                        if (resultBlock == null) {
+                            Log.d(TAG, "Created a null block. This should never happen.");
+                            throw new BlocklyParserException();
+                        }
                         return resultBlock;
                     }
                     else if (tagname.equalsIgnoreCase("field")){
                         Field toSet = resultBlock.getFieldByName(fieldName);
                         if (toSet != null) {
-                            // TODO(fenichel): Use the return value of setFromXmlText?
-                            toSet.setFromXmlText(text);
+                            if (!toSet.setFromXmlText(text)) {
+                                Log.d(TAG, "Failed to set a field's value from XML.");
+                                throw new BlocklyParserException();
+                            }
                         }
                     }
-                    else if (tagname.equalsIgnoreCase("value")){
-                        // TODO(fenichel): Handle exceptions when the connections have problems.
-                        // TODO(fenichel): Handle the case where the input or child block is null.
+                    else if (tagname.equalsIgnoreCase("value")) {
                         if (valueInput != null && childBlock != null) {
+                            if (valueInput.getConnection() == null
+                                    || childBlock.getOutputConnection() == null) {
+                                Log.d(TAG, "A connection was null.");
+                                throw new BlocklyParserException();
+                            }
                             valueInput.getConnection().connect(childBlock.getOutputConnection());
                             valueInput = null;
                             childBlock = null;
+                        } else {
+                            Log.d(TAG, "A value input or child block was null.");
+                            throw new BlocklyParserException();
                         }
                     }
-                    else if (tagname.equalsIgnoreCase("statement")){
-                        // TODO(fenichel): Handle exceptions when the connections have problems.
-                        // TODO(fenichel): Handle the case where the input or child block is null.
+                    else if (tagname.equalsIgnoreCase("statement")) {
                         if (statementInput != null && childBlock != null) {
+                            if (statementInput.getConnection() == null
+                                    || childBlock.getPreviousConnection() == null) {
+                                Log.d(TAG, "A connection was null.");
+                                throw new BlocklyParserException();
+                            }
                             statementInput.getConnection().connect(
                                     childBlock.getPreviousConnection());
                             valueInput = null;
                             childBlock = null;
+                        } else {
+                            Log.d(TAG, "A statement input or child block was null.");
+                            throw new BlocklyParserException();
                         }
                     }
                     else if (tagname.equalsIgnoreCase("comment")){
                         resultBlock.setComment(text);
                     }
-                    else if (tagname.equalsIgnoreCase("next")){
-                        // TODO(fenichel): Handle exceptions when the connections have problems.
-                        // TODO(fenichel): Handle the case where the input or child block is null.
+                    else if (tagname.equalsIgnoreCase("next")) {
                         resultBlock.getNextConnection().connect(childBlock.getPreviousConnection());
+                        if (resultBlock.getNextConnection() == null
+                                || childBlock.getPreviousConnection() == null) {
+                            Log.d(TAG, "A connection was null.");
+                            throw new BlocklyParserException();
+                        }
                     }
                     break;
 
@@ -506,7 +531,8 @@ public class Block {
             eventType = parser.next();
         }
         // Should never reach here, since this is called from a workspace fromXml function.
-        return null;
+        Log.d(TAG, "Reached the end of Block.fromXml. This should never happen.");
+        throw new BlocklyParserException();
     }
 
     /**

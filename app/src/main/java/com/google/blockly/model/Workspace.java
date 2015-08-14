@@ -92,7 +92,7 @@ public class Workspace {
         return mWorkspaceHelper;
     }
 
-    private void loadFromXml(InputStream is) {
+    public void loadFromXml(InputStream is) {
         XmlPullParserFactory factory = null;
         XmlPullParser parser = null;
         try {
@@ -119,6 +119,8 @@ public class Workspace {
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch(BlocklyParserException e) {
             e.printStackTrace();
         }
     }

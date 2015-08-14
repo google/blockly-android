@@ -15,13 +15,21 @@
 
 package com.google.blockly.model;
 
+import android.graphics.Point;
 import android.test.AndroidTestCase;
+import android.util.Xml;
 
 import com.google.blockly.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,6 +37,7 @@ import java.util.List;
  * Tests for {@link Block}.
  */
 public class BlockTest extends AndroidTestCase {
+    XmlPullParserFactory factory = null;
 
     private static final String TEST_JSON_STRING = "{"
             + "  \"id\": \"test_block\","
@@ -85,6 +94,18 @@ public class BlockTest extends AndroidTestCase {
             + "  \"tooltip\": \"\","
             + "  \"helpUrl\": \"http://www.example.com/\""
             + "}";
+
+    public static final String SIMPLE_XML_STRING = "<xml xmlns=\"http://www.w3.org/1999/xhtml\">"
+            + "<block type=\"variables_get\" id=\"364\" x=\"37\" y=\"13\">"
+            + "<field name=\"VAR\">item</field>"
+            + "</block>"
+            + "</xml>";
+
+    public static final String BAD_SIMPLE_XML_STRING = "<xml xmlns=\"http://www.w3.org/1999/xhtml\">"
+            + "<block id=\"364\" x=\"37\" y=\"13\">"
+            + "<field name=\"VAR\">item</field>"
+            + "</block>"
+            + "</xml>";
 
     public void testJson() {
         JSONObject blockJson;
@@ -155,6 +176,52 @@ public class BlockTest extends AndroidTestCase {
                 inputs.get(1) instanceof Input.InputStatement);
         assertTrue("Third input should be a dummy input.",
                 inputs.get(2) instanceof Input.InputDummy);
+    }
+
+    public void testLoadFromXml() throws IOException, XmlPullParserException {
+        XmlPullParser parser = getXmlPullParser(SIMPLE_XML_STRING, "block");
+        Block loaded = Block.fromXml(parser);
+        assertNotNull(loaded);
+        assertEquals("variables_get", loaded.getName());
+        assertEquals(new Point(37, 13), loaded.getPosition());
+
+        parser = getXmlPullParser(BAD_SIMPLE_XML_STRING, "block");
+        try {
+            loaded = Block.fromXml(parser);
+            fail("Should have thrown a BlocklyParseException");
+        } catch (BlocklyParserException e ) {
+            // expected
+        }
+    }
+
+    /* Creates a pull parser with the given input and gobbles up to the first start tag
+     * that equals returnFirstInstanceOf.
+     */
+    private XmlPullParser getXmlPullParser(String input, String returnFirstInstanceOf) {
+        XmlPullParser parser = null;
+        try {
+            if (factory == null) {
+                factory = XmlPullParserFactory.newInstance();
+            }
+            factory.setNamespaceAware(true);
+            parser = factory.newPullParser();
+
+            parser.setInput(new ByteArrayInputStream(input.getBytes()), null);
+
+            int eventType = parser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if (eventType == XmlPullParser.START_TAG
+                        && parser.getName().equalsIgnoreCase(returnFirstInstanceOf)) {
+                            return parser;
+                }
+                eventType = parser.next();
+            }
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void assertListsMatch(List<String> expected, List<String> actual) {
