@@ -36,7 +36,7 @@ public abstract class Field {
     public static final String TYPE_IMAGE = "field_image";
 
     /**
-     * The list of known FIELD_TYPES. If this list changes {@link #fromJSON(JSONObject)} should
+     * The list of known FIELD_TYPES. If this list changes {@link #fromJson(JSONObject)} should
      * also be updated to support the new fields.
      */
     protected static final Set<String> FIELD_TYPES = new HashSet<>();
@@ -106,7 +106,7 @@ public abstract class Field {
      * @return A Field of the appropriate type.
      * @throws RuntimeException
      */
-    public static Field fromJSON(JSONObject json) {
+    public static Field fromJson(JSONObject json) {
         String type = null;
         try {
             type = json.getString("type");
@@ -160,7 +160,7 @@ public abstract class Field {
 
         public FieldLabel(String name, String text) {
             super(name, TYPE_LABEL);
-            mText = text;
+            mText = text == null ? "" : text;
         }
 
         private FieldLabel(JSONObject json) {
@@ -222,7 +222,7 @@ public abstract class Field {
 
         public FieldAngle(String name, int angle) {
             super(name, TYPE_ANGLE);
-            mAngle = angle;
+            setAngle(angle);
         }
 
         @Override
@@ -301,8 +301,13 @@ public abstract class Field {
      * Adds a colour picker to an Input.
      */
     public static final class FieldColour extends Field {
+        /*package*/ static final int DEFAULT_COLOUR = 0xff0000;
+
         private int mColour;
 
+        public FieldColour(String name) {
+            this(name, DEFAULT_COLOUR);
+        }
         public FieldColour(String name, int colour) {
             super(name, TYPE_COLOUR);
             mColour = colour;
@@ -315,7 +320,7 @@ public abstract class Field {
         }
 
         private FieldColour(JSONObject json) {
-            this(json.optString("name", "NAME"), 0xff0000);
+            this(json.optString("name", "NAME"), DEFAULT_COLOUR);
             String colourString = json.optString("colour");
             if (!TextUtils.isEmpty(colourString)) {
                 mColour = Color.parseColor(colourString);
@@ -340,7 +345,7 @@ public abstract class Field {
     }
 
     /**
-     * Adds a date picker to an Input.
+     * Adds a date picker to an Input. Dates must be in the format "YYYY-MM-DD"
      */
     public static final class FieldDate extends Field {
         private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
@@ -390,6 +395,13 @@ public abstract class Field {
          */
         public Date getDate() {
             return mDate;
+        }
+
+        /**
+         * @return The string format for the date in this field.
+         */
+        public String getDateString() {
+            return DATE_FORMAT.format(mDate);
         }
 
         /**
