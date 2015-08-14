@@ -192,10 +192,11 @@ public class Block {
      */
     public Field getFieldByName(String targetName) {
       Input input;
+      Field field;
       for (int i = 0; i < mInputList.size(); i++) {
         input = mInputList.get(i);
         for (int j = 0; j < input.getFields().size(); j++) {
-          Field field = input.getFields().get(j);
+          field = input.getFields().get(j);
           if (field.getName().equalsIgnoreCase(targetName)) {
             return field;
           }
