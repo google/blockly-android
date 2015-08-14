@@ -227,7 +227,11 @@ public abstract class Field {
 
         @Override
         public boolean setFromXmlText(String text) {
-            setAngle(Integer.parseInt(text));
+            try {
+                setAngle(Integer.parseInt(text));
+            } catch (NumberFormatException e) {
+                return false;
+            }
             return true;
         }
 
@@ -274,7 +278,7 @@ public abstract class Field {
 
         @Override
         public boolean setFromXmlText(String text) {
-            Boolean.parseBoolean(text);
+            mChecked = Boolean.parseBoolean(text);
             return true;
         }
 
@@ -310,12 +314,16 @@ public abstract class Field {
         }
         public FieldColour(String name, int colour) {
             super(name, TYPE_COLOUR);
-            mColour = colour;
+            setColour(colour);
         }
 
         @Override
         public boolean setFromXmlText(String text) {
-            setColour(Color.parseColor(text));
+            try {
+                setColour(Color.parseColor(text));
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
             return true;
         }
 
@@ -323,7 +331,7 @@ public abstract class Field {
             this(json.optString("name", "NAME"), DEFAULT_COLOUR);
             String colourString = json.optString("colour");
             if (!TextUtils.isEmpty(colourString)) {
-                mColour = Color.parseColor(colourString);
+                setColour(Color.parseColor(colourString));
             }
         }
 
@@ -340,7 +348,7 @@ public abstract class Field {
          * @param colour A colour in the form 0xRRGGBB
          */
         public void setColour(int colour) {
-            mColour = colour;
+            mColour = 0xFFFFFF & colour;
         }
     }
 
@@ -371,19 +379,14 @@ public abstract class Field {
         @Override
         public boolean setFromXmlText(String text) {
             Date date = null;
-            if (!TextUtils.isEmpty(text)) {
-                try {
-                    date = DATE_FORMAT.parse(text);
-                } catch (ParseException e) {
-                    Log.e(TAG, "Unable to parse date " + text, e);
-                }
-            }
-            if (date == null) {
-                setTime(System.currentTimeMillis());
-            } else {
+            try {
+                date = DATE_FORMAT.parse(text);
                 setDate(date);
+                return true;
+            } catch (ParseException e) {
+                Log.e(TAG, "Unable to parse date " + text, e);
+                return false;
             }
-            return true;
         }
 
         private FieldDate(JSONObject json) {
@@ -437,6 +440,9 @@ public abstract class Field {
 
         @Override
         public boolean setFromXmlText(String text) {
+            if (TextUtils.isEmpty(text)) {
+                return false;
+            }
             setVariable(text);
             return true;
         }
@@ -479,8 +485,8 @@ public abstract class Field {
 
         @Override
         public boolean setFromXmlText(String text) {
-            // TODO(fenichel): Implement.
-            return false;
+            setSelectedValue(text);
+            return true;
         }
 
         private FieldDropdown(JSONObject json) {
