@@ -1,4 +1,3 @@
-
 /*
  * Copyright  2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +19,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -34,7 +34,7 @@ import com.google.blockly.model.Workspace;
  */
 public class WorkspaceView extends ViewGroup {
     private static final String TAG = "WorkspaceView";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static final int DEFAULT_GRID_SPACING = 48;
     private static final int GRID_COLOR = 0xffa0a0a0;
@@ -51,13 +51,10 @@ public class WorkspaceView extends ViewGroup {
     private Workspace mWorkspace;
     private WorkspaceHelper mHelper;
 
-    // Set to true when something changes that requires a fresh layout pass, such as a block being
-    // added or removed. Moving blocks within the workspace should not require a fresh layout pass.
-    private boolean mNeedLayout = false;
-
     private Paint mPaint;
     private int mGridSpacing = DEFAULT_GRID_SPACING;
     private boolean mDrawGrid = true;
+    private Point mTemp = new Point();
 
     public WorkspaceView(Context context) {
         this(context, null);
@@ -77,33 +74,43 @@ public class WorkspaceView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        if (!changed && !mNeedLayout) {
-            return;
-        }
-        mNeedLayout = false;
+        mTemp.x = r - l;
+        mTemp.y = b - t;
+        mHelper.setViewSize(mTemp);
+        boolean rtl = mHelper.useRtL();
         int childCount = getChildCount();
         int measureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
 
+        if (DEBUG) {
+            Log.d(TAG, "Laying out " + childCount + " children");
+        }
         for (int i = 0; i < childCount; i++) {
             View child = getChildAt(i);
             if (child.getVisibility() == GONE) {
                 continue;
             }
+            if (child instanceof BlockGroup) {
+                BlockGroup bg = (BlockGroup) child;
+                Point wksPos = bg.getTopBlockPosition();
+                mHelper.workspaceToViewCoordinates(wksPos, mTemp);
 
-            child.measure(measureSpec, measureSpec);
-            int childL = (int) child.getX();
-            int childT = (int) child.getY();
-            int childR = childL + child.getMeasuredWidth();
-            int childB = childT + child.getMeasuredHeight();
-
-            // Layout child views where they want to be. We'll enforce positioning when children
-            // are moved by the user.
-            child.layout(childL, childT, childR, childB);
+                int cl = rtl ? mTemp.x - bg.getMeasuredWidth() : mTemp.x;
+                int cr = rtl ? mTemp.x : mTemp.x + bg.getMeasuredWidth();
+                int ct = mTemp.y;
+                int cb = mTemp.y + bg.getMeasuredHeight();
+                child.layout(cl, ct, cr, cb);
+                Log.d(TAG, "Laid out block group at " + cl + ", " + ct + ", " + cr + ", " + cb);
+            }
         }
     }
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            getChildAt(i).measure(0, 0);
+        }
+
         int desiredWidth = DESIRED_WIDTH;
         int desiredHeight = DESIRED_HEIGHT;
         int width, height;
@@ -151,6 +158,7 @@ public class WorkspaceView extends ViewGroup {
                 }
             }
         }
+        super.onDraw(c);
     }
 
     public void setWorkspace(Workspace workspace) {

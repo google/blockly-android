@@ -1,9 +1,27 @@
+/*
+ * Copyright  2015 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.google.blockly.model;
 
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
+
+import com.google.blockly.ui.FieldWorkspaceParams;
+import com.google.blockly.ui.FieldView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,6 +73,9 @@ public abstract class Field {
     private final String mName;
     private final String mType;
 
+    private FieldView mView;
+    private FieldWorkspaceParams mLayoutParams;
+
     public Field(String name, String type) {
         if (TextUtils.isEmpty(type)) {
             throw new IllegalArgumentException("type may not be empty");
@@ -76,6 +97,34 @@ public abstract class Field {
      */
     public String getType() {
         return mType;
+    }
+
+    /**
+     * Sets the view that renders this field.
+     */
+    public void setView(FieldView view) {
+        mView = view;
+    }
+
+    /**
+     * @return The view that renders this field.
+     */
+    public FieldView getView() {
+        return mView;
+    }
+
+    /**
+     * Sets the layout params used for rendering this field.
+     */
+    public void setLayoutParameters(FieldWorkspaceParams params) {
+        mLayoutParams = params;
+    }
+
+    /**
+     * @return The layout params used for rendering this field.
+     */
+    public FieldWorkspaceParams getLayoutParams() {
+        return mLayoutParams;
     }
 
     /**

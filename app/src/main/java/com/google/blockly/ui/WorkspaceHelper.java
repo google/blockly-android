@@ -1,8 +1,26 @@
+/*
+ * Copyright  2015 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.google.blockly.ui;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Point;
+import android.os.Build;
 import android.util.Log;
+import android.view.View;
 
 /**
  * Provides helper methods for converting coordinates between the workspace and the views.
@@ -17,6 +35,8 @@ public class WorkspaceHelper {
     private float mScale = 1;
     private float mDensity;
     private Point mOffset;
+    private Point mViewSize;
+    private boolean mRtL;
 
     /**
      * Create a helper for doing workspace to view conversions.
@@ -26,12 +46,14 @@ public class WorkspaceHelper {
      * @param topOffset The top offset into the workspace in workspace units.
      */
     public WorkspaceHelper(Context context, int leftOffset, int topOffset) {
-        mDensity = context.getResources().getDisplayMetrics().density;
+        Resources res = context.getResources();
+        mDensity = res.getDisplayMetrics().density;
         if (mDensity == 0) {
             Log.e(TAG, "Density is not defined for this context. Defaulting to 1.");
             mDensity = 1f;
         }
         mOffset = new Point(leftOffset, topOffset);
+        mViewSize = new Point();
     }
 
     /**
@@ -50,12 +72,22 @@ public class WorkspaceHelper {
      * Set the {@link WorkspaceView}'s offset into the workspace, in workspace units. This value
      * should only change due to translation, not scaling, and therefore is not a pixel value.
      *
-     * @param leftOffset The left offset in workspace units.
-     * @param topOffset The top offset in workspace units.
+     * @param workspaceOffset The view's offset into the workspace in workspace coordinates.
      */
-    public void setOffset(int leftOffset, int topOffset) {
-        mOffset.x = leftOffset;
-        mOffset.y = topOffset;
+    public void setOffset(Point workspaceOffset) {
+        mOffset.x = workspaceOffset.x;
+        mOffset.y = workspaceOffset.y;
+    }
+
+    /**
+     * Set the size of the view window. This is required for RtL languages to be laid out correctly.
+     * This should be called by the workspace view in onLayout.
+     *
+     * @param viewDimens The width and height of the workspace view in pixels.
+     */
+    public void setViewSize(Point viewDimens) {
+        mViewSize.x = viewDimens.x;
+        mViewSize.y = viewDimens.y;
     }
 
     /**
@@ -86,6 +118,13 @@ public class WorkspaceHelper {
     }
 
     /**
+     * @return The current size of the view in pixels.
+     */
+    public Point getViewSize() {
+        return mViewSize;
+    }
+
+    /**
      * Scales a value in workspace coordinates to a view pixel value. This does not account for
      * offsets into the view's space, it only uses scaling and screen density to calculate the
      * result.
@@ -98,7 +137,7 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Scales a value in view pixels to workspace units. This does account for offsets into the
+     * Scales a value in view pixels to workspace units. This does not account for offsets into the
      * view's space, it only uses scaling and screen density to calculate the result.
      *
      * @param viewValue The value in pixels in the view.
@@ -117,9 +156,13 @@ public class WorkspaceHelper {
      * @param workspacePosition The position to convert to view coordinates.
      * @param viewPosition The Point to store the results in.
      */
-    private void workspaceToViewCoordinates(Point workspacePosition, Point viewPosition) {
+    public void workspaceToViewCoordinates(Point workspacePosition, Point viewPosition) {
         viewPosition.x = workspaceToViewUnits(workspacePosition.x - mOffset.x);
         viewPosition.y = workspaceToViewUnits(workspacePosition.y - mOffset.y);
+
+        if (useRtL()) {
+            viewPosition.x = mViewSize.x - viewPosition.x;
+        }
     }
 
     /**
@@ -130,8 +173,34 @@ public class WorkspaceHelper {
      * @param viewPosition The position to convert to workspace coordinates.
      * @param workspacePosition The Point to store the results in.
      */
-    private void viewToWorkspaceCoordinates(Point viewPosition, Point workspacePosition) {
-        workspacePosition.x = viewToWorkspaceUnits(viewPosition.x) + mOffset.x;
+    public void viewToWorkspaceCoordinates(Point viewPosition, Point workspacePosition) {
+        int viewX = viewPosition.x;
+        if (useRtL()) {
+            viewX = mViewSize.x - viewX;
+        }
+        workspacePosition.x = viewToWorkspaceUnits(viewX) + mOffset.x;
         workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mOffset.y;
+    }
+
+    /**
+     * @return True if using Right to Left layout, false otherwise.
+     */
+    public boolean useRtL() {
+        return mRtL;
+    }
+
+    /**
+     * Updates the current RtL state for the app.
+     *
+     * @param context The context to get the RtL setting from.
+     */
+    private void updateRtL(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            mRtL = context.getResources().getConfiguration().getLayoutDirection()
+                    == View.LAYOUT_DIRECTION_RTL;
+        } else {
+            // TODO: Handle pre 17 versions.
+            mRtL = false;
+        }
     }
 }

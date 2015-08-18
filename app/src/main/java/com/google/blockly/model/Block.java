@@ -21,14 +21,13 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.blockly.ui.BlockWorkspaceParams;
+import com.google.blockly.ui.BlockView;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
-import java.io.PipedInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -65,6 +64,10 @@ public class Block {
     private boolean mCollapsed;
     private boolean mDisabled;
     private Point mPosition;
+
+    // These values are only used for drawing
+    private BlockView mView;
+    private BlockWorkspaceParams mLayoutParams;
 
     private Block(String uuid, String name, int category, int colourHue, Connection outputConnection,
                   Connection nextConnection, Connection previousConnection,
@@ -242,6 +245,34 @@ public class Block {
     @Nullable
     public Connection getNextConnection() {
         return mNextConnection;
+    }
+
+    /**
+     * Sets the view that renders this block.
+     */
+    public void setView(BlockView view) {
+        mView = view;
+    }
+
+    /**
+     * @return The view that renders this block.
+     */
+    public BlockView getView() {
+        return mView;
+    }
+
+    /**
+     * Sets the layout parameters used for drawing this block.
+     */
+    public void setLayoutParameters(BlockWorkspaceParams params) {
+        mLayoutParams = params;
+    }
+
+    /**
+     * @return The layout parameters used for drawing this block.
+     */
+    public BlockWorkspaceParams getLayoutParameters() {
+        return mLayoutParams;
     }
 
     /**

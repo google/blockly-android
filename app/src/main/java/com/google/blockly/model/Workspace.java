@@ -20,6 +20,8 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
 
+import com.google.blockly.ui.WorkspaceHelper;
+
 import java.util.ArrayList;
 
 /**
@@ -30,8 +32,10 @@ public class Workspace {
     private static final boolean DEBUG = true;
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
+    private final WorkspaceHelper mWorkspaceHelper;
 
     public Workspace(Context context) {
+        mWorkspaceHelper = new WorkspaceHelper(context, 0, 0);
     }
 
     /**
@@ -76,6 +80,9 @@ public class Workspace {
         }
 
         a.connect(b);
+    }
 
+    public WorkspaceHelper getWorkspaceHelper() {
+        return mWorkspaceHelper;
     }
 }
