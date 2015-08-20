@@ -3,12 +3,6 @@ package com.google.blockly.model;
 import android.test.AndroidTestCase;
 import android.util.Pair;
 
-import com.google.blockly.R;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -17,7 +11,7 @@ import java.util.List;
  */
 public class FieldTest extends AndroidTestCase {
 
-    public void testFieldLabel() {
+    public void testFieldLabel() throws CloneNotSupportedException {
         Field.FieldLabel field = new Field.FieldLabel("field name", "some text");
         assertEquals(Field.TYPE_LABEL, field.getType());
         assertEquals("field name", field.getName());
@@ -29,9 +23,11 @@ public class FieldTest extends AndroidTestCase {
 
         // xml parsing
         assertFalse(field.setFromXmlText("text"));
+
+        assertNotSame(field, field.clone());
     }
 
-    public void testFieldInput() {
+    public void testFieldInput() throws CloneNotSupportedException {
         Field.FieldInput field = new Field.FieldInput("field name", "start text");
         assertEquals(Field.TYPE_INPUT, field.getType());
         assertEquals("field name", field.getName());
@@ -43,9 +39,11 @@ public class FieldTest extends AndroidTestCase {
         // xml parsing
         assertTrue(field.setFromXmlText("newest text"));
         assertEquals("newest text", field.getText());
+
+        assertNotSame(field, field.clone());
     }
 
-    public void testFieldAngle() {
+    public void testFieldAngle() throws CloneNotSupportedException {
         Field.FieldAngle field = new Field.FieldAngle("name", 0);
         assertEquals(Field.TYPE_ANGLE, field.getType());
         assertEquals("name", field.getName());
@@ -80,9 +78,11 @@ public class FieldTest extends AndroidTestCase {
         assertTrue(field.setFromXmlText("27"));
         assertEquals(27, field.getAngle());
         assertFalse(field.setFromXmlText("this is not a number"));
+
+        assertNotSame(field, field.clone());
     }
 
-    public void testFieldCheckbox() {
+    public void testFieldCheckbox() throws CloneNotSupportedException {
         Field.FieldCheckbox field = new Field.FieldCheckbox("fname", true);
         assertEquals(Field.TYPE_CHECKBOX, field.getType());
         assertEquals("fname", field.getName());
@@ -111,9 +111,11 @@ public class FieldTest extends AndroidTestCase {
         field.setChecked(true);
         assertTrue(field.setFromXmlText("t"));
         assertFalse(field.isChecked());
+
+        assertNotSame(field, field.clone());
     }
 
-    public void testFieldColour() {
+    public void testFieldColour() throws CloneNotSupportedException {
         Field.FieldColour field = new Field.FieldColour("fname", 0xaa00aa);
         assertEquals(Field.TYPE_COLOUR, field.getType());
         assertEquals("fname", field.getName());
@@ -139,9 +141,11 @@ public class FieldTest extends AndroidTestCase {
         assertFalse(field.setFromXmlText("#fc6"));
         // Color does not change
         assertEquals(0x00cc66, field.getColour());
+
+        assertNotSame(field, field.clone());
     }
 
-    public void testFieldDate() {
+    public void testFieldDate() throws CloneNotSupportedException {
         Field.FieldDate field = new Field.FieldDate("alphabet", "2015-09-10");
         assertEquals(Field.TYPE_DATE, field.getType());
         assertEquals("alphabet", field.getName());
@@ -161,9 +165,13 @@ public class FieldTest extends AndroidTestCase {
         assertFalse(field.setFromXmlText("today"));
         assertFalse(field.setFromXmlText("2017/03/03"));
         assertFalse(field.setFromXmlText(""));
+
+        Field.FieldDate clone = field.clone();
+        assertNotSame(field, clone);
+        assertNotSame(field.getDate(), clone.getDate());
     }
 
-    public void testFieldVariable() {
+    public void testFieldVariable() throws CloneNotSupportedException {
         Field.FieldVariable field = new Field.FieldVariable("fname", "varName");
         assertEquals(Field.TYPE_VARIABLE, field.getType());
         assertEquals("fname", field.getName());
@@ -176,9 +184,11 @@ public class FieldTest extends AndroidTestCase {
         assertTrue(field.setFromXmlText("newestVar"));
         assertEquals("newestVar", field.getVariable());
         assertFalse(field.setFromXmlText(""));
+
+        assertNotSame(field, field.clone());
     }
 
-    public void testFieldDropdown() {
+    public void testFieldDropdown() throws CloneNotSupportedException {
         String[] displayNames = new String[] {"A", "B", "C"};
         String[] values = new String[] {"1", "2", "3"};
         // Test creating a dropdown from two String[]s
@@ -198,7 +208,7 @@ public class FieldTest extends AndroidTestCase {
         }
 
         // Test creating it from a List<Pair<String, String>>
-        field = new Field.FieldDropdown("fname", options);;
+        field = new Field.FieldDropdown("fname", options);
         assertEquals(Field.TYPE_DROPDOWN, field.getType());
         assertEquals("fname", field.getName());
         assertEquals(0, field.getSelectedIndex());
@@ -260,9 +270,14 @@ public class FieldTest extends AndroidTestCase {
             assertEquals(values[i], option.first);
             assertEquals(displayNames[i], option.second);
         }
+
+        Field.FieldDropdown clone = field.clone();
+        assertNotSame(field, clone);
+        assertNotSame(field.getOptions(), clone.getOptions());
+        assertNotSame(field.getOptions().get(0), clone.getOptions().get(0));
     }
 
-    public void testFieldImage() {
+    public void testFieldImage() throws CloneNotSupportedException {
         String url = "https://www.gstatic.com/codesite/ph/images/star_on.gif";
         Field.FieldImage field = new Field.FieldImage("fname", url, 15, 21, "altText");
         assertEquals(Field.TYPE_IMAGE, field.getType());
@@ -274,5 +289,7 @@ public class FieldTest extends AndroidTestCase {
 
         // xml parsing
         assertFalse(field.setFromXmlText("any text"));
+
+        assertNotSame(field, field.clone());
     }
 }

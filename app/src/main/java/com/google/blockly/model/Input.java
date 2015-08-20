@@ -32,7 +32,7 @@ import java.util.Set;
  * be created by calling {@link #fromJson(JSONObject) Input.fromJson} or by creating a new instance
  * of a concrete input class and adding fields to it.
  */
-public abstract class Input {
+public abstract class Input implements Cloneable {
     private static final String TAG = "Input";
 
     /**
@@ -107,6 +107,37 @@ public abstract class Input {
         }
     }
 
+    public Input(Input in) {
+        List<Field> inputFields = in.getFields();
+        for (int i = 0; i < inputFields.size(); i++) {
+            try {
+                mFields.add(inputFields.get(i).clone());
+            } catch (CloneNotSupportedException e) {
+                continue;
+            }
+        }
+
+        mName = in.getName();
+        mType = in.getType();
+        // TODO(fenichel): confirm that this is the right behaviour.
+        // A Connection has a reference to an Input and an Input has a reference to
+        // a Connection.
+        mConnection = Connection.cloneConnectionWithInput(in.getConnection(), this);
+        mBlock = in.getBlock();
+        mAlign = in.getAlign();
+    }
+
+    public static Input cloneInput(Input in) {
+        if (in == null) {
+            return null;
+        }
+        try {
+            return (Input) in.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
+
     /**
      * Checks if a given type is a known input type.
      *
@@ -147,6 +178,20 @@ public abstract class Input {
                 throw new IllegalArgumentException("Unknown input type: " + type);
         }
         return input;
+    }
+
+    /**
+     * @return The type of this input.
+     */
+    public String getType() {
+        return mType;
+    }
+
+    /**
+     * @return The alignment of this input.
+     */
+    public String getAlign() {
+        return mAlign;
     }
 
     /**
@@ -246,6 +291,15 @@ public abstract class Input {
             super(name, TYPE_VALUE, align, new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
 
+        public InputValue(InputValue inv) {
+            super(inv);
+        }
+
+        @Override
+        public InputValue clone() {
+            return new InputValue(this);
+        }
+
         private InputValue(JSONObject json) {
             this(json.optString("name", "NAME"), json.optString("align"),
                     getChecksFromJson(json, "check"));
@@ -263,6 +317,15 @@ public abstract class Input {
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
 
+        public InputStatement(InputStatement ins) {
+            super(ins);
+        }
+
+        @Override
+        public InputStatement clone() {
+            return new InputStatement(this);
+        }
+
         private InputStatement(JSONObject json) {
             this(json.optString("name", "NAME"), json.optString("align"),
                     getChecksFromJson(json, "check"));
@@ -277,6 +340,16 @@ public abstract class Input {
         public InputDummy(String name, String align) {
             super(name, TYPE_DUMMY, align, null);
         }
+
+        public InputDummy(InputDummy ind) {
+            super(ind);
+        }
+
+        @Override
+        public InputDummy clone() {
+            return new InputDummy(this);
+        }
+
 
         private InputDummy(JSONObject json) {
             this(json.optString("name", "NAME"), json.optString("align"));

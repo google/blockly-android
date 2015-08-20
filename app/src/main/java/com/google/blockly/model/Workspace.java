@@ -16,8 +16,6 @@
 package com.google.blockly.model;
 
 import android.content.Context;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.util.Log;
 
 import java.util.ArrayList;

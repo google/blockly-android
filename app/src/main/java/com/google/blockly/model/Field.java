@@ -22,7 +22,7 @@ import java.util.Set;
  * The base class for Fields in Blockly. A field is the smallest piece of a {@link Block} and is
  * wrapped by an {@link Input}.
  */
-public abstract class Field {
+public abstract class Field implements Cloneable {
     private static final String TAG = "Field";
 
     public static final String TYPE_LABEL = "field_label";
@@ -61,6 +61,10 @@ public abstract class Field {
         }
         mName = name;
         mType = type;
+    }
+
+    public Field clone() throws CloneNotSupportedException {
+        return (Field) super.clone();
     }
 
     /**
@@ -163,6 +167,11 @@ public abstract class Field {
             mText = text == null ? "" : text;
         }
 
+        @Override
+        public FieldLabel clone() throws CloneNotSupportedException {
+            return (FieldLabel) super.clone();
+        }
+
         private FieldLabel(JSONObject json) {
             this(json.optString("name", null), json.optString("text", ""));
         }
@@ -184,6 +193,11 @@ public abstract class Field {
         public FieldInput(String name, String text) {
             super(name, TYPE_INPUT);
             mText = text;
+        }
+
+        @Override
+        public FieldInput clone() throws CloneNotSupportedException {
+            return (FieldInput) super.clone();
         }
 
         @Override
@@ -223,6 +237,11 @@ public abstract class Field {
         public FieldAngle(String name, int angle) {
             super(name, TYPE_ANGLE);
             setAngle(angle);
+        }
+
+        @Override
+        public FieldAngle clone() throws CloneNotSupportedException {
+            return (FieldAngle) super.clone();
         }
 
         @Override
@@ -277,6 +296,11 @@ public abstract class Field {
         }
 
         @Override
+        public FieldCheckbox clone() throws CloneNotSupportedException {
+            return (FieldCheckbox) super.clone();
+        }
+
+        @Override
         public boolean setFromXmlText(String text) {
             mChecked = Boolean.parseBoolean(text);
             return true;
@@ -315,6 +339,11 @@ public abstract class Field {
         public FieldColour(String name, int colour) {
             super(name, TYPE_COLOUR);
             setColour(colour);
+        }
+
+        @Override
+        public FieldColour clone() throws CloneNotSupportedException {
+            return (FieldColour) super.clone();
         }
 
         @Override
@@ -373,7 +402,16 @@ public abstract class Field {
                 date = new Date();
             }
             mDate = date;
+        }
 
+        public FieldDate(FieldDate input) {
+            super(input.getName(), TYPE_DATE);
+            mDate = (Date) input.mDate.clone();
+        }
+
+        @Override
+        public FieldDate clone() throws CloneNotSupportedException {
+            return new FieldDate(this);
         }
 
         @Override
@@ -439,6 +477,11 @@ public abstract class Field {
         }
 
         @Override
+        public FieldVariable clone() throws CloneNotSupportedException {
+            return (FieldVariable) super.clone();
+        }
+
+        @Override
         public boolean setFromXmlText(String text) {
             if (TextUtils.isEmpty(text)) {
                 return false;
@@ -481,6 +524,19 @@ public abstract class Field {
         public FieldDropdown(String name, List<Pair<String, String>> options) {
             super(name, TYPE_DROPDOWN);
             setOptions(options);
+        }
+
+        @Override
+        public FieldDropdown clone() throws CloneNotSupportedException {
+            FieldDropdown field = (FieldDropdown) super.clone();
+
+            for (int i = 0; i < this.mOptions.size(); i++) {
+                Pair<String, String> original = this.mOptions.get(0);
+                // TODO(fenichel): Understand why this fails with an OOM error.
+                field.mOptions.add(Pair.create(original.first, original.second));
+            }
+
+            return field;
         }
 
         @Override
@@ -648,6 +704,11 @@ public abstract class Field {
             mWidth = width;
             mHeight = height;
             mAltText = altText;
+        }
+
+        @Override
+        public FieldImage clone() throws CloneNotSupportedException {
+            return (FieldImage) super.clone();
         }
 
         private FieldImage(JSONObject json) {

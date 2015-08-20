@@ -2,13 +2,11 @@ package com.google.blockly.model;
 
 import android.text.TextUtils;
 
-import org.json.JSONObject;
-
 /**
  * Describes a connection on a Block. This can be a previous/next connection, an output, or
  * the connection on an {@link Input}.
  */
-public class Connection {
+public class Connection implements Cloneable {
     /**
      * A previous connection on a block. May only be connected to a next connection. A block may
      * not have both a previous and an output connection. This is only used for the previous link
@@ -56,6 +54,29 @@ public class Connection {
     public Connection(int type, String[] checks) {
         mConnectionType = type;
         mConnectionChecks = checks;
+    }
+
+    public Connection(Connection conn, Input input) {
+        mConnectionChecks = conn.getConnectionChecks();
+        mConnectionType = conn.getType();
+        // TODO(fenichel): confirm that this is the right behaviour.
+        mBlock = conn.getBlock();
+        mInput = input;
+        mTargetConnection = conn.getTargetConnection();
+    }
+
+    public static Connection cloneConnection(Connection conn) {
+        if (conn == null) {
+            return null;
+        }
+        return new Connection(conn, Input.cloneInput(conn.getInput()));
+    }
+
+    public static Connection cloneConnectionWithInput(Connection conn, Input input) {
+        if (conn == null) {
+            return null;
+        }
+        return new Connection(conn, input);
     }
 
     /**
@@ -156,6 +177,11 @@ public class Connection {
     public Input getInput() {
         return mInput;
     }
+
+    /**
+     * @return The Connection this is connected to.
+     */
+    public Connection getTargetConnection() { return mTargetConnection; }
 
     private void connectInternal(Connection target) {
         mTargetConnection = target;

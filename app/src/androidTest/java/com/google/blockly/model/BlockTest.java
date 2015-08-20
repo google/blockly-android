@@ -132,6 +132,17 @@ public class BlockTest extends AndroidTestCase {
         Block frankenblock = bf.obtainBlock("frankenblock");
         assertNotNull("Failed to create the frankenblock.", frankenblock);
 
+        Block frankencopy = bf.obtainBlock("frankenblock");
+        assertNotSame("Obtained blocks should be distinct objects.", frankenblock, frankencopy);
+
+        assertNotSame("Obtained blocks should not share connections.",
+                frankenblock.getNextConnection(), frankencopy.getNextConnection());
+        assertNotSame("Obtained blocks should not share connections.",
+                frankenblock.getPreviousConnection(), frankencopy.getPreviousConnection());
+        assertNull(frankenblock.getOutputConnection());
+        assertNotSame("Obtained blocks should not share inputs.",
+                frankenblock.getInputs().get(0), frankencopy.getInputs().get(0));
+
         List<Input> inputs = frankenblock.getInputs();
         assertEquals("Frankenblock has the wrong number of inputs", 3, inputs.size());
         assertTrue("First input should be a value input.",

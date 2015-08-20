@@ -24,11 +24,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
-import java.io.PipedInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -73,10 +69,19 @@ public class Block {
         mName = name;
         mCategory = category;
         mColourHue = colourHue;
-        mOutputConnection = outputConnection;
-        mNextConnection = nextConnection;
-        mPreviousConnection = previousConnection;
-        mInputList = inputList;
+        mOutputConnection = Connection.cloneConnection(outputConnection);
+        mNextConnection = Connection.cloneConnection(nextConnection);
+        mPreviousConnection = Connection.cloneConnection(previousConnection);
+
+        mInputList = new ArrayList<Input>();
+        Input newInput;
+        for (int i = 0; i < inputList.size(); i++) {
+            newInput = Input.cloneInput(inputList.get(i));
+            if (newInput != null) {
+                mInputList.add(newInput);
+            }
+        }
+
         mInputsInline = inputsInline;
         mPosition = new Point(0,0);
 
@@ -271,13 +276,13 @@ public class Block {
             String[] checks = Input.getChecksFromJson(json, "output");
             Connection output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, checks);
             bob.setOutput(output);
-        } else if (json.has("previous")) {
-            String[] checks = Input.getChecksFromJson(json, "previous");
+        } else if (json.has("previousStatement")) {
+            String[] checks = Input.getChecksFromJson(json, "previousStatement");
             Connection previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, checks);
             bob.setPrevious(previous);
         }
-        if (json.has("next")) {
-            String[] checks = Input.getChecksFromJson(json, "next");
+        if (json.has("nextStatement")) {
+            String[] checks = Input.getChecksFromJson(json, "nextStatement");
             Connection next = new Connection(Connection.CONNECTION_TYPE_NEXT, checks);
             bob.setNext(next);
         }
@@ -486,7 +491,8 @@ public class Block {
             mColourHue = block.mColourHue;
             mCategory = block.mCategory;
 
-
+            // All of the Inputs and Connections will be cloned when build() is called.  The
+            // cloning happens in the Block constructor.
             mOutputConnection = block.mOutputConnection;
             mNextConnection = block.mNextConnection;
             mPreviousConnection = block.mPreviousConnection;
