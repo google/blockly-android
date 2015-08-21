@@ -3,12 +3,6 @@ package com.google.blockly.model;
 import android.test.AndroidTestCase;
 import android.util.Pair;
 
-import com.google.blockly.R;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +23,6 @@ public class FieldTest extends AndroidTestCase {
 
         // xml parsing
         assertFalse(field.setFromXmlText("text"));
-
     }
 
     public void testFieldInput() {
@@ -199,7 +192,7 @@ public class FieldTest extends AndroidTestCase {
         }
 
         // Test creating it from a List<Pair<String, String>>
-        field = new Field.FieldDropdown("fname", options);;
+        field = new Field.FieldDropdown("fname", options);
         assertEquals(Field.TYPE_DROPDOWN, field.getType());
         assertEquals("fname", field.getName());
         assertEquals(0, field.getSelectedIndex());

@@ -19,4 +19,11 @@ package com.google.blockly.model;
  * An exception that is thrown when there is an error parsing a blockly Workspace from XML.
  */
 public class BlocklyParserException extends RuntimeException {
+    BlocklyParserException(String message) {
+        super(message);
+    }
+
+    BlocklyParserException(Throwable cause) {
+        super(cause);
+    }
 }

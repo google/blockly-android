@@ -16,8 +16,6 @@
 package com.google.blockly.model;
 
 import android.content.Context;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.util.Log;
 
 import com.google.blockly.ui.WorkspaceHelper;
@@ -92,9 +90,10 @@ public class Workspace {
         return mWorkspaceHelper;
     }
 
-    public void loadFromXml(InputStream is, BlockFactory blockFactory) {
-        XmlPullParserFactory Xppfactory = null;
-        XmlPullParser parser = null;
+    public void loadFromXml(InputStream is, BlockFactory blockFactory)
+            throws BlocklyParserException {
+        XmlPullParserFactory Xppfactory;
+        XmlPullParser parser;
         try {
             Xppfactory = XmlPullParserFactory.newInstance();
             Xppfactory.setNamespaceAware(true);
@@ -106,6 +105,9 @@ public class Workspace {
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
+                        if (parser.getName() == null) {
+                            throw new BlocklyParserException("Malformed XML; aborting.");
+                        }
                         if (parser.getName().equalsIgnoreCase("block")) {
                             addRootBlock(Block.fromXml(parser, blockFactory));
                         }
@@ -117,11 +119,9 @@ public class Workspace {
                 eventType = parser.next();
             }
         } catch (XmlPullParserException e) {
-            e.printStackTrace();
+            throw new BlocklyParserException(e);
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch(BlocklyParserException e) {
-            e.printStackTrace();
+            throw new BlocklyParserException(e);
         }
     }
 }

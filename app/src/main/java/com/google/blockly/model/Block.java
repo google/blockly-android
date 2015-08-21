@@ -27,7 +27,10 @@ import com.google.blockly.ui.BlockView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -410,22 +413,29 @@ public class Block {
         return bob.build();
     }
 
-
-    public static Block fromXml(XmlPullParser parser, BlockFactory factory) throws XmlPullParserException, IOException,
-            BlocklyParserException {
+    /**
+     * Load a block and all of its children from XML.
+     *
+     * @param parser An XmlPullParser pointed at the start tag of this block.
+     * @param factory A BlockFactory that will provide Blocks by name.
+     * @return The loaded block.
+     * @throws XmlPullParserException
+     * @throws IOException
+     * @throws BlocklyParserException
+     */
+    public static Block fromXml(XmlPullParser parser, BlockFactory factory)
+            throws XmlPullParserException, IOException, BlocklyParserException {
         // TODO(fenichel): What if there are multiple blocks with the same id?
         String type = parser.getAttributeValue(null, "type");   // prototype name
         String id = parser.getAttributeValue(null, "id");
         if (type == null || type.isEmpty()) {
             // If the id was empty the blockfactory will just generate one.
-            Log.d(TAG, "Block was missing a type.");
-            throw new BlocklyParserException();
+            throw new BlocklyParserException("Block was missing a type.");
         }
 
         Block resultBlock = factory.obtainBlock(type, id);
         if (resultBlock == null) {
-            Log.d(TAG, "Tried to obtain a block of an unknown type " + type);
-            throw new BlocklyParserException();
+            throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
         }
 
         // Set position.  Only if this is a top level block.
@@ -456,8 +466,7 @@ public class Block {
                         valueInput = resultBlock.getInputByName(
                                 parser.getAttributeValue(null, "name"));
                         if (valueInput == null) {
-                            Log.d(TAG, "The value input was null!");
-                            throw new BlocklyParserException();
+                            throw new BlocklyParserException("The value input was null!");
                         }
                     }
                     else if (tagname.equalsIgnoreCase("statement")){
@@ -476,8 +485,8 @@ public class Block {
                 case XmlPullParser.END_TAG:
                     if (tagname.equalsIgnoreCase("block")) {
                         if (resultBlock == null) {
-                            Log.d(TAG, "Created a null block. This should never happen.");
-                            throw new BlocklyParserException();
+                            throw new BlocklyParserException(
+                                    "Created a null block. This should never happen.");
                         }
                         return resultBlock;
                     }
@@ -485,8 +494,8 @@ public class Block {
                         Field toSet = resultBlock.getFieldByName(fieldName);
                         if (toSet != null) {
                             if (!toSet.setFromXmlText(text)) {
-                                Log.d(TAG, "Failed to set a field's value from XML.");
-                                throw new BlocklyParserException();
+                                throw new BlocklyParserException(
+                                        "Failed to set a field's value from XML.");
                             }
                         }
                     }
@@ -494,31 +503,29 @@ public class Block {
                         if (valueInput != null && childBlock != null) {
                             if (valueInput.getConnection() == null
                                     || childBlock.getOutputConnection() == null) {
-                                Log.d(TAG, "A connection was null.");
-                                throw new BlocklyParserException();
+                                throw new BlocklyParserException("A connection was null.");
                             }
                             valueInput.getConnection().connect(childBlock.getOutputConnection());
                             valueInput = null;
                             childBlock = null;
                         } else {
-                            Log.d(TAG, "A value input or child block was null.");
-                            throw new BlocklyParserException();
+                            throw new BlocklyParserException(
+                                    "A value input or child block was null.");
                         }
                     }
                     else if (tagname.equalsIgnoreCase("statement")) {
                         if (statementInput != null && childBlock != null) {
                             if (statementInput.getConnection() == null
                                     || childBlock.getPreviousConnection() == null) {
-                                Log.d(TAG, "A connection was null.");
-                                throw new BlocklyParserException();
+                                throw new BlocklyParserException("A connection was null.");
                             }
                             statementInput.getConnection().connect(
                                     childBlock.getPreviousConnection());
                             valueInput = null;
                             childBlock = null;
                         } else {
-                            Log.d(TAG, "A statement input or child block was null.");
-                            throw new BlocklyParserException();
+                            throw new BlocklyParserException(
+                                    "A statement input or child block was null.");
                         }
                     }
                     else if (tagname.equalsIgnoreCase("comment")){
@@ -527,8 +534,7 @@ public class Block {
                     else if (tagname.equalsIgnoreCase("next")) {
                         if (resultBlock.getNextConnection() == null
                                 || childBlock.getPreviousConnection() == null) {
-                            Log.d(TAG, "A connection was null.");
-                            throw new BlocklyParserException();
+                            throw new BlocklyParserException("A connection was null.");
                         }
                         resultBlock.getNextConnection().connect(childBlock.getPreviousConnection());
                     }
@@ -540,8 +546,8 @@ public class Block {
             eventType = parser.next();
         }
         // Should never reach here, since this is called from a workspace fromXml function.
-        Log.d(TAG, "Reached the end of Block.fromXml. This should never happen.");
-        throw new BlocklyParserException();
+        throw new BlocklyParserException(
+                "Reached the end of Block.fromXml. This should never happen.");
     }
 
     /**

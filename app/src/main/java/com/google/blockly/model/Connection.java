@@ -18,8 +18,6 @@ package com.google.blockly.model;
 import android.graphics.Point;
 import android.text.TextUtils;
 
-import org.json.JSONObject;
-
 /**
  * Describes a connection on a Block. This can be a previous/next connection, an output, or
  * the connection on an {@link Input}.
