@@ -19,6 +19,8 @@ import android.graphics.Point;
 import android.graphics.Rect;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.model.Workspace;
+import com.google.blockly.model.WorkspacePoint;
 
 
 /**
@@ -29,7 +31,7 @@ public class FieldWorkspaceParams {
     private final Field mField;
     private final WorkspaceHelper mWorkspaceHelper;
 
-    private Point mPosition = new Point();
+    private WorkspacePoint mWorkspacePosition = new WorkspacePoint();
     private Rect mBounds = new Rect();
     private int mWidth;
     private int mHeight;
@@ -56,21 +58,22 @@ public class FieldWorkspaceParams {
     public void setMeasuredDimensions(int width, int height) {
         mWidth = mWorkspaceHelper.viewToWorkspaceUnits(width);
         mHeight = mWorkspaceHelper.viewToWorkspaceUnits(height);
-        mBounds.set(mPosition.x, mPosition.y + mHeight, mPosition.x + mWidth, mPosition.y);
+        mBounds.set(
+                mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
+                mWorkspacePosition.x + mWidth, mWorkspacePosition.y);
     }
 
     /**
      * Set the position of the block's view in pixels. The position will be converted to workspace
      * units and the bounding box will be updated.
      *
-     * @param x The x position fo the block's view in pixels.
-     * @param y The y position of the block's view in pixels.
+     * @param viewPosition The x, y position fo the block's view in pixels.
      */
-    public void setPosition(int x, int y) {
-        mPosition.x = x;
-        mPosition.y = y;
-        mWorkspaceHelper.viewToWorkspaceCoordinates(mPosition, mPosition);
-        mBounds.set(mPosition.x, mPosition.y + mHeight, mPosition.x + mWidth, mPosition.y);
+    public void setPosition(ViewPoint viewPosition) {
+        mWorkspaceHelper.viewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
+        mBounds.set(
+                mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
+                mWorkspacePosition.x + mWidth, mWorkspacePosition.y);
     }
 
     /**
@@ -83,7 +86,7 @@ public class FieldWorkspaceParams {
     /**
      * @return The top left (top right in RtL) corner of this block in workspace coordinates.
      */
-    public Point getWorkspacePosition() {
-        return mPosition;
+    public WorkspacePoint getWorkspacePosition() {
+        return mWorkspacePosition;
     }
 }

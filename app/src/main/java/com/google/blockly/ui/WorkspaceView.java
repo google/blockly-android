@@ -18,7 +18,6 @@ package com.google.blockly.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -26,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.model.Workspace;
+import com.google.blockly.model.WorkspacePoint;
 
 /**
  * Handles updating the viewport into the workspace and is the parent view for all blocks. This
@@ -54,7 +54,7 @@ public class WorkspaceView extends ViewGroup {
     private Paint mPaint;
     private int mGridSpacing = DEFAULT_GRID_SPACING;
     private boolean mDrawGrid = true;
-    private Point mTemp = new Point();
+    private ViewPoint mTemp = new ViewPoint();
 
     public WorkspaceView(Context context) {
         this(context, null);
@@ -91,7 +91,7 @@ public class WorkspaceView extends ViewGroup {
             }
             if (child instanceof BlockGroup) {
                 BlockGroup bg = (BlockGroup) child;
-                Point wksPos = bg.getTopBlockPosition();
+                WorkspacePoint wksPos = bg.getTopBlockPosition();
                 mHelper.workspaceToViewCoordinates(wksPos, mTemp);
 
                 int cl = rtl ? mTemp.x - bg.getMeasuredWidth() : mTemp.x;
@@ -148,7 +148,7 @@ public class WorkspaceView extends ViewGroup {
         if (shouldDrawGrid()) {
             int gridSpacing = mGridSpacing;
             // Figure out where we should start drawing the grid
-            Point viewOffset = mHelper.getViewOffset();
+            ViewPoint viewOffset = mHelper.getViewOffset();
             int gridX = gridSpacing - (viewOffset.x % gridSpacing);
             int gridY = gridSpacing - (viewOffset.y % gridSpacing);
 

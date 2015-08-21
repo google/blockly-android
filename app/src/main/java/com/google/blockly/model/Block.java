@@ -16,7 +16,6 @@
 package com.google.blockly.model;
 
 import android.graphics.Color;
-import android.graphics.Point;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -66,7 +65,7 @@ public class Block {
     private boolean mCanEdit;
     private boolean mCollapsed;
     private boolean mDisabled;
-    private Point mPosition;
+    private WorkspacePoint mPosition;
 
     // These values are only used for drawing
     private BlockView mView;
@@ -84,7 +83,7 @@ public class Block {
         mPreviousConnection = previousConnection;
         mInputList = inputList;
         mInputsInline = inputsInline;
-        mPosition = new Point(0,0);
+        mPosition = new WorkspacePoint(0, 0);
 
         mColour = Color.HSVToColor(new float[]{mColourHue, DEFAULT_HSV_SATURATION, DEFAULT_HSV_VALUE});
 
@@ -134,9 +133,9 @@ public class Block {
      * other blocks will have a position that is dependent on the block rendering relative to the
      * top level block.
      *
-     * @return The x,y coordinates of the start corner of this block.
+     * @return The coordinates of the start corner of this block in Workspace coordinates.
      */
-    public Point getPosition() {
+    public WorkspacePoint getPosition() {
         return mPosition;
     }
 
@@ -638,7 +637,7 @@ public class Block {
         private boolean mCanEdit;
         private boolean mCollapsed;
         private boolean mDisabled;
-        private Point mPosition;
+        private WorkspacePoint mPosition;
 
         public Builder(String name) {
             this(name, UUID.randomUUID().toString());
@@ -648,7 +647,7 @@ public class Block {
             mName = name;
             mUuid = uuid;
             mInputs = new ArrayList<>();
-            mPosition = new Point(0, 0);
+            mPosition = new WorkspacePoint(0, 0);
         }
 
         public Builder(Block block) {

@@ -22,6 +22,8 @@ import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
+import com.google.blockly.model.WorkspacePoint;
+
 /**
  * Provides helper methods for converting coordinates between the workspace and the views.
  */
@@ -34,8 +36,8 @@ public class WorkspaceHelper {
 
     private float mScale = 1;
     private float mDensity;
-    private Point mOffset;
-    private Point mViewSize;
+    private WorkspacePoint mWorkspaceOffset;
+    private ViewPoint mViewSize;
     private boolean mRtL;
 
     /**
@@ -52,8 +54,8 @@ public class WorkspaceHelper {
             Log.e(TAG, "Density is not defined for this context. Defaulting to 1.");
             mDensity = 1f;
         }
-        mOffset = new Point(leftOffset, topOffset);
-        mViewSize = new Point();
+        mWorkspaceOffset = new WorkspacePoint(leftOffset, topOffset);
+        mViewSize = new ViewPoint();
     }
 
     /**
@@ -74,9 +76,9 @@ public class WorkspaceHelper {
      *
      * @param workspaceOffset The view's offset into the workspace in workspace coordinates.
      */
-    public void setOffset(Point workspaceOffset) {
-        mOffset.x = workspaceOffset.x;
-        mOffset.y = workspaceOffset.y;
+    public void setOffset(WorkspacePoint workspaceOffset) {
+        mWorkspaceOffset.x = workspaceOffset.x;
+        mWorkspaceOffset.y = workspaceOffset.y;
     }
 
     /**
@@ -85,7 +87,7 @@ public class WorkspaceHelper {
      *
      * @param viewDimens The width and height of the workspace view in pixels.
      */
-    public void setViewSize(Point viewDimens) {
+    public void setViewSize(ViewPoint viewDimens) {
         mViewSize.x = viewDimens.x;
         mViewSize.y = viewDimens.y;
     }
@@ -103,8 +105,8 @@ public class WorkspaceHelper {
      *
      * @return The top left corner the viewport in workspace coordinates.
      */
-    public Point getOffset() {
-        return mOffset;
+    public WorkspacePoint getOffset() {
+        return mWorkspaceOffset;
     }
 
     /**
@@ -113,14 +115,14 @@ public class WorkspaceHelper {
      *
      * @return The top left corner of the viewport in pixels.
      */
-    public Point getViewOffset() {
-        return new Point(workspaceToViewUnits(mOffset.x), workspaceToViewUnits(mOffset.y));
+    public ViewPoint getViewOffset() {
+        return new ViewPoint(workspaceToViewUnits(mWorkspaceOffset.x), workspaceToViewUnits(mWorkspaceOffset.y));
     }
 
     /**
      * @return The current size of the view in pixels.
      */
-    public Point getViewSize() {
+    public ViewPoint getViewSize() {
         return mViewSize;
     }
 
@@ -156,9 +158,9 @@ public class WorkspaceHelper {
      * @param workspacePosition The position to convert to view coordinates.
      * @param viewPosition The Point to store the results in.
      */
-    public void workspaceToViewCoordinates(Point workspacePosition, Point viewPosition) {
-        viewPosition.x = workspaceToViewUnits(workspacePosition.x - mOffset.x);
-        viewPosition.y = workspaceToViewUnits(workspacePosition.y - mOffset.y);
+    void workspaceToViewCoordinates(WorkspacePoint workspacePosition, ViewPoint viewPosition) {
+        viewPosition.x = workspaceToViewUnits(workspacePosition.x - mWorkspaceOffset.x);
+        viewPosition.y = workspaceToViewUnits(workspacePosition.y - mWorkspaceOffset.y);
 
         if (useRtL()) {
             viewPosition.x = mViewSize.x - viewPosition.x;
@@ -173,13 +175,13 @@ public class WorkspaceHelper {
      * @param viewPosition The position to convert to workspace coordinates.
      * @param workspacePosition The Point to store the results in.
      */
-    public void viewToWorkspaceCoordinates(Point viewPosition, Point workspacePosition) {
+    void viewToWorkspaceCoordinates(ViewPoint viewPosition, WorkspacePoint workspacePosition) {
         int viewX = viewPosition.x;
         if (useRtL()) {
             viewX = mViewSize.x - viewX;
         }
-        workspacePosition.x = viewToWorkspaceUnits(viewX) + mOffset.x;
-        workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mOffset.y;
+        workspacePosition.x = viewToWorkspaceUnits(viewX) + mWorkspaceOffset.x;
+        workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mWorkspaceOffset.y;
     }
 
     /**

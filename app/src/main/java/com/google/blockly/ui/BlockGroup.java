@@ -20,6 +20,8 @@ import android.graphics.Point;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.model.WorkspacePoint;
+
 /**
  * This wraps a set of sequential BlockViews.
  */
@@ -78,7 +80,7 @@ public class BlockGroup extends ViewGroup {
         super.addView(child, index, params);
     }
 
-    public Point getTopBlockPosition() {
+    public WorkspacePoint getTopBlockPosition() {
         if (getChildCount() > 0) {
             return ((BlockView) getChildAt(0)).getBlock().getPosition();
         }

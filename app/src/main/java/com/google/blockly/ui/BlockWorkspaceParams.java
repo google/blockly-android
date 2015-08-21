@@ -17,12 +17,12 @@ package com.google.blockly.ui;
 
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
+import com.google.blockly.model.WorkspacePoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public class BlockWorkspaceParams {
     final WorkspaceHelper mWorkspaceHelper;
 
     // The position of the rendered block in workspace coordinates
-    private Point mPosition = new Point();
+    private WorkspacePoint mWorkspacePosition = new WorkspacePoint();
     // The bounding box for the rendered block in workspace coordinates
     private Rect mBounds = new Rect();
     // The width of the rendered block in workspace coordinates
@@ -83,7 +83,9 @@ public class BlockWorkspaceParams {
     public void setMeasuredDimensions(Point viewDimens) {
         mWidth = mWorkspaceHelper.viewToWorkspaceUnits(viewDimens.x);
         mHeight = mWorkspaceHelper.viewToWorkspaceUnits(viewDimens.y);
-        mBounds.set(mPosition.x, mPosition.y + mHeight, mPosition.x + mWidth, mPosition.y);
+        mBounds.set(
+                mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
+                mWorkspacePosition.x + mWidth, mWorkspacePosition.y);
     }
 
     /**
@@ -92,11 +94,11 @@ public class BlockWorkspaceParams {
      *
      * @param viewPosition The position of the block in the workspace view's coordinates.
      */
-    public void setPosition(Point viewPosition) {
-        mPosition.x = viewPosition.x;
-        mPosition.y = viewPosition.y;
-        mWorkspaceHelper.viewToWorkspaceCoordinates(mPosition, mPosition);
-        mBounds.set(mPosition.x, mPosition.y + mHeight, mPosition.x + mWidth, mPosition.y);
+    public void setPosition(ViewPoint viewPosition) {
+        mWorkspaceHelper.viewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
+        mBounds.set(
+                mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
+                mWorkspacePosition.x + mWidth, mWorkspacePosition.y);
     }
 
     /**
@@ -109,7 +111,7 @@ public class BlockWorkspaceParams {
     /**
      * @return The top left (top right in RtL) corner of this block in workspace coordinates.
      */
-    public Point getWorkspacePosition() {
-        return mPosition;
+    public WorkspacePoint getWorkspacePosition() {
+        return mWorkspacePosition;
     }
 }

@@ -60,7 +60,7 @@ public class FieldLabelView extends TextView implements FieldView {
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mLayoutParams.setPosition(left, top);
+        mLayoutParams.setPosition(new ViewPoint(left, top));
     }
 
     @Override
