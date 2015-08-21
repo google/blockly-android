@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -530,9 +531,9 @@ public abstract class Field implements Cloneable {
         public FieldDropdown clone() throws CloneNotSupportedException {
             FieldDropdown field = (FieldDropdown) super.clone();
 
-            for (int i = 0; i < this.mOptions.size(); i++) {
-                Pair<String, String> original = this.mOptions.get(0);
-                // TODO(fenichel): Understand why this fails with an OOM error.
+            field.mOptions = new ArrayList<>(mOptions.size());
+            for (int i = 0; i < mOptions.size(); i++) {
+                Pair<String, String> original = mOptions.get(i);
                 field.mOptions.add(Pair.create(original.first, original.second));
             }
 
