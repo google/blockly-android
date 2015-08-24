@@ -107,6 +107,11 @@ public abstract class Input implements Cloneable {
         }
     }
 
+    /**
+     * Copies the given Input; leaves the new Input's Block null.
+     *
+     * @param in The Input to copy.
+     */
     public Input(Input in) {
         List<Field> inputFields = in.getFields();
         for (int i = 0; i < inputFields.size(); i++) {
@@ -119,11 +124,11 @@ public abstract class Input implements Cloneable {
 
         mName = in.getName();
         mType = in.getType();
-        // TODO(fenichel): confirm that this is the right behaviour.
-        // A Connection has a reference to an Input and an Input has a reference to
-        // a Connection.
-        mConnection = Connection.cloneConnectionWithInput(in.getConnection(), this);
-        mBlock = in.getBlock();
+        mConnection = Connection.cloneConnection(in.getConnection());
+        if (mConnection != null) {
+            mConnection.setInput(this);
+        }
+
         mAlign = in.getAlign();
     }
 

@@ -9,7 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -64,6 +63,7 @@ public abstract class Field implements Cloneable {
         mType = type;
     }
 
+    @Override
     public Field clone() throws CloneNotSupportedException {
         return (Field) super.clone();
     }

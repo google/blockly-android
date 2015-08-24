@@ -69,19 +69,14 @@ public class Block {
         mName = name;
         mCategory = category;
         mColourHue = colourHue;
-        mOutputConnection = Connection.cloneConnection(outputConnection);
-        mNextConnection = Connection.cloneConnection(nextConnection);
-        mPreviousConnection = Connection.cloneConnection(previousConnection);
 
-        mInputList = new ArrayList<Input>();
-        Input newInput;
-        for (int i = 0; i < inputList.size(); i++) {
-            newInput = Input.cloneInput(inputList.get(i));
-            if (newInput != null) {
-                mInputList.add(newInput);
-            }
-        }
+        // This constructor reuses Connections and Inputs instead of copying them.  Consider using
+        // a BlockFactory and Builders instead of creating Blocks directly.
+        mOutputConnection = outputConnection;
+        mNextConnection = nextConnection;
+        mPreviousConnection = previousConnection;
 
+        mInputList = inputList;
         mInputsInline = inputsInline;
         mPosition = new Point(0,0);
 
@@ -281,6 +276,8 @@ public class Block {
             Connection previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, checks);
             bob.setPrevious(previous);
         }
+        // A block can have either an output connection or previous connection, but it can always
+        // have a next connection.
         if (json.has("nextStatement")) {
             String[] checks = Input.getChecksFromJson(json, "nextStatement");
             Connection next = new Connection(Connection.CONNECTION_TYPE_NEXT, checks);
@@ -491,12 +488,20 @@ public class Block {
             mColourHue = block.mColourHue;
             mCategory = block.mCategory;
 
-            // All of the Inputs and Connections will be cloned when build() is called.  The
-            // cloning happens in the Block constructor.
-            mOutputConnection = block.mOutputConnection;
-            mNextConnection = block.mNextConnection;
-            mPreviousConnection = block.mPreviousConnection;
-            mInputs.addAll(block.mInputList); // TODO: make copies of the inputs/fields
+
+            mOutputConnection = Connection.cloneConnection(block.mOutputConnection);
+            mNextConnection = Connection.cloneConnection(block.mNextConnection);
+            mPreviousConnection = Connection.cloneConnection(block.mPreviousConnection);
+
+            mInputs = new ArrayList<>();
+            Input newInput;
+            for (int i = 0; i < block.mInputList.size(); i++) {
+                newInput = Input.cloneInput(block.mInputList.get(i));
+                if (newInput != null) {
+                    mInputs.add(newInput);
+                }
+            }
+
             mInputsInline = block.mInputsInline;
 
             // TODO: Reconsider the defaults for these

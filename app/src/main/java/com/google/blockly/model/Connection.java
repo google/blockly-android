@@ -56,27 +56,20 @@ public class Connection implements Cloneable {
         mConnectionChecks = checks;
     }
 
-    public Connection(Connection conn, Input input) {
-        mConnectionChecks = conn.getConnectionChecks();
-        mConnectionType = conn.getType();
-        // TODO(fenichel): confirm that this is the right behaviour.
-        mBlock = conn.getBlock();
-        mInput = input;
-        mTargetConnection = conn.getTargetConnection();
+    /**
+     * @return A new Connection with the same type and checks but with null block,
+     * input and target connection.
+     */
+    @Override
+    public Connection clone() {
+        return new Connection(this.getType(), this.getConnectionChecks());
     }
 
     public static Connection cloneConnection(Connection conn) {
         if (conn == null) {
             return null;
         }
-        return new Connection(conn, Input.cloneInput(conn.getInput()));
-    }
-
-    public static Connection cloneConnectionWithInput(Connection conn, Input input) {
-        if (conn == null) {
-            return null;
-        }
-        return new Connection(conn, input);
+        return conn.clone();
     }
 
     /**
