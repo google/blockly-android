@@ -65,13 +65,6 @@ public class Connection implements Cloneable {
         return new Connection(this.getType(), this.getConnectionChecks());
     }
 
-    public static Connection cloneConnection(Connection conn) {
-        if (conn == null) {
-            return null;
-        }
-        return conn.clone();
-    }
-
     /**
      * Check if this can be connected to the target connection.
      *
@@ -238,5 +231,12 @@ public class Connection implements Cloneable {
             }
         }
         return false;
+    }
+
+    public static Connection cloneConnection(Connection conn) {
+        if (conn == null) {
+            return null;
+        }
+        return conn.clone();
     }
 }

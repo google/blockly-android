@@ -118,7 +118,8 @@ public abstract class Input implements Cloneable {
             try {
                 mFields.add(inputFields.get(i).clone());
             } catch (CloneNotSupportedException e) {
-                throw new IllegalStateException();
+                throw new IllegalStateException("Error cloning field "
+                        + inputFields.get(i).getName() + " in Input " + in.getName() + ".");
             }
         }
 
@@ -141,48 +142,6 @@ public abstract class Input implements Cloneable {
         } catch (CloneNotSupportedException e) {
             return null;
         }
-    }
-
-    /**
-     * Checks if a given type is a known input type.
-     *
-     * @param type The type to check.
-     * @return True if the type is known to be an input type, false otherwise.
-     */
-    public static boolean isInputType(String type) {
-        return INPUT_TYPES.contains(type);
-    }
-
-    /**
-     * Generate an {@link Input} instance from a JSON definition. The type must be a known input
-     * type. If the type is not supported an alternate input type should be used instead.
-     *
-     * @param json The JSONObject that describes the input.
-     * @return An instance of {@link Input} generated from the json.
-     */
-    public static Input fromJson(JSONObject json) {
-        String type = null;
-        try {
-            type = json.getString("type");
-        } catch (JSONException e) {
-            throw new RuntimeException("Error getting the field type.", e);
-        }
-
-        Input input = null;
-        switch (type) {
-            case TYPE_VALUE:
-                input = new InputValue(json);
-                break;
-            case TYPE_STATEMENT:
-                input = new InputStatement(json);
-                break;
-            case TYPE_DUMMY:
-                input = new InputDummy(json);
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown input type: " + type);
-        }
-        return input;
     }
 
     /**
@@ -253,6 +212,48 @@ public abstract class Input implements Cloneable {
      */
     public Connection getConnection() {
         return mConnection;
+    }
+
+    /**
+     * Checks if a given type is a known input type.
+     *
+     * @param type The type to check.
+     * @return True if the type is known to be an input type, false otherwise.
+     */
+    public static boolean isInputType(String type) {
+        return INPUT_TYPES.contains(type);
+    }
+
+    /**
+     * Generate an {@link Input} instance from a JSON definition. The type must be a known input
+     * type. If the type is not supported an alternate input type should be used instead.
+     *
+     * @param json The JSONObject that describes the input.
+     * @return An instance of {@link Input} generated from the json.
+     */
+    public static Input fromJson(JSONObject json) {
+        String type = null;
+        try {
+            type = json.getString("type");
+        } catch (JSONException e) {
+            throw new RuntimeException("Error getting the field type.", e);
+        }
+
+        Input input = null;
+        switch (type) {
+            case TYPE_VALUE:
+                input = new InputValue(json);
+                break;
+            case TYPE_STATEMENT:
+                input = new InputStatement(json);
+                break;
+            case TYPE_DUMMY:
+                input = new InputDummy(json);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown input type: " + type);
+        }
+        return input;
     }
 
     /**
