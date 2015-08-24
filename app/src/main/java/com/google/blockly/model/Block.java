@@ -16,15 +16,18 @@
 package com.google.blockly.model;
 
 import android.graphics.Color;
-import android.graphics.Point;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.google.blockly.ui.BlockWorkspaceParams;
+import com.google.blockly.ui.BlockView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -60,7 +63,11 @@ public class Block {
     private boolean mCanEdit;
     private boolean mCollapsed;
     private boolean mDisabled;
-    private Point mPosition;
+    private WorkspacePoint mPosition;
+
+    // These values are only used for drawing
+    private BlockView mView;
+    private BlockWorkspaceParams mLayoutParams;
 
     private Block(String uuid, String name, int category, int colourHue, Connection outputConnection,
                   Connection nextConnection, Connection previousConnection,
@@ -78,7 +85,7 @@ public class Block {
 
         mInputList = inputList;
         mInputsInline = inputsInline;
-        mPosition = new Point(0,0);
+        mPosition = new WorkspacePoint(0, 0);
 
         mColour = Color.HSVToColor(new float[]{mColourHue, DEFAULT_HSV_SATURATION, DEFAULT_HSV_VALUE});
 
@@ -128,9 +135,9 @@ public class Block {
      * other blocks will have a position that is dependent on the block rendering relative to the
      * top level block.
      *
-     * @return The x,y coordinates of the start corner of this block.
+     * @return The coordinates of the start corner of this block in Workspace coordinates.
      */
-    public Point getPosition() {
+    public WorkspacePoint getPosition() {
         return mPosition;
     }
 
@@ -176,11 +183,11 @@ public class Block {
      */
     public Input getInputByName(String targetName) {
         for (int i = 0; i < mInputList.size(); i++) {
-            if (mInputList.get(i).getName().equalsIgnoreCase(targetName)) {
+            if (mInputList.get(i).getName() != null
+                    && mInputList.get(i).getName().equalsIgnoreCase(targetName)) {
                 return mInputList.get(i);
             }
         }
-        Log.d(TAG, "Couldn't find field " + targetName);
         return null;
     }
 
@@ -197,12 +204,11 @@ public class Block {
         input = mInputList.get(i);
         for (int j = 0; j < input.getFields().size(); j++) {
           field = input.getFields().get(j);
-          if (field.getName().equalsIgnoreCase(targetName)) {
+          if (field.getName() != null && field.getName().equalsIgnoreCase(targetName)) {
             return field;
           }
         }
       }
-      Log.d(TAG, "Couldn't find field " + targetName);
       return null;
     }
 
@@ -242,6 +248,34 @@ public class Block {
     @Nullable
     public Connection getNextConnection() {
         return mNextConnection;
+    }
+
+    /**
+     * Sets the view that renders this block.
+     */
+    public void setView(BlockView view) {
+        mView = view;
+    }
+
+    /**
+     * @return The view that renders this block.
+     */
+    public BlockView getView() {
+        return mView;
+    }
+
+    /**
+     * Sets the layout parameters used for drawing this block.
+     */
+    public void setLayoutParameters(BlockWorkspaceParams params) {
+        mLayoutParams = params;
+    }
+
+    /**
+     * @return The layout parameters used for drawing this block.
+     */
+    public BlockWorkspaceParams getLayoutParameters() {
+        return mLayoutParams;
     }
 
     /**
@@ -383,6 +417,143 @@ public class Block {
     }
 
     /**
+     * Load a block and all of its children from XML.
+     *
+     * @param parser An XmlPullParser pointed at the start tag of this block.
+     * @param factory A BlockFactory that will provide Blocks by name.
+     * @return The loaded block.
+     * @throws XmlPullParserException
+     * @throws IOException
+     * @throws BlocklyParserException
+     */
+    public static Block fromXml(XmlPullParser parser, BlockFactory factory)
+            throws XmlPullParserException, IOException, BlocklyParserException {
+        // TODO(fenichel): What if there are multiple blocks with the same id?
+        String type = parser.getAttributeValue(null, "type");   // prototype name
+        String id = parser.getAttributeValue(null, "id");
+        if (type == null || type.isEmpty()) {
+            // If the id was empty the blockfactory will just generate one.
+            throw new BlocklyParserException("Block was missing a type.");
+        }
+
+        Block resultBlock = factory.obtainBlock(type, id);
+        if (resultBlock == null) {
+            throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
+        }
+
+        // Set position.  Only if this is a top level block.
+        String x = parser.getAttributeValue(null, "x");
+        String y = parser.getAttributeValue(null, "y");
+        if (x != null && y != null) {
+            resultBlock.setPosition(Integer.parseInt(x), Integer.parseInt(y));
+        }
+
+        int eventType = parser.next();
+        String text = "";
+        String fieldName = "";
+        Block childBlock = null;
+        Input valueInput = null;
+        Input statementInput = null;
+
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            String tagname = parser.getName();
+            switch (eventType) {
+                case XmlPullParser.START_TAG:
+                    if (tagname.equalsIgnoreCase("block")) {
+                        childBlock = fromXml(parser, factory);
+                    }
+                    else if (tagname.equalsIgnoreCase("field")){
+                        fieldName = parser.getAttributeValue(null, "name");
+                    }
+                    else if (tagname.equalsIgnoreCase("value")){
+                        valueInput = resultBlock.getInputByName(
+                                parser.getAttributeValue(null, "name"));
+                        if (valueInput == null) {
+                            throw new BlocklyParserException("The value input was null!");
+                        }
+                    }
+                    else if (tagname.equalsIgnoreCase("statement")){
+                        statementInput = resultBlock.getInputByName(
+                                parser.getAttributeValue(null, "name"));
+                    }
+                    else if (tagname.equalsIgnoreCase("mutation")){
+                        // TODO(fenichel): Handle mutations.
+                    }
+                    break;
+
+                case XmlPullParser.TEXT:
+                    text = parser.getText();
+                    break;
+
+                case XmlPullParser.END_TAG:
+                    if (tagname.equalsIgnoreCase("block")) {
+                        if (resultBlock == null) {
+                            throw new BlocklyParserException(
+                                    "Created a null block. This should never happen.");
+                        }
+                        return resultBlock;
+                    }
+                    else if (tagname.equalsIgnoreCase("field")){
+                        Field toSet = resultBlock.getFieldByName(fieldName);
+                        if (toSet != null) {
+                            if (!toSet.setFromXmlText(text)) {
+                                throw new BlocklyParserException(
+                                        "Failed to set a field's value from XML.");
+                            }
+                        }
+                    }
+                    else if (tagname.equalsIgnoreCase("value")) {
+                        if (valueInput != null && childBlock != null) {
+                            if (valueInput.getConnection() == null
+                                    || childBlock.getOutputConnection() == null) {
+                                throw new BlocklyParserException("A connection was null.");
+                            }
+                            valueInput.getConnection().connect(childBlock.getOutputConnection());
+                            valueInput = null;
+                            childBlock = null;
+                        } else {
+                            throw new BlocklyParserException(
+                                    "A value input or child block was null.");
+                        }
+                    }
+                    else if (tagname.equalsIgnoreCase("statement")) {
+                        if (statementInput != null && childBlock != null) {
+                            if (statementInput.getConnection() == null
+                                    || childBlock.getPreviousConnection() == null) {
+                                throw new BlocklyParserException("A connection was null.");
+                            }
+                            statementInput.getConnection().connect(
+                                    childBlock.getPreviousConnection());
+                            valueInput = null;
+                            childBlock = null;
+                        } else {
+                            throw new BlocklyParserException(
+                                    "A statement input or child block was null.");
+                        }
+                    }
+                    else if (tagname.equalsIgnoreCase("comment")){
+                        resultBlock.setComment(text);
+                    }
+                    else if (tagname.equalsIgnoreCase("next")) {
+                        if (resultBlock.getNextConnection() == null
+                                || childBlock.getPreviousConnection() == null) {
+                            throw new BlocklyParserException("A connection was null.");
+                        }
+                        resultBlock.getNextConnection().connect(childBlock.getPreviousConnection());
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+            eventType = parser.next();
+        }
+        // Should never reach here, since this is called from a workspace fromXml function.
+        throw new BlocklyParserException(
+                "Reached the end of Block.fromXml. This should never happen.");
+    }
+
+    /**
      * Breaks a block message up into args and text. The returned Strings should all either
      * exactly match "^%\\d+$" if they are an arg or else are just text for a label. %[0-9]+ will
      * always be treated as an argument regardless of where in the string it appears, unless the
@@ -470,7 +641,7 @@ public class Block {
         private boolean mCanEdit;
         private boolean mCollapsed;
         private boolean mDisabled;
-        private Point mPosition;
+        private WorkspacePoint mPosition;
 
         public Builder(String name) {
             this(name, UUID.randomUUID().toString());
@@ -480,7 +651,7 @@ public class Block {
             mName = name;
             mUuid = uuid;
             mInputs = new ArrayList<>();
-            mPosition = new Point(0, 0);
+            mPosition = new WorkspacePoint(0, 0);
         }
 
         public Builder(Block block) {

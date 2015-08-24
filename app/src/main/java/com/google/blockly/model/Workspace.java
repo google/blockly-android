@@ -18,6 +18,14 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.blockly.ui.WorkspaceHelper;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -28,8 +36,10 @@ public class Workspace {
     private static final boolean DEBUG = true;
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
+    private final WorkspaceHelper mWorkspaceHelper;
 
     public Workspace(Context context) {
+        mWorkspaceHelper = new WorkspaceHelper(context, 0, 0);
     }
 
     /**
@@ -74,6 +84,44 @@ public class Workspace {
         }
 
         a.connect(b);
+    }
 
+    public WorkspaceHelper getWorkspaceHelper() {
+        return mWorkspaceHelper;
+    }
+
+    public void loadFromXml(InputStream is, BlockFactory blockFactory)
+            throws BlocklyParserException {
+        XmlPullParserFactory Xppfactory;
+        XmlPullParser parser;
+        try {
+            Xppfactory = XmlPullParserFactory.newInstance();
+            Xppfactory.setNamespaceAware(true);
+            parser = Xppfactory.newPullParser();
+
+            parser.setInput(is, null);
+
+            int eventType = parser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        if (parser.getName() == null) {
+                            throw new BlocklyParserException("Malformed XML; aborting.");
+                        }
+                        if (parser.getName().equalsIgnoreCase("block")) {
+                            addRootBlock(Block.fromXml(parser, blockFactory));
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+                eventType = parser.next();
+            }
+        } catch (XmlPullParserException e) {
+            throw new BlocklyParserException(e);
+        } catch (IOException e) {
+            throw new BlocklyParserException(e);
+        }
     }
 }

@@ -78,5 +78,20 @@
     "colour": 20,
     "tooltip": "",
     "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "output_foo",
+    "message0": "text",
+    "args0": [],
+    "output": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "no_output",
+    "message0": "text",
+    "args0": [],
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
   }
 ]

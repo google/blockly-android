@@ -28,6 +28,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.model.Block;
+import com.google.blockly.model.Field;
+import com.google.blockly.model.Input;
+import com.google.blockly.model.Workspace;
+import com.google.blockly.ui.BlockGroup;
+import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.WorkspaceView;
+
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -120,6 +128,7 @@ public class MainActivity extends ActionBarActivity
      * A placeholder fragment containing a simple view.
      */
     public static class PlaceholderFragment extends Fragment {
+        Workspace mWorkspace;
         /**
          * The fragment argument representing the section number for this
          * fragment.
@@ -144,7 +153,22 @@ public class MainActivity extends ActionBarActivity
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
+            WorkspaceView wv = (WorkspaceView) rootView.findViewById(R.id.workspace);
+            wv.setWorkspace(mWorkspace);
+            Block dummyBlock = getDummyBlock();
+            mWorkspace.addRootBlock(dummyBlock);
+            BlockGroup bg = new BlockGroup(getActivity(), mWorkspace.getWorkspaceHelper());
+            BlockView bv = new BlockView(getActivity(), null, dummyBlock,
+                    mWorkspace.getWorkspaceHelper());
+            bg.addView(bv);
+
+            dummyBlock = getDummyBlock();
+            bv = new BlockView(getActivity(), null, dummyBlock,
+                    mWorkspace.getWorkspaceHelper());
+            bg.addView(bv);
+
+            wv.addView(bg);
             return rootView;
         }
 
@@ -153,6 +177,24 @@ public class MainActivity extends ActionBarActivity
             super.onAttach(activity);
             ((MainActivity) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
+            mWorkspace = new Workspace(activity);
+        }
+
+        private Block getDummyBlock() {
+            Block.Builder bob = new Block.Builder("dummy");
+            bob.setPosition(35, 101);
+            Input input = new Input.InputDummy("input1", null);
+            input.add(new Field.FieldAngle("angle", 40));
+            input.add(new Field.FieldLabel("label", "degrees"));
+            bob.addInput(input);
+
+            input = new Input.InputValue("input2", null, null);
+            input.add(new Field.FieldAngle("another", 40));
+            input.add(new Field.FieldLabel("label2", "more degrees"));
+            bob.addInput(input);
+
+            bob.setColour(42);
+            return bob.build();
         }
     }
 
