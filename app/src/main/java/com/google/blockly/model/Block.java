@@ -494,9 +494,11 @@ public class Block {
             mPreviousConnection = Connection.cloneConnection(block.mPreviousConnection);
 
             mInputs = new ArrayList<>();
-            Input newInput;
+            Input newInput = null;
             for (int i = 0; i < block.mInputList.size(); i++) {
-                newInput = Input.cloneInput(block.mInputList.get(i));
+                if (block.mInputList.get(i) != null) {
+                    newInput = (Input) block.mInputList.get(i).clone();
+                }
                 if (newInput != null) {
                     mInputs.add(newInput);
                 }

@@ -112,18 +112,20 @@ public abstract class Input implements Cloneable {
      *
      * @param in The Input to copy.
      */
-    public Input(Input in) {
+    private Input(Input in) throws IllegalStateException {
         List<Field> inputFields = in.getFields();
         for (int i = 0; i < inputFields.size(); i++) {
             try {
                 mFields.add(inputFields.get(i).clone());
             } catch (CloneNotSupportedException e) {
-                continue;
+                throw new IllegalStateException();
             }
         }
 
         mName = in.getName();
         mType = in.getType();
+        // Private copy constructor rather than pure cloning makes it possible to set this final
+        // variable properly.
         mConnection = Connection.cloneConnection(in.getConnection());
         if (mConnection != null) {
             mConnection.setInput(this);
@@ -132,12 +134,10 @@ public abstract class Input implements Cloneable {
         mAlign = in.getAlign();
     }
 
-    public static Input cloneInput(Input in) {
-        if (in == null) {
-            return null;
-        }
+    @Override
+    public Input clone() {
         try {
-            return (Input) in.clone();
+            return (Input) super.clone();
         } catch (CloneNotSupportedException e) {
             return null;
         }
@@ -290,13 +290,13 @@ public abstract class Input implements Cloneable {
     /**
      * An Input that takes a value. This will add an input connection to a Block.
      */
-    public static final class InputValue extends Input {
+    public static final class InputValue extends Input implements Cloneable {
 
         public InputValue(String name, String align, String[] checks) {
             super(name, TYPE_VALUE, align, new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
 
-        public InputValue(InputValue inv) {
+        private InputValue(InputValue inv) {
             super(inv);
         }
 
@@ -315,14 +315,14 @@ public abstract class Input implements Cloneable {
      * An input that accepts one or more statement blocks. This will add a wrapped code connection
      * to a Block.
      */
-    public static final class InputStatement extends Input {
+    public static final class InputStatement extends Input implements Cloneable {
 
         public InputStatement(String name, String align, String[] checks) {
             super(name, TYPE_STATEMENT, align,
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
 
-        public InputStatement(InputStatement ins) {
+        private InputStatement(InputStatement ins) {
             super(ins);
         }
 
@@ -340,13 +340,13 @@ public abstract class Input implements Cloneable {
     /**
      * An input that only wraps fields and does not provide its own input connection.
      */
-    public static final class InputDummy extends Input {
+    public static final class InputDummy extends Input implements Cloneable {
 
         public InputDummy(String name, String align) {
             super(name, TYPE_DUMMY, align, null);
         }
 
-        public InputDummy(InputDummy ind) {
+        private InputDummy(InputDummy ind) {
             super(ind);
         }
 
