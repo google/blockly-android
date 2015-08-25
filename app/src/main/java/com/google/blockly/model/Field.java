@@ -26,7 +26,9 @@ import com.google.blockly.ui.FieldView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlSerializer;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -88,6 +90,29 @@ public abstract class Field implements Cloneable {
     public Field clone() throws CloneNotSupportedException {
         return (Field) super.clone();
     }
+
+    /**
+     * Writes information about the editable parts of the field as XML.
+     *
+     * @param serializer The XmlSerializer to write to.
+     * @throws IOException
+     */
+    public void serialize(XmlSerializer serializer) throws IOException {
+        if (mType.equals(TYPE_LABEL) || mType.equals(TYPE_IMAGE)) {
+            return;
+        }
+        serializer.startTag(null, mName);
+        serializeInner(serializer);
+        serializer.endTag(null, mName);
+    }
+
+    /**
+     * Writes the value of the Field as a string.
+     *
+     * @param serializer The XmlSerializer to write to.
+     * @throws IOException
+     */
+    protected void serializeInner(XmlSerializer serializer) throws IOException {}
 
     /**
      * Get the name of this field. Names, if they are not null, are expected to be unique within a
@@ -251,6 +276,11 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(mText == null ? "" : mText);
+        }
+
+        @Override
         public boolean setFromXmlText(String text) {
             setText(text);
             return true;
@@ -292,6 +322,11 @@ public abstract class Field implements Cloneable {
         @Override
         public FieldAngle clone() throws CloneNotSupportedException {
             return (FieldAngle) super.clone();
+        }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(Integer.toString(mAngle));
         }
 
         @Override
@@ -351,6 +386,11 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(mChecked ? "true" : "false");
+        }
+
+        @Override
         public boolean setFromXmlText(String text) {
             mChecked = Boolean.parseBoolean(text);
             return true;
@@ -394,6 +434,12 @@ public abstract class Field implements Cloneable {
         @Override
         public FieldColour clone() throws CloneNotSupportedException {
             return (FieldColour) super.clone();
+        }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(String.format("#%02x%02x%02x",
+                    Color.red(mColour), Color.green(mColour), Color.blue(mColour)));
         }
 
         @Override
@@ -465,6 +511,11 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(DATE_FORMAT.format(mDate));
+        }
+
+        @Override
         public boolean setFromXmlText(String text) {
             Date date = null;
             try {
@@ -532,6 +583,11 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(mVariable);
+        }
+
+        @Override
         public boolean setFromXmlText(String text) {
             if (TextUtils.isEmpty(text)) {
                 return false;
@@ -587,6 +643,11 @@ public abstract class Field implements Cloneable {
             }
 
             return field;
+        }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(getSelectedValue());
         }
 
         @Override

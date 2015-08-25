@@ -26,6 +26,9 @@ import com.google.blockly.ui.BlockView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -276,6 +279,39 @@ public class Block {
      */
     public BlockWorkspaceParams getLayoutParameters() {
         return mLayoutParams;
+    }
+
+    /**
+     * Writes information about the editable parts of the block as XML.
+     *
+     * @param serializer The XmlSerializer to write to.
+     * @param rootBlock True if the block is a top level block, false otherwise.
+     * @throws IOException
+     */
+    public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
+        serializer.startTag(null, "block")
+                .attribute(null, "type", mName)
+                .attribute(null, "id", mUuid);
+
+        // The position of the block only needs to be saved if it is a top level block.
+        if (rootBlock) {
+            serializer.attribute(null, "x", Integer.toString(mPosition.x))
+                    .attribute(null, "y", Integer.toString(mPosition.y));
+        }
+
+        for (int i = 0; i < mInputList.size(); i++) {
+            if (mInputList.get(i) != null) {
+                mInputList.get(i).serialize(serializer);
+            }
+        }
+
+        if (getNextBlock() != null) {
+            serializer.startTag(null, "next");
+            getNextBlock().serialize(serializer, false);
+            serializer.endTag(null, "next");
+        }
+
+        serializer.endTag(null, "block");
     }
 
     /**

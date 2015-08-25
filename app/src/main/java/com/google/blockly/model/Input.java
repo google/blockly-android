@@ -21,7 +21,9 @@ import android.text.TextUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlSerializer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -141,6 +143,18 @@ public abstract class Input implements Cloneable {
             return (Input) super.clone();
         } catch (CloneNotSupportedException e) {
             return null;
+        }
+    }
+
+    /**
+     * Writes the value of the Input and all of its Fields as a string.
+     *
+     * @param serializer The XmlSerializer to write to.
+     * @throws IOException
+     */
+    public void serialize(XmlSerializer serializer) throws IOException {
+        for (int i = 0; i < getFields().size(); i++) {
+            getFields().get(i).serialize(serializer);
         }
     }
 
@@ -306,6 +320,17 @@ public abstract class Input implements Cloneable {
             return new InputValue(this);
         }
 
+        @Override
+        public void serialize(XmlSerializer serializer) throws IOException {
+            if (getConnection() != null && getConnection().isConnected()) {
+                serializer.startTag(null, "value")
+                        .attribute(null, "name", getName());
+                getConnection().getTargetBlock().serialize(serializer, false);
+                serializer.endTag(null, "value");
+            }
+            super.serialize(serializer);
+        }
+
         private InputValue(JSONObject json) {
             this(json.optString("name", "NAME"), json.optString("align"),
                     getChecksFromJson(json, "check"));
@@ -332,6 +357,17 @@ public abstract class Input implements Cloneable {
             return new InputStatement(this);
         }
 
+        @Override
+        public void serialize(XmlSerializer serializer) throws IOException {
+            if (getConnection() != null && getConnection().isConnected()) {
+                serializer.startTag(null, "statement")
+                        .attribute(null, "name", getName());
+                getConnection().getTargetBlock().serialize(serializer, false);
+                serializer.endTag(null, "statement");
+            }
+            super.serialize(serializer);
+        }
+
         private InputStatement(JSONObject json) {
             this(json.optString("name", "NAME"), json.optString("align"),
                     getChecksFromJson(json, "check"));
@@ -355,7 +391,6 @@ public abstract class Input implements Cloneable {
         public InputDummy clone() {
             return new InputDummy(this);
         }
-
 
         private InputDummy(JSONObject json) {
             this(json.optString("name", "NAME"), json.optString("align"));

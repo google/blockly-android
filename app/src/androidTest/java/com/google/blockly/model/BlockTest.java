@@ -15,7 +15,6 @@
 
 package com.google.blockly.model;
 
-import android.graphics.Point;
 import android.test.AndroidTestCase;
 
 import org.json.JSONException;
@@ -23,8 +22,10 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+import org.xmlpull.v1.XmlSerializer;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -187,6 +188,82 @@ public class BlockTest extends AndroidTestCase {
         //        BlockTestStrings.STATEMENT_GOOD), bf);
     }
 
+    public void testSerializeBlock() throws BlocklySerializerException, IOException {
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        Block block = bf.obtainBlock("empty_block", "364");
+        block.setPosition(37, 13);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        XmlSerializer serializer = getXmlSerializer(os);
+
+        block.serialize(serializer, true);
+        serializer.flush();
+        assertEquals(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION, os.toString());
+
+        os = new ByteArrayOutputStream();
+        serializer = getXmlSerializer(os);
+
+        block.serialize(serializer, false);
+        serializer.flush();
+        assertEquals(BlockTestStrings.EMPTY_BLOCK_NO_POSITION, os.toString());
+
+        block = bf.obtainBlock("frankenblock", "364");
+        os = new ByteArrayOutputStream();
+        serializer = getXmlSerializer(os);
+
+        block.serialize(serializer, false);
+        serializer.flush();
+        assertEquals(BlockTestStrings.BLOCK_START_NO_POSITION
+                + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
+                +BlockTestStrings.BLOCK_END, os.toString());
+    }
+
+    public void testSerializeValue() throws BlocklySerializerException, IOException {
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        Block block = bf.obtainBlock("frankenblock", "364");
+        block.setPosition(37, 13);
+
+        Input input = block.getInputByName("value_input");
+        Block inputBlock = bf.obtainBlock("output_foo", "126");
+        input.getConnection().connect(inputBlock.getOutputConnection());
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        XmlSerializer serializer = getXmlSerializer(os);
+        block.serialize(serializer, true);
+        serializer.flush();
+
+        String expected = BlockTestStrings.BLOCK_START
+                + BlockTestStrings.VALUE_GOOD
+                + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
+                + BlockTestStrings.BLOCK_END;
+        assertEquals(expected, os.toString());
+    }
+
+    public void testSerializeStatement() throws BlocklySerializerException, IOException {
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        Block block = bf.obtainBlock("frankenblock", "364");
+        block.setPosition(37, 13);
+
+        Input input = block.getInputByName("NAME");
+        Block inputBlock = bf.obtainBlock("frankenblock", "3");
+        input.getConnection().connect(inputBlock.getPreviousConnection());
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        XmlSerializer serializer = getXmlSerializer(os);
+        block.serialize(serializer, true);
+        serializer.flush();
+
+        String expected = BlockTestStrings.BLOCK_START
+                + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES_START
+                + "<statement name=\"NAME\">"
+                + "<block type=\"frankenblock\" id=\"3\">"
+                + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
+                + BlockTestStrings.BLOCK_END
+                + "</statement>"
+                + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES_END
+                + BlockTestStrings.BLOCK_END;
+        assertEquals(expected, os.toString());
+    }
+
     private Block parseBlockFromXml(String testString, BlockFactory bf)
             throws IOException, XmlPullParserException {
         XmlPullParser parser = getXmlPullParser(testString, "block");
@@ -235,6 +312,23 @@ public class BlockTest extends AndroidTestCase {
             throw new BlocklyParserException(e);
         }
         return null;
+    }
+
+    private XmlSerializer getXmlSerializer(ByteArrayOutputStream os) throws BlocklySerializerException {
+        XmlSerializer serializer;
+        try {
+            if (factory == null) {
+                factory = XmlPullParserFactory.newInstance();
+            }
+            factory.setNamespaceAware(true);
+            serializer = factory.newSerializer();
+            serializer.setOutput(os, null);
+            return serializer;
+        } catch (XmlPullParserException e) {
+            throw new BlocklySerializerException(e);
+        } catch (IOException e) {
+            throw new BlocklySerializerException(e);
+        }
     }
 
     private void assertListsMatch(List<String> expected, List<String> actual) {

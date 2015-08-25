@@ -23,15 +23,19 @@ import com.google.blockly.ui.WorkspaceHelper;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 /**
  * Keeps track of all the global state used in the workspace. This is mostly just blocks.
  */
 public class Workspace {
+    public static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
+
     private static final String TAG = "Workspace";
     private static final boolean DEBUG = true;
 
@@ -122,6 +126,36 @@ public class Workspace {
             throw new BlocklyParserException(e);
         } catch (IOException e) {
             throw new BlocklyParserException(e);
+        }
+    }
+
+    /**
+     * Outputs the workspace as an XML string.
+     *
+     * @param os The output stream to write to.
+     * @throws BlocklySerializerException
+     */
+    public void serialize(OutputStream os) throws BlocklySerializerException {
+        XmlPullParserFactory xppfactory;
+        XmlSerializer serializer;
+        try {
+            xppfactory = XmlPullParserFactory.newInstance();
+            xppfactory.setNamespaceAware(true);
+
+            serializer = xppfactory.newSerializer();
+            serializer.setOutput(os, null);
+            serializer.setPrefix("", XML_NAMESPACE);
+
+            serializer.startTag(XML_NAMESPACE, "xml");
+            for (int i = 0; i < mRootBlocks.size(); i++) {
+                mRootBlocks.get(i).serialize(serializer, true);
+            }
+            serializer.endTag(XML_NAMESPACE, "xml");
+            serializer.flush();
+        } catch (XmlPullParserException e) {
+            throw new BlocklySerializerException(e);
+        } catch (IOException e) {
+            throw new BlocklySerializerException(e);
         }
     }
 }
