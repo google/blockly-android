@@ -184,12 +184,15 @@ public class MainActivity extends ActionBarActivity
             Block.Builder bob = new Block.Builder("dummy");
             bob.setPosition(35, 101);
             Input input = new Input.InputDummy("input1", null);
-            input.add(new Field.FieldAngle("angle", 40));
             input.add(new Field.FieldLabel("label", "degrees"));
             bob.addInput(input);
 
             input = new Input.InputValue("input2", null, null);
-            input.add(new Field.FieldAngle("another", 40));
+            input.add(new Field.FieldLabel("checkbox?", "this is a checkbox:"));
+            input.add(new Field.FieldCheckbox("checkbox!", true));
+            bob.addInput(input);
+
+            input = new Input.InputValue("input3", null, null);
             input.add(new Field.FieldLabel("label2", "more degrees"));
             bob.addInput(input);
 

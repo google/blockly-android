@@ -27,15 +27,15 @@ import com.google.blockly.model.Field;
  * Renders text as part of a BlockView.
  */
 public class FieldLabelView extends TextView implements FieldView {
-    private final Field mLabel; // Field.FieldLabel
+    private final Field.FieldLabel mLabel;
     private final WorkspaceHelper mWorkspaceHelper;
     private FieldWorkspaceParams mLayoutParams;
 
     public FieldLabelView(Context context, AttributeSet attrs, Field label, WorkspaceHelper helper) {
         super(context, attrs);
-        mLabel = label;
+        mLabel = (Field.FieldLabel) label;
         mWorkspaceHelper = helper;
-        setText(label.getName());
+        setText(mLabel.getText());
         setBackground(null);
         label.setView(this);
         mLayoutParams = new FieldWorkspaceParams(label, helper);

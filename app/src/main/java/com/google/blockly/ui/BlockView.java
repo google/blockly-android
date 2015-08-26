@@ -178,10 +178,26 @@ public class BlockView extends FrameLayout {
             List<Field> fields = inputs.get(i).getFields();
             for (int j = 0; j < fields.size(); j++) {
                 // TODO: create the appropriate field type
-                FieldLabelView view = new FieldLabelView(context, attrs, fields.get(j), mHelper);
-                Log.d(TAG, "Added view " + view + " at " + j);
-                addView(view);
-                currentRow.add(view);
+                FieldView view = null;
+                switch (fields.get(j).getType()) {
+                    case Field.TYPE_LABEL:
+                        view = new FieldLabelView(context, attrs, fields.get(j), mHelper);
+                        break;
+                    case Field.TYPE_CHECKBOX:
+                        view = new FieldCheckboxView(context, attrs, fields.get(j), mHelper);
+                        break;
+                    default:
+                        Log.w(TAG, "Unknown field type.");
+                        break;
+                }
+                if (view != null) {
+                    Log.d(TAG, "Added view " + view + " at " + j);
+                    addView((View)view);
+                    currentRow.add(view);
+                } else {
+                    throw new IllegalStateException("Attempted to render a field of an unknown"
+                        + "type: " + fields.get(j).getType());
+                }
             }
         }
     }

@@ -19,7 +19,7 @@ import android.view.View;
 
 /**
  * Describes methods that all views that are representing a Field must implement. Implementations of
- * FieldViews must extend {@link View} or a subclass of View,
+ * FieldViews must extend {@link View} or a subclass of View.
  */
 public interface FieldView {
     /**
