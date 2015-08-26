@@ -13,15 +13,16 @@
  * limitations under the License.
  */
 
-package com.google.blockly.ui;
+package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.ui.FieldWorkspaceParams;
+import com.google.blockly.ui.ViewPoint;
+import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Renders text as part of a BlockView.

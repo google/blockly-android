@@ -27,6 +27,10 @@ import android.widget.FrameLayout;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
+import com.google.blockly.ui.fieldview.FieldCheckboxView;
+import com.google.blockly.ui.fieldview.FieldDateView;
+import com.google.blockly.ui.fieldview.FieldLabelView;
+import com.google.blockly.ui.fieldview.FieldView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -185,6 +189,9 @@ public class BlockView extends FrameLayout {
                         break;
                     case Field.TYPE_CHECKBOX:
                         view = new FieldCheckboxView(context, attrs, fields.get(j), mHelper);
+                        break;
+                    case Field.TYPE_DATE:
+                        view = new FieldDateView(context, attrs, fields.get(j), mHelper);
                         break;
                     default:
                         Log.w(TAG, "Unknown field type.");

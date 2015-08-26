@@ -196,6 +196,10 @@ public class MainActivity extends ActionBarActivity
             input.add(new Field.FieldLabel("label2", "more degrees"));
             bob.addInput(input);
 
+            input = new Input.InputValue("input4", null, null);
+            input.add(new Field.FieldDate("date!", "2015-03-19"));
+            bob.addInput(input);
+
             bob.setColour(42);
             return bob.build();
         }

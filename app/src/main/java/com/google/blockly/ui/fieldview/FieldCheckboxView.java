@@ -13,13 +13,16 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.ui;
+package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.CheckBox;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.ui.FieldWorkspaceParams;
+import com.google.blockly.ui.ViewPoint;
+import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Renders a checkbox as part of a BlockView.
@@ -52,10 +55,17 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     }
 
     @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+    }
+
+    @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         mLayoutParams.setPosition(new ViewPoint(left, top));
     }
+
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
