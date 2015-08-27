@@ -16,9 +16,9 @@
 package com.google.blockly.model;
 
 import android.graphics.Color;
+import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.Pair;
 
 import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.FieldView;
@@ -32,10 +32,8 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -619,7 +617,7 @@ public abstract class Field implements Cloneable {
      */
     public static final class FieldDropdown extends Field {
         // TODO: consider other data structures
-        private ArrayList<Pair<String, String>> mOptions = new ArrayList<>();
+        private SimpleArrayMap<String, String> mOptions = new SimpleArrayMap<>();
         private int mCurrentSelection = 0;
 
         public FieldDropdown(String name, String[] displayNames, String[] values) {
@@ -627,7 +625,7 @@ public abstract class Field implements Cloneable {
             setOptions(displayNames, values);
         }
 
-        public FieldDropdown(String name, List<Pair<String, String>> options) {
+        public FieldDropdown(String name, SimpleArrayMap<String, String> options) {
             super(name, TYPE_DROPDOWN);
             setOptions(options);
         }
@@ -635,13 +633,7 @@ public abstract class Field implements Cloneable {
         @Override
         public FieldDropdown clone() throws CloneNotSupportedException {
             FieldDropdown field = (FieldDropdown) super.clone();
-
-            field.mOptions = new ArrayList<>(mOptions.size());
-            for (int i = 0; i < mOptions.size(); i++) {
-                Pair<String, String> original = mOptions.get(i);
-                field.mOptions.add(Pair.create(original.first, original.second));
-            }
-
+            field.mOptions = new SimpleArrayMap<>(mOptions);
             return field;
         }
 
@@ -660,7 +652,7 @@ public abstract class Field implements Cloneable {
             this(json.optString("name", "NAME"), null, null);
             JSONArray jsonOptions = json.optJSONArray("options");
             if (jsonOptions != null) {
-                ArrayList<Pair<String, String>> options = new ArrayList<>();
+                SimpleArrayMap<String, String> options = new SimpleArrayMap<>();
                 for (int i = 0; i < jsonOptions.length(); i++) {
                     JSONArray option = null;
                     try {
@@ -675,7 +667,7 @@ public abstract class Field implements Cloneable {
                             if (TextUtils.isEmpty(value)) {
                                 throw new IllegalArgumentException("Option values may not be empty");
                             }
-                            options.add(Pair.create(displayName, value));
+                            options.put(displayName, value);
                         } catch (JSONException e) {
                             throw new RuntimeException("Error reading option values.", e);
                         }
@@ -688,7 +680,7 @@ public abstract class Field implements Cloneable {
         /**
          * @return The list of options available in this dropdown.
          */
-        public List<Pair<String, String>> getOptions() {
+        public SimpleArrayMap<String, String> getOptions() {
             return mOptions;
         }
 
@@ -696,14 +688,14 @@ public abstract class Field implements Cloneable {
          * @return The value of the currently selected option.
          */
         public String getSelectedValue() {
-            return mOptions.size() == 0 ? null : mOptions.get(mCurrentSelection).second;
+            return mOptions.size() == 0 ? null : mOptions.valueAt(mCurrentSelection);
         }
 
         /**
          * @return The display name of the currently selected option.
          */
         public String getSelectedDisplayName() {
-            return mOptions.size() == 0 ? null : mOptions.get(mCurrentSelection).first;
+            return mOptions.size() == 0 ? null : mOptions.keyAt(mCurrentSelection);
         }
 
         /**
@@ -746,7 +738,7 @@ public abstract class Field implements Cloneable {
                 }
                 mOptions.clear();
                 for (int i = 0; i < values.length; i++) {
-                    mOptions.add(Pair.create(displayNames[i], values[i]));
+                    mOptions.put(displayNames[i], values[i]);
                 }
             } else if (values != null) {
                 throw new IllegalArgumentException("displayNames and values must both be non-null");
@@ -772,7 +764,7 @@ public abstract class Field implements Cloneable {
             } else {
                 boolean found = false;
                 for (int i = 0; i < mOptions.size(); i++) {
-                    if (TextUtils.equals(value, mOptions.get(i).second)) {
+                    if (TextUtils.equals(value, mOptions.valueAt(i))) {
                         mCurrentSelection = i;
                         found = true;
                         break;
@@ -790,12 +782,9 @@ public abstract class Field implements Cloneable {
          *
          * @param options A list of options consisting of pairs of displayName/value.
          */
-        public void setOptions(List<Pair<String, String>> options) {
+        public void setOptions(SimpleArrayMap<String, String> options) {
             String previousValue = getSelectedValue();
-            mOptions.clear();
-            if (options != null) {
-                mOptions.addAll(options);
-            }
+            mOptions = new SimpleArrayMap<>(options);
             setSelectedValue(previousValue);
         }
     }

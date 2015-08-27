@@ -1,10 +1,9 @@
 package com.google.blockly.model;
 
+import android.support.v4.util.SimpleArrayMap;
 import android.test.AndroidTestCase;
-import android.util.Pair;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * Tests for {@link Field}.
@@ -199,12 +198,11 @@ public class FieldTest extends AndroidTestCase {
         assertEquals(displayNames[0], field.getSelectedDisplayName());
         assertEquals(values[0], field.getSelectedValue());
 
-        List<Pair<String, String>> options = field.getOptions();
+        SimpleArrayMap<String, String> options = field.getOptions();
         assertEquals(displayNames.length, options.size());
         for (int i = 0; i < displayNames.length; i++) {
-            Pair<String, String> option = options.get(i);
-            assertEquals(displayNames[i], option.first);
-            assertEquals(values[i], option.second);
+            assertEquals(displayNames[i], options.keyAt(i));
+            assertEquals(values[i], options.valueAt(i));
         }
 
         // Test creating it from a List<Pair<String, String>>
@@ -218,9 +216,8 @@ public class FieldTest extends AndroidTestCase {
         options = field.getOptions();
         assertEquals(displayNames.length, options.size());
         for (int i = 0; i < displayNames.length; i++) {
-            Pair<String, String> option = options.get(i);
-            assertEquals(displayNames[i], option.first);
-            assertEquals(values[i], option.second);
+            assertEquals(displayNames[i], options.keyAt(i));
+            assertEquals(values[i], options.valueAt(i));
         }
 
         // test changing the index
@@ -266,15 +263,14 @@ public class FieldTest extends AndroidTestCase {
         options = field.getOptions();
         assertEquals(displayNames.length, options.size());
         for (int i = 0; i < displayNames.length; i++) {
-            Pair<String, String> option = options.get(i);
-            assertEquals(values[i], option.first);
-            assertEquals(displayNames[i], option.second);
+            assertEquals(values[i], options.keyAt(i));
+            assertEquals(displayNames[i], options.valueAt(i));
         }
 
         Field.FieldDropdown clone = field.clone();
         assertNotSame(field, clone);
         assertNotSame(field.getOptions(), clone.getOptions());
-        assertNotSame(field.getOptions().get(0), clone.getOptions().get(0));
+        assertEquals(field.getOptions().get(0), clone.getOptions().get(0));
     }
 
     public void testFieldImage() throws CloneNotSupportedException {
