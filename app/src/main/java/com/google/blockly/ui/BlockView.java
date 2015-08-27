@@ -113,7 +113,7 @@ public class BlockView extends FrameLayout {
         setMeasuredDimension(blockWidth, blockHeight);
         mTemp.x = blockWidth;
         mTemp.y = blockHeight;
-        mWorkspaceParams.setMeasuredDimensions(mTemp);
+        mWorkspaceParams.setMeasuredDimensions(new ViewPoint(mTemp));
         if (DEBUG) {
             Log.d(TAG, "Set dimens to " + blockWidth + ", " + blockHeight + " for " + mFieldViews.size()
                     + " rows.");
