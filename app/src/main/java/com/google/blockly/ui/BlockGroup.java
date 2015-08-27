@@ -80,6 +80,10 @@ public class BlockGroup extends ViewGroup {
         super.addView(child, index, params);
     }
 
+    /**
+     * @return The workspace position of the top block in this group, or {@code null} if this group
+     * is empty.
+     */
     public WorkspacePoint getTopBlockPosition() {
         if (getChildCount() > 0) {
             return ((BlockView) getChildAt(0)).getBlock().getPosition();

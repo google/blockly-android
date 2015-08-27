@@ -80,7 +80,7 @@ public class BlockWorkspaceParams {
      *
      * @param viewDimens The width and height of the view in pixels..
      */
-    public void setMeasuredDimensions(Point viewDimens) {
+    public void setMeasuredDimensions(ViewPoint viewDimens) {
         mWidth = mWorkspaceHelper.viewToWorkspaceUnits(viewDimens.x);
         mHeight = mWorkspaceHelper.viewToWorkspaceUnits(viewDimens.y);
         mBounds.set(
