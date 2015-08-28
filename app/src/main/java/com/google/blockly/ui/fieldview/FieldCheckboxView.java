@@ -30,7 +30,7 @@ import com.google.blockly.ui.WorkspaceHelper;
 public class FieldCheckboxView extends CheckBox implements FieldView {
     private final Field.FieldCheckbox mCheckbox;
     private final WorkspaceHelper mWorkspaceHelper;
-    private FieldWorkspaceParams mLayoutParams;
+    private final FieldWorkspaceParams mLayoutParams;
 
     public FieldCheckboxView(Context context, AttributeSet attrs, Field checkbox,
                              WorkspaceHelper helper) {

@@ -27,10 +27,10 @@ import com.google.blockly.ui.WorkspaceHelper;
 /**
  * Renders a date and a date picker as part of a Block.
  */
-public class FieldDateView extends TextView implements FieldView{
+public class FieldDateView extends TextView implements FieldView {
     private final Field.FieldDate mDate;
     private final WorkspaceHelper mWorkspaceHelper;
-    private FieldWorkspaceParams mLayoutParams;
+    private final FieldWorkspaceParams mLayoutParams;
 
     public FieldDateView(Context context, AttributeSet attrs, Field dateField,
                          WorkspaceHelper helper) {

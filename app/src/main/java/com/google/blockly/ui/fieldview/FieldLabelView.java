@@ -30,7 +30,7 @@ import com.google.blockly.ui.WorkspaceHelper;
 public class FieldLabelView extends TextView implements FieldView {
     private final Field.FieldLabel mLabel;
     private final WorkspaceHelper mWorkspaceHelper;
-    private FieldWorkspaceParams mLayoutParams;
+    private final FieldWorkspaceParams mLayoutParams;
 
     public FieldLabelView(Context context, AttributeSet attrs, Field label, WorkspaceHelper helper) {
         super(context, attrs);
