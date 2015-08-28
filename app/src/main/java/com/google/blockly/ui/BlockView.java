@@ -18,7 +18,6 @@ package com.google.blockly.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -55,7 +54,7 @@ public class BlockView extends FrameLayout {
 
     private BlockWorkspaceParams mWorkspaceParams;
     private ArrayList<ArrayList<FieldView>> mFieldViews = new ArrayList<>();
-    private Point mTemp = new Point();
+    private ViewPoint mTemp = new ViewPoint();
 
     public BlockView(Context context, AttributeSet attrs, Block block, WorkspaceHelper helper) {
         super(context, attrs);
@@ -113,7 +112,7 @@ public class BlockView extends FrameLayout {
         setMeasuredDimension(blockWidth, blockHeight);
         mTemp.x = blockWidth;
         mTemp.y = blockHeight;
-        mWorkspaceParams.setMeasuredDimensions(new ViewPoint(mTemp));
+        mWorkspaceParams.setMeasuredDimensions(mTemp);
         if (DEBUG) {
             Log.d(TAG, "Set dimens to " + blockWidth + ", " + blockHeight + " for " + mFieldViews.size()
                     + " rows.");
