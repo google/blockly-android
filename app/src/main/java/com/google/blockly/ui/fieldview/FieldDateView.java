@@ -16,7 +16,6 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
@@ -36,9 +35,9 @@ public class FieldDateView extends TextView implements FieldView {
     // objects during drawing.
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
-    public FieldDateView(Context context, AttributeSet attrs, Field dateField,
+    public FieldDateView(Context context, Field dateField,
                          WorkspaceHelper helper) {
-        super(context, attrs);
+        super(context);
         mWorkspaceHelper = helper;
         mLayoutParams = new FieldWorkspaceParams(dateField, helper);
         mDate = (Field.FieldDate) dateField;

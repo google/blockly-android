@@ -16,7 +16,6 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
@@ -37,9 +36,9 @@ public class FieldDropdownView extends Spinner implements FieldView {
     // objects during drawing.
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
-    public FieldDropdownView(Context context, AttributeSet attrs, Field dropdownField,
+    public FieldDropdownView(Context context, Field dropdownField,
                          WorkspaceHelper helper) {
-        super(context, attrs);
+        super(context);
         mWorkspaceHelper = helper;
         mLayoutParams = new FieldWorkspaceParams(dropdownField, helper);
         mDropdown = (Field.FieldDropdown) dropdownField;

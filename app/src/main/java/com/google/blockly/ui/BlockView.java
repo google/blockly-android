@@ -186,19 +186,19 @@ public class BlockView extends FrameLayout {
                 FieldView view = null;
                 switch (fields.get(j).getType()) {
                     case Field.TYPE_LABEL:
-                        view = new FieldLabelView(context, attrs, fields.get(j), mHelper);
+                        view = new FieldLabelView(context, fields.get(j), mHelper);
                         break;
                     case Field.TYPE_CHECKBOX:
-                        view = new FieldCheckboxView(context, attrs, fields.get(j), mHelper);
+                        view = new FieldCheckboxView(context, fields.get(j), mHelper);
                         break;
                     case Field.TYPE_DATE:
-                        view = new FieldDateView(context, attrs, fields.get(j), mHelper);
+                        view = new FieldDateView(context, fields.get(j), mHelper);
                         break;
                     case Field.TYPE_DROPDOWN:
-                        view = new FieldDropdownView(context, attrs, fields.get(j), mHelper);
+                        view = new FieldDropdownView(context, fields.get(j), mHelper);
                         break;
                     case Field.TYPE_ANGLE:
-                        view = new FieldAngleView(context, attrs, fields.get(j), mHelper);
+                        view = new FieldAngleView(context, fields.get(j), mHelper);
                         break;
                     default:
                         Log.w(TAG, "Unknown field type.");

@@ -16,7 +16,6 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
@@ -36,8 +35,8 @@ public class FieldLabelView extends TextView implements FieldView {
     // objects during drawing.
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
-    public FieldLabelView(Context context, AttributeSet attrs, Field label, WorkspaceHelper helper) {
-        super(context, attrs);
+    public FieldLabelView(Context context, Field label, WorkspaceHelper helper) {
+        super(context);
         mLabel = (Field.FieldLabel) label;
         mWorkspaceHelper = helper;
         setText(mLabel.getText());

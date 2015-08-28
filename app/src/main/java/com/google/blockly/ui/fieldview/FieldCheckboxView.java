@@ -16,7 +16,6 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.widget.CheckBox;
 
 import com.google.blockly.model.Field;
@@ -36,9 +35,9 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     // objects during drawing.
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
-    public FieldCheckboxView(Context context, AttributeSet attrs, Field checkbox,
+    public FieldCheckboxView(Context context, Field checkbox,
                              WorkspaceHelper helper) {
-        super(context, attrs);
+        super(context);
         mCheckbox = (Field.FieldCheckbox) checkbox;
         mCheckbox.setView(this);
         mWorkspaceHelper = helper;

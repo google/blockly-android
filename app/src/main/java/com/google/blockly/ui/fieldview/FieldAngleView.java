@@ -16,7 +16,6 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
@@ -36,9 +35,9 @@ public class FieldAngleView extends TextView implements FieldView {
     // objects during drawing.
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
-    public FieldAngleView(Context context, AttributeSet attrs, Field angleField,
+    public FieldAngleView(Context context, Field angleField,
                          WorkspaceHelper helper) {
-        super(context, attrs);
+        super(context);
         mWorkspaceHelper = helper;
         mLayoutParams = new FieldWorkspaceParams(angleField, helper);
         mAngle = (Field.FieldAngle) angleField;
