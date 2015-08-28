@@ -205,6 +205,14 @@ public class MainActivity extends ActionBarActivity
                     new String[]{"value1", "value2"}));
             bob.addInput(input);
 
+            input = new Input.InputValue("input6", null, null);
+            input.add(new Field.FieldColour("color", 0xFF0000));
+            bob.addInput(input);
+
+            input = new Input.InputValue("input7", null, null);
+            input.add(new Field.FieldInput("input text", "initial wide field of text"));
+            bob.addInput(input);
+
             bob.setColour(42);
             return bob.build();
         }
