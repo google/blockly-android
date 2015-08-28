@@ -13,32 +13,34 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.ui;
+package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.CheckBox;
+import android.widget.TextView;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.ui.FieldWorkspaceParams;
+import com.google.blockly.ui.ViewPoint;
+import com.google.blockly.ui.WorkspaceHelper;
 
 /**
- * Renders a checkbox as part of a BlockView.
+ * Renders a date and a date picker as part of a Block.
  */
-public class FieldCheckboxView extends CheckBox implements FieldView {
-    private final Field.FieldCheckbox mCheckbox;
+public class FieldDateView extends TextView implements FieldView {
+    private final Field.FieldDate mDate;
     private final WorkspaceHelper mWorkspaceHelper;
-    private FieldWorkspaceParams mLayoutParams;
+    private final FieldWorkspaceParams mLayoutParams;
 
-    public FieldCheckboxView(Context context, AttributeSet attrs, Field checkbox,
-                             WorkspaceHelper helper) {
+    public FieldDateView(Context context, AttributeSet attrs, Field dateField,
+                         WorkspaceHelper helper) {
         super(context, attrs);
-        mCheckbox = (Field.FieldCheckbox) checkbox;
-        mCheckbox.setView(this);
         mWorkspaceHelper = helper;
-        mLayoutParams = new FieldWorkspaceParams(checkbox, helper);
-
-        setChecked(mCheckbox.isChecked());
+        mLayoutParams = new FieldWorkspaceParams(dateField, helper);
+        mDate = (Field.FieldDate) dateField;
+        setText(mDate.getDateString());
         setBackground(null);
+        dateField.setView(this);
     }
 
     @Override
@@ -52,6 +54,12 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     }
 
     @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+    }
+
+    @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         mLayoutParams.setPosition(new ViewPoint(left, top));
@@ -61,4 +69,5 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     public FieldWorkspaceParams getWorkspaceParams() {
         return mLayoutParams;
     }
+
 }

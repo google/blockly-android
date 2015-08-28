@@ -21,7 +21,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.FieldView;
+import com.google.blockly.ui.fieldview.FieldView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
