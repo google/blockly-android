@@ -17,7 +17,6 @@ package com.google.blockly.ui;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Point;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;

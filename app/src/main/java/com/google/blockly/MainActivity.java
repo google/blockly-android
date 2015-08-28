@@ -200,6 +200,11 @@ public class MainActivity extends ActionBarActivity
             input.add(new Field.FieldDate("date!", "2015-03-19"));
             bob.addInput(input);
 
+            input = new Input.InputValue("input5", null, null);
+            input.add(new Field.FieldDropdown("dropdown", new String[]{"option1", "option2"},
+                    new String[]{"value1", "value2"}));
+            bob.addInput(input);
+
             bob.setColour(42);
             return bob.build();
         }

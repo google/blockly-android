@@ -15,8 +15,6 @@
 
 package com.google.blockly.model;
 
-import org.xmlpull.v1.XmlPullParserException;
-
 /**
  * An exception that is thrown when there is an error serializing a blockly Workspace to XML.
  */

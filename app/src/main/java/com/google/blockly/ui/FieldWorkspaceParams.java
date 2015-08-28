@@ -15,11 +15,9 @@
 
 package com.google.blockly.ui;
 
-import android.graphics.Point;
 import android.graphics.Rect;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 
 

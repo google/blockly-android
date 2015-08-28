@@ -1,23 +1,24 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.TextView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
@@ -25,10 +26,10 @@ import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
- * Renders text as part of a BlockView.
+ * Renders a dropdown field as part of a Block.
  */
-public class FieldLabelView extends TextView implements FieldView {
-    private final Field.FieldLabel mLabel;
+public class FieldDropdownView extends Spinner implements FieldView {
+    private final Field.FieldDropdown mDropdown;
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mLayoutParams;
 
@@ -36,14 +37,17 @@ public class FieldLabelView extends TextView implements FieldView {
     // objects during drawing.
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
-    public FieldLabelView(Context context, AttributeSet attrs, Field label, WorkspaceHelper helper) {
+    public FieldDropdownView(Context context, AttributeSet attrs, Field dropdownField,
+                         WorkspaceHelper helper) {
         super(context, attrs);
-        mLabel = (Field.FieldLabel) label;
         mWorkspaceHelper = helper;
-        setText(mLabel.getText());
+        mLayoutParams = new FieldWorkspaceParams(dropdownField, helper);
+        mDropdown = (Field.FieldDropdown) dropdownField;
+
+        setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_item,
+                mDropdown.getDisplayNames()));
         setBackground(null);
-        label.setView(this);
-        mLayoutParams = new FieldWorkspaceParams(label, helper);
+        dropdownField.setView(this);
     }
 
     @Override
@@ -74,4 +78,5 @@ public class FieldLabelView extends TextView implements FieldView {
     public FieldWorkspaceParams getWorkspaceParams() {
         return mLayoutParams;
     }
+
 }

@@ -32,6 +32,10 @@ public class FieldAngleView extends TextView implements FieldView {
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mLayoutParams;
 
+    // ViewPoint object allocated once and reused in onLayout to prevent repeatedly allocating
+    // objects during drawing.
+    private final ViewPoint mTempViewPoint = new ViewPoint();
+
     public FieldAngleView(Context context, AttributeSet attrs, Field angleField,
                          WorkspaceHelper helper) {
         super(context, attrs);
@@ -62,7 +66,9 @@ public class FieldAngleView extends TextView implements FieldView {
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mLayoutParams.setPosition(new ViewPoint(left, top));
+        mTempViewPoint.x = left;
+        mTempViewPoint.y = top;
+        mLayoutParams.setPosition(mTempViewPoint);
     }
 
     @Override

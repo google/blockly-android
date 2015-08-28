@@ -26,8 +26,10 @@ import android.widget.FrameLayout;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
+import com.google.blockly.ui.fieldview.FieldAngleView;
 import com.google.blockly.ui.fieldview.FieldCheckboxView;
 import com.google.blockly.ui.fieldview.FieldDateView;
+import com.google.blockly.ui.fieldview.FieldDropdownView;
 import com.google.blockly.ui.fieldview.FieldLabelView;
 import com.google.blockly.ui.fieldview.FieldView;
 
@@ -191,6 +193,12 @@ public class BlockView extends FrameLayout {
                         break;
                     case Field.TYPE_DATE:
                         view = new FieldDateView(context, attrs, fields.get(j), mHelper);
+                        break;
+                    case Field.TYPE_DROPDOWN:
+                        view = new FieldDropdownView(context, attrs, fields.get(j), mHelper);
+                        break;
+                    case Field.TYPE_ANGLE:
+                        view = new FieldAngleView(context, attrs, fields.get(j), mHelper);
                         break;
                     default:
                         Log.w(TAG, "Unknown field type.");

@@ -32,8 +32,10 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -786,6 +788,17 @@ public abstract class Field implements Cloneable {
             String previousValue = getSelectedValue();
             mOptions = new SimpleArrayMap<>(options);
             setSelectedValue(previousValue);
+        }
+
+        /**
+         * @return A list of all of the display names in order.
+         */
+        public List<String> getDisplayNames() {
+            List<String> list = new ArrayList<>(mOptions.size());
+            for (int i = 0; i < mOptions.size(); i++) {
+                list.add(mOptions.keyAt(i));
+            }
+            return list;
         }
     }
 
