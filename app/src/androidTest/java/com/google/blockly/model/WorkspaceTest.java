@@ -31,7 +31,7 @@ public class WorkspaceTest extends AndroidTestCase {
         // TODO: Move test_blocks.json to the testapp's resources once
         // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
-        Workspace workspace = new Workspace(new MockContext());
+        Workspace workspace = new Workspace();
         workspace.loadFromXml(assembleWorkspace(""), bf);
         workspace.loadFromXml(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK), bf);
         workspace.loadFromXml(new ByteArrayInputStream(EMPTY_WORKSPACE.getBytes()), bf);

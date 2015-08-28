@@ -1,8 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~  Copyright  2015 Google Inc. All Rights Reserved.
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
 <resources>
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
+    </style>
+
+    <style name="BlocklyTheme" parent="AppTheme">
+        <item name="blockViewStyle">@style/DefaultBlockStyle</item>
+        <item name="fieldLabelStyle">@style/DefaultFieldLabelStyle</item>
+        <item name="minScale">0.5</item>
+        <item name="maxScale">2.5</item>
+        <item name="defaultScale">1.0</item>
+    </style>
+
+    <style name="DefaultBlockStyle">
+        <item name="fieldHorizontalPadding">8dp</item>
+        <item name="fieldVerticalPadding">8dp</item>
+        <item name="minBlockHeight">48dp</item>
+        <item name="innerPadding">8dp</item>
+    </style>
+
+    <style name="DefaultFieldStyle">
+        <item name="textAppearance">@style/TextAppearance.AppCompat.Large</item>
+        <item name="fieldMinHeight">24dip</item>
+        <item name="fieldMinWidth">24dip</item>
+    </style>
+    <style name="DefaultFieldLabelStyle" parent="DefaultFieldStyle"/>
+
+    <style name="BlocklyTestTheme" parent="AppTheme">
+        <item name="blockViewStyle">@style/TestBlockStyle</item>
+        <item name="fieldLabelStyle">@style/TestFieldLabelStyle</item>
+    </style>
+
+    <style name="TestBlockStyle" parent="DefaultBlockStyle">
+        <item name="fieldHorizontalPadding">12dp</item>
+        <item name="fieldVerticalPadding">16dp</item>
+    </style>
+
+    <style name="TestFieldLabelStyle" parent="DefaultFieldLabelStyle">
+        <item name="textAppearance">@style/TextAppearance.AppCompat.Small</item>
+        <item name="fieldMinHeight">128dip</item>
     </style>
 
 </resources>

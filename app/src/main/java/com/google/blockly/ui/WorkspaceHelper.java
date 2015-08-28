@@ -17,10 +17,14 @@ package com.google.blockly.ui;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.os.Build;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import com.google.blockly.R;
+import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
 /**
@@ -28,10 +32,14 @@ import com.google.blockly.model.WorkspacePoint;
  */
 public class WorkspaceHelper {
     private static final String TAG = "WorkspaceHelper";
+    private static final boolean DEBUG = false;
 
-    // TODO: Pull from config file
     private static final float SCALE_MIN = 0.1f;
     private static final float SCALE_MAX = 3f;
+
+    private float mMinScale;
+    private float mMaxScale;
+    private float mDefaultScale;
 
     private float mScale = 1;
     private float mDensity;
@@ -39,22 +47,49 @@ public class WorkspaceHelper {
     private ViewPoint mViewSize;
     private boolean mRtL;
 
+    private int mBlockStyle;
+    private int mFieldLabelStyle;
+
+    private Context mContext;
+
     /**
-     * Create a helper for doing workspace to view conversions.
+     * Create a helper for creating and doing calculations for views in the workspace using the
+     * workspace's style.
      *
      * @param context The current context to get display metrics from.
-     * @param leftOffset The left offset into the workspace in workspace units.
-     * @param topOffset The top offset into the workspace in workspace units.
+     * @param attrs The workspace attributes to load the style from.
      */
-    public WorkspaceHelper(Context context, int leftOffset, int topOffset) {
+    public WorkspaceHelper(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    /**
+     * Create a helper for creating and doing calculations for views in the workspace, with a
+     * specific style. The style must be a resource id for a style that extends
+     * {@link R.style#BlocklyTheme}.
+     * <p>
+     * The config and styles are loaded from one of three sources with the following priority.
+     * <ol>
+     *     <li>The specified style id if it is not 0.</li>
+     *     <li>The attribute's style if it is not null.</li>
+     *     <li>The context's theme.</li>
+ *     </ol>
+     *
+     * @param context The context to get display metrics and resources from.
+     * @param attrs The WorkspaceView attributes or null.
+     * @param workspaceStyle The style to use for views.
+     */
+    public WorkspaceHelper(Context context, AttributeSet attrs, int workspaceStyle) {
+        mContext = context;
         Resources res = context.getResources();
         mDensity = res.getDisplayMetrics().density;
         if (mDensity == 0) {
             Log.e(TAG, "Density is not defined for this context. Defaulting to 1.");
             mDensity = 1f;
         }
-        mWorkspaceOffset = new WorkspacePoint(leftOffset, topOffset);
+        mWorkspaceOffset = new WorkspacePoint(0, 0);
         mViewSize = new ViewPoint();
+        initConfig(context, attrs, workspaceStyle);
     }
 
     /**
@@ -66,7 +101,7 @@ public class WorkspaceHelper {
      * @param scale The scale of the view.
      */
     public void setScale(float scale) {
-        mScale = Math.min(SCALE_MAX, Math.max(SCALE_MIN, scale));
+        mScale = Math.min(mMaxScale, Math.max(mMinScale, scale));
     }
 
     /**
@@ -188,6 +223,74 @@ public class WorkspaceHelper {
      */
     public boolean useRtL() {
         return mRtL;
+    }
+
+    /**
+     * Creates a {@link BlockView} for the given block using the workspace's default style
+     * parameters.
+     *
+     * @param block The block to generate a view for.
+     * @return A view for the block.
+     */
+    public BlockView obtainBlockView(Block block) {
+        return new BlockView(mContext, getBlockStyle(), block, this);
+    }
+
+    /**
+     * @return The context used to create this helper.
+     */
+    public Context getContext() {
+        return mContext;
+    }
+
+    /**
+     * @return The style resource id to use for drawing blocks.
+     */
+    public int getBlockStyle() {
+        return mBlockStyle;
+    }
+
+    /**
+     * @return The style resource id to use for drawing field labels.
+     */
+    public int getFieldLabelStyle() {
+        return mFieldLabelStyle;
+    }
+
+    /**
+     * Loads the style configurations. The config and styles are loaded from one of three sources
+     * with the following priority.
+     * <ol>
+     *     <li>The specified style id.</li>
+     *     <li>The attribute's style.</li>
+     *     <li>The context's theme.</li>
+     * </ol>
+     */
+    private void initConfig(Context context, AttributeSet attrs, int style) {
+        TypedArray styles;
+
+        if (style != 0) {
+            styles = context.obtainStyledAttributes(style, R.styleable.BlocklyWorkspaceTheme);
+        } else if (attrs != null) {
+            int styleId = attrs.getStyleAttribute();
+            styles = context.obtainStyledAttributes(styleId, R.styleable.BlocklyWorkspaceTheme);
+        } else {
+            styles = context.obtainStyledAttributes(R.styleable.BlocklyWorkspaceTheme);
+        }
+        try {
+            mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
+            mFieldLabelStyle = styles.getResourceId(
+                    R.styleable.BlocklyWorkspaceTheme_fieldLabelStyle, 0);
+            mMinScale = styles.getFloat(R.styleable.BlocklyWorkspaceTheme_minScale, SCALE_MIN);
+            mMaxScale = styles.getFloat(R.styleable.BlocklyWorkspaceTheme_maxScale, SCALE_MAX);
+            mDefaultScale = styles.getFloat(R.styleable.BlocklyWorkspaceTheme_defaultScale, 1.0f);
+            mScale = mDefaultScale;
+            if (DEBUG) {
+                Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldLabelStyle=" + mFieldLabelStyle);
+            }
+        } finally {
+            styles.recycle();
+        }
     }
 
     /**

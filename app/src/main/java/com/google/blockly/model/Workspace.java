@@ -40,10 +40,13 @@ public class Workspace {
     private static final boolean DEBUG = true;
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
-    private final WorkspaceHelper mWorkspaceHelper;
+    private WorkspaceHelper mWorkspaceHelper;
 
-    public Workspace(Context context) {
-        mWorkspaceHelper = new WorkspaceHelper(context, 0, 0);
+    public Workspace() {
+    }
+
+    public void setWorkspaceHelper(WorkspaceHelper helper) {
+        mWorkspaceHelper = helper;
     }
 
     /**

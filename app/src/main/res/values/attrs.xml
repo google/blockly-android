@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~  Copyright  2015 Google Inc. All Rights Reserved.
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<resources>
+    <declare-styleable name="BlocklyWorkspaceTheme">
+        <!-- The style to use for BlockViews. Should define BlocklyBlockView attrs.-->
+        <attr name="blockViewStyle" format="reference" />
+        <!-- The style to use for FieldLabelViews in this workspace. Should define attributes
+            from BlocklyFieldView and BlocklyFieldLabelView -->
+        <attr name="fieldLabelStyle" format="reference"/>
+        <!-- The minimum scaling supported by the workspace -->
+        <attr name="minScale" format="float|reference" />
+        <!-- The maximum scaling supported by the workspace -->
+        <attr name="maxScale" format="float|reference" />
+        <!-- The default scaling to use in the workspace -->
+        <attr name="defaultScale" format="float|reference" />
+    </declare-styleable>
+
+    <declare-styleable name="BlocklyBlockView">
+        <!-- The default horizontal space between fields -->
+        <attr name="fieldHorizontalPadding" format="dimension|reference"/>
+        <!-- The default vertical padding between fields -->
+        <attr name="fieldVerticalPadding" format="dimension|reference"/>
+        <!-- The min height for a Block with nothing in it. -->
+        <attr name="minBlockHeight" format="dimension|reference"/>
+        <!-- Padding around fields and inputs and the edge of the block -->
+        <attr name="innerPadding" format="dimension|reference" />
+    </declare-styleable>
+
+    <declare-styleable name="BlocklyFieldView">
+        <!-- The style to use for text if this view renders text inline. -->
+        <attr name="textAppearance" format="reference" />
+        <!-- The minimum height for any FieldView -->
+        <attr name="fieldMinHeight" format="dimension|reference"/>
+        <!-- The minimum width for any FieldView -->
+        <attr name="fieldMinWidth" format="dimension|reference"/>
+    </declare-styleable>
+
+    <declare-styleable name="BlocklyFieldLabelView">
+        <!-- Empty style for adding label specific attributes -->
+    </declare-styleable>
+</resources>

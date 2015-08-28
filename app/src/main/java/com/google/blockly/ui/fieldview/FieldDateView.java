@@ -35,9 +35,9 @@ public class FieldDateView extends TextView implements FieldView {
     // objects during drawing.
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
-    public FieldDateView(Context context, Field dateField,
-                         WorkspaceHelper helper) {
-        super(context);
+    public FieldDateView(Context context, Field dateField, WorkspaceHelper helper) {
+        super(context, null);
+        // TODO: Load style and apply to the view.
         mWorkspaceHelper = helper;
         mLayoutParams = new FieldWorkspaceParams(dateField, helper);
         mDate = (Field.FieldDate) dateField;

@@ -5,6 +5,7 @@
 
     <com.google.blockly.ui.WorkspaceView android:id="@+id/workspace"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        style="@style/BlocklyTheme"/>
 
 </AbsoluteLayout>

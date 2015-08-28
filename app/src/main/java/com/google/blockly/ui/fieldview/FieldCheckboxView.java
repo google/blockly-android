@@ -35,9 +35,9 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     // objects during drawing.
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
-    public FieldCheckboxView(Context context, Field checkbox,
-                             WorkspaceHelper helper) {
-        super(context);
+    public FieldCheckboxView(Context context, Field checkbox, WorkspaceHelper helper) {
+        super(context, null);
+        // TODO: Load style and apply to the view.
         mCheckbox = (Field.FieldCheckbox) checkbox;
         mCheckbox.setView(this);
         mWorkspaceHelper = helper;

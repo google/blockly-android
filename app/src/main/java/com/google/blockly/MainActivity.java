@@ -34,6 +34,7 @@ import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 
 
@@ -156,16 +157,17 @@ public class MainActivity extends ActionBarActivity
             ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
             WorkspaceView wv = (WorkspaceView) rootView.findViewById(R.id.workspace);
             wv.setWorkspace(mWorkspace);
+            WorkspaceHelper helper = mWorkspace.getWorkspaceHelper();
             Block dummyBlock = getDummyBlock();
             mWorkspace.addRootBlock(dummyBlock);
-            BlockGroup bg = new BlockGroup(getActivity(), mWorkspace.getWorkspaceHelper());
-            BlockView bv = new BlockView(getActivity(), null, dummyBlock,
-                    mWorkspace.getWorkspaceHelper());
+            BlockGroup bg = new BlockGroup(getActivity(), helper);
+            BlockView bv = helper.obtainBlockView(dummyBlock);
             bg.addView(bv);
 
+            helper = new WorkspaceHelper(getActivity(), null, R.style.BlocklyTestTheme);
+
             dummyBlock = getDummyBlock();
-            bv = new BlockView(getActivity(), null, dummyBlock,
-                    mWorkspace.getWorkspaceHelper());
+            bv = helper.obtainBlockView(dummyBlock);
             bg.addView(bv);
 
             wv.addView(bg);
@@ -177,7 +179,7 @@ public class MainActivity extends ActionBarActivity
             super.onAttach(activity);
             ((MainActivity) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
-            mWorkspace = new Workspace(activity);
+            mWorkspace = new Workspace();
         }
 
         private Block getDummyBlock() {

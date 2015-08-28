@@ -46,7 +46,6 @@ public class WorkspaceView extends ViewGroup {
     // Default desired height of the view in pixels.
     private static final int DESIRED_HEIGHT = 4096;
 
-
     private Workspace mWorkspace;
     private WorkspaceHelper mHelper;
 
@@ -68,7 +67,7 @@ public class WorkspaceView extends ViewGroup {
         mPaint = new Paint();
         mPaint.setColor(GRID_COLOR);
         setWillNotDraw(false);
-        mHelper = new WorkspaceHelper(context, 0, 0);
+        mHelper = new WorkspaceHelper(context, attrs);
     }
 
     @Override
@@ -160,8 +159,21 @@ public class WorkspaceView extends ViewGroup {
         super.onDraw(c);
     }
 
+    /**
+     * Sets the workspace this view should display.
+     *
+     * @param workspace The workspace to load views for.
+     */
     public void setWorkspace(Workspace workspace) {
         mWorkspace = workspace;
+        mWorkspace.setWorkspaceHelper(mHelper);
+    }
+
+    /**
+     * @return The helper for doing unit conversions and generating views in this workspace.
+     */
+    public WorkspaceHelper getWorkspaceHelper() {
+        return mHelper;
     }
 
     private boolean shouldDrawGrid() {

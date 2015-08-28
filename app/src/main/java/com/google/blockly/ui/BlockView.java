@@ -16,6 +16,7 @@
 package com.google.blockly.ui;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
@@ -23,6 +24,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.google.blockly.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
@@ -58,20 +60,45 @@ public class BlockView extends FrameLayout {
     private final Block mBlock;
     private final Paint mPaint;
 
+    // Style resources for child fields
+    private int mHorizontalFieldSpacing;
+    private int mVerticalFieldSpacing;
+
     private BlockWorkspaceParams mWorkspaceParams;
     private ArrayList<ArrayList<FieldView>> mFieldViews = new ArrayList<>();
     private ViewPoint mTemp = new ViewPoint();
 
-    public BlockView(Context context, AttributeSet attrs, Block block, WorkspaceHelper helper) {
-        super(context, attrs);
+    /**
+     * Create a new BlockView for the given block using the workspace's style.
+     *
+     * @param context The context for creating this view.
+     * @param block The block represented by this view.
+     * @param helper The helper for loading workspace configs and doing calculations.
+     */
+    public BlockView(Context context, Block block, WorkspaceHelper helper) {
+        this(context, 0 /* default style */, block, helper);
+    }
+
+    /**
+     * Create a new BlockView for the given block using the specified style. The style must extend
+     * {@link R.style#DefaultBlockStyle}.
+     *
+     * @param context The context for creating this view.
+     * @param blockStyle The resource id for the style to use on this view.
+     * @param block The block represented by this view.
+     * @param helper The helper for loading workspace configs and doing calculations.
+     */
+    public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper) {
+        super(context, null, 0);
         mBlock = block;
         mHelper = helper;
         mPaint = new Paint();
         mWorkspaceParams = new BlockWorkspaceParams(block, helper);
         setWillNotDraw(false);
 
-        initPaint(context, attrs);
-        initViews(context, attrs);
+        initAttrs(context, blockStyle);
+        initViews(context);
+        initPaint(context);
     }
 
     @Override
@@ -92,7 +119,7 @@ public class BlockView extends FrameLayout {
             ArrayList<FieldView> currentRow = mFieldViews.get(i);
             // Add the spacing between fields.
             // If no fields this will subtract the spacing and end up smaller than the current max.
-            rowWidth += (currentRow.size() - 1) * FIELD_SPACING;
+            rowWidth += (currentRow.size() - 1) * mHorizontalFieldSpacing;
             for (int j = 0; j < currentRow.size(); j++) {
                 FieldView child = currentRow.get(j);
                 ((View) child).measure(widthMeasureSpec, heightMeasureSpec);
@@ -106,7 +133,7 @@ public class BlockView extends FrameLayout {
             blockHeight += rowHeight;
             if (i != 0) {
                 // The first row doesn't have spacing above it, so don't add it for the first view.
-                blockHeight += FIELD_SPACING;
+                blockHeight += mVerticalFieldSpacing;
             }
             // The block width is the width of the widest row
             blockWidth = Math.max(blockWidth, rowWidth + PADDING);
@@ -154,11 +181,11 @@ public class BlockView extends FrameLayout {
                 view.layout(l, t, r, b);
 
                 // Move our current x position
-                currX = rtl ? currX - (w + FIELD_SPACING) : currX + (w + FIELD_SPACING);
+                currX = rtl ? currX - (w + mHorizontalFieldSpacing) : currX + (w + mHorizontalFieldSpacing);
                 rowHeight = Math.max(h, rowHeight);
             }
             // Between each row update the y position and add spacing
-            currY += rowHeight + FIELD_SPACING;
+            currY += rowHeight + mVerticalFieldSpacing;
             // TODO: handle inline inputs
         }
     }
@@ -171,10 +198,27 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * A block is responsible for initializing all of its fields. Sub-blocks must be added manually
+     * Set up the block specific parameters defined in the attributes.
+     */
+    private void initAttrs(Context context, int blockStyle) {
+        if (blockStyle == 0) {
+            blockStyle = mHelper.getBlockStyle();
+        }
+        TypedArray a = context.obtainStyledAttributes(blockStyle, R.styleable.BlocklyBlockView);
+        mHorizontalFieldSpacing = (int) a.getDimension(
+                R.styleable.BlocklyBlockView_fieldHorizontalPadding, FIELD_SPACING);
+        mVerticalFieldSpacing = (int) a.getDimension(
+                R.styleable.BlocklyBlockView_fieldVerticalPadding, FIELD_SPACING);
+
+        Log.d(TAG, "Horizontal spacing=" + mHorizontalFieldSpacing + ", Vertical spacing=" + mVerticalFieldSpacing
+                + " from style " + blockStyle);
+    }
+
+    /**
+     * A block is responsible for initializing all of its fields. Sub-blocks must be added
      * elsewhere.
      */
-    private void initViews(Context context, AttributeSet attrs) {
+    private void initViews(Context context) {
         List<Input> inputs = mBlock.getInputs();
         for (int i = 0; i < inputs.size(); i++) {
             // TODO: draw appropriate input, handle inline inputs
@@ -183,6 +227,7 @@ public class BlockView extends FrameLayout {
             List<Field> fields = inputs.get(i).getFields();
             for (int j = 0; j < fields.size(); j++) {
                 // TODO: create the appropriate field type
+                // TODO: add a way to pass the field styles through
                 FieldView view = null;
                 switch (fields.get(j).getType()) {
                     case Field.TYPE_LABEL:
@@ -216,7 +261,7 @@ public class BlockView extends FrameLayout {
         }
     }
 
-    private void initPaint(Context context, AttributeSet attrs) {
+    private void initPaint(Context context) {
         mPaint.setColor(mBlock.getColour());
     }
 }
