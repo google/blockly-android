@@ -45,7 +45,7 @@ public class WorkspaceTest extends AndroidTestCase {
     }
 
     public void testSerialization() throws BlocklySerializerException {
-        Workspace workspace = new Workspace(getContext());
+        Workspace workspace = new Workspace();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         workspace.serialize(os);
         assertEquals(EMPTY_WORKSPACE, os.toString());
