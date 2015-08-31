@@ -43,8 +43,8 @@ public class FieldColourView extends View implements FieldView {
         mColour = (Field.FieldColour) colour;
         mWorkspaceHelper = helper;
         setBackgroundColor(ALPHA_OPAQUE + mColour.getColour());
-        colour.setView(this);
-        mLayoutParams = new FieldWorkspaceParams(colour, helper);
+        mColour.setView(this);
+        mLayoutParams = new FieldWorkspaceParams(mColour, mWorkspaceHelper);
     }
 
     @Override

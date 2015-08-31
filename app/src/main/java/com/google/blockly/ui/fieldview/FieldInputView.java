@@ -42,8 +42,8 @@ public class FieldInputView extends EditText implements FieldView {
         mWorkspaceHelper = helper;
         setText(mInput.getText());
         setBackground(null);
-        input.setView(this);
-        mLayoutParams = new FieldWorkspaceParams(input, helper);
+        mInput.setView(this);
+        mLayoutParams = new FieldWorkspaceParams(mInput, mWorkspaceHelper);
     }
 
     @Override
