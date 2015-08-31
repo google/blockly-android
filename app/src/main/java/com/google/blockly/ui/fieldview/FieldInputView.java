@@ -17,11 +17,9 @@ package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
@@ -30,20 +28,18 @@ import com.google.blockly.ui.WorkspaceHelper;
 public class FieldInputView extends EditText implements FieldView {
     private final Field.FieldInput mInput;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mLayoutParams;
-
-    // ViewPoint object allocated once and reused in onLayout to prevent repeatedly allocating
-    // objects during drawing.
-    private final ViewPoint mTempViewPoint = new ViewPoint();
+    private final FieldWorkspaceParams mWorkspaceParams;
 
     public FieldInputView(Context context, Field input, WorkspaceHelper helper) {
         super(context);
+
         mInput = (Field.FieldInput) input;
         mWorkspaceHelper = helper;
-        setText(mInput.getText());
+        mWorkspaceParams = new FieldWorkspaceParams(mInput, mWorkspaceHelper);
+
         setBackground(null);
+        setText(mInput.getText());
         mInput.setView(this);
-        mLayoutParams = new FieldWorkspaceParams(mInput, mWorkspaceHelper);
     }
 
     @Override
@@ -59,19 +55,19 @@ public class FieldInputView extends EditText implements FieldView {
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mTempViewPoint.x = left;
-        mTempViewPoint.y = top;
-        mLayoutParams.setPosition(mTempViewPoint);
+        if (changed) {
+            mWorkspaceParams.updateFromView(this);
+        }
     }
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
-        return mLayoutParams;
+        return mWorkspaceParams;
     }
 }

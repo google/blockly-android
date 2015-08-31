@@ -20,7 +20,6 @@ import android.view.View;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
@@ -30,21 +29,19 @@ public class FieldColourView extends View implements FieldView {
     private static final int ALPHA_OPAQUE = 0xFF000000;
     private static final int MIN_SIZE = 75;
 
-    private final Field.FieldColour mColour;
+    private final Field.FieldColour mColourField;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mLayoutParams;
+    private final FieldWorkspaceParams mWorkspaceParams;
 
-    // ViewPoint object allocated once and reused in onLayout to prevent repeatedly allocating
-    // objects during drawing.
-    private final ViewPoint mTempViewPoint = new ViewPoint();
-
-    public FieldColourView(Context context, Field colour, WorkspaceHelper helper) {
+    public FieldColourView(Context context, Field colourField, WorkspaceHelper helper) {
         super(context);
-        mColour = (Field.FieldColour) colour;
+
+        mColourField = (Field.FieldColour) colourField;
         mWorkspaceHelper = helper;
-        setBackgroundColor(ALPHA_OPAQUE + mColour.getColour());
-        mColour.setView(this);
-        mLayoutParams = new FieldWorkspaceParams(mColour, mWorkspaceHelper);
+        mWorkspaceParams = new FieldWorkspaceParams(mColourField, mWorkspaceHelper);
+
+        setBackgroundColor(ALPHA_OPAQUE + mColourField.getColour());
+        mColourField.setView(this);
     }
 
     @Override
@@ -62,19 +59,19 @@ public class FieldColourView extends View implements FieldView {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         setMeasuredDimension(Math.max(getMeasuredWidth(), MIN_SIZE),
                 Math.max(getMeasuredHeight(), MIN_SIZE));
-        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mTempViewPoint.x = left;
-        mTempViewPoint.y = top;
-        mLayoutParams.setPosition(mTempViewPoint);
+        if (changed) {
+            mWorkspaceParams.updateFromView(this);
+        }
     }
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
-        return mLayoutParams;
+        return mWorkspaceParams;
     }
 }

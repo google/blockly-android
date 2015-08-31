@@ -20,29 +20,26 @@ import android.widget.TextView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Renders a date and a date picker as part of a Block.
  */
 public class FieldDateView extends TextView implements FieldView {
-    private final Field.FieldDate mDate;
+    private final Field.FieldDate mDateField;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mLayoutParams;
+    private final FieldWorkspaceParams mWorkspaceParams;
 
-    // ViewPoint object allocated once and reused in onLayout to prevent repeatedly allocating
-    // objects during drawing.
-    private final ViewPoint mTempViewPoint = new ViewPoint();
+    public FieldDateView(Context context, Field dateField,
+                         WorkspaceHelper helper) {
+        super(context);
 
-    public FieldDateView(Context context, Field dateField, WorkspaceHelper helper) {
-        super(context, null);
-        // TODO: Load style and apply to the view.
         mWorkspaceHelper = helper;
-        mLayoutParams = new FieldWorkspaceParams(dateField, helper);
-        mDate = (Field.FieldDate) dateField;
-        setText(mDate.getDateString());
+        mDateField = (Field.FieldDate) dateField;
+        mWorkspaceParams = new FieldWorkspaceParams(mDateField, mWorkspaceHelper);
+
         setBackground(null);
+        setText(mDateField.getDateString());
         dateField.setView(this);
     }
 
@@ -59,20 +56,20 @@ public class FieldDateView extends TextView implements FieldView {
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mTempViewPoint.x = left;
-        mTempViewPoint.y = top;
-        mLayoutParams.setPosition(mTempViewPoint);
+        if (changed) {
+            mWorkspaceParams.updateFromView(this);
+        }
     }
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
-        return mLayoutParams;
+        return mWorkspaceParams;
     }
 
 }

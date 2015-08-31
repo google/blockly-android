@@ -22,30 +22,25 @@ import android.widget.TextView;
 import com.google.blockly.R;
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Renders text as part of a BlockView.
  */
 public class FieldLabelView extends TextView implements FieldView {
-    private final Field.FieldLabel mLabel;
+    private final Field.FieldLabel mLabelField;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mLayoutParams;
-
-    // ViewPoint object allocated once and reused in onLayout to prevent repeatedly allocating
-    // objects during drawing.
-    private final ViewPoint mTempViewPoint = new ViewPoint();
+    private final FieldWorkspaceParams mWorkspaceParams;
 
     /**
      * Create a view for the given field using the workspace's style.
      *
      * @param context The context for creating the view and loading resources.
-     * @param label The label this view is rendering.
+     * @param labelField The label this view is rendering.
      * @param helper The helper for loading workspace configs and doing calculations.
      */
-    public FieldLabelView(Context context, Field label, WorkspaceHelper helper) {
-        this(context, 0, label, helper);
+    public FieldLabelView(Context context, Field labelField, WorkspaceHelper helper) {
+        this(context, 0, labelField, helper);
     }
 
     /**
@@ -54,20 +49,23 @@ public class FieldLabelView extends TextView implements FieldView {
      *
      * @param context The context for creating the view and loading resources.
      * @param fieldLabelStyle The resource id for the style to use on this view.
-     * @param label The label this view is rendering.
+     * @param labelField The label this view is rendering.
      * @param helper The helper for loading workspace configs and doing calculations.
      */
-    public FieldLabelView(Context context, int fieldLabelStyle, Field label,
+    public FieldLabelView(Context context, int fieldLabelStyle, Field labelField,
                           WorkspaceHelper helper) {
         super(context, null, 0);
-        mLabel = (Field.FieldLabel) label;
+
+        mLabelField = (Field.FieldLabel) labelField;
         mWorkspaceHelper = helper;
+        mWorkspaceParams = new FieldWorkspaceParams(mLabelField, mWorkspaceHelper);
+
         configureStyle(context, fieldLabelStyle);
-        setText(label.getName());
+
         setBackground(null);
-        label.setView(this);
-        mLayoutParams = new FieldWorkspaceParams(label, helper);
-    }
+        setText(labelField.getName());
+        labelField.setView(this);
+     }
 
     @Override
     public int getInBlockHeight() {
@@ -82,20 +80,20 @@ public class FieldLabelView extends TextView implements FieldView {
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mTempViewPoint.x = left;
-        mTempViewPoint.y = top;
-        mLayoutParams.setPosition(mTempViewPoint);
+        if (changed) {
+            mWorkspaceParams.updateFromView(this);
+        }
     }
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
-        return mLayoutParams;
+        return mWorkspaceParams;
     }
 
     private void configureStyle(Context context, int style) {

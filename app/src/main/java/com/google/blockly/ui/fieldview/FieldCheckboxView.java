@@ -20,31 +20,27 @@ import android.widget.CheckBox;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Renders a checkbox as part of a BlockView.
  */
 public class FieldCheckboxView extends CheckBox implements FieldView {
-    private final Field.FieldCheckbox mCheckbox;
+    private final Field.FieldCheckbox mCheckboxField;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mLayoutParams;
+    private final FieldWorkspaceParams mWorkspaceParams;
 
-    // ViewPoint object allocated once and reused in onLayout to prevent repeatedly allocating
-    // objects during drawing.
-    private final ViewPoint mTempViewPoint = new ViewPoint();
+    public FieldCheckboxView(Context context, Field checkboxField,
+                             WorkspaceHelper helper) {
+        super(context);
 
-    public FieldCheckboxView(Context context, Field checkbox, WorkspaceHelper helper) {
-        super(context, null);
-        // TODO: Load style and apply to the view.
-        mCheckbox = (Field.FieldCheckbox) checkbox;
-        mCheckbox.setView(this);
+        mCheckboxField = (Field.FieldCheckbox) checkboxField;
         mWorkspaceHelper = helper;
-        mLayoutParams = new FieldWorkspaceParams(checkbox, helper);
+        mWorkspaceParams = new FieldWorkspaceParams(mCheckboxField, mWorkspaceHelper);
 
-        setChecked(mCheckbox.isChecked());
         setBackground(null);
+        setChecked(mCheckboxField.isChecked());
+        mCheckboxField.setView(this);
     }
 
     @Override
@@ -60,20 +56,19 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mTempViewPoint.x = left;
-        mTempViewPoint.y = top;
-        mLayoutParams.setPosition(mTempViewPoint);
+        if (changed) {
+            mWorkspaceParams.updateFromView(this);
+        }
     }
-
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
-        return mLayoutParams;
+        return mWorkspaceParams;
     }
 }

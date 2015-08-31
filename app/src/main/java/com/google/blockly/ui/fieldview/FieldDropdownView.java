@@ -21,31 +21,27 @@ import android.widget.Spinner;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Renders a dropdown field as part of a Block.
  */
 public class FieldDropdownView extends Spinner implements FieldView {
-    private final Field.FieldDropdown mDropdown;
+    private final Field.FieldDropdown mDropdownField;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mLayoutParams;
-
-    // ViewPoint object allocated once and reused in onLayout to prevent repeatedly allocating
-    // objects during drawing.
-    private final ViewPoint mTempViewPoint = new ViewPoint();
+    private final FieldWorkspaceParams mWorkspaceParams;
 
     public FieldDropdownView(Context context, Field dropdownField,
                          WorkspaceHelper helper) {
         super(context);
-        mWorkspaceHelper = helper;
-        mLayoutParams = new FieldWorkspaceParams(dropdownField, helper);
-        mDropdown = (Field.FieldDropdown) dropdownField;
 
-        setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_item,
-                mDropdown.getDisplayNames()));
+        mWorkspaceHelper = helper;
+        mDropdownField = (Field.FieldDropdown) dropdownField;
+        mWorkspaceParams = new FieldWorkspaceParams(mDropdownField, mWorkspaceHelper);
+
         setBackground(null);
+        setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_item,
+                mDropdownField.getDisplayNames()));
         dropdownField.setView(this);
     }
 
@@ -62,20 +58,20 @@ public class FieldDropdownView extends Spinner implements FieldView {
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mTempViewPoint.x = left;
-        mTempViewPoint.y = top;
-        mLayoutParams.setPosition(mTempViewPoint);
+        if (changed) {
+            mWorkspaceParams.updateFromView(this);
+        }
     }
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
-        return mLayoutParams;
+        return mWorkspaceParams;
     }
 
 }

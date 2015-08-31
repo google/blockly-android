@@ -16,6 +16,8 @@
 package com.google.blockly.ui;
 
 import android.graphics.Rect;
+import android.view.View;
+import android.view.ViewParent;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.model.WorkspacePoint;
@@ -33,6 +35,10 @@ public class FieldWorkspaceParams {
     private Rect mBounds = new Rect();
     private int mWidth;
     private int mHeight;
+
+    // Helper object for setting mWorkspacePosition in updateFromView(); instantiated at class
+    // level to avoid repeated object creation.
+    private ViewPoint mGlobalViewPosition = new ViewPoint();
 
     public FieldWorkspaceParams(Field field, WorkspaceHelper workspaceHelper) {
         if (field == null) {
@@ -86,5 +92,35 @@ public class FieldWorkspaceParams {
      */
     public WorkspacePoint getWorkspacePosition() {
         return mWorkspacePosition;
+    }
+
+    /**
+     * Update workspace coordinates based on the new view coordinates of the {@link View}.
+     *
+     * @param view The view associated with the field handled by this instance.
+     */
+    public void updateFromView(View view) {
+        int leftRelativeToWorkspace = view.getLeft();
+        int topRelativeToWorkspace = view.getTop();
+
+        // Move up the parent hierarchy and add parent-relative view coordinates.
+        ViewParent viewParent = view.getParent();
+        while (viewParent != null) {
+            if  (viewParent instanceof WorkspaceView) {
+                break;
+            }
+
+            leftRelativeToWorkspace += ((View) viewParent).getLeft();
+            topRelativeToWorkspace += ((View) viewParent).getTop();
+
+            viewParent = viewParent.getParent();
+        }
+
+        if (viewParent == null) {
+            throw new IllegalStateException("No WorkspaceView found among view's parents.");
+        }
+
+        mGlobalViewPosition.set(leftRelativeToWorkspace, topRelativeToWorkspace);
+        mWorkspaceHelper.viewToWorkspaceCoordinates(mGlobalViewPosition, mWorkspacePosition);
     }
 }

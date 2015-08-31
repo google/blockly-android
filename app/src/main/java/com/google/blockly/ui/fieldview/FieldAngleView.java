@@ -27,22 +27,20 @@ import com.google.blockly.ui.WorkspaceHelper;
  * Renders an angle as part of a Block. 
  */
 public class FieldAngleView extends TextView implements FieldView {
-    private final Field.FieldAngle mAngle;
+    private final Field.FieldAngle mAngleField;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mLayoutParams;
-
-    // ViewPoint object allocated once and reused in onLayout to prevent repeatedly allocating
-    // objects during drawing.
-    private final ViewPoint mTempViewPoint = new ViewPoint();
+    private final FieldWorkspaceParams mWorkspaceParams;
 
     public FieldAngleView(Context context, Field angleField,
                          WorkspaceHelper helper) {
         super(context);
+
+        mAngleField = (Field.FieldAngle) angleField;
         mWorkspaceHelper = helper;
-        mLayoutParams = new FieldWorkspaceParams(angleField, helper);
-        mAngle = (Field.FieldAngle) angleField;
-        setText(Integer.toString(mAngle.getAngle()));
+        mWorkspaceParams = new FieldWorkspaceParams(mAngleField, mWorkspaceHelper);
+
         setBackground(null);
+        setText(Integer.toString(mAngleField.getAngle()));
         angleField.setView(this);
     }
 
@@ -59,20 +57,20 @@ public class FieldAngleView extends TextView implements FieldView {
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mLayoutParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        mTempViewPoint.x = left;
-        mTempViewPoint.y = top;
-        mLayoutParams.setPosition(mTempViewPoint);
+        if (changed) {
+            mWorkspaceParams.updateFromView(this);
+        }
     }
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
-        return mLayoutParams;
+        return mWorkspaceParams;
     }
 
 }
