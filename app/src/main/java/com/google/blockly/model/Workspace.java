@@ -93,10 +93,7 @@ public class Workspace {
 
     public void loadFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
-        List<Block> blocks = mXmlHelper.loadFromXml(is, blockFactory);
-        for (int i = 0; i < blocks.size(); i++) {
-            addRootBlock(blocks.get(i));
-        }
+        mRootBlocks.addAll(mXmlHelper.loadFromXml(is, blockFactory));
     }
 
     /**
