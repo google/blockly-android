@@ -135,12 +135,14 @@ public class BlockTestStrings {
     public static final String COMMENT_NO_TEXT= "<comment pinned=\"true\" h=\"80\" w=\"160\">" +
             "    </comment>";
 
-    public static final String FRANKENBLOCK_DEFAULT_VALUES_START = "<text_input></text_input>"
-            + "<checkbox>true</checkbox>";
-    public static final String FRANKENBLOCK_DEFAULT_VALUES_END = "<dropdown>OPTIONNAME1</dropdown>"
-            + "<variable>item</variable>"
-            + "<angle>90</angle>"
-            + "<colour>#ff0000</colour>";
+    public static final String FRANKENBLOCK_DEFAULT_VALUES_START =
+            "<field name=\"text_input\"></field>"
+            + "<field name=\"checkbox\">true</field>";
+    public static final String FRANKENBLOCK_DEFAULT_VALUES_END =
+            "<field name=\"dropdown\">OPTIONNAME1</field>"
+            + "<field name=\"variable\">item</field>"
+            + "<field name=\"angle\">90</field>"
+            + "<field name=\"colour\">#ff0000</field>";
     public static final String FRANKENBLOCK_DEFAULT_VALUES = FRANKENBLOCK_DEFAULT_VALUES_START
             + FRANKENBLOCK_DEFAULT_VALUES_END;
 

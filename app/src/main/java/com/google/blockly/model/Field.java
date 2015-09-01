@@ -101,9 +101,9 @@ public abstract class Field implements Cloneable {
         if (mType.equals(TYPE_LABEL) || mType.equals(TYPE_IMAGE)) {
             return;
         }
-        serializer.startTag(null, mName);
+        serializer.startTag(null, "field").attribute(null, "name", mName);
         serializeInner(serializer);
-        serializer.endTag(null, mName);
+        serializer.endTag(null, "field");
     }
 
     /**
