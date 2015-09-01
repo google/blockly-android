@@ -19,11 +19,11 @@ package com.google.blockly.model;
  * An exception that is thrown when there is an error serializing a blockly Workspace to XML.
  */
 public class BlocklySerializerException extends Throwable {
-    BlocklySerializerException(String message) {
+    public BlocklySerializerException(String message) {
         super(message);
     }
 
-    BlocklySerializerException(Throwable cause) {
+    public BlocklySerializerException(Throwable cause) {
         super(cause);
     }
 }

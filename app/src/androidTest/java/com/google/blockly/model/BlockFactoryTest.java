@@ -43,6 +43,8 @@ public class BlockFactoryTest extends AndroidTestCase {
                 inputs.get(1) instanceof Input.InputStatement);
         assertTrue("Third input should be a dummy input.",
                 inputs.get(2) instanceof Input.InputDummy);
+
+        assertNotNull(frankenblock.getFieldByName("angle"));
     }
 
     public void testObtainRepeated() {

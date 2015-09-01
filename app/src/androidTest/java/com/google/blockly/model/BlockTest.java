@@ -161,8 +161,9 @@ public class BlockTest extends AndroidTestCase {
                 BlockTestStrings.COMMENT_NO_TEXT), bf);
 
         // Fields
-        parseBlockFromXml(BlockTestStrings.assembleBlock(
+        loaded = parseBlockFromXml(BlockTestStrings.assembleBlock(
                 BlockTestStrings.FIELD_HAS_NAME), bf);
+        assertEquals("item", ((Field.FieldInput) loaded.getFieldByName("text_input")).getText());
         // A missing or unknown field name isn't an error, it's just ignored.
         parseBlockFromXml(BlockTestStrings.assembleBlock(
                 BlockTestStrings.FIELD_MISSING_NAME), bf);
