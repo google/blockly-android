@@ -36,7 +36,6 @@ import java.util.List;
 public class BlockTest extends AndroidTestCase {
     XmlPullParserFactory factory = null;
 
-
     public void testJson() {
         JSONObject blockJson;
         try {

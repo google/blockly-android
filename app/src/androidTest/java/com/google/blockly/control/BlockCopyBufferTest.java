@@ -24,25 +24,34 @@ import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Tests for {@link BlockCopyBuffer}
  */
 public class BlockCopyBufferTest extends AndroidTestCase {
     private BlockFactory bf;
     private BlockCopyBuffer buffer;
+    ArrayList<Block> inputList;
+    List<Block> outputList;
 
     @Override
     public void setUp() throws Exception {
         bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
-        buffer = new BlockCopyBuffer(bf);
+        buffer = new BlockCopyBuffer();
+        inputList = new ArrayList<>();
+        outputList = null;
     }
 
     public void testBuffer() throws BlocklySerializerException {
         Block block = bf.obtainBlock("frankenblock", "testBlock");
-        buffer.setBufferContents(block);
-        Block fromBuffer = buffer.getBufferContents();
+        inputList.add(block);
+        buffer.setBufferContents(inputList);
+        Block fromBuffer = buffer.getBufferContents(bf).get(0);
         assertNotNull(fromBuffer);
         assertEquals("frankenblock", fromBuffer.getName());
+        assertNotSame(fromBuffer, block);
     }
 
     public void testWithInput() throws BlocklySerializerException {
@@ -53,9 +62,14 @@ public class BlockCopyBufferTest extends AndroidTestCase {
         Block inputBlock = bf.obtainBlock("output_foo", "126");
         input.getConnection().connect(inputBlock.getOutputConnection());
 
-        buffer.setBufferContents(block);
+        inputList.add(block);
+        buffer.setBufferContents(inputList);
 
-        Block fromBuffer = buffer.getBufferContents();
+        outputList = buffer.getBufferContents(bf);
+        assertNotNull(outputList);
+        assertFalse(outputList.isEmpty());
+
+        Block fromBuffer = outputList.get(0);
         assertEquals(37, fromBuffer.getPosition().x);
         assertEquals(13, fromBuffer.getPosition().y);
 
@@ -76,9 +90,15 @@ public class BlockCopyBufferTest extends AndroidTestCase {
 
         nextBlock.getFieldByName("text_input").setFromXmlText("expected_text");
 
-        buffer.setBufferContents(block);
+        inputList.add(block);
+        inputList.add(nextBlock);
+        buffer.setBufferContents(inputList);
 
-        Block fromBuffer = buffer.getBufferContents();
+        outputList = buffer.getBufferContents(bf);
+        assertNotNull(outputList);
+        assertFalse(outputList.isEmpty());
+
+        Block fromBuffer = outputList.get(0);
         assertEquals(37, fromBuffer.getPosition().x);
         assertEquals(13, fromBuffer.getPosition().y);
 

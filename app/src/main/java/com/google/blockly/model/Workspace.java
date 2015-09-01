@@ -15,29 +15,23 @@
 
 package com.google.blockly.model;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.utils.BlocklyXmlHelper;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-import org.xmlpull.v1.XmlSerializer;
-
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Keeps track of all the global state used in the workspace. This is mostly just blocks.
  */
 public class Workspace {
-    public static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
-
     private static final String TAG = "Workspace";
     private static final boolean DEBUG = true;
+    private static final BlocklyXmlHelper mXmlHelper = new BlocklyXmlHelper();
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
     private WorkspaceHelper mWorkspaceHelper;
@@ -99,36 +93,9 @@ public class Workspace {
 
     public void loadFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
-        XmlPullParserFactory Xppfactory;
-        XmlPullParser parser;
-        try {
-            Xppfactory = XmlPullParserFactory.newInstance();
-            Xppfactory.setNamespaceAware(true);
-            parser = Xppfactory.newPullParser();
-
-            parser.setInput(is, null);
-
-            int eventType = parser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                switch (eventType) {
-                    case XmlPullParser.START_TAG:
-                        if (parser.getName() == null) {
-                            throw new BlocklyParserException("Malformed XML; aborting.");
-                        }
-                        if (parser.getName().equalsIgnoreCase("block")) {
-                            addRootBlock(Block.fromXml(parser, blockFactory));
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-                eventType = parser.next();
-            }
-        } catch (XmlPullParserException e) {
-            throw new BlocklyParserException(e);
-        } catch (IOException e) {
-            throw new BlocklyParserException(e);
+        List<Block> blocks = mXmlHelper.loadFromXml(is, blockFactory);
+        for (int i = 0; i < blocks.size(); i++) {
+            addRootBlock(blocks.get(i));
         }
     }
 
@@ -139,26 +106,6 @@ public class Workspace {
      * @throws BlocklySerializerException
      */
     public void serialize(OutputStream os) throws BlocklySerializerException {
-        XmlPullParserFactory xppfactory;
-        XmlSerializer serializer;
-        try {
-            xppfactory = XmlPullParserFactory.newInstance();
-            xppfactory.setNamespaceAware(true);
-
-            serializer = xppfactory.newSerializer();
-            serializer.setOutput(os, null);
-            serializer.setPrefix("", XML_NAMESPACE);
-
-            serializer.startTag(XML_NAMESPACE, "xml");
-            for (int i = 0; i < mRootBlocks.size(); i++) {
-                mRootBlocks.get(i).serialize(serializer, true);
-            }
-            serializer.endTag(XML_NAMESPACE, "xml");
-            serializer.flush();
-        } catch (XmlPullParserException e) {
-            throw new BlocklySerializerException(e);
-        } catch (IOException e) {
-            throw new BlocklySerializerException(e);
-        }
+        mXmlHelper.writeToXml(mRootBlocks, os);
     }
 }
