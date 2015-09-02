@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
@@ -158,7 +159,7 @@ public class MainActivity extends ActionBarActivity
             WorkspaceView wv = (WorkspaceView) rootView.findViewById(R.id.workspace);
             wv.setWorkspace(mWorkspace);
             WorkspaceHelper helper = mWorkspace.getWorkspaceHelper();
-            Block dummyBlock = getDummyBlock();
+            Block dummyBlock = makeDummyBlock();
             mWorkspace.addRootBlock(dummyBlock);
             BlockGroup bg = new BlockGroup(getActivity(), helper);
             BlockView bv = helper.obtainBlockView(dummyBlock);
@@ -166,8 +167,8 @@ public class MainActivity extends ActionBarActivity
 
             helper = new WorkspaceHelper(getActivity(), null, R.style.BlocklyTestTheme);
 
-            dummyBlock = getDummyBlock();
-            bv = helper.obtainBlockView(dummyBlock);
+            Block dummyBlock2 = makeDummyBlock();
+            bv = helper.obtainBlockView(dummyBlock2);
             bg.addView(bv);
 
             wv.addView(bg);
@@ -182,9 +183,14 @@ public class MainActivity extends ActionBarActivity
             mWorkspace = new Workspace();
         }
 
-        private Block getDummyBlock() {
+        private Block makeDummyBlock() {
             Block.Builder bob = new Block.Builder("dummy");
             bob.setPosition(35, 101);
+
+            bob.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
+            bob.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
+            bob.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
+
             Input input = new Input.InputDummy("input1", null);
             input.add(new Field.FieldLabel("label", "degrees"));
             bob.addInput(input);
@@ -195,7 +201,7 @@ public class MainActivity extends ActionBarActivity
             bob.addInput(input);
 
             input = new Input.InputValue("input3", null, null);
-            input.add(new Field.FieldLabel("label2", "more degrees"));
+            input.add(new Field.FieldAngle("label2", 180));
             bob.addInput(input);
 
             input = new Input.InputValue("input4", null, null);
@@ -213,6 +219,10 @@ public class MainActivity extends ActionBarActivity
 
             input = new Input.InputValue("input7", null, null);
             input.add(new Field.FieldInput("input text", "initial wide field of text"));
+            bob.addInput(input);
+
+            input = new Input.InputStatement("input8", null, null);
+            input.add(new Field.FieldLabel("DO", "this is a loop"));
             bob.addInput(input);
 
             bob.setColour(42);

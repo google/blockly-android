@@ -179,6 +179,21 @@ public class Block {
     }
 
     /**
+     * @return True if and only if this block has inputs, i.e., {#link mInputList} is non-empty.
+     */
+    public boolean hasInputs() { return !mInputList.isEmpty(); }
+
+    /**
+     * @return The current state of the flag for displaying inputs in-line.
+     */
+    public boolean getInputsInline() { return mInputsInline; }
+
+    /**
+     * Set flag for displaying inputs in-line.
+     */
+    public void setInputsInline(boolean inputsInline) { mInputsInline = inputsInline; }
+
+    /**
      * Searches through the block's list of inputs and returns the first one with the given name.
      *
      * @param targetName The name of the input to search for.
@@ -694,7 +709,6 @@ public class Block {
             this(block.mName);
             mColourHue = block.mColourHue;
             mCategory = block.mCategory;
-
 
             mOutputConnection = Connection.cloneConnection(block.mOutputConnection);
             mNextConnection = Connection.cloneConnection(block.mNextConnection);

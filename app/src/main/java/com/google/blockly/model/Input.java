@@ -224,6 +224,7 @@ public abstract class Input implements Cloneable {
     /**
      * @return The input's Connection, or null if it is a dummy input.
      */
+    @Nullable
     public Connection getConnection() {
         return mConnection;
     }
