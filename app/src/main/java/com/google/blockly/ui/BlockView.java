@@ -65,10 +65,10 @@ public class BlockView extends FrameLayout {
     private static final int CORNER_RADIUS = 8;
     // The offset between a connector and the closest corner, in dips.
     private static final int CONNECTOR_OFFSET = 20;
-    // The "width" of a connector (parallel to the block boundary), in dips.
-    private static final int CONNECTOR_WIDTH = 40;
-    // The "height" of a connector (perpendicular to the block boundary), in dips.
-    private static final int CONNECTOR_HEIGHT = 20;
+    // The size of a connector parallel to the block boundary, in dips.
+    private static final int CONNECTOR_SIZE_PARALLEL = 40;
+    // The size of a connector perpendicular to the block boundary, in dips.
+    private static final int CONNECTOR_SIZE_PERPENDICULAR = 20;
 
     private final WorkspaceHelper mHelper;
     private final Block mBlock;
@@ -81,25 +81,6 @@ public class BlockView extends FrameLayout {
     // Style resources for child fields
     private int mHorizontalFieldSpacing;
     private int mVerticalFieldSpacing;
-
-    /**
-     * Layout parameters for a block input row. These are computed in {@link #onMeasure} and used
-     * in {@link #onLayout}.
-     */
-    private class InputLayoutParams {
-        /** Vertical coordinate of the top of this input inside the block. */
-        int mTop;
-        /** Height of this input inside the block. */
-        int mHeight;
-        /** Width of this input inside the block. */
-        int mWidth;
-
-        InputLayoutParams(int top, int height, int width) {
-            mTop = top;
-            mHeight = height;
-            mWidth = width;
-        }
-    }
 
     private ArrayList<InputLayoutParams> mInputLayoutParams = new ArrayList<>();
 
@@ -155,17 +136,17 @@ public class BlockView extends FrameLayout {
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         // A block's width is at least the base width plus the "height" of an extruding "Output"
         // connector.
-        int blockWidth = BASE_WIDTH + CONNECTOR_HEIGHT;
+        int blockWidth = BASE_WIDTH + CONNECTOR_SIZE_PERPENDICULAR;
 
         mInputLayoutParams.clear();
         mInputLayoutParams.ensureCapacity(mFieldViews.size());
 
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
-        int rowTop = PADDING + CONNECTOR_HEIGHT;
+        int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
         for (int i = 0; i < mFieldViews.size(); i++) {
             ArrayList<FieldView> currentRow = mFieldViews.get(i);
 
-            // Add vertical spacing to previous block, if there is one.
+            // Add vertical spacing to previous row of fields, if there is one.
             if (i > 0) {
                 rowTop += mVerticalFieldSpacing;
             }
@@ -175,7 +156,7 @@ public class BlockView extends FrameLayout {
 
             // Row width is sum of widths of all children plus spacing between them plus padding
             // on both sides, plus room for connector on each side.
-            int rowWidth = 2 * (PADDING + CONNECTOR_HEIGHT);
+            int rowWidth = 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR);
             if (currentRow.size() > 1) {
                 rowWidth += (currentRow.size() - 1) * mHorizontalFieldSpacing;
             }
@@ -198,15 +179,15 @@ public class BlockView extends FrameLayout {
         }
         // Height is vertical position of next (non-existant) inputs row plus bottom padding plus
         // room for extruding "Next" connector. Also must be at least the base height.
-        int blockHeight = Math.max(rowTop + PADDING + CONNECTOR_HEIGHT, BASE_HEIGHT);
+        int blockHeight = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
 
         setMeasuredDimension(blockWidth, blockHeight);
         mBlockViewSize.x = blockWidth;
         mBlockViewSize.y = blockHeight;
         mWorkspaceParams.setMeasuredDimensions(mBlockViewSize);
         if (DEBUG) {
-            Log.d(TAG, "Set dimens to " + blockWidth + ", " + blockHeight + " for " + mFieldViews.size()
-                    + " rows.");
+            Log.d(TAG, "Set dimens to " + blockWidth + ", " + blockHeight +
+                    " for " + mFieldViews.size() + " rows.");
         }
     }
 
@@ -214,10 +195,10 @@ public class BlockView extends FrameLayout {
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         boolean rtl = mHelper.useRtL();
         List<Input> inputs = mBlock.getInputs();
-        int currY = PADDING + CONNECTOR_HEIGHT;
+        int currY = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
         for (int i = 0; i < inputs.size(); i++) {
             // Start padding distance in from the appropriate edge
-            int currX = PADDING + CONNECTOR_HEIGHT;
+            int currX = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
             if (rtl) {
                 currX = getWidth() - currX;
             }
@@ -236,11 +217,11 @@ public class BlockView extends FrameLayout {
                 View view = (View) fv;
 
                 // Use the width and height of the field's view to compute its placement
-                int w = view.getMeasuredWidth();
-                int h = view.getMeasuredHeight();
+                int w = fv.getInBlockWidth();
+                int h = fv.getInBlockHeight();
                 int l = rtl ? currX - w : currX;
                 int r = l + w;
-                int t = rowLayoutParams.mTop + (rowLayoutParams.mHeight - h) / 2;
+                int t = rowLayoutParams.mTop;
                 int b = t + h;
                 view.layout(l, t, r, b);
 
@@ -270,8 +251,8 @@ public class BlockView extends FrameLayout {
         mVerticalFieldSpacing = (int) a.getDimension(
                 R.styleable.BlocklyBlockView_fieldVerticalPadding, FIELD_SPACING);
 
-        Log.d(TAG, "Horizontal spacing=" + mHorizontalFieldSpacing + ", Vertical spacing=" + mVerticalFieldSpacing
-                + " from style " + blockStyle);
+        Log.d(TAG, "Horizontal spacing=" + mHorizontalFieldSpacing +
+                ", Vertical spacing=" + mVerticalFieldSpacing + " from style " + blockStyle);
     }
 
     /**
@@ -352,19 +333,20 @@ public class BlockView extends FrameLayout {
     protected void onSizeChanged (int width, int height, int oldw, int oldh) {
         mDrawPath.reset();
 
-        float xLeft = CONNECTOR_HEIGHT;
-        float xRight = width - CONNECTOR_HEIGHT;
+        float xLeft = CONNECTOR_SIZE_PERPENDICULAR;
+        float xRight = width - CONNECTOR_SIZE_PERPENDICULAR;
 
         float yTop = 0;
-        float yBottom = height - CONNECTOR_HEIGHT;
+        float yBottom = height - CONNECTOR_SIZE_PERPENDICULAR;
 
         // Top of the block, including "Previous" connector.
         mDrawPath.moveTo(xLeft, yTop);
         if (mBlock.getPreviousConnection() != null) {
             mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET, yTop);
-            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET, yTop + CONNECTOR_HEIGHT);
-            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET + CONNECTOR_WIDTH, yTop + CONNECTOR_HEIGHT);
-            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET + CONNECTOR_WIDTH, yTop);
+            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET, yTop + CONNECTOR_SIZE_PERPENDICULAR);
+            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL,
+                    yTop + CONNECTOR_SIZE_PERPENDICULAR);
+            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL, yTop);
         }
         mDrawPath.lineTo(xRight, yTop);
 
@@ -381,21 +363,26 @@ public class BlockView extends FrameLayout {
                 }
                 case Input.TYPE_VALUE: {
                     mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xRight - CONNECTOR_HEIGHT, y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xRight - CONNECTOR_HEIGHT, y + CONNECTOR_OFFSET + CONNECTOR_WIDTH);
-                    mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET + CONNECTOR_WIDTH);
+                    mDrawPath.lineTo(xRight - CONNECTOR_SIZE_PERPENDICULAR, y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xRight - CONNECTOR_SIZE_PERPENDICULAR,
+                            y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+                    mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
                     float xOffset = rowLayoutParams.mWidth;
                     mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xOffset + 2 * CONNECTOR_WIDTH, y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xOffset + 2 * CONNECTOR_WIDTH, y + CONNECTOR_OFFSET + CONNECTOR_HEIGHT);
-                    mDrawPath.lineTo(xOffset + CONNECTOR_WIDTH, y + CONNECTOR_OFFSET + CONNECTOR_HEIGHT);
-                    mDrawPath.lineTo(xOffset + CONNECTOR_WIDTH, y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL, y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL,
+                            y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
+                    mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL,
+                            y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
+                    mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL, y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xOffset, y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xOffset, y + CONNECTOR_OFFSET + 2 * CONNECTOR_HEIGHT);
-                    mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET + 2 * CONNECTOR_HEIGHT);
+                    mDrawPath.lineTo(xOffset,
+                            y + CONNECTOR_OFFSET + 2 * CONNECTOR_SIZE_PERPENDICULAR);
+                    mDrawPath.lineTo(xRight,
+                            y + CONNECTOR_OFFSET + 2 * CONNECTOR_SIZE_PERPENDICULAR);
                     break;
                 }
             }
@@ -404,22 +391,43 @@ public class BlockView extends FrameLayout {
 
         // Bottom of the block, including "Next" connector.
         if (mBlock.getNextConnection() != null) {
-            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET + CONNECTOR_WIDTH, yBottom);
-            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET + CONNECTOR_WIDTH, yBottom + CONNECTOR_HEIGHT);
-            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET, yBottom + CONNECTOR_HEIGHT);
+            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL, yBottom);
+            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL,
+                    yBottom + CONNECTOR_SIZE_PERPENDICULAR);
+            mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET, yBottom + CONNECTOR_SIZE_PERPENDICULAR);
             mDrawPath.lineTo(xLeft + CONNECTOR_OFFSET, yBottom);
         }
         mDrawPath.lineTo(xLeft, yBottom);
 
         // Left-hand side of the block, including "Output" connector.
         if (mBlock.getOutputConnection() != null) {
-            mDrawPath.lineTo(xLeft, yTop + CONNECTOR_OFFSET + CONNECTOR_WIDTH);
-            mDrawPath.lineTo(xLeft - CONNECTOR_HEIGHT, yTop + CONNECTOR_OFFSET + CONNECTOR_WIDTH);
-            mDrawPath.lineTo(xLeft - CONNECTOR_HEIGHT, yTop + CONNECTOR_OFFSET );
+            mDrawPath.lineTo(xLeft, yTop + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+            mDrawPath.lineTo(xLeft - CONNECTOR_SIZE_PERPENDICULAR,
+                    yTop + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+            mDrawPath.lineTo(xLeft - CONNECTOR_SIZE_PERPENDICULAR, yTop + CONNECTOR_OFFSET );
             mDrawPath.lineTo(xLeft, yTop + CONNECTOR_OFFSET);
         }
         mDrawPath.lineTo(xLeft, yTop);
 
         mDrawPath.close();
+    }
+
+    /**
+     * Layout parameters for a block input row. These are computed in {@link #onMeasure} and used
+     * in {@link #onLayout}.
+     */
+    private class InputLayoutParams {
+        /** Vertical coordinate of the top of this input inside the block. */
+        int mTop;
+        /** Height of this input inside the block. */
+        int mHeight;
+        /** Width of this input inside the block. */
+        int mWidth;
+
+        InputLayoutParams(int top, int height, int width) {
+            mTop = top;
+            mHeight = height;
+            mWidth = width;
+        }
     }
 }

@@ -63,7 +63,7 @@ public class FieldLabelView extends TextView implements FieldView {
         configureStyle(context, fieldLabelStyle);
 
         setBackground(null);
-        setText(labelField.getName());
+        setText(mLabelField.getText());
         labelField.setView(this);
      }
 

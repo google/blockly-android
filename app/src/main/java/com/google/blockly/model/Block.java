@@ -181,17 +181,23 @@ public class Block {
     /**
      * @return True if and only if this block has inputs, i.e., {#link mInputList} is non-empty.
      */
-    public boolean hasInputs() { return !mInputList.isEmpty(); }
+    public boolean hasInputs() {
+        return !mInputList.isEmpty();
+    }
 
     /**
      * @return The current state of the flag for displaying inputs in-line.
      */
-    public boolean getInputsInline() { return mInputsInline; }
+    public boolean getInputsInline() {
+        return mInputsInline;
+    }
 
     /**
      * Set flag for displaying inputs in-line.
      */
-    public void setInputsInline(boolean inputsInline) { mInputsInline = inputsInline; }
+    public void setInputsInline(boolean inputsInline) {
+        mInputsInline = inputsInline;
+    }
 
     /**
      * Searches through the block's list of inputs and returns the first one with the given name.
@@ -761,16 +767,28 @@ public class Block {
         }
 
         public Builder setOutput(Connection outputConnection) {
+            if (this.mPreviousConnection != null) {
+                throw new IllegalStateException(
+                        "block cannot have both \"output\" and \"previous\" connection.");
+            }
             this.mOutputConnection = outputConnection;
             return this;
         }
 
         public Builder setNext(Connection nextConnection) {
+            if (this.mOutputConnection != null) {
+                throw new IllegalStateException(
+                        "block cannot have both \"next\" and \"output\" connection.");
+            }
             this.mNextConnection = nextConnection;
             return this;
         }
 
         public Builder setPrevious(Connection previousConnection) {
+            if (this.mOutputConnection != null) {
+                throw new IllegalStateException(
+                        "block cannot have both \"previous\" and \"output\" connection.");
+            }
             this.mPreviousConnection = previousConnection;
             return this;
         }
