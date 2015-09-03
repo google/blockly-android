@@ -776,10 +776,6 @@ public class Block {
         }
 
         public Builder setNext(Connection nextConnection) {
-            if (this.mOutputConnection != null) {
-                throw new IllegalStateException(
-                        "block cannot have both \"next\" and \"output\" connection.");
-            }
             this.mNextConnection = nextConnection;
             return this;
         }

@@ -189,7 +189,6 @@ public class MainActivity extends ActionBarActivity
 
             bob.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
             bob.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
-//            bob.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
 
             Input input = new Input.InputDummy("input1", null);
             input.add(new Field.FieldLabel("label", "degrees"));
