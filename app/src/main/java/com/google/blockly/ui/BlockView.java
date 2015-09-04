@@ -55,8 +55,8 @@ public class BlockView extends FrameLayout {
     private static final int PADDING = 12;
     // The minimum width of a rendered block, in dips.
     private static final int BASE_WIDTH = 48;
-    // The distance between fields, in dips.
-    private static final int FIELD_SPACING = 10;
+    // The vertical spacing between external inputs, in dips.
+    private static final int DEFAULT_VERTICAL_SPACING = 10;
     // Line width of block outline, in dips.
     private static final int OUTLINE_WIDTH = 10;
     // Color of block outline.
@@ -79,13 +79,12 @@ public class BlockView extends FrameLayout {
     private final Paint mPaintBorder = new Paint();
 
     // Style resources for child fields
-    private int mHorizontalFieldSpacing;
     private int mVerticalFieldSpacing;
 
     private ArrayList<InputLayoutParams> mInputLayoutParams = new ArrayList<>();
 
     private BlockWorkspaceParams mWorkspaceParams;
-    private ArrayList<ArrayList<FieldView>> mFieldViews = new ArrayList<>();
+    private ArrayList<InputView> mInputViews = new ArrayList<>();
     private ViewPoint mBlockViewSize = new ViewPoint();
 
     /**
@@ -118,7 +117,7 @@ public class BlockView extends FrameLayout {
         setWillNotDraw(false);
 
         initAttrs(context, blockStyle);
-        initViews(context);
+        initViews(context, blockStyle);
         initDrawingObjects(context);
     }
 
@@ -139,35 +138,21 @@ public class BlockView extends FrameLayout {
         int blockWidth = BASE_WIDTH + CONNECTOR_SIZE_PERPENDICULAR;
 
         mInputLayoutParams.clear();
-        mInputLayoutParams.ensureCapacity(mFieldViews.size());
+        mInputLayoutParams.ensureCapacity(mInputViews.size());
 
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
         int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-        for (int i = 0; i < mFieldViews.size(); i++) {
-            ArrayList<FieldView> currentRow = mFieldViews.get(i);
+        for (int i = 0; i < mInputViews.size(); i++) {
+            InputView inputView = mInputViews.get(i);
+            inputView.measure(widthMeasureSpec, heightMeasureSpec);
 
             // Add vertical spacing to previous row of fields, if there is one.
             if (i > 0) {
                 rowTop += mVerticalFieldSpacing;
             }
 
-            // Row height is maximum of base height and maximum height of any child.
-            int rowHeight = BASE_HEIGHT;
-
-            // Row width is sum of widths of all children plus spacing between them plus padding
-            // on both sides, plus room for connector on each side.
-            int rowWidth = 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR);
-            if (currentRow.size() > 1) {
-                rowWidth += (currentRow.size() - 1) * mHorizontalFieldSpacing;
-            }
-
-            for (int j = 0; j < currentRow.size(); j++) {
-                FieldView child = currentRow.get(j);
-                ((View) child).measure(widthMeasureSpec, heightMeasureSpec);
-                rowWidth += child.getInBlockWidth(); // Add each field's width
-                // The row height is the height of the tallest element in that row
-                rowHeight = Math.max(rowHeight, child.getInBlockHeight());
-            }
+            int rowHeight = inputView.getMeasuredHeight();
+            int rowWidth =  inputView.getMeasuredWidth();
             mInputLayoutParams.add(new InputLayoutParams(rowTop, rowHeight, rowWidth));
 
             // TODO: handle inline inputs
@@ -180,6 +165,7 @@ public class BlockView extends FrameLayout {
         // Height is vertical position of next (non-existant) inputs row plus bottom padding plus
         // room for extruding "Next" connector. Also must be at least the base height.
         int blockHeight = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
+        blockWidth += 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR);
 
         setMeasuredDimension(blockWidth, blockHeight);
         mBlockViewSize.x = blockWidth;
@@ -187,47 +173,18 @@ public class BlockView extends FrameLayout {
         mWorkspaceParams.setMeasuredDimensions(mBlockViewSize);
         if (DEBUG) {
             Log.d(TAG, "Set dimens to " + blockWidth + ", " + blockHeight +
-                    " for " + mFieldViews.size() + " rows.");
+                    " for " + mInputViews.size() + " rows.");
         }
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        boolean rtl = mHelper.useRtL();
-        List<Input> inputs = mBlock.getInputs();
-        int currY = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-        for (int i = 0; i < inputs.size(); i++) {
-            // Start padding distance in from the appropriate edge
-            int currX = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-            if (rtl) {
-                currX = getWidth() - currX;
-            }
-
-            Input input = inputs.get(i);
-            List<Field> fields = input.getFields();
-            for (int j = 0; j < fields.size(); j++) {
-                Field field = fields.get(j);
-                FieldView fv = field.getView();
-                InputLayoutParams rowLayoutParams = mInputLayoutParams.get(i);
-
-                if (fv == null) {
-                    throw new IllegalStateException("Attempted to render a field without a view: "
-                            + field.getName());
-                }
-                View view = (View) fv;
-
-                // Use the width and height of the field's view to compute its placement
-                int w = fv.getInBlockWidth();
-                int h = fv.getInBlockHeight();
-                int l = rtl ? currX - w : currX;
-                int r = l + w;
-                int t = rowLayoutParams.mTop;
-                int b = t + h;
-                view.layout(l, t, r, b);
-
-                // Move our current x position left or right, depending on RTL mode.
-                currX += (rtl ? -1 : +1) * (w + mHorizontalFieldSpacing);
-            }
+        int currX = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        for (int i = 0; i < mInputViews.size(); i++) {
+            InputLayoutParams rowLayoutParams = mInputLayoutParams.get(i);
+            InputView inputView = mInputViews.get(i);
+            inputView.layout(currX, rowLayoutParams.mTop,
+                    currX + rowLayoutParams.mWidth, rowLayoutParams.mTop + rowLayoutParams.mHeight);
         }
     }
 
@@ -246,65 +203,23 @@ public class BlockView extends FrameLayout {
             blockStyle = mHelper.getBlockStyle();
         }
         TypedArray a = context.obtainStyledAttributes(blockStyle, R.styleable.BlocklyBlockView);
-        mHorizontalFieldSpacing = (int) a.getDimension(
-                R.styleable.BlocklyBlockView_fieldHorizontalPadding, FIELD_SPACING);
         mVerticalFieldSpacing = (int) a.getDimension(
-                R.styleable.BlocklyBlockView_fieldVerticalPadding, FIELD_SPACING);
+                R.styleable.BlocklyBlockView_fieldVerticalPadding, DEFAULT_VERTICAL_SPACING);
 
-        Log.d(TAG, "Horizontal spacing=" + mHorizontalFieldSpacing +
-                ", Vertical spacing=" + mVerticalFieldSpacing + " from style " + blockStyle);
+        Log.d(TAG, "Vertical spacing=" + mVerticalFieldSpacing + " from style " + blockStyle);
     }
 
     /**
      * A block is responsible for initializing all of its fields. Sub-blocks must be added
      * elsewhere.
      */
-    private void initViews(Context context) {
+    private void initViews(Context context, int blockStyle) {
         List<Input> inputs = mBlock.getInputs();
         for (int i = 0; i < inputs.size(); i++) {
             // TODO: draw appropriate input, handle inline inputs
-            ArrayList<FieldView> currentRow = new ArrayList<>();
-            mFieldViews.add(currentRow);
-            List<Field> fields = inputs.get(i).getFields();
-            for (int j = 0; j < fields.size(); j++) {
-                // TODO: create the appropriate field type
-                // TODO: add a way to pass the field styles through
-                FieldView view = null;
-                switch (fields.get(j).getType()) {
-                    case Field.TYPE_LABEL:
-                        view = new FieldLabelView(context, fields.get(j), mHelper);
-                        break;
-                    case Field.TYPE_CHECKBOX:
-                        view = new FieldCheckboxView(context, fields.get(j), mHelper);
-                        break;
-                    case Field.TYPE_DATE:
-                        view = new FieldDateView(context, fields.get(j), mHelper);
-                        break;
-                    case Field.TYPE_DROPDOWN:
-                        view = new FieldDropdownView(context, fields.get(j), mHelper);
-                        break;
-                    case Field.TYPE_ANGLE:
-                        view = new FieldAngleView(context, fields.get(j), mHelper);
-                        break;
-                    case Field.TYPE_COLOUR:
-                        view = new FieldColourView(context, fields.get(j), mHelper);
-                        break;
-                    case Field.TYPE_INPUT:
-                        view = new FieldInputView(context, fields.get(j), mHelper);
-                        break;
-                    default:
-                        Log.w(TAG, "Unknown field type.");
-                        break;
-                }
-                if (view != null) {
-                    Log.d(TAG, "Added view " + view + " at " + j);
-                    addView((View)view);
-                    currentRow.add(view);
-                } else {
-                    throw new IllegalStateException("Attempted to render a field of an unknown"
-                        + "type: " + fields.get(j).getType());
-                }
-            }
+            InputView inputView = new InputView(context, blockStyle, inputs.get(i), mHelper);
+            mInputViews.add(inputView);
+            addView(inputView);
         }
     }
 
