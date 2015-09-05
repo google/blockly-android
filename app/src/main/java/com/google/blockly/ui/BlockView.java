@@ -165,7 +165,7 @@ public class BlockView extends FrameLayout {
         // Height is vertical position of next (non-existant) inputs row plus bottom padding plus
         // room for extruding "Next" connector. Also must be at least the base height.
         int blockHeight = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
-        blockWidth += 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR);
+        blockWidth += 2 * PADDING + 3 * CONNECTOR_SIZE_PERPENDICULAR;
 
         setMeasuredDimension(blockWidth, blockHeight);
         mBlockViewSize.x = blockWidth;
@@ -179,12 +179,28 @@ public class BlockView extends FrameLayout {
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        int currX = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int xLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int xRight = mBlockViewSize.x - PADDING - 2 * CONNECTOR_SIZE_PERPENDICULAR;
         for (int i = 0; i < mInputViews.size(); i++) {
             InputLayoutParams rowLayoutParams = mInputLayoutParams.get(i);
             InputView inputView = mInputViews.get(i);
-            inputView.layout(currX, rowLayoutParams.mTop,
-                    currX + rowLayoutParams.mWidth, rowLayoutParams.mTop + rowLayoutParams.mHeight);
+
+            switch (inputView.getInput().getType()) {
+                case Input.TYPE_VALUE: {
+                    // Value inputs are drawn right-aligned with their input port.
+                    inputView.layout(xRight - rowLayoutParams.mWidth, rowLayoutParams.mTop,
+                            xRight, rowLayoutParams.mTop + rowLayoutParams.mHeight);
+                    break;
+                }
+                default: {
+                    // Dummy and statement inputs are left-aligned with the block boundary.
+                    // (Actually, statement inputs are centered, since the width of the rendered
+                    // block is adjusted to match their exact width.)
+                    inputView.layout(xLeft, rowLayoutParams.mTop, xLeft + rowLayoutParams.mWidth,
+                            rowLayoutParams.mTop + rowLayoutParams.mHeight);
+                    break;
+                }
+            }
         }
     }
 
@@ -285,7 +301,8 @@ public class BlockView extends FrameLayout {
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
-                    float xOffset = rowLayoutParams.mWidth;
+                    float xOffset =
+                            rowLayoutParams.mWidth + 2 * PADDING + CONNECTOR_SIZE_PERPENDICULAR;
                     mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL, y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL,

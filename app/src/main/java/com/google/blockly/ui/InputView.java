@@ -42,6 +42,7 @@ import java.util.List;
 public class InputView extends FrameLayout {
     private static final String TAG = "InputView";
 
+    private final Input mInput;
     private final WorkspaceHelper mHelper;
     private final ArrayList<FieldView> mFieldViews = new ArrayList<>();
 
@@ -55,10 +56,18 @@ public class InputView extends FrameLayout {
     InputView(Context context, int blockStyle, Input input, WorkspaceHelper helper) {
         super(context);
 
+        mInput = input;
         mHelper = helper;
 
         initAttrs(context, blockStyle);
-        initViews(context, input);
+        initViews(context);
+    }
+
+    /**
+     * @return The block {@link Input} wrapped by this view.
+     */
+    public Input getInput() {
+        return mInput;
     }
 
     @Override
@@ -126,10 +135,9 @@ public class InputView extends FrameLayout {
      * Initialize child views for fields in the {@link Input} wrapped by this view.
      *
      * @param context Context of this view.
-     * @param input The {@link Input} wrapped by this view.
      */
-    private void initViews(Context context, Input input) {
-        List<Field> fields = input.getFields();
+    private void initViews(Context context) {
+        List<Field> fields = mInput.getFields();
         for (int j = 0; j < fields.size(); j++) {
             // TODO: create the appropriate field type
             // TODO: add a way to pass the field styles through
