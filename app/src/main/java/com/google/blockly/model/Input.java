@@ -335,6 +335,11 @@ public abstract class Input implements Cloneable {
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
 
+        public InputValue(String name, @Alignment int align, String[] checks) {
+            super(name, TYPE_VALUE, align,
+                    new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
+        }
+
         private InputValue(InputValue inv) {
             super(inv);
         }
@@ -372,6 +377,11 @@ public abstract class Input implements Cloneable {
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
 
+        public InputStatement(String name, @Alignment int align, String[] checks) {
+            super(name, TYPE_STATEMENT, align,
+                    new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
+        }
+
         private InputStatement(InputStatement ins) {
             super(ins);
         }
@@ -405,6 +415,10 @@ public abstract class Input implements Cloneable {
 
         public InputDummy(String name, String alignString) {
             super(name, TYPE_DUMMY, alignString, null);
+        }
+
+        public InputDummy(String name, @Alignment int align) {
+            super(name, TYPE_DUMMY, align, null);
         }
 
         private InputDummy(InputDummy ind) {
