@@ -306,9 +306,7 @@ public class BlockTest extends AndroidTestCase {
                 }
                 eventType = parser.next();
             }
-        } catch (XmlPullParserException e) {
-            throw new BlocklyParserException(e);
-        } catch (IOException e) {
+        } catch (XmlPullParserException | IOException e) {
             throw new BlocklyParserException(e);
         }
         return null;
@@ -324,9 +322,7 @@ public class BlockTest extends AndroidTestCase {
             serializer = factory.newSerializer();
             serializer.setOutput(os, null);
             return serializer;
-        } catch (XmlPullParserException e) {
-            throw new BlocklySerializerException(e);
-        } catch (IOException e) {
+        } catch (XmlPullParserException | IOException e) {
             throw new BlocklySerializerException(e);
         }
     }

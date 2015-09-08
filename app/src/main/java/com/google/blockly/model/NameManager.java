@@ -15,8 +15,8 @@
 
 package com.google.blockly.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.support.v4.util.SimpleArrayMap;
+
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,10 +28,10 @@ public abstract class NameManager {
     // Regular expression with two groups.  The first lazily looks for any sequence of characters
     // and the second looks for one or more numbers.  So foo2 -> (foo, 2).  f222 -> (f, 222).
     private static final Pattern mRegEx = Pattern.compile("^(.*?)(\\d+)$");
-    protected final List<String> mUsedNames;
+    protected final SimpleArrayMap<String, String> mUsedNames;
 
     public NameManager() {
-        mUsedNames = new ArrayList<>();
+        mUsedNames = new SimpleArrayMap<>();
     }
 
     /**
@@ -43,7 +43,7 @@ public abstract class NameManager {
      * @return A unique name.
      */
     public String generateUniqueName(String name, boolean addName) {
-        while (mUsedNames.contains(name.toLowerCase())) {
+        while (mUsedNames.containsKey(name.toLowerCase())) {
             Matcher matcher = mRegEx.matcher(name);
             if (matcher.matches()) {
                 name = matcher.group(1) + (Integer.parseInt(matcher.group(2)) + 1);
@@ -52,9 +52,17 @@ public abstract class NameManager {
             }
         }
         if (addName) {
-            mUsedNames.add(name.toLowerCase());
+            mUsedNames.put(name.toLowerCase(), "UNUSED");
         }
         return name.toLowerCase();
+    }
+
+    /**
+     * @param name The string to look up.
+     * @return True if name's lowercase equivalent is in the list.
+     */
+    public boolean contains(String name) {
+        return mUsedNames.containsKey(name.toLowerCase());
     }
 
     /**
@@ -72,17 +80,18 @@ public abstract class NameManager {
     public abstract String generateExternalName(Set<String> reservedWords, String baseName);
 
     /**
-     * Adds the name to the list of used names.
+     * Adds the name to the list of used names.  Does not check if the name is already there.
+     *
      * @param name The name to add.
      */
     public void addName(String name) {
-        mUsedNames.add(name.toLowerCase());
+        mUsedNames.put(name.toLowerCase(), "UNUSED");
     }
 
     /**
      * @return A list of all of the names that have already been used.
      */
-    public List<String> getUsedNames() {
+    public SimpleArrayMap<String, String> getUsedNames() {
         return mUsedNames;
     }
 
@@ -140,9 +149,9 @@ public abstract class NameManager {
                     if (suffix > 1) {
                         newName += suffix;
                     }
-                    if (!mUsedNames.contains(newName)) {
+                    if (!mUsedNames.containsKey(newName)) {
                         if (addName) {
-                            mUsedNames.add(newName);
+                            mUsedNames.put(newName, "UNUSED");
                         }
                         return newName;
                     }

@@ -65,6 +65,6 @@ public class BlockCopyBuffer {
         }
 
         return mXmlHelper.loadFromXml(
-                new ByteArrayInputStream(mXmlString.getBytes()), blockFactory);
+                new ByteArrayInputStream(mXmlString.getBytes()), blockFactory, null);
     }
 }

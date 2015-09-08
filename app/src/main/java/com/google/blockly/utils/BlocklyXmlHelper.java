@@ -17,6 +17,7 @@ package com.google.blockly.utils;
 
 import android.support.annotation.Nullable;
 
+import com.google.blockly.control.WorkspaceStats;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyParserException;
@@ -59,7 +60,7 @@ public class BlocklyXmlHelper {
      * @return A list of top level Blocks.
      * @throws BlocklyParserException
      */
-    public List<Block> loadFromXml(InputStream is, BlockFactory blockFactory)
+    public List<Block> loadFromXml(InputStream is, BlockFactory blockFactory, WorkspaceStats stats)
             throws BlocklyParserException {
         List<Block> result = new ArrayList<>();
 
@@ -84,9 +85,7 @@ public class BlocklyXmlHelper {
                 }
                 eventType = parser.next();
             }
-        } catch (XmlPullParserException e) {
-            throw new BlocklyParserException(e);
-        } catch (IOException e) {
+        } catch (XmlPullParserException | IOException e) {
             throw new BlocklyParserException(e);
         }
         return result;
@@ -103,7 +102,7 @@ public class BlocklyXmlHelper {
     @Nullable
     public Block loadOneBlockFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
-        List<Block> temp = loadFromXml(is, blockFactory);
+        List<Block> temp = loadFromXml(is, blockFactory, null);
         if (temp == null || temp.isEmpty()) {
             return null;
         }
@@ -130,9 +129,7 @@ public class BlocklyXmlHelper {
             }
             serializer.endTag(XML_NAMESPACE, "xml");
             serializer.flush();
-        } catch (XmlPullParserException e) {
-            throw new BlocklySerializerException(e);
-        } catch (IOException e) {
+        } catch (XmlPullParserException | IOException e) {
             throw new BlocklySerializerException(e);
         }
     }

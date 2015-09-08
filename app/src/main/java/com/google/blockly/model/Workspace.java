@@ -17,13 +17,13 @@ package com.google.blockly.model;
 
 import android.util.Log;
 
+import com.google.blockly.control.WorkspaceStats;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Keeps track of all the global state used in the workspace. This is mostly just blocks.
@@ -35,6 +35,9 @@ public class Workspace {
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
     private WorkspaceHelper mWorkspaceHelper;
+    private NameManager mVariableNameManager = new NameManager.VariableNameManager();
+    private NameManager mProcedureNameManager = new NameManager.ProcedureNameManager();
+    private WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureNameManager);
 
     public Workspace() {
     }
@@ -91,9 +94,18 @@ public class Workspace {
         return mWorkspaceHelper;
     }
 
+    /**
+     * Reads the workspace in from an XML string.
+     *
+     * @param is The input stream to read from.
+     * @throws BlocklyParserException
+     */
     public void loadFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
-        mRootBlocks.addAll(mXmlHelper.loadFromXml(is, blockFactory));
+        mRootBlocks.addAll(mXmlHelper.loadFromXml(is, blockFactory, stats));
+        for (int i = 0; i < mRootBlocks.size(); i++) {
+            stats.collectStats(mRootBlocks.get(i), true /* recursive */);
+        }
     }
 
     /**
