@@ -22,21 +22,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.Log;
-import android.view.View;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
-import com.google.blockly.ui.fieldview.FieldAngleView;
-import com.google.blockly.ui.fieldview.FieldCheckboxView;
-import com.google.blockly.ui.fieldview.FieldColourView;
-import com.google.blockly.ui.fieldview.FieldDateView;
-import com.google.blockly.ui.fieldview.FieldDropdownView;
-import com.google.blockly.ui.fieldview.FieldInputView;
-import com.google.blockly.ui.fieldview.FieldLabelView;
-import com.google.blockly.ui.fieldview.FieldView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,7 +71,7 @@ public class BlockView extends FrameLayout {
     // Style resources for child fields
     private int mVerticalFieldSpacing;
 
-    private ArrayList<ViewPoint> mInputLayoutPositions = new ArrayList<>();
+    private ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
 
     private BlockWorkspaceParams mWorkspaceParams;
     private ArrayList<InputView> mInputViews = new ArrayList<>();
@@ -137,8 +127,8 @@ public class BlockView extends FrameLayout {
         // connector.
         int blockWidth = BASE_WIDTH + CONNECTOR_SIZE_PERPENDICULAR;
 
-        mInputLayoutPositions.clear();
-        mInputLayoutPositions.ensureCapacity(mInputViews.size());
+        mInputLayoutOrigins.clear();
+        mInputLayoutOrigins.ensureCapacity(mInputViews.size());
 
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
         int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
@@ -152,7 +142,7 @@ public class BlockView extends FrameLayout {
             }
 
             // TODO: handle inline inputs
-            mInputLayoutPositions.add(new ViewPoint(0, rowTop));
+            mInputLayoutOrigins.add(new ViewPoint(0, rowTop));
             // The block height is the sum of all the row heights.
             rowTop += inputView.getMeasuredHeight();
             // The block width is that of the widest row
@@ -179,7 +169,7 @@ public class BlockView extends FrameLayout {
         int xLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
         int xRight = mBlockViewSize.x - PADDING - 2 * CONNECTOR_SIZE_PERPENDICULAR;
         for (int i = 0; i < mInputViews.size(); i++) {
-            int rowTop = mInputLayoutPositions.get(i).y;
+            int rowTop = mInputLayoutOrigins.get(i).y;
             InputView inputView = mInputViews.get(i);
 
             switch (inputView.getInput().getType()) {
@@ -282,7 +272,7 @@ public class BlockView extends FrameLayout {
         // TODO(rohlfingt): draw this on the opposite side in RTL mode.
         for (int i = 0; i < mInputViews.size(); ++i) {
             InputView inputView = mInputViews.get(i);
-            ViewPoint inputLayoutPosition = mInputLayoutPositions.get(i);
+            ViewPoint inputLayoutPosition = mInputLayoutOrigins.get(i);
             switch (inputView.getInput().getType()) {
                 default:
                 case Input.TYPE_DUMMY: {
