@@ -51,31 +51,31 @@ public abstract class Field implements Cloneable {
     public @interface FieldType {}
 
     public static final int TYPE_LABEL = 0;
-    public static final String TYPE_LABEL_STRING = "field_label";
+    static final String TYPE_LABEL_STRING = "field_label";
 
     public static final int TYPE_INPUT = 1;
-    public static final String TYPE_INPUT_STRING = "field_input";
+    static final String TYPE_INPUT_STRING = "field_input";
 
     public static final int TYPE_ANGLE = 2;
-    public static final String TYPE_ANGLE_STRING = "field_angle";
+    static final String TYPE_ANGLE_STRING = "field_angle";
 
     public static final int TYPE_CHECKBOX = 3;
-    public static final String TYPE_CHECKBOX_STRING = "field_checkbox";
+    static final String TYPE_CHECKBOX_STRING = "field_checkbox";
 
     public static final int TYPE_COLOUR = 4;
-    public static final String TYPE_COLOUR_STRING = "field_colour";
+    static final String TYPE_COLOUR_STRING = "field_colour";
 
     public static final int TYPE_DATE = 5;
-    public static final String TYPE_DATE_STRING = "field_date";
+    static final String TYPE_DATE_STRING = "field_date";
 
     public static final int TYPE_VARIABLE = 6;
-    public static final String TYPE_VARIABLE_STRING = "field_variable";
+    static final String TYPE_VARIABLE_STRING = "field_variable";
 
     public static final int TYPE_DROPDOWN = 7;
-    public static final String TYPE_DROPDOWN_STRING = "field_dropdown";
+    static final String TYPE_DROPDOWN_STRING = "field_dropdown";
 
     public static final int TYPE_IMAGE = 8;
-    public static final String TYPE_IMAGE_STRING = "field_image";
+    static final String TYPE_IMAGE_STRING = "field_image";
 
     /**
      * The list of known FIELD_TYPES. If this list changes {@link #fromJson(JSONObject)} should
