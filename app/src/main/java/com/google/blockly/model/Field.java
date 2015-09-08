@@ -51,31 +51,31 @@ public abstract class Field implements Cloneable {
     public @interface FieldType {}
 
     public static final int TYPE_LABEL = 0;
-    static final String TYPE_LABEL_STRING = "field_label";
+    private static final String TYPE_LABEL_STRING = "field_label";
 
     public static final int TYPE_INPUT = 1;
-    static final String TYPE_INPUT_STRING = "field_input";
+    private static final String TYPE_INPUT_STRING = "field_input";
 
     public static final int TYPE_ANGLE = 2;
-    static final String TYPE_ANGLE_STRING = "field_angle";
+    private static final String TYPE_ANGLE_STRING = "field_angle";
 
     public static final int TYPE_CHECKBOX = 3;
-    static final String TYPE_CHECKBOX_STRING = "field_checkbox";
+    private static final String TYPE_CHECKBOX_STRING = "field_checkbox";
 
     public static final int TYPE_COLOUR = 4;
-    static final String TYPE_COLOUR_STRING = "field_colour";
+    private static final String TYPE_COLOUR_STRING = "field_colour";
 
     public static final int TYPE_DATE = 5;
-    static final String TYPE_DATE_STRING = "field_date";
+    private static final String TYPE_DATE_STRING = "field_date";
 
     public static final int TYPE_VARIABLE = 6;
-    static final String TYPE_VARIABLE_STRING = "field_variable";
+    private static final String TYPE_VARIABLE_STRING = "field_variable";
 
     public static final int TYPE_DROPDOWN = 7;
-    static final String TYPE_DROPDOWN_STRING = "field_dropdown";
+    private static final String TYPE_DROPDOWN_STRING = "field_dropdown";
 
     public static final int TYPE_IMAGE = 8;
-    static final String TYPE_IMAGE_STRING = "field_image";
+    private static final String TYPE_IMAGE_STRING = "field_image";
 
     /**
      * The list of known FIELD_TYPES. If this list changes {@link #fromJson(JSONObject)} should
@@ -103,10 +103,6 @@ public abstract class Field implements Cloneable {
     public Field(String name, @FieldType int type) {
         mName = name;
         mType = type;
-    }
-
-    public Field(String name, String typeString) {
-        this(name, stringToFieldType(typeString));
     }
 
     @Override
@@ -451,7 +447,7 @@ public abstract class Field implements Cloneable {
             this(name, DEFAULT_COLOUR);
         }
         public FieldColour(String name, int colour) {
-            super(name, TYPE_COLOUR_STRING);
+            super(name, TYPE_COLOUR);
             setColour(colour);
         }
 
