@@ -100,18 +100,7 @@ public abstract class Field implements Cloneable {
     private FieldView mView;
     private FieldWorkspaceParams mLayoutParams;
 
-<<<<<<< HEAD
-    public Field(String name, String type) {
-        if (TextUtils.isEmpty(type)) {
-            throw new IllegalArgumentException("type may not be empty");
-        }
-
-        if (!isFieldType(type)) {
-            throw new IllegalArgumentException("not a type: " + type);
-        }
-=======
     public Field(String name, @FieldType int type) {
->>>>>>> 7dd743f... Switch field type selectors from String to int.
         mName = name;
         mType = type;
     }
