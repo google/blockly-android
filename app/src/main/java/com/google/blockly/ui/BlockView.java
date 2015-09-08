@@ -123,12 +123,11 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        adjustInputLayoutOriginsListSize();
+
         // A block's width is at least the base width plus the "height" of an extruding "Output"
         // connector.
         int blockWidth = BASE_WIDTH + CONNECTOR_SIZE_PERPENDICULAR;
-
-        mInputLayoutOrigins.clear();
-        mInputLayoutOrigins.ensureCapacity(mInputViews.size());
 
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
         int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
@@ -142,7 +141,7 @@ public class BlockView extends FrameLayout {
             }
 
             // TODO: handle inline inputs
-            mInputLayoutOrigins.add(new ViewPoint(0, rowTop));
+            mInputLayoutOrigins.get(i).set(0, rowTop);
             // The block height is the sum of all the row heights.
             rowTop += inputView.getMeasuredHeight();
             // The block width is that of the widest row
@@ -335,5 +334,23 @@ public class BlockView extends FrameLayout {
         mDrawPath.lineTo(xLeft, yTop);
 
         mDrawPath.close();
+    }
+
+    /**
+     * Adjust size of {@link #mInputLayoutOrigins} list to match the size of {@link #mInputViews}.
+     */
+    private void adjustInputLayoutOriginsListSize() {
+        if (mInputLayoutOrigins.size() != mInputViews.size()) {
+            mInputLayoutOrigins.ensureCapacity(mInputViews.size());
+            if (mInputLayoutOrigins.size() < mInputViews.size()) {
+                for (int i = mInputLayoutOrigins.size(); i < mInputViews.size(); i++) {
+                    mInputLayoutOrigins.add(new ViewPoint());
+                }
+            } else {
+                while (mInputLayoutOrigins.size() > mInputViews.size()) {
+                    mInputLayoutOrigins.remove(mInputLayoutOrigins.size() - 1);
+                }
+            }
+        }
     }
 }
