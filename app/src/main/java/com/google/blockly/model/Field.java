@@ -82,6 +82,10 @@ public abstract class Field implements Cloneable {
         if (TextUtils.isEmpty(type)) {
             throw new IllegalArgumentException("type may not be empty");
         }
+
+        if (!isFieldType(type)) {
+            throw new IllegalArgumentException("not a type: " + type);
+        }
         mName = name;
         mType = type;
     }
@@ -287,7 +291,7 @@ public abstract class Field implements Cloneable {
         }
 
         private FieldInput(JSONObject json) {
-            super(json.optString("name", "NAME"), json.optString("text", "default"));
+            this(json.optString("name", "NAME"), json.optString("text", "default"));
             // TODO: consider replacing default text with string resource
         }
 

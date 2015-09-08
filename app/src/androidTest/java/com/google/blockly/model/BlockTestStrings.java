@@ -136,7 +136,7 @@ public class BlockTestStrings {
             "    </comment>";
 
     public static final String FRANKENBLOCK_DEFAULT_VALUES_START =
-            "<field name=\"text_input\"></field>"
+            "<field name=\"text_input\">something</field>"
             + "<field name=\"checkbox\">true</field>";
     public static final String FRANKENBLOCK_DEFAULT_VALUES_END =
             "<field name=\"dropdown\">OPTIONNAME1</field>"

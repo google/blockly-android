@@ -214,7 +214,7 @@ public class BlockTest extends AndroidTestCase {
         serializer.flush();
         assertEquals(BlockTestStrings.BLOCK_START_NO_POSITION
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
-                +BlockTestStrings.BLOCK_END, os.toString());
+                + BlockTestStrings.BLOCK_END, os.toString());
     }
 
     public void testSerializeValue() throws BlocklySerializerException, IOException {
