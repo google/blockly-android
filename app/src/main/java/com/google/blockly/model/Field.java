@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.graphics.Color;
+import android.support.annotation.IntDef;
 import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
 import android.util.Log;
@@ -45,15 +46,36 @@ import java.util.Set;
 public abstract class Field implements Cloneable {
     private static final String TAG = "Field";
 
-    public static final String TYPE_LABEL = "field_label";
-    public static final String TYPE_INPUT = "field_input";
-    public static final String TYPE_ANGLE = "field_angle";
-    public static final String TYPE_CHECKBOX = "field_checkbox";
-    public static final String TYPE_COLOUR = "field_colour";
-    public static final String TYPE_DATE = "field_date";
-    public static final String TYPE_VARIABLE = "field_variable";
-    public static final String TYPE_DROPDOWN = "field_dropdown";
-    public static final String TYPE_IMAGE = "field_image";
+    @IntDef({TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR, TYPE_DATE,
+            TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE})
+    public @interface FieldType {}
+
+    public static final int TYPE_LABEL = 0;
+    public static final String TYPE_LABEL_STRING = "field_label";
+
+    public static final int TYPE_INPUT = 1;
+    public static final String TYPE_INPUT_STRING = "field_input";
+
+    public static final int TYPE_ANGLE = 2;
+    public static final String TYPE_ANGLE_STRING = "field_angle";
+
+    public static final int TYPE_CHECKBOX = 3;
+    public static final String TYPE_CHECKBOX_STRING = "field_checkbox";
+
+    public static final int TYPE_COLOUR = 4;
+    public static final String TYPE_COLOUR_STRING = "field_colour";
+
+    public static final int TYPE_DATE = 5;
+    public static final String TYPE_DATE_STRING = "field_date";
+
+    public static final int TYPE_VARIABLE = 6;
+    public static final String TYPE_VARIABLE_STRING = "field_variable";
+
+    public static final int TYPE_DROPDOWN = 7;
+    public static final String TYPE_DROPDOWN_STRING = "field_dropdown";
+
+    public static final int TYPE_IMAGE = 8;
+    public static final String TYPE_IMAGE_STRING = "field_image";
 
     /**
      * The list of known FIELD_TYPES. If this list changes {@link #fromJson(JSONObject)} should
@@ -61,23 +83,24 @@ public abstract class Field implements Cloneable {
      */
     protected static final Set<String> FIELD_TYPES = new HashSet<>();
     static {
-        FIELD_TYPES.add(TYPE_LABEL);
-        FIELD_TYPES.add(TYPE_INPUT);
-        FIELD_TYPES.add(TYPE_ANGLE);
-        FIELD_TYPES.add(TYPE_CHECKBOX);
-        FIELD_TYPES.add(TYPE_COLOUR);
-        FIELD_TYPES.add(TYPE_DATE);
-        FIELD_TYPES.add(TYPE_VARIABLE);
-        FIELD_TYPES.add(TYPE_DROPDOWN);
-        FIELD_TYPES.add(TYPE_IMAGE);
+        FIELD_TYPES.add(TYPE_LABEL_STRING);
+        FIELD_TYPES.add(TYPE_INPUT_STRING);
+        FIELD_TYPES.add(TYPE_ANGLE_STRING);
+        FIELD_TYPES.add(TYPE_CHECKBOX_STRING);
+        FIELD_TYPES.add(TYPE_COLOUR_STRING);
+        FIELD_TYPES.add(TYPE_DATE_STRING);
+        FIELD_TYPES.add(TYPE_VARIABLE_STRING);
+        FIELD_TYPES.add(TYPE_DROPDOWN_STRING);
+        FIELD_TYPES.add(TYPE_IMAGE_STRING);
     }
 
     private final String mName;
-    private final String mType;
+    private final int mType;
 
     private FieldView mView;
     private FieldWorkspaceParams mLayoutParams;
 
+<<<<<<< HEAD
     public Field(String name, String type) {
         if (TextUtils.isEmpty(type)) {
             throw new IllegalArgumentException("type may not be empty");
@@ -86,8 +109,15 @@ public abstract class Field implements Cloneable {
         if (!isFieldType(type)) {
             throw new IllegalArgumentException("not a type: " + type);
         }
+=======
+    public Field(String name, @FieldType int type) {
+>>>>>>> 7dd743f... Switch field type selectors from String to int.
         mName = name;
         mType = type;
+    }
+
+    public Field(String name, String typeString) {
+        this(name, stringToFieldType(typeString));
     }
 
     @Override
@@ -102,7 +132,7 @@ public abstract class Field implements Cloneable {
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer) throws IOException {
-        if (mType.equals(TYPE_LABEL) || mType.equals(TYPE_IMAGE)) {
+        if (mType == TYPE_LABEL || mType == TYPE_IMAGE) {
             return;
         }
         serializer.startTag(null, "field").attribute(null, "name", mName);
@@ -129,7 +159,8 @@ public abstract class Field implements Cloneable {
     /**
      * Get the type of this field. There should be a concrete implementation for each field type.
      */
-    public String getType() {
+    @FieldType
+    public int getType() {
         return mType;
     }
 
@@ -173,11 +204,11 @@ public abstract class Field implements Cloneable {
     /**
      * Checks if the given type is a known field type.
      *
-     * @param type The type to check.
+     * @param typeString The type to check.
      * @return true if this is a known field type, false otherwise.
      */
-    public static boolean isFieldType(String type) {
-        return FIELD_TYPES.contains(type);
+    public static boolean isFieldType(String typeString) {
+        return FIELD_TYPES.contains(typeString);
     }
 
     /**
@@ -200,31 +231,31 @@ public abstract class Field implements Cloneable {
         // If new fields are added here FIELD_TYPES should also be updated.
         Field field = null;
         switch (type) {
-            case TYPE_LABEL:
+            case TYPE_LABEL_STRING:
                 field = new FieldLabel(json);
                 break;
-            case TYPE_INPUT:
+            case TYPE_INPUT_STRING:
                 field = new FieldInput(json);
                 break;
-            case TYPE_ANGLE:
+            case TYPE_ANGLE_STRING:
                 field = new FieldAngle(json);
                 break;
-            case TYPE_CHECKBOX:
+            case TYPE_CHECKBOX_STRING:
                 field = new FieldCheckbox(json);
                 break;
-            case TYPE_COLOUR:
+            case TYPE_COLOUR_STRING:
                 field = new FieldColour(json);
                 break;
-            case TYPE_DATE:
+            case TYPE_DATE_STRING:
                 field = new FieldDate(json);
                 break;
-            case TYPE_VARIABLE:
+            case TYPE_VARIABLE_STRING:
                 field = new FieldVariable(json);
                 break;
-            case TYPE_DROPDOWN:
+            case TYPE_DROPDOWN_STRING:
                 field = new FieldDropdown(json);
                 break;
-            case TYPE_IMAGE:
+            case TYPE_IMAGE_STRING:
                 field = new FieldImage(json);
                 break;
             default:
@@ -431,7 +462,7 @@ public abstract class Field implements Cloneable {
             this(name, DEFAULT_COLOUR);
         }
         public FieldColour(String name, int colour) {
-            super(name, TYPE_COLOUR);
+            super(name, TYPE_COLOUR_STRING);
             setColour(colour);
         }
 
@@ -881,6 +912,44 @@ public abstract class Field implements Cloneable {
          */
         public void setAltText(String altText) {
             mAltText = altText;
+        }
+    }
+
+    /**
+     * Convert string representation of field type to internal integer Id.
+     *
+     * @param typeString The field type string, e.g., TYPE_LABEL_STRING ("field_label").
+     * @return The integer Id representing the given field type string.
+     * @throws IllegalArgumentException If the string is null or does not correspond to a valid
+     * field type.
+     */
+    @FieldType
+    private static int stringToFieldType(String typeString) {
+        if (typeString == null) {
+            throw new IllegalArgumentException("type may not be null");
+        }
+
+        switch(typeString) {
+            case TYPE_LABEL_STRING:
+                return TYPE_LABEL;
+            case TYPE_INPUT_STRING:
+                return TYPE_INPUT;
+            case TYPE_ANGLE_STRING:
+                return TYPE_ANGLE;
+            case TYPE_CHECKBOX_STRING:
+                return TYPE_CHECKBOX;
+            case TYPE_COLOUR_STRING:
+                return TYPE_COLOUR;
+            case TYPE_DATE_STRING:
+                return TYPE_DATE;
+            case TYPE_VARIABLE_STRING:
+                return TYPE_VARIABLE;
+            case TYPE_DROPDOWN_STRING:
+                return TYPE_DROPDOWN;
+            case TYPE_IMAGE_STRING:
+                return TYPE_IMAGE;
+            default:
+                throw new IllegalArgumentException("invalid field type: " + typeString);
         }
     }
 }
