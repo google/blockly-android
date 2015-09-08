@@ -461,7 +461,7 @@ public class Block {
             }
             // If there were leftover fields we need to add a dummy input to hold them.
             if (fields.size() != 0) {
-                String align = json.optString(lastDummyAlignKey, Input.ALIGN_LEFT);
+                String align = json.optString(lastDummyAlignKey, Input.ALIGN_LEFT_STRING);
                 Input input = new Input.InputDummy(null, align);
                 input.addAll(fields);
                 inputs.add(input);

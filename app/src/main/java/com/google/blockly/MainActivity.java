@@ -168,6 +168,7 @@ public class MainActivity extends ActionBarActivity
             helper = new WorkspaceHelper(getActivity(), null, R.style.BlocklyTestTheme);
 
             Block dummyBlock2 = makeDummyBlock();
+            dummyBlock2.setInputsInline(true);
             bv = helper.obtainBlockView(dummyBlock2);
             bg.addView(bv);
 
@@ -185,7 +186,7 @@ public class MainActivity extends ActionBarActivity
 
         private Block makeDummyBlock() {
             Block.Builder bob = new Block.Builder("dummy");
-            bob.setPosition(35, 101);
+            bob.setPosition(35, 35);
 
             bob.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
             bob.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));

@@ -15,6 +15,7 @@
 
 package com.google.blockly.model;
 
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
@@ -37,53 +38,65 @@ import java.util.Set;
 public abstract class Input implements Cloneable {
     private static final String TAG = "Input";
 
+    @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
+    public @interface InputType {}
+
     /**
      * An input that takes a single value. Must have an
      * {@link Connection#CONNECTION_TYPE_INPUT input connection}.
      */
-    public static final String TYPE_VALUE = "input_value";
+    public static final int TYPE_VALUE = 0;
+    public static final String TYPE_VALUE_STRING = "input_value";
     /**
      * An input that takes a set of statement blocks. Must have a
      * {@link Connection#CONNECTION_TYPE_NEXT next connection}.
      */
-    public static final String TYPE_STATEMENT = "input_statement";
+    public static final int TYPE_STATEMENT = 1;
+    public static final String TYPE_STATEMENT_STRING = "input_statement";
     /**
      * An input that just wraps fields. Has no connections.
      */
-    public static final String TYPE_DUMMY = "input_dummy";
+    public static final int TYPE_DUMMY = 2;
+    public static final String TYPE_DUMMY_STRING = "input_dummy";
+
+    @IntDef({ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER})
+    public @interface Alignment {}
 
     /**
      * This input's fields should be aligned at the left of the block, or the right in a RtL
      * configuration.
      */
-    public static final String ALIGN_LEFT = "LEFT";
+    public static final int ALIGN_LEFT = 0;
+    public static final String ALIGN_LEFT_STRING = "LEFT";
     /**
      * This input's fields should be aligned at the right of the block, or the left in a RtL
      * configuration.
      */
-    public static final String ALIGN_RIGHT = "RIGHT";
+    public static final int ALIGN_RIGHT = 1;
+    public static final String ALIGN_RIGHT_STRING = "RIGHT";
     /**
      * This input's fields should be aligned in the center of the block.
      */
-    public static final String ALIGN_CENTER = "CENTRE";
+    public static final int ALIGN_CENTER = 2;
+    public static final String ALIGN_CENTER_STRING = "CENTRE";
 
     /**
      * The list of known input types.
      */
     protected static final Set<String> INPUT_TYPES = new HashSet<>();
     static {
-        INPUT_TYPES.add(TYPE_VALUE);
-        INPUT_TYPES.add(TYPE_STATEMENT);
-        INPUT_TYPES.add(TYPE_DUMMY);
+        INPUT_TYPES.add(TYPE_VALUE_STRING);
+        INPUT_TYPES.add(TYPE_STATEMENT_STRING);
+        INPUT_TYPES.add(TYPE_DUMMY_STRING);
     }
 
     private final ArrayList<Field> mFields = new ArrayList<>();
     private final String mName;
-    private final String mType;
+    private final int mType;
     private final Connection mConnection;
 
     private Block mBlock;
-    private String mAlign = ALIGN_LEFT;
+    private int mAlign = ALIGN_LEFT;
 
     /**
      * Creates a new input that can be added to a block.
@@ -93,20 +106,27 @@ public abstract class Input implements Cloneable {
      * @param align The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
-    public Input(String name, String type, String align, Connection connection) {
-        if (TextUtils.isEmpty(type)) {
-            throw new IllegalArgumentException("Type may not be empty.");
-        }
+    public Input(String name, @InputType int type, @Alignment int align, Connection connection) {
         mName = name;
         mType = type;
+        mAlign = align;
         mConnection = connection;
-        if (align != null) {
-            mAlign = align;
-        }
 
         if (mConnection != null) {
             mConnection.setInput(this);
         }
+    }
+
+    /**
+     * Creates a new input that can be added to a block.
+     *
+     * @param name The name of the input. Not for display.
+     * @param type The type of the input (value, statement, or dummy).
+     * @param alignString The alignment for fields in this input (left, right, center).
+     * @param connection (Optional) The connection for this input, if any..
+     */
+    public Input(String name, @InputType int type, String alignString, Connection connection) {
+        this(name, type, stringToAlignment(alignString), connection);
     }
 
     /**
@@ -161,14 +181,16 @@ public abstract class Input implements Cloneable {
     /**
      * @return The type of this input.
      */
-    public String getType() {
+    @InputType
+    public int getType() {
         return mType;
     }
 
     /**
      * @return The alignment of this input.
      */
-    public String getAlign() {
+    @Alignment
+    public int getAlign() {
         return mAlign;
     }
 
@@ -232,11 +254,11 @@ public abstract class Input implements Cloneable {
     /**
      * Checks if a given type is a known input type.
      *
-     * @param type The type to check.
+     * @param typeString The type to check.
      * @return True if the type is known to be an input type, false otherwise.
      */
-    public static boolean isInputType(String type) {
-        return INPUT_TYPES.contains(type);
+    public static boolean isInputType(String typeString) {
+        return INPUT_TYPES.contains(typeString);
     }
 
     /**
@@ -256,13 +278,13 @@ public abstract class Input implements Cloneable {
 
         Input input = null;
         switch (type) {
-            case TYPE_VALUE:
+            case TYPE_VALUE_STRING:
                 input = new InputValue(json);
                 break;
-            case TYPE_STATEMENT:
+            case TYPE_STATEMENT_STRING:
                 input = new InputStatement(json);
                 break;
-            case TYPE_DUMMY:
+            case TYPE_DUMMY_STRING:
                 input = new InputDummy(json);
                 break;
             default:
@@ -308,8 +330,9 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputValue extends Input implements Cloneable {
 
-        public InputValue(String name, String align, String[] checks) {
-            super(name, TYPE_VALUE, align, new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
+        public InputValue(String name, String alignString, String[] checks) {
+            super(name, TYPE_VALUE, alignString,
+                    new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
 
         private InputValue(InputValue inv) {
@@ -344,8 +367,8 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputStatement extends Input implements Cloneable {
 
-        public InputStatement(String name, String align, String[] checks) {
-            super(name, TYPE_STATEMENT, align,
+        public InputStatement(String name, String alignString, String[] checks) {
+            super(name, TYPE_STATEMENT, alignString,
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
 
@@ -380,8 +403,8 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputDummy extends Input implements Cloneable {
 
-        public InputDummy(String name, String align) {
-            super(name, TYPE_DUMMY, align, null);
+        public InputDummy(String name, String alignString) {
+            super(name, TYPE_DUMMY, alignString, null);
         }
 
         private InputDummy(InputDummy ind) {
@@ -397,5 +420,28 @@ public abstract class Input implements Cloneable {
             this(json.optString("name", "NAME"), json.optString("align"));
         }
     }
-}
 
+    /**
+     * Convert string representation of field alignment selection to internal integer Id.
+     *
+     * @param alignString The alignment string, e.g., ALIGN_LEFT_STRING ("LEFT").
+     * @return The integer Id representing the given alignment string. If the alignment string is
+     * null or does not correspond to a valid alignment, then {@code ALIGN_LEFT} is returned as the
+     * default alignment.
+     */
+    @Alignment
+    private static int stringToAlignment(String alignString) {
+        if (alignString != null) {
+            switch (alignString) {
+                default:
+                case ALIGN_LEFT_STRING:
+                    return ALIGN_LEFT;
+                case ALIGN_RIGHT_STRING:
+                    return ALIGN_RIGHT;
+                case ALIGN_CENTER_STRING:
+                    return ALIGN_CENTER;
+            }
+        }
+        return ALIGN_LEFT;
+    }
+}
