@@ -272,41 +272,41 @@ public class BlockView extends FrameLayout {
         // TODO(rohlfingt): draw this on the opposite side in RTL mode.
         for (int i = 0; i < mInputViews.size(); ++i) {
             InputView inputView = mInputViews.get(i);
-            ViewPoint inputLayoutPosition = mInputLayoutOrigins.get(i);
+            ViewPoint inputLayoutOrigin = mInputLayoutOrigins.get(i);
             switch (inputView.getInput().getType()) {
                 default:
                 case Input.TYPE_DUMMY: {
                     break;
                 }
                 case Input.TYPE_VALUE: {
-                    mDrawPath.lineTo(xRight, inputLayoutPosition.y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xRight, inputLayoutOrigin.y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xRight - CONNECTOR_SIZE_PERPENDICULAR,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET);
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xRight - CONNECTOR_SIZE_PERPENDICULAR,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
                     mDrawPath.lineTo(xRight,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
                     float xOffset = inputView.getMeasuredWidth() +
                             2 * PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-                    mDrawPath.lineTo(xRight, inputLayoutPosition.y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xRight, inputLayoutOrigin.y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET);
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
                     mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET +
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET +
                                     CONNECTOR_SIZE_PERPENDICULAR);
                     mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xOffset, inputLayoutPosition.y + CONNECTOR_OFFSET);
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xOffset, inputLayoutOrigin.y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xOffset,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET +
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET +
                                     2 * CONNECTOR_SIZE_PERPENDICULAR);
                     mDrawPath.lineTo(xRight,
-                            inputLayoutPosition.y + CONNECTOR_OFFSET +
+                            inputLayoutOrigin.y + CONNECTOR_OFFSET +
                                     2 * CONNECTOR_SIZE_PERPENDICULAR);
                     break;
                 }
