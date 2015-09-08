@@ -81,7 +81,7 @@ public class BlockView extends FrameLayout {
     // Style resources for child fields
     private int mVerticalFieldSpacing;
 
-    private ArrayList<InputLayoutParams> mInputLayoutParams = new ArrayList<>();
+    private ArrayList<ViewPoint> mInputLayoutPositions = new ArrayList<>();
 
     private BlockWorkspaceParams mWorkspaceParams;
     private ArrayList<InputView> mInputViews = new ArrayList<>();
@@ -137,8 +137,8 @@ public class BlockView extends FrameLayout {
         // connector.
         int blockWidth = BASE_WIDTH + CONNECTOR_SIZE_PERPENDICULAR;
 
-        mInputLayoutParams.clear();
-        mInputLayoutParams.ensureCapacity(mInputViews.size());
+        mInputLayoutPositions.clear();
+        mInputLayoutPositions.ensureCapacity(mInputViews.size());
 
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
         int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
@@ -151,15 +151,12 @@ public class BlockView extends FrameLayout {
                 rowTop += mVerticalFieldSpacing;
             }
 
-            int rowHeight = inputView.getMeasuredHeight();
-            int rowWidth =  inputView.getMeasuredWidth();
-            mInputLayoutParams.add(new InputLayoutParams(rowTop, rowHeight, rowWidth));
-
             // TODO: handle inline inputs
+            mInputLayoutPositions.add(new ViewPoint(0, rowTop));
             // The block height is the sum of all the row heights.
-            rowTop += rowHeight;
+            rowTop += inputView.getMeasuredHeight();
             // The block width is that of the widest row
-            blockWidth = Math.max(blockWidth, rowWidth);
+            blockWidth = Math.max(blockWidth, inputView.getMeasuredWidth());
 
         }
         // Height is vertical position of next (non-existant) inputs row plus bottom padding plus
@@ -182,22 +179,22 @@ public class BlockView extends FrameLayout {
         int xLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
         int xRight = mBlockViewSize.x - PADDING - 2 * CONNECTOR_SIZE_PERPENDICULAR;
         for (int i = 0; i < mInputViews.size(); i++) {
-            InputLayoutParams rowLayoutParams = mInputLayoutParams.get(i);
+            int rowTop = mInputLayoutPositions.get(i).y;
             InputView inputView = mInputViews.get(i);
 
             switch (inputView.getInput().getType()) {
                 case Input.TYPE_VALUE: {
                     // Value inputs are drawn right-aligned with their input port.
-                    inputView.layout(xRight - rowLayoutParams.mWidth, rowLayoutParams.mTop,
-                            xRight, rowLayoutParams.mTop + rowLayoutParams.mHeight);
+                    inputView.layout(xRight - inputView.getMeasuredWidth(), rowTop,
+                            xRight, rowTop + inputView.getMeasuredHeight());
                     break;
                 }
                 default: {
                     // Dummy and statement inputs are left-aligned with the block boundary.
                     // (Actually, statement inputs are centered, since the width of the rendered
                     // block is adjusted to match their exact width.)
-                    inputView.layout(xLeft, rowLayoutParams.mTop, xLeft + rowLayoutParams.mWidth,
-                            rowLayoutParams.mTop + rowLayoutParams.mHeight);
+                    inputView.layout(xLeft, rowTop, xLeft + inputView.getMeasuredWidth(),
+                            rowTop + inputView.getMeasuredHeight());
                     break;
                 }
             }
@@ -283,38 +280,44 @@ public class BlockView extends FrameLayout {
 
         // Right-hand side of the block, including "Input" connectors.
         // TODO(rohlfingt): draw this on the opposite side in RTL mode.
-        List<Input> inputs = mBlock.getInputs();
-        for (int i = 0; i < inputs.size(); ++i) {
-            InputLayoutParams rowLayoutParams = mInputLayoutParams.get(i);
-            int y = rowLayoutParams.mTop;
-            switch (inputs.get(i).getType()) {
+        for (int i = 0; i < mInputViews.size(); ++i) {
+            InputView inputView = mInputViews.get(i);
+            ViewPoint inputLayoutPosition = mInputLayoutPositions.get(i);
+            switch (inputView.getInput().getType()) {
                 default:
                 case Input.TYPE_DUMMY: {
                     break;
                 }
                 case Input.TYPE_VALUE: {
-                    mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xRight - CONNECTOR_SIZE_PERPENDICULAR, y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xRight, inputLayoutPosition.y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xRight - CONNECTOR_SIZE_PERPENDICULAR,
-                            y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
-                    mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+                            inputLayoutPosition.y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xRight - CONNECTOR_SIZE_PERPENDICULAR,
+                            inputLayoutPosition.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+                    mDrawPath.lineTo(xRight,
+                            inputLayoutPosition.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
-                    float xOffset =
-                            rowLayoutParams.mWidth + 2 * PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-                    mDrawPath.lineTo(xRight, y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL, y + CONNECTOR_OFFSET);
+                    float xOffset = inputView.getMeasuredWidth() +
+                            2 * PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+                    mDrawPath.lineTo(xRight, inputLayoutPosition.y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL,
-                            y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
+                            inputLayoutPosition.y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL,
+                            inputLayoutPosition.y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
                     mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL,
-                            y + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
-                    mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL, y + CONNECTOR_OFFSET);
-                    mDrawPath.lineTo(xOffset, y + CONNECTOR_OFFSET);
+                            inputLayoutPosition.y + CONNECTOR_OFFSET +
+                                    CONNECTOR_SIZE_PERPENDICULAR);
+                    mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL,
+                            inputLayoutPosition.y + CONNECTOR_OFFSET);
+                    mDrawPath.lineTo(xOffset, inputLayoutPosition.y + CONNECTOR_OFFSET);
                     mDrawPath.lineTo(xOffset,
-                            y + CONNECTOR_OFFSET + 2 * CONNECTOR_SIZE_PERPENDICULAR);
+                            inputLayoutPosition.y + CONNECTOR_OFFSET +
+                                    2 * CONNECTOR_SIZE_PERPENDICULAR);
                     mDrawPath.lineTo(xRight,
-                            y + CONNECTOR_OFFSET + 2 * CONNECTOR_SIZE_PERPENDICULAR);
+                            inputLayoutPosition.y + CONNECTOR_OFFSET +
+                                    2 * CONNECTOR_SIZE_PERPENDICULAR);
                     break;
                 }
             }
@@ -342,24 +345,5 @@ public class BlockView extends FrameLayout {
         mDrawPath.lineTo(xLeft, yTop);
 
         mDrawPath.close();
-    }
-
-    /**
-     * Layout parameters for a block input row. These are computed in {@link #onMeasure} and used
-     * in {@link #onLayout}.
-     */
-    private class InputLayoutParams {
-        /** Vertical coordinate of the top of this input inside the block. */
-        int mTop;
-        /** Height of this input inside the block. */
-        int mHeight;
-        /** Width of this input inside the block. */
-        int mWidth;
-
-        InputLayoutParams(int top, int height, int width) {
-            mTop = top;
-            mHeight = height;
-            mWidth = width;
-        }
     }
 }
