@@ -161,34 +161,23 @@ public class BlockView extends FrameLayout {
         int blockWidth = BASE_WIDTH + CONNECTOR_SIZE_PERPENDICULAR;
 
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
-        int rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
         int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
 
-        int rowWidth = 0;
-        int rowHeight = 0;
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
             inputView.measure(widthMeasureSpec, heightMeasureSpec);
 
-            if (inputsInline && inputView.getInput().getType() == Input.TYPE_DUMMY) {
-                if (i > 0) {
-                    rowLeft += mHorizontalFieldSpacing;
-                }
-                rowLeft += inputView.getMeasuredWidth();
-                rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
-            } else {
-                // Add vertical spacing to previous row of fields, if there is one.
-                if (i > 0) {
-                    rowTop += mVerticalFieldSpacing;
-                }
-
-                // TODO: handle inline inputs
-                mInputLayoutOrigins.get(i).set(0, rowTop);
-                // The block height is the sum of all the row heights.
-                rowTop += inputView.getMeasuredHeight();
-                // The block width is that of the widest row
-                blockWidth = Math.max(blockWidth, inputView.getMeasuredWidth());
+            // Add vertical spacing to previous row of fields, if there is one.
+            if (i > 0) {
+                rowTop += mVerticalFieldSpacing;
             }
+
+            // TODO: handle inline inputs
+            mInputLayoutOrigins.get(i).set(0, rowTop);
+            // The block height is the sum of all the row heights.
+            rowTop += inputView.getMeasuredHeight();
+            // The block width is that of the widest row
+            blockWidth = Math.max(blockWidth, inputView.getMeasuredWidth());
         }
 
         // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
