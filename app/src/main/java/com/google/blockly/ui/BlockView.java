@@ -80,20 +80,13 @@ public class BlockView extends FrameLayout {
     private BlockWorkspaceParams mWorkspaceParams;
     private ArrayList<InputView> mInputViews = new ArrayList<>();
 
-    /**
-     * Offset of the block origin inside the view's measured area. This is the lop-left corner of
-     * the block outline, accounting for padding due to extruding connectors, outline stroke width,
-     * etc.
-     */
+    /** Offset of the block origin inside the view's measured area. */
     private final ViewPoint mBlockOriginOffset = new ViewPoint(CONNECTOR_SIZE_PERPENDICULAR, 0);
 
     /** Current measured size of this block view. */
     private final ViewPoint mBlockViewSize = new ViewPoint();
 
-    /**
-     * Vertical offset for positioning the "Next" block (if one exists). This is relative to the
-     * top of this view's area.
-     */
+    /** Vertical offset for positioning the "Next" block (if one exists). */
     private int mNextBlockVerticalOffset;
 
     /**
@@ -130,10 +123,19 @@ public class BlockView extends FrameLayout {
         initDrawingObjects(context);
     }
 
+    /**
+     * @return Offset of the block origin inside the view's measured area. This is the lop-left
+     * corner of the block outline, accounting for padding due to extruding connectors, outline
+     * stroke width, etc.
+     */
     public ViewPoint getBlockOriginOffset() {
         return mBlockOriginOffset;
     }
 
+    /**
+     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
+     * the top of this view's area.
+     */
     public int getNextBlockVerticalOffset() {
         return mNextBlockVerticalOffset;
     }
@@ -369,8 +371,8 @@ public class BlockView extends FrameLayout {
 
     /**
      * Add a "Previous" connector to the block's draw path.
-     * @param xFrom
-     * @param yFrom
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
      */
     private void addPreviousConnectorToPath(int xFrom, int yFrom) {
         mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom);
@@ -382,8 +384,8 @@ public class BlockView extends FrameLayout {
 
     /**
      * Add a "Next" connector to the block's draw path.
-     * @param xFrom
-     * @param yFrom
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
      */
     private void addNextConnectorToPath(int xFrom, int yFrom) {
         mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL, yFrom);
@@ -395,8 +397,8 @@ public class BlockView extends FrameLayout {
 
     /**
      * Add a Value input connector to the block's draw path.
-     * @param xFrom
-     * @param yFrom
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
      */
     private void addValueInputConnectorToPath(int xFrom, int yFrom) {
         mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET);
@@ -408,9 +410,10 @@ public class BlockView extends FrameLayout {
 
     /**
      * Add a Statement input connector to the block's draw path.
-     * @param xFrom
-     * @param yFrom
-     * @param xOffset
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     * @param xOffset The offset of the Statement input connector from the left (or right, in RTL
+     *                mode) boundary of the block.
      */
     private void addStatementInputConnectorToPath(int xFrom, int yFrom, int xOffset) {
         mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET);
@@ -427,8 +430,8 @@ public class BlockView extends FrameLayout {
 
     /**
      * Add a "Output" connector to the block's draw path.
-     * @param xFrom
-     * @param yFrom
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
      */
     private void addOutputConnectorToPath(int xFrom, int yFrom) {
         mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
