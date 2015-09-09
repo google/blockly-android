@@ -46,9 +46,11 @@ import java.util.Set;
 public abstract class Field implements Cloneable {
     private static final String TAG = "Field";
 
-    @IntDef({TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR, TYPE_DATE,
-            TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE})
+    @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR,
+            TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE})
     public @interface FieldType {}
+
+    public static final int TYPE_UNKNOWN = -1;
 
     public static final int TYPE_LABEL = 0;
     private static final String TYPE_LABEL_STRING = "field_label";
@@ -76,23 +78,6 @@ public abstract class Field implements Cloneable {
 
     public static final int TYPE_IMAGE = 8;
     private static final String TYPE_IMAGE_STRING = "field_image";
-
-    /**
-     * The list of known FIELD_TYPES. If this list changes {@link #fromJson(JSONObject)} should
-     * also be updated to support the new fields.
-     */
-    protected static final Set<String> FIELD_TYPES = new HashSet<>();
-    static {
-        FIELD_TYPES.add(TYPE_LABEL_STRING);
-        FIELD_TYPES.add(TYPE_INPUT_STRING);
-        FIELD_TYPES.add(TYPE_ANGLE_STRING);
-        FIELD_TYPES.add(TYPE_CHECKBOX_STRING);
-        FIELD_TYPES.add(TYPE_COLOUR_STRING);
-        FIELD_TYPES.add(TYPE_DATE_STRING);
-        FIELD_TYPES.add(TYPE_VARIABLE_STRING);
-        FIELD_TYPES.add(TYPE_DROPDOWN_STRING);
-        FIELD_TYPES.add(TYPE_IMAGE_STRING);
-    }
 
     private final String mName;
     private final int mType;
@@ -186,14 +171,15 @@ public abstract class Field implements Cloneable {
      */
     public boolean setFromXmlText(String text) { return false; }
 
-    /**
-     * Checks if the given type is a known field type.
+ /**
+     * Checks if the given type name is a known field type.
+     *
      *
      * @param typeString The type to check.
      * @return true if this is a known field type, false otherwise.
      */
     public static boolean isFieldType(String typeString) {
-        return FIELD_TYPES.contains(typeString);
+        return stringToFieldType(typeString) != TYPE_UNKNOWN;
     }
 
     /**
@@ -904,9 +890,9 @@ public abstract class Field implements Cloneable {
      * Convert string representation of field type to internal integer Id.
      *
      * @param typeString The field type string, e.g., TYPE_LABEL_STRING ("field_label").
-     * @return The integer Id representing the given field type string.
-     * @throws IllegalArgumentException If the string is null or does not correspond to a valid
-     * field type.
+     * @return The integer Id representing the given field type string, or {@code #TYPE_UNKNOWN} if
+     * the string does not represent a valid type.
+     * @throws IllegalArgumentException If the string is null.
      */
     @FieldType
     private static int stringToFieldType(String typeString) {
@@ -934,7 +920,7 @@ public abstract class Field implements Cloneable {
             case TYPE_IMAGE_STRING:
                 return TYPE_IMAGE;
             default:
-                throw new IllegalArgumentException("invalid field type: " + typeString);
+                return TYPE_UNKNOWN;
         }
     }
 }
