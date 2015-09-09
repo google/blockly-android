@@ -33,8 +33,8 @@ import java.util.List;
 public class BlockCopyBufferTest extends AndroidTestCase {
     private BlockFactory bf;
     private BlockCopyBuffer buffer;
-    ArrayList<Block> inputList;
-    List<Block> outputList;
+    private ArrayList<Block> inputList;
+    private List<Block> outputList;
 
     @Override
     public void setUp() throws Exception {
@@ -49,6 +49,15 @@ public class BlockCopyBufferTest extends AndroidTestCase {
         inputList.add(block);
         buffer.setBufferContents(inputList);
         Block fromBuffer = buffer.getBufferContents(bf).get(0);
+        assertNotNull(fromBuffer);
+        assertEquals("frankenblock", fromBuffer.getName());
+        assertNotSame(fromBuffer, block);
+    }
+
+    public void testSingleBlockOperations() throws BlocklySerializerException {
+        Block block = bf.obtainBlock("frankenblock", "testBlock");
+        buffer.setBufferFromBlock(block);
+        Block fromBuffer = buffer.getBlockFromBuffer(bf);
         assertNotNull(fromBuffer);
         assertEquals("frankenblock", fromBuffer.getName());
         assertNotSame(fromBuffer, block);
