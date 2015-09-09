@@ -144,7 +144,7 @@ public class BlockView extends FrameLayout {
             InputView inputView = mInputViews.get(i);
             inputView.measure(widthMeasureSpec, heightMeasureSpec);
 
-            if (inputsInline && inputView.getInput().getType().equals(Input.TYPE_DUMMY)) {
+            if (inputsInline && inputView.getInput().getType() == Input.TYPE_DUMMY) {
                 if (i > 0) {
                     rowLeft += mHorizontalFieldSpacing;
                 }
