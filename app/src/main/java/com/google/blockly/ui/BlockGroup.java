@@ -22,7 +22,7 @@ import android.view.ViewGroup;
 import com.google.blockly.model.WorkspacePoint;
 
 /**
- * This wraps a set of sequential BlockViews.
+ * This wraps a set of sequential {@link BlockView} instances.
  */
 public class BlockGroup extends ViewGroup {
     private final WorkspaceHelper mWorkspaceHelper;
@@ -39,10 +39,18 @@ public class BlockGroup extends ViewGroup {
         int height = 0;
 
         for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i);
+            BlockView child = (BlockView) getChildAt(i);
             child.measure(widthSpec, heightSpec);
             width = Math.max(child.getMeasuredWidth(), width);
-            height += child.getMeasuredHeight();
+
+            // Only for last child, add the entire measured height. For all other children, add
+            // offset to next block. This takes into account that blocks are rendered with
+            // overlaps due to extruding "Next" connectors.
+            if (i == childCount - 1) {
+                height += child.getMeasuredHeight();
+            } else {
+                height += child.getNextBlockVerticalOffset();
+            }
         }
         setMeasuredDimension(width, height);
     }
@@ -56,7 +64,7 @@ public class BlockGroup extends ViewGroup {
         int y = 0;
 
         for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i);
+            BlockView child = (BlockView) getChildAt(i);
             int h = child.getMeasuredHeight();
             int w = child.getMeasuredWidth();
             int cl = rtl ? x - w : x;
@@ -65,7 +73,7 @@ public class BlockGroup extends ViewGroup {
             int cb = y + h;
 
             child.layout(cl, ct, cr, cb);
-            y += h;
+            y += child.getNextBlockVerticalOffset();
         }
     }
 
