@@ -43,7 +43,7 @@ public class BlockCopyBuffer {
      */
     public void setBufferContents(List<Block> toCopy) throws BlocklySerializerException {
         mXmlString = "";
-        if (toCopy == null) {
+        if (toCopy == null || toCopy.isEmpty()) {
             return;
         }
 
@@ -58,17 +58,14 @@ public class BlockCopyBuffer {
      *
      * @param toCopy The block to copy into the buffer.
      */
-    public void setBufferFromBlock(Block toCopy) throws BlocklySerializerException {
-        mXmlString = "";
+    public void setBufferContents(Block toCopy) throws BlocklySerializerException {
         if (toCopy == null) {
             return;
         }
 
         List<Block> listToCopy = new ArrayList<>();
         listToCopy.add(toCopy);
-        StringOutputStream os = new StringOutputStream();
-        mXmlHelper.writeToXml(listToCopy, os);
-        mXmlString = os.toString();
+        setBufferContents(listToCopy);
     }
 
     /**
@@ -104,11 +101,10 @@ public class BlockCopyBuffer {
             return null;
         }
 
-        List<Block> read = mXmlHelper.loadFromXml(
-                new ByteArrayInputStream(mXmlString.getBytes()), blockFactory);
-        if (read.isEmpty()) {
-            return null;
+        List<Block> read = getBufferContents(blockFactory);
+        if (read != null && !read.isEmpty()) {
+            return read.get(0);
         }
-        return read.get(0);
+        return null;
     }
 }

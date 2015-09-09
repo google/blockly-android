@@ -56,7 +56,7 @@ public class BlockCopyBufferTest extends AndroidTestCase {
 
     public void testSingleBlockOperations() throws BlocklySerializerException {
         Block block = bf.obtainBlock("frankenblock", "testBlock");
-        buffer.setBufferFromBlock(block);
+        buffer.setBufferContents(block);
         Block fromBuffer = buffer.getBlockFromBuffer(bf);
         assertNotNull(fromBuffer);
         assertEquals("frankenblock", fromBuffer.getName());
