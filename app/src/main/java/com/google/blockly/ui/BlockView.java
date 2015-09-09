@@ -154,8 +154,6 @@ public class BlockView extends FrameLayout {
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         adjustInputLayoutOriginsListSize();
 
-        boolean inputsInline = getBlock().getInputsInline();
-
         // A block's width is at least the base width plus the "height" of an extruding "Output"
         // connector.
         int blockWidth = BASE_WIDTH + CONNECTOR_SIZE_PERPENDICULAR;

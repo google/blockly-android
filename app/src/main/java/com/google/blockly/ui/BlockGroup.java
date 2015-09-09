@@ -43,13 +43,13 @@ public class BlockGroup extends ViewGroup {
             child.measure(widthSpec, heightSpec);
             width = Math.max(child.getMeasuredWidth(), width);
 
-            // For all but the last child view, add offset to next block. Only for last child, add
-            // the entire measured height. This takes into account that blocks are rendered with
+            // Only for last child, add the entire measured height. For all other children, add
+            // offset to next block. This takes into account that blocks are rendered with
             // overlaps due to extruding "Next" connectors.
-            if (i < childCount - 1) {
-                height += child.getNextBlockVerticalOffset();
-            } else {
+            if (i == childCount - 1) {
                 height += child.getMeasuredHeight();
+            } else {
+                height += child.getNextBlockVerticalOffset();
             }
         }
         setMeasuredDimension(width, height);
