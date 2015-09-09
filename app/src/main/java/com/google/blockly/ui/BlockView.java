@@ -22,6 +22,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.Log;
+import android.view.View;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
@@ -78,7 +79,22 @@ public class BlockView extends FrameLayout {
 
     private BlockWorkspaceParams mWorkspaceParams;
     private ArrayList<InputView> mInputViews = new ArrayList<>();
-    private ViewPoint mBlockViewSize = new ViewPoint();
+
+    /**
+     * Offset of the block origin inside the view's measured area. This is the lop-left corner of
+     * the block outline, accounting for padding due to extruding connectors, outline stroke width,
+     * etc.
+     */
+    private final ViewPoint mBlockOriginOffset = new ViewPoint(CONNECTOR_SIZE_PERPENDICULAR, 0);
+
+    /** Current measured size of this block view. */
+    private final ViewPoint mBlockViewSize = new ViewPoint();
+
+    /**
+     * Vertical offset for positioning the "Next" block (if one exists). This is relative to the
+     * top of this view's area.
+     */
+    private int mNextBlockVerticalOffset;
 
     /**
      * Create a new BlockView for the given block using the workspace's style.
@@ -112,6 +128,14 @@ public class BlockView extends FrameLayout {
         initAttrs(context, blockStyle);
         initViews(context, blockStyle);
         initDrawingObjects(context);
+    }
+
+    public ViewPoint getBlockOriginOffset() {
+        return mBlockOriginOffset;
+    }
+
+    public int getNextBlockVerticalOffset() {
+        return mNextBlockVerticalOffset;
     }
 
     @Override
@@ -178,6 +202,8 @@ public class BlockView extends FrameLayout {
             Log.d(TAG, "Set dimens to " + blockWidth + ", " + blockHeight +
                     " for " + mInputViews.size() + " rows.");
         }
+
+        mNextBlockVerticalOffset = blockHeight - CONNECTOR_SIZE_PERPENDICULAR;
     }
 
     @Override
