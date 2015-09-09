@@ -123,23 +123,6 @@ public class BlockView extends FrameLayout {
         initDrawingObjects(context);
     }
 
-    /**
-     * @return Offset of the block origin inside the view's measured area. This is the lop-left
-     * corner of the block outline, accounting for padding due to extruding connectors, outline
-     * stroke width, etc.
-     */
-    public ViewPoint getBlockOriginOffset() {
-        return mBlockOriginOffset;
-    }
-
-    /**
-     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
-     * the top of this view's area.
-     */
-    public int getNextBlockVerticalOffset() {
-        return mNextBlockVerticalOffset;
-    }
-
     @Override
     public void onDraw(Canvas c) {
         c.drawPath(mDrawPath, mPaintArea);
@@ -227,6 +210,23 @@ public class BlockView extends FrameLayout {
      */
     public Block getBlock() {
         return mBlock;
+    }
+
+    /**
+     * @return Offset of the block origin inside the view's measured area. This is the lop-left
+     * corner of the block outline, accounting for padding due to extruding connectors, outline
+     * stroke width, etc.
+     */
+    ViewPoint getBlockOriginOffset() {
+        return mBlockOriginOffset;
+    }
+
+    /**
+     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
+     * the top of this view's area.
+     */
+    int getNextBlockVerticalOffset() {
+        return mNextBlockVerticalOffset;
     }
 
     /**
