@@ -109,7 +109,7 @@ public class WorkspaceStats {
             // Variables and references to them.
             for (int j = 0; j < in.getFields().size(); j++) {
                 Field field = in.getFields().get(i);
-                if (field.getType().equals(Field.TYPE_VARIABLE)) {
+                if (field.getType() == Field.TYPE_VARIABLE) {
                     Field.FieldVariable var = (Field.FieldVariable) field;
                     if (mVariableReferences.containsKey(var.getVariable())) {
                         mVariableReferences.get(var.getVariable()).add(var);
