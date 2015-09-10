@@ -198,7 +198,7 @@ public class BlockView extends FrameLayout {
             }
         }
 
-        // Add height of final row (this is non-zero with inline inputs if the final input in the
+        // Add height of final row. This is non-zero with inline inputs if the final input in the
         // block is not a Statement input.
         rowTop += rowHeight;
 
@@ -251,8 +251,8 @@ public class BlockView extends FrameLayout {
         }
 
         // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
-        // internal padding on both sides, plus offset for extruding Output and intruding Input
-        // connectors.
+        // internal padding on both sides, plus offset for extruding Output and space for intruding
+        // Input connectors.
         mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) +
                 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR) + OUTLINE_WIDTH / 2;
 
@@ -416,8 +416,7 @@ public class BlockView extends FrameLayout {
                     break;
                 }
                 case Input.TYPE_VALUE: {
-                    if (getBlock().getInputsInline()) {
-                    } else {
+                    if (!getBlock().getInputsInline()) {
                         addValueInputConnectorToPath(xRight, inputLayoutOrigin.y);
                     }
                     break;
