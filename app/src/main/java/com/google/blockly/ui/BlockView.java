@@ -80,7 +80,8 @@ public class BlockView extends FrameLayout {
     private ArrayList<InputView> mInputViews = new ArrayList<>();
 
     /** Offset of the block origin inside the view's measured area. */
-    private final ViewPoint mBlockOriginOffset = new ViewPoint(CONNECTOR_SIZE_PERPENDICULAR, 0);
+    private final ViewPoint mBlockOriginOffset =
+            new ViewPoint(CONNECTOR_SIZE_PERPENDICULAR, OUTLINE_WIDTH / 2);
 
     /** Current measured size of this block view. */
     private final ViewPoint mBlockViewSize = new ViewPoint();
@@ -144,7 +145,7 @@ public class BlockView extends FrameLayout {
 
         setMeasuredDimension(mBlockViewSize.x, mBlockViewSize.y);
         mWorkspaceParams.setMeasuredDimensions(mBlockViewSize);
-        mNextBlockVerticalOffset = mBlockViewSize.y - CONNECTOR_SIZE_PERPENDICULAR;
+        mNextBlockVerticalOffset = mBlockViewSize.y - CONNECTOR_SIZE_PERPENDICULAR - OUTLINE_WIDTH;
     }
 
     /**
@@ -203,11 +204,12 @@ public class BlockView extends FrameLayout {
 
         // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
         // internal padding on both sides, plus offset for extruding connector on the left.
-        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) + PADDING;
+        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) + PADDING + OUTLINE_WIDTH / 2;
 
         // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
         // room for extruding "Next" connector. Also must be at least the base height.
-        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
+        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT) +
+                OUTLINE_WIDTH;
     }
 
     /**
@@ -251,12 +253,13 @@ public class BlockView extends FrameLayout {
         // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
         // internal padding on both sides, plus offset for extruding Output and intruding Input
         // connectors.
-        mBlockViewSize.x =
-                Math.max(maxRowWidth, BASE_WIDTH) + 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR);
+        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) +
+                2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR) + OUTLINE_WIDTH / 2;
 
         // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
         // room for extruding "Next" connector. Also must be at least the base height.
-        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
+        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT) +
+                OUTLINE_WIDTH;
     }
 
     @Override
@@ -264,7 +267,7 @@ public class BlockView extends FrameLayout {
         boolean inputsInline = getBlock().getInputsInline();
 
         int xLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-        int xRight = mBlockViewSize.x - PADDING - CONNECTOR_SIZE_PERPENDICULAR;
+        int xRight = mBlockViewSize.x - PADDING - CONNECTOR_SIZE_PERPENDICULAR - OUTLINE_WIDTH / 2;
         for (int i = 0; i < mInputViews.size(); i++) {
             int rowLeft = mInputLayoutOrigins.get(i).x;
             int rowTop = mInputLayoutOrigins.get(i).y;
@@ -389,11 +392,11 @@ public class BlockView extends FrameLayout {
     protected void onSizeChanged (int width, int height, int oldw, int oldh) {
         mDrawPath.reset();
 
-        int xLeft = CONNECTOR_SIZE_PERPENDICULAR;
-        int xRight = width;
+        int xLeft = mBlockOriginOffset.x;
+        int xRight = width - OUTLINE_WIDTH / 2;
 
-        int yTop = 0;
-        int yBottom = height - CONNECTOR_SIZE_PERPENDICULAR;
+        int yTop = mBlockOriginOffset.y;
+        int yBottom = height - CONNECTOR_SIZE_PERPENDICULAR - OUTLINE_WIDTH / 2;
 
         // Top of the block, including "Previous" connector.
         mDrawPath.moveTo(xLeft, yTop);
