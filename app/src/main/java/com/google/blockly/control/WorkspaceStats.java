@@ -34,13 +34,6 @@ public class WorkspaceStats {
     public static final String PROCEDURE_DEFINITION_PREFIX = "procedure_def";
     public static final String PROCEDURE_REFERENCE_PREFIX = "procedure_call";
 
-    // Lists of connections separated by type and ordered by y position.  This is optimized
-    // for quickly finding the nearest connection when dragging a block around.
-    private final List<Connection> mPreviousConnections = new ArrayList<>();
-    private final List<Connection> mNextConnections = new ArrayList<>();
-    private final List<Connection> mInputConnections = new ArrayList<>();
-    private final List<Connection> mOutputConnections = new ArrayList<>();
-
     // Maps from variable/procedure names to the blocks/fields where they are referenced.
     private final SimpleArrayMap<String, List<Field.FieldVariable>> mVariableReferences =
             new SimpleArrayMap<>();
@@ -49,6 +42,15 @@ public class WorkspaceStats {
     // No procedure will be defined more than once, so just a list.
     private final List<Block> mProcedureDefinitions = new ArrayList<>();
     private final NameManager mVariableNameManager;
+    private final NameManager mProcedureNameManager;
+    private final ConnectionManager mConnectionManager;
+
+    public WorkspaceStats(NameManager variableManager, NameManager procedureManager,
+                   ConnectionManager connectionManager) {
+        mVariableNameManager = variableManager;
+        mProcedureNameManager = procedureManager;
+        mConnectionManager = connectionManager;
+    }
 
     public NameManager getProcedureNameManager() {
         return mProcedureNameManager;
@@ -68,29 +70,6 @@ public class WorkspaceStats {
 
     public SimpleArrayMap<String, List<Field.FieldVariable>> getVariableReferences() {
         return mVariableReferences;
-    }
-
-    public List<Connection> getOutputConnections() {
-        return mOutputConnections;
-    }
-
-    public List<Connection> getInputConnections() {
-        return mInputConnections;
-    }
-
-    public List<Connection> getNextConnections() {
-        return mNextConnections;
-    }
-
-    public List<Connection> getPreviousConnections() {
-        return mPreviousConnections;
-    }
-
-    private final NameManager mProcedureNameManager;
-
-    public WorkspaceStats(NameManager variableManager, NameManager procedureManager) {
-        mVariableNameManager = variableManager;
-        mProcedureNameManager = procedureManager;
     }
 
     /**
@@ -163,53 +142,12 @@ public class WorkspaceStats {
         mProcedureReferences.clear();
         mProcedureNameManager.clearUsedNames();
         mVariableNameManager.clearUsedNames();
-
-        mPreviousConnections.clear();
-        mNextConnections.clear();
-        mOutputConnections.clear();
-        mInputConnections.clear();
-    }
-
-    public void removeConnection() {
-        // TODO(fenichel): Implement in next CL.
-    }
-
-    // Do a binary search to find the right place to add the connection.
-    private void addConnectionToList(Connection conn, List<Connection> list) {
-        int pointerMin = 0;
-        int pointerMax = list.size();
-        while (pointerMin < pointerMax) {
-            int pointerMid = (pointerMin + pointerMax) / 2;
-            if (list.get(pointerMid).getPosition().y < conn.getPosition().y) {
-                pointerMin = pointerMid + 1;
-            } else if (list.get(pointerMid).getPosition().y > conn.getPosition().y) {
-                pointerMax = pointerMid;
-            } else {
-                pointerMin = pointerMid;
-                break;
-            }
-        }
-        list.add(pointerMin, conn);
+        mConnectionManager.clear();
     }
 
     private void addConnection(Connection conn, boolean recursive) {
         if (conn != null) {
-            switch (conn.getType()) {
-                case Connection.CONNECTION_TYPE_INPUT:
-                    addConnectionToList(conn, mInputConnections);
-                    break;
-                case Connection.CONNECTION_TYPE_OUTPUT:
-                    addConnectionToList(conn, mOutputConnections);
-                    break;
-                case Connection.CONNECTION_TYPE_NEXT:
-                    addConnectionToList(conn, mNextConnections);
-                    break;
-                case Connection.CONNECTION_TYPE_PREVIOUS:
-                    addConnectionToList(conn, mPreviousConnections);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Found unknown connection type.");
-            }
+            mConnectionManager.addConnection(conn);
             if (recursive) {
                 Block recursiveTarget = conn.getTargetBlock();
                 if (recursiveTarget != null) {
