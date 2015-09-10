@@ -22,7 +22,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.Log;
-import android.view.View;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
@@ -138,9 +137,9 @@ public class BlockView extends FrameLayout {
         adjustInputLayoutOriginsListSize();
 
         if (getBlock().getInputsInline()) {
-            onMeasureInlineInputs(widthMeasureSpec, heightMeasureSpec);
+            onMeasureInputsInline(widthMeasureSpec, heightMeasureSpec);
         } else {
-            onMeasureExternalInputs(widthMeasureSpec, heightMeasureSpec);
+            onMeasureInputsExternal(widthMeasureSpec, heightMeasureSpec);
         }
 
         setMeasuredDimension(mBlockViewSize.x, mBlockViewSize.y);
@@ -162,14 +161,12 @@ public class BlockView extends FrameLayout {
      *     </ol>
      * </p>
      * */
-    private void onMeasureInlineInputs(int widthMeasureSpec, int heightMeasureSpec) {
-        // A block's width is at least the base width.
-        int blockWidth = BASE_WIDTH;
-
+    private void onMeasureInputsInline(int widthMeasureSpec, int heightMeasureSpec) {
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
         int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
         int rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
         int rowHeight = 0;
+        int maxRowWidth = 0;
 
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
@@ -180,7 +177,6 @@ public class BlockView extends FrameLayout {
                     rowTop += mVerticalFieldSpacing;
                 }
                 rowTop += rowHeight;
-                rowHeight = 0;
                 rowLeft = 0;
             }
 
@@ -190,7 +186,7 @@ public class BlockView extends FrameLayout {
             rowLeft += inputView.getMeasuredWidth();
 
             // The block width is that of the widest row
-            blockWidth = Math.max(blockWidth, rowLeft);
+            maxRowWidth = Math.max(maxRowWidth, rowLeft);
 
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
@@ -205,16 +201,13 @@ public class BlockView extends FrameLayout {
         // block is not a Statement input.
         rowTop += rowHeight;
 
+        // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
+        // internal padding on both sides, plus offset for extruding connector on the left.
+        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) + PADDING;
+
         // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
         // room for extruding "Next" connector. Also must be at least the base height.
-        int blockHeight = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
-
-        // Block width is the computed width of the widest input row, plus internal padding on both
-        // sides, plus room for extruding or intruding connectors on both sides.
-        blockWidth += 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR);
-
-        mBlockViewSize.x = blockWidth;
-        mBlockViewSize.y = blockHeight;
+        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
     }
 
     /**
@@ -232,12 +225,10 @@ public class BlockView extends FrameLayout {
      *     </ol>
      * </p>
      */
-    private void onMeasureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
-        // A block's width is at least the base width.
-        int blockWidth = BASE_WIDTH;
-
+    private void onMeasureInputsExternal(int widthMeasureSpec, int heightMeasureSpec) {
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
         int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int maxRowWidth = 0;
 
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
@@ -254,19 +245,18 @@ public class BlockView extends FrameLayout {
             rowTop += inputView.getMeasuredHeight();
 
             // The block width is that of the widest row
-            blockWidth = Math.max(blockWidth, inputView.getMeasuredWidth());
+            maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
         }
+
+        // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
+        // internal padding on both sides, plus offset for extruding Output and intruding Input
+        // connectors.
+        mBlockViewSize.x =
+                Math.max(maxRowWidth, BASE_WIDTH) + 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR);
 
         // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
         // room for extruding "Next" connector. Also must be at least the base height.
-        int blockHeight = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
-
-        // Block width is the computed width of the widest input row, plus internal padding on both
-        // sides, plus room for extruding or intruding connectors on both sides.
-        blockWidth += 2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR);
-
-        mBlockViewSize.x = blockWidth;
-        mBlockViewSize.y = blockHeight;
+        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
     }
 
     @Override
