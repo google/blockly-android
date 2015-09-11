@@ -61,6 +61,8 @@ public class BlockView extends FrameLayout {
     private static final int CONNECTOR_SIZE_PARALLEL = 40;
     // The size of a connector perpendicular to the block boundary, in dips.
     private static final int CONNECTOR_SIZE_PERPENDICULAR = 20;
+    // The minimum width of a Statement input.
+    private static final int STATEMENT_INPUT_CONNECTOR_WIDTH = 4 * CONNECTOR_SIZE_PARALLEL;
 
     private final WorkspaceHelper mHelper;
     private final Block mBlock;
@@ -189,7 +191,7 @@ public class BlockView extends FrameLayout {
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 // The block width is that of the widest row, but for a Statement input there needs
                 // to be added space for the connector.
-                maxRowWidth = Math.max(maxRowWidth, rowLeft + 4 * CONNECTOR_SIZE_PARALLEL);
+                maxRowWidth = Math.max(maxRowWidth, rowLeft + STATEMENT_INPUT_CONNECTOR_WIDTH);
 
                 // Statement input is always a row by itself, so increase top coordinate and reset
                 // row origin and height.
@@ -255,7 +257,7 @@ public class BlockView extends FrameLayout {
                 // The block width is that of the widest row, but for a Statement input there needs
                 // to be added space for the connector.
                 maxRowWidth = Math.max(maxRowWidth,
-                        inputView.getMeasuredWidth() + 4 * CONNECTOR_SIZE_PARALLEL);
+                        inputView.getMeasuredWidth() + STATEMENT_INPUT_CONNECTOR_WIDTH);
             } else {
                 // For Dummy and Value inputs, block width is that of the widest row
                 maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
