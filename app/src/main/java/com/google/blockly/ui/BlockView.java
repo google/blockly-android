@@ -199,8 +199,9 @@ public class BlockView extends FrameLayout {
                 rowTop += rowHeight + mVerticalFieldSpacing;
                 rowHeight = 0;
             } else {
-                // The block width is that of the widest row
+                // For Dummy and Value inputs, block width is that of the widest row
                 maxRowWidth = Math.max(maxRowWidth, rowLeft);
+
                 rowLeft += mHorizontalFieldSpacing;
             }
         }
