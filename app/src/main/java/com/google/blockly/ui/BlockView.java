@@ -186,14 +186,19 @@ public class BlockView extends FrameLayout {
             rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
             rowLeft += inputView.getMeasuredWidth();
 
-            // The block width is that of the widest row
-            maxRowWidth = Math.max(maxRowWidth, rowLeft);
-
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // The block width is that of the widest row, but for a Statement input there needs
+                // to be added space for the connector.
+                maxRowWidth = Math.max(maxRowWidth, rowLeft + 4 * CONNECTOR_SIZE_PARALLEL);
+
+                // Statement input is always a row by itself, so increase top coordinate and reset
+                // row origin and height.
                 rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
                 rowTop += rowHeight + mVerticalFieldSpacing;
                 rowHeight = 0;
             } else {
+                // The block width is that of the widest row
+                maxRowWidth = Math.max(maxRowWidth, rowLeft);
                 rowLeft += mHorizontalFieldSpacing;
             }
         }
@@ -246,8 +251,15 @@ public class BlockView extends FrameLayout {
             // The block height is the sum of all the row heights.
             rowTop += inputView.getMeasuredHeight();
 
-            // The block width is that of the widest row
-            maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // The block width is that of the widest row, but for a Statement input there needs
+                // to be added space for the connector.
+                maxRowWidth = Math.max(maxRowWidth,
+                        inputView.getMeasuredWidth() + 4 * CONNECTOR_SIZE_PARALLEL);
+            } else {
+                // For Dummy and Value inputs, block width is that of the widest row
+                maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
+            }
         }
 
         // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
