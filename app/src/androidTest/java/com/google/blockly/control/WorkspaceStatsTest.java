@@ -23,6 +23,13 @@ import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.NameManager;
 
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 /**
  * Tests for {@link WorkspaceStats}
  */
@@ -31,10 +38,14 @@ public class WorkspaceStatsTest extends AndroidTestCase {
     private Input fieldInput;
     private Input variableFieldsInput;
 
+    //@Mock
+    ProcedureManager mockProcedureManager = mock(ProcedureManager.class);
+
     @Override
     public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
          stats = new WorkspaceStats(
-                 new NameManager.VariableNameManager(), new NameManager.ProcedureNameManager());
+                 new NameManager.VariableNameManager(), mockProcedureManager);
 
         fieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         Field field = new Field.FieldInput("name", "nameid");
@@ -52,7 +63,7 @@ public class WorkspaceStatsTest extends AndroidTestCase {
 
     public void testCollectProcedureStats() {
         Block.Builder blockBuilder = new Block.Builder(
-                WorkspaceStats.PROCEDURE_DEFINITION_PREFIX + "test", "testid");
+                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test", "testid");
         try {
             stats.collectStats(blockBuilder.build(), false);
             fail("Expected an exception when defining a procedure with no name field.");
@@ -60,21 +71,24 @@ public class WorkspaceStatsTest extends AndroidTestCase {
             // expected
         }
 
-        assertFalse(stats.getProcedureNameManager().contains(
-                WorkspaceStats.PROCEDURE_DEFINITION_PREFIX + "test"));
+//        assertFalse(stats.getProcedureNameManager().contains(
+//                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test"));
         stats.clear();
         blockBuilder.addInput(fieldInput);
-        stats.collectStats(blockBuilder.build(), false);
+        Block blockUnderTest = blockBuilder.build();
+        stats.collectStats(blockUnderTest, false);
 
-        assertTrue(stats.getProcedureNameManager().contains("new procedure"));
-        assertFalse(stats.getProcedureNameManager().contains(
-                WorkspaceStats.PROCEDURE_DEFINITION_PREFIX + "test"));
+        verify(mockProcedureManager).addProcedureDefinition(blockUnderTest);
+//        assertTrue(stats.getProcedureNameManager().contains("new procedure"));
+//        assertFalse(stats.getProcedureNameManager().contains(
+//                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test"));
 
         // Add another block referring to the last one.
-        blockBuilder = new Block.Builder(WorkspaceStats.PROCEDURE_REFERENCE_PREFIX + "test", "ref");
+        blockBuilder = new Block.Builder(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test", "ref");
         Block procedureReference = blockBuilder.build();
         stats.collectStats(procedureReference, false);
-        assertEquals(1, stats.getProcedureReferences().size());
+        //assertEquals(1, stats.getProcedureReferences().size());
+        verify(mockProcedureManager).addProcedureReference(procedureReference);
 
         // TODO(fenichel): Make mutations work so that this works.
 

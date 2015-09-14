@@ -30,9 +30,6 @@ import java.util.List;
  * Tracks information about the Workspace that we want fast access to.
  */
 public class WorkspaceStats {
-    // TODO(fenichel): Move to a more public location when other code that uses the prefixes exists.
-    public static final String PROCEDURE_DEFINITION_PREFIX = "procedure_def";
-    public static final String PROCEDURE_REFERENCE_PREFIX = "procedure_call";
 
     // Lists of connections separated by type and ordered by y position.  This is optimized
     // for quickly finding the nearest connection when dragging a block around.
@@ -44,26 +41,12 @@ public class WorkspaceStats {
     // Maps from variable/procedure names to the blocks/fields where they are referenced.
     private final SimpleArrayMap<String, List<Field.FieldVariable>> mVariableReferences =
             new SimpleArrayMap<>();
-    private final SimpleArrayMap<String, List<Block>> mProcedureReferences = new SimpleArrayMap<>();
-
-    // No procedure will be defined more than once, so just a list.
-    private final List<Block> mProcedureDefinitions = new ArrayList<>();
     private final NameManager mVariableNameManager;
+    private final ProcedureManager mProcedureManager;
 
-    public NameManager getProcedureNameManager() {
-        return mProcedureNameManager;
-    }
 
     public NameManager getVariableNameManager() {
         return mVariableNameManager;
-    }
-
-    public List<Block> getProcedureDefinitions() {
-        return mProcedureDefinitions;
-    }
-
-    public SimpleArrayMap<String, List<Block>> getProcedureReferences() {
-        return mProcedureReferences;
     }
 
     public SimpleArrayMap<String, List<Field.FieldVariable>> getVariableReferences() {
@@ -86,11 +69,10 @@ public class WorkspaceStats {
         return mPreviousConnections;
     }
 
-    private final NameManager mProcedureNameManager;
 
-    public WorkspaceStats(NameManager variableManager, NameManager procedureManager) {
+    public WorkspaceStats(NameManager variableManager, ProcedureManager procedureManager) {
         mVariableNameManager = variableManager;
-        mProcedureNameManager = procedureManager;
+        mProcedureManager = procedureManager;
     }
 
     /**
@@ -130,27 +112,14 @@ public class WorkspaceStats {
         addConnection(block.getOutputConnection(), false);
 
         // Procedures
-        if (block.getName().startsWith(PROCEDURE_DEFINITION_PREFIX)) {
-            mProcedureDefinitions.add(block);
-            if (block.getFieldByName("name") != null) {
-                mProcedureNameManager.addName(
-                        ((Field.FieldInput) block.getFieldByName("name")).getText());
-            } else {
-                throw new IllegalStateException(
-                        "Procedure definition block with no procedure name.");
-            }
+        if (mProcedureManager.isProcedureDefinition(block)) {
+            mProcedureManager.addProcedureDefinition(block);
         }
         // TODO (fenichel): Procedure calls will only work when mutations work.
         // The mutation will change the name of the block.  I believe that means name field,
         // not type.
-        if (block.getName().startsWith(PROCEDURE_REFERENCE_PREFIX)) {
-            if (mProcedureReferences.containsKey(block.getName())) {
-                mProcedureReferences.get(block.getName()).add(block);
-            } else {
-                List<Block> references = new ArrayList<>();
-                references.add(block);
-                mProcedureReferences.put(block.getName(), references);
-            }
+        if (mProcedureManager.isProcedureReference(block)) {
+            mProcedureManager.addProcedureReference(block);
         }
     }
 
@@ -159,9 +128,7 @@ public class WorkspaceStats {
      */
     public void clear() {
         mVariableReferences.clear();
-        mProcedureDefinitions.clear();
-        mProcedureReferences.clear();
-        mProcedureNameManager.clearUsedNames();
+        mProcedureManager.clear();
         mVariableNameManager.clearUsedNames();
 
         mPreviousConnections.clear();
@@ -170,8 +137,51 @@ public class WorkspaceStats {
         mInputConnections.clear();
     }
 
-    public void removeConnection() {
+    public void removeConnection(Connection conn, boolean recursive) {
         // TODO(fenichel): Implement in next CL.
+    }
+
+    public void removeBlock(Block block) {
+        for (int i = 0; i < block.getInputs().size(); i++) {
+            Input in = block.getInputs().get(i);
+            removeConnection(in.getConnection(), true);
+
+            // Variables and references to them.
+            for (int j = 0; j < in.getFields().size(); j++) {
+                Field field = in.getFields().get(i);
+                if (field.getType() == Field.TYPE_VARIABLE) {
+                    Field.FieldVariable var = (Field.FieldVariable) field;
+                    if (mVariableReferences.containsKey(var.getVariable())) {
+                        mVariableReferences.get(var.getVariable()).add(var);
+                    } else {
+                        List<Field.FieldVariable> references = new ArrayList<>();
+                        references.add(var);
+                        mVariableReferences.put(var.getVariable(), references);
+                    }
+                    mVariableNameManager.addName(var.getVariable());
+                }
+            }
+        }
+
+        removeConnection(block.getNextConnection(), false);
+        // Don't recurse on outputs or previous connections--that's effectively walking back up the
+        // tree.
+        removeConnection(block.getPreviousConnection(), false);
+        removeConnection(block.getOutputConnection(), false);
+
+        // Procedures
+        if (mProcedureManager.isProcedureDefinition(block)) {
+            List<Block> children = mProcedureManager.removeProcedureDefinition(block);
+            for (int i = 0; i < children.size(); i++) {
+                removeBlock(children.get(i));
+            }
+        }
+        // TODO (fenichel): Procedure calls will only work when mutations work.
+        // The mutation will change the name of the block.  I believe that means name field,
+        // not type.
+        if (mProcedureManager.isProcedureReference(block)) {
+            mProcedureManager.removeProcedureReference(block);
+        }
     }
 
     // Do a binary search to find the right place to add the connection.
