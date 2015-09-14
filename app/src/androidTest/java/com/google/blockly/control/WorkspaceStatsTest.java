@@ -37,16 +37,13 @@ public class WorkspaceStatsTest extends AndroidTestCase {
     private WorkspaceStats stats;
     private Input fieldInput;
     private Input variableFieldsInput;
+    private ConnectionManager connectionManager;
 
     //@Mock
     ProcedureManager mockProcedureManager = mock(ProcedureManager.class);
 
     @Override
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-         stats = new WorkspaceStats(
-                 new NameManager.VariableNameManager(), mockProcedureManager);
-
         fieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         Field field = new Field.FieldInput("name", "nameid");
         field.setFromXmlText("new procedure");
@@ -59,6 +56,11 @@ public class WorkspaceStatsTest extends AndroidTestCase {
         field = new Field.FieldVariable("field name 2", "nameid2");
         field.setFromXmlText("variable name");
         variableFieldsInput.add(field);
+
+        connectionManager = new ConnectionManager();
+        stats = new WorkspaceStats(
+                new NameManager.VariableNameManager(), new NameManager.ProcedureNameManager(),
+                connectionManager);
     }
 
     public void testCollectProcedureStats() {
@@ -142,10 +144,11 @@ public class WorkspaceStatsTest extends AndroidTestCase {
         stats.collectStats(secondBlock, true);
         assertTrue(stats.getVariableNameManager().contains("third block variable name"));
         assertFalse(stats.getVariableNameManager().contains("variable name"));
-        assertTrue(stats.getInputConnections().isEmpty());
-        assertTrue(stats.getOutputConnections().isEmpty());
-        assertEquals(2, stats.getPreviousConnections().size());
-        assertEquals(1, stats.getNextConnections().size());
+        assertTrue(connectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty());
+        assertTrue(connectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty());
+        assertEquals(2,
+                connectionManager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).size());
+        assertEquals(1, connectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size());
     }
 
     public void testRemoveConnection() {

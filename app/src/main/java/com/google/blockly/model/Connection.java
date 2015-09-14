@@ -46,6 +46,7 @@ public class Connection implements Cloneable {
      */
     public static final int CONNECTION_TYPE_OUTPUT = 3;
 
+    // If updating this, also update ConnectionManager's matchingLists and oppositeLists arrays.
     private static final int[] OPPOSITE_TYPES = new int[]{
             CONNECTION_TYPE_NEXT, // PREVIOUS -> NEXT
             CONNECTION_TYPE_PREVIOUS, // NEXT -> PREVIOUS

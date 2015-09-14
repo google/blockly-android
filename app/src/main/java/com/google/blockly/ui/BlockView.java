@@ -22,7 +22,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.Log;
-import android.view.View;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
@@ -62,6 +61,8 @@ public class BlockView extends FrameLayout {
     private static final int CONNECTOR_SIZE_PARALLEL = 40;
     // The size of a connector perpendicular to the block boundary, in dips.
     private static final int CONNECTOR_SIZE_PERPENDICULAR = 20;
+    // The minimum width of a Statement input.
+    private static final int STATEMENT_INPUT_CONNECTOR_WIDTH = 4 * CONNECTOR_SIZE_PARALLEL;
 
     private final WorkspaceHelper mHelper;
     private final Block mBlock;
@@ -81,7 +82,8 @@ public class BlockView extends FrameLayout {
     private ArrayList<InputView> mInputViews = new ArrayList<>();
 
     /** Offset of the block origin inside the view's measured area. */
-    private final ViewPoint mBlockOriginOffset = new ViewPoint(CONNECTOR_SIZE_PERPENDICULAR, 0);
+    private final ViewPoint mBlockOriginOffset =
+            new ViewPoint(CONNECTOR_SIZE_PERPENDICULAR, OUTLINE_WIDTH / 2);
 
     /** Current measured size of this block view. */
     private final ViewPoint mBlockViewSize = new ViewPoint();
@@ -137,12 +139,106 @@ public class BlockView extends FrameLayout {
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         adjustInputLayoutOriginsListSize();
 
-        // A block's width is at least the base width plus the "height" of an extruding "Output"
-        // connector.
-        int blockWidth = BASE_WIDTH + CONNECTOR_SIZE_PERPENDICULAR;
+        if (getBlock().getInputsInline()) {
+            onMeasureInputsInline(widthMeasureSpec, heightMeasureSpec);
+        } else {
+            onMeasureInputsExternal(widthMeasureSpec, heightMeasureSpec);
+        }
 
+        setMeasuredDimension(mBlockViewSize.x, mBlockViewSize.y);
+        mWorkspaceParams.setMeasuredDimensions(mBlockViewSize);
+        mNextBlockVerticalOffset = mBlockViewSize.y - CONNECTOR_SIZE_PERPENDICULAR - OUTLINE_WIDTH;
+    }
+
+    /**
+     * Measure view and its children with inline inputs.
+     * <p>
+     *     This function does not return a value but has the following side effects. Upon return:
+     *     <ol>
+     *         <li>The {@link InputView#measure(int, int)} method has been called for all inputs in
+     *         this block,</li>
+     *         <li>{@link #mBlockViewSize} contains the size of the total size of the block view
+     *         including all its inputs, and</li>
+     *         <li>{@link #mInputLayoutOrigins} contains the layout positions of all inputs within
+     *         the block.</li>
+     *     </ol>
+     * </p>
+     * */
+    private void onMeasureInputsInline(int widthMeasureSpec, int heightMeasureSpec) {
         // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
         int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int rowHeight = 0;
+        int maxRowWidth = 0;
+
+        for (int i = 0; i < mInputViews.size(); i++) {
+            InputView inputView = mInputViews.get(i);
+            inputView.measure(widthMeasureSpec, heightMeasureSpec);
+
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                if (i > 0) {
+                    rowTop += mVerticalFieldSpacing;
+                }
+                rowTop += rowHeight;
+                rowLeft = 0;
+            }
+
+            mInputLayoutOrigins.get(i).set(rowLeft, rowTop);
+
+            rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
+            rowLeft += inputView.getMeasuredWidth();
+
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // The block width is that of the widest row, but for a Statement input there needs
+                // to be added space for the connector.
+                maxRowWidth = Math.max(maxRowWidth, rowLeft + STATEMENT_INPUT_CONNECTOR_WIDTH);
+
+                // Statement input is always a row by itself, so increase top coordinate and reset
+                // row origin and height.
+                rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+                rowTop += rowHeight + mVerticalFieldSpacing;
+                rowHeight = 0;
+            } else {
+                // For Dummy and Value inputs, block width is that of the widest row
+                maxRowWidth = Math.max(maxRowWidth, rowLeft);
+
+                rowLeft += mHorizontalFieldSpacing;
+            }
+        }
+
+        // Add height of final row. This is non-zero with inline inputs if the final input in the
+        // block is not a Statement input.
+        rowTop += rowHeight;
+
+        // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
+        // internal padding on both sides, plus offset for extruding connector on the left.
+        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) + PADDING + OUTLINE_WIDTH / 2;
+
+        // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
+        // room for extruding "Next" connector. Also must be at least the base height.
+        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT) +
+                OUTLINE_WIDTH;
+    }
+
+    /**
+     * Measure view and its children with external inputs.
+     * <p>
+     *     This function does not return a value but has the following side effects. Upon return:
+     *     <ol>
+     *         <li>The {@link InputView#measure(int, int)} method has been called for all inputs in
+     *         this block,</li>
+     *         <li>{@link #mBlockViewSize} contains the size of the total size of the block view
+     *         including all its inputs, and</li>
+     *         <li>{@link #mInputLayoutOrigins} contains the layout positions of all inputs within
+     *         the block (but note that for external inputs, only the y coordinate of each
+     *         position is later used for positioning.)</li>
+     *     </ol>
+     * </p>
+     */
+    private void onMeasureInputsExternal(int widthMeasureSpec, int heightMeasureSpec) {
+        // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
+        int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int maxRowWidth = 0;
 
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
@@ -153,49 +249,76 @@ public class BlockView extends FrameLayout {
                 rowTop += mVerticalFieldSpacing;
             }
 
-            // TODO: handle inline inputs
             mInputLayoutOrigins.get(i).set(0, rowTop);
+
             // The block height is the sum of all the row heights.
             rowTop += inputView.getMeasuredHeight();
-            // The block width is that of the widest row
-            blockWidth = Math.max(blockWidth, inputView.getMeasuredWidth());
+
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // The block width is that of the widest row, but for a Statement input there needs
+                // to be added space for the connector.
+                maxRowWidth = Math.max(maxRowWidth,
+                        inputView.getMeasuredWidth() + STATEMENT_INPUT_CONNECTOR_WIDTH);
+            } else {
+                // For Dummy and Value inputs, block width is that of the widest row
+                maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
+            }
         }
+
+        // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
+        // internal padding on both sides, plus offset for extruding Output and space for intruding
+        // Input connectors.
+        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) +
+                2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR) + OUTLINE_WIDTH / 2;
 
         // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
         // room for extruding "Next" connector. Also must be at least the base height.
-        int blockHeight = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT);
-        blockWidth += 2 * PADDING + 3 * CONNECTOR_SIZE_PERPENDICULAR;
-
-        setMeasuredDimension(blockWidth, blockHeight);
-        mBlockViewSize.x = blockWidth;
-        mBlockViewSize.y = blockHeight;
-        mWorkspaceParams.setMeasuredDimensions(mBlockViewSize);
-        if (DEBUG) {
-            Log.d(TAG, "Set dimens to " + blockWidth + ", " + blockHeight +
-                    " for " + mInputViews.size() + " rows.");
-        }
-
-        mNextBlockVerticalOffset = blockHeight - CONNECTOR_SIZE_PERPENDICULAR;
+        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT) +
+                OUTLINE_WIDTH;
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        boolean inputsInline = getBlock().getInputsInline();
+
         int xLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-        int xRight = mBlockViewSize.x - PADDING - 2 * CONNECTOR_SIZE_PERPENDICULAR;
+        int xRight = mBlockViewSize.x - PADDING - CONNECTOR_SIZE_PERPENDICULAR - OUTLINE_WIDTH / 2;
         for (int i = 0; i < mInputViews.size(); i++) {
+            int rowLeft = mInputLayoutOrigins.get(i).x;
             int rowTop = mInputLayoutOrigins.get(i).y;
             InputView inputView = mInputViews.get(i);
 
             switch (inputView.getInput().getType()) {
-                case Input.TYPE_VALUE: {
-                    // Value inputs are drawn right-aligned with their input port.
-                    inputView.layout(xRight - inputView.getMeasuredWidth(), rowTop,
-                            xRight, rowTop + inputView.getMeasuredHeight());
+                case Input.TYPE_DUMMY: {
+                    if (inputsInline) {
+                        // Inline dummy inputs are drawn at their position as computed in
+                        // onMeasure().
+                        inputView.layout(rowLeft, rowTop, rowLeft + inputView.getMeasuredWidth(),
+                                rowTop + inputView.getMeasuredHeight());
+                    } else {
+                        // External dummy inputs are drawn left-aligned with the block boundary.
+                        inputView.layout(xLeft, rowTop, xLeft + inputView.getMeasuredWidth(),
+                                rowTop + inputView.getMeasuredHeight());
+                    }
                     break;
                 }
+                case Input.TYPE_VALUE: {
+                    if (inputsInline) {
+                        // Inline value inputs are drawn at their position as computed in
+                        // onMeasure().
+                        inputView.layout(rowLeft, rowTop, rowLeft + inputView.getMeasuredWidth(),
+                                rowTop + inputView.getMeasuredHeight());
+                    } else {
+                        // External value inputs are drawn right-aligned with their input port.
+                        inputView.layout(xRight - inputView.getMeasuredWidth(), rowTop,
+                                xRight, rowTop + inputView.getMeasuredHeight());
+                    }
+                    break;
+                }
+                case Input.TYPE_STATEMENT:
                 default: {
-                    // Dummy and statement inputs are left-aligned with the block boundary.
-                    // (Actually, statement inputs are centered, since the width of the rendered
+                    // Statement inputs are always left-aligned with the block boundary.
+                    // Effectively, they are also centered, since the width of the rendered
                     // block is adjusted to match their exact width.)
                     inputView.layout(xLeft, rowTop, xLeft + inputView.getMeasuredWidth(),
                             rowTop + inputView.getMeasuredHeight());
@@ -284,11 +407,11 @@ public class BlockView extends FrameLayout {
     protected void onSizeChanged (int width, int height, int oldw, int oldh) {
         mDrawPath.reset();
 
-        int xLeft = CONNECTOR_SIZE_PERPENDICULAR;
-        int xRight = width - CONNECTOR_SIZE_PERPENDICULAR;
+        int xLeft = mBlockOriginOffset.x;
+        int xRight = width - OUTLINE_WIDTH / 2;
 
-        int yTop = 0;
-        int yBottom = height - CONNECTOR_SIZE_PERPENDICULAR;
+        int yTop = mBlockOriginOffset.y;
+        int yBottom = height - CONNECTOR_SIZE_PERPENDICULAR - OUTLINE_WIDTH / 2;
 
         // Top of the block, including "Previous" connector.
         mDrawPath.moveTo(xLeft, yTop);
@@ -299,25 +422,25 @@ public class BlockView extends FrameLayout {
 
         // Right-hand side of the block, including "Input" connectors.
         // TODO(rohlfingt): draw this on the opposite side in RTL mode.
-        if (!getBlock().getInputsInline()) {
-            for (int i = 0; i < mInputViews.size(); ++i) {
-                InputView inputView = mInputViews.get(i);
-                ViewPoint inputLayoutOrigin = mInputLayoutOrigins.get(i);
-                switch (inputView.getInput().getType()) {
-                    default:
-                    case Input.TYPE_DUMMY: {
-                        break;
-                    }
-                    case Input.TYPE_VALUE: {
+        for (int i = 0; i < mInputViews.size(); ++i) {
+            InputView inputView = mInputViews.get(i);
+            ViewPoint inputLayoutOrigin = mInputLayoutOrigins.get(i);
+            switch (inputView.getInput().getType()) {
+                default:
+                case Input.TYPE_DUMMY: {
+                    break;
+                }
+                case Input.TYPE_VALUE: {
+                    if (!getBlock().getInputsInline()) {
                         addValueInputConnectorToPath(xRight, inputLayoutOrigin.y);
-                        break;
                     }
-                    case Input.TYPE_STATEMENT: {
-                        int xOffset = inputView.getMeasuredWidth() +
-                                2 * PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-                        addStatementInputConnectorToPath(xRight, inputLayoutOrigin.y, xOffset);
-                        break;
-                    }
+                    break;
+                }
+                case Input.TYPE_STATEMENT: {
+                    int xOffset = inputView.getMeasuredWidth() +
+                            2 * PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+                    addStatementInputConnectorToPath(xRight, inputLayoutOrigin.y, xOffset);
+                    break;
                 }
             }
         }

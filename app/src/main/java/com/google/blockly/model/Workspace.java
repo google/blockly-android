@@ -18,6 +18,7 @@ package com.google.blockly.model;
 import android.util.Log;
 
 import com.google.blockly.control.ProcedureManager;
+import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.WorkspaceStats;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -36,10 +37,11 @@ public class Workspace {
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
     private WorkspaceHelper mWorkspaceHelper;
-    private final NameManager mVariableNameManager = new NameManager.VariableNameManager();
+    private NameManager mVariableNameManager = new NameManager.VariableNameManager();
     private final ProcedureManager mProcedureManager = new ProcedureManager();
-
-    private WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager);
+    private ConnectionManager mConnectionManager = new ConnectionManager();
+    private WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
+            mConnectionManager);
 
     public Workspace() {
     }
