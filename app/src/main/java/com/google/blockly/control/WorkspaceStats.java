@@ -90,14 +90,14 @@ public class WorkspaceStats {
         addConnection(block.getOutputConnection(), false);
 
         // Procedures
-        if (mProcedureManager.isProcedureDefinition(block)) {
-            mProcedureManager.addProcedureDefinition(block);
+        if (mProcedureManager.isDefinition(block)) {
+            mProcedureManager.addDefinition(block);
         }
         // TODO (fenichel): Procedure calls will only work when mutations work.
         // The mutation will change the name of the block.  I believe that means name field,
         // not type.
-        if (mProcedureManager.isProcedureReference(block)) {
-            mProcedureManager.addProcedureReference(block);
+        if (mProcedureManager.isReference(block)) {
+            mProcedureManager.addReference(block);
         }
     }
 
@@ -113,49 +113,6 @@ public class WorkspaceStats {
 
     public void removeConnection(Connection conn, boolean recursive) {
         // TODO(fenichel): Implement in next CL.
-    }
-
-    public void removeBlock(Block block) {
-        for (int i = 0; i < block.getInputs().size(); i++) {
-            Input in = block.getInputs().get(i);
-            removeConnection(in.getConnection(), true);
-
-            // Variables and references to them.
-            for (int j = 0; j < in.getFields().size(); j++) {
-                Field field = in.getFields().get(i);
-                if (field.getType() == Field.TYPE_VARIABLE) {
-                    Field.FieldVariable var = (Field.FieldVariable) field;
-                    if (mVariableReferences.containsKey(var.getVariable())) {
-                        mVariableReferences.get(var.getVariable()).add(var);
-                    } else {
-                        List<Field.FieldVariable> references = new ArrayList<>();
-                        references.add(var);
-                        mVariableReferences.put(var.getVariable(), references);
-                    }
-                    mVariableNameManager.addName(var.getVariable());
-                }
-            }
-        }
-
-        removeConnection(block.getNextConnection(), false);
-        // Don't recurse on outputs or previous connections--that's effectively walking back up the
-        // tree.
-        removeConnection(block.getPreviousConnection(), false);
-        removeConnection(block.getOutputConnection(), false);
-
-        // Procedures
-        if (mProcedureManager.isProcedureDefinition(block)) {
-            List<Block> children = mProcedureManager.removeProcedureDefinition(block);
-            for (int i = 0; i < children.size(); i++) {
-                removeBlock(children.get(i));
-            }
-        }
-        // TODO (fenichel): Procedure calls will only work when mutations work.
-        // The mutation will change the name of the block.  I believe that means name field,
-        // not type.
-        if (mProcedureManager.isProcedureReference(block)) {
-            mProcedureManager.removeProcedureReference(block);
-        }
     }
 
     private void addConnection(Connection conn, boolean recursive) {

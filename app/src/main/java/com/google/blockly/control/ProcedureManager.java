@@ -32,20 +32,25 @@ public class ProcedureManager {
     public static final String PROCEDURE_REFERENCE_PREFIX = "procedure_call";
 
     private final SimpleArrayMap<String, List<Block>> mProcedureReferences = new SimpleArrayMap<>();
-    // No procedure will be defined more than once, so just a list.
-    private final List<Block> mProcedureDefinitions = new ArrayList<>();
+    private final SimpleArrayMap<String, Block> mProcedureDefinitions = new SimpleArrayMap<>();
     private final NameManager mProcedureNameManager = new NameManager.ProcedureNameManager();
 
-    public SimpleArrayMap<String, List<Block>> getProcedureReferences() {
-        return mProcedureReferences;
+
+    public List<Block> getReferences(String functionName) {
+        return mProcedureReferences.get(functionName);
     }
 
-    public NameManager getProcedureNameManager() {
-        return mProcedureNameManager;
+    public boolean containsDefinition(Block block) {
+        return mProcedureDefinitions.containsKey(getProcedureName(block));
     }
 
-    public List<Block> getProcedureDefinitions() {
-        return mProcedureDefinitions;
+    /**
+     * @param block The block being referenced.
+     * @return True if the block is referenced one or more times.
+     */
+    public boolean containsReference(Block block) {
+        return (mProcedureReferences.get(getProcedureName(block)) != null
+                && !mProcedureReferences.get(getProcedureName(block)).isEmpty());
     }
 
     public void clear() {
@@ -54,57 +59,102 @@ public class ProcedureManager {
         mProcedureNameManager.clearUsedNames();
     }
 
-    // Procedure references
-    public boolean isProcedureReference(Block block) {
+    public boolean isReference(Block block) {
         return block.getName().startsWith(PROCEDURE_REFERENCE_PREFIX);
     }
 
-    public void addProcedureReference(Block block) {
-        if (mProcedureReferences.containsKey(block.getName())) {
-            mProcedureReferences.get(block.getName()).add(block);
+    /**
+     * Adds a reference to a procedure.
+     *
+     * @param block The reference to add.
+     * @throws IllegalStateException if the referenced procedure has not been defined.
+     */
+    public void addReference(Block block) {
+        String procedureName = getProcedureName(block);
+        if (mProcedureReferences.containsKey(procedureName)) {
+            mProcedureReferences.get(procedureName).add(block);
         } else {
             throw new IllegalStateException(
                     "Tried to add a reference to a procedure that has not been defined.");
         }
     }
-
-    public void removeProcedureReference(Block block) {
-        if (mProcedureReferences.containsKey(block.getName())) {
-            mProcedureReferences.get(block.getName()).remove(block);
+    /**
+     * Removes a reference to a procedure.
+     *
+     * @param block The reference to remove.
+     * @throws IllegalStateException if the referenced procedure has not been defined..
+     */
+    public void removeReference(Block block) {
+        String procedureName = getProcedureName(block);
+        if (mProcedureReferences.containsKey(procedureName)) {
+            mProcedureReferences.get(procedureName).remove(block);
         } else {
             throw new IllegalStateException(
                     "Tried to remove a procedure reference that was not in the list of references");
         }
     }
 
-    // Procedure definitions
-    public boolean isProcedureDefinition(Block block) {
+    public boolean isDefinition(Block block) {
         return block.getName().startsWith(PROCEDURE_DEFINITION_PREFIX);
     }
 
-    public void addProcedureDefinition(Block block) {
-        // TODO (fenichel): Do I need to check for the name being null in other places as well?
-        if (block.getFieldByName("name") != null) {
-            mProcedureDefinitions.add(block);
-            mProcedureReferences.put(block.getName(), new ArrayList<Block>());
-            mProcedureNameManager.addName(
-                    ((Field.FieldInput) block.getFieldByName("name")).getText());
+    /**
+     * Adds a block containing a procedure definition to the managed list.  If a procedure
+     * by that name is already defined, creates a new unique name for the procedure and renames the
+     * block.
+     *
+     * @param block A block containing the definition of the procedure to add.
+     */
+    public void addDefinition(Block block) {
+        String procedureName = getProcedureName(block);
+        if (mProcedureNameManager.contains(procedureName)) {
+            procedureName = mProcedureNameManager.generateUniqueName(procedureName, false);
+            setProcedureName(block, procedureName);
+        }
+        mProcedureDefinitions.put(procedureName, block);
+        mProcedureReferences.put(procedureName, new ArrayList<Block>());
+        mProcedureNameManager.addName(procedureName);
+    }
+
+    /**
+     * Removes the block containing the procedure definition from the manager, and removes all
+     * references as well.  Returns a list of Blocks to recursively delete.
+     *
+     * @param block A block containing the definition of the procedure to remove.
+     * @return A list of Blocks that referred to the procedure defined by block.
+     */
+    public List<Block> removeDefinition(Block block) {
+        String procedureName = getProcedureName(block);
+        if (mProcedureDefinitions.containsKey(procedureName)) {
+            List<Block> retval = mProcedureReferences.get(procedureName);
+            mProcedureReferences.remove(procedureName);
+            // TODO(fenichel): Remove name from procedure name manager.
+            // TODO(fenichel): Decide when to remove the list of procedure references.
+            mProcedureDefinitions.remove(procedureName);
+            return retval;
         } else {
             throw new IllegalStateException(
+                    "Tried to remove an unknown procedure definition");
+        }
+    }
+
+    private String getProcedureName(Block block) {
+        Field nameField = block.getFieldByName("name");
+        if (nameField != null) {
+            return ((Field.FieldInput) nameField).getText();
+        } else {
+            throw new IllegalArgumentException(
                     "Procedure definition block with no procedure name.");
         }
     }
 
-    public List<Block>  removeProcedureDefinition(Block block) {
-        if (mProcedureDefinitions.contains(block)) {
-            //mProcedureReferences.remove(block.getName());
-            // TODO(fenichel): Remove name from procedure name manager.
-            // TODO(fenichel): Decide when to remove the list of procedure references.
-            mProcedureDefinitions.remove(block);
-            return mProcedureReferences.get(block.getName());
+    private void setProcedureName(Block block, String newName) {
+        Field nameField = block.getFieldByName("name");
+        if (nameField != null) {
+            ((Field.FieldInput) nameField).setText(newName);
         } else {
-            throw new IllegalStateException(
-                    "Tried to remove an unknown procedure definition");
+            throw new IllegalArgumentException(
+                    "Procedure definition block with no procedure name.");
         }
     }
 }

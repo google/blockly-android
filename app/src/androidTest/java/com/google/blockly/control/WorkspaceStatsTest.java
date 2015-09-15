@@ -15,7 +15,7 @@
 
 package com.google.blockly.control;
 
-import android.test.AndroidTestCase;
+import android.test.InstrumentationTestCase;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
@@ -23,27 +23,27 @@ import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.NameManager;
 
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link WorkspaceStats}
  */
-public class WorkspaceStatsTest extends AndroidTestCase {
+public class WorkspaceStatsTest extends InstrumentationTestCase {
     private WorkspaceStats stats;
     private Input fieldInput;
     private Input variableFieldsInput;
     private ConnectionManager connectionManager;
-
-    //@Mock
-    ProcedureManager mockProcedureManager = mock(ProcedureManager.class);
+    private ProcedureManager mockProcedureManager;
 
     @Override
     public void setUp() throws Exception {
+        System.setProperty(
+                "dexmaker.dexcache",
+                getInstrumentation().getTargetContext().getCacheDir().getPath());
+        mockProcedureManager = mock(ProcedureManager.class);
         fieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         Field field = new Field.FieldInput("name", "nameid");
         field.setFromXmlText("new procedure");
@@ -59,43 +59,30 @@ public class WorkspaceStatsTest extends AndroidTestCase {
 
         connectionManager = new ConnectionManager();
         stats = new WorkspaceStats(
-                new NameManager.VariableNameManager(), new NameManager.ProcedureNameManager(),
-                connectionManager);
+                new NameManager.VariableNameManager(), mockProcedureManager, connectionManager);
     }
 
     public void testCollectProcedureStats() {
         Block.Builder blockBuilder = new Block.Builder(
                 ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test", "testid");
-        try {
-            stats.collectStats(blockBuilder.build(), false);
-            fail("Expected an exception when defining a procedure with no name field.");
-        } catch (IllegalStateException expected) {
-            // expected
-        }
-
-//        assertFalse(stats.getProcedureNameManager().contains(
-//                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test"));
-        stats.clear();
         blockBuilder.addInput(fieldInput);
         Block blockUnderTest = blockBuilder.build();
+
+        when(mockProcedureManager.isDefinition(any(Block.class))).thenReturn(true);
         stats.collectStats(blockUnderTest, false);
 
-        verify(mockProcedureManager).addProcedureDefinition(blockUnderTest);
-//        assertTrue(stats.getProcedureNameManager().contains("new procedure"));
-//        assertFalse(stats.getProcedureNameManager().contains(
-//                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test"));
+        verify(mockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
         blockBuilder = new Block.Builder(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test", "ref");
+        blockBuilder.addInput(fieldInput);
         Block procedureReference = blockBuilder.build();
+
+        when(mockProcedureManager.isReference(any(Block.class))).thenReturn(true);
+        when(mockProcedureManager.isDefinition(any(Block.class))).thenReturn(false);
+
         stats.collectStats(procedureReference, false);
-        //assertEquals(1, stats.getProcedureReferences().size());
-        verify(mockProcedureManager).addProcedureReference(procedureReference);
-
-        // TODO(fenichel): Make mutations work so that this works.
-
-        //assertEquals(procedureReference,
-        //        stats.getProcedureReferences().get("new procedure").get(0));
+        verify(mockProcedureManager).addReference(procedureReference);
     }
 
     public void testCollectVariableStats() {
