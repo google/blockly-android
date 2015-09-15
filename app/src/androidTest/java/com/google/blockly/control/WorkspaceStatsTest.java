@@ -68,9 +68,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         blockBuilder.addInput(mFieldInput);
         Block blockUnderTest = blockBuilder.build();
 
-        when(mMockProcedureManager.isDefinition(any(Block.class))).thenReturn(true);
         mStats.collectStats(blockUnderTest, false);
-
         verify(mMockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
@@ -78,9 +76,6 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
                 "ref");
         blockBuilder.addInput(mFieldInput);
         Block procedureReference = blockBuilder.build();
-
-        when(mMockProcedureManager.isReference(any(Block.class))).thenReturn(true);
-        when(mMockProcedureManager.isDefinition(any(Block.class))).thenReturn(false);
 
         mStats.collectStats(procedureReference, false);
         verify(mMockProcedureManager).addReference(procedureReference);

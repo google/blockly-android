@@ -81,7 +81,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
         mProcedureManager.addDefinition(mProcedureDefinition);
 
         mProcedureManager.addReference(mProcedureReference);
-        assertTrue(mProcedureManager.hasReference(mProcedureDefinition));
+        assertTrue(mProcedureManager.hasReferences(mProcedureDefinition));
     }
 
     // Remove definition should also remove all references.
@@ -91,8 +91,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
 
         mProcedureManager.removeDefinition(mProcedureDefinition);
         assertFalse(mProcedureManager.containsDefinition(mProcedureDefinition));
-        assertFalse(mProcedureManager.hasReference(mProcedureDefinition));
-
+        assertFalse(mProcedureManager.hasReferences(mProcedureDefinition));
 
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
@@ -103,7 +102,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
         assertEquals(mProcedureReference, references.get(0));
 
         assertFalse(mProcedureManager.containsDefinition(mProcedureDefinition));
-        assertFalse(mProcedureManager.hasReference(mProcedureDefinition));
+        assertFalse(mProcedureManager.hasReferences(mProcedureDefinition));
     }
 
     public void testRemoveProcedureReference() {
@@ -111,7 +110,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
         mProcedureManager.addReference(mProcedureReference);
 
         mProcedureManager.removeReference(mProcedureReference);
-        assertFalse(mProcedureManager.hasReference(mProcedureReference));
+        assertFalse(mProcedureManager.hasReferences(mProcedureReference));
     }
 
     public void testMissingNames() {
@@ -140,7 +139,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
 
         try {
             mProcedureManager.removeDefinition(mProcedureDefinition);
-            fail("Expected an exception when removing a block with no definition");
+            fail("Expected an exception when removing a block with no definition.");
         } catch (IllegalStateException expected) {
             // expected
         }
@@ -150,7 +149,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
     public void testNoReference() {
         try {
             mProcedureManager.removeReference(mProcedureReference);
-            fail("Expected an exception when removing a nonexistent procedure reference");
+            fail("Expected an exception when removing a nonexistent procedure reference.");
         } catch (IllegalStateException expected) {
             // expected
         }

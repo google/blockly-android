@@ -48,7 +48,7 @@ public class ProcedureManager {
      * @param block The block being referenced.
      * @return True if the block is referenced one or more times.
      */
-    public boolean hasReference(Block block) {
+    public boolean hasReferences(Block block) {
         return (mProcedureReferences.get(getProcedureName(block)) != null
                 && !mProcedureReferences.get(getProcedureName(block)).isEmpty());
     }
@@ -59,7 +59,7 @@ public class ProcedureManager {
         mProcedureNameManager.clearUsedNames();
     }
 
-    public boolean isReference(Block block) {
+    public static boolean isReference(Block block) {
         return block.getName().startsWith(PROCEDURE_REFERENCE_PREFIX);
     }
 
@@ -94,7 +94,7 @@ public class ProcedureManager {
         }
     }
 
-    public boolean isDefinition(Block block) {
+    public static boolean isDefinition(Block block) {
         return block.getName().startsWith(PROCEDURE_DEFINITION_PREFIX);
     }
 
@@ -140,7 +140,7 @@ public class ProcedureManager {
         }
     }
 
-    private String getProcedureName(Block block) {
+    private static String getProcedureName(Block block) {
         Field nameField = block.getFieldByName("name");
         if (nameField != null) {
             return ((Field.FieldInput) nameField).getText();
@@ -150,7 +150,7 @@ public class ProcedureManager {
         }
     }
 
-    private void setProcedureName(Block block, String newName) {
+    private static void setProcedureName(Block block, String newName) {
         Field nameField = block.getFieldByName("name");
         if (nameField != null) {
             ((Field.FieldInput) nameField).setText(newName);
