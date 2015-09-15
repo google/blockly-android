@@ -29,87 +29,88 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link WorkspaceStats}
+ * Tests for {@link WorkspaceStats}.
  */
 public class WorkspaceStatsTest extends InstrumentationTestCase {
-    private WorkspaceStats stats;
-    private Input fieldInput;
-    private Input variableFieldsInput;
-    private ConnectionManager connectionManager;
-    private ProcedureManager mockProcedureManager;
+    private WorkspaceStats mStats;
+    private Input mFieldInput;
+    private Input mVariableFieldsInput;
+    private ConnectionManager mConnectionManager;
+    private ProcedureManager mMockProcedureManager;
 
     @Override
     public void setUp() throws Exception {
         System.setProperty(
                 "dexmaker.dexcache",
                 getInstrumentation().getTargetContext().getCacheDir().getPath());
-        mockProcedureManager = mock(ProcedureManager.class);
-        fieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
+        mMockProcedureManager = mock(ProcedureManager.class);
+        mFieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         Field field = new Field.FieldInput("name", "nameid");
         field.setFromXmlText("new procedure");
-        fieldInput.add(field);
+        mFieldInput.add(field);
 
-        variableFieldsInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
+        mVariableFieldsInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         field = new Field.FieldVariable("field name", "nameid");
         field.setFromXmlText("variable name");
-        variableFieldsInput.add(field);
+        mVariableFieldsInput.add(field);
         field = new Field.FieldVariable("field name 2", "nameid2");
         field.setFromXmlText("variable name");
-        variableFieldsInput.add(field);
+        mVariableFieldsInput.add(field);
 
-        connectionManager = new ConnectionManager();
-        stats = new WorkspaceStats(
-                new NameManager.VariableNameManager(), mockProcedureManager, connectionManager);
+        mConnectionManager = new ConnectionManager();
+        mStats = new WorkspaceStats(
+                new NameManager.VariableNameManager(), mMockProcedureManager, mConnectionManager);
     }
 
     public void testCollectProcedureStats() {
         Block.Builder blockBuilder = new Block.Builder(
                 ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test", "testid");
-        blockBuilder.addInput(fieldInput);
+        blockBuilder.addInput(mFieldInput);
         Block blockUnderTest = blockBuilder.build();
 
-        when(mockProcedureManager.isDefinition(any(Block.class))).thenReturn(true);
-        stats.collectStats(blockUnderTest, false);
+        when(mMockProcedureManager.isDefinition(any(Block.class))).thenReturn(true);
+        mStats.collectStats(blockUnderTest, false);
 
-        verify(mockProcedureManager).addDefinition(blockUnderTest);
+        verify(mMockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
-        blockBuilder = new Block.Builder(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test", "ref");
-        blockBuilder.addInput(fieldInput);
+        blockBuilder = new Block.Builder(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test",
+                "ref");
+        blockBuilder.addInput(mFieldInput);
         Block procedureReference = blockBuilder.build();
 
-        when(mockProcedureManager.isReference(any(Block.class))).thenReturn(true);
-        when(mockProcedureManager.isDefinition(any(Block.class))).thenReturn(false);
+        when(mMockProcedureManager.isReference(any(Block.class))).thenReturn(true);
+        when(mMockProcedureManager.isDefinition(any(Block.class))).thenReturn(false);
 
-        stats.collectStats(procedureReference, false);
-        verify(mockProcedureManager).addReference(procedureReference);
+        mStats.collectStats(procedureReference, false);
+        verify(mMockProcedureManager).addReference(procedureReference);
     }
 
     public void testCollectVariableStats() {
         Block.Builder blockBuilder = new Block.Builder("test", "testid");
 
-        blockBuilder.addInput(variableFieldsInput);
+        blockBuilder.addInput(mVariableFieldsInput);
         Block variableReference = blockBuilder.build();
-        stats.collectStats(variableReference, false);
+        mStats.collectStats(variableReference, false);
 
-        assertTrue(stats.getVariableNameManager().contains("variable name"));
-        assertFalse(stats.getVariableNameManager().contains("field name"));
+        assertTrue(mStats.getVariableNameManager().contains("variable name"));
+        assertFalse(mStats.getVariableNameManager().contains("field name"));
 
-        assertEquals(1, stats.getVariableReferences().size());
-        assertEquals(2, stats.getVariableReferences().get("variable name").size());
+        assertEquals(1, mStats.getVariableReferences().size());
+        assertEquals(2, mStats.getVariableReferences().get("variable name").size());
         assertEquals(variableReference.getFieldByName("field name"),
-                stats.getVariableReferences().get("variable name").get(0));
+                mStats.getVariableReferences().get("variable name").get(0));
     }
 
     public void testCollectConnectionStatsRecursive() {
         // Make sure we're only recursing on next and input connections, not output or previous.
         Block.Builder blockBuilder = new Block.Builder("first block", "testid");
-        blockBuilder.addInput(variableFieldsInput);
+        blockBuilder.addInput(mVariableFieldsInput);
         blockBuilder.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
         Block firstBlock = blockBuilder.build();
 
         blockBuilder = new Block.Builder("second block", "testid");
-        blockBuilder.addInput(fieldInput);
+        blockBuilder.addInput(mFieldInput);
         blockBuilder.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
         blockBuilder.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
 
@@ -128,14 +129,14 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         Block thirdBlock = blockBuilder.build();
         thirdBlock.getPreviousConnection().connect(secondBlock.getNextConnection());
 
-        stats.collectStats(secondBlock, true);
-        assertTrue(stats.getVariableNameManager().contains("third block variable name"));
-        assertFalse(stats.getVariableNameManager().contains("variable name"));
-        assertTrue(connectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty());
-        assertTrue(connectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty());
+        mStats.collectStats(secondBlock, true);
+        assertTrue(mStats.getVariableNameManager().contains("third block variable name"));
+        assertFalse(mStats.getVariableNameManager().contains("variable name"));
+        assertTrue(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty());
+        assertTrue(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty());
         assertEquals(2,
-                connectionManager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).size());
-        assertEquals(1, connectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size());
+                mConnectionManager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).size());
+        assertEquals(1, mConnectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size());
     }
 
     public void testRemoveConnection() {

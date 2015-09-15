@@ -48,7 +48,7 @@ public class ProcedureManager {
      * @param block The block being referenced.
      * @return True if the block is referenced one or more times.
      */
-    public boolean containsReference(Block block) {
+    public boolean hasReference(Block block) {
         return (mProcedureReferences.get(getProcedureName(block)) != null
                 && !mProcedureReferences.get(getProcedureName(block)).isEmpty());
     }
@@ -107,6 +107,9 @@ public class ProcedureManager {
      */
     public void addDefinition(Block block) {
         String procedureName = getProcedureName(block);
+        if (mProcedureDefinitions.get(procedureName) == block) {
+            throw new IllegalStateException("Tried to add the same block definition twice");
+        }
         if (mProcedureNameManager.contains(procedureName)) {
             procedureName = mProcedureNameManager.generateUniqueName(procedureName, false);
             setProcedureName(block, procedureName);

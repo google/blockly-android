@@ -102,7 +102,8 @@ public class WorkspaceStats {
     }
 
     /**
-     * Clear all of the internal state of this object.
+     * Clear state about variables, procedures, and connections.
+     * These changes will be reflected in the externally owned connection and procedure manager.
      */
     public void clear() {
         mVariableReferences.clear();

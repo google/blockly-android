@@ -24,93 +24,106 @@ import com.google.blockly.model.Input;
 import java.util.List;
 
 /**
- * Tests for {@link ProcedureManager}
+ * Tests for {@link ProcedureManager}.
  */
 public class ProcedureManagerTest extends AndroidTestCase {
-    private ProcedureManager procedureManager;
-    private final String PROCEDURE_NAME = "procedure name";
-    private final Field nameField = new Field.FieldInput("name", PROCEDURE_NAME);
+    private static final String PROCEDURE_NAME = "procedure name";
 
-    private Block procedureDefinition;
-    private Block procedureReference;
+    private ProcedureManager mProcedureManager;
+    private Block mProcedureDefinition;
+    private Block mProcedureReference;
 
     @Override
     public void setUp() throws Exception {
-        procedureManager = new ProcedureManager();
+        mProcedureManager = new ProcedureManager();
 
         Input nameInput = new Input.InputDummy("dummyName", Input.ALIGN_CENTER);
+        Field nameField = new Field.FieldInput("name", PROCEDURE_NAME);
         nameInput.add(nameField);
-        procedureDefinition = new Block.Builder(
+        mProcedureDefinition = new Block.Builder(
                 ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test", "testid")
                 .addInput(nameInput)
                 .build();
-        procedureReference = new Block.Builder(
+        mProcedureReference = new Block.Builder(
                 ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test", "testid")
                 .addInput(nameInput)
                 .build();
     }
 
     public void testAddProcedureDefinition() {
-        procedureManager.addDefinition(procedureDefinition);
-        assertTrue(procedureManager.containsDefinition(procedureDefinition));
-        assertNotNull(procedureManager.getReferences(PROCEDURE_NAME));
-        assertEquals(0, procedureManager.getReferences(PROCEDURE_NAME).size());
+        mProcedureManager.addDefinition(mProcedureDefinition);
+        assertTrue(mProcedureManager.containsDefinition(mProcedureDefinition));
+        assertNotNull(mProcedureManager.getReferences(PROCEDURE_NAME));
+        assertEquals(0, mProcedureManager.getReferences(PROCEDURE_NAME).size());
     }
 
     public void testAddProcedureDefinitionTwice() {
-        procedureManager.addDefinition(procedureDefinition);
-        procedureManager.addDefinition(procedureDefinition);
+        mProcedureManager.addDefinition(mProcedureDefinition);
 
+        try {
+            mProcedureManager.addDefinition(mProcedureDefinition);
+            fail("Adding the same block twice should be an error");
+        } catch (IllegalStateException expected) {
+            // expected
+        }
+
+        // Adding two block definitions with the same name should change the name of the new
+        // block.
+        Block secondProcedureDefinition = (new Block.Builder(mProcedureDefinition)).build();
+
+        mProcedureManager.addDefinition(secondProcedureDefinition);
         assertFalse(PROCEDURE_NAME.equalsIgnoreCase(
-                ((Field.FieldInput) procedureDefinition.getFieldByName("name")).getText()));
+                ((Field.FieldInput) secondProcedureDefinition.getFieldByName("name"))
+                        .getText()));
     }
 
     public void testAddProcedureReference() {
-        procedureManager.addDefinition(procedureDefinition);
+        mProcedureManager.addDefinition(mProcedureDefinition);
 
-        procedureManager.addReference(procedureReference);
-        assertTrue(procedureManager.containsReference(procedureDefinition));
+        mProcedureManager.addReference(mProcedureReference);
+        assertTrue(mProcedureManager.hasReference(mProcedureDefinition));
     }
 
     // Remove definition should also remove all references.
     public void testRemoveProcedureDefinition() {
-        procedureManager.addDefinition(procedureDefinition);
-        assertTrue(procedureManager.containsDefinition(procedureDefinition));
+        mProcedureManager.addDefinition(mProcedureDefinition);
+        assertTrue(mProcedureManager.containsDefinition(mProcedureDefinition));
 
-        procedureManager.removeDefinition(procedureDefinition);
-        assertFalse(procedureManager.containsDefinition(procedureDefinition));
-        assertFalse(procedureManager.containsReference(procedureDefinition));
+        mProcedureManager.removeDefinition(mProcedureDefinition);
+        assertFalse(mProcedureManager.containsDefinition(mProcedureDefinition));
+        assertFalse(mProcedureManager.hasReference(mProcedureDefinition));
 
 
-        procedureManager.addDefinition(procedureDefinition);
-        procedureManager.addReference(procedureReference);
+        mProcedureManager.addDefinition(mProcedureDefinition);
+        mProcedureManager.addReference(mProcedureReference);
         List<Block> references =
-                procedureManager.removeDefinition(procedureDefinition);
+                mProcedureManager.removeDefinition(mProcedureDefinition);
         assertNotNull(references);
         assertEquals(1, references.size());
-        assertEquals(procedureReference, references.get(0));
+        assertEquals(mProcedureReference, references.get(0));
 
-        assertFalse(procedureManager.containsDefinition(procedureDefinition));
-        assertFalse(procedureManager.containsReference(procedureDefinition));
+        assertFalse(mProcedureManager.containsDefinition(mProcedureDefinition));
+        assertFalse(mProcedureManager.hasReference(mProcedureDefinition));
     }
 
     public void testRemoveProcedureReference() {
-        procedureManager.addDefinition(procedureDefinition);
-        procedureManager.addReference(procedureReference);
+        mProcedureManager.addDefinition(mProcedureDefinition);
+        mProcedureManager.addReference(mProcedureReference);
 
-        procedureManager.removeReference(procedureReference);
+        mProcedureManager.removeReference(mProcedureReference);
+        assertFalse(mProcedureManager.hasReference(mProcedureReference));
     }
 
     public void testMissingNames() {
-        procedureDefinition = new Block.Builder(
+        mProcedureDefinition = new Block.Builder(
                 ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test", "testid")
                 .build();
-        procedureReference = new Block.Builder(
+        mProcedureReference = new Block.Builder(
                 ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test", "testid")
                 .build();
 
         try {
-            procedureManager.addDefinition(procedureDefinition);
+            mProcedureManager.addDefinition(mProcedureDefinition);
             fail("Expected an exception when defining a procedure with no name field.");
         } catch (IllegalArgumentException expected) {
             // expected
@@ -119,14 +132,14 @@ public class ProcedureManagerTest extends AndroidTestCase {
 
     public void testNoDefinition() {
         try {
-            procedureManager.addReference(procedureReference);
+            mProcedureManager.addReference(mProcedureReference);
             fail("Expected an exception when referencing a procedure with no definition.");
         } catch (IllegalStateException expected) {
             // expected
         }
 
         try {
-            procedureManager.removeDefinition(procedureDefinition);
+            mProcedureManager.removeDefinition(mProcedureDefinition);
             fail("Expected an exception when removing a block with no definition");
         } catch (IllegalStateException expected) {
             // expected
@@ -136,7 +149,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
 
     public void testNoReference() {
         try {
-            procedureManager.removeReference(procedureReference);
+            mProcedureManager.removeReference(mProcedureReference);
             fail("Expected an exception when removing a nonexistent procedure reference");
         } catch (IllegalStateException expected) {
             // expected

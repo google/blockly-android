@@ -20,7 +20,7 @@ import android.test.AndroidTestCase;
 import static android.test.MoreAsserts.assertNotEqual;
 
 /**
- * Tests for {@link NameManager}
+ * Tests for {@link NameManager}.
  */
 public class NameManagerTest extends AndroidTestCase {
     private NameManager mNameManager;
@@ -84,5 +84,7 @@ public class NameManagerTest extends AndroidTestCase {
         assertTrue(mNameManager.contains("FOO"));
         mNameManager.remove("Foo");
         assertFalse(mNameManager.contains("foo"));
+        // Remove something that wasn't there; expect no problems.
+        mNameManager.remove("foo");
     }
 }
