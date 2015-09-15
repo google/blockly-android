@@ -128,9 +128,8 @@ public class ProcedureManager {
         if (mProcedureDefinitions.containsKey(procedureName)) {
             List<Block> retval = mProcedureReferences.get(procedureName);
             mProcedureReferences.remove(procedureName);
-            // TODO(fenichel): Remove name from procedure name manager.
-            // TODO(fenichel): Decide when to remove the list of procedure references.
             mProcedureDefinitions.remove(procedureName);
+            mProcedureNameManager.remove(procedureName);
             return retval;
         } else {
             throw new IllegalStateException(

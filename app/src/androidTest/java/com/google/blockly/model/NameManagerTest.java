@@ -78,4 +78,11 @@ public class NameManagerTest extends AndroidTestCase {
         nameManager.addName("j2");
         assertEquals("k2", nameManager.generateVariableName(true /* addName */));
     }
+
+    public void testRemove() {
+        mNameManager.addName("foo");
+        assertTrue(mNameManager.contains("FOO"));
+        mNameManager.remove("Foo");
+        assertFalse(mNameManager.contains("foo"));
+    }
 }

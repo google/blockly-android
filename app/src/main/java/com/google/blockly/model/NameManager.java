@@ -102,6 +102,14 @@ public abstract class NameManager {
         mUsedNames.clear();
     }
 
+    /**
+     * Remove a single name from the list of used names.
+     * @param toRemove The name to remove.
+     */
+    public void remove(String toRemove) {
+        mUsedNames.remove(toRemove.toLowerCase());
+    }
+
     public static final class ProcedureNameManager extends NameManager {
 
         @Override
