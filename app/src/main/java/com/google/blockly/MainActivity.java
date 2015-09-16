@@ -16,17 +16,21 @@
 package com.google.blockly;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
@@ -160,6 +164,8 @@ public class MainActivity extends ActionBarActivity
             bg.addView(bv);
 
             wv.addView(bg);
+
+            airstrike(wv, 10);
             return rootView;
         }
 
@@ -169,6 +175,25 @@ public class MainActivity extends ActionBarActivity
             ((MainActivity) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
             mWorkspace = new Workspace();
+        }
+
+        private void airstrike(WorkspaceView wv, int numBlocks) {
+            WorkspaceHelper helper = mWorkspace.getWorkspaceHelper();
+            Block dummyBlock;
+            BlockGroup bg;
+            BlockView bv;
+            for (int i = 0; i < numBlocks; i++) {
+                dummyBlock = makeDummyBlock();
+                int randomX = (int) (Math.random() * 250);
+                int randomY = (int) (Math.random() * 500);
+                dummyBlock.setPosition(randomX, randomY);
+
+                mWorkspace.addRootBlock(dummyBlock);
+                bg = new BlockGroup(getActivity(), helper);
+                bv = helper.obtainBlockView(dummyBlock);
+                bg.addView(bv);
+                wv.addView(bg);
+            }
         }
 
         private Block makeDummyBlock() {
