@@ -421,9 +421,9 @@ public class Block {
         }
         Builder bob = new Builder(name);
 
-        if (json.has("output") && json.has("previousStatement")) {
+        if (json.has("output") && (json.has("previousStatement") || json.has("nextStatement"))) {
             throw new IllegalArgumentException(
-                    "Blocks cannot have both an output and a previous statement");
+                    "Blocks cannot have both an output and a either a previous or next statement");
         }
 
         // Parse any connections that are present.
@@ -760,15 +760,19 @@ public class Block {
         }
 
         public Builder setOutput(Connection outputConnection) {
-            if (this.mPreviousConnection != null) {
+            if (this.mPreviousConnection != null || this.mNextConnection != null) {
                 throw new IllegalStateException(
-                        "block cannot have both \"output\" and \"previous\" connection.");
+                        "block cannot have both output and either previous or next connection.");
             }
             this.mOutputConnection = outputConnection;
             return this;
         }
 
         public Builder setNext(Connection nextConnection) {
+            if (this.mOutputConnection != null) {
+                throw new IllegalStateException(
+                        "block cannot have both next and output connection.");
+            }
             this.mNextConnection = nextConnection;
             return this;
         }
@@ -776,7 +780,7 @@ public class Block {
         public Builder setPrevious(Connection previousConnection) {
             if (this.mOutputConnection != null) {
                 throw new IllegalStateException(
-                        "block cannot have both \"previous\" and \"output\" connection.");
+                        "block cannot have both previous and output connection.");
             }
             this.mPreviousConnection = previousConnection;
             return this;
