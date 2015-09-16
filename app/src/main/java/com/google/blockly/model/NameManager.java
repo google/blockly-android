@@ -38,7 +38,7 @@ public abstract class NameManager {
      * Generates a name that is unique within the scope of the current NameManager, based on the
      * input name.  If the base name was unique, returns it directly.
      *
-     * @param name The name upon which to base the unique name.
+     * @param name    The name upon which to base the unique name.
      * @param addName Whether to add the generated name to the used names list.
      * @return A unique name.
      */
@@ -74,7 +74,7 @@ public abstract class NameManager {
      * legal for variables.
      *
      * @param reservedWords Reserved words in the target language.
-     * @param baseName The name to convert.
+     * @param baseName      The name to convert.
      * @return A legal variable or procedure name in the target language.
      */
     public abstract String generateExternalName(Set<String> reservedWords, String baseName);
@@ -104,6 +104,7 @@ public abstract class NameManager {
 
     /**
      * Remove a single name from the list of used names.
+     *
      * @param toRemove The name to remove.
      */
     public void remove(String toRemove) {

@@ -63,11 +63,11 @@ public class Connection implements Cloneable {
 
 
     private final int mConnectionType;
+    private final String[] mConnectionChecks;
+    private final Point mPosition = new Point();
     private Block mBlock;
     private Input mInput;
-    private String[] mConnectionChecks;
     private Connection mTargetConnection;
-    private Point mPosition = new Point();
 
     public Connection(int type, String[] checks) {
         mConnectionType = type;
@@ -122,20 +122,6 @@ public class Connection implements Cloneable {
     }
 
     /**
-     * Sets the block that this connection is part of.
-     */
-    public void setBlock(Block block) {
-        mBlock = block;
-    }
-
-    /**
-     * Sets the input this connection is part of.
-     */
-    public void setInput(Input input) {
-        mInput = input;
-    }
-
-    /**
      * @return The {@link Block} this is connected to or null if it is not connected.
      */
     public Block getTargetBlock() {
@@ -157,11 +143,12 @@ public class Connection implements Cloneable {
     /**
      * Gets the type of this connection. Valid types are:
      * <ul>
-     *     <li>{@link #CONNECTION_TYPE_PREVIOUS}</li>
-     *     <li>{@link #CONNECTION_TYPE_NEXT}</li>
-     *     <li>{@link #CONNECTION_TYPE_INPUT}</li>
-     *     <li>{@link #CONNECTION_TYPE_OUTPUT}</li>
+     * <li>{@link #CONNECTION_TYPE_PREVIOUS}</li>
+     * <li>{@link #CONNECTION_TYPE_NEXT}</li>
+     * <li>{@link #CONNECTION_TYPE_INPUT}</li>
+     * <li>{@link #CONNECTION_TYPE_OUTPUT}</li>
      * </ul>
+     *
      * @return The type of this connection.
      */
     public int getType() {
@@ -176,10 +163,31 @@ public class Connection implements Cloneable {
     }
 
     /**
+     * Sets the block that this connection is part of.
+     */
+    public void setBlock(Block block) {
+        mBlock = block;
+    }
+
+    /**
      * @return The Input for this connection or null.
      */
     public Input getInput() {
         return mInput;
+    }
+
+    /**
+     * Sets the input this connection is part of.
+     */
+    public void setInput(Input input) {
+        mInput = input;
+    }
+
+    /**
+     * @return The Connection this is connected to.
+     */
+    public Connection getTargetConnection() {
+        return mTargetConnection;
     }
 
     /**
@@ -200,6 +208,13 @@ public class Connection implements Cloneable {
      */
     public Point getPosition() {
         return mPosition;
+    }
+
+    /**
+     * @return True if the target connection is non-null, false otherwise.
+     */
+    public boolean isConnected() {
+        return mTargetConnection != null;
     }
 
     private void connectInternal(Connection target) {

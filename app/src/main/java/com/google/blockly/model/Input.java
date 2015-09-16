@@ -17,7 +17,6 @@ package com.google.blockly.model;
 
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,10 +36,6 @@ import java.util.Set;
  */
 public abstract class Input implements Cloneable {
     private static final String TAG = "Input";
-
-    @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
-    public @interface InputType {}
-
     /**
      * An input that takes a single value. Must have an
      * {@link Connection#CONNECTION_TYPE_INPUT input connection}.
@@ -58,10 +53,6 @@ public abstract class Input implements Cloneable {
      */
     public static final int TYPE_DUMMY = 2;
     public static final String TYPE_DUMMY_STRING = "input_dummy";
-
-    @IntDef({ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER})
-    public @interface Alignment {}
-
     /**
      * This input's fields should be aligned at the left of the block, or the right in a RtL
      * configuration.
@@ -79,11 +70,11 @@ public abstract class Input implements Cloneable {
      */
     public static final int ALIGN_CENTER = 2;
     public static final String ALIGN_CENTER_STRING = "CENTRE";
-
     /**
      * The list of known input types.
      */
     protected static final Set<String> INPUT_TYPES = new HashSet<>();
+
     static {
         INPUT_TYPES.add(TYPE_VALUE_STRING);
         INPUT_TYPES.add(TYPE_STATEMENT_STRING);
@@ -94,16 +85,15 @@ public abstract class Input implements Cloneable {
     private final String mName;
     private final int mType;
     private final Connection mConnection;
-
     private Block mBlock;
     private int mAlign = ALIGN_LEFT;
 
     /**
      * Creates a new input that can be added to a block.
      *
-     * @param name The name of the input. Not for display.
-     * @param type The type of the input (value, statement, or dummy).
-     * @param align The alignment for fields in this input (left, right, center).
+     * @param name       The name of the input. Not for display.
+     * @param type       The type of the input (value, statement, or dummy).
+     * @param align      The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
     public Input(String name, @InputType int type, @Alignment int align, Connection connection) {
@@ -120,10 +110,10 @@ public abstract class Input implements Cloneable {
     /**
      * Creates a new input that can be added to a block.
      *
-     * @param name The name of the input. Not for display.
-     * @param type The type of the input (value, statement, or dummy).
+     * @param name        The name of the input. Not for display.
+     * @param type        The type of the input (value, statement, or dummy).
      * @param alignString The alignment for fields in this input (left, right, center).
-     * @param connection (Optional) The connection for this input, if any..
+     * @param connection  (Optional) The connection for this input, if any..
      */
     public Input(String name, @InputType int type, String alignString, Connection connection) {
         this(name, type, stringToAlignment(alignString), connection);
@@ -220,6 +210,13 @@ public abstract class Input implements Cloneable {
     }
 
     /**
+     * @return The block this input belongs to.
+     */
+    public Block getBlock() {
+        return mBlock;
+    }
+
+    /**
      * Sets the block that is the parent of this input.
      *
      * @param block The block that owns this input.
@@ -232,16 +229,11 @@ public abstract class Input implements Cloneable {
     }
 
     /**
-     * @return The block this input belongs to.
-     */
-    public Block getBlock() {
-        return mBlock;
-    }
-
-    /**
      * @return The name of this input.
      */
-    public String getName() { return mName; }
+    public String getName() {
+        return mName;
+    }
 
     /**
      * @return The input's Connection, or null if it is a dummy input.
@@ -297,7 +289,7 @@ public abstract class Input implements Cloneable {
      * Gets a list of connection checks from JSON. If json does not contain a 'check' field
      * null will be returned instead.
      *
-     * @param json The JSON to extract the connection checks from.
+     * @param json      The JSON to extract the connection checks from.
      * @param checksKey The key for the checks.
      * @return The set of checks or null.
      */
@@ -320,119 +312,9 @@ public abstract class Input implements Cloneable {
                 }
             }
         } else if (checkObj instanceof String) {
-            checks = new String[] {(String) checkObj};
+            checks = new String[]{(String) checkObj};
         }
         return checks;
-    }
-
-    /**
-     * An Input that takes a value. This will add an input connection to a Block.
-     */
-    public static final class InputValue extends Input implements Cloneable {
-
-        public InputValue(String name, String alignString, String[] checks) {
-            super(name, TYPE_VALUE, alignString,
-                    new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
-        }
-
-        public InputValue(String name, @Alignment int align, String[] checks) {
-            super(name, TYPE_VALUE, align,
-                    new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
-        }
-
-        private InputValue(InputValue inv) {
-            super(inv);
-        }
-
-        @Override
-        public InputValue clone() {
-            return new InputValue(this);
-        }
-
-        @Override
-        public void serialize(XmlSerializer serializer) throws IOException {
-            if (getConnection() != null && getConnection().isConnected()) {
-                serializer.startTag(null, "value")
-                        .attribute(null, "name", getName());
-                getConnection().getTargetBlock().serialize(serializer, false);
-                serializer.endTag(null, "value");
-            }
-            super.serialize(serializer);
-        }
-
-        private InputValue(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("align"),
-                    getChecksFromJson(json, "check"));
-        }
-    }
-
-    /**
-     * An input that accepts one or more statement blocks. This will add a wrapped code connection
-     * to a Block.
-     */
-    public static final class InputStatement extends Input implements Cloneable {
-
-        public InputStatement(String name, String alignString, String[] checks) {
-            super(name, TYPE_STATEMENT, alignString,
-                    new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
-        }
-
-        public InputStatement(String name, @Alignment int align, String[] checks) {
-            super(name, TYPE_STATEMENT, align,
-                    new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
-        }
-
-        private InputStatement(InputStatement ins) {
-            super(ins);
-        }
-
-        @Override
-        public InputStatement clone() {
-            return new InputStatement(this);
-        }
-
-        @Override
-        public void serialize(XmlSerializer serializer) throws IOException {
-            if (getConnection() != null && getConnection().isConnected()) {
-                serializer.startTag(null, "statement")
-                        .attribute(null, "name", getName());
-                getConnection().getTargetBlock().serialize(serializer, false);
-                serializer.endTag(null, "statement");
-            }
-            super.serialize(serializer);
-        }
-
-        private InputStatement(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("align"),
-                    getChecksFromJson(json, "check"));
-        }
-    }
-
-    /**
-     * An input that only wraps fields and does not provide its own input connection.
-     */
-    public static final class InputDummy extends Input implements Cloneable {
-
-        public InputDummy(String name, String alignString) {
-            super(name, TYPE_DUMMY, alignString, null);
-        }
-
-        public InputDummy(String name, @Alignment int align) {
-            super(name, TYPE_DUMMY, align, null);
-        }
-
-        private InputDummy(InputDummy ind) {
-            super(ind);
-        }
-
-        @Override
-        public InputDummy clone() {
-            return new InputDummy(this);
-        }
-
-        private InputDummy(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("align"));
-        }
     }
 
     /**
@@ -457,5 +339,123 @@ public abstract class Input implements Cloneable {
             }
         }
         return ALIGN_LEFT;
+    }
+
+    @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
+    public @interface InputType {
+    }
+
+    @IntDef({ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER})
+    public @interface Alignment {
+    }
+
+    /**
+     * An Input that takes a value. This will add an input connection to a Block.
+     */
+    public static final class InputValue extends Input implements Cloneable {
+
+        public InputValue(String name, String alignString, String[] checks) {
+            super(name, TYPE_VALUE, alignString,
+                    new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
+        }
+
+        public InputValue(String name, @Alignment int align, String[] checks) {
+            super(name, TYPE_VALUE, align,
+                    new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
+        }
+
+        private InputValue(InputValue inv) {
+            super(inv);
+        }
+
+        private InputValue(JSONObject json) {
+            this(json.optString("name", "NAME"), json.optString("align"),
+                    getChecksFromJson(json, "check"));
+        }
+
+        @Override
+        public InputValue clone() {
+            return new InputValue(this);
+        }
+
+        @Override
+        public void serialize(XmlSerializer serializer) throws IOException {
+            if (getConnection() != null && getConnection().isConnected()) {
+                serializer.startTag(null, "value")
+                        .attribute(null, "name", getName());
+                getConnection().getTargetBlock().serialize(serializer, false);
+                serializer.endTag(null, "value");
+            }
+            super.serialize(serializer);
+        }
+    }
+
+    /**
+     * An input that accepts one or more statement blocks. This will add a wrapped code connection
+     * to a Block.
+     */
+    public static final class InputStatement extends Input implements Cloneable {
+
+        public InputStatement(String name, String alignString, String[] checks) {
+            super(name, TYPE_STATEMENT, alignString,
+                    new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
+        }
+
+        public InputStatement(String name, @Alignment int align, String[] checks) {
+            super(name, TYPE_STATEMENT, align,
+                    new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
+        }
+
+        private InputStatement(InputStatement ins) {
+            super(ins);
+        }
+
+        private InputStatement(JSONObject json) {
+            this(json.optString("name", "NAME"), json.optString("align"),
+                    getChecksFromJson(json, "check"));
+        }
+
+        @Override
+        public InputStatement clone() {
+            return new InputStatement(this);
+        }
+
+        @Override
+        public void serialize(XmlSerializer serializer) throws IOException {
+            if (getConnection() != null && getConnection().isConnected()) {
+                serializer.startTag(null, "statement")
+                        .attribute(null, "name", getName());
+                getConnection().getTargetBlock().serialize(serializer, false);
+                serializer.endTag(null, "statement");
+            }
+            super.serialize(serializer);
+        }
+    }
+
+    /**
+     * An input that only wraps fields and does not provide its own input connection.
+     */
+    public static final class InputDummy extends Input implements Cloneable {
+
+        public InputDummy(String name, String alignString) {
+            super(name, TYPE_DUMMY, alignString, null);
+        }
+
+        public InputDummy(String name, @Alignment int align) {
+            super(name, TYPE_DUMMY, align, null);
+        }
+
+        private InputDummy(InputDummy ind) {
+            super(ind);
+        }
+
+        private InputDummy(JSONObject json) {
+            this(json.optString("name", "NAME"), json.optString("align"));
+        }
+
+        @Override
+        public InputDummy clone() {
+            return new InputDummy(this);
+        }
     }
 }

@@ -41,16 +41,13 @@ import java.util.List;
  */
 public class InputView extends FrameLayout {
     private static final String TAG = "InputView";
-
-    private final Input mInput;
-    private final WorkspaceHelper mHelper;
-    private final ArrayList<FieldView> mFieldViews = new ArrayList<>();
-
     // The horizontal distance between fields, in dips.
     private static final int DEFAULT_FIELD_SPACING = 10;
     // The minimum height of a input, in dips.
     private static final int BASE_HEIGHT = 80;
-
+    private final Input mInput;
+    private final WorkspaceHelper mHelper;
+    private final ArrayList<FieldView> mFieldViews = new ArrayList<>();
     private int mHorizontalFieldSpacing;
 
     InputView(Context context, int blockStyle, Input input, WorkspaceHelper helper) {
@@ -121,7 +118,7 @@ public class InputView extends FrameLayout {
     /**
      * Initialize style attributes.
      *
-     * @param context Context of this view.
+     * @param context    Context of this view.
      * @param blockStyle The selected block style.
      */
     private void initAttrs(Context context, int blockStyle) {

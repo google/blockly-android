@@ -23,10 +23,8 @@ import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.NameManager;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link WorkspaceStats}.

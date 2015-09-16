@@ -19,23 +19,29 @@ import android.graphics.Point;
 
 /**
  * A point in view coordinates.
- * <p>
+ * <p/>
  * This class primarily serves as a typesafe means of enforcing the use of the correct type of
  * coordinate in a given context, i.e., it prevents accidental use of view coordinates instead
  * of workspace coordinates, and vice versa.
  */
 public class ViewPoint extends Point {
-    /** Delegate default constructor. */
+    /**
+     * Delegate default constructor.
+     */
     public ViewPoint() {
         super();
     }
 
-    /** Create from generic {@link Point}. */
+    /**
+     * Create from generic {@link Point}.
+     */
     public ViewPoint(Point point) {
         super(point);
     }
 
-    /** Create from x, y coordinates. */
+    /**
+     * Create from x, y coordinates.
+     */
     public ViewPoint(int x, int y) {
         super(x, y);
     }

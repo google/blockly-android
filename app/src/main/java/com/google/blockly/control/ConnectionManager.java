@@ -33,16 +33,11 @@ public class ConnectionManager {
 
     // If updating this, also update Connection.java's OPPOSITE_TYPES array.
     // The arrays are indexed by connection type codes (conn.getType()).
-    private final YSortedList[] matchingLists = new YSortedList[] {
-            mPreviousConnections, mNextConnections, mInputConnections, mOutputConnections };
-    private final YSortedList[] oppositeLists = new YSortedList[] {
+    private final YSortedList[] matchingLists = new YSortedList[]{
+            mPreviousConnections, mNextConnections, mInputConnections, mOutputConnections};
+    private final YSortedList[] oppositeLists = new YSortedList[]{
             mNextConnections, mPreviousConnections, mOutputConnections, mInputConnections
     };
-
-    @VisibleForTesting
-    YSortedList getConnections(int connectionType) {
-        return matchingLists[connectionType];
-    }
 
     /**
      * Figure out which list the connection belongs in; insert it.
@@ -55,7 +50,7 @@ public class ConnectionManager {
 
     public void removeConnection(Connection conn) {
         // TODO(fenichel): Remove block statistics as well.
-            matchingLists[conn.getType()].removeConnection(conn);
+        matchingLists[conn.getType()].removeConnection(conn);
     }
 
     public void clear() {
@@ -65,6 +60,10 @@ public class ConnectionManager {
         mNextConnections.clear();
     }
 
+    @VisibleForTesting
+    YSortedList getConnections(int connectionType) {
+        return matchingLists[connectionType];
+    }
 
     /**
      * List of connections ordered by y position.  This is optimized
@@ -73,11 +72,12 @@ public class ConnectionManager {
      * y position.
      */
     @VisibleForTesting
-    class YSortedList{
+    class YSortedList {
         private final List<Connection> mConnections = new ArrayList<>();
 
         /**
          * Insert the given connection into this list.
+         *
          * @param conn The connection to insert.
          */
         public void addConnection(Connection conn) {
@@ -86,6 +86,7 @@ public class ConnectionManager {
 
         /**
          * Remove the given connection from this list.
+         *
          * @param conn The connection to remove.
          */
         public void removeConnection(Connection conn) {
@@ -94,6 +95,7 @@ public class ConnectionManager {
                 mConnections.remove(removalIndex);
             }
         }
+
         public void clear() {
             mConnections.clear();
         }

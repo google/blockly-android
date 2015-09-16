@@ -38,8 +38,8 @@ public class WorkspaceStats {
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
 
-    public WorkspaceStats(NameManager variableManager, NameManager procedureManager,
-                   ConnectionManager connectionManager) {
+    public WorkspaceStats(NameManager variableManager, ProcedureManager procedureManager,
+                          ConnectionManager connectionManager) {
         mVariableNameManager = variableManager;
         mProcedureNameManager = procedureManager;
         mConnectionManager = connectionManager;
@@ -57,7 +57,7 @@ public class WorkspaceStats {
      * Walks through a block and records all Connections, variable references, procedure
      * definitions and procedure calls.
      *
-     * @param block The block to inspect.
+     * @param block     The block to inspect.
      * @param recursive Whether to recursively collect stats for all descendants of the current
      *                  block.
      */

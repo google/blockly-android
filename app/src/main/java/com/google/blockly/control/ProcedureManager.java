@@ -59,10 +59,6 @@ public class ProcedureManager {
         mProcedureNameManager.clearUsedNames();
     }
 
-    public static boolean isReference(Block block) {
-        return block.getName().startsWith(PROCEDURE_REFERENCE_PREFIX);
-    }
-
     /**
      * Adds a reference to a procedure.
      *
@@ -78,6 +74,7 @@ public class ProcedureManager {
                     "Tried to add a reference to a procedure that has not been defined.");
         }
     }
+
     /**
      * Removes a reference to a procedure.
      *
@@ -92,10 +89,6 @@ public class ProcedureManager {
             throw new IllegalStateException(
                     "Tried to remove a procedure reference that was not in the list of references");
         }
-    }
-
-    public static boolean isDefinition(Block block) {
-        return block.getName().startsWith(PROCEDURE_DEFINITION_PREFIX);
     }
 
     /**
@@ -138,6 +131,14 @@ public class ProcedureManager {
             throw new IllegalStateException(
                     "Tried to remove an unknown procedure definition");
         }
+    }
+
+    public static boolean isReference(Block block) {
+        return block.getName().startsWith(PROCEDURE_REFERENCE_PREFIX);
+    }
+
+    public static boolean isDefinition(Block block) {
+        return block.getName().startsWith(PROCEDURE_DEFINITION_PREFIX);
     }
 
     private static String getProcedureName(Block block) {

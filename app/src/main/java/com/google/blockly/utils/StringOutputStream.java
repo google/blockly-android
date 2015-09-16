@@ -22,7 +22,7 @@ import java.io.OutputStream;
  * OutputStream extension that wraps a StringBuffer for use in xml loading and serialization.
  */
 public class StringOutputStream extends OutputStream {
-    private StringBuffer mBuffer = new StringBuffer();
+    private final StringBuffer mBuffer = new StringBuffer();
 
     @Override
     public void write(int i) throws IOException {

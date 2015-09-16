@@ -35,9 +35,9 @@ public class FieldLabelView extends TextView implements FieldView {
     /**
      * Create a view for the given field using the workspace's style.
      *
-     * @param context The context for creating the view and loading resources.
+     * @param context    The context for creating the view and loading resources.
      * @param labelField The label this view is rendering.
-     * @param helper The helper for loading workspace configs and doing calculations.
+     * @param helper     The helper for loading workspace configs and doing calculations.
      */
     public FieldLabelView(Context context, Field labelField, WorkspaceHelper helper) {
         this(context, 0, labelField, helper);
@@ -47,10 +47,10 @@ public class FieldLabelView extends TextView implements FieldView {
      * Create a view for the given field using the specified style. The style must be a resource id
      * for a style that extends {@link R.style#DefaultFieldLabelStyle}.
      *
-     * @param context The context for creating the view and loading resources.
+     * @param context         The context for creating the view and loading resources.
      * @param fieldLabelStyle The resource id for the style to use on this view.
-     * @param labelField The label this view is rendering.
-     * @param helper The helper for loading workspace configs and doing calculations.
+     * @param labelField      The label this view is rendering.
+     * @param helper          The helper for loading workspace configs and doing calculations.
      */
     public FieldLabelView(Context context, int fieldLabelStyle, Field labelField,
                           WorkspaceHelper helper) {
@@ -65,7 +65,7 @@ public class FieldLabelView extends TextView implements FieldView {
         setBackground(null);
         setText(mLabelField.getText());
         labelField.setView(this);
-     }
+    }
 
     @Override
     public int getInBlockHeight() {

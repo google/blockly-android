@@ -35,9 +35,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The base class for Fields in Blockly. A field is the smallest piece of a {@link Block} and is
@@ -45,43 +43,27 @@ import java.util.Set;
  */
 public abstract class Field implements Cloneable {
     private static final String TAG = "Field";
-
-    @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR,
-            TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE})
-    public @interface FieldType {}
-
     public static final int TYPE_UNKNOWN = -1;
-
     public static final int TYPE_LABEL = 0;
-    private static final String TYPE_LABEL_STRING = "field_label";
-
     public static final int TYPE_INPUT = 1;
-    private static final String TYPE_INPUT_STRING = "field_input";
-
     public static final int TYPE_ANGLE = 2;
-    private static final String TYPE_ANGLE_STRING = "field_angle";
-
     public static final int TYPE_CHECKBOX = 3;
-    private static final String TYPE_CHECKBOX_STRING = "field_checkbox";
-
     public static final int TYPE_COLOUR = 4;
-    private static final String TYPE_COLOUR_STRING = "field_colour";
-
     public static final int TYPE_DATE = 5;
-    private static final String TYPE_DATE_STRING = "field_date";
-
     public static final int TYPE_VARIABLE = 6;
-    private static final String TYPE_VARIABLE_STRING = "field_variable";
-
     public static final int TYPE_DROPDOWN = 7;
-    private static final String TYPE_DROPDOWN_STRING = "field_dropdown";
-
     public static final int TYPE_IMAGE = 8;
+    private static final String TYPE_LABEL_STRING = "field_label";
+    private static final String TYPE_INPUT_STRING = "field_input";
+    private static final String TYPE_ANGLE_STRING = "field_angle";
+    private static final String TYPE_CHECKBOX_STRING = "field_checkbox";
+    private static final String TYPE_COLOUR_STRING = "field_colour";
+    private static final String TYPE_DATE_STRING = "field_date";
+    private static final String TYPE_VARIABLE_STRING = "field_variable";
+    private static final String TYPE_DROPDOWN_STRING = "field_dropdown";
     private static final String TYPE_IMAGE_STRING = "field_image";
-
     private final String mName;
     private final int mType;
-
     private FieldView mView;
     private FieldWorkspaceParams mLayoutParams;
 
@@ -111,14 +93,6 @@ public abstract class Field implements Cloneable {
     }
 
     /**
-     * Writes the value of the Field as a string.
-     *
-     * @param serializer The XmlSerializer to write to.
-     * @throws IOException
-     */
-    protected void serializeInner(XmlSerializer serializer) throws IOException {}
-
-    /**
      * Get the name of this field. Names, if they are not null, are expected to be unique within a
      * block but are not guaranteed to be.
      */
@@ -135,17 +109,17 @@ public abstract class Field implements Cloneable {
     }
 
     /**
-     * Sets the view that renders this field.
-     */
-    public void setView(FieldView view) {
-        mView = view;
-    }
-
-    /**
      * @return The view that renders this field.
      */
     public FieldView getView() {
         return mView;
+    }
+
+    /**
+     * Sets the view that renders this field.
+     */
+    public void setView(FieldView view) {
+        mView = view;
     }
 
     /**
@@ -169,11 +143,12 @@ public abstract class Field implements Cloneable {
      * @param text The text value for this field from the XML.
      * @return True if the value was set, false otherwise.
      */
-    public boolean setFromXmlText(String text) { return false; }
+    public boolean setFromXmlText(String text) {
+        return false;
+    }
 
- /**
+    /**
      * Checks if the given type name is a known field type.
-     *
      *
      * @param typeString The type to check.
      * @return true if this is a known field type, false otherwise.
@@ -237,6 +212,58 @@ public abstract class Field implements Cloneable {
     }
 
     /**
+     * Convert string representation of field type to internal integer Id.
+     *
+     * @param typeString The field type string, e.g., TYPE_LABEL_STRING ("field_label").
+     * @return The integer Id representing the given field type string, or {@code #TYPE_UNKNOWN} if
+     * the string does not represent a valid type.
+     * @throws IllegalArgumentException If the string is null.
+     */
+    @FieldType
+    private static int stringToFieldType(String typeString) {
+        if (typeString == null) {
+            throw new IllegalArgumentException("type may not be null");
+        }
+
+        switch (typeString) {
+            case TYPE_LABEL_STRING:
+                return TYPE_LABEL;
+            case TYPE_INPUT_STRING:
+                return TYPE_INPUT;
+            case TYPE_ANGLE_STRING:
+                return TYPE_ANGLE;
+            case TYPE_CHECKBOX_STRING:
+                return TYPE_CHECKBOX;
+            case TYPE_COLOUR_STRING:
+                return TYPE_COLOUR;
+            case TYPE_DATE_STRING:
+                return TYPE_DATE;
+            case TYPE_VARIABLE_STRING:
+                return TYPE_VARIABLE;
+            case TYPE_DROPDOWN_STRING:
+                return TYPE_DROPDOWN;
+            case TYPE_IMAGE_STRING:
+                return TYPE_IMAGE;
+            default:
+                return TYPE_UNKNOWN;
+        }
+    }
+
+    /**
+     * Writes the value of the Field as a string.
+     *
+     * @param serializer The XmlSerializer to write to.
+     * @throws IOException
+     */
+    protected void serializeInner(XmlSerializer serializer) throws IOException {
+    }
+
+    @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR,
+            TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE})
+    public @interface FieldType {
+    }
+
+    /**
      * Adds a text to an Input. This can be used to add text to the block or label
      * another field. The text is not modifiable by the user.
      */
@@ -248,13 +275,13 @@ public abstract class Field implements Cloneable {
             mText = text == null ? "" : text;
         }
 
+        private FieldLabel(JSONObject json) {
+            this(json.optString("name", null), json.optString("text", ""));
+        }
+
         @Override
         public FieldLabel clone() throws CloneNotSupportedException {
             return (FieldLabel) super.clone();
-        }
-
-        private FieldLabel(JSONObject json) {
-            this(json.optString("name", null), json.optString("text", ""));
         }
 
         /**
@@ -276,25 +303,20 @@ public abstract class Field implements Cloneable {
             mText = text;
         }
 
+        private FieldInput(JSONObject json) {
+            this(json.optString("name", "NAME"), json.optString("text", "default"));
+            // TODO: consider replacing default text with string resource
+        }
+
         @Override
         public FieldInput clone() throws CloneNotSupportedException {
             return (FieldInput) super.clone();
         }
 
         @Override
-        protected void serializeInner(XmlSerializer serializer) throws IOException {
-            serializer.text(mText == null ? "" : mText);
-        }
-
-        @Override
         public boolean setFromXmlText(String text) {
             setText(text);
             return true;
-        }
-
-        private FieldInput(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("text", "default"));
-            // TODO: consider replacing default text with string resource
         }
 
         /**
@@ -312,6 +334,11 @@ public abstract class Field implements Cloneable {
         public void setText(String text) {
             mText = text;
         }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(mText == null ? "" : mText);
+        }
     }
 
     /**
@@ -325,14 +352,13 @@ public abstract class Field implements Cloneable {
             setAngle(angle);
         }
 
-        @Override
-        public FieldAngle clone() throws CloneNotSupportedException {
-            return (FieldAngle) super.clone();
+        private FieldAngle(JSONObject json) {
+            this(json.optString("name", "NAME"), json.optInt("angle", 90));
         }
 
         @Override
-        protected void serializeInner(XmlSerializer serializer) throws IOException {
-            serializer.text(Integer.toString(mAngle));
+        public FieldAngle clone() throws CloneNotSupportedException {
+            return (FieldAngle) super.clone();
         }
 
         @Override
@@ -343,10 +369,6 @@ public abstract class Field implements Cloneable {
                 return false;
             }
             return true;
-        }
-
-        private FieldAngle(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optInt("angle", 90));
         }
 
         /**
@@ -373,6 +395,11 @@ public abstract class Field implements Cloneable {
                 mAngle = angle;
             }
         }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(Integer.toString(mAngle));
+        }
     }
 
     /**
@@ -386,24 +413,19 @@ public abstract class Field implements Cloneable {
             mChecked = checked;
         }
 
+        private FieldCheckbox(JSONObject json) {
+            this(json.optString("name", "NAME"), json.optBoolean("checked", true));
+        }
+
         @Override
         public FieldCheckbox clone() throws CloneNotSupportedException {
             return (FieldCheckbox) super.clone();
         }
 
         @Override
-        protected void serializeInner(XmlSerializer serializer) throws IOException {
-            serializer.text(mChecked ? "true" : "false");
-        }
-
-        @Override
         public boolean setFromXmlText(String text) {
             mChecked = Boolean.parseBoolean(text);
             return true;
-        }
-
-        private FieldCheckbox(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optBoolean("checked", true));
         }
 
         /**
@@ -419,6 +441,11 @@ public abstract class Field implements Cloneable {
         public void setChecked(boolean checked) {
             mChecked = checked;
         }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(mChecked ? "true" : "false");
+        }
     }
 
     /**
@@ -432,20 +459,23 @@ public abstract class Field implements Cloneable {
         public FieldColour(String name) {
             this(name, DEFAULT_COLOUR);
         }
+
         public FieldColour(String name, int colour) {
             super(name, TYPE_COLOUR);
             setColour(colour);
         }
 
-        @Override
-        public FieldColour clone() throws CloneNotSupportedException {
-            return (FieldColour) super.clone();
+        private FieldColour(JSONObject json) {
+            this(json.optString("name", "NAME"), DEFAULT_COLOUR);
+            String colourString = json.optString("colour");
+            if (!TextUtils.isEmpty(colourString)) {
+                setColour(Color.parseColor(colourString));
+            }
         }
 
         @Override
-        protected void serializeInner(XmlSerializer serializer) throws IOException {
-            serializer.text(String.format("#%02x%02x%02x",
-                    Color.red(mColour), Color.green(mColour), Color.blue(mColour)));
+        public FieldColour clone() throws CloneNotSupportedException {
+            return (FieldColour) super.clone();
         }
 
         @Override
@@ -456,14 +486,6 @@ public abstract class Field implements Cloneable {
                 return false;
             }
             return true;
-        }
-
-        private FieldColour(JSONObject json) {
-            this(json.optString("name", "NAME"), DEFAULT_COLOUR);
-            String colourString = json.optString("colour");
-            if (!TextUtils.isEmpty(colourString)) {
-                setColour(Color.parseColor(colourString));
-            }
         }
 
         /**
@@ -480,6 +502,12 @@ public abstract class Field implements Cloneable {
          */
         public void setColour(int colour) {
             mColour = 0xFFFFFF & colour;
+        }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(String.format("#%02x%02x%02x",
+                    Color.red(mColour), Color.green(mColour), Color.blue(mColour)));
         }
     }
 
@@ -511,14 +539,13 @@ public abstract class Field implements Cloneable {
             mDate = (Date) input.mDate.clone();
         }
 
-        @Override
-        public FieldDate clone() throws CloneNotSupportedException {
-            return new FieldDate(this);
+        private FieldDate(JSONObject json) {
+            this(json.optString("name", "NAME"), json.optString("date"));
         }
 
         @Override
-        protected void serializeInner(XmlSerializer serializer) throws IOException {
-            serializer.text(DATE_FORMAT.format(mDate));
+        public FieldDate clone() throws CloneNotSupportedException {
+            return new FieldDate(this);
         }
 
         @Override
@@ -534,15 +561,21 @@ public abstract class Field implements Cloneable {
             }
         }
 
-        private FieldDate(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("date"));
-        }
-
         /**
          * @return The date in this field.
          */
         public Date getDate() {
             return mDate;
+        }
+
+        /**
+         * Sets this field to the specified {@link Date}.
+         */
+        public void setDate(Date date) {
+            if (date == null) {
+                throw new IllegalArgumentException("Date may not be null.");
+            }
+            mDate.setTime(date.getTime());
         }
 
         /**
@@ -561,14 +594,9 @@ public abstract class Field implements Cloneable {
             mDate.setTime(millis);
         }
 
-        /**
-         * Sets this field to the specified {@link Date}.
-         */
-        public void setDate(Date date) {
-            if (date == null) {
-                throw new IllegalArgumentException("Date may not be null.");
-            }
-            mDate.setTime(date.getTime());
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(DATE_FORMAT.format(mDate));
         }
     }
 
@@ -583,14 +611,13 @@ public abstract class Field implements Cloneable {
             mVariable = variable;
         }
 
-        @Override
-        public FieldVariable clone() throws CloneNotSupportedException {
-            return (FieldVariable) super.clone();
+        private FieldVariable(JSONObject json) {
+            this(json.optString("name", "NAME"), json.optString("variable", "item"));
         }
 
         @Override
-        protected void serializeInner(XmlSerializer serializer) throws IOException {
-            serializer.text(mVariable);
+        public FieldVariable clone() throws CloneNotSupportedException {
+            return (FieldVariable) super.clone();
         }
 
         @Override
@@ -600,10 +627,6 @@ public abstract class Field implements Cloneable {
             }
             setVariable(text);
             return true;
-        }
-
-        private FieldVariable(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("variable", "item"));
         }
 
         /**
@@ -617,7 +640,14 @@ public abstract class Field implements Cloneable {
          * Sets the variable in this field. All variables are considered global and must be unique.
          * Two variables with the same name will be considered the same variable at generation.
          */
-        public void setVariable(String variable) { mVariable = variable; }
+        public void setVariable(String variable) {
+            mVariable = variable;
+        }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(mVariable);
+        }
     }
 
     /**
@@ -636,24 +666,6 @@ public abstract class Field implements Cloneable {
         public FieldDropdown(String name, SimpleArrayMap<String, String> options) {
             super(name, TYPE_DROPDOWN);
             setOptions(options);
-        }
-
-        @Override
-        public FieldDropdown clone() throws CloneNotSupportedException {
-            FieldDropdown field = (FieldDropdown) super.clone();
-            field.mOptions = new SimpleArrayMap<>(mOptions);
-            return field;
-        }
-
-        @Override
-        protected void serializeInner(XmlSerializer serializer) throws IOException {
-            serializer.text(getSelectedValue());
-        }
-
-        @Override
-        public boolean setFromXmlText(String text) {
-            setSelectedValue(text);
-            return true;
         }
 
         private FieldDropdown(JSONObject json) {
@@ -685,6 +697,19 @@ public abstract class Field implements Cloneable {
             }
         }
 
+        @Override
+        public FieldDropdown clone() throws CloneNotSupportedException {
+            FieldDropdown field = (FieldDropdown) super.clone();
+            field.mOptions = new SimpleArrayMap<>(mOptions);
+            return field;
+        }
+
+        @Override
+        public boolean setFromXmlText(String text) {
+            setSelectedValue(text);
+            return true;
+        }
+
         /**
          * @return The list of options available in this dropdown.
          */
@@ -693,10 +718,49 @@ public abstract class Field implements Cloneable {
         }
 
         /**
+         * Sets the list of options. Each Pair in the list must have a display name as the first
+         * parameter and the value as the second parameter.
+         *
+         * @param options A list of options consisting of pairs of displayName/value.
+         */
+        public void setOptions(SimpleArrayMap<String, String> options) {
+            String previousValue = getSelectedValue();
+            mOptions = new SimpleArrayMap<>(options);
+            setSelectedValue(previousValue);
+        }
+
+        /**
          * @return The value of the currently selected option.
          */
         public String getSelectedValue() {
             return mOptions.size() == 0 ? null : mOptions.valueAt(mCurrentSelection);
+        }
+
+        /**
+         * Update the selection index to the first available option that has the given value. If
+         * there are no options the index will be set to -1. If the value given is empty or does
+         * not exist the index will be set to 0.
+         *
+         * @param value The value of the option to select.
+         */
+        public void setSelectedValue(String value) {
+            if (mOptions.size() == 0) {
+                mCurrentSelection = -1;
+            } else if (TextUtils.isEmpty(value)) {
+                mCurrentSelection = 0;
+            } else {
+                boolean found = false;
+                for (int i = 0; i < mOptions.size(); i++) {
+                    if (TextUtils.equals(value, mOptions.valueAt(i))) {
+                        mCurrentSelection = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    mCurrentSelection = 0;
+                }
+            }
         }
 
         /**
@@ -731,7 +795,7 @@ public abstract class Field implements Cloneable {
          * length.
          *
          * @param displayNames The names to display for the options.
-         * @param values The values for the options.
+         * @param values       The values for the options.
          */
         public void setOptions(String[] displayNames, String[] values) {
             String previousValue = getSelectedValue();
@@ -758,45 +822,6 @@ public abstract class Field implements Cloneable {
         }
 
         /**
-         * Update the selection index to the first available option that has the given value. If
-         * there are no options the index will be set to -1. If the value given is empty or does
-         * not exist the index will be set to 0.
-         *
-         * @param value The value of the option to select.
-         */
-        public void setSelectedValue(String value) {
-            if (mOptions.size() == 0) {
-                mCurrentSelection = -1;
-            } else if (TextUtils.isEmpty(value)) {
-                mCurrentSelection = 0;
-            } else {
-                boolean found = false;
-                for (int i = 0; i < mOptions.size(); i++) {
-                    if (TextUtils.equals(value, mOptions.valueAt(i))) {
-                        mCurrentSelection = i;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    mCurrentSelection = 0;
-                }
-            }
-        }
-
-        /**
-         * Sets the list of options. Each Pair in the list must have a display name as the first
-         * parameter and the value as the second parameter.
-         *
-         * @param options A list of options consisting of pairs of displayName/value.
-         */
-        public void setOptions(SimpleArrayMap<String, String> options) {
-            String previousValue = getSelectedValue();
-            mOptions = new SimpleArrayMap<>(options);
-            setSelectedValue(previousValue);
-        }
-
-        /**
          * @return A list of all of the display names in order.
          */
         public List<String> getDisplayNames() {
@@ -805,6 +830,11 @@ public abstract class Field implements Cloneable {
                 list.add(mOptions.keyAt(i));
             }
             return list;
+        }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            serializer.text(getSelectedValue());
         }
     }
 
@@ -825,16 +855,16 @@ public abstract class Field implements Cloneable {
             mAltText = altText;
         }
 
-        @Override
-        public FieldImage clone() throws CloneNotSupportedException {
-            return (FieldImage) super.clone();
-        }
-
         private FieldImage(JSONObject json) {
             this(json.optString("name"),
                     json.optString("src", "https://www.gstatic.com/codesite/ph/images/star_on.gif"),
                     json.optInt("width", 15), json.optInt("height", 15),
                     json.optString("alt", "*"));
+        }
+
+        @Override
+        public FieldImage clone() throws CloneNotSupportedException {
+            return (FieldImage) super.clone();
         }
 
         /**
@@ -866,61 +896,23 @@ public abstract class Field implements Cloneable {
         }
 
         /**
+         * Sets the alt-text for the image.
+         */
+        public void setAltText(String altText) {
+            mAltText = altText;
+        }
+
+        /**
          * Sets a new image to be shown.
          *
-         * @param src A web address or Blockly reference to the image.
-         * @param width The display width of the image in dips.
+         * @param src    A web address or Blockly reference to the image.
+         * @param width  The display width of the image in dips.
          * @param height The display height of the image in dips.
          */
         public void setImage(String src, int width, int height) {
             mSrc = src;
             mWidth = width;
             mHeight = height;
-        }
-
-        /**
-         * Sets the alt-text for the image.
-         */
-        public void setAltText(String altText) {
-            mAltText = altText;
-        }
-    }
-
-    /**
-     * Convert string representation of field type to internal integer Id.
-     *
-     * @param typeString The field type string, e.g., TYPE_LABEL_STRING ("field_label").
-     * @return The integer Id representing the given field type string, or {@code #TYPE_UNKNOWN} if
-     * the string does not represent a valid type.
-     * @throws IllegalArgumentException If the string is null.
-     */
-    @FieldType
-    private static int stringToFieldType(String typeString) {
-        if (typeString == null) {
-            throw new IllegalArgumentException("type may not be null");
-        }
-
-        switch(typeString) {
-            case TYPE_LABEL_STRING:
-                return TYPE_LABEL;
-            case TYPE_INPUT_STRING:
-                return TYPE_INPUT;
-            case TYPE_ANGLE_STRING:
-                return TYPE_ANGLE;
-            case TYPE_CHECKBOX_STRING:
-                return TYPE_CHECKBOX;
-            case TYPE_COLOUR_STRING:
-                return TYPE_COLOUR;
-            case TYPE_DATE_STRING:
-                return TYPE_DATE;
-            case TYPE_VARIABLE_STRING:
-                return TYPE_VARIABLE;
-            case TYPE_DROPDOWN_STRING:
-                return TYPE_DROPDOWN;
-            case TYPE_IMAGE_STRING:
-                return TYPE_IMAGE;
-            default:
-                return TYPE_UNKNOWN;
         }
     }
 }

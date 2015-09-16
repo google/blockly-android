@@ -55,6 +55,26 @@ public class BlockGroup extends ViewGroup {
         setMeasuredDimension(width, height);
     }
 
+    @Override
+    public void addView(View child, int index, LayoutParams params) {
+        if (!(child instanceof BlockView)) {
+            // There's no guarantees only BlockViews can be added, but this should catch most cases
+            // and serve as a strong warning not to do this.
+            throw new IllegalArgumentException("BlockGroups may only contain BlockViews");
+        }
+        super.addView(child, index, params);
+    }
+
+    /**
+     * @return The workspace position of the top block in this group, or {@code null} if this group
+     * is empty.
+     */
+    public WorkspacePoint getTopBlockPosition() {
+        if (getChildCount() > 0) {
+            return ((BlockView) getChildAt(0)).getBlock().getPosition();
+        }
+        return null;
+    }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -75,26 +95,5 @@ public class BlockGroup extends ViewGroup {
             child.layout(cl, ct, cr, cb);
             y += child.getNextBlockVerticalOffset();
         }
-    }
-
-    @Override
-    public void addView(View child, int index, LayoutParams params) {
-        if (!(child instanceof BlockView)) {
-            // There's no guarantees only BlockViews can be added, but this should catch most cases
-            // and serve as a strong warning not to do this.
-            throw new IllegalArgumentException("BlockGroups may only contain BlockViews");
-        }
-        super.addView(child, index, params);
-    }
-
-    /**
-     * @return The workspace position of the top block in this group, or {@code null} if this group
-     * is empty.
-     */
-    public WorkspacePoint getTopBlockPosition() {
-        if (getChildCount() > 0) {
-            return ((BlockView) getChildAt(0)).getBlock().getPosition();
-        }
-        return null;
     }
 }

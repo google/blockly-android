@@ -36,18 +36,14 @@ public class Workspace {
     private static final BlocklyXmlHelper mXmlHelper = new BlocklyXmlHelper();
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
-    private WorkspaceHelper mWorkspaceHelper;
-    private NameManager mVariableNameManager = new NameManager.VariableNameManager();
     private final ProcedureManager mProcedureManager = new ProcedureManager();
-    private ConnectionManager mConnectionManager = new ConnectionManager();
-    private WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
+    private final NameManager mVariableNameManager = new NameManager.VariableNameManager();
+    private final ConnectionManager mConnectionManager = new ConnectionManager();
+    private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
+    private WorkspaceHelper mWorkspaceHelper;
 
     public Workspace() {
-    }
-
-    public void setWorkspaceHelper(WorkspaceHelper helper) {
-        mWorkspaceHelper = helper;
     }
 
     /**
@@ -96,6 +92,10 @@ public class Workspace {
 
     public WorkspaceHelper getWorkspaceHelper() {
         return mWorkspaceHelper;
+    }
+
+    public void setWorkspaceHelper(WorkspaceHelper helper) {
+        mWorkspaceHelper = helper;
     }
 
     /**

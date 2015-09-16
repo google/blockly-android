@@ -48,13 +48,13 @@ public class Block {
     // These values are immutable once a block is created
     private final String mUuid;
     private final String mName;
-    private int mCategory;
-    private int mColourHue;
-    private Connection mOutputConnection;
-    private Connection mNextConnection;
-    private Connection mPreviousConnection;
-    private ArrayList<Input> mInputList;
-    private int mColour;
+    private final int mCategory;
+    private final int mColourHue;
+    private final Connection mOutputConnection;
+    private final Connection mNextConnection;
+    private final Connection mPreviousConnection;
+    private final ArrayList<Input> mInputList;
+    private final int mColour;
     private boolean mInputsInline;
 
     // These values can be changed after creating the block
@@ -156,19 +156,19 @@ public class Block {
     }
 
     /**
+     * @return The comment on this block.
+     */
+    public String getComment() {
+        return mComment;
+    }
+
+    /**
      * Set the comment on this block.
      *
      * @param comment The text of the comment.
      */
     public void setComment(String comment) {
         mComment = comment;
-    }
-
-    /**
-     * @return The comment on this block.
-     */
-    public String getComment() {
-        return mComment;
     }
 
     /**
@@ -218,22 +218,23 @@ public class Block {
     /**
      * Searches through all of the fields on all of the block's inputs.  Returns the first field
      * with the given name.
+     *
      * @param targetName The name of the field to search for.
      * @return The first Field with that name.
      */
     public Field getFieldByName(String targetName) {
-      Input input;
-      Field field;
-      for (int i = 0; i < mInputList.size(); i++) {
-        input = mInputList.get(i);
-        for (int j = 0; j < input.getFields().size(); j++) {
-          field = input.getFields().get(j);
-          if (field.getName() != null && field.getName().equalsIgnoreCase(targetName)) {
-            return field;
-          }
+        Input input;
+        Field field;
+        for (int i = 0; i < mInputList.size(); i++) {
+            input = mInputList.get(i);
+            for (int j = 0; j < input.getFields().size(); j++) {
+                field = input.getFields().get(j);
+                if (field.getName() != null && field.getName().equalsIgnoreCase(targetName)) {
+                    return field;
+                }
+            }
         }
-      }
-      return null;
+        return null;
     }
 
     /**
@@ -275,13 +276,6 @@ public class Block {
     }
 
     /**
-     * Sets the view that renders this block.
-     */
-    public void setView(BlockView view) {
-        mView = view;
-    }
-
-    /**
      * @return The view that renders this block.
      */
     public BlockView getView() {
@@ -289,10 +283,10 @@ public class Block {
     }
 
     /**
-     * Sets the layout parameters used for drawing this block.
+     * Sets the view that renders this block.
      */
-    public void setLayoutParameters(BlockWorkspaceParams params) {
-        mLayoutParams = params;
+    public void setView(BlockView view) {
+        mView = view;
     }
 
     /**
@@ -303,10 +297,17 @@ public class Block {
     }
 
     /**
+     * Sets the layout parameters used for drawing this block.
+     */
+    public void setLayoutParameters(BlockWorkspaceParams params) {
+        mLayoutParams = params;
+    }
+
+    /**
      * Writes information about the editable parts of the block as XML.
      *
      * @param serializer The XmlSerializer to write to.
-     * @param rootBlock True if the block is a top level block, false otherwise.
+     * @param rootBlock  True if the block is a top level block, false otherwise.
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
@@ -333,6 +334,74 @@ public class Block {
         }
 
         serializer.endTag(null, "block");
+    }
+
+    /**
+     * Breaks a block message up into args and text. The returned Strings should all either
+     * exactly match "^%\\d+$" if they are an arg or else are just text for a label. %[0-9]+ will
+     * always be treated as an argument regardless of where in the string it appears, unless the
+     * % is escaped (eg "Escaped %%5 has no args")
+     *
+     * @param message The message to tokenize.
+     * @return A list of Strings that are either an arg or plain text.
+     */
+    /*package*/
+    static List<String> tokenizeMessage(String message) {
+        ArrayList<String> result = new ArrayList<>();
+        if (TextUtils.isEmpty(message)) {
+            return result;
+        }
+        boolean foundPercent = false;
+        int lastSplit = 0;
+        int lastPercent = -1;
+
+        for (int i = 0, length = message.length(); i < length; i++) {
+            char currChar = message.charAt(i);
+            if (currChar == '%') {
+                if (i + 1 < length) {
+                    char nextChar = message.charAt(i + 1);
+                    if (nextChar == '%' || !Character.isDigit(nextChar)) {
+                        // If we have %% or this is not an arg don't pull it out of the string.
+                        i++;
+                        continue;
+                    }
+                } else {
+                    // Done processing the string. Final % will be included in the last token.
+                    continue;
+                }
+                foundPercent = true;
+                lastPercent = i;
+            } else if (foundPercent) {
+                if (Character.isDigit(currChar)) {
+                    continue;
+                } else {
+                    String potentialText = message.substring(lastSplit, lastPercent).trim();
+                    if (!TextUtils.isEmpty(potentialText)) {
+                        result.add(potentialText);
+                    }
+                    result.add(message.substring(lastPercent, i));
+                    lastSplit = i;
+                    foundPercent = false;
+                }
+            }
+        }
+        if (lastSplit != message.length() - 1) {
+            // We have remaining pieces to split
+            if (lastPercent > lastSplit) {
+                String potentialText = message.substring(lastSplit, lastPercent).trim();
+                if (!TextUtils.isEmpty(potentialText)) {
+                    result.add(potentialText);
+                }
+                result.add(message.substring(lastPercent, message.length()));
+            } else {
+                String potentialText = message.substring(lastSplit, message.length()).trim();
+                if (!TextUtils.isEmpty(potentialText)) {
+                    result.add(potentialText);
+                }
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -380,7 +449,7 @@ public class Block {
 
         ArrayList<Input> inputs = new ArrayList<>();
         ArrayList<Field> fields = new ArrayList<>();
-        for (int i = 0;; i++) {
+        for (int i = 0; ; i++) {
             String messageKey = "message" + i;
             String argsKey = "args" + i;
             String lastDummyAlignKey = "lastDummyAlign" + i;
@@ -476,7 +545,7 @@ public class Block {
     /**
      * Load a block and all of its children from XML.
      *
-     * @param parser An XmlPullParser pointed at the start tag of this block.
+     * @param parser  An XmlPullParser pointed at the start tag of this block.
      * @param factory A BlockFactory that will provide Blocks by name.
      * @return The loaded block.
      * @throws XmlPullParserException
@@ -518,22 +587,18 @@ public class Block {
                 case XmlPullParser.START_TAG:
                     if (tagname.equalsIgnoreCase("block")) {
                         childBlock = fromXml(parser, factory);
-                    }
-                    else if (tagname.equalsIgnoreCase("field")){
+                    } else if (tagname.equalsIgnoreCase("field")) {
                         fieldName = parser.getAttributeValue(null, "name");
-                    }
-                    else if (tagname.equalsIgnoreCase("value")){
+                    } else if (tagname.equalsIgnoreCase("value")) {
                         valueInput = resultBlock.getInputByName(
                                 parser.getAttributeValue(null, "name"));
                         if (valueInput == null) {
                             throw new BlocklyParserException("The value input was null!");
                         }
-                    }
-                    else if (tagname.equalsIgnoreCase("statement")){
+                    } else if (tagname.equalsIgnoreCase("statement")) {
                         statementInput = resultBlock.getInputByName(
                                 parser.getAttributeValue(null, "name"));
-                    }
-                    else if (tagname.equalsIgnoreCase("mutation")){
+                    } else if (tagname.equalsIgnoreCase("mutation")) {
                         // TODO(fenichel): Handle mutations.
                     }
                     break;
@@ -549,8 +614,7 @@ public class Block {
                                     "Created a null block. This should never happen.");
                         }
                         return resultBlock;
-                    }
-                    else if (tagname.equalsIgnoreCase("field")){
+                    } else if (tagname.equalsIgnoreCase("field")) {
                         Field toSet = resultBlock.getFieldByName(fieldName);
                         if (toSet != null) {
                             if (!toSet.setFromXmlText(text)) {
@@ -558,8 +622,7 @@ public class Block {
                                         "Failed to set a field's value from XML.");
                             }
                         }
-                    }
-                    else if (tagname.equalsIgnoreCase("value")) {
+                    } else if (tagname.equalsIgnoreCase("value")) {
                         if (valueInput != null && childBlock != null) {
                             if (valueInput.getConnection() == null
                                     || childBlock.getOutputConnection() == null) {
@@ -572,8 +635,7 @@ public class Block {
                             throw new BlocklyParserException(
                                     "A value input or child block was null.");
                         }
-                    }
-                    else if (tagname.equalsIgnoreCase("statement")) {
+                    } else if (tagname.equalsIgnoreCase("statement")) {
                         if (statementInput != null && childBlock != null) {
                             if (statementInput.getConnection() == null
                                     || childBlock.getPreviousConnection() == null) {
@@ -587,11 +649,9 @@ public class Block {
                             throw new BlocklyParserException(
                                     "A statement input or child block was null.");
                         }
-                    }
-                    else if (tagname.equalsIgnoreCase("comment")){
+                    } else if (tagname.equalsIgnoreCase("comment")) {
                         resultBlock.setComment(text);
-                    }
-                    else if (tagname.equalsIgnoreCase("next")) {
+                    } else if (tagname.equalsIgnoreCase("next")) {
                         if (resultBlock.getNextConnection() == null
                                 || childBlock.getPreviousConnection() == null) {
                             throw new BlocklyParserException("A connection was null.");
@@ -610,74 +670,8 @@ public class Block {
                 "Reached the end of Block.fromXml. This should never happen.");
     }
 
-    /**
-     * Breaks a block message up into args and text. The returned Strings should all either
-     * exactly match "^%\\d+$" if they are an arg or else are just text for a label. %[0-9]+ will
-     * always be treated as an argument regardless of where in the string it appears, unless the
-     * % is escaped (eg "Escaped %%5 has no args")
-     *
-     * @param message The message to tokenize.
-     * @return A list of Strings that are either an arg or plain text.
-     */
-    /*package*/ static List<String> tokenizeMessage(String message) {
-        ArrayList<String> result = new ArrayList<>();
-        if (TextUtils.isEmpty(message)) {
-            return result;
-        }
-        boolean foundPercent = false;
-        int lastSplit = 0;
-        int lastPercent = -1;
-
-        for (int i = 0, length = message.length(); i < length; i++) {
-            char currChar = message.charAt(i);
-            if (currChar == '%') {
-                if (i + 1 < length) {
-                    char nextChar = message.charAt(i + 1);
-                    if (nextChar == '%' || !Character.isDigit(nextChar)) {
-                        // If we have %% or this is not an arg don't pull it out of the string.
-                        i++;
-                        continue;
-                    }
-                } else {
-                    // Done processing the string. Final % will be included in the last token.
-                    continue;
-                }
-                foundPercent = true;
-                lastPercent = i;
-            } else if (foundPercent) {
-                if (Character.isDigit(currChar)) {
-                    continue;
-                } else {
-                    String potentialText = message.substring(lastSplit, lastPercent).trim();
-                    if (!TextUtils.isEmpty(potentialText)) {
-                        result.add(potentialText);
-                    }
-                    result.add(message.substring(lastPercent, i));
-                    lastSplit = i;
-                    foundPercent = false;
-                }
-            }
-        }
-        if (lastSplit != message.length() - 1) {
-            // We have remaining pieces to split
-            if (lastPercent > lastSplit) {
-                String potentialText = message.substring(lastSplit, lastPercent).trim();
-                if (!TextUtils.isEmpty(potentialText)) {
-                    result.add(potentialText);
-                }
-                result.add(message.substring(lastPercent, message.length()));
-            } else {
-                String potentialText = message.substring(lastSplit, message.length()).trim();
-                if (!TextUtils.isEmpty(potentialText)) {
-                    result.add(potentialText);
-                }
-            }
-        }
-
-        return result;
-    }
-
     public static class Builder {
+        private final WorkspacePoint mPosition;
         // These values are immutable once a block is created
         private String mUuid;
         private String mName;
@@ -688,7 +682,6 @@ public class Block {
         private Connection mPreviousConnection;
         private ArrayList<Input> mInputs;
         private boolean mInputsInline;
-
         // These values can be changed after creating the block
         private String mTooltip;
         private String mComment;
@@ -698,7 +691,6 @@ public class Block {
         private boolean mCanEdit;
         private boolean mCollapsed;
         private boolean mDisabled;
-        private WorkspacePoint mPosition;
 
         public Builder(String name) {
             this(name, UUID.randomUUID().toString());
@@ -755,6 +747,7 @@ public class Block {
             mUuid = uuid;
             return this;
         }
+
         public Builder setColour(int hsvColor) {
             hsvColor = Math.min(360, Math.max(0, hsvColor));
             mColourHue = hsvColor;

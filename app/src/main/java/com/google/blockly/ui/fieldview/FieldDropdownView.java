@@ -32,7 +32,7 @@ public class FieldDropdownView extends Spinner implements FieldView {
     private final FieldWorkspaceParams mWorkspaceParams;
 
     public FieldDropdownView(Context context, Field dropdownField,
-                         WorkspaceHelper helper) {
+                             WorkspaceHelper helper) {
         super(context);
 
         mWorkspaceHelper = helper;

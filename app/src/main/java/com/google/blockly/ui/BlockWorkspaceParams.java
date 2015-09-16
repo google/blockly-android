@@ -39,9 +39,9 @@ public class BlockWorkspaceParams {
     final WorkspaceHelper mWorkspaceHelper;
 
     // The position of the rendered block in workspace coordinates
-    private WorkspacePoint mWorkspacePosition = new WorkspacePoint();
+    private final WorkspacePoint mWorkspacePosition = new WorkspacePoint();
     // The bounding box for the rendered block in workspace coordinates
-    private Rect mBounds = new Rect();
+    private final Rect mBounds = new Rect();
     // The width of the rendered block in workspace coordinates
     private int mWidth;
     // The height of the rendered block in workspace coordinates

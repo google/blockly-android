@@ -45,14 +45,12 @@ public class WorkspaceView extends ViewGroup {
     private static final int DESIRED_WIDTH = 2048;
     // Default desired height of the view in pixels.
     private static final int DESIRED_HEIGHT = 4096;
-
+    private final WorkspaceHelper mHelper;
+    private final Paint mPaint;
+    private final int mGridSpacing = DEFAULT_GRID_SPACING;
+    private final boolean mDrawGrid = true;
+    private final ViewPoint mTemp = new ViewPoint();
     private Workspace mWorkspace;
-    private WorkspaceHelper mHelper;
-
-    private Paint mPaint;
-    private int mGridSpacing = DEFAULT_GRID_SPACING;
-    private boolean mDrawGrid = true;
-    private ViewPoint mTemp = new ViewPoint();
 
     public WorkspaceView(Context context) {
         this(context, null);
@@ -68,38 +66,6 @@ public class WorkspaceView extends ViewGroup {
         mPaint.setColor(GRID_COLOR);
         setWillNotDraw(false);
         mHelper = new WorkspaceHelper(context, attrs);
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        mTemp.x = r - l;
-        mTemp.y = b - t;
-        mHelper.setViewSize(mTemp);
-        boolean rtl = mHelper.useRtL();
-        int childCount = getChildCount();
-        int measureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-
-        if (DEBUG) {
-            Log.d(TAG, "Laying out " + childCount + " children");
-        }
-        for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i);
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-            if (child instanceof BlockGroup) {
-                BlockGroup bg = (BlockGroup) child;
-                WorkspacePoint wksPos = bg.getTopBlockPosition();
-                mHelper.workspaceToViewCoordinates(wksPos, mTemp);
-
-                int cl = rtl ? mTemp.x - bg.getMeasuredWidth() : mTemp.x;
-                int cr = rtl ? mTemp.x : mTemp.x + bg.getMeasuredWidth();
-                int ct = mTemp.y;
-                int cb = mTemp.y + bg.getMeasuredHeight();
-                child.layout(cl, ct, cr, cb);
-                Log.d(TAG, "Laid out block group at " + cl + ", " + ct + ", " + cr + ", " + cb);
-            }
-        }
     }
 
     @Override
@@ -178,5 +144,37 @@ public class WorkspaceView extends ViewGroup {
 
     private boolean shouldDrawGrid() {
         return mDrawGrid && mHelper.getScale() > MIN_SCALE_TO_DRAW_GRID && mGridSpacing > 0;
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        mTemp.x = r - l;
+        mTemp.y = b - t;
+        mHelper.setViewSize(mTemp);
+        boolean rtl = mHelper.useRtL();
+        int childCount = getChildCount();
+        int measureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+
+        if (DEBUG) {
+            Log.d(TAG, "Laying out " + childCount + " children");
+        }
+        for (int i = 0; i < childCount; i++) {
+            View child = getChildAt(i);
+            if (child.getVisibility() == GONE) {
+                continue;
+            }
+            if (child instanceof BlockGroup) {
+                BlockGroup bg = (BlockGroup) child;
+                WorkspacePoint wksPos = bg.getTopBlockPosition();
+                mHelper.workspaceToViewCoordinates(wksPos, mTemp);
+
+                int cl = rtl ? mTemp.x - bg.getMeasuredWidth() : mTemp.x;
+                int cr = rtl ? mTemp.x : mTemp.x + bg.getMeasuredWidth();
+                int ct = mTemp.y;
+                int cb = mTemp.y + bg.getMeasuredHeight();
+                child.layout(cl, ct, cr, cb);
+                Log.d(TAG, "Laid out block group at " + cl + ", " + ct + ", " + cr + ", " + cb);
+            }
+        }
     }
 }

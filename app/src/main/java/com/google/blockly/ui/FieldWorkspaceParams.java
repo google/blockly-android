@@ -31,14 +31,13 @@ public class FieldWorkspaceParams {
     private final Field mField;
     private final WorkspaceHelper mWorkspaceHelper;
 
-    private WorkspacePoint mWorkspacePosition = new WorkspacePoint();
-    private Rect mBounds = new Rect();
-    private int mWidth;
-    private int mHeight;
-
+    private final WorkspacePoint mWorkspacePosition = new WorkspacePoint();
+    private final Rect mBounds = new Rect();
     // Helper object for setting mWorkspacePosition in updateFromView(); instantiated at class
     // level to avoid repeated object creation.
-    private ViewPoint mGlobalViewPosition = new ViewPoint();
+    private final ViewPoint mGlobalViewPosition = new ViewPoint();
+    private int mWidth;
+    private int mHeight;
 
     public FieldWorkspaceParams(Field field, WorkspaceHelper workspaceHelper) {
         if (field == null) {
@@ -56,7 +55,7 @@ public class FieldWorkspaceParams {
      * Set the measured dimensions of the block's view in pixels. They will be converted to
      * workspace units and the bounding box will be updated.
      *
-     * @param width The width of the block in pixels.
+     * @param width  The width of the block in pixels.
      * @param height The height of the block in pixels.
      */
     public void setMeasuredDimensions(int width, int height) {
@@ -106,7 +105,7 @@ public class FieldWorkspaceParams {
         // Move up the parent hierarchy and add parent-relative view coordinates.
         ViewParent viewParent = view.getParent();
         while (viewParent != null) {
-            if  (viewParent instanceof WorkspaceView) {
+            if (viewParent instanceof WorkspaceView) {
                 break;
             }
 

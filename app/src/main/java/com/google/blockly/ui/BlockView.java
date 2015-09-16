@@ -71,32 +71,32 @@ public class BlockView extends FrameLayout {
     private final Path mDrawPath = new Path();
     private final Paint mPaintArea = new Paint();
     private final Paint mPaintBorder = new Paint();
-
+    /**
+     * Offset of the block origin inside the view's measured area.
+     */
+    private final ViewPoint mBlockOriginOffset =
+            new ViewPoint(CONNECTOR_SIZE_PERPENDICULAR, OUTLINE_WIDTH / 2);
+    /**
+     * Current measured size of this block view.
+     */
+    private final ViewPoint mBlockViewSize = new ViewPoint();
     // Style resources for child fields
     private int mHorizontalFieldSpacing;
     private int mVerticalFieldSpacing;
-
     private ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
-
     private BlockWorkspaceParams mWorkspaceParams;
     private ArrayList<InputView> mInputViews = new ArrayList<>();
-
-    /** Offset of the block origin inside the view's measured area. */
-    private final ViewPoint mBlockOriginOffset =
-            new ViewPoint(CONNECTOR_SIZE_PERPENDICULAR, OUTLINE_WIDTH / 2);
-
-    /** Current measured size of this block view. */
-    private final ViewPoint mBlockViewSize = new ViewPoint();
-
-    /** Vertical offset for positioning the "Next" block (if one exists). */
+    /**
+     * Vertical offset for positioning the "Next" block (if one exists).
+     */
     private int mNextBlockVerticalOffset;
 
     /**
      * Create a new BlockView for the given block using the workspace's style.
      *
      * @param context The context for creating this view.
-     * @param block The block represented by this view.
-     * @param helper The helper for loading workspace configs and doing calculations.
+     * @param block   The block represented by this view.
+     * @param helper  The helper for loading workspace configs and doing calculations.
      */
     public BlockView(Context context, Block block, WorkspaceHelper helper) {
         this(context, 0 /* default style */, block, helper);
@@ -106,10 +106,10 @@ public class BlockView extends FrameLayout {
      * Create a new BlockView for the given block using the specified style. The style must extend
      * {@link R.style#DefaultBlockStyle}.
      *
-     * @param context The context for creating this view.
+     * @param context    The context for creating this view.
      * @param blockStyle The resource id for the style to use on this view.
-     * @param block The block represented by this view.
-     * @param helper The helper for loading workspace configs and doing calculations.
+     * @param block      The block represented by this view.
+     * @param helper     The helper for loading workspace configs and doing calculations.
      */
     public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper) {
         super(context, null, 0);
@@ -148,133 +148,6 @@ public class BlockView extends FrameLayout {
         setMeasuredDimension(mBlockViewSize.x, mBlockViewSize.y);
         mWorkspaceParams.setMeasuredDimensions(mBlockViewSize);
         mNextBlockVerticalOffset = mBlockViewSize.y - CONNECTOR_SIZE_PERPENDICULAR - OUTLINE_WIDTH;
-    }
-
-    /**
-     * Measure view and its children with inline inputs.
-     * <p>
-     *     This function does not return a value but has the following side effects. Upon return:
-     *     <ol>
-     *         <li>The {@link InputView#measure(int, int)} method has been called for all inputs in
-     *         this block,</li>
-     *         <li>{@link #mBlockViewSize} contains the size of the total size of the block view
-     *         including all its inputs, and</li>
-     *         <li>{@link #mInputLayoutOrigins} contains the layout positions of all inputs within
-     *         the block.</li>
-     *     </ol>
-     * </p>
-     * */
-    private void onMeasureInputsInline(int widthMeasureSpec, int heightMeasureSpec) {
-        // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
-        int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-        int rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-        int rowHeight = 0;
-        int maxRowWidth = 0;
-
-        for (int i = 0; i < mInputViews.size(); i++) {
-            InputView inputView = mInputViews.get(i);
-            inputView.measure(widthMeasureSpec, heightMeasureSpec);
-
-            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
-                if (i > 0) {
-                    rowTop += mVerticalFieldSpacing;
-                }
-                rowTop += rowHeight;
-                rowLeft = 0;
-            }
-
-            mInputLayoutOrigins.get(i).set(rowLeft, rowTop);
-
-            rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
-            rowLeft += inputView.getMeasuredWidth();
-
-            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
-                // The block width is that of the widest row, but for a Statement input there needs
-                // to be added space for the connector.
-                maxRowWidth = Math.max(maxRowWidth, rowLeft + STATEMENT_INPUT_CONNECTOR_WIDTH);
-
-                // Statement input is always a row by itself, so increase top coordinate and reset
-                // row origin and height.
-                rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-                rowTop += rowHeight + mVerticalFieldSpacing;
-                rowHeight = 0;
-            } else {
-                // For Dummy and Value inputs, block width is that of the widest row
-                maxRowWidth = Math.max(maxRowWidth, rowLeft);
-
-                rowLeft += mHorizontalFieldSpacing;
-            }
-        }
-
-        // Add height of final row. This is non-zero with inline inputs if the final input in the
-        // block is not a Statement input.
-        rowTop += rowHeight;
-
-        // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
-        // internal padding on both sides, plus offset for extruding connector on the left.
-        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) + PADDING + OUTLINE_WIDTH / 2;
-
-        // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
-        // room for extruding "Next" connector. Also must be at least the base height.
-        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT) +
-                OUTLINE_WIDTH;
-    }
-
-    /**
-     * Measure view and its children with external inputs.
-     * <p>
-     *     This function does not return a value but has the following side effects. Upon return:
-     *     <ol>
-     *         <li>The {@link InputView#measure(int, int)} method has been called for all inputs in
-     *         this block,</li>
-     *         <li>{@link #mBlockViewSize} contains the size of the total size of the block view
-     *         including all its inputs, and</li>
-     *         <li>{@link #mInputLayoutOrigins} contains the layout positions of all inputs within
-     *         the block (but note that for external inputs, only the y coordinate of each
-     *         position is later used for positioning.)</li>
-     *     </ol>
-     * </p>
-     */
-    private void onMeasureInputsExternal(int widthMeasureSpec, int heightMeasureSpec) {
-        // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
-        int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
-        int maxRowWidth = 0;
-
-        for (int i = 0; i < mInputViews.size(); i++) {
-            InputView inputView = mInputViews.get(i);
-            inputView.measure(widthMeasureSpec, heightMeasureSpec);
-
-            // Add vertical spacing to previous row of fields, if there is one.
-            if (i > 0) {
-                rowTop += mVerticalFieldSpacing;
-            }
-
-            mInputLayoutOrigins.get(i).set(0, rowTop);
-
-            // The block height is the sum of all the row heights.
-            rowTop += inputView.getMeasuredHeight();
-
-            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
-                // The block width is that of the widest row, but for a Statement input there needs
-                // to be added space for the connector.
-                maxRowWidth = Math.max(maxRowWidth,
-                        inputView.getMeasuredWidth() + STATEMENT_INPUT_CONNECTOR_WIDTH);
-            } else {
-                // For Dummy and Value inputs, block width is that of the widest row
-                maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
-            }
-        }
-
-        // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
-        // internal padding on both sides, plus offset for extruding Output and space for intruding
-        // Input connectors.
-        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) +
-                2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR) + OUTLINE_WIDTH / 2;
-
-        // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
-        // room for extruding "Next" connector. Also must be at least the base height.
-        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT) +
-                OUTLINE_WIDTH;
     }
 
     @Override
@@ -336,20 +209,130 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * @return Offset of the block origin inside the view's measured area. This is the lop-left
-     * corner of the block outline, accounting for padding due to extruding connectors, outline
-     * stroke width, etc.
+     * Measure view and its children with inline inputs.
+     * <p>
+     * This function does not return a value but has the following side effects. Upon return:
+     * <ol>
+     * <li>The {@link InputView#measure(int, int)} method has been called for all inputs in
+     * this block,</li>
+     * <li>{@link #mBlockViewSize} contains the size of the total size of the block view
+     * including all its inputs, and</li>
+     * <li>{@link #mInputLayoutOrigins} contains the layout positions of all inputs within
+     * the block.</li>
+     * </ol>
+     * </p>
      */
-    ViewPoint getBlockOriginOffset() {
-        return mBlockOriginOffset;
+    private void onMeasureInputsInline(int widthMeasureSpec, int heightMeasureSpec) {
+        // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
+        int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int rowHeight = 0;
+        int maxRowWidth = 0;
+
+        for (int i = 0; i < mInputViews.size(); i++) {
+            InputView inputView = mInputViews.get(i);
+            inputView.measure(widthMeasureSpec, heightMeasureSpec);
+
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                if (i > 0) {
+                    rowTop += mVerticalFieldSpacing;
+                }
+                rowTop += rowHeight;
+                rowLeft = 0;
+            }
+
+            mInputLayoutOrigins.get(i).set(rowLeft, rowTop);
+
+            rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
+            rowLeft += inputView.getMeasuredWidth();
+
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // The block width is that of the widest row, but for a Statement input there needs
+                // to be added space for the connector.
+                maxRowWidth = Math.max(maxRowWidth, rowLeft + STATEMENT_INPUT_CONNECTOR_WIDTH);
+
+                // Statement input is always a row by itself, so increase top coordinate and reset
+                // row origin and height.
+                rowLeft = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+                rowTop += rowHeight + mVerticalFieldSpacing;
+                rowHeight = 0;
+            } else {
+                // For Dummy and Value inputs, block width is that of the widest row
+                maxRowWidth = Math.max(maxRowWidth, rowLeft);
+
+                rowLeft += mHorizontalFieldSpacing;
+            }
+        }
+
+        // Add height of final row. This is non-zero with inline inputs if the final input in the
+        // block is not a Statement input.
+        rowTop += rowHeight;
+
+        // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
+        // internal padding on both sides, plus offset for extruding connector on the left.
+        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) + PADDING + OUTLINE_WIDTH / 2;
+
+        // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
+        // room for extruding "Next" connector. Also must be at least the base height.
+        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT) +
+                OUTLINE_WIDTH;
     }
 
     /**
-     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
-     * the top of this view's area.
+     * Measure view and its children with external inputs.
+     * <p>
+     * This function does not return a value but has the following side effects. Upon return:
+     * <ol>
+     * <li>The {@link InputView#measure(int, int)} method has been called for all inputs in
+     * this block,</li>
+     * <li>{@link #mBlockViewSize} contains the size of the total size of the block view
+     * including all its inputs, and</li>
+     * <li>{@link #mInputLayoutOrigins} contains the layout positions of all inputs within
+     * the block (but note that for external inputs, only the y coordinate of each
+     * position is later used for positioning.)</li>
+     * </ol>
+     * </p>
      */
-    int getNextBlockVerticalOffset() {
-        return mNextBlockVerticalOffset;
+    private void onMeasureInputsExternal(int widthMeasureSpec, int heightMeasureSpec) {
+        // Top of first inputs row leaves room for padding plus intruding "Previous" connector.
+        int rowTop = PADDING + CONNECTOR_SIZE_PERPENDICULAR;
+        int maxRowWidth = 0;
+
+        for (int i = 0; i < mInputViews.size(); i++) {
+            InputView inputView = mInputViews.get(i);
+            inputView.measure(widthMeasureSpec, heightMeasureSpec);
+
+            // Add vertical spacing to previous row of fields, if there is one.
+            if (i > 0) {
+                rowTop += mVerticalFieldSpacing;
+            }
+
+            mInputLayoutOrigins.get(i).set(0, rowTop);
+
+            // The block height is the sum of all the row heights.
+            rowTop += inputView.getMeasuredHeight();
+
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // The block width is that of the widest row, but for a Statement input there needs
+                // to be added space for the connector.
+                maxRowWidth = Math.max(maxRowWidth,
+                        inputView.getMeasuredWidth() + STATEMENT_INPUT_CONNECTOR_WIDTH);
+            } else {
+                // For Dummy and Value inputs, block width is that of the widest row
+                maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
+            }
+        }
+
+        // Block width is the computed width of the widest input row (at least BASE_WIDTH), plus
+        // internal padding on both sides, plus offset for extruding Output and space for intruding
+        // Input connectors.
+        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH) +
+                2 * (PADDING + CONNECTOR_SIZE_PERPENDICULAR) + OUTLINE_WIDTH / 2;
+
+        // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
+        // room for extruding "Next" connector. Also must be at least the base height.
+        mBlockViewSize.y = Math.max(rowTop + PADDING + CONNECTOR_SIZE_PERPENDICULAR, BASE_HEIGHT) +
+                OUTLINE_WIDTH;
     }
 
     /**
@@ -396,15 +379,127 @@ public class BlockView extends FrameLayout {
     }
 
     /**
+     * Adjust size of {@link #mInputLayoutOrigins} list to match the size of {@link #mInputViews}.
+     */
+    private void adjustInputLayoutOriginsListSize() {
+        if (mInputLayoutOrigins.size() != mInputViews.size()) {
+            mInputLayoutOrigins.ensureCapacity(mInputViews.size());
+            if (mInputLayoutOrigins.size() < mInputViews.size()) {
+                for (int i = mInputLayoutOrigins.size(); i < mInputViews.size(); i++) {
+                    mInputLayoutOrigins.add(new ViewPoint());
+                }
+            } else {
+                while (mInputLayoutOrigins.size() > mInputViews.size()) {
+                    mInputLayoutOrigins.remove(mInputLayoutOrigins.size() - 1);
+                }
+            }
+        }
+    }
+
+    /**
+     * Add a "Previous" connector to the block's draw path.
+     *
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     */
+    private void addPreviousConnectorToPath(int xFrom, int yFrom) {
+        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom);
+        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom + CONNECTOR_SIZE_PERPENDICULAR);
+        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL,
+                yFrom + CONNECTOR_SIZE_PERPENDICULAR);
+        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL, yFrom);
+    }
+
+    /**
+     * Add a "Next" connector to the block's draw path.
+     *
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     */
+    private void addNextConnectorToPath(int xFrom, int yFrom) {
+        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL, yFrom);
+        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL,
+                yFrom + CONNECTOR_SIZE_PERPENDICULAR);
+        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom + CONNECTOR_SIZE_PERPENDICULAR);
+        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom);
+    }
+
+    /**
+     * Add a Value input connector to the block's draw path.
+     *
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     */
+    private void addValueInputConnectorToPath(int xFrom, int yFrom) {
+        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET);
+        mDrawPath.lineTo(xFrom - CONNECTOR_SIZE_PERPENDICULAR, yFrom + CONNECTOR_OFFSET);
+        mDrawPath.lineTo(xFrom - CONNECTOR_SIZE_PERPENDICULAR,
+                yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+    }
+
+    /**
+     * Add a Statement input connector to the block's draw path.
+     *
+     * @param xFrom   Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom   Vertical view coordinate of the reference point for this connector.
+     * @param xOffset The offset of the Statement input connector from the left (or right, in RTL
+     *                mode) boundary of the block.
+     */
+    private void addStatementInputConnectorToPath(int xFrom, int yFrom, int xOffset) {
+        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET);
+        mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL, yFrom + CONNECTOR_OFFSET);
+        mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL,
+                yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
+        mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL,
+                yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
+        mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL, yFrom + CONNECTOR_OFFSET);
+        mDrawPath.lineTo(xOffset, yFrom + CONNECTOR_OFFSET);
+        mDrawPath.lineTo(xOffset, yFrom + CONNECTOR_OFFSET + 2 * CONNECTOR_SIZE_PERPENDICULAR);
+        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET + 2 * CONNECTOR_SIZE_PERPENDICULAR);
+    }
+
+    /**
+     * Add a "Output" connector to the block's draw path.
+     *
+     * @param xFrom Horizontal view coordinate of the reference point for this connector.
+     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     */
+    private void addOutputConnectorToPath(int xFrom, int yFrom) {
+        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+        mDrawPath.lineTo(xFrom - CONNECTOR_SIZE_PERPENDICULAR,
+                yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
+        mDrawPath.lineTo(xFrom - CONNECTOR_SIZE_PERPENDICULAR, yFrom + CONNECTOR_OFFSET);
+        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET);
+    }
+
+    /**
+     * @return Offset of the block origin inside the view's measured area. This is the lop-left
+     * corner of the block outline, accounting for padding due to extruding connectors, outline
+     * stroke width, etc.
+     */
+    ViewPoint getBlockOriginOffset() {
+        return mBlockOriginOffset;
+    }
+
+    /**
+     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
+     * the top of this view's area.
+     */
+    int getNextBlockVerticalOffset() {
+        return mNextBlockVerticalOffset;
+    }
+
+    /**
      * Update path for drawing the block after view size has changed.
      *
-     * @param width The new width of the block view.
+     * @param width  The new width of the block view.
      * @param height The new height of the block view.
-     * @param oldw The previous width of the block view (unused).
-     * @param oldh The previous height of the block view (unused).
+     * @param oldw   The previous width of the block view (unused).
+     * @param oldh   The previous height of the block view (unused).
      */
     @Override
-    protected void onSizeChanged (int width, int height, int oldw, int oldh) {
+    protected void onSizeChanged(int width, int height, int oldw, int oldh) {
         mDrawPath.reset();
 
         int xLeft = mBlockOriginOffset.x;
@@ -459,95 +554,5 @@ public class BlockView extends FrameLayout {
         mDrawPath.lineTo(xLeft, yTop);
 
         mDrawPath.close();
-    }
-
-    /**
-     * Adjust size of {@link #mInputLayoutOrigins} list to match the size of {@link #mInputViews}.
-     */
-    private void adjustInputLayoutOriginsListSize() {
-        if (mInputLayoutOrigins.size() != mInputViews.size()) {
-            mInputLayoutOrigins.ensureCapacity(mInputViews.size());
-            if (mInputLayoutOrigins.size() < mInputViews.size()) {
-                for (int i = mInputLayoutOrigins.size(); i < mInputViews.size(); i++) {
-                    mInputLayoutOrigins.add(new ViewPoint());
-                }
-            } else {
-                while (mInputLayoutOrigins.size() > mInputViews.size()) {
-                    mInputLayoutOrigins.remove(mInputLayoutOrigins.size() - 1);
-                }
-            }
-        }
-    }
-
-    /**
-     * Add a "Previous" connector to the block's draw path.
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
-     */
-    private void addPreviousConnectorToPath(int xFrom, int yFrom) {
-        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom);
-        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom + CONNECTOR_SIZE_PERPENDICULAR);
-        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL,
-                yFrom + CONNECTOR_SIZE_PERPENDICULAR);
-        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL, yFrom);
-    }
-
-    /**
-     * Add a "Next" connector to the block's draw path.
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
-     */
-    private void addNextConnectorToPath(int xFrom, int yFrom) {
-        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL, yFrom);
-        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL,
-                yFrom + CONNECTOR_SIZE_PERPENDICULAR);
-        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom + CONNECTOR_SIZE_PERPENDICULAR);
-        mDrawPath.lineTo(xFrom + CONNECTOR_OFFSET, yFrom);
-    }
-
-    /**
-     * Add a Value input connector to the block's draw path.
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
-     */
-    private void addValueInputConnectorToPath(int xFrom, int yFrom) {
-        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET);
-        mDrawPath.lineTo(xFrom - CONNECTOR_SIZE_PERPENDICULAR, yFrom + CONNECTOR_OFFSET);
-        mDrawPath.lineTo(xFrom - CONNECTOR_SIZE_PERPENDICULAR,
-                yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
-        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
-    }
-
-    /**
-     * Add a Statement input connector to the block's draw path.
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
-     * @param xOffset The offset of the Statement input connector from the left (or right, in RTL
-     *                mode) boundary of the block.
-     */
-    private void addStatementInputConnectorToPath(int xFrom, int yFrom, int xOffset) {
-        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET);
-        mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL, yFrom + CONNECTOR_OFFSET);
-        mDrawPath.lineTo(xOffset + 2 * CONNECTOR_SIZE_PARALLEL,
-                yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
-        mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL,
-                yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PERPENDICULAR);
-        mDrawPath.lineTo(xOffset + CONNECTOR_SIZE_PARALLEL, yFrom + CONNECTOR_OFFSET);
-        mDrawPath.lineTo(xOffset, yFrom + CONNECTOR_OFFSET);
-        mDrawPath.lineTo(xOffset, yFrom + CONNECTOR_OFFSET + 2 * CONNECTOR_SIZE_PERPENDICULAR);
-        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET + 2 * CONNECTOR_SIZE_PERPENDICULAR);
-    }
-
-    /**
-     * Add a "Output" connector to the block's draw path.
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
-     */
-    private void addOutputConnectorToPath(int xFrom, int yFrom) {
-        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
-        mDrawPath.lineTo(xFrom - CONNECTOR_SIZE_PERPENDICULAR,
-                yFrom + CONNECTOR_OFFSET + CONNECTOR_SIZE_PARALLEL);
-        mDrawPath.lineTo(xFrom - CONNECTOR_SIZE_PERPENDICULAR, yFrom + CONNECTOR_OFFSET);
-        mDrawPath.lineTo(xFrom, yFrom + CONNECTOR_OFFSET);
     }
 }

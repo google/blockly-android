@@ -37,13 +37,13 @@ import java.util.List;
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
 
-    private Resources mResources;
-    private HashMap<String, Block> mBlockTemplates = new HashMap<>();
+    private final Resources mResources;
+    private final HashMap<String, Block> mBlockTemplates = new HashMap<>();
 
     /**
      * Create a factory with an initial set of blocks from json resources.
      *
-     * @param context The context for loading resources.
+     * @param context        The context for loading resources.
      * @param blockSourceIds A list of JSON resources containing blocks.
      */
     public BlockFactory(Context context, int[] blockSourceIds) {
@@ -82,7 +82,7 @@ public class BlockFactory {
      * If the prototypeName is not one of the known block types null will be returned instead.
      *
      * @param prototypeName The name of the block type to create.
-     * @param uuid The id of the block if loaded from XML; null otherwise.
+     * @param uuid          The id of the block if loaded from XML; null otherwise.
      * @return A new block of that type or null.
      */
     public Block obtainBlock(String prototypeName, String uuid) {
@@ -101,7 +101,7 @@ public class BlockFactory {
      * @return The list of known blocks that can be created.
      */
     public List<Block> getAllBlocks() {
-        return new ArrayList<Block>(mBlockTemplates.values());
+        return new ArrayList<>(mBlockTemplates.values());
     }
 
     /**

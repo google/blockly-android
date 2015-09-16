@@ -55,7 +55,7 @@ public class BlocklyXmlHelper {
      * Loads a list of top level Blocks from XML.  Each top level Block may have many Blocks
      * contained in it or descending from it.
      *
-     * @param is The input stream from which to read.
+     * @param is           The input stream from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      * @return A list of top level Blocks.
      * @throws BlocklyParserException
@@ -94,7 +94,7 @@ public class BlocklyXmlHelper {
     /**
      * Convenience function to load only one Block.
      *
-     * @param is The input stream from which to read the Block.
+     * @param is           The input stream from which to read the Block.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      * @return The first Block read from is, or null if no Block was read.
      * @throws BlocklyParserException
@@ -113,7 +113,7 @@ public class BlocklyXmlHelper {
      * Serializes all Blocks in the given list and writes them to the given output stream.
      *
      * @param toSerialize A list of Blocks to serialize.
-     * @param os An OutputStream to which to write them.
+     * @param os          An OutputStream to which to write them.
      * @throws BlocklySerializerException
      */
     public void writeToXml(List<Block> toSerialize, OutputStream os)
@@ -138,7 +138,7 @@ public class BlocklyXmlHelper {
      * Convenience function to serialize only one Block.
      *
      * @param toSerialize A Block to serialize.
-     * @param os An OutputStream to which to write them.
+     * @param os          An OutputStream to which to write them.
      * @throws BlocklySerializerException
      */
     public void writeOneBlockToXml(Block toSerialize, OutputStream os)

@@ -36,28 +36,24 @@ public class WorkspaceHelper {
 
     private static final float SCALE_MIN = 0.1f;
     private static final float SCALE_MAX = 3f;
-
+    private final WorkspacePoint mWorkspaceOffset;
+    private final ViewPoint mViewSize;
+    private final Context mContext;
     private float mMinScale;
     private float mMaxScale;
     private float mDefaultScale;
-
     private float mScale = 1;
     private float mDensity;
-    private WorkspacePoint mWorkspaceOffset;
-    private ViewPoint mViewSize;
     private boolean mRtL;
-
     private int mBlockStyle;
     private int mFieldLabelStyle;
-
-    private Context mContext;
 
     /**
      * Create a helper for creating and doing calculations for views in the workspace using the
      * workspace's style.
      *
      * @param context The current context to get display metrics from.
-     * @param attrs The workspace attributes to load the style from.
+     * @param attrs   The workspace attributes to load the style from.
      */
     public WorkspaceHelper(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -67,16 +63,16 @@ public class WorkspaceHelper {
      * Create a helper for creating and doing calculations for views in the workspace, with a
      * specific style. The style must be a resource id for a style that extends
      * {@link R.style#BlocklyTheme}.
-     * <p>
+     * <p/>
      * The config and styles are loaded from one of three sources with the following priority.
      * <ol>
-     *     <li>The specified style id if it is not 0.</li>
-     *     <li>The attribute's style if it is not null.</li>
-     *     <li>The context's theme.</li>
- *     </ol>
+     * <li>The specified style id if it is not 0.</li>
+     * <li>The attribute's style if it is not null.</li>
+     * <li>The context's theme.</li>
+     * </ol>
      *
-     * @param context The context to get display metrics and resources from.
-     * @param attrs The WorkspaceView attributes or null.
+     * @param context        The context to get display metrics and resources from.
+     * @param attrs          The WorkspaceView attributes or null.
      * @param workspaceStyle The style to use for views.
      */
     public WorkspaceHelper(Context context, AttributeSet attrs, int workspaceStyle) {
@@ -93,6 +89,13 @@ public class WorkspaceHelper {
     }
 
     /**
+     * @return The current scale of the workspace view.
+     */
+    public float getScale() {
+        return mScale;
+    }
+
+    /**
      * Sets the scaling of the view. This scaling should be used for all drawing within the
      * {@link WorkspaceView} and children. A value of 1 means default size with no scaling. Values
      * larger than 1 will increase the size of drawn blocks and the grid, while a size smaller than
@@ -105,6 +108,16 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Get the current view's offset in workspace coordinates. If you want the pixel offset of the
+     * view you should use {@link #getViewOffset()} instead.
+     *
+     * @return The top left corner the viewport in workspace coordinates.
+     */
+    public WorkspacePoint getOffset() {
+        return mWorkspaceOffset;
+    }
+
+    /**
      * Set the {@link WorkspaceView}'s offset into the workspace, in workspace units. This value
      * should only change due to translation, not scaling, and therefore is not a pixel value.
      *
@@ -113,34 +126,6 @@ public class WorkspaceHelper {
     public void setOffset(WorkspacePoint workspaceOffset) {
         mWorkspaceOffset.x = workspaceOffset.x;
         mWorkspaceOffset.y = workspaceOffset.y;
-    }
-
-    /**
-     * Set the size of the view window. This is required for RtL languages to be laid out correctly.
-     * This should be called by the workspace view in onLayout.
-     *
-     * @param viewDimens The width and height of the workspace view in pixels.
-     */
-    public void setViewSize(ViewPoint viewDimens) {
-        mViewSize.x = viewDimens.x;
-        mViewSize.y = viewDimens.y;
-    }
-
-    /**
-     * @return The current scale of the workspace view.
-     */
-    public float getScale() {
-        return mScale;
-    }
-
-    /**
-     * Get the current view's offset in workspace coordinates. If you want the pixel offset of the
-     * view you should use {@link #getViewOffset()} instead.
-     *
-     * @return The top left corner the viewport in workspace coordinates.
-     */
-    public WorkspacePoint getOffset() {
-        return mWorkspaceOffset;
     }
 
     /**
@@ -158,6 +143,17 @@ public class WorkspaceHelper {
      */
     public ViewPoint getViewSize() {
         return mViewSize;
+    }
+
+    /**
+     * Set the size of the view window. This is required for RtL languages to be laid out correctly.
+     * This should be called by the workspace view in onLayout.
+     *
+     * @param viewDimens The width and height of the workspace view in pixels.
+     */
+    public void setViewSize(ViewPoint viewDimens) {
+        mViewSize.x = viewDimens.x;
+        mViewSize.y = viewDimens.y;
     }
 
     /**
@@ -181,41 +177,6 @@ public class WorkspaceHelper {
      */
     public int viewToWorkspaceUnits(int viewValue) {
         return (int) (viewValue / (mScale * mDensity));
-    }
-
-    /**
-     * Converts a point in workspace coordinates to view coordinates, storing the result in the
-     * second parameter. The resulting coordinates will be in the
-     * {@link WorkspaceView WorkspaceView's} coordinates in pixels and include the current offset
-     * into the workspace.
-     *
-     * @param workspacePosition The position to convert to view coordinates.
-     * @param viewPosition The Point to store the results in.
-     */
-    void workspaceToViewCoordinates(WorkspacePoint workspacePosition, ViewPoint viewPosition) {
-        viewPosition.x = workspaceToViewUnits(workspacePosition.x - mWorkspaceOffset.x);
-        viewPosition.y = workspaceToViewUnits(workspacePosition.y - mWorkspaceOffset.y);
-
-        if (useRtL()) {
-            viewPosition.x = mViewSize.x - viewPosition.x;
-        }
-    }
-
-    /**
-     * Converts a point in view coordinates to workspace coordinates, storing the result in the
-     * second parameter. The view position should be in the {@link WorkspaceView WorkspaceView's}
-     * coordinates in pixels.
-     *
-     * @param viewPosition The position to convert to workspace coordinates.
-     * @param workspacePosition The Point to store the results in.
-     */
-    void viewToWorkspaceCoordinates(ViewPoint viewPosition, WorkspacePoint workspacePosition) {
-        int viewX = viewPosition.x;
-        if (useRtL()) {
-            viewX = mViewSize.x - viewX;
-        }
-        workspacePosition.x = viewToWorkspaceUnits(viewX) + mWorkspaceOffset.x;
-        workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mWorkspaceOffset.y;
     }
 
     /**
@@ -261,9 +222,9 @@ public class WorkspaceHelper {
      * Loads the style configurations. The config and styles are loaded from one of three sources
      * with the following priority.
      * <ol>
-     *     <li>The specified style id.</li>
-     *     <li>The attribute's style.</li>
-     *     <li>The context's theme.</li>
+     * <li>The specified style id.</li>
+     * <li>The attribute's style.</li>
+     * <li>The context's theme.</li>
      * </ol>
      */
     private void initConfig(Context context, AttributeSet attrs, int style) {
@@ -306,5 +267,40 @@ public class WorkspaceHelper {
             // TODO: Handle pre 17 versions.
             mRtL = false;
         }
+    }
+
+    /**
+     * Converts a point in workspace coordinates to view coordinates, storing the result in the
+     * second parameter. The resulting coordinates will be in the
+     * {@link WorkspaceView WorkspaceView's} coordinates in pixels and include the current offset
+     * into the workspace.
+     *
+     * @param workspacePosition The position to convert to view coordinates.
+     * @param viewPosition      The Point to store the results in.
+     */
+    void workspaceToViewCoordinates(WorkspacePoint workspacePosition, ViewPoint viewPosition) {
+        viewPosition.x = workspaceToViewUnits(workspacePosition.x - mWorkspaceOffset.x);
+        viewPosition.y = workspaceToViewUnits(workspacePosition.y - mWorkspaceOffset.y);
+
+        if (useRtL()) {
+            viewPosition.x = mViewSize.x - viewPosition.x;
+        }
+    }
+
+    /**
+     * Converts a point in view coordinates to workspace coordinates, storing the result in the
+     * second parameter. The view position should be in the {@link WorkspaceView WorkspaceView's}
+     * coordinates in pixels.
+     *
+     * @param viewPosition      The position to convert to workspace coordinates.
+     * @param workspacePosition The Point to store the results in.
+     */
+    void viewToWorkspaceCoordinates(ViewPoint viewPosition, WorkspacePoint workspacePosition) {
+        int viewX = viewPosition.x;
+        if (useRtL()) {
+            viewX = mViewSize.x - viewX;
+        }
+        workspacePosition.x = viewToWorkspaceUnits(viewX) + mWorkspaceOffset.x;
+        workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mWorkspaceOffset.y;
     }
 }
