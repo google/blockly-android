@@ -414,16 +414,16 @@ public class Block {
      */
     public static Block fromJson(String name, JSONObject json) {
         if (TextUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("Block name may not be null or empty");
+            throw new IllegalArgumentException("Block name may not be null or empty.");
         }
         if (json == null) {
-            throw new IllegalArgumentException("json may not be null.");
+            throw new IllegalArgumentException("Json may not be null.");
         }
         Builder bob = new Builder(name);
 
         if (json.has("output") && (json.has("previousStatement") || json.has("nextStatement"))) {
             throw new IllegalArgumentException(
-                    "Blocks cannot have both an output and a either a previous or next statement");
+                    "Block cannot have both an output and a either a previous or next statement.");
         }
 
         // Parse any connections that are present.
@@ -762,7 +762,7 @@ public class Block {
         public Builder setOutput(Connection outputConnection) {
             if (this.mPreviousConnection != null || this.mNextConnection != null) {
                 throw new IllegalStateException(
-                        "block cannot have both output and either previous or next connection.");
+                        "Block cannot have both output and either previous or next connection.");
             }
             this.mOutputConnection = outputConnection;
             return this;
@@ -771,7 +771,7 @@ public class Block {
         public Builder setNext(Connection nextConnection) {
             if (this.mOutputConnection != null) {
                 throw new IllegalStateException(
-                        "block cannot have both next and output connection.");
+                        "Block cannot have both next and output connection.");
             }
             this.mNextConnection = nextConnection;
             return this;
@@ -780,7 +780,7 @@ public class Block {
         public Builder setPrevious(Connection previousConnection) {
             if (this.mOutputConnection != null) {
                 throw new IllegalStateException(
-                        "block cannot have both previous and output connection.");
+                        "Block cannot have both previous and output connection.");
             }
             this.mPreviousConnection = previousConnection;
             return this;
@@ -793,7 +793,7 @@ public class Block {
 
         public Builder setInputs(ArrayList<Input> inputs) {
             if (inputs == null) {
-                throw new IllegalArgumentException("inputs may not be null.");
+                throw new IllegalArgumentException("Inputs may not be null.");
             }
             Log.d(TAG, "Set " + inputs.size() + " inputs");
             this.mInputs = inputs;
