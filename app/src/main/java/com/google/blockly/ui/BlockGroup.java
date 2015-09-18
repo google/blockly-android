@@ -16,7 +16,6 @@
 package com.google.blockly.ui;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -88,20 +87,6 @@ public class BlockGroup extends ViewGroup {
      */
     int getNextBlockVerticalOffset() {
         return mNextBlockVerticalOffset;
-    }
-
-    /**
-     * Set a given {@link Rect} to the dimensions of the block outline rectangle, or to empty if the
-     * block has no children.
-     *
-     * @param rect The rectangle whose dimensions will be set.
-     */
-    void getOutlineCorners(Rect rect) {
-        if (getChildCount() > 0) {
-            rect.set(0, 0, getMeasuredWidth(), getMeasuredHeight());
-        } else {
-            rect.setEmpty();
-        }
     }
 
     @Override
