@@ -156,6 +156,18 @@ public class MainActivity extends ActionBarActivity
             BlockView bv = helper.obtainBlockView(dummyBlock);
             bg.addView(bv);
 
+            Block ivb = makeValueInputBlock();
+            BlockView ivv = helper.obtainBlockView(ivb);
+            bv.getInputView(0).setChildView(ivv);
+
+            Block svb = makeSimpleValueBlock();
+            BlockView svv = helper.obtainBlockView(svb);
+            ivv.getInputView(0).setChildView(svv);
+
+            Block smb = makeStatementBlock();
+            BlockView smbv = helper.obtainBlockView(smb);
+            bv.getInputView(3).setChildView(smbv);
+
             helper = new WorkspaceHelper(getActivity(), null, R.style.BlocklyTestTheme);
 
             Block dummyBlock2 = makeDummyBlock();
@@ -163,9 +175,31 @@ public class MainActivity extends ActionBarActivity
             bv = helper.obtainBlockView(dummyBlock2);
             bg.addView(bv);
 
+            smb = makeStatementBlock();
+            smbv = helper.obtainBlockView(smb);
+            bv.getInputView(3).setChildView(smbv);
+
             wv.addView(bg);
 
-            airstrike(wv, 10);
+            helper = mWorkspace.getWorkspaceHelper();
+
+            bg = new BlockGroup(getActivity(), helper);
+            Block outerBlock = makeOuterBlock();
+            outerBlock.setInputsInline(true);
+            mWorkspace.addRootBlock(outerBlock);
+            BlockView obv = helper.obtainBlockView(outerBlock);
+            bg.addView(obv);
+            wv.addView(bg);
+
+            Block innerBlock = makeInnerBlock();
+            BlockView ibv = helper.obtainBlockView(innerBlock);
+            obv.getInputView(1).setChildView(ibv);
+
+            Block ivb2 = makeValueInputBlock();
+            BlockView ivv2 = helper.obtainBlockView(ivb2);
+            ibv.getInputView(2).setChildView(ivv2);
+
+//            airstrike(wv, 10);
             return rootView;
         }
 
@@ -198,29 +232,23 @@ public class MainActivity extends ActionBarActivity
 
         private Block makeDummyBlock() {
             Block.Builder bob = new Block.Builder("dummy");
-            bob.setPosition(35, 35);
+            bob.setPosition(5, 5);
 
             bob.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
             bob.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
 
-            Input input = new Input.InputDummy("input1", null);
-            input.add(new Field.FieldLabel("label", "degrees"));
-            bob.addInput(input);
-
-            input = new Input.InputValue("input2", null, null);
+            Input input = new Input.InputValue("input2", null, null);
             input.add(new Field.FieldLabel("checkbox?", "this is a checkbox:"));
             input.add(new Field.FieldCheckbox("checkbox!", true));
             bob.addInput(input);
 
-            input = new Input.InputValue("input3", null, null);
+            input = new Input.InputDummy("input1", null);
+            input.add(new Field.FieldLabel("label", "degrees"));
+            bob.addInput(input);
+
+            input = new Input.InputValue("input3", Input.ALIGN_CENTER, null);
             input.add(new Field.FieldAngle("label2", 180));
-            bob.addInput(input);
-
-            input = new Input.InputValue("input4", null, null);
             input.add(new Field.FieldDate("date!", "2015-03-19"));
-            bob.addInput(input);
-
-            input = new Input.InputValue("input5", null, null);
             input.add(new Field.FieldDropdown("dropdown", new String[]{"option1", "option2"},
                     new String[]{"value1", "value2"}));
             bob.addInput(input);
@@ -229,7 +257,7 @@ public class MainActivity extends ActionBarActivity
             input.add(new Field.FieldLabel("DO", "this is a loop"));
             bob.addInput(input);
 
-            input = new Input.InputValue("input7", null, null);
+            input = new Input.InputValue("input7", Input.ALIGN_RIGHT, null);
             input.add(new Field.FieldColour("color", 0xFF0000));
             bob.addInput(input);
 
@@ -237,8 +265,94 @@ public class MainActivity extends ActionBarActivity
             input.add(new Field.FieldInput("input text", "initial wide field of text"));
             bob.addInput(input);
 
+            input = new Input.InputStatement("input9", null, null);
+            input.add(new Field.FieldLabel("DO", "another loop"));
+            bob.addInput(input);
+
             bob.setColour(42);
             return bob.build();
+        }
+
+        private Block makeOuterBlock() {
+            Block.Builder block = new Block.Builder("dummy");
+            block.setPosition(400, 70);
+
+            block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
+
+            Input input = new Input.InputDummy("input1", null);
+            input.add(new Field.FieldLabel("label", "block"));
+            block.addInput(input);
+
+            input = new Input.InputValue("input2", null, null);
+            input.add(new Field.FieldLabel("label", "value"));
+            block.addInput(input);
+
+            input = new Input.InputStatement("input3", null, null);
+            input.add(new Field.FieldLabel("DO", "this is a loop"));
+            block.addInput(input);
+
+            input = new Input.InputValue("input4", null, null);
+            input.add(new Field.FieldLabel("label", "another value"));
+            block.addInput(input);
+
+            return block.build();
+        }
+
+        private Block makeInnerBlock() {
+            Block.Builder block = new Block.Builder("dummy");
+            block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
+
+            Input input = new Input.InputDummy("input1", Input.ALIGN_RIGHT);
+            input.add(new Field.FieldLabel("label", "block"));
+            block.addInput(input);
+
+            input = new Input.InputValue("input2", null, null);
+            input.add(new Field.FieldLabel("label", "value"));
+            block.addInput(input);
+
+            input = new Input.InputValue("input3", null, null);
+            input.add(new Field.FieldLabel("label", "another value"));
+            block.addInput(input);
+
+            block.setColour(120);
+            return block.build();
+        }
+
+        private Block makeSimpleValueBlock() {
+            Block.Builder block = new Block.Builder("dummy");
+            block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
+
+            Input input = new Input.InputDummy("input", null);
+            input.add(new Field.FieldLabel("label", "zero"));
+            block.addInput(input);
+
+            block.setColour(210);
+            return block.build();
+        }
+
+        private Block makeValueInputBlock() {
+            Block.Builder block = new Block.Builder("dummy");
+            block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
+
+            Input input = new Input.InputValue("input", null, null);
+            input.add(new Field.FieldLabel("label", "one input"));
+            block.addInput(input);
+
+            block.setColour(110);
+            return block.build();
+        }
+
+        private Block makeStatementBlock() {
+            Block.Builder block = new Block.Builder("dummy");
+            block.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
+            block.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
+
+            Input input = new Input.InputDummy("input", null);
+            input.add(new Field.FieldLabel("label", "do something"));
+            block.addInput(input);
+
+            block.setColour(240);
+            return block.build();
         }
 
         /**
@@ -253,5 +367,4 @@ public class MainActivity extends ActionBarActivity
             return fragment;
         }
     }
-
 }

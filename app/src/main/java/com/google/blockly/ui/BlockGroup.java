@@ -16,6 +16,7 @@
 package com.google.blockly.ui;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -27,6 +28,8 @@ import com.google.blockly.model.WorkspacePoint;
 public class BlockGroup extends ViewGroup {
     private final WorkspaceHelper mWorkspaceHelper;
 
+    private int mNextBlockVerticalOffset;
+
     public BlockGroup(Context context, WorkspaceHelper helper) {
         super(context);
         mWorkspaceHelper = helper;
@@ -34,6 +37,8 @@ public class BlockGroup extends ViewGroup {
 
     @Override
     public void onMeasure(int widthSpec, int heightSpec) {
+        mNextBlockVerticalOffset = 0;
+
         int childCount = getChildCount();
         int width = 0;
         int height = 0;
@@ -51,6 +56,7 @@ public class BlockGroup extends ViewGroup {
             } else {
                 height += child.getNextBlockVerticalOffset();
             }
+            mNextBlockVerticalOffset += child.getNextBlockVerticalOffset();
         }
         setMeasuredDimension(width, height);
     }
@@ -74,6 +80,28 @@ public class BlockGroup extends ViewGroup {
             return ((BlockView) getChildAt(0)).getBlock().getPosition();
         }
         return null;
+    }
+
+    /**
+     * @return The vertical offset from the top of this view to the position of the next block
+     * <em>below</em> this group.
+     */
+    int getNextBlockVerticalOffset() {
+        return mNextBlockVerticalOffset;
+    }
+
+    /**
+     * Set a given {@link Rect} to the dimensions of the block outline rectangle, or to empty if the
+     * block has no children.
+     *
+     * @param rect The rectangle whose dimensions will be set.
+     */
+    void getOutlineCorners(Rect rect) {
+        if (getChildCount() > 0) {
+            rect.set(0, 0, getMeasuredWidth(), getMeasuredHeight());
+        } else {
+            rect.setEmpty();
+        }
     }
 
     @Override
