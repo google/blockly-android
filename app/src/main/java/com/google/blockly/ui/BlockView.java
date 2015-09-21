@@ -114,7 +114,6 @@ public class BlockView extends FrameLayout {
 
     @Override
     public void onDraw(Canvas c) {
-        Log.w(TAG, "onDraw");
         c.drawPath(mDrawPath, mPaintArea);
         c.drawPath(mDrawPath, mPaintBorder);
     }
@@ -125,7 +124,6 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        Log.w(TAG, "onMeasure");
         adjustInputLayoutOriginsListSize();
 
         if (getBlock().getInputsInline()) {
@@ -152,12 +150,14 @@ public class BlockView extends FrameLayout {
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        Log.w(TAG, "onLayout");
-        // Note that the following must be done regardless of the value of the "changed" parameter.
-        if (getBlock().getInputsInline()) {
-            onLayoutInlineInputs(changed, left, top, right, bottom);
-        } else {
-            onLayoutExternalInputs(changed, left, top, right, bottom);
+        // Note that layout must be done regardless of the value of the "changed" parameter.
+        int xLeft = mLayoutMarginLeft;
+        for (int i = 0; i < mInputViews.size(); i++) {
+            int rowLeft = xLeft + mInputLayoutOrigins.get(i).x;
+            int rowTop = mInputLayoutOrigins.get(i).y;
+            InputView inputView = mInputViews.get(i);
+            inputView.layout(rowLeft, rowTop, rowLeft + inputView.getMeasuredWidth(),
+                    rowTop + inputView.getMeasuredHeight());
         }
 
         updateDrawPath();
@@ -212,6 +212,8 @@ public class BlockView extends FrameLayout {
             // Statements, and begin a new layout row.
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
+
+                // New row BEFORE each Statement input.
                 rowTop += rowHeight;
                 rowHeight = 0;
                 rowLeft = 0;
@@ -230,10 +232,9 @@ public class BlockView extends FrameLayout {
                 maxRowWidth = Math.max(
                         maxRowWidth, rowLeft + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH);
 
-                // Statement input is always a row by itself, so increase top coordinate and reset
-                // row origin and height.
-                rowLeft = 0;
+                // New row AFTER each Statement input.
                 rowTop += rowHeight;
+                rowLeft = 0;
                 rowHeight = 0;
             } else {
                 // For Dummy and Value inputs, block width is that of the widest row
@@ -348,58 +349,6 @@ public class BlockView extends FrameLayout {
         mBlockViewSize.y = Math.max(MIN_HEIGHT, rowTop);
     }
 
-    private void onLayoutInlineInputs(boolean changed, int left, int top, int right, int bottom) {
-        int xLeft = mLayoutMarginLeft;
-        for (int i = 0; i < mInputViews.size(); i++) {
-            int rowLeft = xLeft + mInputLayoutOrigins.get(i).x;
-            int rowTop = mInputLayoutOrigins.get(i).y;
-            InputView inputView = mInputViews.get(i);
-
-            switch (inputView.getInput().getType()) {
-                default:
-                case Input.TYPE_DUMMY:
-                case Input.TYPE_VALUE: {
-                    // Inline Dummy and Value inputs are drawn at their position as computed in
-                    // onMeasure().
-                    inputView.layout(rowLeft, rowTop, rowLeft + inputView.getMeasuredWidth(),
-                            rowTop + inputView.getMeasuredHeight());
-                    break;
-                }
-                case Input.TYPE_STATEMENT: {
-                    // Statement inputs are always left-aligned with the block boundary.
-                    // Effectively, they are also centered, since the width of the rendered
-                    // block is adjusted to match their exact width.)
-                    inputView.layout(xLeft, rowTop, xLeft + inputView.getMeasuredWidth(),
-                            rowTop + inputView.getMeasuredHeight());
-                    break;
-                }
-            }
-        }
-    }
-
-    private void onLayoutExternalInputs(boolean changed, int left, int top, int right, int bottom) {
-        int xLeft = mLayoutMarginLeft;
-        for (int i = 0; i < mInputViews.size(); i++) {
-            int rowTop = mInputLayoutOrigins.get(i).y;
-            InputView inputView = mInputViews.get(i);
-
-            switch (inputView.getInput().getType()) {
-                default:
-                case Input.TYPE_DUMMY:
-                case Input.TYPE_VALUE: {
-                    inputView.layout(xLeft, rowTop, xLeft + inputView.getMeasuredWidth(),
-                            rowTop + inputView.getMeasuredHeight());
-                    break;
-                }
-                case Input.TYPE_STATEMENT: {
-                    inputView.layout(xLeft, rowTop, xLeft + inputView.getMeasuredWidth(),
-                            rowTop + inputView.getMeasuredHeight());
-                    break;
-                }
-            }
-        }
-    }
-
     /**
      * A block is responsible for initializing all of its fields. Sub-blocks must be added
      * elsewhere.
@@ -454,7 +403,6 @@ public class BlockView extends FrameLayout {
 
     /** Update path for drawing the block after view size or layout have changed. */
     private void updateDrawPath() {
-        Log.w(TAG, "updateDrawPath");
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();

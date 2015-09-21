@@ -78,7 +78,7 @@ public class ConnectorHelper {
      * @param blockRight Horizontal view coordinate of the right-hand side of the block (left-hand
      *                   side in RTL mode).
      * @param inputTop Vertical view coordinate of the top of the input for which this connector is
-     *                 draw.
+     *                 drawn.
      */
     static void addValueInputConnectorToPath(Path path, int blockRight, int inputTop) {
         int y = inputTop + OFFSET_FROM_CORNER;

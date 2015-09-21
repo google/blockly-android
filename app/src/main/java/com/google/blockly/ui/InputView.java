@@ -150,7 +150,6 @@ public class InputView extends ViewGroup {
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        Log.w(TAG, "onMeasure");
         if (!mHasMeasuredFieldsAndInput) {
             throw new IllegalStateException("InputView.measureFieldsAndInputs()" +
                     " must be called before each call to measure().");
@@ -171,7 +170,6 @@ public class InputView extends ViewGroup {
 
     @Override
     public void onLayout(boolean changed, int l, int t, int r, int b) {
-        Log.w(TAG, "onLayout");
         boolean rtl = mHelper.useRtL();
 
         // Initialize horizontal layout cursor. The cursor is the coordinate for the left-hand side
@@ -199,26 +197,20 @@ public class InputView extends ViewGroup {
     private void layoutChild() {
         if (mChildView != null) {
             int inputType = mInput.getType();
-            switch (inputType) {
-                default:
-                case Input.TYPE_DUMMY: {
-                    break;
-                }
-                case Input.TYPE_STATEMENT:
-                case Input.TYPE_VALUE: {
-                    int width = mChildView.getMeasuredWidth();
-                    int height = mChildView.getMeasuredHeight();
+            if (inputType == Input.TYPE_STATEMENT || inputType == Input.TYPE_VALUE) {
+                int width = mChildView.getMeasuredWidth();
+                int height = mChildView.getMeasuredHeight();
 
-                    // Align top of fields and input, unless this is an inline Value input, in which
-                    // case field padding must be added.
-                    int top = 0;
-                    if (inputType == Input.TYPE_VALUE && getInput().getBlock().getInputsInline()) {
-                        top = FIELD_PADDING_Y;
-                    }
-                    mChildView.layout(
-                            mFieldLayoutWidth, top, mFieldLayoutWidth + width, top + height);
-                    break;
+                // Align top of fields and input, unless this is an inline Value input, in which
+                // case field padding must be added.
+                int top = 0;
+                if (inputType == Input.TYPE_VALUE && getInput().getBlock().getInputsInline()) {
+                    top = FIELD_PADDING_Y;
                 }
+
+                
+                mChildView.layout(
+                        mFieldLayoutWidth, top, mFieldLayoutWidth + width, top + height);
             }
         }
     }
@@ -429,8 +421,6 @@ public class InputView extends ViewGroup {
      * correct layout parameters across rows of external inputs.
      */
     void measureFieldsAndInputs(int widthMeasureSpec, int heightMeasureSpec) {
-        Log.w(TAG, "measureFieldsAndInputs");
-
         // Measure fields and connected inputs separately.
         measureFields(widthMeasureSpec, heightMeasureSpec);
         measureInputs(widthMeasureSpec, heightMeasureSpec);
