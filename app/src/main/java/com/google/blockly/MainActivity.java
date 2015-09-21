@@ -255,7 +255,7 @@ public class MainActivity extends ActionBarActivity
             bob.addInput(input);
 
             input = new Input.InputStatement("input6", null, null);
-            input.add(new Field.FieldLabel("DO", "this is a loop"));
+            input.add(new Field.FieldInput("DO", "loop"));
             bob.addInput(input);
 
             input = new Input.InputValue("input7", Input.ALIGN_RIGHT, null);
@@ -266,8 +266,8 @@ public class MainActivity extends ActionBarActivity
             input.add(new Field.FieldInput("input text", "initial wide field of text"));
             bob.addInput(input);
 
-            input = new Input.InputStatement("input9", null, null);
-            input.add(new Field.FieldLabel("DO", "another loop"));
+            input = new Input.InputStatement("input9", Input.ALIGN_RIGHT, null);
+            input.add(new Field.FieldInput("DO", "another loop"));
             bob.addInput(input);
 
             bob.setColour(42);

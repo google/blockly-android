@@ -23,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.R;
-import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.ui.fieldview.FieldAngleView;
@@ -80,8 +79,7 @@ public class InputView extends ViewGroup {
     // The view of the block connected to this input.
     private View mChildView = null;
 
-    // Flag to enforce that measureFieldsAndInputs() is called exactly once before each call to
-    // measure().
+    // Flag to enforce that measureFieldsAndInputs() is called before each call to measure().
     private boolean mHasMeasuredFieldsAndInput = false;
 
     InputView(Context context, int blockStyle, Input input, WorkspaceHelper helper) {
@@ -133,6 +131,7 @@ public class InputView extends ViewGroup {
 
         mChildView = childView;
         addView(mChildView);
+        requestLayout();
     }
 
     /**
@@ -145,6 +144,7 @@ public class InputView extends ViewGroup {
         if (mChildView != null) {
             removeView(mChildView);
             mChildView = null;
+            requestLayout();
         }
     }
 
@@ -152,9 +152,8 @@ public class InputView extends ViewGroup {
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         Log.w(TAG, "onMeasure");
         if (!mHasMeasuredFieldsAndInput) {
-            throw new IllegalStateException(
-                    "InputView.measureFieldsAndInputs() must be called exactly once " +
-                            " before each call to measure().");
+            throw new IllegalStateException("InputView.measureFieldsAndInputs()" +
+                    " must be called before each call to measure().");
         }
         mHasMeasuredFieldsAndInput = false;
 
@@ -217,7 +216,7 @@ public class InputView extends ViewGroup {
                         top = FIELD_PADDING_Y;
                     }
                     mChildView.layout(
-                            mTotalFieldWidth, top, mTotalFieldWidth + width, top + height);
+                            mFieldLayoutWidth, top, mFieldLayoutWidth + width, top + height);
                     break;
                 }
             }
@@ -382,10 +381,17 @@ public class InputView extends ViewGroup {
     }
 
     /**
-     * @return Total width of all fields in this input, including spacing between them.
+     * @return Total measured width of all fields in this input, including spacing between them.
      */
     int getTotalFieldWidth() {
         return mTotalFieldWidth;
+    }
+
+    /**
+     * @return Layout width for the fields in this input.
+     */
+    int getFieldLayoutWidth() {
+        return mFieldLayoutWidth;
     }
 
     /**
@@ -399,6 +405,7 @@ public class InputView extends ViewGroup {
      */
     void setFieldLayoutWidth(int fieldLayoutWidth) {
         mFieldLayoutWidth = fieldLayoutWidth;
+        requestLayout();
     }
 
     /**
@@ -423,6 +430,7 @@ public class InputView extends ViewGroup {
      */
     void measureFieldsAndInputs(int widthMeasureSpec, int heightMeasureSpec) {
         Log.w(TAG, "measureFieldsAndInputs");
+
         // Measure fields and connected inputs separately.
         measureFields(widthMeasureSpec, heightMeasureSpec);
         measureInputs(widthMeasureSpec, heightMeasureSpec);

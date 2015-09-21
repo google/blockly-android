@@ -29,7 +29,7 @@ public class ConnectorHelper {
     static final int SIZE_PARALLEL = 40;
 
     // The minimum width of a Statement input connector to the right of its fields.
-    static final int STATEMENT_INPUT_MINIMUM_WIDTH = 4 * SIZE_PARALLEL;
+    static final int STATEMENT_INPUT_INDENT_WIDTH = 4 * SIZE_PARALLEL;
     // Height (i.e., thickness) of the bottom of a C-shaped Statement input connector.
     static final int STATEMENT_INPUT_BOTTOM_HEIGHT = SIZE_PERPENDICULAR;
 

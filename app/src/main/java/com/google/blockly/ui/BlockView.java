@@ -63,7 +63,8 @@ public class BlockView extends FrameLayout {
 
     // Offset of the block origin inside the view's measured area.
     private int mLayoutMarginLeft;
-    private int mMaxRowWidth;
+    private int mMaxInputFieldsWidth;
+    private int mMaxStatementFieldsWidth;
 
     // Vertical offset for positioning the "Next" block (if one exists).
     private int mNextBlockVerticalOffset;
@@ -184,6 +185,20 @@ public class BlockView extends FrameLayout {
      * </p>
      */
     private void onMeasureInlineInputs(int widthMeasureSpec, int heightMeasureSpec) {
+        // First pass - measure all fields and inputs; compute maximum width of fields over all
+        // Statement inputs.
+        mMaxStatementFieldsWidth = 0;
+        for (int i = 0; i < mInputViews.size(); i++) {
+            InputView inputView = mInputViews.get(i);
+            inputView.measureFieldsAndInputs(widthMeasureSpec, heightMeasureSpec);
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                mMaxStatementFieldsWidth =
+                        Math.max(mMaxStatementFieldsWidth, inputView.getTotalFieldWidth());
+
+            }
+        }
+
+        // Second pass - compute layout positions and sizes of all inputs.
         int rowLeft = 0;
         int rowTop = 0;
 
@@ -192,10 +207,11 @@ public class BlockView extends FrameLayout {
 
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
-            inputView.measureFieldsAndInputs(widthMeasureSpec, heightMeasureSpec);
-            inputView.measure(widthMeasureSpec, heightMeasureSpec);
 
+            // If this is a Statement input, force its field width to be the maximum over all
+            // Statements, and begin a new layout row.
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
                 rowTop += rowHeight;
                 rowHeight = 0;
                 rowLeft = 0;
@@ -203,6 +219,8 @@ public class BlockView extends FrameLayout {
 
             mInputLayoutOrigins.get(i).set(rowLeft, rowTop);
 
+            // Measure input view and update row height and width accordingly.
+            inputView.measure(widthMeasureSpec, heightMeasureSpec);
             rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
             rowLeft += inputView.getMeasuredWidth();
 
@@ -210,7 +228,7 @@ public class BlockView extends FrameLayout {
                 // The block width is that of the widest row, but for a Statement input there needs
                 // to be added space for the connector.
                 maxRowWidth = Math.max(
-                        maxRowWidth, rowLeft + ConnectorHelper.STATEMENT_INPUT_MINIMUM_WIDTH);
+                        maxRowWidth, rowLeft + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH);
 
                 // Statement input is always a row by itself, so increase top coordinate and reset
                 // row origin and height.
@@ -251,20 +269,46 @@ public class BlockView extends FrameLayout {
      * </p>
      */
     private void onMeasureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
-        mMaxRowWidth = MIN_WIDTH;
-        int maxChildWidth = 0;
+        mMaxInputFieldsWidth = MIN_WIDTH;
+        mMaxStatementFieldsWidth = MIN_WIDTH;
+
+        int maxInputChildWidth = 0;
+        int maxStatementChildWidth = 0;
 
         // First pass - measure fields and children of all inputs.
         boolean hasValueInput = false;
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
             inputView.measureFieldsAndInputs(widthMeasureSpec, heightMeasureSpec);
-            mMaxRowWidth = Math.max(mMaxRowWidth, inputView.getTotalFieldWidth());
-            maxChildWidth = Math.max(maxChildWidth, inputView.getTotalChildWidth());
 
-            if (inputView.getInput().getType() == Input.TYPE_VALUE) {
-                hasValueInput = true;
+            switch (inputView.getInput().getType()) {
+                case Input.TYPE_VALUE: {
+                    hasValueInput = true;
+                    // fall through
+                }
+                default:
+                case Input.TYPE_DUMMY: {
+                    mMaxInputFieldsWidth =
+                            Math.max(mMaxInputFieldsWidth, inputView.getTotalFieldWidth());
+                    maxInputChildWidth =
+                            Math.max(maxInputChildWidth, inputView.getTotalChildWidth());
+                    break;
+                }
+                case Input.TYPE_STATEMENT: {
+                    mMaxStatementFieldsWidth =
+                            Math.max(mMaxStatementFieldsWidth, inputView.getTotalFieldWidth());
+                    maxStatementChildWidth =
+                            Math.max(maxInputChildWidth, inputView.getTotalChildWidth());
+                    break;
+                }
             }
+        }
+
+        // If there was a statement, force all other input fields to be at least as wide as required
+        // by the Statement field plus port width.
+        if (mMaxStatementFieldsWidth > 0) {
+            mMaxInputFieldsWidth = Math.max(mMaxInputFieldsWidth,
+                    mMaxStatementFieldsWidth + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH);
         }
 
         // Second pass - force all inputs to render fields with the same width and compute positions
@@ -272,8 +316,10 @@ public class BlockView extends FrameLayout {
         int rowTop = 0;
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
-            if (inputView.getInput().getType() != Input.TYPE_STATEMENT) {
-                inputView.setFieldLayoutWidth(mMaxRowWidth);
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
+            } else {
+                inputView.setFieldLayoutWidth(mMaxInputFieldsWidth);
             }
             inputView.measure(widthMeasureSpec, heightMeasureSpec);
 
@@ -288,7 +334,7 @@ public class BlockView extends FrameLayout {
 
         // Block width is the width of the longest row. Add space for connector if there is at least
         // one Value input.
-        mBlockWidth = mMaxRowWidth;
+        mBlockWidth = Math.max(mMaxInputFieldsWidth, mMaxStatementFieldsWidth);
         if (hasValueInput) {
             mBlockWidth += ConnectorHelper.SIZE_PERPENDICULAR;
         }
@@ -296,7 +342,9 @@ public class BlockView extends FrameLayout {
         // The width of the block view is the width of the block plus the maximum width of any of
         // its children. If there are no children, make sure view is at least as wide as the Block,
         // which accounts for width of unconnected input puts.
-        mBlockViewSize.x = Math.max(mBlockWidth, mMaxRowWidth + maxChildWidth);
+        mBlockViewSize.x = Math.max(mBlockWidth,
+                Math.max(mMaxInputFieldsWidth + maxInputChildWidth,
+                         mMaxStatementFieldsWidth + maxStatementChildWidth));
         mBlockViewSize.y = Math.max(MIN_HEIGHT, rowTop);
     }
 
@@ -445,7 +493,7 @@ public class BlockView extends FrameLayout {
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
-                    int xOffset = xLeft + inputView.getTotalFieldWidth();
+                    int xOffset = xLeft + inputView.getFieldLayoutWidth();
                     int connectorHeight = inputView.getTotalChildHeight();
                     ConnectorHelper.addStatementInputConnectorToPath(
                             mDrawPath, xRight, inputLayoutOrigin.y, xOffset, connectorHeight);
