@@ -207,7 +207,7 @@ public class InputView extends ViewGroup {
                 if (inputType == Input.TYPE_VALUE && getInput().getBlock().getInputsInline()) {
                     top = FIELD_PADDING_Y;
                 }
-                
+
                 mChildView.layout(
                         mFieldLayoutWidth, top, mFieldLayoutWidth + width, top + height);
             }
