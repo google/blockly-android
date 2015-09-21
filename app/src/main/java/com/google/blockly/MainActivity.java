@@ -16,30 +16,23 @@
 package com.google.blockly;
 
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
-import com.google.blockly.ui.BlockGroup;
-import com.google.blockly.ui.BlockView;
-import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 
 
@@ -150,57 +143,10 @@ public class MainActivity extends ActionBarActivity
             ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
             WorkspaceView wv = (WorkspaceView) rootView.findViewById(R.id.workspace);
             wv.setWorkspace(mWorkspace);
-            WorkspaceHelper helper = mWorkspace.getWorkspaceHelper();
-            Block dummyBlock = makeDummyBlock();
-            mWorkspace.addRootBlock(dummyBlock);
-            BlockGroup bg = new BlockGroup(getActivity(), helper);
-            BlockView bv = helper.obtainBlockView(dummyBlock);
-            bg.addView(bv);
-
-            Block ivb = makeValueInputBlock();
-            BlockView ivv = helper.obtainBlockView(ivb);
-            bv.getInputView(0).setChildView(ivv);
-
-            Block svb = makeSimpleValueBlock();
-            BlockView svv = helper.obtainBlockView(svb);
-            ivv.getInputView(0).setChildView(svv);
-
-            Block smb = makeStatementBlock();
-            BlockView smbv = helper.obtainBlockView(smb);
-            bv.getInputView(3).setChildView(smbv);
-
-            helper = new WorkspaceHelper(getActivity(), null, R.style.BlocklyTestTheme);
-
-            Block dummyBlock2 = makeDummyBlock();
-            dummyBlock2.setInputsInline(true);
-            bv = helper.obtainBlockView(dummyBlock2);
-            bg.addView(bv);
-
-            smb = makeStatementBlock();
-            smbv = helper.obtainBlockView(smb);
-            bv.getInputView(3).setChildView(smbv);
-
-            wv.addView(bg);
-
-            helper = mWorkspace.getWorkspaceHelper();
-
-            bg = new BlockGroup(getActivity(), helper);
-            Block outerBlock = makeOuterBlock();
-            outerBlock.setInputsInline(true);
-            mWorkspace.addRootBlock(outerBlock);
-            BlockView obv = helper.obtainBlockView(outerBlock);
-            bg.addView(obv);
-            wv.addView(bg);
-
-            Block innerBlock = makeInnerBlock();
-            BlockView ibv = helper.obtainBlockView(innerBlock);
-            obv.getInputView(1).setChildView(ibv);
-
-            Block ivb2 = makeValueInputBlock();
-            BlockView ivv2 = helper.obtainBlockView(ivb2);
-            ibv.getInputView(2).setChildView(ivv2);
-
-//            airstrike(wv, 10);
+            // Add all blocks, or load from XML.
+            makeTestModel();
+            // Let the controller create the views.
+            mWorkspace.createViewsFromModel(wv, getActivity());
             return rootView;
         }
 
@@ -212,11 +158,18 @@ public class MainActivity extends ActionBarActivity
             mWorkspace = new Workspace();
         }
 
-        private void airstrike(WorkspaceView wv, int numBlocks) {
-            WorkspaceHelper helper = mWorkspace.getWorkspaceHelper();
+        private void makeTestModel() {
+            Block parent = makeDummyBlock();
+            Block child = makeDummyBlock();
+            child.setInputsInline(true);
+            child.getPreviousConnection().connect(parent.getNextConnection());
+            mWorkspace.addRootBlock(parent);    // Recursively adds all of its children.
+
+            airstrike(10);
+        }
+
+        private void airstrike(int numBlocks) {
             Block dummyBlock;
-            BlockGroup bg;
-            BlockView bv;
             for (int i = 0; i < numBlocks; i++) {
                 dummyBlock = makeDummyBlock();
                 int randomX = (int) (Math.random() * 250);
@@ -224,10 +177,6 @@ public class MainActivity extends ActionBarActivity
                 dummyBlock.setPosition(randomX, randomY);
 
                 mWorkspace.addRootBlock(dummyBlock);
-                bg = new BlockGroup(getActivity(), helper);
-                bv = helper.obtainBlockView(dummyBlock);
-                bg.addView(bv);
-                wv.addView(bg);
             }
         }
 

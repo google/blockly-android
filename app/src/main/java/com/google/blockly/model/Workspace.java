@@ -15,12 +15,15 @@
 
 package com.google.blockly.model;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.blockly.control.ProcedureManager;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.WorkspaceStats;
+import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.ui.WorkspaceView;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.InputStream;
@@ -62,6 +65,7 @@ public class Workspace {
             throw new IllegalArgumentException("Block is already a root block.");
         }
         mRootBlocks.add(block);
+        stats.collectStats(block, true);
     }
 
     public boolean removeRootBlock(Block block) {
@@ -120,5 +124,20 @@ public class Workspace {
      */
     public void serialize(OutputStream os) throws BlocklySerializerException {
         mXmlHelper.writeToXml(mRootBlocks, os);
+    }
+
+    /**
+     * Recursively initialize views corresponding to every block in the model.
+     *
+     * @param wv The root workspace view to add to.
+     * @param context The activity context.
+     */
+    public void createViewsFromModel(WorkspaceView wv, Context context) {
+        BlockGroup bg;
+        for (int i = 0; i < mRootBlocks.size(); i++) {
+            bg = new BlockGroup(context, mWorkspaceHelper);
+            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg);
+            wv.addView(bg);
+        }
     }
 }
