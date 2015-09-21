@@ -38,90 +38,100 @@ public class ConnectorHelper {
 
     /**
      * Add a "Previous" connector to the block's draw path.
+     * <p/>
+     * The reference point for this connector is the top-left corner of the block.
      *
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
+     *                  side in RTL mode).
+     * @param blockTop Vertical view coordinate of the top of the block.
      */
-    static void addPreviousConnectorToPath(Path path, int xFrom, int yFrom) {
-        int x = xFrom + OFFSET_FROM_CORNER;
-        path.lineTo(x, yFrom);
-        path.lineTo(x, yFrom + SIZE_PERPENDICULAR);
+    static void addPreviousConnectorToPath(Path path, int blockLeft, int blockTop) {
+        int x = blockLeft + OFFSET_FROM_CORNER;
+        path.lineTo(x, blockTop);
+        path.lineTo(x, blockTop + SIZE_PERPENDICULAR);
 
         x += SIZE_PARALLEL;
-        path.lineTo(x, yFrom + SIZE_PERPENDICULAR);
-        path.lineTo(x, yFrom);
+        path.lineTo(x, blockTop + SIZE_PERPENDICULAR);
+        path.lineTo(x, blockTop);
     }
 
     /**
      * Add a "Next" connector to the block's draw path.
      *
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
+     *                  side in RTL mode).
+     * @param blockBottom Vertical view coordinate of the bottom of the block.
      */
-    static void addNextConnectorToPath(Path path, int xFrom, int yFrom) {
-        int x = xFrom + OFFSET_FROM_CORNER + SIZE_PARALLEL;
-        path.lineTo(x, yFrom);
-        path.lineTo(x, yFrom + SIZE_PERPENDICULAR);
+    static void addNextConnectorToPath(Path path, int blockLeft, int blockBottom) {
+        int x = blockLeft + OFFSET_FROM_CORNER + SIZE_PARALLEL;
+        path.lineTo(x, blockBottom);
+        path.lineTo(x, blockBottom + SIZE_PERPENDICULAR);
 
         x -= SIZE_PARALLEL;
-        path.lineTo(x, yFrom + SIZE_PERPENDICULAR);
-        path.lineTo(x, yFrom);
+        path.lineTo(x, blockBottom + SIZE_PERPENDICULAR);
+        path.lineTo(x, blockBottom);
     }
 
     /**
      * Add a Value input connector to the block's draw path.
      *
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     * @param blockRight Horizontal view coordinate of the right-hand side of the block (left-hand
+     *                   side in RTL mode).
+     * @param inputTop Vertical view coordinate of the top of the input for which this connector is
+     *                 draw.
      */
-    static void addValueInputConnectorToPath(Path path, int xFrom, int yFrom) {
-        int y = yFrom + OFFSET_FROM_CORNER;
-        path.lineTo(xFrom, y);
-        path.lineTo(xFrom - SIZE_PERPENDICULAR, y);
+    static void addValueInputConnectorToPath(Path path, int blockRight, int inputTop) {
+        int y = inputTop + OFFSET_FROM_CORNER;
+        path.lineTo(blockRight, y);
+        path.lineTo(blockRight - SIZE_PERPENDICULAR, y);
 
         y += SIZE_PARALLEL;
-        path.lineTo(xFrom - SIZE_PERPENDICULAR, y);
-        path.lineTo(xFrom, y);
+        path.lineTo(blockRight - SIZE_PERPENDICULAR, y);
+        path.lineTo(blockRight, y);
     }
 
     /**
      * Add a Statement input connector to the block's draw path.
      *
-     * @param xFrom   Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom   Vertical view coordinate of the reference point for this connector.
+     * @param blockRight Horizontal view coordinate of the right-hand side of the block (left-hand
+     *                   side in RTL mode).
+     * @param inputTop Vertical view coordinate of the top of the InputView for which this connector
+     *                 is drawn.
      * @param xOffset The offset of the Statement input connector from the left (or right, in RTL
      *                mode) boundary of the block.
+     * @param inputHeight The height of the connected input block(s).
      */
     static void addStatementInputConnectorToPath(
-            Path path, int xFrom, int yFrom, int xOffset, int connectorHeight) {
-        path.lineTo(xFrom, yFrom);
+            Path path, int blockRight, int inputTop, int xOffset, int inputHeight) {
+        path.lineTo(blockRight, inputTop);
 
         int x = xOffset + OFFSET_FROM_CORNER + SIZE_PARALLEL;
-        path.lineTo(x, yFrom);
-        path.lineTo(x, yFrom + SIZE_PERPENDICULAR);
+        path.lineTo(x, inputTop);
+        path.lineTo(x, inputTop + SIZE_PERPENDICULAR);
 
         x -= SIZE_PARALLEL;
-        path.lineTo(x, yFrom + SIZE_PERPENDICULAR);
-        path.lineTo(x, yFrom);
+        path.lineTo(x, inputTop + SIZE_PERPENDICULAR);
+        path.lineTo(x, inputTop);
 
-        path.lineTo(xOffset, yFrom);
-        path.lineTo(xOffset, yFrom + connectorHeight);
-        path.lineTo(xFrom, yFrom + connectorHeight);
+        path.lineTo(xOffset, inputTop);
+        path.lineTo(xOffset, inputTop + inputHeight);
+        path.lineTo(blockRight, inputTop + inputHeight);
     }
 
     /**
-     * Add a "Output" connector to the block's draw path.
+     * Add an "Output" connector to the block's draw path.
      *
-     * @param xFrom Horizontal view coordinate of the reference point for this connector.
-     * @param yFrom Vertical view coordinate of the reference point for this connector.
+     * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
+     *                  side in RTL mode).
+     * @param blockBottom Vertical view coordinate of the bottom of the block.
      */
-    static void addOutputConnectorToPath(Path path, int xFrom, int yFrom) {
-        int y = yFrom + OFFSET_FROM_CORNER + SIZE_PARALLEL;
-        path.lineTo(xFrom, y);
-        path.lineTo(xFrom - SIZE_PERPENDICULAR, y);
+    static void addOutputConnectorToPath(Path path, int blockLeft, int blockBottom) {
+        int y = blockBottom + OFFSET_FROM_CORNER + SIZE_PARALLEL;
+        path.lineTo(blockLeft, y);
+        path.lineTo(blockLeft - SIZE_PERPENDICULAR, y);
 
         y -= SIZE_PARALLEL;
-        path.lineTo(xFrom - SIZE_PERPENDICULAR, y);
-        path.lineTo(xFrom, y);
+        path.lineTo(blockLeft - SIZE_PERPENDICULAR, y);
+        path.lineTo(blockLeft, y);
     }
 }

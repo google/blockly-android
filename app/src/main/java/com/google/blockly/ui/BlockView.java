@@ -392,9 +392,6 @@ public class BlockView extends FrameLayout {
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
-                    // Statement inputs are always left-aligned with the block boundary.
-                    // Effectively, they are also centered, since the width of the rendered
-                    // block is adjusted to match their exact width.)
                     inputView.layout(xLeft, rowTop, xLeft + inputView.getMeasuredWidth(),
                             rowTop + inputView.getMeasuredHeight());
                     break;
