@@ -48,20 +48,23 @@ public class InputView extends ViewGroup {
     static final int FIELD_PADDING_X = 30;
     // Vertical padding between field bounds and content.
     static final int FIELD_PADDING_Y = 10;
+
     // The minimum height of an input is what is needed for a centered input connector with padding.
-    static final int BASE_HEIGHT =
-            2 * ConnectorHelper.CONNECTOR_OFFSET + ConnectorHelper.CONNECTOR_SIZE_PARALLEL;
+    static final int MIN_HEIGHT =
+            2 * ConnectorHelper.OFFSET_FROM_CORNER + ConnectorHelper.SIZE_PARALLEL;
     // The minimum width of an input, in dips.
-    static final int BASE_WIDTH = 40;
+    static final int MIN_WIDTH = 40;
+
     // The horizontal distance between fields, in dips.
     private static final int DEFAULT_FIELD_SPACING = 10;
+
     private final Input mInput;
     private final WorkspaceHelper mHelper;
     private final ArrayList<FieldView> mFieldViews = new ArrayList<>();
 
     private int mHorizontalFieldSpacing;
 
-    // Total measured width of all fields including spacing between them.
+    // Total measured width of all fields including padding around and between them.
     private int mTotalFieldWidth;
     // Maximum height over all fields, not including padding.
     private int mMaxFieldHeight;
@@ -71,11 +74,15 @@ public class InputView extends ViewGroup {
 
     // Measured width of the child, or empty-connector width for unconnected inline value inputs.
     private int mChildWidth;
-    // Measured height of the child, or empty-connector width for unconnected inline value inputs.
+    // Measured height of the child, or empty-connector height for unconnected inline value inputs.
     private int mChildHeight;
 
     // The view of the block connected to this input.
     private View mChildView = null;
+
+    // Flag to enforce that measureFieldsAndInputs() is called exactly once before each call to
+    // measure().
+    private boolean mHasMeasuredFieldsAndInput = false;
 
     InputView(Context context, int blockStyle, Input input, WorkspaceHelper helper) {
         super(context);
@@ -107,9 +114,9 @@ public class InputView extends ViewGroup {
      * This class is agnostic to the view type of the connected child, i.e., this could be a
      * {@link BlockView}, a {@link BlockGroup}, or any other type of view.
      *
-     * @param childView The {@link Block} or {@link BlockGroup} to attach to this input. This view
-     *                  is added to the layout hierarchy for this view via a call to
-     *                  {@link ViewGroup#addView(View)}.
+     * @param childView The {@link BlockView} or {@link BlockGroup} to attach to this input. The
+     *                  {@code childView} will be added to the layout hierarchy for the current view
+     *                  via a call to {@link ViewGroup#addView(View)}.
      * @throws IllegalStateException    if a child view is already set. The Blockly model requires
      *                                  disconnecting a block from an input before a new one can be connected.
      * @throws IllegalArgumentException if the method argument is {@code null}.
@@ -120,7 +127,8 @@ public class InputView extends ViewGroup {
         }
 
         if (childView == null) {
-            throw new IllegalArgumentException("Argument must not be null.");
+            throw new IllegalArgumentException("Cannot use setChildView with a null child. " +
+                    "Use unsetChildView to remove a child view.");
         }
 
         mChildView = childView;
@@ -142,85 +150,110 @@ public class InputView extends ViewGroup {
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // Height is maximum of field height with padding or child height, and at least BASE_HEIGHT.
-        int height = Math.max(BASE_HEIGHT,
-                Math.max(mMaxFieldHeight + 2 * FIELD_PADDING_Y, mChildHeight));
+        Log.w(TAG, "onMeasure");
+        if (!mHasMeasuredFieldsAndInput) {
+            throw new IllegalStateException(
+                    "InputView.measureFieldsAndInputs() must be called exactly once " +
+                            " before each call to measure().");
+        }
+        mHasMeasuredFieldsAndInput = false;
 
         int width = mFieldLayoutWidth + mChildWidth;
         if (getInput().getType() == Input.TYPE_VALUE && getInput().getBlock().getInputsInline()) {
             width += FIELD_PADDING_X;
         }
+
+        // Height is maximum of field height with padding or child height, and at least MIN_HEIGHT.
+        int height = Math.max(MIN_HEIGHT,
+                Math.max(mMaxFieldHeight + 2 * FIELD_PADDING_Y, mChildHeight));
+
         setMeasuredDimension(width, height);
     }
 
     @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
+    public void onLayout(boolean changed, int l, int t, int r, int b) {
+        Log.w(TAG, "onLayout");
         boolean rtl = mHelper.useRtL();
 
-        int currX = 0;
+        // Initialize horizontal layout cursor. The cursor is the coordinate for the left-hand side
+        // if the next field in LTR mode, and the coordinate for the right-hand side in RTL mode.
+        int cursorX = getFirstFieldX(rtl);
+
+        for (int i = 0; i < mFieldViews.size(); i++) {
+            View view = (View) mFieldViews.get(i);
+
+            // Use the width and height of the field's view to compute its placement
+            int width = view.getMeasuredWidth();
+            int height = view.getMeasuredHeight();
+
+            int left = rtl ? (cursorX - width) : cursorX;
+            view.layout(left, FIELD_PADDING_Y, left + width, FIELD_PADDING_Y + height);
+
+            // Move x position left or right, depending on RTL mode.
+            cursorX += (rtl ? -1 : +1) * (width + mHorizontalFieldSpacing);
+        }
+
+        layoutChild();
+    }
+
+    /** If there is a child connected to this Input, then layout the child in the correct place. */
+    private void layoutChild() {
+        if (mChildView != null) {
+            int inputType = mInput.getType();
+            switch (inputType) {
+                default:
+                case Input.TYPE_DUMMY: {
+                    break;
+                }
+                case Input.TYPE_STATEMENT:
+                case Input.TYPE_VALUE: {
+                    int width = mChildView.getMeasuredWidth();
+                    int height = mChildView.getMeasuredHeight();
+
+                    // Align top of fields and input, unless this is an inline Value input, in which
+                    // case field padding must be added.
+                    int top = 0;
+                    if (inputType == Input.TYPE_VALUE && getInput().getBlock().getInputsInline()) {
+                        top = FIELD_PADDING_Y;
+                    }
+                    mChildView.layout(
+                            mTotalFieldWidth, top, mTotalFieldWidth + width, top + height);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Get horizontal (x) coordinate for first field in the input, given RTL mode flag.
+     *
+     * @param rtl If true, layout fields right-to-left.
+     * @return The x coordinate for the first field in this input.
+     */
+    private int getFirstFieldX(boolean rtl) {
         switch (mInput.getAlign()) {
             default:
             case Input.ALIGN_LEFT: {
                 if (rtl) {
-                    currX = mTotalFieldWidth;
+                    return mTotalFieldWidth - FIELD_PADDING_X;
+                } else {
+                    return FIELD_PADDING_X;
                 }
-                break;
             }
             case Input.ALIGN_CENTER: {
-                currX = (mFieldLayoutWidth - mTotalFieldWidth) / 2;
+                int centered = FIELD_PADDING_X + (mFieldLayoutWidth - mTotalFieldWidth) / 2;
                 if (rtl) {
-                    currX += mFieldLayoutWidth;
+                    return centered + mFieldLayoutWidth;
+                } else {
+                    return centered;
                 }
-                break;
             }
             case Input.ALIGN_RIGHT: {
                 if (rtl) {
-                    currX = 0;
+                    return FIELD_PADDING_X;
                 } else {
-                    currX = mFieldLayoutWidth - mTotalFieldWidth;
+                    return FIELD_PADDING_X + mFieldLayoutWidth - mTotalFieldWidth;
                 }
-                break;
-            }
-        }
-
-        for (int i = 0; i < mFieldViews.size(); i++) {
-            FieldView fv = mFieldViews.get(i);
-            View view = (View) fv;
-
-            // Use the width and height of the field's view to compute its placement
-            int w = fv.getInBlockWidth();
-            int h = fv.getInBlockHeight();
-
-            int l = FIELD_PADDING_X + (rtl ? currX - w : currX);
-            view.layout(l, FIELD_PADDING_Y, l + w, FIELD_PADDING_Y + h);
-
-            // Move x position left or right, depending on RTL mode.
-            currX += (rtl ? -1 : +1) * (w + mHorizontalFieldSpacing);
-        }
-
-        // If there is a child connected to this Input and the BlockView, then layout the child in
-        // the correct place.
-        int inputType = mInput.getType();
-        switch (inputType) {
-            default:
-            case Input.TYPE_DUMMY: {
-                break;
-            }
-            case Input.TYPE_STATEMENT:
-            case Input.TYPE_VALUE: {
-                if (mChildView != null) {
-                    int w = mChildView.getMeasuredWidth();
-                    int h = mChildView.getMeasuredHeight();
-
-                    // Align top of fields and input, unless this is an inline Value input, in which
-                    // case field padding must be added.
-                    int t = 0;
-                    if (inputType == Input.TYPE_VALUE && getInput().getBlock().getInputsInline()) {
-                        t += FIELD_PADDING_Y;
-                    }
-                    mChildView.layout(mTotalFieldWidth, t, mTotalFieldWidth + w, t + h);
-                }
-                break;
             }
         }
     }
@@ -256,6 +289,7 @@ public class InputView extends ViewGroup {
             mChildWidth = mChildView.getMeasuredWidth();
             mChildHeight = mChildView.getMeasuredHeight();
         } else {
+            // There's nothing connected to this input - use the size of the empty connectors.
             if (getInput().getBlock().getInputsInline()) {
                 switch (getInput().getType()) {
                     default:
@@ -268,15 +302,15 @@ public class InputView extends ViewGroup {
                         break;
                     }
                     case Input.TYPE_STATEMENT: {
-                        mChildWidth = BASE_WIDTH;
-                        mChildHeight = BASE_HEIGHT + ConnectorHelper.CONNECTOR_SIZE_PERPENDICULAR;
+                        mChildWidth = MIN_WIDTH;
+                        mChildHeight = MIN_HEIGHT + ConnectorHelper.SIZE_PERPENDICULAR;
                         break;
                     }
                 }
             } else {
                 if (getInput().getType() == Input.TYPE_STATEMENT) {
-                    mChildWidth = BASE_WIDTH;
-                    mChildHeight = BASE_HEIGHT + ConnectorHelper.CONNECTOR_SIZE_PERPENDICULAR;
+                    mChildWidth = MIN_WIDTH;
+                    mChildHeight = MIN_HEIGHT + ConnectorHelper.SIZE_PERPENDICULAR;
                 } else {
                     mChildWidth = 0;
                     mChildHeight = 0;
@@ -332,6 +366,7 @@ public class InputView extends ViewGroup {
                     view = new FieldInputView(context, fields.get(j), mHelper);
                     break;
                 default:
+                    // TODO (fenichel): Add variable field type.
                     Log.w(TAG, "Unknown field type.");
                     break;
             }
@@ -387,14 +422,19 @@ public class InputView extends ViewGroup {
      * correct layout parameters across rows of external inputs.
      */
     void measureFieldsAndInputs(int widthMeasureSpec, int heightMeasureSpec) {
+        Log.w(TAG, "measureFieldsAndInputs");
         // Measure fields and connected inputs separately.
         measureFields(widthMeasureSpec, heightMeasureSpec);
         measureInputs(widthMeasureSpec, heightMeasureSpec);
 
         // For inline inputs, consider the connected input block(s) like a field for  measurement.
+        // Width is treated equally for inline and external inputs, since in both cases connected
+        // blocks are positioned to the right (or left, in RTL mode) of the fields.
         if (getInput().getBlock().getInputsInline()) {
             mMaxFieldHeight = Math.max(mMaxFieldHeight, mChildHeight);
         }
+
+        mHasMeasuredFieldsAndInput = true;
     }
 
     /**
@@ -412,7 +452,7 @@ public class InputView extends ViewGroup {
         int bottom = top + getTotalChildHeight();
 
         int right = xOffset + getMeasuredWidth() - InputView.FIELD_PADDING_X;
-        int left = right - getTotalChildWidth() + ConnectorHelper.CONNECTOR_SIZE_PERPENDICULAR;
+        int left = right - getTotalChildWidth() + ConnectorHelper.SIZE_PERPENDICULAR;
 
         path.moveTo(left, top);
         path.lineTo(right, top);
@@ -421,6 +461,6 @@ public class InputView extends ViewGroup {
         ConnectorHelper.addOutputConnectorToPath(path, left, top);
         path.lineTo(left, top);
         // Draw an additional line segment over again to get a final rounded corner.
-        path.lineTo(left + ConnectorHelper.CONNECTOR_OFFSET, top);
+        path.lineTo(left + ConnectorHelper.OFFSET_FROM_CORNER, top);
     }
 }

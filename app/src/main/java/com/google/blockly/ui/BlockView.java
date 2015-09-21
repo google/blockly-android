@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.util.Log;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
@@ -37,9 +38,9 @@ public class BlockView extends FrameLayout {
 
     // TODO: Replace these with dimens so they get scaled correctly
     // Minimum height of a block should be the same as an empty field.
-    private static final int BASE_HEIGHT = InputView.BASE_HEIGHT;
-    // Minimum width of a block should be the same as an empty.
-    private static final int BASE_WIDTH = InputView.BASE_WIDTH;
+    private static final int MIN_HEIGHT = InputView.MIN_HEIGHT;
+    // Minimum width of a block should be the same as an empty field.
+    private static final int MIN_WIDTH = InputView.MIN_WIDTH;
 
     // Color of block outline.
     private static final int OUTLINE_COLOR = Color.BLACK;
@@ -55,6 +56,8 @@ public class BlockView extends FrameLayout {
 
     // Current measured size of this block view.
     private final ViewPoint mBlockViewSize = new ViewPoint();
+
+    // Layout coordinates for inputs in this Block, so they don't have to be computed repeatedly.
     private ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
     private BlockWorkspaceParams mWorkspaceParams;
 
@@ -110,6 +113,7 @@ public class BlockView extends FrameLayout {
 
     @Override
     public void onDraw(Canvas c) {
+        Log.w(TAG, "onDraw");
         c.drawPath(mDrawPath, mPaintArea);
         c.drawPath(mDrawPath, mPaintBorder);
     }
@@ -120,6 +124,7 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        Log.w(TAG, "onMeasure");
         adjustInputLayoutOriginsListSize();
 
         if (getBlock().getInputsInline()) {
@@ -130,11 +135,11 @@ public class BlockView extends FrameLayout {
 
         mNextBlockVerticalOffset = mBlockViewSize.y;
         if (mBlock.getNextConnection() != null) {
-            mBlockViewSize.y += ConnectorHelper.CONNECTOR_SIZE_PERPENDICULAR;
+            mBlockViewSize.y += ConnectorHelper.SIZE_PERPENDICULAR;
         }
 
         if (mBlock.getOutputConnection() != null) {
-            mLayoutMarginLeft = ConnectorHelper.CONNECTOR_SIZE_PERPENDICULAR;
+            mLayoutMarginLeft = ConnectorHelper.SIZE_PERPENDICULAR;
             mBlockViewSize.x += mLayoutMarginLeft;
         } else {
             mLayoutMarginLeft = 0;
@@ -146,11 +151,15 @@ public class BlockView extends FrameLayout {
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        Log.w(TAG, "onLayout");
+        // Note that the following must be done regardless of the value of the "changed" parameter.
         if (getBlock().getInputsInline()) {
             onLayoutInlineInputs(changed, left, top, right, bottom);
         } else {
             onLayoutExternalInputs(changed, left, top, right, bottom);
         }
+
+        updateDrawPath();
     }
 
     /**
@@ -218,13 +227,12 @@ public class BlockView extends FrameLayout {
         // block is not a Statement input.
         rowTop += rowHeight;
 
-        // Block width is the computed width of the widest input row (at least BASE_WIDTH).
-        mBlockViewSize.x = Math.max(maxRowWidth, BASE_WIDTH);
+        // Block width is the computed width of the widest input row, and at least MIN_WIDTH.
+        mBlockViewSize.x = Math.max(MIN_WIDTH, maxRowWidth);
         mBlockWidth = mBlockViewSize.x;
 
-        // Height is vertical position of next (non-existent) inputs row plus bottom padding plus
-        // room for extruding "Next" connector. Also must be at least the base height.
-        mBlockViewSize.y = Math.max(BASE_HEIGHT, rowTop);
+        // Height is vertical position of next (non-existent) inputs row, and at least MIN_HEIGHT.
+        mBlockViewSize.y = Math.max(MIN_HEIGHT, rowTop);
     }
 
     /**
@@ -243,7 +251,7 @@ public class BlockView extends FrameLayout {
      * </p>
      */
     private void onMeasureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
-        mMaxRowWidth = BASE_WIDTH;
+        mMaxRowWidth = MIN_WIDTH;
         int maxChildWidth = 0;
 
         // First pass - measure fields and children of all inputs.
@@ -282,14 +290,14 @@ public class BlockView extends FrameLayout {
         // one Value input.
         mBlockWidth = mMaxRowWidth;
         if (hasValueInput) {
-            mBlockWidth += ConnectorHelper.CONNECTOR_SIZE_PERPENDICULAR;
+            mBlockWidth += ConnectorHelper.SIZE_PERPENDICULAR;
         }
 
         // The width of the block view is the width of the block plus the maximum width of any of
         // its children. If there are no children, make sure view is at least as wide as the Block,
         // which accounts for width of unconnected input puts.
         mBlockViewSize.x = Math.max(mBlockWidth, mMaxRowWidth + maxChildWidth);
-        mBlockViewSize.y = Math.max(BASE_HEIGHT, rowTop);
+        mBlockViewSize.y = Math.max(MIN_HEIGHT, rowTop);
     }
 
     private void onLayoutInlineInputs(boolean changed, int left, int top, int right, int bottom) {
@@ -323,7 +331,6 @@ public class BlockView extends FrameLayout {
 
     private void onLayoutExternalInputs(boolean changed, int left, int top, int right, int bottom) {
         int xLeft = mLayoutMarginLeft;
-        int xRight = mMaxRowWidth;
         for (int i = 0; i < mInputViews.size(); i++) {
             int rowTop = mInputLayoutOrigins.get(i).y;
             InputView inputView = mInputViews.get(i);
@@ -400,16 +407,11 @@ public class BlockView extends FrameLayout {
         return mNextBlockVerticalOffset;
     }
 
-    /**
-     * Update path for drawing the block after view size has changed.
-     *
-     * @param width  The new width of the block view.
-     * @param height The new height of the block view.
-     * @param oldw   The previous width of the block view (unused).
-     * @param oldh   The previous height of the block view (unused).
-     */
-    @Override
-    protected void onSizeChanged(int width, int height, int oldw, int oldh) {
+    /** Update path for drawing the block after view size or layout have changed. */
+    private void updateDrawPath() {
+        Log.w(TAG, "updateDrawPath");
+        // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
+        // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();
 
         int xLeft = mLayoutMarginLeft;
@@ -465,7 +467,7 @@ public class BlockView extends FrameLayout {
         }
         mDrawPath.lineTo(xLeft, yTop);
         // Draw an additional line segment over again to get a final rounded corner.
-        mDrawPath.lineTo(xLeft + ConnectorHelper.CONNECTOR_OFFSET, yTop);
+        mDrawPath.lineTo(xLeft + ConnectorHelper.OFFSET_FROM_CORNER, yTop);
 
         // Add cutout paths for "holes" from open inline Value inputs.
         if (getBlock().getInputsInline()) {

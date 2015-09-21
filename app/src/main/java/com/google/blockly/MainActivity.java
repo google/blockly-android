@@ -143,6 +143,7 @@ public class MainActivity extends ActionBarActivity
         public PlaceholderFragment() {
         }
 
+        //TODO(rohlfingt): Move creation of test blocks into helper class.
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
