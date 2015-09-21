@@ -21,6 +21,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.Log;
+import android.view.View;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
@@ -75,13 +76,13 @@ public class BlockView extends FrameLayout {
     /**
      * Create a new BlockView for the given block using the workspace's style.
      *
-     * @param context The context for creating this view.
-     * @param block   The {@link Block} represented by this view.
-     * @param helper  The helper for loading workspace configs and doing calculations.
+     * @param context     The context for creating this view.
+     * @param block       The {@link Block} represented by this view.
+     * @param helper      The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
      */
     public BlockView(Context context, Block block, WorkspaceHelper helper, BlockGroup parentGroup) {
-        this(context, 0 /* default style */, block, helper, parentGroup);
+        this(context, 0 /* default style */, block, helper, parentGroup, null);
     }
 
     /**
@@ -93,9 +94,10 @@ public class BlockView extends FrameLayout {
      * @param block      The {@link Block} represented by this view.
      * @param helper     The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
+     * @param listener   An onTouchListener to register on this view.
      */
     public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
-                     BlockGroup parentGroup) {
+                     BlockGroup parentGroup, View.OnTouchListener listener) {
         super(context, null, 0);
 
         mBlock = block;
@@ -106,8 +108,9 @@ public class BlockView extends FrameLayout {
 
         setWillNotDraw(false);
 
-        initViews(context, blockStyle, parentGroup);
+        initViews(context, blockStyle, parentGroup, listener);
         initDrawingObjects(context);
+        setOnTouchListener(listener);
     }
 
     /**
@@ -363,7 +366,7 @@ public class BlockView extends FrameLayout {
         // which accounts for width of unconnected input puts.
         mBlockViewSize.x = Math.max(mBlockWidth,
                 Math.max(mMaxInputFieldsWidth + maxInputChildWidth,
-                         mMaxStatementFieldsWidth + maxStatementChildWidth));
+                        mMaxStatementFieldsWidth + maxStatementChildWidth));
         mBlockViewSize.y = Math.max(MIN_HEIGHT, rowTop);
     }
 
@@ -371,7 +374,8 @@ public class BlockView extends FrameLayout {
      * A block is responsible for initializing the views all of its fields and sub-blocks,
      * meaning both inputs and next blocks.
      */
-    private void initViews(Context context, int blockStyle, BlockGroup parentGroup) {
+    private void initViews(Context context, int blockStyle, BlockGroup parentGroup,
+                           View.OnTouchListener listener) {
         List<Input> inputs = mBlock.getInputs();
         for (int i = 0; i < inputs.size(); i++) {
             Input in = inputs.get(i);
@@ -382,14 +386,14 @@ public class BlockView extends FrameLayout {
             if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
                 // Blocks connected to inputs live in their own BlockGroups.
                 BlockGroup bg = new BlockGroup(context, mHelper);
-                mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg);
+                mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg, listener);
                 inputView.setChildView(bg);
             }
         }
 
         if (getBlock().getNextBlock() != null) {
             // Next blocks live in the same BlockGroup.
-            mHelper.obtainBlockView(getBlock().getNextBlock(), parentGroup);
+            mHelper.obtainBlockView(getBlock().getNextBlock(), parentGroup, listener);
         }
     }
 
@@ -425,14 +429,8 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
-     * the top of this view's area.
+     * Update path for drawing the block after view size or layout have changed.
      */
-    int getNextBlockVerticalOffset() {
-        return mNextBlockVerticalOffset;
-    }
-
-    /** Update path for drawing the block after view size or layout have changed. */
     private void updateDrawPath() {
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
@@ -514,5 +512,13 @@ public class BlockView extends FrameLayout {
         }
 
         mDrawPath.close();
+    }
+
+    /**
+     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
+     * the top of this view's area.
+     */
+    int getNextBlockVerticalOffset() {
+        return mNextBlockVerticalOffset;
     }
 }

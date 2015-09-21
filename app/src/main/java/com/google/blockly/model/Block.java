@@ -144,6 +144,30 @@ public class Block {
         return mPosition;
     }
 
+
+    public List<Connection> getAllConnections() {
+        List<Connection> result = new ArrayList<>();
+        if (mNextConnection != null) {
+            result.add(mNextConnection);
+        }
+        if (mPreviousConnection != null) {
+            result.add(mPreviousConnection);
+        }
+        if (mOutputConnection != null) {
+            result.add(mOutputConnection);
+        }
+
+        Connection toAdd;
+        for (int i = 0; i < getInputs().size(); i++) {
+            toAdd = getInputs().get(i).getConnection();
+            if (toAdd != null) {
+                result.add(toAdd);
+            }
+        }
+
+        return result;
+    }
+
     /**
      * Set the position of this block in the workspace.
      *

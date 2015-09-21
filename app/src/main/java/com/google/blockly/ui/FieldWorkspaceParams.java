@@ -17,7 +17,6 @@ package com.google.blockly.ui;
 
 import android.graphics.Rect;
 import android.view.View;
-import android.view.ViewParent;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.model.WorkspacePoint;
@@ -99,27 +98,6 @@ public class FieldWorkspaceParams {
      * @param view The view associated with the field handled by this instance.
      */
     public void updateFromView(View view) {
-        int leftRelativeToWorkspace = view.getLeft();
-        int topRelativeToWorkspace = view.getTop();
-
-        // Move up the parent hierarchy and add parent-relative view coordinates.
-        ViewParent viewParent = view.getParent();
-        while (viewParent != null) {
-            if (viewParent instanceof WorkspaceView) {
-                break;
-            }
-
-            leftRelativeToWorkspace += ((View) viewParent).getLeft();
-            topRelativeToWorkspace += ((View) viewParent).getTop();
-
-            viewParent = viewParent.getParent();
-        }
-
-        if (viewParent == null) {
-            throw new IllegalStateException("No WorkspaceView found among view's parents.");
-        }
-
-        mGlobalViewPosition.set(leftRelativeToWorkspace, topRelativeToWorkspace);
-        mWorkspaceHelper.viewToWorkspaceCoordinates(mGlobalViewPosition, mWorkspacePosition);
+        mWorkspaceHelper.getWorkspaceCoordinates(view, mWorkspacePosition);
     }
 }

@@ -22,6 +22,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewParent;
 
 import com.google.blockly.R;
 import com.google.blockly.model.Block;
@@ -194,7 +195,20 @@ public class WorkspaceHelper {
      * @return A view for the block.
      */
     public BlockView obtainBlockView(Block block, BlockGroup parentGroup) {
-        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup);
+        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, null);
+    }
+
+    /**
+     * Creates a {@link BlockView} for the given block using the workspace's default style
+     * parameters with the given onTouchListener.
+     *
+     * @param block    The block to generate a view for.
+     * @param listener An onTouchListener to register on this view.
+     * @return A view for the block.
+     */
+    public BlockView obtainBlockView(Block block, BlockGroup parentGroup,
+                                     View.OnTouchListener listener) {
+        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, listener);
     }
 
     /**
@@ -216,6 +230,37 @@ public class WorkspaceHelper {
      */
     public int getFieldLabelStyle() {
         return mFieldLabelStyle;
+    }
+
+    /**
+     * Update workspace coordinates based on the new view coordinates of the {@link View}.
+     *
+     * @param view              The view to find the position of.
+     * @param workspacePosition The Point to store the results in.
+     */
+    public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
+        int leftRelativeToWorkspace = view.getLeft();
+        int topRelativeToWorkspace = view.getTop();
+
+        // Move up the parent hierarchy and add parent-relative view coordinates.
+        ViewParent viewParent = view.getParent();
+        while (viewParent != null) {
+            if (viewParent instanceof WorkspaceView) {
+                break;
+            }
+
+            leftRelativeToWorkspace += ((View) viewParent).getLeft();
+            topRelativeToWorkspace += ((View) viewParent).getTop();
+
+            viewParent = viewParent.getParent();
+        }
+
+        if (viewParent == null) {
+            throw new IllegalStateException("No WorkspaceView found among view's parents.");
+        }
+
+        workspacePosition.x = viewToWorkspaceUnits(leftRelativeToWorkspace);
+        workspacePosition.y = viewToWorkspaceUnits(topRelativeToWorkspace);
     }
 
     /**

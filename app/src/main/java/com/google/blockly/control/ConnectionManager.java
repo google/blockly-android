@@ -53,6 +53,12 @@ public class ConnectionManager {
         matchingLists[conn.getType()].removeConnection(conn);
     }
 
+    public void moveConnection(Connection conn, int dx, int dy) {
+        removeConnection(conn);
+        conn.setPosition(conn.getPosition().x + dx, conn.getPosition().y + dy);
+        addConnection(conn);
+    }
+
     public void clear() {
         mInputConnections.clear();
         mOutputConnections.clear();

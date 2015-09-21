@@ -18,6 +18,9 @@ package com.google.blockly.model;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 
+import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.InputView;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -87,6 +90,8 @@ public abstract class Input implements Cloneable {
     private final Connection mConnection;
     private Block mBlock;
     private int mAlign = ALIGN_LEFT;
+
+    private InputView mView;
 
     /**
      * Creates a new input that can be added to a block.
@@ -207,6 +212,21 @@ public abstract class Input implements Cloneable {
      */
     public List<Field> getFields() {
         return mFields;
+    }
+
+    /**
+     * @return The view that renders this input.
+     */
+    public InputView getView() {
+        return mView;
+    }
+
+    /**
+     * Sets the view that renders this input.
+     */
+
+    public void setView(InputView view) {
+        mView = view;
     }
 
     /**

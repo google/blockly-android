@@ -86,6 +86,7 @@ public class InputView extends ViewGroup {
         super(context);
 
         mInput = input;
+        mInput.setView(this);
         mHelper = helper;
 
         initAttrs(context, blockStyle);
@@ -194,7 +195,9 @@ public class InputView extends ViewGroup {
         layoutChild();
     }
 
-    /** If there is a child connected to this Input, then layout the child in the correct place. */
+    /**
+     * If there is a child connected to this Input, then layout the child in the correct place.
+     */
     private void layoutChild() {
         if (mChildView != null) {
             int inputType = mInput.getType();
