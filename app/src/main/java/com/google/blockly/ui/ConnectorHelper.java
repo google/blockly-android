@@ -108,8 +108,11 @@ public class ConnectorHelper {
      * The reference point for this connector is the top-right corner of the Statement input
      * (top-left corner in RTL mode).
      *
-     * @param blockEndX Horizontal base coordinate of the connector; this is the right-hand side of
-     *                  the block (left-hand side in RTL mode).
+     * @param blockEndAboveX Right-hand side of the block (left-hand side in RTL mode) above the
+     *                       Statement connector.
+     * @param blockEndBelowX Right-hand side of the block (left-hand side in RTL mode) below the
+     *                       Statement connector. For inline inputs, this can be different from
+     *                       {@code blockEndAboveX}.
      * @param inputTop Vertical view coordinate of the top of the InputView for which this connector
      *                 is drawn.
      * @param offsetX The offset of the Statement input connector from the left (or right, in RTL
@@ -118,8 +121,9 @@ public class ConnectorHelper {
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
     static void addStatementInputConnectorToPath(
-            Path path, int blockEndX, int inputTop, int offsetX, int inputHeight, int rtlSign) {
-        path.lineTo(blockEndX, inputTop);
+            Path path, int blockEndAboveX, int blockEndBelowX, int inputTop, int offsetX,
+            int inputHeight, int rtlSign) {
+        path.lineTo(blockEndAboveX, inputTop);
 
         int x = offsetX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL);
         path.lineTo(x, inputTop);
@@ -131,7 +135,7 @@ public class ConnectorHelper {
 
         path.lineTo(offsetX, inputTop);
         path.lineTo(offsetX, inputTop + inputHeight);
-        path.lineTo(blockEndX, inputTop + inputHeight);
+        path.lineTo(blockEndBelowX, inputTop + inputHeight);
     }
 
     /**

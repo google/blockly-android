@@ -58,7 +58,11 @@ public class BlockView extends FrameLayout {
     private final ViewPoint mBlockViewSize = new ViewPoint();
 
     // Layout coordinates for inputs in this Block, so they don't have to be computed repeatedly.
-    private ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
+    private final ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
+
+    // List of widths of multi-field rows when rendering inline inputs.
+    private final ArrayList<Integer> mInlineRowWidth = new ArrayList<>();
+
     private BlockWorkspaceParams mWorkspaceParams;
 
     // Offset of the block origin inside the view's measured area.
@@ -220,6 +224,7 @@ public class BlockView extends FrameLayout {
         int rowHeight = 0;
         int maxRowWidth = 0;
 
+        mInlineRowWidth.clear();
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
 
@@ -229,6 +234,9 @@ public class BlockView extends FrameLayout {
                 inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
 
                 // New row BEFORE each Statement input.
+                mInlineRowWidth.add(Math.max(rowLeft,
+                        mMaxStatementFieldsWidth + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH));
+                Log.w(TAG, "rowLeft=" + rowLeft);
                 rowTop += rowHeight;
                 rowHeight = 0;
                 rowLeft = 0;
@@ -260,6 +268,11 @@ public class BlockView extends FrameLayout {
         // Add height of final row. This is non-zero with inline inputs if the final input in the
         // block is not a Statement input.
         rowTop += rowHeight;
+
+        // Push width of last input row.
+        mInlineRowWidth.add(Math.max(rowLeft,
+                mMaxStatementFieldsWidth + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH));
+        Log.w(TAG, "rowLeftFinal=" + rowLeft);
 
         // Block width is the computed width of the widest input row, and at least MIN_WIDTH.
         mBlockViewSize.x = Math.max(MIN_WIDTH, maxRowWidth);
@@ -444,6 +457,11 @@ public class BlockView extends FrameLayout {
         int xFrom = mLayoutMarginLeft;
         int xTo = mBlockWidth + mLayoutMarginLeft;
 
+        int inlineRowIdx = 0;
+        if (getBlock().getInputsInline()) {
+            xTo = mLayoutMarginLeft + mInlineRowWidth.get(inlineRowIdx);
+        }
+
         if (rtl) {
             xFrom = mBlockViewSize.x - xFrom;
             xTo = mBlockViewSize.x - xTo;
@@ -479,8 +497,14 @@ public class BlockView extends FrameLayout {
                 case Input.TYPE_STATEMENT: {
                     int xOffset = xFrom + rtlSign * inputView.getFieldLayoutWidth();
                     int connectorHeight = inputView.getTotalChildHeight();
+                    int xToBottom = xTo;
+                    if (getBlock().getInputsInline()) {
+                        ++inlineRowIdx;
+                        xToBottom = mLayoutMarginLeft + mInlineRowWidth.get(inlineRowIdx);
+                    }
                     ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
-                            xTo, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
+                            xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
+                    xTo = xToBottom;
                     break;
                 }
             }
