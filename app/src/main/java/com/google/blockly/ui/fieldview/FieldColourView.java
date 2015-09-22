@@ -45,16 +45,6 @@ public class FieldColourView extends View implements FieldView {
     }
 
     @Override
-    public int getInBlockHeight() {
-        return getMeasuredHeight();
-    }
-
-    @Override
-    public int getInBlockWidth() {
-        return getMeasuredWidth();
-    }
-
-    @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         setMeasuredDimension(Math.max(getMeasuredWidth(), MIN_SIZE),
