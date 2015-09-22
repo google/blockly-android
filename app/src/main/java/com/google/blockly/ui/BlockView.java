@@ -247,20 +247,21 @@ public class BlockView extends FrameLayout {
             // Measure input view and update row height and width accordingly.
             inputView.measure(widthMeasureSpec, heightMeasureSpec);
             rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
-            rowLeft += inputView.getMeasuredWidth();
 
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 // The block width is that of the widest row, but for a Statement input there needs
-                // to be added space for the connector.
-                maxRowWidth = Math.max(
-                        maxRowWidth, rowLeft + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH);
+                // to be at least enough space for the connector.
+                maxRowWidth = Math.max(maxRowWidth, rowLeft +
+                        Math.max(inputView.getMeasuredWidth(),
+                                 ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH));
 
                 // New row AFTER each Statement input.
                 rowTop += rowHeight;
                 rowLeft = 0;
                 rowHeight = 0;
             } else {
-                // For Dummy and Value inputs, block width is that of the widest row
+                // For Dummy and Value inputs, block width is that of the widest row.
+                rowLeft += inputView.getMeasuredWidth();
                 maxRowWidth = Math.max(maxRowWidth, rowLeft);
             }
         }
@@ -451,17 +452,23 @@ public class BlockView extends FrameLayout {
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();
 
+        int xFrom = mLayoutMarginLeft;
+        int xTo = mLayoutMarginLeft;
+
+        // For inline inputs, the upper horizontal coordinate of the block boundary varies by
+        // section and changes after each Statement input. For external inputs, it is constant as
+        // computed in onMeasureExternalInputs.
+        int inlineRowIdx = 0;
+        if (getBlock().getInputsInline()) {
+            xTo += mInlineRowWidth.get(inlineRowIdx);
+        } else {
+            xTo += mBlockWidth;
+        }
+
         boolean rtl = mHelper.useRtL();
         int rtlSign = rtl ? -1 : +1;
 
-        int xFrom = mLayoutMarginLeft;
-        int xTo = mBlockWidth + mLayoutMarginLeft;
-
-        int inlineRowIdx = 0;
-        if (getBlock().getInputsInline()) {
-            xTo = mLayoutMarginLeft + mInlineRowWidth.get(inlineRowIdx);
-        }
-
+        // In right-to-left mode, mirror horizontal coordinates inside the measured view boundaries.
         if (rtl) {
             xFrom = mBlockViewSize.x - xFrom;
             xTo = mBlockViewSize.x - xTo;
@@ -497,6 +504,10 @@ public class BlockView extends FrameLayout {
                 case Input.TYPE_STATEMENT: {
                     int xOffset = xFrom + rtlSign * inputView.getFieldLayoutWidth();
                     int connectorHeight = inputView.getTotalChildHeight();
+
+                    // For external inputs, the horizontal end coordinate of the connector bottom is
+                    // the same as the one on top. For inline inputs, however, it is the next entry
+                    // in the width-by-row table.
                     int xToBottom = xTo;
                     if (getBlock().getInputsInline()) {
                         ++inlineRowIdx;
@@ -504,6 +515,8 @@ public class BlockView extends FrameLayout {
                     }
                     ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
                             xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
+
+                    // Set new horizontal end coordinate for subsequent inputs.
                     xTo = xToBottom;
                     break;
                 }
