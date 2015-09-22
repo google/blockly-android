@@ -39,15 +39,16 @@ public class ConnectorHelper {
     /**
      * Add a "Previous" connector to the block's draw path.
      * <p/>
-     * The reference point for this connector is the top-left corner of the block.
+     * The reference point for this connector is the top-left corner of the block (top-right corner
+     * in RTL mode).
      *
-     * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
-     *                  side in RTL mode).
+     * @param blockBaseX Horizontal base coordinate of the connector; this is the left-hand side of
+     *                   the block (right-hand side in RTL mode).
      * @param blockTop Vertical view coordinate of the top of the block.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
-    static void addPreviousConnectorToPath(Path path, int blockLeft, int blockTop, int rtlSign) {
-        int x = blockLeft + rtlSign * OFFSET_FROM_CORNER;
+    static void addPreviousConnectorToPath(Path path, int blockBaseX, int blockTop, int rtlSign) {
+        int x = blockBaseX + rtlSign * OFFSET_FROM_CORNER;
         path.lineTo(x, blockTop);
         path.lineTo(x, blockTop + SIZE_PERPENDICULAR);
 
@@ -58,14 +59,17 @@ public class ConnectorHelper {
 
     /**
      * Add a "Next" connector to the block's draw path.
+     * <p/>
+     * The reference point for this connector is the bottom-left corner of the block
+     * (bottom-right corner in RTL mode).
      *
-     * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
-     *                  side in RTL mode).
+     * @param blockBaseX Horizontal base coordinate of the connector; this is the left-hand side of
+     *                   the block (right-hand side in RTL mode).
      * @param blockBottom Vertical view coordinate of the bottom of the block.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
-    static void addNextConnectorToPath(Path path, int blockLeft, int blockBottom, int rtlSign) {
-        int x = blockLeft + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL);
+    static void addNextConnectorToPath(Path path, int blockBaseX, int blockBottom, int rtlSign) {
+        int x = blockBaseX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL);
         path.lineTo(x, blockBottom);
         path.lineTo(x, blockBottom + SIZE_PERPENDICULAR);
 
@@ -76,42 +80,48 @@ public class ConnectorHelper {
 
     /**
      * Add a Value input connector to the block's draw path.
+     * <p/>
+     * The reference point for this connector is the top-right corner of the block
+     * (top-left corner in RTL mode).
      *
-     * @param blockRight Horizontal view coordinate of the right-hand side of the block (left-hand
-     *                   side in RTL mode).
+     * @param blockBaseX Horizontal base coordinate of the connector; this is the right-hand side of
+     *                   the block (left-hand side in RTL mode).
      * @param inputTop Vertical view coordinate of the top of the input for which this connector is
      *                 drawn.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
-    static void addValueInputConnectorToPath(Path path, int blockRight, int inputTop, int rtlSign) {
-        int connectorX = blockRight - rtlSign * SIZE_PERPENDICULAR;
+    static void addValueInputConnectorToPath(Path path, int blockBaseX, int inputTop, int rtlSign) {
+        int connectorX = blockBaseX - rtlSign * SIZE_PERPENDICULAR;
 
         int y = inputTop + OFFSET_FROM_CORNER;
-        path.lineTo(blockRight, y);
+        path.lineTo(blockBaseX, y);
         path.lineTo(connectorX, y);
 
         y += SIZE_PARALLEL;
         path.lineTo(connectorX, y);
-        path.lineTo(blockRight, y);
+        path.lineTo(blockBaseX, y);
     }
 
     /**
      * Add a Statement input connector to the block's draw path.
+     * <p/>
+     * The reference point for this connector is the top-right corner of the Statement input
+     * (top-left corner in RTL mode).
      *
-     * @param blockRight Horizontal view coordinate of the right-hand side of the block (left-hand
-     *                   side in RTL mode).
+     * @param blockBaseX Horizontal base coordinate of the connector; this is the right-hand side of
+     *                   the block (left-hand side in RTL mode).
      * @param inputTop Vertical view coordinate of the top of the InputView for which this connector
      *                 is drawn.
-     * @param xOffset The offset of the Statement input connector from the left (or right, in RTL
+     * @param offsetX The offset of the Statement input connector from the left (or right, in RTL
      *                mode) boundary of the block.
      * @param inputHeight The height of the connected input block(s).
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
     static void addStatementInputConnectorToPath(
-            Path path, int blockRight, int inputTop, int xOffset, int inputHeight, int rtlSign) {
-        path.lineTo(blockRight, inputTop);
+            Path path, int blockBaseX, int inputTop, int offsetX, int inputHeight, int rtlSign) {
+        path.lineTo(blockBaseX, inputTop);
 
-        int x = xOffset + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL);
+        int x = offsetX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL);
         path.lineTo(x, inputTop);
         path.lineTo(x, inputTop + SIZE_PERPENDICULAR);
 
@@ -119,28 +129,31 @@ public class ConnectorHelper {
         path.lineTo(x, inputTop + SIZE_PERPENDICULAR);
         path.lineTo(x, inputTop);
 
-        path.lineTo(xOffset, inputTop);
-        path.lineTo(xOffset, inputTop + inputHeight);
-        path.lineTo(blockRight, inputTop + inputHeight);
+        path.lineTo(offsetX, inputTop);
+        path.lineTo(offsetX, inputTop + inputHeight);
+        path.lineTo(blockBaseX, inputTop + inputHeight);
     }
 
     /**
      * Add an "Output" connector to the block's draw path.
+     * <p/>
+     * The reference point for this connector is the bottom-left corner of the block
+     * (bottom-right corner in RTL mode).
      *
-     * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
-     *                  side in RTL mode).
+     * @param blockBaseX Horizontal base coordinate of the connector; this is the left-hand side of
+     *                   the block (right-hand side in RTL mode).
      * @param blockBottom Vertical view coordinate of the bottom of the block.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
-    static void addOutputConnectorToPath(Path path, int blockLeft, int blockBottom, int rtlSign) {
-        int connectorX = blockLeft - rtlSign * SIZE_PERPENDICULAR;
+    static void addOutputConnectorToPath(Path path, int blockBaseX, int blockBottom, int rtlSign) {
+        int connectorX = blockBaseX - rtlSign * SIZE_PERPENDICULAR;
 
         int y = blockBottom + OFFSET_FROM_CORNER + SIZE_PARALLEL;
-        path.lineTo(blockLeft, y);
+        path.lineTo(blockBaseX, y);
         path.lineTo(connectorX, y);
 
         y -= SIZE_PARALLEL;
         path.lineTo(connectorX, y);
-        path.lineTo(blockLeft, y);
+        path.lineTo(blockBaseX, y);
     }
 }
