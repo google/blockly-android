@@ -68,16 +68,6 @@ public class FieldLabelView extends TextView implements FieldView {
     }
 
     @Override
-    public int getInBlockHeight() {
-        return getMeasuredHeight();
-    }
-
-    @Override
-    public int getInBlockWidth() {
-        return getMeasuredWidth();
-    }
-
-    @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
