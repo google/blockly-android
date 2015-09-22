@@ -428,7 +428,9 @@ public class InputView extends ViewGroup {
      * @param path    The draw path of the {@link BlockView} as assembled so far. Commands to draw the
      *                cutout are appended to this path.
      * @param xOffset The horizontal offset for cutout path coordinates provided by the caller to
-     *                position the cutout in the parent's view area.
+     *                position the cutout in the parent's view area. In RTL mode, this is the
+     *                relative position of the right-hand side of the cutout, otherwise of its
+     *                left-hand side.
      * @param yOffset The vertical offset for cutout path coordinates provided by the caller to
      *                position the cutout in the parent's view area.
       * @param rtlSign Sign of horizontal layout direction. In RTL mode, this is -1, otherwise +1.
