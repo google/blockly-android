@@ -271,6 +271,8 @@ public class BlockView extends FrameLayout {
      */
     private void onMeasureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
         mMaxInputFieldsWidth = MIN_WIDTH;
+        // Initialize max Statement width as zero so presence of Statement inputs can be determined
+        // later; apply minimum size after that.
         mMaxStatementFieldsWidth = 0;
 
         int maxInputChildWidth = 0;
