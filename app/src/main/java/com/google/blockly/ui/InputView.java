@@ -171,23 +171,24 @@ public class InputView extends ViewGroup {
     @Override
     public void onLayout(boolean changed, int l, int t, int r, int b) {
         boolean rtl = mHelper.useRtL();
+        int viewWidth = getMeasuredWidth();
 
-        // Initialize horizontal layout cursor. The cursor is the coordinate for the left-hand side
-        // if the next field in LTR mode, and the coordinate for the right-hand side in RTL mode.
-        int cursorX = getFirstFieldX(rtl);
+        // Initialize horizontal layout cursor. The cursor value increases as layout proceeds, but
+        // actual layout locations in RTL mode are (viewWidth - cursorX).
+        int cursorX = getFirstFieldX();
 
         for (int i = 0; i < mFieldViews.size(); i++) {
             View view = (View) mFieldViews.get(i);
 
             // Use the width and height of the field's view to compute its placement
-            int width = view.getMeasuredWidth();
-            int height = view.getMeasuredHeight();
+            int fieldWidth = view.getMeasuredWidth();
+            int fieldHeight = view.getMeasuredHeight();
 
-            int left = rtl ? (cursorX - width) : cursorX;
-            view.layout(left, FIELD_PADDING_Y, left + width, FIELD_PADDING_Y + height);
+            int left = rtl ? viewWidth - (cursorX + fieldWidth) : cursorX;
+            view.layout(left, FIELD_PADDING_Y, left + fieldWidth, FIELD_PADDING_Y + fieldHeight);
 
             // Move x position left or right, depending on RTL mode.
-            cursorX += (rtl ? -1 : +1) * (width + mHorizontalFieldSpacing);
+            cursorX += fieldWidth + mHorizontalFieldSpacing;
         }
 
         layoutChild();
@@ -208,42 +209,29 @@ public class InputView extends ViewGroup {
                     top = FIELD_PADDING_Y;
                 }
 
-                mChildView.layout(
-                        mFieldLayoutWidth, top, mFieldLayoutWidth + width, top + height);
+                boolean rtl = mHelper.useRtL();
+                int left = rtl ? getMeasuredWidth() - mFieldLayoutWidth - width : mFieldLayoutWidth;
+
+                mChildView.layout(left, top, left + width, top + height);
             }
         }
     }
 
     /**
-     * Get horizontal (x) coordinate for first field in the input, given RTL mode flag.
-     *
-     * @param rtl If true, layout fields right-to-left.
+     * Get horizontal (x) coordinate for first field in the input.
      * @return The x coordinate for the first field in this input.
      */
-    private int getFirstFieldX(boolean rtl) {
+    private int getFirstFieldX() {
         switch (mInput.getAlign()) {
             default:
             case Input.ALIGN_LEFT: {
-                if (rtl) {
-                    return mTotalFieldWidth - FIELD_PADDING_X;
-                } else {
-                    return FIELD_PADDING_X;
-                }
+                return FIELD_PADDING_X;
             }
             case Input.ALIGN_CENTER: {
-                int centered = FIELD_PADDING_X + (mFieldLayoutWidth - mTotalFieldWidth) / 2;
-                if (rtl) {
-                    return centered + mFieldLayoutWidth;
-                } else {
-                    return centered;
-                }
+                return FIELD_PADDING_X + (mFieldLayoutWidth - mTotalFieldWidth) / 2;
             }
             case Input.ALIGN_RIGHT: {
-                if (rtl) {
-                    return FIELD_PADDING_X;
-                } else {
-                    return FIELD_PADDING_X + mFieldLayoutWidth - mTotalFieldWidth;
-                }
+                return FIELD_PADDING_X + mFieldLayoutWidth - mTotalFieldWidth;
             }
         }
     }
@@ -443,21 +431,22 @@ public class InputView extends ViewGroup {
      *                position the cutout in the parent's view area.
      * @param yOffset The vertical offset for cutout path coordinates provided by the caller to
      *                position the cutout in the parent's view area.
-     */
-    void addInlineCutoutToBlockViewPath(Path path, int xOffset, int yOffset) {
+      * @param rtlSign Sign of horizontal layout direction. In RTL mode, this is -1, otherwise +1.
+    */
+    void addInlineCutoutToBlockViewPath(Path path, int xOffset, int yOffset, int rtlSign) {
         int top = yOffset + InputView.FIELD_PADDING_Y;
         int bottom = top + getTotalChildHeight();
 
-        int right = xOffset + getMeasuredWidth() - InputView.FIELD_PADDING_X;
-        int left = right - getTotalChildWidth() + ConnectorHelper.SIZE_PERPENDICULAR;
+        int right = xOffset + rtlSign * (getMeasuredWidth() - InputView.FIELD_PADDING_X);
+        int left = right + rtlSign * (ConnectorHelper.SIZE_PERPENDICULAR - getTotalChildWidth());
 
         path.moveTo(left, top);
         path.lineTo(right, top);
         path.lineTo(right, bottom);
         path.lineTo(left, bottom);
-        ConnectorHelper.addOutputConnectorToPath(path, left, top);
+        ConnectorHelper.addOutputConnectorToPath(path, left, top, rtlSign);
         path.lineTo(left, top);
         // Draw an additional line segment over again to get a final rounded corner.
-        path.lineTo(left + ConnectorHelper.OFFSET_FROM_CORNER, top);
+        path.lineTo(left + rtlSign * ConnectorHelper.OFFSET_FROM_CORNER, top);
     }
 }

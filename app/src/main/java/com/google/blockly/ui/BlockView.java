@@ -151,12 +151,22 @@ public class BlockView extends FrameLayout {
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         // Note that layout must be done regardless of the value of the "changed" parameter.
-        int xLeft = mLayoutMarginLeft;
+
+        boolean rtl = mHelper.useRtL();
+        int rtlSign = rtl ? -1 : +1;
+
+        int xFrom = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
         for (int i = 0; i < mInputViews.size(); i++) {
-            int rowLeft = xLeft + mInputLayoutOrigins.get(i).x;
             int rowTop = mInputLayoutOrigins.get(i).y;
+
             InputView inputView = mInputViews.get(i);
-            inputView.layout(rowLeft, rowTop, rowLeft + inputView.getMeasuredWidth(),
+            int inputViewWidth = inputView.getMeasuredWidth();
+            int rowFrom = xFrom + rtlSign * mInputLayoutOrigins.get(i).x;
+            if (rtl) {
+                rowFrom -= inputViewWidth;
+            }
+
+            inputView.layout(rowFrom, rowTop, rowFrom + inputViewWidth,
                     rowTop + inputView.getMeasuredHeight());
         }
 
@@ -407,18 +417,26 @@ public class BlockView extends FrameLayout {
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();
 
-        int xLeft = mLayoutMarginLeft;
-        int xRight = mBlockWidth + mLayoutMarginLeft;
+        boolean rtl = mHelper.useRtL();
+        int rtlSign = rtl ? -1 : +1;
+
+        int xFrom = mLayoutMarginLeft;
+        int xTo = mBlockWidth + mLayoutMarginLeft;
+
+        if (rtl) {
+            xFrom = mBlockViewSize.x - xFrom;
+            xTo = mBlockViewSize.x - xTo;
+        }
 
         int yTop = 0;
         int yBottom = mNextBlockVerticalOffset;
 
         // Top of the block, including "Previous" connector.
-        mDrawPath.moveTo(xLeft, yTop);
+        mDrawPath.moveTo(xFrom, yTop);
         if (mBlock.getPreviousConnection() != null) {
-            ConnectorHelper.addPreviousConnectorToPath(mDrawPath, xLeft, yTop);
+            ConnectorHelper.addPreviousConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
         }
-        mDrawPath.lineTo(xRight, yTop);
+        mDrawPath.lineTo(xTo, yTop);
 
         // Right-hand side of the block, including "Input" connectors.
         // TODO(rohlfingt): draw this on the opposite side in RTL mode.
@@ -433,34 +451,34 @@ public class BlockView extends FrameLayout {
                 case Input.TYPE_VALUE: {
                     if (!getBlock().getInputsInline()) {
                         ConnectorHelper.addValueInputConnectorToPath(
-                                mDrawPath, xRight, inputLayoutOrigin.y);
+                                mDrawPath, xTo, inputLayoutOrigin.y, rtlSign);
                     }
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
-                    int xOffset = xLeft + inputView.getFieldLayoutWidth();
+                    int xOffset = xFrom + rtlSign * inputView.getFieldLayoutWidth();
                     int connectorHeight = inputView.getTotalChildHeight();
-                    ConnectorHelper.addStatementInputConnectorToPath(
-                            mDrawPath, xRight, inputLayoutOrigin.y, xOffset, connectorHeight);
+                    ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
+                            xTo, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
                     break;
                 }
             }
         }
-        mDrawPath.lineTo(xRight, yBottom);
+        mDrawPath.lineTo(xTo, yBottom);
 
         // Bottom of the block, including "Next" connector.
         if (mBlock.getNextConnection() != null) {
-            ConnectorHelper.addNextConnectorToPath(mDrawPath, xLeft, yBottom);
+            ConnectorHelper.addNextConnectorToPath(mDrawPath, xFrom, yBottom, rtlSign);
         }
-        mDrawPath.lineTo(xLeft, yBottom);
+        mDrawPath.lineTo(xFrom, yBottom);
 
         // Left-hand side of the block, including "Output" connector.
         if (mBlock.getOutputConnection() != null) {
-            ConnectorHelper.addOutputConnectorToPath(mDrawPath, xLeft, yTop);
+            ConnectorHelper.addOutputConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
         }
-        mDrawPath.lineTo(xLeft, yTop);
+        mDrawPath.lineTo(xFrom, yTop);
         // Draw an additional line segment over again to get a final rounded corner.
-        mDrawPath.lineTo(xLeft + ConnectorHelper.OFFSET_FROM_CORNER, yTop);
+        mDrawPath.lineTo(xFrom + ConnectorHelper.OFFSET_FROM_CORNER, yTop);
 
         // Add cutout paths for "holes" from open inline Value inputs.
         if (getBlock().getInputsInline()) {
@@ -469,7 +487,7 @@ public class BlockView extends FrameLayout {
                 if (inputView.getInput().getType() == Input.TYPE_VALUE) {
                     ViewPoint inputLayoutOrigin = mInputLayoutOrigins.get(i);
                     inputView.addInlineCutoutToBlockViewPath(mDrawPath,
-                            xLeft + inputLayoutOrigin.x, inputLayoutOrigin.y);
+                            xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign);
                 }
             }
         }

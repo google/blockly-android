@@ -44,13 +44,14 @@ public class ConnectorHelper {
      * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
      *                  side in RTL mode).
      * @param blockTop Vertical view coordinate of the top of the block.
+     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
-    static void addPreviousConnectorToPath(Path path, int blockLeft, int blockTop) {
-        int x = blockLeft + OFFSET_FROM_CORNER;
+    static void addPreviousConnectorToPath(Path path, int blockLeft, int blockTop, int rtlSign) {
+        int x = blockLeft + rtlSign * OFFSET_FROM_CORNER;
         path.lineTo(x, blockTop);
         path.lineTo(x, blockTop + SIZE_PERPENDICULAR);
 
-        x += SIZE_PARALLEL;
+        x += rtlSign * SIZE_PARALLEL;
         path.lineTo(x, blockTop + SIZE_PERPENDICULAR);
         path.lineTo(x, blockTop);
     }
@@ -61,13 +62,14 @@ public class ConnectorHelper {
      * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
      *                  side in RTL mode).
      * @param blockBottom Vertical view coordinate of the bottom of the block.
+     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
-    static void addNextConnectorToPath(Path path, int blockLeft, int blockBottom) {
-        int x = blockLeft + OFFSET_FROM_CORNER + SIZE_PARALLEL;
+    static void addNextConnectorToPath(Path path, int blockLeft, int blockBottom, int rtlSign) {
+        int x = blockLeft + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL);
         path.lineTo(x, blockBottom);
         path.lineTo(x, blockBottom + SIZE_PERPENDICULAR);
 
-        x -= SIZE_PARALLEL;
+        x -= rtlSign * SIZE_PARALLEL;
         path.lineTo(x, blockBottom + SIZE_PERPENDICULAR);
         path.lineTo(x, blockBottom);
     }
@@ -79,14 +81,17 @@ public class ConnectorHelper {
      *                   side in RTL mode).
      * @param inputTop Vertical view coordinate of the top of the input for which this connector is
      *                 drawn.
+     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
-    static void addValueInputConnectorToPath(Path path, int blockRight, int inputTop) {
+    static void addValueInputConnectorToPath(Path path, int blockRight, int inputTop, int rtlSign) {
+        int connectorX = blockRight - rtlSign * SIZE_PERPENDICULAR;
+
         int y = inputTop + OFFSET_FROM_CORNER;
         path.lineTo(blockRight, y);
-        path.lineTo(blockRight - SIZE_PERPENDICULAR, y);
+        path.lineTo(connectorX, y);
 
         y += SIZE_PARALLEL;
-        path.lineTo(blockRight - SIZE_PERPENDICULAR, y);
+        path.lineTo(connectorX, y);
         path.lineTo(blockRight, y);
     }
 
@@ -100,16 +105,17 @@ public class ConnectorHelper {
      * @param xOffset The offset of the Statement input connector from the left (or right, in RTL
      *                mode) boundary of the block.
      * @param inputHeight The height of the connected input block(s).
+     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
     static void addStatementInputConnectorToPath(
-            Path path, int blockRight, int inputTop, int xOffset, int inputHeight) {
+            Path path, int blockRight, int inputTop, int xOffset, int inputHeight, int rtlSign) {
         path.lineTo(blockRight, inputTop);
 
-        int x = xOffset + OFFSET_FROM_CORNER + SIZE_PARALLEL;
+        int x = xOffset + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL);
         path.lineTo(x, inputTop);
         path.lineTo(x, inputTop + SIZE_PERPENDICULAR);
 
-        x -= SIZE_PARALLEL;
+        x -= rtlSign * SIZE_PARALLEL;
         path.lineTo(x, inputTop + SIZE_PERPENDICULAR);
         path.lineTo(x, inputTop);
 
@@ -124,14 +130,17 @@ public class ConnectorHelper {
      * @param blockLeft Horizontal view coordinate of the left-hand side of the block (right-hand
      *                  side in RTL mode).
      * @param blockBottom Vertical view coordinate of the bottom of the block.
+     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
-    static void addOutputConnectorToPath(Path path, int blockLeft, int blockBottom) {
+    static void addOutputConnectorToPath(Path path, int blockLeft, int blockBottom, int rtlSign) {
+        int connectorX = blockLeft - rtlSign * SIZE_PERPENDICULAR;
+
         int y = blockBottom + OFFSET_FROM_CORNER + SIZE_PARALLEL;
         path.lineTo(blockLeft, y);
-        path.lineTo(blockLeft - SIZE_PERPENDICULAR, y);
+        path.lineTo(connectorX, y);
 
         y -= SIZE_PARALLEL;
-        path.lineTo(blockLeft - SIZE_PERPENDICULAR, y);
+        path.lineTo(connectorX, y);
         path.lineTo(blockLeft, y);
     }
 }
