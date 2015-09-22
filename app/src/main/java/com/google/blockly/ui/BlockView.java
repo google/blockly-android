@@ -76,11 +76,12 @@ public class BlockView extends FrameLayout {
      * Create a new BlockView for the given block using the workspace's style.
      *
      * @param context The context for creating this view.
-     * @param block   The block represented by this view.
+     * @param block   The {@link Block} represented by this view.
      * @param helper  The helper for loading workspace configs and doing calculations.
+     * @param parentGroup The {@link BlockGroup} this view will live in.
      */
-    public BlockView(Context context, Block block, WorkspaceHelper helper) {
-        this(context, 0 /* default style */, block, helper);
+    public BlockView(Context context, Block block, WorkspaceHelper helper, BlockGroup parentGroup) {
+        this(context, 0 /* default style */, block, helper, parentGroup);
     }
 
     /**
@@ -89,19 +90,23 @@ public class BlockView extends FrameLayout {
      *
      * @param context    The context for creating this view.
      * @param blockStyle The resource id for the style to use on this view.
-     * @param block      The block represented by this view.
+     * @param block      The {@link Block} represented by this view.
      * @param helper     The helper for loading workspace configs and doing calculations.
+     * @param parentGroup The {@link BlockGroup} this view will live in.
      */
-    public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper) {
+    public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
+                     BlockGroup parentGroup) {
         super(context, null, 0);
 
         mBlock = block;
         mHelper = helper;
         mWorkspaceParams = new BlockWorkspaceParams(mBlock, mHelper);
+        parentGroup.addView(this);
+        block.setView(this);
 
         setWillNotDraw(false);
 
-        initViews(context, blockStyle);
+        initViews(context, blockStyle, parentGroup);
         initDrawingObjects(context);
     }
 
@@ -353,15 +358,28 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * A block is responsible for initializing all of its fields. Sub-blocks must be added
-     * elsewhere.
+     * A block is responsible for initializing the views all of its fields and sub-blocks,
+     * meaning both inputs and next blocks.
      */
-    private void initViews(Context context, int blockStyle) {
+    private void initViews(Context context, int blockStyle, BlockGroup parentGroup) {
         List<Input> inputs = mBlock.getInputs();
         for (int i = 0; i < inputs.size(); i++) {
-            InputView inputView = new InputView(context, blockStyle, inputs.get(i), mHelper);
+            Input in = inputs.get(i);
+            // TODO: draw appropriate input, handle inline inputs
+            InputView inputView = new InputView(context, blockStyle, in, mHelper);
             mInputViews.add(inputView);
             addView(inputView);
+            if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
+                // Blocks connected to inputs live in their own BlockGroups.
+                BlockGroup bg = new BlockGroup(context, mHelper);
+                mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg);
+                inputView.setChildView(bg);
+            }
+        }
+
+        if (getBlock().getNextBlock() != null) {
+            // Next blocks live in the same BlockGroup.
+            mHelper.obtainBlockView(getBlock().getNextBlock(), parentGroup);
         }
     }
 

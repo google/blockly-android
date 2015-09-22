@@ -193,8 +193,8 @@ public class WorkspaceHelper {
      * @param block The block to generate a view for.
      * @return A view for the block.
      */
-    public BlockView obtainBlockView(Block block) {
-        return new BlockView(mContext, getBlockStyle(), block, this);
+    public BlockView obtainBlockView(Block block, BlockGroup parentGroup) {
+        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup);
     }
 
     /**
