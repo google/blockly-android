@@ -236,7 +236,7 @@ public class BlockView extends FrameLayout {
                 // New row BEFORE each Statement input.
                 mInlineRowWidth.add(Math.max(rowLeft,
                         mMaxStatementFieldsWidth + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH));
-                Log.w(TAG, "rowLeft=" + rowLeft);
+
                 rowTop += rowHeight;
                 rowHeight = 0;
                 rowLeft = 0;
@@ -273,7 +273,6 @@ public class BlockView extends FrameLayout {
         // Push width of last input row.
         mInlineRowWidth.add(Math.max(rowLeft,
                 mMaxStatementFieldsWidth + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH));
-        Log.w(TAG, "rowLeftFinal=" + rowLeft);
 
         // Block width is the computed width of the widest input row, and at least MIN_WIDTH.
         mBlockViewSize.x = Math.max(MIN_WIDTH, maxRowWidth);
