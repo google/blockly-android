@@ -271,7 +271,7 @@ public class BlockView extends FrameLayout {
      */
     private void onMeasureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
         mMaxInputFieldsWidth = MIN_WIDTH;
-        mMaxStatementFieldsWidth = MIN_WIDTH;
+        mMaxStatementFieldsWidth = 0;
 
         int maxInputChildWidth = 0;
         int maxStatementChildWidth = 0;
@@ -285,14 +285,14 @@ public class BlockView extends FrameLayout {
             switch (inputView.getInput().getType()) {
                 case Input.TYPE_VALUE: {
                     hasValueInput = true;
+                    maxInputChildWidth =
+                            Math.max(maxInputChildWidth, inputView.getTotalChildWidth());
                     // fall through
                 }
                 default:
                 case Input.TYPE_DUMMY: {
                     mMaxInputFieldsWidth =
                             Math.max(mMaxInputFieldsWidth, inputView.getTotalFieldWidth());
-                    maxInputChildWidth =
-                            Math.max(maxInputChildWidth, inputView.getTotalChildWidth());
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
@@ -308,6 +308,7 @@ public class BlockView extends FrameLayout {
         // If there was a statement, force all other input fields to be at least as wide as required
         // by the Statement field plus port width.
         if (mMaxStatementFieldsWidth > 0) {
+            mMaxStatementFieldsWidth = Math.max(mMaxStatementFieldsWidth, MIN_WIDTH);
             mMaxInputFieldsWidth = Math.max(mMaxInputFieldsWidth,
                     mMaxStatementFieldsWidth + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH);
         }
