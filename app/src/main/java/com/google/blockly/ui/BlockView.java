@@ -373,7 +373,7 @@ public class BlockView extends FrameLayout {
                 // Blocks connected to inputs live in their own BlockGroups.
                 BlockGroup bg = new BlockGroup(context, mHelper);
                 mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg);
-                addView(bg);
+                inputView.setChildView(bg);
             }
         }
 

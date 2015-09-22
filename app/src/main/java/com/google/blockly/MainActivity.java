@@ -160,12 +160,29 @@ public class MainActivity extends ActionBarActivity
 
         private void makeTestModel() {
             Block parent = makeDummyBlock();
+            Block ivb = makeValueInputBlock();
+            parent.getInputs().get(0).getConnection().connect(ivb.getOutputConnection());
+            Block svb = makeSimpleValueBlock();
+            ivb.getInputs().get(0).getConnection().connect(svb.getOutputConnection());
+            Block smb = makeStatementBlock();
+            parent.getInputs().get(3).getConnection().connect(smb.getPreviousConnection());
+
             Block child = makeDummyBlock();
             child.setInputsInline(true);
             child.getPreviousConnection().connect(parent.getNextConnection());
+
+            smb = makeStatementBlock();
+            child.getInputs().get(3).getConnection().connect(smb.getPreviousConnection());
             mWorkspace.addRootBlock(parent);    // Recursively adds all of its children.
 
-            airstrike(10);
+            Block outerBlock = makeOuterBlock();
+            outerBlock.setInputsInline(true);
+            Block innerBlock = makeInnerBlock();
+            outerBlock.getInputs().get(1).getConnection().connect(innerBlock.getOutputConnection());
+            Block ivb2 = makeValueInputBlock();
+            innerBlock.getInputs().get(2).getConnection().connect(ivb2.getOutputConnection());
+            mWorkspace.addRootBlock(outerBlock);
+            //airstrike(10);
         }
 
         private void airstrike(int numBlocks) {
