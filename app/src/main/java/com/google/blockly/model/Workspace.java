@@ -70,7 +70,6 @@ public class Workspace {
                 mDragEnd.set((int) event.getX(), (int) event.getY());
                 moveBlock(mTouchedBlockView.getBlock(), mDragEnd.x - mDragStart.x,
                         mDragEnd.y - mDragStart.y);
-                //v.bringToFront();
                 v.requestLayout();
                 v.invalidate();
                 return true;
@@ -175,8 +174,13 @@ public class Workspace {
         }
     }
 
+    /**
+     * Function to call in an onTouchListener to move the given block.
+     * @param block The block to move.
+     * @param dx How far to move in the x direction.
+     * @param dy How far to move in the y direction.
+     */
     private void moveBlock(Block block, int dx, int dy) {
-
         BlockView bv = block.getView();
         BlockGroup bg = (BlockGroup) bv.getParent();
         WorkspacePoint realPosition = new WorkspacePoint();
@@ -185,7 +189,6 @@ public class Workspace {
             // Child block
             if (block.getPreviousConnection() != null
                     && block.getPreviousConnection().isConnected()) {
-                // TODO(fenichel): make new blockgroups if this is not the first in a BG.
                 Input in = block.getPreviousConnection().getTargetConnection().getInput();
                 InputView inv = in.getView();
                 inv.removeView(bg);
@@ -207,12 +210,12 @@ public class Workspace {
         List<Connection> connections = block.getAllConnections();
         dx = mWorkspaceHelper.viewToWorkspaceUnits(dx);
         dy = mWorkspaceHelper.viewToWorkspaceUnits(dy);
-        // Need to do this recursively.
+        // TODO (fenichel): Need to do this recursively.
         for (int i = 0; i < connections.size(); i++) {
             mConnectionManager.moveConnection(connections.get(i), dx, dy);
         }
 
-        // What about moving the children?
+        // TODO (fenichel):  What about moving the children?
         block.setPosition(block.getPosition().x + dx, block.getPosition().y + dy);
     }
 }

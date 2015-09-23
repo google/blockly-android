@@ -53,6 +53,9 @@ public class ConnectionManager {
         matchingLists[conn.getType()].removeConnection(conn);
     }
 
+    /**
+     * Move the given connector and update the relevant list.
+     */
     public void moveConnection(Connection conn, int dx, int dy) {
         removeConnection(conn);
         conn.setPosition(conn.getPosition().x + dx, conn.getPosition().y + dy);

@@ -18,7 +18,6 @@ package com.google.blockly.model;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 
-import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.InputView;
 
 import org.json.JSONArray;
@@ -224,7 +223,6 @@ public abstract class Input implements Cloneable {
     /**
      * Sets the view that renders this input.
      */
-
     public void setView(InputView view) {
         mView = view;
     }

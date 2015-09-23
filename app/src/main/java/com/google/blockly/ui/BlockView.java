@@ -20,7 +20,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -373,6 +372,8 @@ public class BlockView extends FrameLayout {
     /**
      * A block is responsible for initializing the views all of its fields and sub-blocks,
      * meaning both inputs and next blocks.
+     * @param parentGroup The group the current block and all next blocks live in.
+     * @param listener An onTouchListener to register on every sub-block.
      */
     private void initViews(Context context, int blockStyle, BlockGroup parentGroup,
                            View.OnTouchListener listener) {

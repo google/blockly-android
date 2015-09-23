@@ -144,7 +144,9 @@ public class Block {
         return mPosition;
     }
 
-
+    /**
+     * @return A list of connections (including inputs, next, previous and outputs) on this block.
+     */
     public List<Connection> getAllConnections() {
         List<Connection> result = new ArrayList<>();
         if (mNextConnection != null) {
@@ -164,7 +166,6 @@ public class Block {
                 result.add(toAdd);
             }
         }
-
         return result;
     }
 

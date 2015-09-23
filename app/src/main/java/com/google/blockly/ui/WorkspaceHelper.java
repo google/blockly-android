@@ -192,6 +192,7 @@ public class WorkspaceHelper {
      * parameters.
      *
      * @param block The block to generate a view for.
+     * @param parentGroup The group to set as the parent for this block's view.
      * @return A view for the block.
      */
     public BlockView obtainBlockView(Block block, BlockGroup parentGroup) {
@@ -203,6 +204,7 @@ public class WorkspaceHelper {
      * parameters with the given onTouchListener.
      *
      * @param block    The block to generate a view for.
+     * @param parentGroup The group to set as the parent for this block's view.
      * @param listener An onTouchListener to register on this view.
      * @return A view for the block.
      */
