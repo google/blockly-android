@@ -45,6 +45,7 @@ public class BlockView extends FrameLayout {
     // Color of block outline.
     private static final int OUTLINE_COLOR = Color.BLACK;
 
+    private BlockWorkspaceParams mWorkspaceParams;
     private final WorkspaceHelper mHelper;
     private final Block mBlock;
 
@@ -63,8 +64,6 @@ public class BlockView extends FrameLayout {
     // List of widths of multi-field rows when rendering inline inputs.
     private final ArrayList<Integer> mInlineRowWidth = new ArrayList<>();
 
-    private BlockWorkspaceParams mWorkspaceParams;
-
     // Offset of the block origin inside the view's measured area.
     private int mLayoutMarginLeft;
     private int mMaxInputFieldsWidth;
@@ -79,9 +78,9 @@ public class BlockView extends FrameLayout {
     /**
      * Create a new BlockView for the given block using the workspace's style.
      *
-     * @param context The context for creating this view.
-     * @param block   The {@link Block} represented by this view.
-     * @param helper  The helper for loading workspace configs and doing calculations.
+     * @param context     The context for creating this view.
+     * @param block       The {@link Block} represented by this view.
+     * @param helper      The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
      */
     public BlockView(Context context, Block block, WorkspaceHelper helper, BlockGroup parentGroup) {
@@ -92,10 +91,10 @@ public class BlockView extends FrameLayout {
      * Create a new BlockView for the given block using the specified style. The style must extend
      * {@link R.style#DefaultBlockStyle}.
      *
-     * @param context    The context for creating this view.
-     * @param blockStyle The resource id for the style to use on this view.
-     * @param block      The {@link Block} represented by this view.
-     * @param helper     The helper for loading workspace configs and doing calculations.
+     * @param context     The context for creating this view.
+     * @param blockStyle  The resource id for the style to use on this view.
+     * @param block       The {@link Block} represented by this view.
+     * @param helper      The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
      */
     public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
@@ -251,9 +250,9 @@ public class BlockView extends FrameLayout {
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 // The block width is that of the widest row, but for a Statement input there needs
                 // to be at least enough space for the connector.
-                maxRowWidth = Math.max(maxRowWidth, rowLeft +
+                maxRowWidth = Math.max(maxRowWidth,
                         Math.max(inputView.getMeasuredWidth(),
-                                 ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH));
+                                ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH));
 
                 // New row AFTER each Statement input.
                 rowTop += rowHeight;
@@ -264,6 +263,14 @@ public class BlockView extends FrameLayout {
                 rowLeft += inputView.getMeasuredWidth();
                 maxRowWidth = Math.max(maxRowWidth, rowLeft);
             }
+        }
+
+        // If there was at least one Statement input, make sure block is wide enough to fit at least
+        // an empty Statement connector. If there were non-empty Statement connectors, they were
+        // already taken care of in the loop above.
+        if (mMaxStatementFieldsWidth > 0) {
+            maxRowWidth = Math.max(maxRowWidth,
+                    mMaxStatementFieldsWidth + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH);
         }
 
         // Add height of final row. This is non-zero with inline inputs if the final input in the
@@ -376,7 +383,7 @@ public class BlockView extends FrameLayout {
         // which accounts for width of unconnected input puts.
         mBlockViewSize.x = Math.max(mBlockWidth,
                 Math.max(mMaxInputFieldsWidth + maxInputChildWidth,
-                         mMaxStatementFieldsWidth + maxStatementChildWidth));
+                        mMaxStatementFieldsWidth + maxStatementChildWidth));
         mBlockViewSize.y = Math.max(MIN_HEIGHT, rowTop);
     }
 
@@ -438,14 +445,8 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
-     * the top of this view's area.
+     * Update path for drawing the block after view size or layout have changed.
      */
-    int getNextBlockVerticalOffset() {
-        return mNextBlockVerticalOffset;
-    }
-
-    /** Update path for drawing the block after view size or layout have changed. */
     private void updateDrawPath() {
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
@@ -550,5 +551,13 @@ public class BlockView extends FrameLayout {
         }
 
         mDrawPath.close();
+    }
+
+    /**
+     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
+     * the top of this view's area.
+     */
+    int getNextBlockVerticalOffset() {
+        return mNextBlockVerticalOffset;
     }
 }
