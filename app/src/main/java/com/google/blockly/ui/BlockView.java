@@ -248,18 +248,16 @@ public class BlockView extends FrameLayout {
             rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
 
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
-                // The block width is that of the widest row, but for a Statement input there needs
-                // to be at least enough space for the connector.
-                maxRowWidth = Math.max(maxRowWidth,
-                        Math.max(inputView.getMeasuredWidth(),
-                                ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH));
+                // The block width is that of the widest row.
+                maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
 
                 // New row AFTER each Statement input.
                 rowTop += rowHeight;
                 rowLeft = 0;
                 rowHeight = 0;
             } else {
-                // For Dummy and Value inputs, block width is that of the widest row.
+                // For Dummy and Value inputs, row width accumulates. Update maximum width
+                // accordingly.
                 rowLeft += inputView.getMeasuredWidth();
                 maxRowWidth = Math.max(maxRowWidth, rowLeft);
             }
