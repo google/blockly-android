@@ -54,6 +54,7 @@ public class Block {
     private final Connection mNextConnection;
     private final Connection mPreviousConnection;
     private final ArrayList<Input> mInputList;
+    private final ArrayList<Connection> mConnectionList;
     private final int mColour;
     private boolean mInputsInline;
 
@@ -92,19 +93,28 @@ public class Block {
 
         mColour = Color.HSVToColor(new float[]{mColourHue, DEFAULT_HSV_SATURATION, DEFAULT_HSV_VALUE});
 
+        mConnectionList = new ArrayList<>();
+
         if (mInputList != null) {
             for (int i = 0; i < mInputList.size(); i++) {
-                mInputList.get(i).setBlock(this);
+                Input in = mInputList.get(i);
+                in.setBlock(this);
+                if (in.getConnection() != null) {
+                    mConnectionList.add(in.getConnection());
+                }
             }
         }
         if (mOutputConnection != null) {
             mOutputConnection.setBlock(this);
+            mConnectionList.add(mOutputConnection);
         }
         if (mPreviousConnection != null) {
             mPreviousConnection.setBlock(this);
+            mConnectionList.add(mPreviousConnection);
         }
         if (mNextConnection != null) {
             mNextConnection.setBlock(this);
+            mConnectionList.add(mNextConnection);
         }
     }
 
@@ -148,25 +158,7 @@ public class Block {
      * @return A list of connections (including inputs, next, previous and outputs) on this block.
      */
     public List<Connection> getAllConnections() {
-        List<Connection> result = new ArrayList<>();
-        if (mNextConnection != null) {
-            result.add(mNextConnection);
-        }
-        if (mPreviousConnection != null) {
-            result.add(mPreviousConnection);
-        }
-        if (mOutputConnection != null) {
-            result.add(mOutputConnection);
-        }
-
-        Connection toAdd;
-        for (int i = 0; i < getInputs().size(); i++) {
-            toAdd = getInputs().get(i).getConnection();
-            if (toAdd != null) {
-                result.add(toAdd);
-            }
-        }
-        return result;
+        return mConnectionList;
     }
 
     /**

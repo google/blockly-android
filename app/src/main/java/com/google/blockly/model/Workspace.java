@@ -57,10 +57,11 @@ public class Workspace {
 
     private WorkspaceView mWorkspaceView;
 
-
     public final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+            // TODO (fenichel): split removing the block from its current place in the model and
+            // adding it back to the model into two different methods.
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 mTouchedBlockView = (BlockView) v;
                 mDragStart.set((int) event.getX(), (int) event.getY());
@@ -190,6 +191,10 @@ public class Workspace {
             if (block.getPreviousConnection() != null
                     && block.getPreviousConnection().isConnected()) {
                 Input in = block.getPreviousConnection().getTargetConnection().getInput();
+                // TODO (fenichel): Handle next blocks as well as statement inputs.
+                if (in == null || in.getType() != Input.TYPE_STATEMENT) {
+                    return;
+                }
                 InputView inv = in.getView();
                 inv.removeView(bg);
                 block.getPreviousConnection().disconnect();

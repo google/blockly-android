@@ -74,6 +74,10 @@ public class BlockView extends FrameLayout {
 
     /**
      * Create a new BlockView for the given block using the workspace's style.
+     * This constructor is for non-interactive display blocks. If this block is part of a
+     * {@link Workspace} or (TODO linkify) Toolbox
+     * {@link BlockView(Context, int, Block, WorkspaceHelper, BlockGroup, View.OnTouchListener)}
+     * should be used instead.
      *
      * @param context     The context for creating this view.
      * @param block       The {@link Block} represented by this view.

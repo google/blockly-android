@@ -188,8 +188,9 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Creates a {@link BlockView} for the given block using the workspace's default style
-     * parameters.
+     * Creates a non-interactive {@link BlockView} for the given block using the workspace's default
+     * style parameters. If this block is part of a {@link Workspace} or (TODO linkify) Toolbox
+     * {@link obtainBlockView(Block, BlockGroup, View.OnTouchListener)} should be used instead.
      *
      * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
@@ -203,7 +204,7 @@ public class WorkspaceHelper {
      * Creates a {@link BlockView} for the given block using the workspace's default style
      * parameters with the given onTouchListener.
      *
-     * @param block    The block to generate a view for.
+     * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
      * @param listener An onTouchListener to register on this view.
      * @return A view for the block.
@@ -237,7 +238,7 @@ public class WorkspaceHelper {
     /**
      * Update workspace coordinates based on the new view coordinates of the {@link View}.
      *
-     * @param view              The view to find the position of.
+     * @param view The view to find the position of.
      * @param workspacePosition The Point to store the results in.
      */
     public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
