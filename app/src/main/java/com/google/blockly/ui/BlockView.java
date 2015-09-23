@@ -370,7 +370,7 @@ public class BlockView extends FrameLayout {
                 if (i == 0) {
                     rowTop += ConnectorHelper.STATEMENT_INPUT_BOTTOM_HEIGHT;
                 }
-                
+
                 // Force all Statement inputs to have the same field width.
                 inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
             } else {
