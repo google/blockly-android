@@ -236,6 +236,12 @@ public class BlockView extends FrameLayout {
             // If this is a Statement input, force its field width to be the maximum over all
             // Statements, and begin a new layout row.
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // If the first input is a Statement, add vertical space for drawing connector top.
+                if (i == 0) {
+                    rowTop += ConnectorHelper.STATEMENT_INPUT_BOTTOM_HEIGHT;
+                }
+
+                // Force all Statement inputs to have the same field width.
                 inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
 
                 // New row BEFORE each Statement input.
@@ -360,8 +366,14 @@ public class BlockView extends FrameLayout {
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // If the first input is a Statement, add vertical space for drawing connector top.
+                if (i == 0) {
+                    rowTop += ConnectorHelper.STATEMENT_INPUT_BOTTOM_HEIGHT;
+                }
+                // Force all Statement inputs to have the same field width.
                 inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
             } else {
+                // Force all Dummy and Value inputs to have the same field width.
                 inputView.setFieldLayoutWidth(mMaxInputFieldsWidth);
             }
             inputView.measure(widthMeasureSpec, heightMeasureSpec);
