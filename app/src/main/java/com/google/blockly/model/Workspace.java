@@ -17,16 +17,13 @@ package com.google.blockly.model;
 
 import android.content.Context;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 
+import com.google.blockly.control.Dragger;
 import com.google.blockly.control.ProcedureManager;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.WorkspaceStats;
 import com.google.blockly.ui.BlockGroup;
-import com.google.blockly.ui.BlockView;
-import com.google.blockly.ui.InputView;
-import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -34,7 +31,6 @@ import com.google.blockly.utils.BlocklyXmlHelper;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Keeps track of all the global state used in the workspace. This is mostly just blocks.
@@ -50,35 +46,13 @@ public class Workspace {
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
-    private final ViewPoint mDragStart = new ViewPoint(0, 0);
-    private final ViewPoint mDragEnd = new ViewPoint(0, 0);
 
     private WorkspaceHelper mWorkspaceHelper;
-    private BlockView mTouchedBlockView;
-
     private WorkspaceView mWorkspaceView;
 
-    public final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            // TODO (fenichel): split removing the block from its current place in the model and
-            // adding it back to the model into two different methods.
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                mTouchedBlockView = (BlockView) v;
-                mDragStart.set((int) event.getX(), (int) event.getY());
-                return true;
-            }
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                mDragEnd.set((int) event.getX(), (int) event.getY());
-                moveBlock(mTouchedBlockView.getBlock(), mDragEnd.x - mDragStart.x,
-                        mDragEnd.y - mDragStart.y);
-                v.requestLayout();
-                v.invalidate();
-                return true;
-            }
-            return false;
-        }
-    };
+    private final Dragger mDragger = new Dragger(mWorkspaceHelper, mWorkspaceView,
+            mConnectionManager, mRootBlocks);
+    private final View.OnTouchListener mOnTouchListener = mDragger.getOnTouchListener();
 
     public Workspace() {
     }
@@ -134,6 +108,7 @@ public class Workspace {
 
     public void setWorkspaceHelper(WorkspaceHelper helper) {
         mWorkspaceHelper = helper;
+        mDragger.setWorkspaceHelper(mWorkspaceHelper);
     }
 
     /**
@@ -169,69 +144,11 @@ public class Workspace {
     public void createViewsFromModel(WorkspaceView wv, Context context) {
         BlockGroup bg;
         mWorkspaceView = wv;
+        mDragger.setWorkspaceView(mWorkspaceView);
         for (int i = 0; i < mRootBlocks.size(); i++) {
             bg = new BlockGroup(context, mWorkspaceHelper);
             mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mOnTouchListener);
             mWorkspaceView.addView(bg);
         }
-    }
-
-    /**
-     * Function to call in an onTouchListener to move the given block.
-     * @param block The block to move.
-     * @param dx How far to move in the x direction.
-     * @param dy How far to move in the y direction.
-     */
-    private void moveBlock(Block block, int dx, int dy) {
-        BlockView bv = block.getView();
-        BlockGroup bg = (BlockGroup) bv.getParent();
-        WorkspacePoint realPosition = new WorkspacePoint();
-        mWorkspaceHelper.getWorkspaceCoordinates(bv, realPosition);
-        if (!mRootBlocks.contains(block)) {
-            // Child block
-            if (block.getPreviousConnection() != null
-                    && block.getPreviousConnection().isConnected()) {
-                Input in = block.getPreviousConnection().getTargetConnection().getInput();
-                if (in == null) {
-                    // Next block
-                    BlockGroup newBlockGroup = new BlockGroup(bg.getContext(), mWorkspaceHelper);
-                    Block cur = block;
-                    while (cur != null) {
-                        // Create a new block group and move blocks between groups.
-                        bg.removeView(cur.getView());
-                        newBlockGroup.addView(cur.getView());
-                        cur = cur.getNextBlock();
-                    }
-                    bg = newBlockGroup;
-                } else {
-                    // Statement input
-                    InputView inv = in.getView();
-                    inv.unsetChildView();
-                }
-                block.getPreviousConnection().disconnect();
-            } else if (block.getOutputConnection() != null
-                    && block.getOutputConnection().isConnected()) {
-                // TODO(fenichel): make new blockgroups if this is not the first in a BG.
-                Input in = block.getOutputConnection().getTargetConnection().getInput();
-                InputView inv = in.getView();
-                inv.unsetChildView();
-                block.getOutputConnection().disconnect();
-            }
-
-            block.setPosition(realPosition.x, realPosition.y);
-            mWorkspaceView.addView(bg);
-            mRootBlocks.add(block);
-        }
-
-        List<Connection> connections = block.getAllConnections();
-        dx = mWorkspaceHelper.viewToWorkspaceUnits(dx);
-        dy = mWorkspaceHelper.viewToWorkspaceUnits(dy);
-        // TODO (fenichel): Need to do this recursively.
-        for (int i = 0; i < connections.size(); i++) {
-            mConnectionManager.moveConnection(connections.get(i), dx, dy);
-        }
-
-        // TODO (fenichel):  What about moving the children?
-        block.setPosition(block.getPosition().x + dx, block.getPosition().y + dy);
     }
 }
