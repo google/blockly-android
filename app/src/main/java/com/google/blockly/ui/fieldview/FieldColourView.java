@@ -51,6 +51,13 @@ public class FieldColourView extends View implements FieldView {
 
         setBackgroundColor(ALPHA_OPAQUE + mColourField.getColour());
         mColourField.setView(this);
+
+        setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openColourPickerPopupWindow();
+            }
+        });
     }
 
     @Override
@@ -74,23 +81,17 @@ public class FieldColourView extends View implements FieldView {
         return mWorkspaceParams;
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent motionEvent) {
-        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-            mColourPaletteView = new ColourPaletteView(this);
-            mColourPopupWindow = new PopupWindow(mColourPaletteView,
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+    /** Open a {@link PopupWindow} showing a colour selection palette. */
+    private void openColourPickerPopupWindow() {
+        mColourPaletteView = new ColourPaletteView(this);
+        mColourPopupWindow = new PopupWindow(mColourPaletteView,
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
 
-            // This is necessary because PopupWindow responds to touch events only with
-            // background != null.
-            mColourPopupWindow.setBackgroundDrawable(new ColorDrawable());
-            mColourPopupWindow.setOutsideTouchable(true);
-            mColourPopupWindow.showAsDropDown(this, 0, 0);
-
-            return true;
-        }
-
-        return false;
+        // This is necessary because PopupWindow responds to touch events only with
+        // background != null.
+        mColourPopupWindow.setBackgroundDrawable(new ColorDrawable());
+        mColourPopupWindow.setOutsideTouchable(true);
+        mColourPopupWindow.showAsDropDown(this, 0, 0);
     }
 
     /** View for a colour palette that matches Web Blockly's. */
@@ -105,6 +106,7 @@ public class FieldColourView extends View implements FieldView {
         private final Paint mAreaPaint = new Paint();
 
         // From https://github.com/google/closure-library/blob/master/closure/goog/ui/colorpicker.js
+        // TODO(rohlfingt): move this table into resources.
         private final int[] mColourArray = new int[]{
                 // grays
                 0xffffffff, 0xffcccccc, 0xffc0c0c0, 0xff999999, 0xff666666, 0xff333333, 0xff000000,
