@@ -346,7 +346,7 @@ public class BlockView extends FrameLayout {
                     mMaxStatementFieldsWidth =
                             Math.max(mMaxStatementFieldsWidth, inputView.getTotalFieldWidth());
                     maxStatementChildWidth =
-                            Math.max(maxInputChildWidth, inputView.getTotalChildWidth());
+                            Math.max(maxStatementChildWidth, inputView.getTotalChildWidth());
                     break;
                 }
             }
