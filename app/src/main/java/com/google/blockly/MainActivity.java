@@ -28,10 +28,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.blockly.model.Block;
-import com.google.blockly.model.Connection;
-import com.google.blockly.model.Field;
-import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.WorkspaceView;
 

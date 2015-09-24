@@ -162,6 +162,32 @@ public class Block {
     }
 
     /**
+     * Add all connections on the block to the given list.
+     *
+     * @param addTo The list to update.
+     */
+    public void getAllConnections(List<Connection> addTo) {
+        addTo.addAll(mConnectionList);
+    }
+
+    /**
+     * Add all connections on the block and its descendents to the given list.
+     *
+     * @param addTo The list to update.
+     */
+    public void getAllConnectionsRecursive(List<Connection> addTo) {
+        getAllConnections(addTo);
+        for (int i = 0; i < mConnectionList.size(); i++) {
+            Connection conn = mConnectionList.get(i);
+            if (conn.getType() != Connection.CONNECTION_TYPE_OUTPUT
+                    && conn.getType() != Connection.CONNECTION_TYPE_PREVIOUS
+                    && conn.getTargetBlock() != null) {
+                conn.getTargetBlock().getAllConnectionsRecursive(addTo);
+            }
+        }
+    }
+
+    /**
      * Set the position of this block in the workspace.
      *
      * @param x The workspace x position.

@@ -140,8 +140,9 @@ public class Dragger {
         block.setPosition(realPosition.x, realPosition.y);
         mDragGroup = bg;
 
-        // TODO (fenichel): Make this recursive.
-        List<Connection> connections = block.getAllConnections();
+        // Don't track any of the connections that we're dragging around.
+        List<Connection> connections = new ArrayList<>();
+        block.getAllConnectionsRecursive(connections);
         for (int i = 0; i < connections.size(); i++) {
             mConnectionManager.removeConnection(connections.get(i));
         }
@@ -149,13 +150,14 @@ public class Dragger {
 
     /**
      * Function to call in an onTouchListener to move the given block.
+     * <p>
+     * All of the child blocks move with the root block based on its position during layout.
      *
      * @param block The block to move.
      * @param dx How far to move in the x direction.
      * @param dy How far to move in the y direction.
      */
     private void moveBlock(Block block, int dx, int dy) {
-        // TODO (fenichel):  What about moving the children?
         dx = mWorkspaceHelper.viewToWorkspaceUnits(dx);
         dy = mWorkspaceHelper.viewToWorkspaceUnits(dy);
         block.setPosition(block.getPosition().x + dx, block.getPosition().y + dy);
@@ -170,11 +172,14 @@ public class Dragger {
      * @param y The final y position of the drag.
      */
     private void finalizeMove(int x, int y) {
+        // TODO (fenichel): Calculate the new positions of the connections directly from the views
+        // rather than accepting rounding error in each move.
         int dx = mWorkspaceHelper.viewToWorkspaceUnits(x - mDragStart.x);
         int dy = mWorkspaceHelper.viewToWorkspaceUnits(y - mDragStart.y);
-        List<Connection> connections = mTouchedBlockView.getBlock().getAllConnections();
+
+        List<Connection> connections = new ArrayList<>();
+        mTouchedBlockView.getBlock().getAllConnectionsRecursive(connections);
         Point oldPosition;
-        // TODO (fenichel): Need to do this recursively.
         for (int i = 0; i < connections.size(); i++) {
             oldPosition = connections.get(i).getPosition();
             connections.get(i).setPosition(oldPosition.x + dx, oldPosition.y + dy);

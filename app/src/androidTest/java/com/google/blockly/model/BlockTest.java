@@ -17,6 +17,9 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
+import com.google.blockly.MockBlocksProvider;
+import com.google.blockly.R;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
@@ -27,6 +30,7 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -262,6 +266,29 @@ public class BlockTest extends AndroidTestCase {
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES_END
                 + BlockTestStrings.BLOCK_END;
         assertEquals(expected, os.toString());
+    }
+
+    public void testGetAllConnections() {
+        Block block = MockBlocksProvider.makeDummyBlock();
+        List<Connection> allConnections = block.getAllConnections();
+        assertEquals(8, allConnections.size());
+
+        block = MockBlocksProvider.makeDummyBlock();
+        allConnections.clear();
+        block.getAllConnections(allConnections);
+        assertEquals(8, allConnections.size());
+
+        allConnections.clear();
+
+        Block ivb = MockBlocksProvider.makeValueInputBlock();
+        block.getInputs().get(0).getConnection().connect(ivb.getOutputConnection());
+        Block svb = MockBlocksProvider.makeSimpleValueBlock();
+        ivb.getInputs().get(0).getConnection().connect(svb.getOutputConnection());
+        Block smb = MockBlocksProvider.makeStatementBlock();
+        block.getInputs().get(3).getConnection().connect(smb.getPreviousConnection());
+
+        block.getAllConnectionsRecursive(allConnections);
+        assertEquals(13, allConnections.size());
     }
 
     private Block parseBlockFromXml(String testString, BlockFactory bf)
