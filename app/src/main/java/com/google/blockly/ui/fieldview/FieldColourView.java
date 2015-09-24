@@ -83,14 +83,20 @@ public class FieldColourView extends View implements FieldView {
 
     /** Open a {@link PopupWindow} showing a colour selection palette. */
     private void openColourPickerPopupWindow() {
-        mColourPaletteView = new ColourPaletteView(this);
-        mColourPopupWindow = new PopupWindow(mColourPaletteView,
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        if (mColourPaletteView == null) {
+            mColourPaletteView = new ColourPaletteView(this);
+        }
 
-        // This is necessary because PopupWindow responds to touch events only with
-        // background != null.
-        mColourPopupWindow.setBackgroundDrawable(new ColorDrawable());
-        mColourPopupWindow.setOutsideTouchable(true);
+        if (mColourPopupWindow == null) {
+            mColourPopupWindow = new PopupWindow(mColourPaletteView,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+
+            // This is necessary because PopupWindow responds to touch events only with
+            // background != null.
+            mColourPopupWindow.setBackgroundDrawable(new ColorDrawable());
+            mColourPopupWindow.setOutsideTouchable(true);
+        }
+
         mColourPopupWindow.showAsDropDown(this, 0, 0);
     }
 
