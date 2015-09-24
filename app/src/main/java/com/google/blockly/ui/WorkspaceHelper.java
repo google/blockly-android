@@ -267,6 +267,28 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Find the highest {@link BlockGroup} in the hierarchy that this {@link Block} descends from.
+     *
+     * @param block The block to start searching from.
+     * @return The highest {@link BlockGroup} found.
+     */
+    public BlockGroup getRootBlockGroup(Block block) {
+        // Go left as far as possible, then go up.
+        while(true) {
+            if (block.getOutputConnection() != null && block.getOutputConnection().getTargetBlock() != null) {
+                block = block.getOutputConnection().getTargetBlock();
+            } else if (block.getPreviousBlock() != null) {
+                block = block.getPreviousBlock();
+            } else {
+                break;
+            }
+        }
+
+        BlockView bv = block.getView();
+        return (BlockGroup) bv.getParent();
+    }
+
+    /**
      * Loads the style configurations. The config and styles are loaded from one of three sources
      * with the following priority.
      * <ol>
