@@ -171,6 +171,10 @@ public class MainActivity extends ActionBarActivity
             child.setInputsInline(true);
             child.getPreviousConnection().connect(parent.getNextConnection());
 
+            Block third = makeDummyBlock();
+            third.setInputsInline(true);
+            third.getPreviousConnection().connect(child.getNextConnection());
+
             smb = makeStatementBlock();
             child.getInputs().get(3).getConnection().connect(smb.getPreviousConnection());
             mWorkspace.addRootBlock(parent);    // Recursively adds all of its children.

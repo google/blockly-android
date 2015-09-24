@@ -52,6 +52,7 @@ public class Workspace {
             mConnectionManager);
     private final ViewPoint mDragStart = new ViewPoint(0, 0);
     private final ViewPoint mDragEnd = new ViewPoint(0, 0);
+
     private WorkspaceHelper mWorkspaceHelper;
     private BlockView mTouchedBlockView;
 
@@ -191,19 +192,29 @@ public class Workspace {
             if (block.getPreviousConnection() != null
                     && block.getPreviousConnection().isConnected()) {
                 Input in = block.getPreviousConnection().getTargetConnection().getInput();
-                // TODO (fenichel): Handle next blocks as well as statement inputs.
-                if (in == null || in.getType() != Input.TYPE_STATEMENT) {
-                    return;
+                if (in == null) {
+                    // Next block
+                    BlockGroup newBlockGroup = new BlockGroup(bg.getContext(), mWorkspaceHelper);
+                    Block cur = block;
+                    while (cur != null) {
+                        // Create a new block group and move blocks between groups.
+                        bg.removeView(cur.getView());
+                        newBlockGroup.addView(cur.getView());
+                        cur = cur.getNextBlock();
+                    }
+                    bg = newBlockGroup;
+                } else {
+                    // Statement input
+                    InputView inv = in.getView();
+                    inv.unsetChildView();
                 }
-                InputView inv = in.getView();
-                inv.removeView(bg);
                 block.getPreviousConnection().disconnect();
             } else if (block.getOutputConnection() != null
                     && block.getOutputConnection().isConnected()) {
                 // TODO(fenichel): make new blockgroups if this is not the first in a BG.
                 Input in = block.getOutputConnection().getTargetConnection().getInput();
                 InputView inv = in.getView();
-                inv.removeView(bg);
+                inv.unsetChildView();
                 block.getOutputConnection().disconnect();
             }
 
