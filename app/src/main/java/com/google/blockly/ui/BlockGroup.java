@@ -50,10 +50,11 @@ public class BlockGroup extends ViewGroup {
             child.measure(widthSpec, heightSpec);
             width = Math.max(margin + child.getMeasuredWidth(), width);
 
-            // When a child with layout margin (for Output connector; should only ever be the first
-            // child) is encountered, keep margin to add to all children that follow (but do not add
-            // to width of this child itself).
-            margin = Math.max(margin, child.getLayoutMarginLeft());
+            // If the first child has a layhout margin for an Output connector, then save the margin
+            // to add it to all children that follow (but do not add to width of this child itself).
+            if (i == 0) {
+                margin = child.getLayoutMarginLeft();
+            }
 
             // Only for last child, add the entire measured height. For all other children, add
             // offset to next block. This takes into account that blocks are rendered with
@@ -121,9 +122,11 @@ public class BlockGroup extends ViewGroup {
             child.layout(cl, ct, cr, cb);
             y += child.getNextBlockVerticalOffset();
 
-            // If this child has a layout margin (for Output connector; should only ever happen for
-            // the first child), then keep margin for all children that follow.
-            margin = Math.max(margin, child.getLayoutMarginLeft());
+            // If the first child has a layout margin for an Output connector, then save margin for
+            // all children that follow.
+            if (i == 0) {
+                margin = child.getLayoutMarginLeft();
+            }
         }
     }
 }
