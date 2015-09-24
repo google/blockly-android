@@ -52,24 +52,23 @@ public class Dragger {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                // TODO (fenichel): Don't start a drag until the user has passed some threshold.
                 mTouchedBlockView = (BlockView) v;
                 mDragStart.set((int) event.getRawX(), (int) event.getRawY());
                 mDragIntermediate.set((int) event.getRawX(), (int) event.getRawY());
                 setDragGroup(mTouchedBlockView.getBlock());
                 return true;
-            }
-            if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 moveBlock(mTouchedBlockView.getBlock(), (int) event.getRawX() - mDragIntermediate.x,
                         (int) event.getRawY() - mDragIntermediate.y);
                 mDragIntermediate.set((int) event.getRawX(), (int) event.getRawY());
                 v.requestLayout();
-                v.invalidate();
+                return true;
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                finalizeMove((int) event.getRawX(), (int) event.getRawY());
                 return true;
             }
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                finalizeMove((int) event.getRawX(), (int) event.getRawY());
-            }
-
+            // TODO (fenichel): Handle ACTION_CANCEL.
             return false;
         }
     };
@@ -135,7 +134,6 @@ public class Dragger {
                 block.getOutputConnection().disconnect();
             }
             rootBlockGroup.requestLayout();
-            rootBlockGroup.invalidate();
             mWorkspaceView.addView(bg);
             mRootBlocks.add(block);
         }
@@ -162,7 +160,6 @@ public class Dragger {
         dy = mWorkspaceHelper.viewToWorkspaceUnits(dy);
         block.setPosition(block.getPosition().x + dx, block.getPosition().y + dy);
         mDragGroup.requestLayout();
-        mDragGroup.invalidate();
     }
 
     /**
