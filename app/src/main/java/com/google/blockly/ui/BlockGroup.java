@@ -50,7 +50,7 @@ public class BlockGroup extends ViewGroup {
             child.measure(widthSpec, heightSpec);
             width = Math.max(margin + child.getMeasuredWidth(), width);
 
-            // If the first child has a layhout margin for an Output connector, then save the margin
+            // If the first child has a layout margin for an Output connector, then save the margin
             // to add it to all children that follow (but do not add to width of this child itself).
             if (i == 0) {
                 margin = child.getLayoutMarginLeft();
