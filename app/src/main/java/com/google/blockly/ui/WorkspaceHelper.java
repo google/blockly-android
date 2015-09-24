@@ -273,7 +273,7 @@ public class WorkspaceHelper {
      * @return The highest {@link BlockGroup} found.
      */
     public BlockGroup getRootBlockGroup(Block block) {
-        // Go left as far as possible, then go up.
+        // Go up and left as far as possible.
         while(true) {
             if (block.getOutputConnection() != null && block.getOutputConnection().getTargetBlock() != null) {
                 block = block.getOutputConnection().getTargetBlock();
