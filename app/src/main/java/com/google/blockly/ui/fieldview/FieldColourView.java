@@ -18,7 +18,11 @@ package com.google.blockly.ui.fieldview;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -144,7 +148,7 @@ public class FieldColourView extends View implements FieldView {
         @Override
         public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             setMeasuredDimension(
-                    PALETTE_FIELD_WIDTH * PALETTE_COLUMNS, PALETTE_FIELD_HEIGHT * PALETTE_COLUMNS);
+                    PALETTE_FIELD_WIDTH * PALETTE_COLUMNS, PALETTE_FIELD_HEIGHT * PALETTE_ROWS);
         }
 
         @Override
