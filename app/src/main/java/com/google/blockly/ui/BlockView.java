@@ -580,4 +580,11 @@ public class BlockView extends FrameLayout {
     int getNextBlockVerticalOffset() {
         return mNextBlockVerticalOffset;
     }
+
+    /**
+     * @return Layout margin on the left-hand side of the block (for optional Output connector).
+     */
+    int getLayoutMarginLeft() {
+        return mLayoutMarginLeft;
+    }
 }
