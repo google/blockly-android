@@ -60,7 +60,7 @@ public class BlockView extends FrameLayout {
     // Current measured size of this block view.
     private final ViewPoint mBlockViewSize = new ViewPoint();
     // Position of the connection currently being updated, for temporary use during updateDrawPath.
-    private final ViewPoint mConnectionPosition = new ViewPoint();
+    private final ViewPoint mTempConnectionPosition = new ViewPoint();
 
     // Layout coordinates for inputs in this Block, so they don't have to be computed repeatedly.
     private final ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
@@ -513,9 +513,9 @@ public class BlockView extends FrameLayout {
         if (mBlock.getPreviousConnection() != null) {
             ConnectorHelper.addPreviousConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
             ConnectorHelper.getPreviousConnectionPosition(xFrom, yTop, rtlSign,
-                    mConnectionPosition);
+                    mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
-                    mConnectionPosition);
+                    mTempConnectionPosition);
         }
         mDrawPath.lineTo(xTo, yTop);
 
@@ -534,9 +534,9 @@ public class BlockView extends FrameLayout {
                         ConnectorHelper.addValueInputConnectorToPath(
                                 mDrawPath, xTo, inputLayoutOrigin.y, rtlSign);
                         ConnectorHelper.getValueInputConnectionPosition(xTo, inputLayoutOrigin.y,
-                                rtlSign, mConnectionPosition);
+                                rtlSign, mTempConnectionPosition);
                         mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
-                                mConnectionPosition);
+                                mTempConnectionPosition);
                     }
                     break;
                 }
@@ -555,9 +555,9 @@ public class BlockView extends FrameLayout {
                     ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
                             xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
                     ConnectorHelper.getStatementInputConnectionPosition(inputLayoutOrigin.y,
-                            xOffset, rtlSign, mConnectionPosition);
+                            xOffset, rtlSign, mTempConnectionPosition);
                     mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
-                            mConnectionPosition);
+                            mTempConnectionPosition);
                     // Set new horizontal end coordinate for subsequent inputs.
                     xTo = xToBottom;
                     break;
@@ -569,18 +569,18 @@ public class BlockView extends FrameLayout {
         // Bottom of the block, including "Next" connector.
         if (mBlock.getNextConnection() != null) {
             ConnectorHelper.addNextConnectorToPath(mDrawPath, xFrom, yBottom, rtlSign);
-            ConnectorHelper.getNextConnectionPosition(xFrom, yBottom, rtlSign, mConnectionPosition);
+            ConnectorHelper.getNextConnectionPosition(xFrom, yBottom, rtlSign, mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
-                    mConnectionPosition);
+                    mTempConnectionPosition);
         }
         mDrawPath.lineTo(xFrom, yBottom);
 
         // Left-hand side of the block, including "Output" connector.
         if (mBlock.getOutputConnection() != null) {
             ConnectorHelper.addOutputConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
-            ConnectorHelper.getOutputConnectionPosition(xFrom, yTop, rtlSign, mConnectionPosition);
+            ConnectorHelper.getOutputConnectionPosition(xFrom, yTop, rtlSign, mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
-                    mConnectionPosition);
+                    mTempConnectionPosition);
         }
         mDrawPath.lineTo(xFrom, yTop);
         // Draw an additional line segment over again to get a final rounded corner.
@@ -594,9 +594,9 @@ public class BlockView extends FrameLayout {
                     ViewPoint inputLayoutOrigin = mInputLayoutOrigins.get(i);
                     inputView.addInlineCutoutToBlockViewPath(mDrawPath,
                             xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign,
-                            mConnectionPosition);
+                            mTempConnectionPosition);
                     mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
-                            mConnectionPosition);
+                            mTempConnectionPosition);
                 }
             }
         }

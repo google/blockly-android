@@ -58,7 +58,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
 
         manager.removeConnection(conn);
-        conn.setDrag();
+        conn.setDragMode(true);
         manager.moveConnectionTo(conn, new ViewPoint(10, 100));
         assertFalse(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
         assertEquals(10, conn.getPosition().x);

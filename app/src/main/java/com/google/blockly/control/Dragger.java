@@ -145,7 +145,7 @@ public class Dragger {
         block.getAllConnectionsRecursive(connections);
         for (int i = 0; i < connections.size(); i++) {
             mConnectionManager.removeConnection(connections.get(i));
-            connections.get(i).setDrag();
+            connections.get(i).setDragMode(true);
         }
     }
 
@@ -185,7 +185,7 @@ public class Dragger {
             oldPosition = connections.get(i).getPosition();
             connections.get(i).setPosition(oldPosition.x + dx, oldPosition.y + dy);
             mConnectionManager.addConnection(connections.get(i));
-            connections.get(i).unsetDrag();
+            connections.get(i).setDragMode(false);
         }
     }
 }

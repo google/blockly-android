@@ -122,12 +122,8 @@ public class Connection implements Cloneable {
         target.disconnectInternal();
     }
 
-    public void setDrag() {
-        mInDragMode = true;
-    }
-
-    public void unsetDrag() {
-        mInDragMode = false;
+    public void setDragMode(boolean dragMode) {
+        mInDragMode = dragMode;
     }
 
     public boolean inDragMode() {

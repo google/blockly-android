@@ -82,7 +82,7 @@ public class ConnectionManager {
      */
     public void moveConnectionTo(Connection conn, ViewPoint newLocation) {
         // Avoid list traversals if it's not actually moving.
-        if (newLocation.x == conn.getPosition().x && newLocation.y == conn.getPosition().y) {
+        if (conn.getPosition().equals(newLocation.x, newLocation.y)) {
             return;
         }
         if (conn.inDragMode()) {
