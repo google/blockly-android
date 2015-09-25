@@ -30,6 +30,7 @@ import com.google.blockly.ui.fieldview.FieldCheckboxView;
 import com.google.blockly.ui.fieldview.FieldColourView;
 import com.google.blockly.ui.fieldview.FieldDateView;
 import com.google.blockly.ui.fieldview.FieldDropdownView;
+import com.google.blockly.ui.fieldview.FieldImageView;
 import com.google.blockly.ui.fieldview.FieldInputView;
 import com.google.blockly.ui.fieldview.FieldLabelView;
 import com.google.blockly.ui.fieldview.FieldView;
@@ -345,6 +346,9 @@ public class InputView extends ViewGroup {
                     break;
                 case Field.TYPE_INPUT:
                     view = new FieldInputView(context, fields.get(j), mHelper);
+                    break;
+                case Field.TYPE_IMAGE:
+                    view = new FieldImageView(context, fields.get(j), mHelper);
                     break;
                 default:
                     // TODO (fenichel): Add variable field type.

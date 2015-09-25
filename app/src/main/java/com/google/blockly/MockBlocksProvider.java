@@ -55,6 +55,8 @@ public final class MockBlocksProvider {
         bob.addInput(input);
 
         input = new Input.InputValue("input7", Input.ALIGN_RIGHT, null);
+        input.add(new Field.FieldImage(
+                "image", "https://www.gstatic.com/codesite/ph/images/star_on.gif", 15, 15, "star"));
         input.add(new Field.FieldColour("color", 0xFF0000));
         bob.addInput(input);
 
