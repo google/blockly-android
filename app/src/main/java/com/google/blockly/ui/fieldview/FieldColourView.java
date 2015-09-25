@@ -17,8 +17,11 @@ package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +42,7 @@ public class FieldColourView extends View implements FieldView {
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mWorkspaceParams;
 
-    private PopupWindow mColourPopupWindow;
+    private AutoPositionPopupWindow mColourPopupWindow;
     private ColourPaletteView mColourPaletteView;
 
     public FieldColourView(Context context, Field colourField, WorkspaceHelper helper) {
@@ -88,16 +91,56 @@ public class FieldColourView extends View implements FieldView {
         }
 
         if (mColourPopupWindow == null) {
-            mColourPopupWindow = new PopupWindow(mColourPaletteView,
+            mColourPopupWindow = new AutoPositionPopupWindow(mColourPaletteView);
+        }
+
+        mColourPopupWindow.show(this);
+    }
+
+    /** Popup window that adjusts positioning to the size of the wrapped with. */
+    private class AutoPositionPopupWindow extends PopupWindow {
+        private final View mWrapView;
+
+        /**
+         * Construct popup window wrapping an existing {@link View} object.
+         * @param wrapView The view shown inside the popup window.
+         */
+        public AutoPositionPopupWindow(View wrapView) {
+            super(wrapView,
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+            mWrapView = wrapView;
 
             // This is necessary because PopupWindow responds to touch events only with
             // background != null.
-            mColourPopupWindow.setBackgroundDrawable(new ColorDrawable());
-            mColourPopupWindow.setOutsideTouchable(true);
+            setBackgroundDrawable(new ColorDrawable());
+            setOutsideTouchable(true);
         }
 
-        mColourPopupWindow.showAsDropDown(this, 0, 0);
+        /**
+         * Show popup window next to an anchor view.
+         * @param anchorView The view that "anchors" the popup window.
+         */
+        public void show(View anchorView) {
+            // Get size of the wrapped view. Since it may not have been measured yet, allow fallback
+            // to minimum size.
+            int width = mWrapView.getMeasuredWidth();
+            if (width == 0) {
+                // Note - getMinimumWidth/Height require API 16 and above.
+                width = mWrapView.getMinimumWidth();
+            }
+
+            int height = mWrapView.getMeasuredHeight();
+            if (height == 0) {
+                height = mWrapView.getMinimumHeight();
+            }
+
+            // Set size of popup window to match wrapped content; this will allow automatic
+            // positioning to fit on screen.
+            setWidth(width);
+            setHeight(height);
+
+            showAsDropDown(anchorView, 0, 0);
+        }
     }
 
     /** View for a colour palette that matches Web Blockly's. */
@@ -107,9 +150,11 @@ public class FieldColourView extends View implements FieldView {
 
         private static final int PALETTE_FIELD_WIDTH = 50;
         private static final int PALETTE_FIELD_HEIGHT = 50;
+        private static final float GRID_STROKE_WIDTH = 5;
 
         private final FieldColourView mParent;
         private final Paint mAreaPaint = new Paint();
+        private final Paint mGridPaint = new Paint();
 
         // From https://github.com/google/closure-library/blob/master/closure/goog/ui/colorpicker.js
         // TODO(rohlfingt): move this table into resources.
@@ -139,27 +184,59 @@ public class FieldColourView extends View implements FieldView {
         ColourPaletteView(FieldColourView parent) {
             super(parent.getContext());
             mParent = parent;
+
+            mGridPaint.setColor(Color.DKGRAY);
+            mGridPaint.setStrokeWidth(GRID_STROKE_WIDTH);
+            mGridPaint.setStyle(Paint.Style.STROKE);
+        }
+
+        @Override
+        public int getMinimumWidth() {
+            return PALETTE_FIELD_WIDTH * PALETTE_COLUMNS;
+        }
+
+        @Override
+        public int getMinimumHeight() {
+            return PALETTE_FIELD_HEIGHT * PALETTE_ROWS;
         }
 
         @Override
         public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            setMeasuredDimension(
-                    PALETTE_FIELD_WIDTH * PALETTE_COLUMNS, PALETTE_FIELD_HEIGHT * PALETTE_ROWS);
+            setMeasuredDimension(getMinimumWidth(), getMinimumHeight());
         }
 
         @Override
         public void onDraw(Canvas canvas) {
+            drawPalette(canvas);
+            drawGrid(canvas);
+        }
+
+        private void drawPalette(Canvas canvas) {
             int paletteIndex = 0;
             for (int j = 0; j < PALETTE_ROWS; ++j) {
+                int y = j * PALETTE_FIELD_HEIGHT;
                 for (int i = 0; i < PALETTE_COLUMNS; ++i, ++paletteIndex) {
-                    mAreaPaint.setColor(mColourArray[paletteIndex]);
-
                     int x = i * PALETTE_FIELD_WIDTH;
-                    int y = j * PALETTE_FIELD_HEIGHT;
 
+                    mAreaPaint.setColor(mColourArray[paletteIndex]);
                     canvas.drawRect(
                             x, y, x + PALETTE_FIELD_WIDTH, y + PALETTE_FIELD_HEIGHT, mAreaPaint);
                 }
+            }
+        }
+
+        private void drawGrid(Canvas canvas) {
+            int width = getMeasuredWidth();
+            int height = getMeasuredHeight();
+
+            canvas.drawRect(0, 0, width - 1, height - 1, mGridPaint);
+            for (int j = 0; j < PALETTE_ROWS; ++j) {
+                int y = j * PALETTE_FIELD_HEIGHT;
+                canvas.drawLine(0, y, width - 1, y, mGridPaint);
+            }
+            for (int i = 0; i < PALETTE_COLUMNS; ++i) {
+                int x = i * PALETTE_FIELD_WIDTH;
+                canvas.drawLine(x, 0, x, height - 1, mGridPaint);
             }
         }
 
