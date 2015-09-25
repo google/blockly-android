@@ -42,10 +42,19 @@ public class BlockGroup extends ViewGroup {
         int width = 0;
         int height = 0;
 
+        // Layout margin for Output connector.
+        int margin = 0;
+
         for (int i = 0; i < childCount; i++) {
             BlockView child = (BlockView) getChildAt(i);
             child.measure(widthSpec, heightSpec);
-            width = Math.max(child.getMeasuredWidth(), width);
+            width = Math.max(margin + child.getMeasuredWidth(), width);
+
+            // If the first child has a layout margin for an Output connector, then save the margin
+            // to add it to all children that follow (but do not add to width of this child itself).
+            if (i == 0) {
+                margin = child.getLayoutMarginLeft();
+            }
 
             // Only for last child, add the entire measured height. For all other children, add
             // offset to next block. This takes into account that blocks are rendered with
@@ -96,17 +105,28 @@ public class BlockGroup extends ViewGroup {
         int x = rtl ? getMeasuredWidth() : 0;
         int y = 0;
 
+        // Layout margin for Output connector.
+        int margin = 0;
+
         for (int i = 0; i < childCount; i++) {
             BlockView child = (BlockView) getChildAt(i);
+
             int h = child.getMeasuredHeight();
             int w = child.getMeasuredWidth();
-            int cl = rtl ? x - w : x;
-            int cr = rtl ? x : x + w;
+
+            int cl = rtl ? x - margin - w : x + margin;
+            int cr = cl + w;
             int ct = y;
             int cb = y + h;
 
             child.layout(cl, ct, cr, cb);
             y += child.getNextBlockVerticalOffset();
+
+            // If the first child has a layout margin for an Output connector, then save margin for
+            // all children that follow.
+            if (i == 0) {
+                margin = child.getLayoutMarginLeft();
+            }
         }
     }
 }
