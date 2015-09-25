@@ -276,6 +276,39 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Update view coordinates based on the new view coordinates of the {@link View}.
+     * TODO (fenichel): Combine this with getWorkspaceCoordinates and used cached positions to avoid
+     * walking the full hierarchy.
+     *
+     * @param view The view to find the position of.
+     * @param viewPosition The Point to store the results in.
+     */
+    public void getWorkspaceViewCoordinates(View view, ViewPoint viewPosition) {
+        int leftRelativeToWorkspace = view.getLeft();
+        int topRelativeToWorkspace = view.getTop();
+
+        // Move up the parent hierarchy and add parent-relative view coordinates.
+        ViewParent viewParent = view.getParent();
+        while (viewParent != null) {
+            if (viewParent instanceof WorkspaceView) {
+                break;
+            }
+
+            leftRelativeToWorkspace += ((View) viewParent).getLeft();
+            topRelativeToWorkspace += ((View) viewParent).getTop();
+
+            viewParent = viewParent.getParent();
+        }
+
+        if (viewParent == null) {
+            throw new IllegalStateException("No WorkspaceView found among view's parents.");
+        }
+
+        viewPosition.x = leftRelativeToWorkspace;
+        viewPosition.y = topRelativeToWorkspace;
+    }
+
+    /**
      * Find the highest {@link BlockGroup} in the hierarchy that this {@link Block} descends from.
      *
      * @param block The block to start searching from.
@@ -295,6 +328,21 @@ public class WorkspaceHelper {
 
         BlockView bv = block.getView();
         return (BlockGroup) bv.getParent();
+    }
+
+    /**
+     * Find the closest {@link BlockGroup} in the hierarchy that this {@link Block} descends from.
+     *
+     * @param block The block to start searching from.
+     * @return The highest {@link BlockGroup} found.
+     */
+    public BlockGroup getNearestParentBlockGroup(Block block) {
+        ViewParent viewParent = block.getView().getParent();
+        while (viewParent != null) {
+            if (viewParent instanceof BlockGroup)
+                return (BlockGroup) viewParent;
+        }
+        throw new IllegalStateException("No BlockGroup found among view's parents.");
     }
 
     /**

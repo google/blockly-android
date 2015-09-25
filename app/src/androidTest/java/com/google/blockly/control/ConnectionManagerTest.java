@@ -50,19 +50,30 @@ public class ConnectionManagerTest extends AndroidTestCase {
     }
 
     public void testMoveTo() {
+        int offsetX = 10;
+        int offsetY = -10;
+        ViewPoint offset = new ViewPoint(offsetX, offsetY);
         Connection conn = createConnection(0, 0);
         manager.addConnection(conn);
-        manager.moveConnectionTo(conn, new ViewPoint(15, 20));
-        assertEquals(15, conn.getPosition().x);
-        assertEquals(20, conn.getPosition().y);
+        // Move to this position + the given offset.
+        int moveX = 15;
+        int moveY = 20;
+        manager.moveConnectionTo(conn, new ViewPoint(moveX, moveY), offset);
+        assertEquals(moveX + offsetX, conn.getPosition().x);
+        assertEquals(moveY + offsetY, conn.getPosition().y);
+        // Connection should still be in the list
         assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
 
         manager.removeConnection(conn);
         conn.setDragMode(true);
-        manager.moveConnectionTo(conn, new ViewPoint(10, 100));
+        // Moving a connection while being dragged should update the connection itself but not
+        // put it back into the connection manager.
+        moveX = 10;
+        moveY = 100;
+        manager.moveConnectionTo(conn, new ViewPoint(moveX, moveY), offset);
         assertFalse(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
-        assertEquals(10, conn.getPosition().x);
-        assertEquals(100, conn.getPosition().y);
+        assertEquals(moveX + offsetX, conn.getPosition().x);
+        assertEquals(moveY + offsetY, conn.getPosition().y);
     }
 
     // Test YSortedList

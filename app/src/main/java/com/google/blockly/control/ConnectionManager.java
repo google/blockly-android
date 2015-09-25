@@ -18,6 +18,7 @@ package com.google.blockly.control;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.Input;
 import com.google.blockly.ui.ViewPoint;
 
 import java.util.ArrayList;
@@ -49,27 +50,32 @@ public class ConnectionManager {
         matchingLists[conn.getType()].addConnection(conn);
     }
 
+    /**
+     * Remove a connection from the list that handles connections of its type.
+     *
+     * @param conn The connection to remove.
+     */
     public void removeConnection(Connection conn) {
-        // TODO(fenichel): Remove block statistics as well.
         matchingLists[conn.getType()].removeConnection(conn);
     }
 
     /**
-     * Move the given connector and update the relevant list.
+     * Move the given connector to a specific location and update the relevant list.
      *
      * @param conn The connection to move.
-     * @param dx How far to move in the x direction.
-     * @param dy How far to move in the y direction.
+     * @param newX The x location to move to.
+     * @param newY The y location to move to.
      */
-    public void moveConnection(Connection conn, int dx, int dy) {
-        if (dx == 0 && dy == 0) {
+    private void moveConnectionTo(Connection conn, int newX, int newY) {
+        // Avoid list traversals if it's not actually moving.
+        if (conn.getPosition().equals(newX, newY)) {
             return;
         }
         if (conn.inDragMode()) {
-            conn.setPosition(conn.getPosition().x + dx, conn.getPosition().y + dy);
+            conn.setPosition(newX, newY);
         } else {
             removeConnection(conn);
-            conn.setPosition(conn.getPosition().x + dx, conn.getPosition().y + dy);
+            conn.setPosition(newX, newY);
             addConnection(conn);
         }
     }
@@ -79,25 +85,67 @@ public class ConnectionManager {
      *
      * @param conn The connection to move.
      * @param newLocation The position to move to.
+     * @param offset An additional offset, usually the position of the parent view in the workspace
+     *      view.
      */
-    public void moveConnectionTo(Connection conn, ViewPoint newLocation) {
-        // Avoid list traversals if it's not actually moving.
-        if (conn.getPosition().equals(newLocation.x, newLocation.y)) {
-            return;
-        }
-        if (conn.inDragMode()) {
-            conn.setPosition(newLocation.x, newLocation.y);
-        } else {
-            removeConnection(conn);
-            conn.setPosition(newLocation.x, newLocation.y);
-            addConnection(conn);
-        }
+    public void moveConnectionTo(Connection conn, ViewPoint newLocation, ViewPoint offset) {
+        moveConnectionTo(conn, newLocation.x + offset.x, newLocation.y + offset.y);
     }
+
+    /**
+     * Clear all the internal state of the manager.
+     */
     public void clear() {
         mInputConnections.clear();
         mOutputConnections.clear();
         mPreviousConnections.clear();
         mNextConnections.clear();
+    }
+
+    /**
+      * Find the closest compatible connection to this connection.
+      *
+      * @param conn The base connection for the search.
+      * @param maxRadius How far out to search for compatible connections.
+      * @return The closest compatible connection.
+      */
+    public Connection closestConnection(Connection conn, double maxRadius) {
+        if (conn.isConnected()) {
+            // Don't offer to connect when already connected.
+            return null;
+        }
+        YSortedList compatibleList = oppositeLists[conn.getType()];
+        return compatibleList.searchForClosest(conn, maxRadius);
+    }
+
+    /**
+     * Returns the connection that is closest to the given connection.
+     *
+     * @param base The {@link Connection} to measure from.
+     * @param one The first {@link Connection} to check.
+     * @param two The second {@link Connection} to check.
+     * @return The closer of the two connections.
+     */
+    private Connection closer(Connection base, Connection one, Connection two) {
+        if (one == null) {
+            return two;
+        }
+        if (two == null) {
+            return one;
+        }
+
+        if (base.distanceFrom(one) < base.distanceFrom(two)) {
+            return one;
+        }
+        return two;
+    }
+
+    // For now this just checks that the distance is okay.
+    // TODO (fenichel): Don't offer to connect an already connected left (male) value plug to
+    // an available right (female) value plug.  Don't offer to connect the
+    // bottom of a statement block to one that's already connected.
+    private boolean isConnectionAllowed(Connection moving, Connection candidate, int maxRadius) {
+        return moving.distanceFrom(candidate) < maxRadius;
     }
 
     @VisibleForTesting
@@ -220,7 +268,7 @@ public class ConnectionManager {
         }
 
         @VisibleForTesting
-        Connection searchForClosest(Connection conn, int maxRadius) {
+        Connection searchForClosest(Connection conn, double maxRadius) {
             // Don't bother.
             if (mConnections.isEmpty()) {
                 return null;
@@ -277,7 +325,7 @@ public class ConnectionManager {
             return mConnections.get(i);
         }
 
-        private boolean isInYRange(int index, int baseY, int maxRadius) {
+        private boolean isInYRange(int index, int baseY, double maxRadius) {
             int curY = mConnections.get(index).getPosition().y;
             return (Math.abs(curY - baseY) <= maxRadius);
         }

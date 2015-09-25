@@ -19,6 +19,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
 /**
@@ -88,6 +89,48 @@ public class BlockGroup extends ViewGroup {
             return ((BlockView) getChildAt(0)).getBlock().getPosition();
         }
         return null;
+    }
+
+    /**
+     * Move block views to a new block group, starting with the given block and continuing through
+     * its chain of next blocks.
+     *
+     * @param firstBlock The first {@link Block} to move to the new group.
+     * @return A new {@link BlockGroup} containing blocks from the old group.
+     */
+    public BlockGroup extractBlocksAsNewGroup(Block firstBlock) {
+        BlockGroup newGroup = new BlockGroup(this.getContext(), mWorkspaceHelper);
+        newGroup.moveBlocksFrom(this, firstBlock);
+        return newGroup;
+    }
+
+    /**
+     * Move block views into this group from the given group, starting with the given block and
+     * continuing through its chain of next blocks.
+     *
+     * @param from The {@link BlockGroup} to move block views from.
+     * @param firstBlock The first {@link Block} to move between groups.
+     */
+    public void moveBlocksFrom(BlockGroup from, Block firstBlock) {
+        Block cur = firstBlock;
+        while (cur != null) {
+            from.removeView(cur.getView());
+            this.addView(cur.getView());
+            cur = cur.getNextBlock();
+        }
+    }
+
+    /**
+     * Force every {@link BlockView} in this group to recalculate the locations of its
+     * connections; used to return the views and models to a consistent state after a drag.
+     */
+    public void updateAllConnectorLocations() {
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            BlockView child = (BlockView) getChildAt(i);
+            child.updateConnectorLocations();
+            child.invalidate();
+        }
     }
 
     /**

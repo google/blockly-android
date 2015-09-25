@@ -74,6 +74,8 @@ public class BlockView extends FrameLayout {
 
     // Current measured size of this block view.
     private final ViewPoint mBlockViewSize = new ViewPoint();
+    // Position of the block in the top-level WorkspaceView.
+    private final ViewPoint mBlockWorkspaceViewPosition = new ViewPoint();
     // Position of the connection currently being updated, for temporary use during updateDrawPath.
     private final ViewPoint mTempConnectionPosition = new ViewPoint();
     // Layout coordinates for inputs in this Block, so they don't have to be computed repeatedly.
@@ -97,6 +99,8 @@ public class BlockView extends FrameLayout {
 
     // Width of the core "block", ie, rectangle box without connectors or inputs.
     private int mBlockWidth;
+    // True while this instance is handling an active drag event.
+    private boolean mHandlingEvent = false;
 
     /**
      * Create a new BlockView for the given block using the workspace's style.
@@ -187,29 +191,38 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * @return True if and only if a coordinate is on the visible, non-transparent part of this
-     * view.
+     * @return True if the event is a DOWN event and the coordinate of the motion event is on the
+     * visible, non-transparent part of this view; false otherwise.  Updates {@link #mHandlingEvent}
+     * to avoid repeating the computation over the course of a move.
+     *
+     * @param event The {@link MotionEvent} to check.
      */
-    public boolean isOnVisible(float eventX, float eventY) {
-        boolean rtl = mHelper.useRtL();
+    public boolean shouldHandle(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            float eventX = event.getX();
+            float eventY = event.getY();
+            boolean rtl = mHelper.useRtL();
 
-        // First check whether event is in the general horizontal range of the block outline (minus
-        // children) and exit if it is not.
-        int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
-        int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
-        if (eventX < blockBegin || eventX > blockEnd) {
-            return false;
-        }
-
-        // In the ballpark - now check whether event is on a field of any of this block's inputs.
-        // If it is, then the event belongs to this BlockView, otherwise it does not.
-        for (int i = 0; i < mInputViews.size(); ++i) {
-            InputView inputView = mInputViews.get(i);
-            if (inputView.isOnFields(eventX - inputView.getLeft(), eventY - inputView.getTop())) {
-                return true;
+            // First check whether event is in the general horizontal range of the block outline (minus
+            // children) and exit if it is not.
+            int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
+            int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
+            if (eventX < blockBegin || eventX > blockEnd) {
+                return false;
             }
-        }
 
+            // In the ballpark - now check whether event is on a field of any of this block's inputs.
+            // If it is, then the event belongs to this BlockView, otherwise it does not.
+            for (int i = 0; i < mInputViews.size(); ++i) {
+                InputView inputView = mInputViews.get(i);
+                if (inputView.isOnFields(eventX - inputView.getLeft(), eventY - inputView.getTop())) {
+                    mHandlingEvent = true;
+                    return true;
+                }
+            }
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            mHandlingEvent = false;
+        }
         return false;
     }
 
@@ -217,16 +230,14 @@ public class BlockView extends FrameLayout {
     public void onDraw(Canvas c) {
         c.drawPath(mDrawPath, mAreaPaint);
         c.drawPath(mDrawPath, mBorderPaint);
-
         drawHighlights(c);
+        drawConnectorCenters(c);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (mDragger != null && isOnVisible(event.getX(), event.getY())) {
-            return mDragger.onTouch(this, event);
-        }
-        return false;
+        return mDragger != null && (mHandlingEvent || shouldHandle(event))
+                && mDragger.onTouch(this, event);
     }
     /**
      * Measure all children (i.e., block inputs) and compute their sizes and relative positions
@@ -261,7 +272,6 @@ public class BlockView extends FrameLayout {
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         // Note that layout must be done regardless of the value of the "changed" parameter.
-
         boolean rtl = mHelper.useRtL();
         int rtlSign = rtl ? -1 : +1;
 
@@ -288,6 +298,38 @@ public class BlockView extends FrameLayout {
      */
     public Block getBlock() {
         return mBlock;
+    }
+
+    /**
+     * Correctly set the locations of the connections based on their offsets within the
+     * {@link BlockView} and the position of the {@link BlockView} itself.  Can be used when the
+     * block has moved but not changed shape (e.g. during a drag).
+     */
+    public void updateConnectorLocations() {
+        mHelper.getWorkspaceViewCoordinates(this, mBlockWorkspaceViewPosition);
+        if (mBlock.getPreviousConnection() != null) {
+            mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
+                    mPreviousConnectorLocation, mBlockWorkspaceViewPosition);
+        }
+        if (mBlock.getNextConnection() != null) {
+            mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
+                    mNextConnectorLocation, mBlockWorkspaceViewPosition);
+        }
+        if (mBlock.getOutputConnection() != null) {
+            mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
+                    mOutputConnectorLocation, mBlockWorkspaceViewPosition);
+        }
+        for (int i = 0; i  < mInputViews.size(); i++) {
+            InputView inputView = mInputViews.get(i);
+            Connection conn = inputView.getInput().getConnection();
+            if (conn != null) {
+                mConnectionManager.moveConnectionTo(conn,
+                        mInputConnectorLocations.get(i), mBlockWorkspaceViewPosition);
+                if (conn.isConnected()) {
+                    conn.getTargetBlock().getView().updateConnectorLocations();
+                }
+            }
+        }
     }
 
     /**
@@ -573,7 +615,6 @@ public class BlockView extends FrameLayout {
      * meaning both inputs and next blocks.
      *
      * @param parentGroup The group the current block and all next blocks live in.
-     * @param listener An onTouchListener to register on every sub-block.
      */
     private void initViews(Context context, int blockStyle, BlockGroup parentGroup) {
         List<Input> inputs = mBlock.getInputs();
@@ -658,6 +699,7 @@ public class BlockView extends FrameLayout {
      * Update path for drawing the block after view size or layout have changed.
      */
     private void updateDrawPath() {
+        Log.d(TAG, "Updating draw path and repositioning connections");
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();  // Must reset(), not rewind(), to draw inline input cutouts correctly.
@@ -693,10 +735,6 @@ public class BlockView extends FrameLayout {
         if (mBlock.getPreviousConnection() != null) {
             ConnectorHelper.addPreviousConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
             mPreviousConnectorLocation.set(xFrom, yTop);
-            ConnectorHelper.getNextOrPreviousConnectionPosition(xFrom, yTop, rtlSign,
-                    mTempConnectionPosition);
-            mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
-                    mTempConnectionPosition);
         }
         mDrawPath.lineTo(xTo, yTop);
 
@@ -714,10 +752,6 @@ public class BlockView extends FrameLayout {
                         ConnectorHelper.addValueInputConnectorToPath(
                                 mDrawPath, xTo, inputLayoutOrigin.y, rtlSign);
                         mInputConnectorLocations.get(i).set(xTo, inputLayoutOrigin.y);
-                        ConnectorHelper.getOutputOrValueInputConnectionPosition(xTo,
-                                inputLayoutOrigin.y, rtlSign, mTempConnectionPosition);
-                        mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
-                                mTempConnectionPosition);
                     }
                     break;
                 }
@@ -736,11 +770,6 @@ public class BlockView extends FrameLayout {
                     ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
                             xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
                     mInputConnectorLocations.get(i).set(xOffset, inputLayoutOrigin.y);
-                    ConnectorHelper.getStatementInputConnectionPosition(inputLayoutOrigin.y,
-                            xOffset, rtlSign, mTempConnectionPosition);
-                    mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
-                            mTempConnectionPosition);
-
                     // Set new horizontal end coordinate for subsequent inputs.
                     xTo = xToBottom;
                     break;
@@ -753,10 +782,6 @@ public class BlockView extends FrameLayout {
         if (mBlock.getNextConnection() != null) {
             ConnectorHelper.addNextConnectorToPath(mDrawPath, xFrom, yBottom, rtlSign);
             mNextConnectorLocation.set(xFrom, yBottom);
-            ConnectorHelper.getNextOrPreviousConnectionPosition(xFrom, yBottom, rtlSign,
-                    mTempConnectionPosition);
-            mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
-                    mTempConnectionPosition);
         }
         mDrawPath.lineTo(xFrom, yBottom);
 
@@ -764,10 +789,6 @@ public class BlockView extends FrameLayout {
         if (mBlock.getOutputConnection() != null) {
             ConnectorHelper.addOutputConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
             mOutputConnectorLocation.set(xFrom, yTop);
-            ConnectorHelper.getOutputOrValueInputConnectionPosition(xFrom, yTop, rtlSign,
-                    mTempConnectionPosition);
-            mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
-                    mTempConnectionPosition);
         }
         mDrawPath.lineTo(xFrom, yTop);
         // Draw an additional line segment over again to get a final rounded corner.
@@ -784,18 +805,11 @@ public class BlockView extends FrameLayout {
                             mTempConnectionPosition);
                     mInputConnectorLocations.get(i).set(
                             mTempConnectionPosition.x, mTempConnectionPosition.y);
-
-                    // Convert the layout position of the connector to the location of the "active"
-                    // connector point.
-                    ConnectorHelper.getOutputOrValueInputConnectionPosition(
-                            mTempConnectionPosition.x, mTempConnectionPosition.y, rtlSign,
-                            mTempConnectionPosition);
-                    mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
-                            mTempConnectionPosition);
                 }
             }
         }
 
+        updateConnectorLocations();
         mDrawPath.close();
     }
 
@@ -808,10 +822,23 @@ public class BlockView extends FrameLayout {
         List<Connection> connections = mBlock.getAllConnections();
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.GREEN);
         for (int i = 0; i < connections.size(); i++) {
             Connection conn = connections.get(i);
-            c.drawCircle(conn.getPosition().x, conn.getPosition().y, 10, paint);
+            if (conn.inDragMode()) {
+                if (conn.isConnected()) {
+                    paint.setColor(Color.RED);
+                } else {
+                    paint.setColor(Color.MAGENTA);
+                }
+            } else {
+                if (conn.isConnected()) {
+                    paint.setColor(Color.GREEN);
+                } else {
+                    paint.setColor(Color.CYAN);
+                }
+            }
+            c.drawCircle(conn.getPosition().x - mBlockWorkspaceViewPosition.x,
+                    conn.getPosition().y - mBlockWorkspaceViewPosition.y, 10, paint);
         }
     }
 
