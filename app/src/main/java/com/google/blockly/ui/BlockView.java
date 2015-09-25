@@ -24,6 +24,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
+import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 
@@ -48,6 +49,7 @@ public class BlockView extends FrameLayout {
     private BlockWorkspaceParams mWorkspaceParams;
     private final WorkspaceHelper mHelper;
     private final Block mBlock;
+    private final ConnectionManager mConnectionManager;
 
     // Objects for drawing the block.
     private final Path mDrawPath = new Path();
@@ -57,6 +59,8 @@ public class BlockView extends FrameLayout {
 
     // Current measured size of this block view.
     private final ViewPoint mBlockViewSize = new ViewPoint();
+    // Position of the connection currently being updated, for temporary use during updateDrawPath.
+    private final ViewPoint mConnectionPosition = new ViewPoint();
 
     // Layout coordinates for inputs in this Block, so they don't have to be computed repeatedly.
     private final ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
@@ -86,9 +90,11 @@ public class BlockView extends FrameLayout {
      * @param block       The {@link Block} represented by this view.
      * @param helper      The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
+     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      */
-    public BlockView(Context context, Block block, WorkspaceHelper helper, BlockGroup parentGroup) {
-        this(context, 0 /* default style */, block, helper, parentGroup, null);
+    public BlockView(Context context, Block block, WorkspaceHelper helper, BlockGroup parentGroup,
+                     ConnectionManager connectionManager) {
+        this(context, 0 /* default style */, block, helper, parentGroup, null, connectionManager);
     }
 
     /**
@@ -101,12 +107,15 @@ public class BlockView extends FrameLayout {
      * @param helper      The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
      * @param listener   An onTouchListener to register on this view.
+     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      */
     public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
-                     BlockGroup parentGroup, View.OnTouchListener listener) {
+                     BlockGroup parentGroup, View.OnTouchListener listener,
+                     ConnectionManager connectionManager) {
         super(context, null, 0);
 
         mBlock = block;
+        mConnectionManager = connectionManager;
         mHelper = helper;
         mWorkspaceParams = new BlockWorkspaceParams(mBlock, mHelper);
         parentGroup.addView(this);
@@ -422,14 +431,16 @@ public class BlockView extends FrameLayout {
             if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
                 // Blocks connected to inputs live in their own BlockGroups.
                 BlockGroup bg = new BlockGroup(context, mHelper);
-                mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg, listener);
+                mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg, listener,
+                        mConnectionManager);
                 inputView.setChildView(bg);
             }
         }
 
         if (getBlock().getNextBlock() != null) {
             // Next blocks live in the same BlockGroup.
-            mHelper.obtainBlockView(getBlock().getNextBlock(), parentGroup, listener);
+            mHelper.obtainBlockView(getBlock().getNextBlock(), parentGroup, listener,
+                    mConnectionManager);
         }
     }
 
@@ -501,6 +512,10 @@ public class BlockView extends FrameLayout {
         mDrawPath.moveTo(xFrom, yTop);
         if (mBlock.getPreviousConnection() != null) {
             ConnectorHelper.addPreviousConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
+            ConnectorHelper.getPreviousConnectionPosition(xFrom, yTop, rtlSign,
+                    mConnectionPosition);
+            mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
+                    mConnectionPosition);
         }
         mDrawPath.lineTo(xTo, yTop);
 
@@ -518,6 +533,10 @@ public class BlockView extends FrameLayout {
                     if (!getBlock().getInputsInline()) {
                         ConnectorHelper.addValueInputConnectorToPath(
                                 mDrawPath, xTo, inputLayoutOrigin.y, rtlSign);
+                        ConnectorHelper.getValueInputConnectionPosition(xTo, inputLayoutOrigin.y,
+                                rtlSign, mConnectionPosition);
+                        mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
+                                mConnectionPosition);
                     }
                     break;
                 }
@@ -535,7 +554,10 @@ public class BlockView extends FrameLayout {
                     }
                     ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
                             xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
-
+                    ConnectorHelper.getStatementInputConnectionPosition(inputLayoutOrigin.y,
+                            xOffset, rtlSign, mConnectionPosition);
+                    mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
+                            mConnectionPosition);
                     // Set new horizontal end coordinate for subsequent inputs.
                     xTo = xToBottom;
                     break;
@@ -547,12 +569,18 @@ public class BlockView extends FrameLayout {
         // Bottom of the block, including "Next" connector.
         if (mBlock.getNextConnection() != null) {
             ConnectorHelper.addNextConnectorToPath(mDrawPath, xFrom, yBottom, rtlSign);
+            ConnectorHelper.getNextConnectionPosition(xFrom, yBottom, rtlSign, mConnectionPosition);
+            mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
+                    mConnectionPosition);
         }
         mDrawPath.lineTo(xFrom, yBottom);
 
         // Left-hand side of the block, including "Output" connector.
         if (mBlock.getOutputConnection() != null) {
             ConnectorHelper.addOutputConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
+            ConnectorHelper.getOutputConnectionPosition(xFrom, yTop, rtlSign, mConnectionPosition);
+            mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
+                    mConnectionPosition);
         }
         mDrawPath.lineTo(xFrom, yTop);
         // Draw an additional line segment over again to get a final rounded corner.
@@ -565,7 +593,10 @@ public class BlockView extends FrameLayout {
                 if (inputView.getInput().getType() == Input.TYPE_VALUE) {
                     ViewPoint inputLayoutOrigin = mInputLayoutOrigins.get(i);
                     inputView.addInlineCutoutToBlockViewPath(mDrawPath,
-                            xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign);
+                            xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign,
+                            mConnectionPosition);
+                    mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
+                            mConnectionPosition);
                 }
             }
         }

@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewParent;
 
 import com.google.blockly.R;
+import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -190,14 +191,18 @@ public class WorkspaceHelper {
     /**
      * Creates a non-interactive {@link BlockView} for the given block using the workspace's default
      * style parameters. If this block is part of a {@link Workspace} or (TODO linkify) Toolbox
-     * {@link obtainBlockView(Block, BlockGroup, View.OnTouchListener)} should be used instead.
+     * {@link obtainBlockView(Block, BlockGroup, View.OnTouchListener, ConnectionManager)}
+     * should be used instead.
      *
      * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
+     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @return A view for the block.
      */
-    public BlockView obtainBlockView(Block block, BlockGroup parentGroup) {
-        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, null);
+    public BlockView obtainBlockView(Block block, BlockGroup parentGroup,
+                                     ConnectionManager connectionManager) {
+        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, null,
+                connectionManager);
     }
 
     /**
@@ -207,11 +212,14 @@ public class WorkspaceHelper {
      * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
      * @param listener An onTouchListener to register on this view.
+     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @return A view for the block.
      */
     public BlockView obtainBlockView(Block block, BlockGroup parentGroup,
-                                     View.OnTouchListener listener) {
-        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, listener);
+                                     View.OnTouchListener listener,
+                                     ConnectionManager connectionManager) {
+        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, listener,
+                connectionManager);
     }
 
     /**

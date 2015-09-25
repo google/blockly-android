@@ -18,6 +18,7 @@ package com.google.blockly.control;
 import android.test.AndroidTestCase;
 
 import com.google.blockly.model.Connection;
+import com.google.blockly.ui.ViewPoint;
 
 /**
  * Tests for {@link ConnectionManager}
@@ -46,6 +47,22 @@ public class ConnectionManagerTest extends AndroidTestCase {
         conn = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
         manager.addConnection(conn);
         assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).contains(conn));
+    }
+
+    public void testMoveTo() {
+        Connection conn = createConnection(0, 0);
+        manager.addConnection(conn);
+        manager.moveConnectionTo(conn, new ViewPoint(15, 20));
+        assertEquals(15, conn.getPosition().x);
+        assertEquals(20, conn.getPosition().y);
+        assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
+
+        manager.removeConnection(conn);
+        conn.setDrag();
+        manager.moveConnectionTo(conn, new ViewPoint(10, 100));
+        assertFalse(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
+        assertEquals(10, conn.getPosition().x);
+        assertEquals(100, conn.getPosition().y);
     }
 
     // Test YSortedList

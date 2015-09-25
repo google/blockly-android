@@ -68,6 +68,7 @@ public class Connection implements Cloneable {
     private Block mBlock;
     private Input mInput;
     private Connection mTargetConnection;
+    private boolean mInDragMode = false;
 
     public Connection(int type, String[] checks) {
         mConnectionType = type;
@@ -119,6 +120,18 @@ public class Connection implements Cloneable {
         Connection target = mTargetConnection;
         disconnectInternal();
         target.disconnectInternal();
+    }
+
+    public void setDrag() {
+        mInDragMode = true;
+    }
+
+    public void unsetDrag() {
+        mInDragMode = false;
+    }
+
+    public boolean inDragMode() {
+        return mInDragMode;
     }
 
     /**

@@ -18,6 +18,7 @@ package com.google.blockly.control;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.blockly.model.Connection;
+import com.google.blockly.ui.ViewPoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,13 +56,43 @@ public class ConnectionManager {
 
     /**
      * Move the given connector and update the relevant list.
+     *
+     * @param conn The connection to move.
+     * @param dx How far to move in the x direction.
+     * @param dy How far to move in the y direction.
      */
     public void moveConnection(Connection conn, int dx, int dy) {
-        removeConnection(conn);
-        conn.setPosition(conn.getPosition().x + dx, conn.getPosition().y + dy);
-        addConnection(conn);
+        if (dx == 0 && dy == 0) {
+            return;
+        }
+        if (conn.inDragMode()) {
+            conn.setPosition(conn.getPosition().x + dx, conn.getPosition().y + dy);
+        } else {
+            removeConnection(conn);
+            conn.setPosition(conn.getPosition().x + dx, conn.getPosition().y + dy);
+            addConnection(conn);
+        }
     }
 
+    /**
+     * Move the given connector to a specific location and update the relevant list.
+     *
+     * @param conn The connection to move.
+     * @param newLocation The position to move to.
+     */
+    public void moveConnectionTo(Connection conn, ViewPoint newLocation) {
+        // Avoid list traversals if it's not actually moving.
+        if (newLocation.x == conn.getPosition().x && newLocation.y == conn.getPosition().y) {
+            return;
+        }
+        if (conn.inDragMode()) {
+            conn.setPosition(newLocation.x, newLocation.y);
+        } else {
+            removeConnection(conn);
+            conn.setPosition(newLocation.x, newLocation.y);
+            addConnection(conn);
+        }
+    }
     public void clear() {
         mInputConnections.clear();
         mOutputConnections.clear();
@@ -119,6 +150,9 @@ public class ConnectionManager {
          */
         @VisibleForTesting
         int findConnection(Connection conn) {
+            if(mConnections.isEmpty()) {
+                return -1;
+            }
             // Should have the right y position.
             int bestGuess = findPositionForConnection(conn);
             int yPos = conn.getPosition().y;
@@ -151,6 +185,9 @@ public class ConnectionManager {
          */
         @VisibleForTesting
         int findPositionForConnection(Connection conn) {
+            if (mConnections.isEmpty()) {
+                return 0;
+            }
             int pointerMin = 0;
             int pointerMax = mConnections.size();
             int yPos = conn.getPosition().y;

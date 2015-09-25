@@ -147,7 +147,8 @@ public class Workspace {
         mDragger.setWorkspaceView(mWorkspaceView);
         for (int i = 0; i < mRootBlocks.size(); i++) {
             bg = new BlockGroup(context, mWorkspaceHelper);
-            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mOnTouchListener);
+            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mOnTouchListener,
+                    mConnectionManager);
             mWorkspaceView.addView(bg);
         }
     }
