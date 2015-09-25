@@ -84,7 +84,9 @@ public class FieldColourView extends View implements FieldView {
         return mWorkspaceParams;
     }
 
-    /** Open a {@link PopupWindow} showing a colour selection palette. */
+    /**
+     * Open a {@link PopupWindow} showing a colour selection palette.
+     */
     private void openColourPickerPopupWindow() {
         if (mColourPaletteView == null) {
             mColourPaletteView = new ColourPaletteView(this);
@@ -97,12 +99,15 @@ public class FieldColourView extends View implements FieldView {
         mColourPopupWindow.show(this);
     }
 
-    /** Popup window that adjusts positioning to the size of the wrapped with. */
+    /**
+     * Popup window that adjusts positioning to the size of the wrapped view.
+     */
     private class AutoPositionPopupWindow extends PopupWindow {
         private final View mWrapView;
 
         /**
          * Construct popup window wrapping an existing {@link View} object.
+         *
          * @param wrapView The view shown inside the popup window.
          */
         public AutoPositionPopupWindow(View wrapView) {
@@ -118,6 +123,7 @@ public class FieldColourView extends View implements FieldView {
 
         /**
          * Show popup window next to an anchor view.
+         *
          * @param anchorView The view that "anchors" the popup window.
          */
         public void show(View anchorView) {
@@ -143,7 +149,9 @@ public class FieldColourView extends View implements FieldView {
         }
     }
 
-    /** View for a colour palette that matches Web Blockly's. */
+    /**
+     * View for a colour palette that matches Web Blockly's.
+     */
     private class ColourPaletteView extends View {
         private static final int PALETTE_COLUMNS = 7;
         private static final int PALETTE_ROWS = 10;
@@ -211,6 +219,24 @@ public class FieldColourView extends View implements FieldView {
             drawGrid(canvas);
         }
 
+        @Override
+        public boolean onTouchEvent(MotionEvent motionEvent) {
+            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                int i = Math.min(PALETTE_COLUMNS - 1,
+                        (int) motionEvent.getX() / PALETTE_FIELD_WIDTH);
+                int j = Math.min(PALETTE_ROWS - 1,
+                        (int) motionEvent.getY() / PALETTE_FIELD_HEIGHT);
+
+                int index = i + j * PALETTE_COLUMNS;
+                mParent.setBackgroundColor(mColourArray[index]);
+                mParent.mColourField.setColour(mColourArray[index]);
+                mParent.mColourPopupWindow.dismiss();
+                return true;
+            }
+
+            return false;
+        }
+
         private void drawPalette(Canvas canvas) {
             int paletteIndex = 0;
             for (int j = 0; j < PALETTE_ROWS; ++j) {
@@ -238,24 +264,6 @@ public class FieldColourView extends View implements FieldView {
                 int x = i * PALETTE_FIELD_WIDTH;
                 canvas.drawLine(x, 0, x, height - 1, mGridPaint);
             }
-        }
-
-        @Override
-        public boolean onTouchEvent(MotionEvent motionEvent) {
-            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                int i = Math.min(PALETTE_COLUMNS - 1,
-                        (int) motionEvent.getX() / PALETTE_FIELD_WIDTH);
-                int j = Math.min(PALETTE_ROWS - 1,
-                        (int) motionEvent.getY() / PALETTE_FIELD_HEIGHT);
-
-                int index = i + j * PALETTE_COLUMNS;
-                mParent.setBackgroundColor(mColourArray[index]);
-                mParent.mColourField.setColour(mColourArray[index]);
-                mParent.mColourPopupWindow.dismiss();
-                return true;
-            }
-
-            return false;
         }
     }
 }
