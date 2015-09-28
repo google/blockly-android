@@ -528,7 +528,7 @@ public class BlockView extends FrameLayout {
         mPaintHighlight.setStrokeWidth(5);
         mPaintHighlight.setStrokeJoin(Paint.Join.ROUND);
 
-       mDrawPath.setFillType(Path.FillType.EVEN_ODD);
+        mDrawPath.setFillType(Path.FillType.EVEN_ODD);
     }
 
     /**
@@ -671,7 +671,6 @@ public class BlockView extends FrameLayout {
         // Bottom of the block, including "Next" connector.
         if (mBlock.getNextConnection() != null) {
             ConnectorHelper.addNextConnectorToPath(mDrawPath, xFrom, yBottom, rtlSign);
-            ConnectorHelper.getNextOrPreviousConnectionPosition(xFrom, yBottom, rtlSign, mTempConnectionPosition);
             ConnectorHelper.createNextConnectorPath(mHighlightPathNext, xFrom, yBottom, rtlSign);
             ConnectorHelper.getNextOrPreviousConnectionPosition(xFrom, yBottom, rtlSign,
                     mTempConnectionPosition);
