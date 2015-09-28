@@ -22,6 +22,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
@@ -512,7 +513,7 @@ public class BlockView extends FrameLayout {
         mDrawPath.moveTo(xFrom, yTop);
         if (mBlock.getPreviousConnection() != null) {
             ConnectorHelper.addPreviousConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
-            ConnectorHelper.getPreviousConnectionPosition(xFrom, yTop, rtlSign,
+            ConnectorHelper.getNextOrPreviousConnectionPosition(xFrom, yTop, rtlSign,
                     mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
                     mTempConnectionPosition);
@@ -533,8 +534,8 @@ public class BlockView extends FrameLayout {
                     if (!getBlock().getInputsInline()) {
                         ConnectorHelper.addValueInputConnectorToPath(
                                 mDrawPath, xTo, inputLayoutOrigin.y, rtlSign);
-                        ConnectorHelper.getValueInputConnectionPosition(xTo, inputLayoutOrigin.y,
-                                rtlSign, mTempConnectionPosition);
+                        ConnectorHelper.getOutputOrValueInputConnectionPosition(xTo,
+                                inputLayoutOrigin.y, rtlSign, mTempConnectionPosition);
                         mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
                                 mTempConnectionPosition);
                     }
@@ -569,7 +570,7 @@ public class BlockView extends FrameLayout {
         // Bottom of the block, including "Next" connector.
         if (mBlock.getNextConnection() != null) {
             ConnectorHelper.addNextConnectorToPath(mDrawPath, xFrom, yBottom, rtlSign);
-            ConnectorHelper.getNextConnectionPosition(xFrom, yBottom, rtlSign, mTempConnectionPosition);
+            ConnectorHelper.getNextOrPreviousConnectionPosition(xFrom, yBottom, rtlSign, mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
                     mTempConnectionPosition);
         }
@@ -578,7 +579,8 @@ public class BlockView extends FrameLayout {
         // Left-hand side of the block, including "Output" connector.
         if (mBlock.getOutputConnection() != null) {
             ConnectorHelper.addOutputConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
-            ConnectorHelper.getOutputConnectionPosition(xFrom, yTop, rtlSign, mTempConnectionPosition);
+            ConnectorHelper.getOutputOrValueInputConnectionPosition(xFrom, yTop, rtlSign,
+                    mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
                     mTempConnectionPosition);
         }

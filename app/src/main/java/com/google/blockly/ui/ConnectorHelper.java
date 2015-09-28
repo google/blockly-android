@@ -165,69 +165,39 @@ public class ConnectorHelper {
 
     /**
      * Get the point that will be used as the position of the connection when finding neighbors,
-     * bumping, etc.
+     * bumping, etc.  Since previous and next connections are in the same location when connected,
+     * the calculations are the same for both.
      *
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
-     * @param blockTop Vertical view coordinate of the bottom of the block.
+     *      the block (right-hand side in RTL mode).
+     * @param blockY Vertical base coordinate of the connector; this is the bottom of the block for
+     *      a next connection and the top of the block for a previous connection.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      * @param toUpdate A {@link} ViewPoint to modify with the coordinates.
      */
-    static void getPreviousConnectionPosition(int blockStartX, int blockTop, int rtlSign,
+    static void getNextOrPreviousConnectionPosition(int blockStartX, int blockY, int rtlSign,
                                              ViewPoint toUpdate) {
         int x = blockStartX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PERPENDICULAR / 2);
-        int y = blockTop + SIZE_PERPENDICULAR / 2;
+        int y = blockY + SIZE_PERPENDICULAR / 2;
         toUpdate.set(x, y);
     }
 
     /**
      * Get the point that will be used as the position of the connection when finding neighbors,
-     * bumping, etc.
+     * bumping, etc.  Since value inputs and outputs are in the same location when connected,
+     * the calculations are the same for both.
      *
-     * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
-     * @param blockTop Vertical view coordinate of the bottom of the block.
-     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
-     * @param toUpdate A {@link} ViewPoint to modify with the coordinates.
-     */
-    static void getOutputConnectionPosition(int blockStartX, int blockTop, int rtlSign,
-                                             ViewPoint toUpdate) {
-        int x = blockStartX - rtlSign * (OFFSET_FROM_CORNER + SIZE_PERPENDICULAR / 2);
-        int y = blockTop - OFFSET_FROM_CORNER + (SIZE_PARALLEL / 2);
-        toUpdate.set(x, y);
-    }
-
-    /**
-     * Get the point that will be used as the position of the connection when finding neighbors,
-     * bumping, etc.
-     *
-     * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
-     * @param blockBottom Vertical view coordinate of the bottom of the block.
-     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
-     * @param toUpdate A {@link} ViewPoint to modify with the coordinates.
-     */
-    static void getNextConnectionPosition(int blockStartX, int blockBottom, int rtlSign,
-                                             ViewPoint toUpdate) {
-        int x = blockStartX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PERPENDICULAR / 2);
-        int y = blockBottom - SIZE_PERPENDICULAR / 2;
-        toUpdate.set(x, y);
-    }
-
-    /**
-     * Get the point that will be used as the position of the connection when finding neighbors,
-     * bumping, etc.
-     *
-     * @param blockEndX Horizontal base coordinate of the connector; this is the right-hand side of
-     *                  the block (left-hand side in RTL mode).
+     * @param blockX Horizontal base coordinate of the connector; for an input this is the
+     *              right-hand side of the block (left-hand side in RTL mode).  For an output it is
+     *              the left-hand side of the block (right-hand side in RTL mode).
      * @param inputTop Vertical view coordinate of the top of the input for which this connector is
      *                 drawn.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      * @param toUpdate A {@link} ViewPoint to modify with the coordinates.
      */
-    static void getValueInputConnectionPosition(int blockEndX, int inputTop, int rtlSign,
+    static void getOutputOrValueInputConnectionPosition(int blockX, int inputTop, int rtlSign,
                                              ViewPoint toUpdate) {
-        int x = blockEndX - rtlSign * (SIZE_PERPENDICULAR / 2);
+        int x = blockX - rtlSign * (SIZE_PERPENDICULAR / 2);
         int y = inputTop + OFFSET_FROM_CORNER + (SIZE_PARALLEL / 2);
         toUpdate.set(x, y);
     }

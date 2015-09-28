@@ -460,6 +460,7 @@ public class InputView extends ViewGroup {
         // Draw an additional line segment over again to get a final rounded corner.
         path.lineTo(left + rtlSign * ConnectorHelper.OFFSET_FROM_CORNER, top);
 
-        ConnectorHelper.getOutputConnectionPosition(left, top, rtlSign, connectorPosition);
+        ConnectorHelper.getOutputOrValueInputConnectionPosition(left, top, rtlSign,
+                connectorPosition);
     }
 }
