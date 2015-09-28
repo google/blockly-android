@@ -189,6 +189,7 @@ public class BlockView extends FrameLayout {
     /** Set highlighting of the entire block, including all inline Value input ports. */
     public void setHighlightEntireBlock() {
         mHighlightPath = mDrawPath;
+        invalidate();
     }
 
     /** Clear connection highlighting and return all block connections to normal rendering. */
