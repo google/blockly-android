@@ -177,7 +177,7 @@ public class ConnectorHelper {
      */
     static void getNextOrPreviousConnectionPosition(int blockStartX, int blockY, int rtlSign,
                                              ViewPoint toUpdate) {
-        int x = blockStartX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PERPENDICULAR / 2);
+        int x = blockStartX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL / 2);
         int y = blockY + SIZE_PERPENDICULAR / 2;
         toUpdate.set(x, y);
     }
@@ -216,7 +216,7 @@ public class ConnectorHelper {
     static void getStatementInputConnectionPosition(int inputTop, int offsetX, int rtlSign,
                                                ViewPoint toUpdate) {
         int x = offsetX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL / 2);
-        int y = inputTop - SIZE_PERPENDICULAR / 2;
+        int y = inputTop + SIZE_PERPENDICULAR / 2;
         toUpdate.set(x, y);
     }
 }

@@ -22,11 +22,11 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 
 import java.util.ArrayList;
@@ -87,9 +87,9 @@ public class BlockView extends FrameLayout {
      * {@link BlockView(Context, int, Block, WorkspaceHelper, BlockGroup, View.OnTouchListener)}
      * should be used instead.
      *
-     * @param context     The context for creating this view.
-     * @param block       The {@link Block} represented by this view.
-     * @param helper      The helper for loading workspace configs and doing calculations.
+     * @param context The context for creating this view.
+     * @param block The {@link Block} represented by this view.
+     * @param helper The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      */
@@ -102,12 +102,12 @@ public class BlockView extends FrameLayout {
      * Create a new BlockView for the given block using the specified style. The style must extend
      * {@link R.style#DefaultBlockStyle}.
      *
-     * @param context     The context for creating this view.
-     * @param blockStyle  The resource id for the style to use on this view.
-     * @param block       The {@link Block} represented by this view.
-     * @param helper      The helper for loading workspace configs and doing calculations.
+     * @param context The context for creating this view.
+     * @param blockStyle The resource id for the style to use on this view.
+     * @param block The {@link Block} represented by this view.
+     * @param helper The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
-     * @param listener   An onTouchListener to register on this view.
+     * @param listener An onTouchListener to register on this view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      */
     public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
@@ -620,4 +620,21 @@ public class BlockView extends FrameLayout {
     int getLayoutMarginLeft() {
         return mLayoutMarginLeft;
     }
+
+
+    /**
+     * Draw green dots at the model's location of all connections on this block, for debugging.
+     * @param c The canvas to draw on.
+     */
+    private void drawConnectorCenters(Canvas c) {
+        List<Connection> connections = mBlock.getAllConnections();
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.GREEN);
+        for (int i = 0; i < connections.size(); i++) {
+            Connection conn = connections.get(i);
+            c.drawCircle(conn.getPosition().x, conn.getPosition().y, 10, paint);
+        }
+    }
+
 }
