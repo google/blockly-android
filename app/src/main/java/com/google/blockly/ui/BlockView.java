@@ -705,11 +705,16 @@ public class BlockView extends FrameLayout {
                     inputView.addInlineCutoutToBlockViewPath(mDrawPath,
                             xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign,
                             mTempConnectionPosition);
+                    mLocationInputConnectorList.get(i).set(
+                            mTempConnectionPosition.x, mTempConnectionPosition.y);
+
+                    // Convert the layout position of the connector to the location of the "active"
+                    // connector point.
+                    ConnectorHelper.getOutputOrValueInputConnectionPosition(
+                            mTempConnectionPosition.x, mTempConnectionPosition.y, rtlSign,
+                            mTempConnectionPosition);
                     mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
                             mTempConnectionPosition);
-                    mLocationInputConnectorList.get(i).set(
-                            mTempConnectionPosition.x + rtlSign * (ConnectorHelper.SIZE_PERPENDICULAR / 2),
-                            mTempConnectionPosition.y - ConnectorHelper.OFFSET_FROM_CORNER - (ConnectorHelper.SIZE_PARALLEL / 2));
                 }
             }
         }
