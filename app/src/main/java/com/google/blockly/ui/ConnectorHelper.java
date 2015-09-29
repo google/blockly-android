@@ -47,8 +47,8 @@ public class ConnectorHelper {
      * @param path Drawing commands for the connector are added to this path.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
      *                    the block (right-hand side in RTL mode).
-     * @param blockTop    Vertical view coordinate of the top of the block.
-     * @param rtlSign     Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
+     * @param blockTop Vertical view coordinate of the top of the block.
+     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
     static void addPreviousConnectorToPath(Path path, int blockStartX, int blockTop, int rtlSign) {
         int x = blockStartX + rtlSign * OFFSET_FROM_CORNER;
@@ -67,8 +67,8 @@ public class ConnectorHelper {
      *             the connector are added to it.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
      *                    the block (right-hand side in RTL mode).
-     * @param blockTop    Vertical view coordinate of the top of the block.
-     * @param rtlSign     Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
+     * @param blockTop Vertical view coordinate of the top of the block.
+     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
     static void createPreviousConnectorPath(Path path, int blockStartX, int blockTop, int rtlSign) {
         path.rewind();
