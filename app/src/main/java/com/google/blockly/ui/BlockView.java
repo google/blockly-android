@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -151,6 +152,10 @@ public class BlockView extends FrameLayout {
 
     /**
      * Select a connection for highlighted drawing.
+     *
+     * @param connection The connection whose port to highlight. This must be a connection
+     *                   associated with the {@link Block} represented by this {@link BlockView}
+     *                   instance.
      */
     public void setHighlightConnection(Connection connection) {
         mHighlightPath = null;
@@ -171,10 +176,9 @@ public class BlockView extends FrameLayout {
             }
             case Connection.CONNECTION_TYPE_INPUT: {
                 for (int i = 0; i < mInputViews.size(); ++i) {
-                    final Input connectionInput = connection.getInput();
-                    if (mInputViews.get(i).getInput() == connectionInput) {
+                    if (mInputViews.get(i).getInput().getConnection() == connection) {
                         mHighlightPath = mHighlightPathInputList.get(i);
-                        break;
+                        break;  // Break out of loop.
                     }
                     break;
                 }
@@ -702,6 +706,8 @@ public class BlockView extends FrameLayout {
                     inputView.addInlineCutoutToBlockViewPath(mDrawPath,
                             xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign,
                             mTempConnectionPosition);
+                    ConnectorHelper.createValueInputConnectorPath(mHighlightPathInputList.get(i),
+                            xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign);
                     mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
                             mTempConnectionPosition);
                 }

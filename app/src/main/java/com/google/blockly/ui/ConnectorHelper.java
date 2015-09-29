@@ -44,6 +44,7 @@ public class ConnectorHelper {
      * The reference point for this connector is the top-left corner of the block (top-right corner
      * in RTL mode).
      *
+     * @param path Drawing commands for the connector are added to this path.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
      *                    the block (right-hand side in RTL mode).
      * @param blockTop    Vertical view coordinate of the top of the block.
@@ -62,6 +63,8 @@ public class ConnectorHelper {
     /**
      * Create a {@link Path} to draw a "Previous" connector.
      *
+     * @param path This path is cleared by calling {@code rewind()}, after which commands to draw
+     *             the connector are added to it.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
      *                    the block (right-hand side in RTL mode).
      * @param blockTop    Vertical view coordinate of the top of the block.
@@ -80,6 +83,7 @@ public class ConnectorHelper {
      * The reference point for this connector is the bottom-left corner of the block
      * (bottom-right corner in RTL mode).
      *
+     * @param path Drawing commands for the connector are added to this path.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
      *                    the block (right-hand side in RTL mode).
      * @param blockBottom Vertical view coordinate of the bottom of the block.
@@ -98,6 +102,8 @@ public class ConnectorHelper {
     /**
      * Create a {@link Path} to draw a Next connector.
      *
+     * @param path This path is cleared by calling {@code rewind()}, after which commands to draw
+     *             the connector are added to it.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
      *                    the block (right-hand side in RTL mode).
      * @param blockBottom Vertical view coordinate of the bottom of the block.
@@ -116,6 +122,7 @@ public class ConnectorHelper {
      * The reference point for this connector is the top-right corner of the block
      * (top-left corner in RTL mode).
      *
+     * @param path Drawing commands for the connector are added to this path.
      * @param blockEndX Horizontal base coordinate of the connector; this is the right-hand side of
      *                  the block (left-hand side in RTL mode).
      * @param inputTop Vertical view coordinate of the top of the input for which this connector is
@@ -135,7 +142,7 @@ public class ConnectorHelper {
     }
 
     /**
-     * Create a path do draw only a Value input connector.
+     * Create a path to draw only a Value input connector.
      *
      * @param blockEndX Horizontal base coordinate of the connector; this is the right-hand side of
      *                  the block (left-hand side in RTL mode).
@@ -156,6 +163,7 @@ public class ConnectorHelper {
      * The reference point for this connector is the top-right corner of the Statement input
      * (top-left corner in RTL mode).
      *
+     * @param path Drawing commands for the connector are added to this path.
      * @param blockEndAboveX Right-hand side of the block (left-hand side in RTL mode) above the
      *                       Statement connector.
      * @param blockEndBelowX Right-hand side of the block (left-hand side in RTL mode) below the
@@ -192,6 +200,8 @@ public class ConnectorHelper {
      * Specifically, this method adds the drawing commands for the optinally-highlighted part of the
      * connector, but <em>not</em> the entire C-shaped opening for child blocks.
      *
+     * @param path This path is cleared by calling {@code rewind()}, after which commands to draw
+     *             the connector are added to it.
      * @param blockEndAboveX Right-hand side of the block (left-hand side in RTL mode) above the
      *                       Statement connector.
      * @param blockEndBelowX Right-hand side of the block (left-hand side in RTL mode) below the
@@ -229,6 +239,7 @@ public class ConnectorHelper {
      * The reference point for this connector is the bottom-left corner of the block
      * (bottom-right corner in RTL mode).
      *
+     * @param path Drawing commands for the connector are added to this path.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
      *                    the block (right-hand side in RTL mode).
      * @param blockTop Vertical view coordinate of the top of the block.
@@ -249,6 +260,8 @@ public class ConnectorHelper {
     /**
      * Create a path to draw only an "Output" connector.
      *
+     * @param path This path is cleared by calling {@code rewind()}, after which commands to draw
+     *             the connector are added to it.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
      *                    the block (right-hand side in RTL mode).
      * @param blockTop Vertical view coordinate of the top of the block.
