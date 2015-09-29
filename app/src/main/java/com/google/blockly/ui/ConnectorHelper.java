@@ -38,6 +38,13 @@ public class ConnectorHelper {
     // Height of an open (unconnected) inline Value input connector.
     static final int OPEN_INLINE_CONNECTOR_HEIGHT = 80;
 
+    // Draw paths for standalone connectors. These are created when they are first needed, e.g., for
+    // drawing a highlighted port.
+    private static final Path mNextConnectorPath = new Path();
+    private static final Path mPreviousConnectorPath = new Path();
+    private static final Path mOutputConnectorPath = new Path();
+    private static final Path mValueInputConnectorPath = new Path();
+
     /**
      * Add a "Previous" connector to an existing {@link Path}.
      * <p/>
@@ -61,20 +68,18 @@ public class ConnectorHelper {
     }
 
     /**
-     * Create a {@link Path} to draw a "Previous" connector.
-     *
-     * @param path This path is cleared by calling {@code rewind()}, after which commands to draw
-     *             the connector are added to it.
-     * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
-     * @param blockTop Vertical view coordinate of the top of the block.
-     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
+     * Get a {@link Path} to draw a standalone Previous connector.
      */
-    static void createPreviousConnectorPath(Path path, int blockStartX, int blockTop, int rtlSign) {
-        path.rewind();
-        path.moveTo(blockStartX, blockTop);
-        addPreviousConnectorToPath(path, blockStartX, blockTop, rtlSign);
-        path.lineTo(blockStartX + rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), blockTop);
+    static Path getPreviousConnectorPath(int rtlSign) {
+        synchronized (mPreviousConnectorPath) {
+            if (mPreviousConnectorPath.isEmpty()) {
+                mPreviousConnectorPath.moveTo(0, 0);
+                addPreviousConnectorToPath(mPreviousConnectorPath, 0, 0, rtlSign);
+                mPreviousConnectorPath.lineTo(rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
+            }
+        }
+
+        return mPreviousConnectorPath;
     }
 
     /**
@@ -100,20 +105,18 @@ public class ConnectorHelper {
     }
 
     /**
-     * Create a {@link Path} to draw a Next connector.
-     *
-     * @param path This path is cleared by calling {@code rewind()}, after which commands to draw
-     *             the connector are added to it.
-     * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
-     * @param blockBottom Vertical view coordinate of the bottom of the block.
-     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
+     * Get a {@link Path} to draw a standalone Next connector.
      */
-    static void createNextConnectorPath(Path path, int blockStartX, int blockBottom, int rtlSign) {
-        path.rewind();
-        path.moveTo(blockStartX + rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), blockBottom);
-        addNextConnectorToPath(path, blockStartX, blockBottom, rtlSign);
-        path.lineTo(blockStartX, blockBottom);
+    static Path getNextConnectorPath(int rtlSign) {
+        synchronized (mNextConnectorPath) {
+            if (mNextConnectorPath.isEmpty()) {
+                mNextConnectorPath.moveTo(rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
+                addNextConnectorToPath(mNextConnectorPath, 0, 0, rtlSign);
+                mNextConnectorPath.lineTo(0, 0);
+            }
+        }
+
+        return mNextConnectorPath;
     }
 
     /**
@@ -142,19 +145,18 @@ public class ConnectorHelper {
     }
 
     /**
-     * Create a path to draw only a Value input connector.
-     *
-     * @param blockEndX Horizontal base coordinate of the connector; this is the right-hand side of
-     *                  the block (left-hand side in RTL mode).
-     * @param inputTop Vertical view coordinate of the top of the input for which this connector is
-     *                 drawn.
-     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
+     * Get a {@link Path} to draw a standalone value Input connector.
      */
-    static void createValueInputConnectorPath(Path path, int blockEndX, int inputTop, int rtlSign) {
-        path.rewind();
-        path.moveTo(blockEndX, inputTop);
-        addValueInputConnectorToPath(path, blockEndX, inputTop, rtlSign);
-        path.lineTo(blockEndX, inputTop + SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER);
+    static Path getValueInputConnectorPath(int rtlSign) {
+        synchronized (mValueInputConnectorPath) {
+            if (mValueInputConnectorPath.isEmpty()) {
+                mValueInputConnectorPath.moveTo(0, 0);
+                addValueInputConnectorToPath(mValueInputConnectorPath, 0, 0, rtlSign);
+                mValueInputConnectorPath.lineTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
+            }
+        }
+
+        return mValueInputConnectorPath;
     }
 
     /**
@@ -195,45 +197,6 @@ public class ConnectorHelper {
     }
 
     /**
-     * Create a {@link Path} to draw only a Statement input connector.
-     * <p/>
-     * Specifically, this method adds the drawing commands for the optinally-highlighted part of the
-     * connector, but <em>not</em> the entire C-shaped opening for child blocks.
-     *
-     * @param path This path is cleared by calling {@code rewind()}, after which commands to draw
-     *             the connector are added to it.
-     * @param blockEndAboveX Right-hand side of the block (left-hand side in RTL mode) above the
-     *                       Statement connector.
-     * @param blockEndBelowX Right-hand side of the block (left-hand side in RTL mode) below the
-     *                       Statement connector. For inline inputs, this can be different from
-     *                       {@code blockEndAboveX}.
-     * @param inputTop Vertical view coordinate of the top of the InputView for which this connector
-     *                 is drawn.
-     * @param offsetX  The offset of the Statement input connector from the left (or right, in RTL
-     *                 mode) boundary of the block.
-     * @param inputHeight The height of the connected input block(s).
-     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
-     */
-    static void createStatementInputConnectorPath(
-            Path path, int blockEndAboveX, int blockEndBelowX, int inputTop, int offsetX,
-            int inputHeight, int rtlSign) {
-        path.rewind();
-
-        int x = offsetX + rtlSign * (2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
-        path.moveTo(x, inputTop);
-
-        x -= rtlSign * OFFSET_FROM_CORNER;
-        path.lineTo(x, inputTop);
-        path.lineTo(x, inputTop + SIZE_PERPENDICULAR);
-
-        x -= rtlSign * SIZE_PARALLEL;
-        path.lineTo(x, inputTop + SIZE_PERPENDICULAR);
-        path.lineTo(x, inputTop);
-
-        path.lineTo(offsetX, inputTop);
-    }
-
-    /**
      * Add an "Output" connector to an existing {@link Path}.
      * <p/>
      * The reference point for this connector is the bottom-left corner of the block
@@ -258,20 +221,18 @@ public class ConnectorHelper {
     }
 
     /**
-     * Create a path to draw only an "Output" connector.
-     *
-     * @param path This path is cleared by calling {@code rewind()}, after which commands to draw
-     *             the connector are added to it.
-     * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
-     * @param blockTop Vertical view coordinate of the top of the block.
-     * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
+     * Get a {@link Path} to draw a standalone Output connector.
      */
-    static void createOutputConnectorPath(Path path, int blockStartX, int blockTop, int rtlSign) {
-        path.rewind();
-        path.moveTo(blockStartX, blockTop + 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
-        addOutputConnectorToPath(path, blockStartX, blockTop, rtlSign);
-        path.lineTo(blockStartX, blockTop);
+    static Path getOutputConnectorPath(int rtlSign) {
+        synchronized (mOutputConnectorPath) {
+            if (mOutputConnectorPath.isEmpty()) {
+                mOutputConnectorPath.moveTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
+                addOutputConnectorToPath(mOutputConnectorPath, 0, 0, rtlSign);
+                mOutputConnectorPath.lineTo(0, 0);
+            }
+        }
+
+        return mOutputConnectorPath;
     }
 
     /**

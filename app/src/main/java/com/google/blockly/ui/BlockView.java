@@ -57,20 +57,23 @@ public class BlockView extends FrameLayout {
     // Objects for drawing the block.
     private final Path mDrawPath = new Path();
 
-    // Reference to the current highlighting path - if this is null, no highlights are rendered.
-    private Path mHighlightPath;
-
-    private final Path mHighlightPathPrevious = new Path();
-    private final Path mHighlightPathNext = new Path();
-    private final Path mHighlightPathOutput = new Path();
-    private final ArrayList<Path> mHighlightPathInputList = new ArrayList<>();
-
     private final Paint mPaintArea = new Paint();
     private final Paint mPaintBorder = new Paint();
     private final Paint mPaintHighlight = new Paint();
 
+    // Fields for highlighting.
+    private boolean mHighlightBlock;
+    private Connection mHighlightConnection;
+    private final Path mHighlightPath = new Path();
+
     // Child views for the block inputs and their children.
     private final ArrayList<InputView> mInputViews = new ArrayList<>();
+
+    // Reference points for connectors (needed for selective highlighting).
+    private final ViewPoint mLocationOutputConnector = new ViewPoint();
+    private final ViewPoint mLocationPreviousConnector = new ViewPoint();
+    private final ViewPoint mLocationNextConnector = new ViewPoint();
+    private final ArrayList<ViewPoint> mLocationInputConnectorList = new ArrayList<>();
 
     // Current measured size of this block view.
     private final ViewPoint mBlockViewSize = new ViewPoint();
@@ -158,50 +161,23 @@ public class BlockView extends FrameLayout {
      *                   instance.
      */
     public void setHighlightConnection(Connection connection) {
-        mHighlightPath = null;
-
-        int connectionType = connection.getType();
-        switch (connectionType) {
-            case Connection.CONNECTION_TYPE_OUTPUT: {
-                mHighlightPath = mHighlightPathOutput;
-                break;
-            }
-            case Connection.CONNECTION_TYPE_NEXT: {
-                mHighlightPath = mHighlightPathNext;
-                break;
-            }
-            case Connection.CONNECTION_TYPE_PREVIOUS: {
-                mHighlightPath = mHighlightPathPrevious;
-                break;
-            }
-            case Connection.CONNECTION_TYPE_INPUT: {
-                for (int i = 0; i < mInputViews.size(); ++i) {
-                    if (mInputViews.get(i).getInput().getConnection() == connection) {
-                        mHighlightPath = mHighlightPathInputList.get(i);
-                        break;  // Break out of loop.
-                    }
-                    break;
-                }
-            }
-        }
-
-        if (mHighlightPath != null) {
-            invalidate();
-        }
+        mHighlightBlock = false;
+        mHighlightConnection = connection;
+        invalidate();
     }
 
     /** Set highlighting of the entire block, including all inline Value input ports. */
     public void setHighlightEntireBlock() {
-        mHighlightPath = mDrawPath;
+        mHighlightBlock = true;
+        mHighlightConnection = null;
         invalidate();
     }
 
-    /** Clear connection highlighting and return all block connections to normal rendering. */
-    public void clearHighlightConnection() {
-        if (mHighlightPath != null) {
-            mHighlightPath = null;
-            invalidate();
-        }
+    /** Clear all highlighting and return everything to normal rendering. */
+    public void clearHighlight() {
+        mHighlightBlock = false;
+        mHighlightConnection = null;
+        invalidate();
     }
 
     @Override
@@ -209,7 +185,34 @@ public class BlockView extends FrameLayout {
         c.drawPath(mDrawPath, mPaintArea);
         c.drawPath(mDrawPath, mPaintBorder);
 
-        if (mHighlightPath != null) {
+        if (mHighlightBlock) {
+            c.drawPath(mDrawPath, mPaintHighlight);
+        } else if (mHighlightConnection != null) {
+            int rtlSign = mHelper.useRtL() ? -1 : +1;
+            if (mHighlightConnection == getBlock().getOutputConnection()) {
+                mHighlightPath.set(ConnectorHelper.getOutputConnectorPath(rtlSign));
+                mHighlightPath.offset(mLocationOutputConnector.x, mLocationOutputConnector.y);
+            } else if (mHighlightConnection == getBlock().getPreviousConnection()) {
+                mHighlightPath.set(ConnectorHelper.getPreviousConnectorPath(rtlSign));
+                mHighlightPath.offset(mLocationPreviousConnector.x, mLocationPreviousConnector.y);
+            } else if (mHighlightConnection == getBlock().getNextConnection()) {
+                mHighlightPath.set(ConnectorHelper.getNextConnectorPath(rtlSign));
+                mHighlightPath.offset(mLocationNextConnector.x, mLocationNextConnector.y);
+            } else {
+                final Input input = mHighlightConnection.getInput();
+                for (int i = 0; i < mInputViews.size(); ++i) {
+                    if (mInputViews.get(i).getInput() == input) {
+                        if (input.getType() == Input.TYPE_STATEMENT) {
+                            mHighlightPath.set(ConnectorHelper.getNextConnectorPath(rtlSign));
+                        } else {
+                            mHighlightPath.set(ConnectorHelper.getValueInputConnectorPath(rtlSign));
+                        }
+                        final ViewPoint loc = mLocationInputConnectorList.get(i);
+                        mHighlightPath.offset(loc.x, loc.y);
+                    }
+                }
+            }
+
             c.drawPath(mHighlightPath, mPaintHighlight);
         }
     }
@@ -223,9 +226,9 @@ public class BlockView extends FrameLayout {
         adjustInputLayoutOriginsListSize();
 
         if (getBlock().getInputsInline()) {
-            onMeasureInlineInputs(widthMeasureSpec, heightMeasureSpec);
+            measureInlineInputs(widthMeasureSpec, heightMeasureSpec);
         } else {
-            onMeasureExternalInputs(widthMeasureSpec, heightMeasureSpec);
+            measureExternalInputs(widthMeasureSpec, heightMeasureSpec);
         }
 
         mNextBlockVerticalOffset = mBlockViewSize.y;
@@ -290,7 +293,7 @@ public class BlockView extends FrameLayout {
      * </ol>
      * </p>
      */
-    private void onMeasureInlineInputs(int widthMeasureSpec, int heightMeasureSpec) {
+    private void measureInlineInputs(int widthMeasureSpec, int heightMeasureSpec) {
         // First pass - measure all fields and inputs; compute maximum width of fields over all
         // Statement inputs.
         mMaxStatementFieldsWidth = 0;
@@ -396,7 +399,7 @@ public class BlockView extends FrameLayout {
      * </ol>
      * </p>
      */
-    private void onMeasureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
+    private void measureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
         mMaxInputFieldsWidth = MIN_WIDTH;
         // Initialize max Statement width as zero so presence of Statement inputs can be determined
         // later; apply minimum size after that.
@@ -555,19 +558,19 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Adjust size of {@link #mHighlightPathInputList} list to match the size of
+     * Adjust size of {@link #mLocationInputConnectorList} list to match the size of
      * {@link #mInputViews}.
      */
-    private void adjustHighlightPathInputListSize() {
-        if (mHighlightPathInputList.size() != mInputViews.size()) {
-            mHighlightPathInputList.ensureCapacity(mInputViews.size());
-            if (mHighlightPathInputList.size() < mInputViews.size()) {
-                for (int i = mHighlightPathInputList.size(); i < mInputViews.size(); i++) {
-                    mHighlightPathInputList.add(new Path());
+    private void adjustLocationInputConnectorListSize() {
+        if (mLocationInputConnectorList.size() != mInputViews.size()) {
+            mLocationInputConnectorList.ensureCapacity(mInputViews.size());
+            if (mLocationInputConnectorList.size() < mInputViews.size()) {
+                for (int i = mLocationInputConnectorList.size(); i < mInputViews.size(); i++) {
+                    mLocationInputConnectorList.add(new ViewPoint());
                 }
             } else {
-                while (mHighlightPathInputList.size() > mInputViews.size()) {
-                    mHighlightPathInputList.remove(mHighlightPathInputList.size() - 1);
+                while (mLocationInputConnectorList.size() > mInputViews.size()) {
+                    mLocationInputConnectorList.remove(mLocationInputConnectorList.size() - 1);
                 }
             }
         }
@@ -580,14 +583,14 @@ public class BlockView extends FrameLayout {
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();  // Must reset(), not rewind(), to draw inline input cutouts correctly.
-        adjustHighlightPathInputListSize();
+        adjustLocationInputConnectorListSize();
 
         int xFrom = mLayoutMarginLeft;
         int xTo = mLayoutMarginLeft;
 
         // For inline inputs, the upper horizontal coordinate of the block boundary varies by
         // section and changes after each Statement input. For external inputs, it is constant as
-        // computed in onMeasureExternalInputs.
+        // computed in measureExternalInputs.
         int inlineRowIdx = 0;
         if (getBlock().getInputsInline()) {
             xTo += mInlineRowWidth.get(inlineRowIdx);
@@ -611,8 +614,7 @@ public class BlockView extends FrameLayout {
         mDrawPath.moveTo(xFrom, yTop);
         if (mBlock.getPreviousConnection() != null) {
             ConnectorHelper.addPreviousConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
-            ConnectorHelper.createPreviousConnectorPath(
-                    mHighlightPathPrevious, xFrom, yTop, rtlSign);
+            mLocationPreviousConnector.set(xFrom, yTop);
             ConnectorHelper.getNextOrPreviousConnectionPosition(xFrom, yTop, rtlSign,
                     mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
@@ -634,8 +636,7 @@ public class BlockView extends FrameLayout {
                     if (!getBlock().getInputsInline()) {
                         ConnectorHelper.addValueInputConnectorToPath(
                                 mDrawPath, xTo, inputLayoutOrigin.y, rtlSign);
-                        ConnectorHelper.createValueInputConnectorPath(
-                                mHighlightPathInputList.get(i), xTo, inputLayoutOrigin.y, rtlSign);
+                        mLocationInputConnectorList.get(i).set(xTo, inputLayoutOrigin.y);
                         ConnectorHelper.getOutputOrValueInputConnectionPosition(xTo,
                                 inputLayoutOrigin.y, rtlSign, mTempConnectionPosition);
                         mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
@@ -657,9 +658,7 @@ public class BlockView extends FrameLayout {
                     }
                     ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
                             xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
-                    ConnectorHelper.createStatementInputConnectorPath(
-                            mHighlightPathInputList.get(i),
-                            xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
+                    mLocationInputConnectorList.get(i).set(xOffset, inputLayoutOrigin.y);
                     ConnectorHelper.getStatementInputConnectionPosition(inputLayoutOrigin.y,
                             xOffset, rtlSign, mTempConnectionPosition);
                     mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
@@ -676,7 +675,7 @@ public class BlockView extends FrameLayout {
         // Bottom of the block, including "Next" connector.
         if (mBlock.getNextConnection() != null) {
             ConnectorHelper.addNextConnectorToPath(mDrawPath, xFrom, yBottom, rtlSign);
-            ConnectorHelper.createNextConnectorPath(mHighlightPathNext, xFrom, yBottom, rtlSign);
+            mLocationNextConnector.set(xFrom, yBottom);
             ConnectorHelper.getNextOrPreviousConnectionPosition(xFrom, yBottom, rtlSign,
                     mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
@@ -687,7 +686,7 @@ public class BlockView extends FrameLayout {
         // Left-hand side of the block, including "Output" connector.
         if (mBlock.getOutputConnection() != null) {
             ConnectorHelper.addOutputConnectorToPath(mDrawPath, xFrom, yTop, rtlSign);
-            ConnectorHelper.createOutputConnectorPath(mHighlightPathOutput, xFrom, yTop, rtlSign);
+            mLocationOutputConnector.set(xFrom, yTop);
             ConnectorHelper.getOutputOrValueInputConnectionPosition(xFrom, yTop, rtlSign,
                     mTempConnectionPosition);
             mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
@@ -706,10 +705,11 @@ public class BlockView extends FrameLayout {
                     inputView.addInlineCutoutToBlockViewPath(mDrawPath,
                             xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign,
                             mTempConnectionPosition);
-                    ConnectorHelper.createValueInputConnectorPath(mHighlightPathInputList.get(i),
-                            xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign);
                     mConnectionManager.moveConnectionTo(inputView.getInput().getConnection(),
                             mTempConnectionPosition);
+                    mLocationInputConnectorList.get(i).set(
+                            mTempConnectionPosition.x + rtlSign * (ConnectorHelper.SIZE_PERPENDICULAR / 2),
+                            mTempConnectionPosition.y - ConnectorHelper.OFFSET_FROM_CORNER - (ConnectorHelper.SIZE_PARALLEL / 2));
                 }
             }
         }
