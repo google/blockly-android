@@ -40,10 +40,10 @@ public class ConnectorHelper {
 
     // Draw paths for standalone connectors. These are created when they are first needed, e.g., for
     // drawing a highlighted port.
-    private static final Path mNextConnectorPath = new Path();
-    private static final Path mPreviousConnectorPath = new Path();
-    private static final Path mOutputConnectorPath = new Path();
-    private static final Path mValueInputConnectorPath = new Path();
+    private static final Path[] mNextConnectorPath = new Path[]{ new Path(), new Path()};
+    private static final Path[] mPreviousConnectorPath = new Path[]{ new Path(), new Path()};
+    private static final Path[] mOutputConnectorPath = new Path[]{ new Path(), new Path()};
+    private static final Path[] mValueInputConnectorPath = new Path[]{ new Path(), new Path()};
 
     /**
      * Add a "Previous" connector to an existing {@link Path}.
@@ -71,15 +71,17 @@ public class ConnectorHelper {
      * Get a {@link Path} to draw a standalone Previous connector.
      */
     static Path getPreviousConnectorPath(int rtlSign) {
-        synchronized (mPreviousConnectorPath) {
-            if (mPreviousConnectorPath.isEmpty()) {
-                mPreviousConnectorPath.moveTo(0, 0);
-                addPreviousConnectorToPath(mPreviousConnectorPath, 0, 0, rtlSign);
-                mPreviousConnectorPath.lineTo(rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
+        int rtlIdx = (rtlSign + 1) / 2;
+        synchronized (mPreviousConnectorPath[rtlIdx]) {
+            if (mPreviousConnectorPath[rtlIdx].isEmpty()) {
+                mPreviousConnectorPath[rtlIdx].moveTo(0, 0);
+                addPreviousConnectorToPath(mPreviousConnectorPath[rtlIdx], 0, 0, rtlSign);
+                mPreviousConnectorPath[rtlIdx].lineTo(
+                        rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
             }
         }
 
-        return mPreviousConnectorPath;
+        return mPreviousConnectorPath[rtlIdx];
     }
 
     /**
@@ -108,15 +110,17 @@ public class ConnectorHelper {
      * Get a {@link Path} to draw a standalone Next connector.
      */
     static Path getNextConnectorPath(int rtlSign) {
-        synchronized (mNextConnectorPath) {
-            if (mNextConnectorPath.isEmpty()) {
-                mNextConnectorPath.moveTo(rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
-                addNextConnectorToPath(mNextConnectorPath, 0, 0, rtlSign);
-                mNextConnectorPath.lineTo(0, 0);
+        int rtlIdx = (rtlSign + 1) / 2;
+        synchronized (mNextConnectorPath[rtlIdx]) {
+            if (mNextConnectorPath[rtlIdx].isEmpty()) {
+                mNextConnectorPath[rtlIdx].moveTo(
+                        rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
+                addNextConnectorToPath(mNextConnectorPath[rtlIdx], 0, 0, rtlSign);
+                mNextConnectorPath[rtlIdx].lineTo(0, 0);
             }
         }
 
-        return mNextConnectorPath;
+        return mNextConnectorPath[rtlIdx];
     }
 
     /**
@@ -148,15 +152,16 @@ public class ConnectorHelper {
      * Get a {@link Path} to draw a standalone value Input connector.
      */
     static Path getValueInputConnectorPath(int rtlSign) {
-        synchronized (mValueInputConnectorPath) {
-            if (mValueInputConnectorPath.isEmpty()) {
-                mValueInputConnectorPath.moveTo(0, 0);
-                addValueInputConnectorToPath(mValueInputConnectorPath, 0, 0, rtlSign);
-                mValueInputConnectorPath.lineTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
+       int rtlIdx = (rtlSign + 1) / 2;
+       synchronized (mValueInputConnectorPath[rtlIdx]) {
+            if (mValueInputConnectorPath[rtlIdx].isEmpty()) {
+                mValueInputConnectorPath[rtlIdx].moveTo(0, 0);
+                addValueInputConnectorToPath(mValueInputConnectorPath[rtlIdx], 0, 0, rtlSign);
+                mValueInputConnectorPath[rtlIdx].lineTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
             }
         }
 
-        return mValueInputConnectorPath;
+        return mValueInputConnectorPath[rtlIdx];
     }
 
     /**
@@ -224,15 +229,16 @@ public class ConnectorHelper {
      * Get a {@link Path} to draw a standalone Output connector.
      */
     static Path getOutputConnectorPath(int rtlSign) {
-        synchronized (mOutputConnectorPath) {
-            if (mOutputConnectorPath.isEmpty()) {
-                mOutputConnectorPath.moveTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
-                addOutputConnectorToPath(mOutputConnectorPath, 0, 0, rtlSign);
-                mOutputConnectorPath.lineTo(0, 0);
+        int rtlIdx = (rtlSign + 1) / 2;
+        synchronized (mOutputConnectorPath[rtlIdx]) {
+            if (mOutputConnectorPath[rtlIdx].isEmpty()) {
+                mOutputConnectorPath[rtlIdx].moveTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
+                addOutputConnectorToPath(mOutputConnectorPath[rtlIdx], 0, 0, rtlSign);
+                mOutputConnectorPath[rtlIdx].lineTo(0, 0);
             }
         }
 
-        return mOutputConnectorPath;
+        return mOutputConnectorPath[rtlIdx];
     }
 
     /**
@@ -247,8 +253,8 @@ public class ConnectorHelper {
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      * @param toUpdate A {@link} ViewPoint to modify with the coordinates.
      */
-    static void getNextOrPreviousConnectionPosition(int blockStartX, int blockY, int rtlSign,
-                                             ViewPoint toUpdate) {
+    static void getNextOrPreviousConnectionPosition(
+            int blockStartX, int blockY, int rtlSign, ViewPoint toUpdate) {
         int x = blockStartX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL / 2);
         int y = blockY + SIZE_PERPENDICULAR / 2;
         toUpdate.set(x, y);
@@ -267,8 +273,8 @@ public class ConnectorHelper {
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      * @param toUpdate A {@link} ViewPoint to modify with the coordinates.
      */
-    static void getOutputOrValueInputConnectionPosition(int blockX, int inputTop, int rtlSign,
-                                             ViewPoint toUpdate) {
+    static void getOutputOrValueInputConnectionPosition(
+            int blockX, int inputTop, int rtlSign, ViewPoint toUpdate) {
         int x = blockX - rtlSign * (SIZE_PERPENDICULAR / 2);
         int y = inputTop + OFFSET_FROM_CORNER + (SIZE_PARALLEL / 2);
         toUpdate.set(x, y);
@@ -285,8 +291,8 @@ public class ConnectorHelper {
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      * @param toUpdate A {@link} ViewPoint to modify with the coordinates.
      */
-    static void getStatementInputConnectionPosition(int inputTop, int offsetX, int rtlSign,
-                                               ViewPoint toUpdate) {
+    static void getStatementInputConnectionPosition(
+            int inputTop, int offsetX, int rtlSign, ViewPoint toUpdate) {
         int x = offsetX + rtlSign * (OFFSET_FROM_CORNER + SIZE_PARALLEL / 2);
         int y = inputTop + SIZE_PERPENDICULAR / 2;
         toUpdate.set(x, y);
