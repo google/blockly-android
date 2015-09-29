@@ -441,7 +441,8 @@ public class InputView extends ViewGroup {
      * @param yOffset The vertical offset for cutout path coordinates provided by the caller to
      *                position the cutout in the parent's view area.
      * @param rtlSign Sign of horizontal layout direction. In RTL mode, this is -1, otherwise +1.
-     * @param connectorPosition A {@link} ViewPoint to modify with the coordinates of the connection.
+     * @param connectorPosition A {@link ViewPoint} in which the function returns the coordinate of
+     *                          the input connector in parent coordinates.
     */
     void addInlineCutoutToBlockViewPath(Path path, int xOffset, int yOffset, int rtlSign,
                                         ViewPoint connectorPosition) {
@@ -460,7 +461,6 @@ public class InputView extends ViewGroup {
         // Draw an additional line segment over again to get a final rounded corner.
         path.lineTo(left + rtlSign * ConnectorHelper.OFFSET_FROM_CORNER, top);
 
-        ConnectorHelper.getOutputOrValueInputConnectionPosition(left, top, rtlSign,
-                connectorPosition);
+        connectorPosition.set(left, top);
     }
 }

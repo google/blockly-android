@@ -20,7 +20,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -49,21 +48,15 @@ public class BlockView extends FrameLayout {
     private static final int OUTLINE_COLOR = Color.BLACK;
     private static final int HIGHLIGHT_COLOR = Color.YELLOW;
 
-    private BlockWorkspaceParams mWorkspaceParams;
     private final WorkspaceHelper mHelper;
     private final Block mBlock;
     private final ConnectionManager mConnectionManager;
 
     // Objects for drawing the block.
     private final Path mDrawPath = new Path();
-
     private final Paint mPaintArea = new Paint();
     private final Paint mPaintBorder = new Paint();
     private final Paint mPaintHighlight = new Paint();
-
-    // Fields for highlighting.
-    private boolean mHighlightBlock;
-    private Connection mHighlightConnection;
     private final Path mHighlightPath = new Path();
 
     // Child views for the block inputs and their children.
@@ -79,12 +72,16 @@ public class BlockView extends FrameLayout {
     private final ViewPoint mBlockViewSize = new ViewPoint();
     // Position of the connection currently being updated, for temporary use during updateDrawPath.
     private final ViewPoint mTempConnectionPosition = new ViewPoint();
-
     // Layout coordinates for inputs in this Block, so they don't have to be computed repeatedly.
     private final ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
-
     // List of widths of multi-field rows when rendering inline inputs.
     private final ArrayList<Integer> mInlineRowWidth = new ArrayList<>();
+
+    private BlockWorkspaceParams mWorkspaceParams;
+
+    // Fields for highlighting.
+    private boolean mHighlightBlock;
+    private Connection mHighlightConnection;
 
     // Offset of the block origin inside the view's measured area.
     private int mLayoutMarginLeft;
@@ -166,14 +163,18 @@ public class BlockView extends FrameLayout {
         invalidate();
     }
 
-    /** Set highlighting of the entire block, including all inline Value input ports. */
+    /**
+     * Set highlighting of the entire block, including all inline Value input ports.
+     */
     public void setHighlightEntireBlock() {
         mHighlightBlock = true;
         mHighlightConnection = null;
         invalidate();
     }
 
-    /** Clear all highlighting and return everything to normal rendering. */
+    /**
+     * Clear all highlighting and return everything to normal rendering.
+     */
     public void clearHighlight() {
         mHighlightBlock = false;
         mHighlightConnection = null;
@@ -185,36 +186,7 @@ public class BlockView extends FrameLayout {
         c.drawPath(mDrawPath, mPaintArea);
         c.drawPath(mDrawPath, mPaintBorder);
 
-        if (mHighlightBlock) {
-            c.drawPath(mDrawPath, mPaintHighlight);
-        } else if (mHighlightConnection != null) {
-            int rtlSign = mHelper.useRtL() ? -1 : +1;
-            if (mHighlightConnection == getBlock().getOutputConnection()) {
-                mHighlightPath.set(ConnectorHelper.getOutputConnectorPath(rtlSign));
-                mHighlightPath.offset(mLocationOutputConnector.x, mLocationOutputConnector.y);
-            } else if (mHighlightConnection == getBlock().getPreviousConnection()) {
-                mHighlightPath.set(ConnectorHelper.getPreviousConnectorPath(rtlSign));
-                mHighlightPath.offset(mLocationPreviousConnector.x, mLocationPreviousConnector.y);
-            } else if (mHighlightConnection == getBlock().getNextConnection()) {
-                mHighlightPath.set(ConnectorHelper.getNextConnectorPath(rtlSign));
-                mHighlightPath.offset(mLocationNextConnector.x, mLocationNextConnector.y);
-            } else {
-                final Input input = mHighlightConnection.getInput();
-                for (int i = 0; i < mInputViews.size(); ++i) {
-                    if (mInputViews.get(i).getInput() == input) {
-                        if (input.getType() == Input.TYPE_STATEMENT) {
-                            mHighlightPath.set(ConnectorHelper.getNextConnectorPath(rtlSign));
-                        } else {
-                            mHighlightPath.set(ConnectorHelper.getValueInputConnectorPath(rtlSign));
-                        }
-                        final ViewPoint loc = mLocationInputConnectorList.get(i);
-                        mHighlightPath.offset(loc.x, loc.y);
-                    }
-                }
-            }
-
-            c.drawPath(mHighlightPath, mPaintHighlight);
-        }
+        drawHighlights(c);
     }
 
     /**
@@ -277,6 +249,49 @@ public class BlockView extends FrameLayout {
      */
     public Block getBlock() {
         return mBlock;
+    }
+
+    /**
+     * Draw connection of block-level highlights, if necessary.
+     *
+     * @param c The canvas to draw on.
+     */
+    private void drawHighlights(Canvas c) {
+        if (mHighlightBlock) {
+            c.drawPath(mDrawPath, mPaintHighlight);
+        } else if (mHighlightConnection != null) {
+            int rtlSign = mHelper.useRtL() ? -1 : +1;
+            if (mHighlightConnection == getBlock().getOutputConnection()) {
+                mHighlightPath.set(ConnectorHelper.getOutputConnectorPath(rtlSign));
+                mHighlightPath.offset(mLocationOutputConnector.x, mLocationOutputConnector.y);
+            } else if (mHighlightConnection == getBlock().getPreviousConnection()) {
+                mHighlightPath.set(ConnectorHelper.getPreviousConnectorPath(rtlSign));
+                mHighlightPath.offset(mLocationPreviousConnector.x, mLocationPreviousConnector.y);
+            } else if (mHighlightConnection == getBlock().getNextConnection()) {
+                mHighlightPath.set(ConnectorHelper.getNextConnectorPath(rtlSign));
+                mHighlightPath.offset(mLocationNextConnector.x, mLocationNextConnector.y);
+            } else {
+                // If the connection to highlight is not one of the three block-level connectors,
+                // then it must be one of the inputs (either a "Next" connector for a Statement or
+                // "Input" connector for a Value input). Figure out which input the connection
+                // belongs to.
+                final Input input = mHighlightConnection.getInput();
+                for (int i = 0; i < mInputViews.size(); ++i) {
+                    if (mInputViews.get(i).getInput() == input) {
+                        if (input.getType() == Input.TYPE_STATEMENT) {
+                            mHighlightPath.set(ConnectorHelper.getNextConnectorPath(rtlSign));
+                        } else {
+                            mHighlightPath.set(ConnectorHelper.getValueInputConnectorPath(rtlSign));
+                        }
+                        final ViewPoint loc = mLocationInputConnectorList.get(i);
+                        mHighlightPath.offset(loc.x, loc.y);
+                        break;  // Break out of loop once connection has been found.
+                    }
+                }
+            }
+
+            c.drawPath(mHighlightPath, mPaintHighlight);
+        }
     }
 
     /**
@@ -723,6 +738,22 @@ public class BlockView extends FrameLayout {
     }
 
     /**
+     * Draw green dots at the model's location of all connections on this block, for debugging.
+     *
+     * @param c The canvas to draw on.
+     */
+    private void drawConnectorCenters(Canvas c) {
+        List<Connection> connections = mBlock.getAllConnections();
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.GREEN);
+        for (int i = 0; i < connections.size(); i++) {
+            Connection conn = connections.get(i);
+            c.drawCircle(conn.getPosition().x, conn.getPosition().y, 10, paint);
+        }
+    }
+
+    /**
      * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
      * the top of this view's area.
      */
@@ -735,21 +766,5 @@ public class BlockView extends FrameLayout {
      */
     int getLayoutMarginLeft() {
         return mLayoutMarginLeft;
-    }
-
-
-    /**
-     * Draw green dots at the model's location of all connections on this block, for debugging.
-     * @param c The canvas to draw on.
-     */
-    private void drawConnectorCenters(Canvas c) {
-        List<Connection> connections = mBlock.getAllConnections();
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.GREEN);
-        for (int i = 0; i < connections.size(); i++) {
-            Connection conn = connections.get(i);
-            c.drawCircle(conn.getPosition().x, conn.getPosition().y, 10, paint);
-        }
     }
 }
