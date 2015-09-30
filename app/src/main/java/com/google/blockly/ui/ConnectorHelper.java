@@ -39,11 +39,20 @@ public class ConnectorHelper {
     static final int OPEN_INLINE_CONNECTOR_HEIGHT = 80;
 
     // Draw paths for standalone connectors. These are created when they are first needed, e.g., for
-    // drawing a highlighted port.
-    private static final Path[] mNextConnectorPath = new Path[]{ new Path(), new Path()};
-    private static final Path[] mPreviousConnectorPath = new Path[]{ new Path(), new Path()};
-    private static final Path[] mOutputConnectorPath = new Path[]{ new Path(), new Path()};
-    private static final Path[] mValueInputConnectorPath = new Path[]{ new Path(), new Path()};
+    // drawing a highlighted port. There are two paths for each type: one for RTL mode and one for
+    // LTR mode.
+    private static final Path[] mNextConnectorPath = new Path[]{
+            createNextConnectorPath(-1), createNextConnectorPath(+1)
+    };
+    private static final Path[] mPreviousConnectorPath = new Path[]{
+            createPreviousConnectorPath(-1), createPreviousConnectorPath(+1)
+    };
+    private static final Path[] mOutputConnectorPath = new Path[]{
+            createOutputConnectorPath(-1), createOutputConnectorPath(+1)
+    };
+    private static final Path[] mValueInputConnectorPath = new Path[]{
+            createValueInputConnectorPath(-1), createValueInputConnectorPath(+1)
+    };
 
     /**
      * Add a "Previous" connector to an existing {@link Path}.
@@ -71,17 +80,18 @@ public class ConnectorHelper {
      * Get a {@link Path} to draw a standalone Previous connector.
      */
     static Path getPreviousConnectorPath(int rtlSign) {
-        int rtlIdx = (rtlSign + 1) / 2;
-        synchronized (mPreviousConnectorPath[rtlIdx]) {
-            if (mPreviousConnectorPath[rtlIdx].isEmpty()) {
-                mPreviousConnectorPath[rtlIdx].moveTo(0, 0);
-                addPreviousConnectorToPath(mPreviousConnectorPath[rtlIdx], 0, 0, rtlSign);
-                mPreviousConnectorPath[rtlIdx].lineTo(
-                        rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
-            }
-        }
+        return mPreviousConnectorPath[(rtlSign + 1) / 2];
+    }
 
-        return mPreviousConnectorPath[rtlIdx];
+    /**
+     * Create a {@link Path} to draw a standalone Previous connector.
+     */
+    private static Path createPreviousConnectorPath(int rtlSign) {
+        Path path = new Path();
+        path.moveTo(0, 0);
+        addPreviousConnectorToPath(path, 0, 0, rtlSign);
+        path.lineTo(rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
+        return path;
     }
 
     /**
@@ -110,17 +120,18 @@ public class ConnectorHelper {
      * Get a {@link Path} to draw a standalone Next connector.
      */
     static Path getNextConnectorPath(int rtlSign) {
-        int rtlIdx = (rtlSign + 1) / 2;
-        synchronized (mNextConnectorPath[rtlIdx]) {
-            if (mNextConnectorPath[rtlIdx].isEmpty()) {
-                mNextConnectorPath[rtlIdx].moveTo(
-                        rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
-                addNextConnectorToPath(mNextConnectorPath[rtlIdx], 0, 0, rtlSign);
-                mNextConnectorPath[rtlIdx].lineTo(0, 0);
-            }
-        }
+        return mNextConnectorPath[(rtlSign + 1) / 2];
+    }
 
-        return mNextConnectorPath[rtlIdx];
+    /**
+     * Create a {@link Path} to draw a standalone Next connector.
+     */
+    private static Path createNextConnectorPath(int rtlSign) {
+        Path path = new Path();
+        path.moveTo(rtlSign * (SIZE_PARALLEL + 2 * OFFSET_FROM_CORNER), 0);
+        addNextConnectorToPath(path, 0, 0, rtlSign);
+        path.lineTo(0, 0);
+        return path;
     }
 
     /**
@@ -152,16 +163,18 @@ public class ConnectorHelper {
      * Get a {@link Path} to draw a standalone value Input connector.
      */
     static Path getValueInputConnectorPath(int rtlSign) {
-       int rtlIdx = (rtlSign + 1) / 2;
-       synchronized (mValueInputConnectorPath[rtlIdx]) {
-            if (mValueInputConnectorPath[rtlIdx].isEmpty()) {
-                mValueInputConnectorPath[rtlIdx].moveTo(0, 0);
-                addValueInputConnectorToPath(mValueInputConnectorPath[rtlIdx], 0, 0, rtlSign);
-                mValueInputConnectorPath[rtlIdx].lineTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
-            }
-        }
+        return mValueInputConnectorPath[(rtlSign + 1) / 2];
+    }
 
-        return mValueInputConnectorPath[rtlIdx];
+    /**
+     * Create a {@link Path} to draw a standalone value Input connector.
+     */
+    private static Path createValueInputConnectorPath(int rtlSign) {
+        Path path = new Path();
+        path.moveTo(0, 0);
+        addValueInputConnectorToPath(path, 0, 0, rtlSign);
+        path.lineTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
+        return path;
     }
 
     /**
@@ -229,16 +242,15 @@ public class ConnectorHelper {
      * Get a {@link Path} to draw a standalone Output connector.
      */
     static Path getOutputConnectorPath(int rtlSign) {
-        int rtlIdx = (rtlSign + 1) / 2;
-        synchronized (mOutputConnectorPath[rtlIdx]) {
-            if (mOutputConnectorPath[rtlIdx].isEmpty()) {
-                mOutputConnectorPath[rtlIdx].moveTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
-                addOutputConnectorToPath(mOutputConnectorPath[rtlIdx], 0, 0, rtlSign);
-                mOutputConnectorPath[rtlIdx].lineTo(0, 0);
-            }
-        }
+        return mOutputConnectorPath[(rtlSign + 1) / 2];
+    }
 
-        return mOutputConnectorPath[rtlIdx];
+    private static Path createOutputConnectorPath(int rtlSign) {
+        Path path = new Path();
+        path.moveTo(0, 2 * OFFSET_FROM_CORNER + SIZE_PARALLEL);
+        addOutputConnectorToPath(path, 0, 0, rtlSign);
+        path.lineTo(0, 0);
+        return path;
     }
 
     /**
