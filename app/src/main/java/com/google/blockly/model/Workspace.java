@@ -50,9 +50,8 @@ public class Workspace {
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
 
-    private final Dragger mDragger = new Dragger(mWorkspaceHelper, mWorkspaceView,
-            mConnectionManager, mRootBlocks);
-    private final View.OnTouchListener mOnTouchListener = mDragger.getOnTouchListener();
+    private final Dragger mDragger =
+            new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mRootBlocks);
 
     public Workspace() {
     }
@@ -147,7 +146,7 @@ public class Workspace {
         mDragger.setWorkspaceView(mWorkspaceView);
         for (int i = 0; i < mRootBlocks.size(); i++) {
             bg = new BlockGroup(context, mWorkspaceHelper);
-            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mOnTouchListener,
+            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mDragger,
                     mConnectionManager);
             mWorkspaceView.addView(bg);
         }

@@ -73,7 +73,7 @@ public final class MockBlocksProvider {
     }
 
     public static Block makeOuterBlock() {
-        Block.Builder block = new Block.Builder("dummy");
+        Block.Builder block = new Block.Builder("outer");
         block.setPosition(400, 70);
 
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
@@ -98,7 +98,7 @@ public final class MockBlocksProvider {
     }
 
     public static Block makeInnerBlock() {
-        Block.Builder block = new Block.Builder("dummy");
+        Block.Builder block = new Block.Builder("inner");
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
 
         Input input = new Input.InputDummy("input1", Input.ALIGN_RIGHT);
@@ -118,7 +118,7 @@ public final class MockBlocksProvider {
     }
 
     public static Block makeSimpleValueBlock() {
-        Block.Builder block = new Block.Builder("dummy");
+        Block.Builder block = new Block.Builder("simpleValue");
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
 
         Input input = new Input.InputDummy("input", null);
@@ -130,7 +130,7 @@ public final class MockBlocksProvider {
     }
 
     public static Block makeValueInputBlock() {
-        Block.Builder block = new Block.Builder("dummy");
+        Block.Builder block = new Block.Builder("valueInput");
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
 
         Input input = new Input.InputValue("input", null, null);
@@ -142,7 +142,7 @@ public final class MockBlocksProvider {
     }
 
     public static Block makeStatementBlock() {
-        Block.Builder block = new Block.Builder("dummy");
+        Block.Builder block = new Block.Builder("statement");
         block.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
         block.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
 

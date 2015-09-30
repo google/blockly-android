@@ -26,6 +26,7 @@ import android.view.ViewParent;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
+import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -216,9 +217,9 @@ public class WorkspaceHelper {
      * @return A view for the block.
      */
     public BlockView obtainBlockView(Block block, BlockGroup parentGroup,
-                                     View.OnTouchListener listener,
+                                     Dragger dragger,
                                      ConnectionManager connectionManager) {
-        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, listener,
+        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, dragger,
                 connectionManager);
     }
 

@@ -48,30 +48,27 @@ public class Dragger {
     private WorkspaceView mWorkspaceView;
     private BlockGroup mDragGroup;
 
-    private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                // TODO (fenichel): Don't start a drag until the user has passed some threshold.
-                mTouchedBlockView = (BlockView) v;
-                mDragStart.set((int) event.getRawX(), (int) event.getRawY());
-                mDragIntermediate.set((int) event.getRawX(), (int) event.getRawY());
-                setDragGroup(mTouchedBlockView.getBlock());
-                return true;
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                moveBlock(mTouchedBlockView.getBlock(), (int) event.getRawX() - mDragIntermediate.x,
-                        (int) event.getRawY() - mDragIntermediate.y);
-                mDragIntermediate.set((int) event.getRawX(), (int) event.getRawY());
-                v.requestLayout();
-                return true;
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                finalizeMove((int) event.getRawX(), (int) event.getRawY());
-                return true;
-            }
-            // TODO (fenichel): Handle ACTION_CANCEL.
-            return false;
+    public boolean onTouch(View v, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            // TODO (fenichel): Don't start a drag until the user has passed some threshold.
+            mTouchedBlockView = (BlockView) v;
+            mDragStart.set((int) event.getRawX(), (int) event.getRawY());
+            mDragIntermediate.set((int) event.getRawX(), (int) event.getRawY());
+            setDragGroup(mTouchedBlockView.getBlock());
+            return true;
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            moveBlock(mTouchedBlockView.getBlock(), (int) event.getRawX() - mDragIntermediate.x,
+                    (int) event.getRawY() - mDragIntermediate.y);
+            mDragIntermediate.set((int) event.getRawX(), (int) event.getRawY());
+            v.requestLayout();
+            return true;
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            finalizeMove((int) event.getRawX(), (int) event.getRawY());
+            return true;
         }
-    };
+        // TODO (fenichel): Handle ACTION_CANCEL.
+        return false;
+    }
 
     /**
      * @param workspaceHelper For use in computing workspace coordinates.
@@ -93,10 +90,6 @@ public class Dragger {
 
     public void setWorkspaceView(WorkspaceView view) {
         mWorkspaceView = view;
-    }
-
-    public View.OnTouchListener getOnTouchListener() {
-        return mOnTouchListener;
     }
 
     private void setDragGroup(Block block) {
@@ -139,6 +132,7 @@ public class Dragger {
         }
         block.setPosition(realPosition.x, realPosition.y);
         mDragGroup = bg;
+        mWorkspaceView.bringChildToFront(bg);
 
         // Don't track any of the connections that we're dragging around.
         List<Connection> connections = new ArrayList<>();

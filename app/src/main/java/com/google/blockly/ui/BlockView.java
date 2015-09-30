@@ -20,11 +20,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
+import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
@@ -51,6 +53,7 @@ public class BlockView extends FrameLayout {
     private final WorkspaceHelper mHelper;
     private final Block mBlock;
     private final ConnectionManager mConnectionManager;
+    private final Dragger mDragger;
 
     // Objects for drawing the block.
     private final Path mDrawPath = new Path();
@@ -121,11 +124,11 @@ public class BlockView extends FrameLayout {
      * @param block The {@link Block} represented by this view.
      * @param helper The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
-     * @param listener An onTouchListener to register on this view.
+     * @param dragger Helper object that handles dragging of this view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      */
     public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
-                     BlockGroup parentGroup, View.OnTouchListener listener,
+                     BlockGroup parentGroup, Dragger dragger,
                      ConnectionManager connectionManager) {
         super(context, null, 0);
 
@@ -133,14 +136,15 @@ public class BlockView extends FrameLayout {
         mConnectionManager = connectionManager;
         mHelper = helper;
         mWorkspaceParams = new BlockWorkspaceParams(mBlock, mHelper);
+        mDragger = dragger;
+
         parentGroup.addView(this);
         block.setView(this);
 
         setWillNotDraw(false);
 
-        initViews(context, blockStyle, parentGroup, listener);
+        initViews(context, blockStyle, parentGroup);
         initDrawingObjects(context);
-        setOnTouchListener(listener);
     }
 
     /**
@@ -181,6 +185,34 @@ public class BlockView extends FrameLayout {
         invalidate();
     }
 
+    /**
+     * @return True if and only if a coordinate is on the visible, non-transparent part of this
+     * view.
+     */
+    public boolean isOnVisible(float eventX, float eventY) {
+        boolean rtl = mHelper.useRtL();
+
+        // First check whether event is in the general horizontal range of the block outline (minus
+        // children) and exit if it is not.
+        int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
+        int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
+
+        if (eventX < blockBegin || eventX > blockEnd) {
+            return false;
+        }
+
+        // In the ballpark - now check whether event is on one of the block's inputs. If it is, then
+        // the event belongs to this BlockView, otherwise it does not.
+        for (int i = 0; i < mInputViews.size(); ++i) {
+            InputView inputView = mInputViews.get(i);
+            if (inputView.isOnFields(eventX - inputView.getLeft(), eventY - inputView.getTop())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public void onDraw(Canvas c) {
         c.drawPath(mDrawPath, mAreaPaint);
@@ -189,6 +221,13 @@ public class BlockView extends FrameLayout {
         drawHighlights(c);
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (mDragger != null && isOnVisible(event.getX(), event.getY())) {
+            return mDragger.onTouch(this, event);
+        }
+        return false;
+    }
     /**
      * Measure all children (i.e., block inputs) and compute their sizes and relative positions
      * for use in {@link #onLayout}.
@@ -512,8 +551,7 @@ public class BlockView extends FrameLayout {
      * @param parentGroup The group the current block and all next blocks live in.
      * @param listener An onTouchListener to register on every sub-block.
      */
-    private void initViews(Context context, int blockStyle, BlockGroup parentGroup,
-                           View.OnTouchListener listener) {
+    private void initViews(Context context, int blockStyle, BlockGroup parentGroup) {
         List<Input> inputs = mBlock.getInputs();
         for (int i = 0; i < inputs.size(); i++) {
             Input in = inputs.get(i);
@@ -524,7 +562,7 @@ public class BlockView extends FrameLayout {
             if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
                 // Blocks connected to inputs live in their own BlockGroups.
                 BlockGroup bg = new BlockGroup(context, mHelper);
-                mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg, listener,
+                mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg, mDragger,
                         mConnectionManager);
                 inputView.setChildView(bg);
             }
@@ -532,7 +570,7 @@ public class BlockView extends FrameLayout {
 
         if (getBlock().getNextBlock() != null) {
             // Next blocks live in the same BlockGroup.
-            mHelper.obtainBlockView(getBlock().getNextBlock(), parentGroup, listener,
+            mHelper.obtainBlockView(getBlock().getNextBlock(), parentGroup, mDragger,
                     mConnectionManager);
         }
     }
@@ -639,7 +677,6 @@ public class BlockView extends FrameLayout {
         mDrawPath.lineTo(xTo, yTop);
 
         // Right-hand side of the block, including "Input" connectors.
-        // TODO(rohlfingt): draw this on the opposite side in RTL mode.
         for (int i = 0; i < mInputViews.size(); ++i) {
             InputView inputView = mInputViews.get(i);
             ViewPoint inputLayoutOrigin = mInputLayoutOrigins.get(i);

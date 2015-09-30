@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Path;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -194,6 +195,15 @@ public class InputView extends ViewGroup {
         }
 
         layoutChild();
+    }
+
+    /**
+     * @return True if and only if a coordinate is on the fields of this view (any connected inputs
+     * should handle events themselves and are thus not allowed here).
+     * */
+    public boolean isOnFields(float eventX, float eventY) {
+        return (eventX >= 0 && eventX < getTotalFieldWidth() &&
+                eventY >= 0 && eventY < getHeight());
     }
 
     /**
