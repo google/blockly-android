@@ -252,7 +252,7 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Draw connection of block-level highlights, if necessary.
+     * Draw highlights of block-level connections, or the entire block, if necessary.
      *
      * @param c The canvas to draw on.
      */
