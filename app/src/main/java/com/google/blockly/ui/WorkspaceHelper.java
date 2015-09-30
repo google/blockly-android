@@ -138,7 +138,8 @@ public class WorkspaceHelper {
      * @return The top left corner of the viewport in pixels.
      */
     public ViewPoint getViewOffset() {
-        return new ViewPoint(workspaceToViewUnits(mWorkspaceOffset.x), workspaceToViewUnits(mWorkspaceOffset.y));
+        return new ViewPoint(
+                workspaceToViewUnits(mWorkspaceOffset.x), workspaceToViewUnits(mWorkspaceOffset.y));
     }
 
     /**
@@ -192,7 +193,7 @@ public class WorkspaceHelper {
     /**
      * Creates a non-interactive {@link BlockView} for the given block using the workspace's default
      * style parameters. If this block is part of a {@link Workspace} or (TODO linkify) Toolbox
-     * {@link obtainBlockView(Block, BlockGroup, View.OnTouchListener, ConnectionManager)}
+     * {@link #obtainBlockView(Block, BlockGroup, Dragger, ConnectionManager)}
      * should be used instead.
      *
      * @param block The block to generate a view for.
@@ -212,15 +213,14 @@ public class WorkspaceHelper {
      *
      * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
-     * @param listener An onTouchListener to register on this view.
+     * @param dragger Helper object to handle dragging of blocks and block groups.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @return A view for the block.
      */
-    public BlockView obtainBlockView(Block block, BlockGroup parentGroup,
-                                     Dragger dragger,
+    public BlockView obtainBlockView(Block block, BlockGroup parentGroup, Dragger dragger,
                                      ConnectionManager connectionManager) {
-        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, dragger,
-                connectionManager);
+        return new BlockView(
+                mContext, getBlockStyle(), block, this, parentGroup, dragger, connectionManager);
     }
 
     /**

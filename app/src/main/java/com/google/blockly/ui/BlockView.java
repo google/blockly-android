@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -349,10 +350,12 @@ public class BlockView extends FrameLayout {
      * </p>
      */
     private void measureInlineInputs(int widthMeasureSpec, int heightMeasureSpec) {
+        int inputViewsSize = mInputViews.size();
+
         // First pass - measure all fields and inputs; compute maximum width of fields over all
         // Statement inputs.
         mMaxStatementFieldsWidth = 0;
-        for (int i = 0; i < mInputViews.size(); i++) {
+        for (int i = 0; i < inputViewsSize; i++) {
             InputView inputView = mInputViews.get(i);
             inputView.measureFieldsAndInputs(widthMeasureSpec, heightMeasureSpec);
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
@@ -370,7 +373,7 @@ public class BlockView extends FrameLayout {
         int maxRowWidth = 0;
 
         mInlineRowWidth.clear();
-        for (int i = 0; i < mInputViews.size(); i++) {
+        for (int i = 0; i < inputViewsSize; i++) {
             InputView inputView = mInputViews.get(i);
 
             // If this is a Statement input, force its field width to be the maximum over all
@@ -399,6 +402,11 @@ public class BlockView extends FrameLayout {
             inputView.measure(widthMeasureSpec, heightMeasureSpec);
             rowHeight = Math.max(rowHeight, inputView.getMeasuredHeight());
 
+            // Set row height for the current input view as maximum over all views in this row so
+            // far. A separate, reverse loop below propagates the maximum to earlier inputs in the
+            // same row.
+            inputView.setRowHeight(rowHeight);
+
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 // The block width is that of the widest row.
                 maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
@@ -415,6 +423,23 @@ public class BlockView extends FrameLayout {
             }
         }
 
+        // Add height of final row. This is non-zero with inline inputs if the final input in the
+        // block is not a Statement input.
+        rowTop += rowHeight;
+
+        // Third pass - propagate row height maximums backwards. Reset height whenever a Statement
+        // input is encoutered.
+        int maxRowHeight = 0;
+        for (int i = inputViewsSize; i > 0; --i) {
+            InputView inputView = mInputViews.get(i - 1);
+            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                maxRowHeight = 0;
+            } else {
+                maxRowHeight = Math.max(maxRowHeight, inputView.getRowHeight());
+                inputView.setRowHeight(maxRowHeight);
+            }
+        }
+
         // If there was at least one Statement input, make sure block is wide enough to fit at least
         // an empty Statement connector. If there were non-empty Statement connectors, they were
         // already taken care of in the loop above.
@@ -422,10 +447,6 @@ public class BlockView extends FrameLayout {
             maxRowWidth = Math.max(maxRowWidth,
                     mMaxStatementFieldsWidth + ConnectorHelper.STATEMENT_INPUT_INDENT_WIDTH);
         }
-
-        // Add height of final row. This is non-zero with inline inputs if the final input in the
-        // block is not a Statement input.
-        rowTop += rowHeight;
 
         // Push width of last input row.
         mInlineRowWidth.add(Math.max(rowLeft,
@@ -525,6 +546,9 @@ public class BlockView extends FrameLayout {
             rowTop += inputView.getMeasuredHeight();
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 rowTop += ConnectorHelper.STATEMENT_INPUT_BOTTOM_HEIGHT;
+                // For touch events, add bottom connector height to logical row height.
+                inputView.setRowHeight(inputView.getMeasuredHeight() +
+                        ConnectorHelper.STATEMENT_INPUT_BOTTOM_HEIGHT);
             }
         }
 

@@ -72,6 +72,9 @@ public class InputView extends ViewGroup {
     // Width to use for laying out fields. This can be different from mTotalFieldWidth to allow for
     // alignment of fields across multiple inputs within a block.
     private int mFieldLayoutWidth;
+    // Height of the row that this view is part of. Used for determining whether a coordinate is
+    // inside the visible area of this view.
+    private int mRowHeight;
 
     // Measured width of the child, or empty-connector width for unconnected inline value inputs.
     private int mChildWidth;
@@ -169,6 +172,10 @@ public class InputView extends ViewGroup {
                 Math.max(mMaxFieldHeight + 2 * FIELD_PADDING_Y, mChildHeight));
 
         setMeasuredDimension(width, height);
+
+        // By default, the current row inside this input's block should be as high as this view's
+        // measured height.
+        mRowHeight = height;
     }
 
     @Override
@@ -202,8 +209,8 @@ public class InputView extends ViewGroup {
      * should handle events themselves and are thus not allowed here).
      * */
     public boolean isOnFields(float eventX, float eventY) {
-        return (eventX >= 0 && eventX < getTotalFieldWidth() &&
-                eventY >= 0 && eventY < getHeight());
+        return (eventX >= 0 && eventX < mFieldLayoutWidth) &&
+                eventY >= 0 && eventY < mRowHeight;
     }
 
     /**
@@ -402,6 +409,21 @@ public class InputView extends ViewGroup {
     void setFieldLayoutWidth(int fieldLayoutWidth) {
         mFieldLayoutWidth = fieldLayoutWidth;
         requestLayout();
+    }
+
+    /**
+     * Set the height of the row that this input view is part of.
+     */
+    void setRowHeight(int rowHeight) {
+        mRowHeight = rowHeight;
+    }
+
+    /**
+     * @return The height of the input row that this view is part of. Defaults to measured height
+     * but can be overridden.
+     */
+    int getRowHeight() {
+        return mRowHeight;
     }
 
     /**
