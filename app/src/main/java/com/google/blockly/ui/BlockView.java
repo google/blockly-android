@@ -197,7 +197,6 @@ public class BlockView extends FrameLayout {
         // children) and exit if it is not.
         int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
         int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
-
         if (eventX < blockBegin || eventX > blockEnd) {
             return false;
         }
