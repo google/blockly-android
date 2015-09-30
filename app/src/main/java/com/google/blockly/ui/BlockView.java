@@ -545,7 +545,8 @@ public class BlockView extends FrameLayout {
             rowTop += inputView.getMeasuredHeight();
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 rowTop += ConnectorHelper.STATEMENT_INPUT_BOTTOM_HEIGHT;
-                // For touch events, add bottom connector height to logical row height.
+                // Add bottom connector height to logical row height to make handling touch events
+                // easier.
                 inputView.setRowHeight(inputView.getMeasuredHeight() +
                         ConnectorHelper.STATEMENT_INPUT_BOTTOM_HEIGHT);
             }
