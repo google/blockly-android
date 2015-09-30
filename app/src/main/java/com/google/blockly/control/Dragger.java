@@ -132,7 +132,7 @@ public class Dragger {
         }
         block.setPosition(realPosition.x, realPosition.y);
         mDragGroup = bg;
-        mWorkspaceView.bringChildToFront(bg);
+        mDragGroup.bringToFront();
 
         // Don't track any of the connections that we're dragging around.
         List<Connection> connections = new ArrayList<>();

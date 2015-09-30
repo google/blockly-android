@@ -154,9 +154,12 @@ public class ConnectionManager {
                 return -1;
             }
             // Should have the right y position.
-            // HACK - make sure bestGuess doesn't exceed valid index range. Should obviously be
-            // fixed in findPositionForConnection() instead.
-            int bestGuess = Math.min(mConnections.size() - 1, findPositionForConnection(conn));
+            int bestGuess = findPositionForConnection(conn);
+            if (bestGuess >= mConnections.size()) {
+                // Not in list.
+                return -1;
+            }
+
             int yPos = conn.getPosition().y;
             // Walk forward and back on the y axis looking for the connection.
             // When found, splice it out of the array.

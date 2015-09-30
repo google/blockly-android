@@ -201,8 +201,8 @@ public class BlockView extends FrameLayout {
             return false;
         }
 
-        // In the ballpark - now check whether event is on one of the block's inputs. If it is, then
-        // the event belongs to this BlockView, otherwise it does not.
+        // In the ballpark - now check whether event is on a field of any of this block's inputs.
+        // If it is, then the event belongs to this BlockView, otherwise it does not.
         for (int i = 0; i < mInputViews.size(); ++i) {
             InputView inputView = mInputViews.get(i);
             if (inputView.isOnFields(eventX - inputView.getLeft(), eventY - inputView.getTop())) {
