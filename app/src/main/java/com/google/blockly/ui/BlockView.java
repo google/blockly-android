@@ -262,14 +262,14 @@ public class BlockView extends FrameLayout {
         } else if (mHighlightConnection != null) {
             int rtlSign = mHelper.useRtL() ? -1 : +1;
             if (mHighlightConnection == getBlock().getOutputConnection()) {
-                mHighlightPath.set(ConnectorHelper.getOutputConnectorPath(rtlSign));
-                mHighlightPath.offset(mOutputConnectorLocation.x, mOutputConnectorLocation.y);
+                ConnectorHelper.getOutputConnectorPath(rtlSign).offset(
+                        mOutputConnectorLocation.x, mOutputConnectorLocation.y, mHighlightPath);
             } else if (mHighlightConnection == getBlock().getPreviousConnection()) {
-                mHighlightPath.set(ConnectorHelper.getPreviousConnectorPath(rtlSign));
-                mHighlightPath.offset(mPreviousConnectorLocation.x, mPreviousConnectorLocation.y);
+                ConnectorHelper.getPreviousConnectorPath(rtlSign).offset(
+                        mPreviousConnectorLocation.x, mPreviousConnectorLocation.y, mHighlightPath);
             } else if (mHighlightConnection == getBlock().getNextConnection()) {
-                mHighlightPath.set(ConnectorHelper.getNextConnectorPath(rtlSign));
-                mHighlightPath.offset(mNextConnectorLocation.x, mNextConnectorLocation.y);
+                ConnectorHelper.getNextConnectorPath(rtlSign).offset(
+                        mNextConnectorLocation.x, mNextConnectorLocation.y, mHighlightPath);
             } else {
                 // If the connection to highlight is not one of the three block-level connectors,
                 // then it must be one of the inputs (either a "Next" connector for a Statement or
@@ -278,13 +278,14 @@ public class BlockView extends FrameLayout {
                 final Input input = mHighlightConnection.getInput();
                 for (int i = 0; i < mInputViews.size(); ++i) {
                     if (mInputViews.get(i).getInput() == input) {
-                        if (input.getType() == Input.TYPE_STATEMENT) {
-                            mHighlightPath.set(ConnectorHelper.getNextConnectorPath(rtlSign));
-                        } else {
-                            mHighlightPath.set(ConnectorHelper.getValueInputConnectorPath(rtlSign));
-                        }
                         final ViewPoint loc = mInputConnectorLocations.get(i);
-                        mHighlightPath.offset(loc.x, loc.y);
+                        if (input.getType() == Input.TYPE_STATEMENT) {
+                            ConnectorHelper.getNextConnectorPath(rtlSign)
+                                    .offset(loc.x, loc.y, mHighlightPath);
+                        } else {
+                            ConnectorHelper.getValueInputConnectorPath(rtlSign)
+                                    .offset(loc.x, loc.y, mHighlightPath);
+                        }
                         break;  // Break out of loop once connection has been found.
                     }
                 }
