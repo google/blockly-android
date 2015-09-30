@@ -195,7 +195,7 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        adjustInputLayoutOriginsListSize();
+        adjustInputLayoutOriginsSize();
 
         if (getBlock().getInputsInline()) {
             measureInlineInputs(widthMeasureSpec, heightMeasureSpec);
@@ -557,7 +557,7 @@ public class BlockView extends FrameLayout {
     /**
      * Adjust size of {@link #mInputLayoutOrigins} list to match the size of {@link #mInputViews}.
      */
-    private void adjustInputLayoutOriginsListSize() {
+    private void adjustInputLayoutOriginsSize() {
         if (mInputLayoutOrigins.size() != mInputViews.size()) {
             mInputLayoutOrigins.ensureCapacity(mInputViews.size());
             if (mInputLayoutOrigins.size() < mInputViews.size()) {
@@ -576,7 +576,7 @@ public class BlockView extends FrameLayout {
      * Adjust size of {@link #mInputConnectorLocations} list to match the size of
      * {@link #mInputViews}.
      */
-    private void adjustLocationInputConnectorListSize() {
+    private void adjustInputConnectorLocationsSize() {
         if (mInputConnectorLocations.size() != mInputViews.size()) {
             mInputConnectorLocations.ensureCapacity(mInputViews.size());
             if (mInputConnectorLocations.size() < mInputViews.size()) {
@@ -598,7 +598,7 @@ public class BlockView extends FrameLayout {
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();  // Must reset(), not rewind(), to draw inline input cutouts correctly.
-        adjustLocationInputConnectorListSize();
+        adjustInputConnectorLocationsSize();
 
         int xFrom = mLayoutMarginLeft;
         int xTo = mLayoutMarginLeft;
