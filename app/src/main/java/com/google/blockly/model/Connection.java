@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.graphics.Point;
+import android.support.annotation.IntDef;
 import android.text.TextUtils;
 
 /**
@@ -23,6 +24,10 @@ import android.text.TextUtils;
  * the connection on an {@link Input}.
  */
 public class Connection implements Cloneable {
+    @IntDef({CONNECTION_TYPE_PREVIOUS, CONNECTION_TYPE_NEXT, CONNECTION_TYPE_INPUT,
+            CONNECTION_TYPE_OUTPUT})
+    public @interface ConnectionType {}
+
     /**
      * A previous connection on a block. May only be connected to a next connection. A block may
      * not have both a previous and an output connection. This is only used for the previous link
@@ -47,6 +52,7 @@ public class Connection implements Cloneable {
     public static final int CONNECTION_TYPE_OUTPUT = 3;
 
     // If updating this, also update ConnectionManager's matchingLists and oppositeLists arrays.
+    @ConnectionType
     private static final int[] OPPOSITE_TYPES = new int[]{
             CONNECTION_TYPE_NEXT, // PREVIOUS -> NEXT
             CONNECTION_TYPE_PREVIOUS, // NEXT -> PREVIOUS
@@ -61,7 +67,7 @@ public class Connection implements Cloneable {
     private static final int REASON_TARGET_NULL = 4;
     private static final int REASON_CHECKS_FAILED = 5;
 
-
+    @ConnectionType
     private final int mConnectionType;
     private final String[] mConnectionChecks;
     private final Point mPosition = new Point();
@@ -70,7 +76,7 @@ public class Connection implements Cloneable {
     private Connection mTargetConnection;
     private boolean mInDragMode = false;
 
-    public Connection(int type, String[] checks) {
+    public Connection(@ConnectionType int type, String[] checks) {
         mConnectionType = type;
         mConnectionChecks = checks;
     }
@@ -160,6 +166,7 @@ public class Connection implements Cloneable {
      *
      * @return The type of this connection.
      */
+    @ConnectionType
     public int getType() {
         return mConnectionType;
     }

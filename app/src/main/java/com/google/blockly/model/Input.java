@@ -38,6 +38,7 @@ import java.util.Set;
  */
 public abstract class Input implements Cloneable {
     private static final String TAG = "Input";
+
     /**
      * An input that takes a single value. Must have an
      * {@link Connection#CONNECTION_TYPE_INPUT input connection}.
@@ -55,6 +56,10 @@ public abstract class Input implements Cloneable {
      */
     public static final int TYPE_DUMMY = 2;
     public static final String TYPE_DUMMY_STRING = "input_dummy";
+
+    @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
+    public @interface InputType {}
+
     /**
      * This input's fields should be aligned at the left of the block, or the right in a RtL
      * configuration.
@@ -72,6 +77,10 @@ public abstract class Input implements Cloneable {
      */
     public static final int ALIGN_CENTER = 2;
     public static final String ALIGN_CENTER_STRING = "CENTRE";
+
+    @IntDef({ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER})
+    public @interface Alignment {}
+
     /**
      * The list of known input types.
      */
@@ -85,11 +94,15 @@ public abstract class Input implements Cloneable {
 
     private final ArrayList<Field> mFields = new ArrayList<>();
     private final String mName;
-    private final int mType;
     private final Connection mConnection;
-    private Block mBlock;
+
+    @InputType
+    private final int mType;
+
+    @Alignment
     private int mAlign = ALIGN_LEFT;
 
+    private Block mBlock;
     private InputView mView;
 
     /**
@@ -286,21 +299,16 @@ public abstract class Input implements Cloneable {
             throw new RuntimeException("Error getting the field type.", e);
         }
 
-        Input input = null;
         switch (type) {
             case TYPE_VALUE_STRING:
-                input = new InputValue(json);
-                break;
+                return new InputValue(json);
             case TYPE_STATEMENT_STRING:
-                input = new InputStatement(json);
-                break;
+                return new InputStatement(json);
             case TYPE_DUMMY_STRING:
-                input = new InputDummy(json);
-                break;
+                return new InputDummy(json);
             default:
                 throw new IllegalArgumentException("Unknown input type: " + type);
         }
-        return input;
     }
 
     /**
@@ -357,14 +365,6 @@ public abstract class Input implements Cloneable {
             }
         }
         return ALIGN_LEFT;
-    }
-
-    @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
-    public @interface InputType {
-    }
-
-    @IntDef({ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER})
-    public @interface Alignment {
     }
 
     /**
