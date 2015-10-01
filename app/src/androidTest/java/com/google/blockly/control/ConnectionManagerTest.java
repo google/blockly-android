@@ -20,6 +20,8 @@ import android.test.AndroidTestCase;
 import com.google.blockly.model.Connection;
 import com.google.blockly.ui.ViewPoint;
 
+import java.util.Random;
+
 /**
  * Tests for {@link ConnectionManager}
  */
@@ -107,6 +109,16 @@ public class ConnectionManagerTest extends AndroidTestCase {
         for (int i = 0; i < 10; i++){
             assertEquals(i, list.get(i).getPosition().y);
         }
+
+        Random rand = new Random();
+        for (int i = 0; i < 100; i++) {
+            list.addConnection(createConnection(rand.nextInt(100), rand.nextInt(100)));
+        }
+
+        int lastY = list.get(0).getPosition().y;
+        for (int i = 1; i < 100; i++) {
+            assertTrue(list.get(i).getPosition().y >= lastY);
+        }
     }
 
     // Test YSortedList
@@ -115,7 +127,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
                 manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
 
         // search an empty list
-        assertEquals(null, searchList(list, 10, 10, 100));
+        assertEquals(null, searchList(list, 10 /* x */, 10 /* y */, 100 /* radius */));
 
         for (int i = 0; i < 10; i++) {
             list.addConnection(createConnection(0, i));
@@ -129,7 +141,6 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertEquals(null, searchList(list, 100, 100, 3));
         // first in list, exact match
         assertEquals(list.get(0), searchList(list, 0, 0, 0));
-
 
         list.addConnection(createConnection(6, 6));
         list.addConnection(createConnection(5, 5));

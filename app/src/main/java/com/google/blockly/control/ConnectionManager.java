@@ -227,34 +227,31 @@ public class ConnectionManager {
             }
 
             int baseY = conn.getPosition().y;
-            int closestIndex = findPositionForConnection(conn);
             // findPositionForConnection finds an index for insertion, so may return one past the end
             // of the list.
-            if (closestIndex == mConnections.size()) {
-                closestIndex--;
-            }
+            int closestIndex = Math.min(findPositionForConnection(conn), mConnections.size() - 1);
 
             Connection bestConnection = null;
             double bestRadius = Float.MAX_VALUE;
-            Connection cur;
+            Connection temp;
 
             // Walk forward and back on the y axis looking for the closest x,y point.
             int pointerMin = closestIndex;
             while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
-                cur = mConnections.get(pointerMin);
-                if (isConnectionAllowed(conn, cur, bestRadius)) {
-                    bestConnection = cur;
-                    bestRadius = cur.distanceFrom(conn);
+                temp = mConnections.get(pointerMin);
+                if (isConnectionAllowed(conn, temp, bestRadius)) {
+                    bestConnection = temp;
+                    bestRadius = temp.distanceFrom(conn);
                 }
                 pointerMin--;
             }
 
             int pointerMax = closestIndex + 1;
             while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
-                cur = mConnections.get(pointerMax);
-                if (isConnectionAllowed(conn, cur, bestRadius)) {
-                    bestConnection = cur;
-                    bestRadius = cur.distanceFrom(conn);
+                temp = mConnections.get(pointerMax);
+                if (isConnectionAllowed(conn, temp, bestRadius)) {
+                    bestConnection = temp;
+                    bestRadius = temp.distanceFrom(conn);
                 }
                 pointerMax++;
             }
