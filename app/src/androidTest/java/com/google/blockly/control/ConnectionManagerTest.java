@@ -97,6 +97,52 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertEquals(-1, previous.findConnection(conn));
     }
 
+    public void testOrdered() {
+        ConnectionManager.YSortedList list = manager.getConnections(
+                Connection.CONNECTION_TYPE_PREVIOUS);
+        for (int i = 0; i < 10; i++) {
+            list.addConnection(createConnection(0, 9 - i));
+        }
+
+        for (int i = 0; i < 10; i++){
+            assertEquals(i, list.get(i).getPosition().y);
+        }
+    }
+
+    // Test YSortedList
+    public void testSearchForClosest() {
+        ConnectionManager.YSortedList list =
+                manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
+
+        // search an empty list
+        assertEquals(null, searchList(list, 10, 10, 100));
+
+        for (int i = 0; i < 10; i++) {
+            list.addConnection(createConnection(0, i));
+        }
+
+        // should be at 0, 9
+        Connection last = list.get(list.size() - 1);
+        // correct connection is last in list; many connections in radius
+        assertEquals(last, searchList(list, 0, 10, 15));
+        // Nothing nearby.
+        assertEquals(null, searchList(list, 100, 100, 3));
+        // first in list, exact match
+        assertEquals(list.get(0), searchList(list, 0, 0, 0));
+
+
+        list.addConnection(createConnection(6, 6));
+        list.addConnection(createConnection(5, 5));
+
+        Connection result = searchList(list, 4, 6, 3);
+        assertEquals(5, result.getPosition().x);
+        assertEquals(5, result.getPosition().y);
+    }
+
+    private Connection searchList(ConnectionManager.YSortedList list, int x, int y, int radius) {
+        return list.searchForClosest(createConnection(x, y), radius);
+    }
+
     private Connection createConnection(int x, int y) {
         Connection conn = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
         conn.setPosition(x, y);

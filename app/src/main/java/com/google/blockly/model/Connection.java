@@ -213,6 +213,18 @@ public class Connection implements Cloneable {
     }
 
     /**
+     * Returns the distance between this connection and another connection.
+     *
+     * @param other The other {@link Connection} to measure the distance to.
+     * @return The distance between connections.
+     */
+    public double distanceFrom(Connection other) {
+        int xDiff = mPosition.x - other.getPosition().x;
+        int yDiff = mPosition.y - other.getPosition().y;
+        return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+    }
+
+    /**
      * @return The input's position in workspace coordinates.
      */
     public Point getPosition() {
