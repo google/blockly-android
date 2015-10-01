@@ -233,14 +233,13 @@ public class ConnectionManager {
             if (closestIndex == mConnections.size()) {
                 closestIndex--;
             }
-            int pointerMin = closestIndex;
-            int pointerMax = closestIndex + 1;
 
             Connection bestConnection = null;
             double bestRadius = Float.MAX_VALUE;
             Connection cur;
 
             // Walk forward and back on the y axis looking for the closest x,y point.
+            int pointerMin = closestIndex;
             while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
                 cur = mConnections.get(pointerMin);
                 if (isConnectionAllowed(conn, cur, bestRadius)) {
@@ -249,6 +248,8 @@ public class ConnectionManager {
                 }
                 pointerMin--;
             }
+
+            int pointerMax = closestIndex + 1;
             while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
                 cur = mConnections.get(pointerMax);
                 if (isConnectionAllowed(conn, cur, bestRadius)) {
