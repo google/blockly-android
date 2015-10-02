@@ -54,7 +54,7 @@ public class FieldWorkspaceParams {
      * Set the measured dimensions of the block's view in pixels. They will be converted to
      * workspace units and the bounding box will be updated.
      *
-     * @param width  The width of the block in pixels.
+     * @param width The width of the block in pixels.
      * @param height The height of the block in pixels.
      */
     public void setMeasuredDimensions(int width, int height) {

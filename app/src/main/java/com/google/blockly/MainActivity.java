@@ -153,7 +153,7 @@ public class MainActivity extends ActionBarActivity
                     getArguments().getInt(ARG_SECTION_NUMBER));
             mWorkspace = new Workspace();
         }
-        
+
         /**
          * Returns a new instance of this fragment for the given section
          * number.

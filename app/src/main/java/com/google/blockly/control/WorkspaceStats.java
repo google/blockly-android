@@ -57,9 +57,9 @@ public class WorkspaceStats {
      * Walks through a block and records all Connections, variable references, procedure
      * definitions and procedure calls.
      *
-     * @param block     The block to inspect.
+     * @param block The block to inspect.
      * @param recursive Whether to recursively collect stats for all descendants of the current
-     *                  block.
+     * block.
      */
     public void collectStats(Block block, boolean recursive) {
         for (int i = 0; i < block.getInputs().size(); i++) {

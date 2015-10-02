@@ -54,6 +54,20 @@ public class Dragger {
     private WorkspaceView mWorkspaceView;
     private BlockGroup mDragGroup;
 
+    /**
+     * @param workspaceHelper For use in computing workspace coordinates.
+     * @param workspaceView The root view to add block groups to.
+     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
+     * @param rootBlocks The list of blocks to update when moving blocks.
+     */
+    public Dragger(WorkspaceHelper workspaceHelper, WorkspaceView workspaceView,
+                   ConnectionManager connectionManager, ArrayList<Block> rootBlocks) {
+        mWorkspaceHelper = workspaceHelper;
+        mWorkspaceView = workspaceView;
+        mConnectionManager = connectionManager;
+        mRootBlocks = rootBlocks;
+    }
+
     public boolean onTouch(View v, MotionEvent event) {
         int eventX = (int) event.getRawX();
         int eventY = (int) event.getRawY();
@@ -81,20 +95,6 @@ public class Dragger {
         }
         // TODO (fenichel): Handle ACTION_CANCEL.
         return false;
-    }
-
-    /**
-     * @param workspaceHelper For use in computing workspace coordinates.
-     * @param workspaceView The root view to add block groups to.
-     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
-     * @param rootBlocks The list of blocks to update when moving blocks.
-     */
-    public Dragger(WorkspaceHelper workspaceHelper, WorkspaceView workspaceView,
-                   ConnectionManager connectionManager, ArrayList<Block> rootBlocks) {
-        mWorkspaceHelper = workspaceHelper;
-        mWorkspaceView = workspaceView;
-        mConnectionManager = connectionManager;
-        mRootBlocks = rootBlocks;
     }
 
     public void setWorkspaceHelper(WorkspaceHelper helper) {
@@ -150,7 +150,7 @@ public class Dragger {
 
     /**
      * Function to call in an onTouchListener to move the given block.
-     * <p>
+     * <p/>
      * All of the child blocks move with the root block based on its position during layout.
      *
      * @param block The block to move.
@@ -170,7 +170,7 @@ public class Dragger {
      *
      * @param block The {@link Block} whose connections to search.
      * @return A pair of connections, where the first is a connection on {@code block} and the
-     *  second is the closest compatible connection.
+     * second is the closest compatible connection.
      */
     private Pair<Connection, Connection> findBestConnection(Block block) {
         // Find the connection that is closest to any connection on the block.

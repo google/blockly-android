@@ -49,6 +49,25 @@ public class FieldImageView extends ImageView implements FieldView {
         mImage.setView(this);
     }
 
+    @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+    }
+
+    @Override
+    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (changed) {
+            mWorkspaceParams.updateFromView(this);
+        }
+    }
+
+    @Override
+    public FieldWorkspaceParams getWorkspaceParams() {
+        return mWorkspaceParams;
+    }
+
     /**
      * Asynchronously load and set image bitmap.
      * <p/>
@@ -84,24 +103,5 @@ public class FieldImageView extends ImageView implements FieldView {
                 requestLayout();
             }
         }.execute(source);
-    }
-
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 }

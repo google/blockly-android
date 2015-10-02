@@ -56,7 +56,7 @@ public class WorkspaceHelper {
      * workspace's style.
      *
      * @param context The current context to get display metrics from.
-     * @param attrs   The workspace attributes to load the style from.
+     * @param attrs The workspace attributes to load the style from.
      */
     public WorkspaceHelper(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -74,8 +74,8 @@ public class WorkspaceHelper {
      * <li>The context's theme.</li>
      * </ol>
      *
-     * @param context        The context to get display metrics and resources from.
-     * @param attrs          The WorkspaceView attributes or null.
+     * @param context The context to get display metrics and resources from.
+     * @param attrs The WorkspaceView attributes or null.
      * @param workspaceStyle The style to use for views.
      */
     public WorkspaceHelper(Context context, AttributeSet attrs, int workspaceStyle) {
@@ -316,7 +316,7 @@ public class WorkspaceHelper {
      */
     public BlockGroup getRootBlockGroup(Block block) {
         // Go up and left as far as possible.
-        while(true) {
+        while (true) {
             if (block.getOutputConnection() != null && block.getOutputConnection().getTargetBlock() != null) {
                 block = block.getOutputConnection().getTargetBlock();
             } else if (block.getPreviousBlock() != null) {
@@ -403,7 +403,7 @@ public class WorkspaceHelper {
      * into the workspace.
      *
      * @param workspacePosition The position to convert to view coordinates.
-     * @param viewPosition      The Point to store the results in.
+     * @param viewPosition The Point to store the results in.
      */
     void workspaceToViewCoordinates(WorkspacePoint workspacePosition, ViewPoint viewPosition) {
         viewPosition.x = workspaceToViewUnits(workspacePosition.x - mWorkspaceOffset.x);
@@ -419,7 +419,7 @@ public class WorkspaceHelper {
      * second parameter. The view position should be in the {@link WorkspaceView WorkspaceView's}
      * coordinates in pixels.
      *
-     * @param viewPosition      The position to convert to workspace coordinates.
+     * @param viewPosition The position to convert to workspace coordinates.
      * @param workspacePosition The Point to store the results in.
      */
     void viewToWorkspaceCoordinates(ViewPoint viewPosition, WorkspacePoint workspacePosition) {

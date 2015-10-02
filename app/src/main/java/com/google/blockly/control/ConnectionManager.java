@@ -63,30 +63,9 @@ public class ConnectionManager {
      * Move the given connector to a specific location and update the relevant list.
      *
      * @param conn The connection to move.
-     * @param newX The x location to move to.
-     * @param newY The y location to move to.
-     */
-    private void moveConnectionTo(Connection conn, int newX, int newY) {
-        // Avoid list traversals if it's not actually moving.
-        if (conn.getPosition().equals(newX, newY)) {
-            return;
-        }
-        if (conn.inDragMode()) {
-            conn.setPosition(newX, newY);
-        } else {
-            removeConnection(conn);
-            conn.setPosition(newX, newY);
-            addConnection(conn);
-        }
-    }
-
-    /**
-     * Move the given connector to a specific location and update the relevant list.
-     *
-     * @param conn The connection to move.
      * @param newLocation The position to move to.
      * @param offset An additional offset, usually the position of the parent view in the workspace
-     *      view.
+     * view.
      */
     public void moveConnectionTo(Connection conn, ViewPoint newLocation, ViewPoint offset) {
         moveConnectionTo(conn, newLocation.x + offset.x, newLocation.y + offset.y);
@@ -103,12 +82,12 @@ public class ConnectionManager {
     }
 
     /**
-      * Find the closest compatible connection to this connection.
-      *
-      * @param conn The base connection for the search.
-      * @param maxRadius How far out to search for compatible connections.
-      * @return The closest compatible connection.
-      */
+     * Find the closest compatible connection to this connection.
+     *
+     * @param conn The base connection for the search.
+     * @param maxRadius How far out to search for compatible connections.
+     * @return The closest compatible connection.
+     */
     public Connection closestConnection(Connection conn, double maxRadius) {
         if (conn.isConnected()) {
             // Don't offer to connect when already connected.
@@ -116,6 +95,27 @@ public class ConnectionManager {
         }
         YSortedList compatibleList = oppositeLists[conn.getType()];
         return compatibleList.searchForClosest(conn, maxRadius);
+    }
+
+    /**
+     * Move the given connector to a specific location and update the relevant list.
+     *
+     * @param conn The connection to move.
+     * @param newX The x location to move to.
+     * @param newY The y location to move to.
+     */
+    private void moveConnectionTo(Connection conn, int newX, int newY) {
+        // Avoid list traversals if it's not actually moving.
+        if (conn.getPosition().equals(newX, newY)) {
+            return;
+        }
+        if (conn.inDragMode()) {
+            conn.setPosition(newX, newY);
+        } else {
+            removeConnection(conn);
+            conn.setPosition(newX, newY);
+            addConnection(conn);
+        }
     }
 
     /**
@@ -148,17 +148,17 @@ public class ConnectionManager {
         return moving.distanceFrom(candidate) < maxRadius;
     }
 
-    @VisibleForTesting
-    YSortedList getConnections(int connectionType) {
-        return matchingLists[connectionType];
-    }
-
     // For now this just checks that the distance is okay.
     // TODO (fenichel): Don't offer to connect an already connected left (male) value plug to
     // an available right (female) value plug.  Don't offer to connect the
     // bottom of a statement block to one that's already connected.
     private boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
         return moving.distanceFrom(candidate) <= maxRadius;
+    }
+
+    @VisibleForTesting
+    YSortedList getConnections(int connectionType) {
+        return matchingLists[connectionType];
     }
 
     /**
@@ -196,6 +196,11 @@ public class ConnectionManager {
             mConnections.clear();
         }
 
+        private boolean isInYRange(int index, int baseY, double maxRadius) {
+            int curY = mConnections.get(index).getPosition().y;
+            return (Math.abs(curY - baseY) <= maxRadius);
+        }
+
         /**
          * Find the given connection in the given list.
          * Starts by doing a binary search to find the approximate location, then linearly searches
@@ -206,7 +211,7 @@ public class ConnectionManager {
          */
         @VisibleForTesting
         int findConnection(Connection conn) {
-            if(mConnections.isEmpty()) {
+            if (mConnections.isEmpty()) {
                 return -1;
             }
             // Should have the right y position.
@@ -323,11 +328,6 @@ public class ConnectionManager {
         @VisibleForTesting
         Connection get(int i) {
             return mConnections.get(i);
-        }
-
-        private boolean isInYRange(int index, int baseY, double maxRadius) {
-            int curY = mConnections.get(index).getPosition().y;
-            return (Math.abs(curY - baseY) <= maxRadius);
         }
     }
 }

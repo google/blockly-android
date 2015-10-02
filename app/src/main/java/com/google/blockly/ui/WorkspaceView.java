@@ -52,11 +52,10 @@ public class WorkspaceView extends ViewGroup {
     private final int mGridSpacing = DEFAULT_GRID_SPACING;
     private final boolean mDrawGrid = true;
     private final ViewPoint mTemp = new ViewPoint();
+    private final ViewPoint mDragStart = new ViewPoint();
     private Workspace mWorkspace;
-
     // Fields for workspace dragging.
     private boolean mIsDragging;
-    private final ViewPoint mDragStart = new ViewPoint();
     private WorkspacePoint mWorkspaceOffsetBeforeDraw = new WorkspacePoint();
 
     public WorkspaceView(Context context) {
@@ -119,27 +118,6 @@ public class WorkspaceView extends ViewGroup {
         setMeasuredDimension(width, height);
     }
 
-    /**
-     * Get size for one dimension (width or height) of the view based on measure spec and desired
-     * size.
-     * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
-     * @param desiredSize The intrinsic desired size for this view.
-     * @return The determined size, given measure spec and desired size.
-     */
-    private static int getMeasuredSize(int measureSpec, int desiredSize) {
-        int mode = MeasureSpec.getMode(measureSpec);
-        int size = MeasureSpec.getSize(measureSpec);
-
-        if (mode == MeasureSpec.EXACTLY) {
-            return size;
-        } else if (mode == MeasureSpec.AT_MOST) {
-            return Math.min(size, desiredSize);
-        } else {
-            return desiredSize;
-        }
-
-    }
-
     @Override
     public void onDraw(Canvas c) {
         if (shouldDrawGrid()) {
@@ -177,6 +155,28 @@ public class WorkspaceView extends ViewGroup {
 
     private boolean shouldDrawGrid() {
         return mDrawGrid && mHelper.getScale() > MIN_SCALE_TO_DRAW_GRID && mGridSpacing > 0;
+    }
+
+    /**
+     * Get size for one dimension (width or height) of the view based on measure spec and desired
+     * size.
+     *
+     * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
+     * @param desiredSize The intrinsic desired size for this view.
+     * @return The determined size, given measure spec and desired size.
+     */
+    private static int getMeasuredSize(int measureSpec, int desiredSize) {
+        int mode = MeasureSpec.getMode(measureSpec);
+        int size = MeasureSpec.getSize(measureSpec);
+
+        if (mode == MeasureSpec.EXACTLY) {
+            return size;
+        } else if (mode == MeasureSpec.AT_MOST) {
+            return Math.min(size, desiredSize);
+        } else {
+            return desiredSize;
+        }
+
     }
 
     @Override

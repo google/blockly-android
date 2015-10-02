@@ -56,10 +56,6 @@ public abstract class Input implements Cloneable {
      */
     public static final int TYPE_DUMMY = 2;
     public static final String TYPE_DUMMY_STRING = "input_dummy";
-
-    @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
-    public @interface InputType {}
-
     /**
      * This input's fields should be aligned at the left of the block, or the right in a RtL
      * configuration.
@@ -77,10 +73,6 @@ public abstract class Input implements Cloneable {
      */
     public static final int ALIGN_CENTER = 2;
     public static final String ALIGN_CENTER_STRING = "CENTRE";
-
-    @IntDef({ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER})
-    public @interface Alignment {}
-
     /**
      * The list of known input types.
      */
@@ -95,22 +87,19 @@ public abstract class Input implements Cloneable {
     private final ArrayList<Field> mFields = new ArrayList<>();
     private final String mName;
     private final Connection mConnection;
-
     @InputType
     private final int mType;
-
     @Alignment
     private int mAlign = ALIGN_LEFT;
-
     private Block mBlock;
     private InputView mView;
 
     /**
      * Creates a new input that can be added to a block.
      *
-     * @param name       The name of the input. Not for display.
-     * @param type       The type of the input (value, statement, or dummy).
-     * @param align      The alignment for fields in this input (left, right, center).
+     * @param name The name of the input. Not for display.
+     * @param type The type of the input (value, statement, or dummy).
+     * @param align The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
     public Input(String name, @InputType int type, @Alignment int align, Connection connection) {
@@ -123,14 +112,13 @@ public abstract class Input implements Cloneable {
             mConnection.setInput(this);
         }
     }
-
     /**
      * Creates a new input that can be added to a block.
      *
-     * @param name        The name of the input. Not for display.
-     * @param type        The type of the input (value, statement, or dummy).
+     * @param name The name of the input. Not for display.
+     * @param type The type of the input (value, statement, or dummy).
      * @param alignString The alignment for fields in this input (left, right, center).
-     * @param connection  (Optional) The connection for this input, if any..
+     * @param connection (Optional) The connection for this input, if any..
      */
     public Input(String name, @InputType int type, String alignString, Connection connection) {
         this(name, type, stringToAlignment(alignString), connection);
@@ -315,7 +303,7 @@ public abstract class Input implements Cloneable {
      * Gets a list of connection checks from JSON. If json does not contain a 'check' field
      * null will be returned instead.
      *
-     * @param json      The JSON to extract the connection checks from.
+     * @param json The JSON to extract the connection checks from.
      * @param checksKey The key for the checks.
      * @return The set of checks or null.
      */
@@ -365,6 +353,14 @@ public abstract class Input implements Cloneable {
             }
         }
         return ALIGN_LEFT;
+    }
+
+    @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
+    public @interface InputType {
+    }
+
+    @IntDef({ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER})
+    public @interface Alignment {
     }
 
     /**

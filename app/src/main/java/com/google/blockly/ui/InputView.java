@@ -119,10 +119,10 @@ public class InputView extends ViewGroup {
      * {@link BlockView}, a {@link BlockGroup}, or any other type of view.
      *
      * @param childView The {@link BlockView} or {@link BlockGroup} to attach to this input. The
-     *                  {@code childView} will be added to the layout hierarchy for the current view
-     *                  via a call to {@link ViewGroup#addView(View)}.
-     * @throws IllegalStateException    if a child view is already set. The Blockly model requires
-     *                                  disconnecting a block from an input before a new one can be connected.
+     * {@code childView} will be added to the layout hierarchy for the current view
+     * via a call to {@link ViewGroup#addView(View)}.
+     * @throws IllegalStateException if a child view is already set. The Blockly model requires
+     * disconnecting a block from an input before a new one can be connected.
      * @throws IllegalArgumentException if the method argument is {@code null}.
      */
     public void setChildView(View childView) {
@@ -207,7 +207,7 @@ public class InputView extends ViewGroup {
     /**
      * @return True if and only if a coordinate is on the fields of this view (any connected inputs
      * should handle events themselves and are thus not allowed here).
-     * */
+     */
     public boolean isOnFields(float eventX, float eventY) {
         return (eventX >= 0 && eventX < mFieldLayoutWidth) &&
                 eventY >= 0 && eventY < mRowHeight;
@@ -240,6 +240,7 @@ public class InputView extends ViewGroup {
 
     /**
      * Get horizontal (x) coordinate for first field in the input.
+     *
      * @return The x coordinate for the first field in this input.
      */
     private int getFirstFieldX() {
@@ -321,7 +322,7 @@ public class InputView extends ViewGroup {
     /**
      * Initialize style attributes.
      *
-     * @param context    Context of this view.
+     * @param context Context of this view.
      * @param blockStyle The selected block style.
      */
     private void initAttrs(Context context, int blockStyle) {
@@ -404,18 +405,11 @@ public class InputView extends ViewGroup {
      * same section to layout their fields with the same total width.
      *
      * @param fieldLayoutWidth The total field width to use for layout, regardless of the measured
-     *                         field width.
+     * field width.
      */
     void setFieldLayoutWidth(int fieldLayoutWidth) {
         mFieldLayoutWidth = fieldLayoutWidth;
         requestLayout();
-    }
-
-    /**
-     * Set the height of the row that this input view is part of.
-     */
-    void setRowHeight(int rowHeight) {
-        mRowHeight = rowHeight;
     }
 
     /**
@@ -424,6 +418,13 @@ public class InputView extends ViewGroup {
      */
     int getRowHeight() {
         return mRowHeight;
+    }
+
+    /**
+     * Set the height of the row that this input view is part of.
+     */
+    void setRowHeight(int rowHeight) {
+        mRowHeight = rowHeight;
     }
 
     /**
@@ -464,18 +465,18 @@ public class InputView extends ViewGroup {
     /**
      * Add cutout for inline value input to draw path of {@link BlockView}.
      *
-     * @param path    The draw path of the {@link BlockView} as assembled so far. Commands to draw the
-     *                cutout are appended to this path.
+     * @param path The draw path of the {@link BlockView} as assembled so far. Commands to draw the
+     * cutout are appended to this path.
      * @param xOffset The horizontal offset for cutout path coordinates provided by the caller to
-     *                position the cutout in the parent's view area. In RTL mode, this is the
-     *                relative position of the right-hand side of the cutout, otherwise of its
-     *                left-hand side.
+     * position the cutout in the parent's view area. In RTL mode, this is the
+     * relative position of the right-hand side of the cutout, otherwise of its
+     * left-hand side.
      * @param yOffset The vertical offset for cutout path coordinates provided by the caller to
-     *                position the cutout in the parent's view area.
+     * position the cutout in the parent's view area.
      * @param rtlSign Sign of horizontal layout direction. In RTL mode, this is -1, otherwise +1.
      * @param connectorPosition A {@link ViewPoint} in which the function returns the coordinate of
-     *                          the input connector in parent coordinates.
-    */
+     * the input connector in parent coordinates.
+     */
     void addInlineCutoutToBlockViewPath(Path path, int xOffset, int yOffset, int rtlSign,
                                         ViewPoint connectorPosition) {
         int top = yOffset + InputView.FIELD_PADDING_Y;

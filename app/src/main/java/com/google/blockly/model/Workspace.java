@@ -137,7 +137,7 @@ public class Workspace {
     /**
      * Recursively initialize views corresponding to every block in the model.
      *
-     * @param wv      The root workspace view to add to.
+     * @param wv The root workspace view to add to.
      * @param context The activity context.
      */
     public void createViewsFromModel(WorkspaceView wv, Context context) {

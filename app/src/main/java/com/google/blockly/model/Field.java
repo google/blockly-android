@@ -795,7 +795,7 @@ public abstract class Field implements Cloneable {
          * length.
          *
          * @param displayNames The names to display for the options.
-         * @param values       The values for the options.
+         * @param values The values for the options.
          */
         public void setOptions(String[] displayNames, String[] values) {
             String previousValue = getSelectedValue();
@@ -905,8 +905,8 @@ public abstract class Field implements Cloneable {
         /**
          * Sets a new image to be shown.
          *
-         * @param src    A web address or Blockly reference to the image.
-         * @param width  The display width of the image in dips.
+         * @param src A web address or Blockly reference to the image.
+         * @param width The display width of the image in dips.
          * @param height The display height of the image in dips.
          */
         public void setImage(String src, int width, int height) {

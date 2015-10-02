@@ -62,7 +62,7 @@ public class ConnectorHelper {
      *
      * @param path Drawing commands for the connector are added to this path.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
+     * the block (right-hand side in RTL mode).
      * @param blockTop Vertical view coordinate of the top of the block.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
@@ -88,7 +88,7 @@ public class ConnectorHelper {
      *
      * @param path Drawing commands for the connector are added to this path.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
+     * the block (right-hand side in RTL mode).
      * @param blockBottom Vertical view coordinate of the bottom of the block.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
@@ -114,9 +114,9 @@ public class ConnectorHelper {
      *
      * @param path Drawing commands for the connector are added to this path.
      * @param blockEndX Horizontal base coordinate of the connector; this is the right-hand side of
-     *                  the block (left-hand side in RTL mode).
+     * the block (left-hand side in RTL mode).
      * @param inputTop Vertical view coordinate of the top of the input for which this connector is
-     *                 drawn.
+     * drawn.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
     static void addValueInputConnectorToPath(Path path, int blockEndX, int inputTop, int rtlSign) {
@@ -141,14 +141,14 @@ public class ConnectorHelper {
      *
      * @param path Drawing commands for the connector are added to this path.
      * @param blockEndAboveX Right-hand side of the block (left-hand side in RTL mode) above the
-     *                       Statement connector.
+     * Statement connector.
      * @param blockEndBelowX Right-hand side of the block (left-hand side in RTL mode) below the
-     *                       Statement connector. For inline inputs, this can be different from
-     *                       {@code blockEndAboveX}.
+     * Statement connector. For inline inputs, this can be different from
+     * {@code blockEndAboveX}.
      * @param inputTop Vertical view coordinate of the top of the InputView for which this connector
-     *                 is drawn.
+     * is drawn.
      * @param offsetX The offset of the Statement input connector from the left (or right, in RTL
-     *                mode) boundary of the block.
+     * mode) boundary of the block.
      * @param inputHeight The height of the connected input block(s).
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */
@@ -178,7 +178,7 @@ public class ConnectorHelper {
      *
      * @param path Drawing commands for the connector are added to this path.
      * @param blockStartX Horizontal base coordinate of the connector; this is the left-hand side of
-     *                    the block (right-hand side in RTL mode).
+     * the block (right-hand side in RTL mode).
      * @param blockTop Vertical view coordinate of the top of the block.
      * @param rtlSign Sign of horizontal connector direction. In RTL mode, this is -1, otherwise +1.
      */

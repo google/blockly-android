@@ -25,7 +25,8 @@ import com.google.blockly.model.Workspace;
  * Source of test blocks for working on views and interactions.
  */
 public final class MockBlocksProvider {
-    private MockBlocksProvider() {}
+    private MockBlocksProvider() {
+    }
 
     public static Block makeDummyBlock() {
         Block.Builder bob = new Block.Builder("dummy");

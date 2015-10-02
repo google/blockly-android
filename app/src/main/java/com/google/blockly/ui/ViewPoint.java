@@ -46,7 +46,9 @@ public class ViewPoint extends Point {
         super(x, y);
     }
 
-    /** Set this point from an existing one. */
+    /**
+     * Set this point from an existing one.
+     */
     public void setFrom(ViewPoint other) {
         x = other.x;
         y = other.y;

@@ -24,10 +24,6 @@ import android.text.TextUtils;
  * the connection on an {@link Input}.
  */
 public class Connection implements Cloneable {
-    @IntDef({CONNECTION_TYPE_PREVIOUS, CONNECTION_TYPE_NEXT, CONNECTION_TYPE_INPUT,
-            CONNECTION_TYPE_OUTPUT})
-    public @interface ConnectionType {}
-
     /**
      * A previous connection on a block. May only be connected to a next connection. A block may
      * not have both a previous and an output connection. This is only used for the previous link
@@ -50,7 +46,6 @@ public class Connection implements Cloneable {
      * a block.
      */
     public static final int CONNECTION_TYPE_OUTPUT = 3;
-
     // If updating this, also update ConnectionManager's matchingLists and oppositeLists arrays.
     @ConnectionType
     private static final int[] OPPOSITE_TYPES = new int[]{
@@ -59,14 +54,12 @@ public class Connection implements Cloneable {
             CONNECTION_TYPE_OUTPUT, // INPUT -> OUTPUT
             CONNECTION_TYPE_INPUT // OUTPUT -> INPUT
     };
-
     private static final int CAN_CONNECT = 0;
     private static final int REASON_SELF_CONNECTION = 1;
     private static final int REASON_WRONG_TYPE = 2;
     private static final int REASON_MUST_DISCONNECT = 3;
     private static final int REASON_TARGET_NULL = 4;
     private static final int REASON_CHECKS_FAILED = 5;
-
     @ConnectionType
     private final int mConnectionType;
     private final String[] mConnectionChecks;
@@ -75,7 +68,6 @@ public class Connection implements Cloneable {
     private Input mInput;
     private Connection mTargetConnection;
     private boolean mInDragMode = false;
-
     public Connection(@ConnectionType int type, String[] checks) {
         mConnectionType = type;
         mConnectionChecks = checks;
@@ -314,5 +306,10 @@ public class Connection implements Cloneable {
             return null;
         }
         return conn.clone();
+    }
+
+    @IntDef({CONNECTION_TYPE_PREVIOUS, CONNECTION_TYPE_NEXT, CONNECTION_TYPE_INPUT,
+            CONNECTION_TYPE_OUTPUT})
+    public @interface ConnectionType {
     }
 }

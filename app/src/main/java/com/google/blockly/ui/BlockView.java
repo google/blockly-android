@@ -163,8 +163,8 @@ public class BlockView extends FrameLayout {
      * Select a connection for highlighted drawing.
      *
      * @param connection The connection whose port to highlight. This must be a connection
-     *                   associated with the {@link Block} represented by this {@link BlockView}
-     *                   instance.
+     * associated with the {@link Block} represented by this {@link BlockView}
+     * instance.
      */
     public void setHighlightConnection(Connection connection) {
         mHighlightBlock = false;
@@ -191,11 +191,10 @@ public class BlockView extends FrameLayout {
     }
 
     /**
+     * @param event The {@link MotionEvent} to check.
      * @return True if the event is a DOWN event and the coordinate of the motion event is on the
      * visible, non-transparent part of this view; false otherwise.  Updates {@link #mHandlingEvent}
      * to avoid repeating the computation over the course of a move.
-     *
-     * @param event The {@link MotionEvent} to check.
      */
     public boolean shouldHandle(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -239,6 +238,7 @@ public class BlockView extends FrameLayout {
         return mDragger != null && (mHandlingEvent || shouldHandle(event))
                 && mDragger.onTouch(this, event);
     }
+
     /**
      * Measure all children (i.e., block inputs) and compute their sizes and relative positions
      * for use in {@link #onLayout}.
@@ -319,7 +319,7 @@ public class BlockView extends FrameLayout {
             mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
                     mOutputConnectorLocation, mBlockWorkspaceViewPosition);
         }
-        for (int i = 0; i  < mInputViews.size(); i++) {
+        for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
             Connection conn = inputView.getInput().getConnection();
             if (conn != null) {

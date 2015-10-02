@@ -350,7 +350,7 @@ public class Block {
      * Writes information about the editable parts of the block as XML.
      *
      * @param serializer The XmlSerializer to write to.
-     * @param rootBlock  True if the block is a top level block, false otherwise.
+     * @param rootBlock True if the block is a top level block, false otherwise.
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
@@ -588,7 +588,7 @@ public class Block {
     /**
      * Load a block and all of its children from XML.
      *
-     * @param parser  An XmlPullParser pointed at the start tag of this block.
+     * @param parser An XmlPullParser pointed at the start tag of this block.
      * @param factory A BlockFactory that will provide Blocks by name.
      * @return The loaded block.
      * @throws XmlPullParserException
