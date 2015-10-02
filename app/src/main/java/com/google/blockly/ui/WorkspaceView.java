@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -45,12 +46,18 @@ public class WorkspaceView extends ViewGroup {
     private static final int DESIRED_WIDTH = 2048;
     // Default desired height of the view in pixels.
     private static final int DESIRED_HEIGHT = 4096;
+
     private final WorkspaceHelper mHelper;
-    private final Paint mPaint;
+    private final Paint mGridPaint = new Paint();
     private final int mGridSpacing = DEFAULT_GRID_SPACING;
     private final boolean mDrawGrid = true;
     private final ViewPoint mTemp = new ViewPoint();
     private Workspace mWorkspace;
+
+    // Fields for workspace dragging.
+    private boolean mIsDragging;
+    private final ViewPoint mDragStart = new ViewPoint();
+    private WorkspacePoint mWorkspaceOffsetBeforeDraw = new WorkspacePoint();
 
     public WorkspaceView(Context context) {
         this(context, null);
@@ -62,10 +69,38 @@ public class WorkspaceView extends ViewGroup {
 
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mPaint = new Paint();
-        mPaint.setColor(GRID_COLOR);
-        setWillNotDraw(false);
         mHelper = new WorkspaceHelper(context, attrs);
+        mGridPaint.setColor(GRID_COLOR);
+        setWillNotDraw(false);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // TODO(rohlfingt): limit panning range to "current size" of the workspace. Need to first
+        // determine what that actually is.
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            mIsDragging = true;
+            mDragStart.set((int) event.getRawX(), (int) event.getRawY());
+            mWorkspaceOffsetBeforeDraw.setFrom(mHelper.getOffset());
+            return true;
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            if (mIsDragging) {
+                mHelper.getOffset().set(
+                        mWorkspaceOffsetBeforeDraw.x +
+                                mHelper.viewToWorkspaceUnits(mDragStart.x - (int) event.getRawX()),
+                        mWorkspaceOffsetBeforeDraw.y +
+                                mHelper.viewToWorkspaceUnits(mDragStart.y - (int) event.getRawY()));
+                requestLayout();
+                return true;
+            }
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            if (mIsDragging) {
+                mIsDragging = false;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -75,36 +110,34 @@ public class WorkspaceView extends ViewGroup {
             getChildAt(i).measure(0, 0);
         }
 
-        int desiredWidth = DESIRED_WIDTH;
-        int desiredHeight = DESIRED_HEIGHT;
-        int width, height;
-
-        int mode = MeasureSpec.getMode(widthMeasureSpec);
-        int size = MeasureSpec.getSize(widthMeasureSpec);
-
-        if (mode == MeasureSpec.EXACTLY) {
-            width = size;
-        } else if (mode == MeasureSpec.AT_MOST) {
-            width = Math.min(size, desiredWidth);
-        } else {
-            width = desiredWidth;
-        }
-
-        mode = MeasureSpec.getMode(heightMeasureSpec);
-        size = MeasureSpec.getSize(heightMeasureSpec);
-
-        if (mode == MeasureSpec.EXACTLY) {
-            height = size;
-        } else if (mode == MeasureSpec.AT_MOST) {
-            height = Math.min(size, desiredHeight);
-        } else {
-            height = desiredHeight;
-        }
+        int width = getMeasuredSize(widthMeasureSpec, DESIRED_WIDTH);
+        int height = getMeasuredSize(heightMeasureSpec, DESIRED_HEIGHT);
 
         if (DEBUG) {
             Log.d(TAG, "Setting dimens to " + width + "x" + height);
         }
         setMeasuredDimension(width, height);
+    }
+
+    /**
+     * Get size for one dimension (width or height) of the view based on measure spec and desired
+     * size.
+     * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
+     * @param desiredSize The intrinsic desired size for this view.
+     * @return The determined size, given measure spec and desired size.
+     */
+    private static int getMeasuredSize(int measureSpec, int desiredSize) {
+        int mode = MeasureSpec.getMode(measureSpec);
+        int size = MeasureSpec.getSize(measureSpec);
+
+        if (mode == MeasureSpec.EXACTLY) {
+            return size;
+        } else if (mode == MeasureSpec.AT_MOST) {
+            return Math.min(size, desiredSize);
+        } else {
+            return desiredSize;
+        }
+
     }
 
     @Override
@@ -118,7 +151,7 @@ public class WorkspaceView extends ViewGroup {
 
             for (int x = gridX; x < getWidth(); x += gridSpacing) {
                 for (int y = gridY; y < getHeight(); y += gridSpacing) {
-                    c.drawCircle(x, y, GRID_RADIUS, mPaint);
+                    c.drawCircle(x, y, GRID_RADIUS, mGridPaint);
                 }
             }
         }
@@ -153,7 +186,6 @@ public class WorkspaceView extends ViewGroup {
         mHelper.setViewSize(mTemp);
         boolean rtl = mHelper.useRtL();
         int childCount = getChildCount();
-        int measureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
 
         if (DEBUG) {
             Log.d(TAG, "Laying out " + childCount + " children");
