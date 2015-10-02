@@ -110,7 +110,7 @@ public class ConnectionManager {
     // an available right (female) value plug.  Don't offer to connect the
     // bottom of a statement block to one that's already connected.
     private boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
-        return moving.distanceFrom(candidate) < maxRadius;
+        return moving.distanceFrom(candidate) <= maxRadius;
     }
 
     /**
@@ -232,13 +232,12 @@ public class ConnectionManager {
             int closestIndex = Math.min(findPositionForConnection(conn), mConnections.size() - 1);
 
             Connection bestConnection = null;
-            double bestRadius = Float.MAX_VALUE;
-            Connection temp;
+            double bestRadius = maxRadius;
 
             // Walk forward and back on the y axis looking for the closest x,y point.
             int pointerMin = closestIndex;
             while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
-                temp = mConnections.get(pointerMin);
+                Connection temp = mConnections.get(pointerMin);
                 if (isConnectionAllowed(conn, temp, bestRadius)) {
                     bestConnection = temp;
                     bestRadius = temp.distanceFrom(conn);
@@ -248,7 +247,7 @@ public class ConnectionManager {
 
             int pointerMax = closestIndex + 1;
             while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
-                temp = mConnections.get(pointerMax);
+                Connection temp = mConnections.get(pointerMax);
                 if (isConnectionAllowed(conn, temp, bestRadius)) {
                     bestConnection = temp;
                     bestRadius = temp.distanceFrom(conn);
