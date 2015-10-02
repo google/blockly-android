@@ -57,7 +57,6 @@ public class WorkspaceView extends ViewGroup {
     // Fields for workspace dragging.
     private boolean mIsDragging;
     private final ViewPoint mDragStart = new ViewPoint();
-    private final ViewPoint mDragCurrent = new ViewPoint();
     private WorkspacePoint mWorkspaceOffsetBeforeDraw = new WorkspacePoint();
 
     public WorkspaceView(Context context) {
@@ -82,17 +81,15 @@ public class WorkspaceView extends ViewGroup {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             mIsDragging = true;
             mDragStart.set((int) event.getRawX(), (int) event.getRawY());
-            mDragCurrent.set(mDragStart.x, mDragStart.y);
             mWorkspaceOffsetBeforeDraw.setFrom(mHelper.getOffset());
             return true;
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             if (mIsDragging) {
-                mDragCurrent.set((int) event.getRawX(), (int) event.getRawY());
                 mHelper.getOffset().set(
-                        mWorkspaceOffsetBeforeDraw.x -
-                                mHelper.viewToWorkspaceUnits(mDragCurrent.x - mDragStart.x),
-                        mWorkspaceOffsetBeforeDraw.y -
-                                mHelper.viewToWorkspaceUnits(mDragCurrent.y - mDragStart.y));
+                        mWorkspaceOffsetBeforeDraw.x +
+                                mHelper.viewToWorkspaceUnits(mDragStart.x - (int) event.getRawX()),
+                        mWorkspaceOffsetBeforeDraw.y +
+                                mHelper.viewToWorkspaceUnits(mDragStart.y - (int) event.getRawY()));
                 requestLayout();
                 return true;
             }
