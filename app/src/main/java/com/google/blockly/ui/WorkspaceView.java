@@ -127,7 +127,7 @@ public class WorkspaceView extends ViewGroup {
      * size.
      * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
      * @param desiredSize The intrinsic desired size for this view.
-     * @return
+     * @return The determined size, given measure spec and desired size.
      */
     private static int getMeasuredSize(int measureSpec, int desiredSize) {
         int mode = MeasureSpec.getMode(measureSpec);
