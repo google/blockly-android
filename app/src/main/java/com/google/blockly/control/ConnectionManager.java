@@ -105,6 +105,14 @@ public class ConnectionManager {
         return matchingLists[connectionType];
     }
 
+    // For now this just checks that the distance is okay.
+    // TODO (fenichel): Don't offer to connect an already connected left (male) value plug to
+    // an available right (female) value plug.  Don't offer to connect the
+    // bottom of a statement block to one that's already connected.
+    private boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
+        return moving.distanceFrom(candidate) <= maxRadius;
+    }
+
     /**
      * List of connections ordered by y position.  This is optimized
      * for quickly finding the nearest connection when dragging a block around.
@@ -212,6 +220,44 @@ public class ConnectionManager {
         }
 
         @VisibleForTesting
+        Connection searchForClosest(Connection conn, int maxRadius) {
+            // Don't bother.
+            if (mConnections.isEmpty()) {
+                return null;
+            }
+
+            int baseY = conn.getPosition().y;
+            // findPositionForConnection finds an index for insertion, so may return one past the end
+            // of the list.
+            int closestIndex = Math.min(findPositionForConnection(conn), mConnections.size() - 1);
+
+            Connection bestConnection = null;
+            double bestRadius = maxRadius;
+
+            // Walk forward and back on the y axis looking for the closest x,y point.
+            int pointerMin = closestIndex;
+            while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
+                Connection temp = mConnections.get(pointerMin);
+                if (isConnectionAllowed(conn, temp, bestRadius)) {
+                    bestConnection = temp;
+                    bestRadius = temp.distanceFrom(conn);
+                }
+                pointerMin--;
+            }
+
+            int pointerMax = closestIndex + 1;
+            while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
+                Connection temp = mConnections.get(pointerMax);
+                if (isConnectionAllowed(conn, temp, bestRadius)) {
+                    bestConnection = temp;
+                    bestRadius = temp.distanceFrom(conn);
+                }
+                pointerMax++;
+            }
+            return bestConnection;
+        }
+
+        @VisibleForTesting
         boolean isEmpty() {
             return mConnections.isEmpty();
         }
@@ -229,6 +275,11 @@ public class ConnectionManager {
         @VisibleForTesting
         Connection get(int i) {
             return mConnections.get(i);
+        }
+
+        private boolean isInYRange(int index, int baseY, int maxRadius) {
+            int curY = mConnections.get(index).getPosition().y;
+            return (Math.abs(curY - baseY) <= maxRadius);
         }
     }
 }
