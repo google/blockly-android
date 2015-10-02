@@ -125,9 +125,8 @@ public class ConnectionManagerTest extends AndroidTestCase {
             list.addConnection(createConnection(xCoords[i], yCoords[i]));
         }
 
-        int lastY = list.get(0).getPosition().y;
         for (int i = 1; i < xCoords.length; i++) {
-            assertTrue(list.get(i).getPosition().y >= lastY);
+            assertTrue(list.get(i).getPosition().y >= list.get(i - 1).getPosition().y);
         }
     }
 
