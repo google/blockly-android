@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
@@ -43,7 +44,7 @@ public class WorkspaceView extends ViewGroup {
 
     // TODO: Replace with more intelligent defaults
     // Default desired width of the view in pixels.
-    private static final int DESIRED_WIDTH = 2048;
+    private static final int DESIRED_WIDTH = 4096;
     // Default desired height of the view in pixels.
     private static final int DESIRED_HEIGHT = 4096;
 
@@ -58,12 +59,16 @@ public class WorkspaceView extends ViewGroup {
     private boolean mIsDragging;
     private WorkspacePoint mWorkspaceOffsetBeforeDraw = new WorkspacePoint();
 
+    private final WorkspacePoint mWorkspaceTopLeft = new WorkspacePoint();
+    private final WorkspacePoint mWorkspaceBottomRight = new WorkspacePoint();
+
     public WorkspaceView(Context context) {
         this(context, null);
     }
 
     public WorkspaceView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
+        ListView listView;
     }
 
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -90,6 +95,7 @@ public class WorkspaceView extends ViewGroup {
                         mWorkspaceOffsetBeforeDraw.y +
                                 mHelper.viewToWorkspaceUnits(mDragStart.y - (int) event.getRawY()));
                 requestLayout();
+                invalidate();
                 return true;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -106,7 +112,20 @@ public class WorkspaceView extends ViewGroup {
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
-            getChildAt(i).measure(0, 0);
+            BlockGroup blockGroup = (BlockGroup) getChildAt(i);
+            blockGroup.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+            final WorkspacePoint position = blockGroup.getTopBlockPosition();
+
+            mWorkspaceTopLeft.x = Math.min(mWorkspaceTopLeft.x, position.x);
+            mWorkspaceTopLeft.y = Math.min(mWorkspaceTopLeft.y, position.y);
+            mWorkspaceBottomRight.x = Math.max(
+                    mWorkspaceBottomRight.x, position.x + blockGroup.getMeasuredWidth());
+            mWorkspaceBottomRight.y = Math.max(
+                    mWorkspaceBottomRight.y, position.y + blockGroup.getMeasuredHeight());
+
+            Log.d(TAG, String.format("l=%d t=%d r=%d b=%d",
+                    mWorkspaceTopLeft.x, mWorkspaceTopLeft.y,
+                    mWorkspaceBottomRight.x, mWorkspaceBottomRight.y));
         }
 
         int width = getMeasuredSize(widthMeasureSpec, DESIRED_WIDTH);
@@ -124,6 +143,7 @@ public class WorkspaceView extends ViewGroup {
             int gridSpacing = mGridSpacing;
             // Figure out where we should start drawing the grid
             ViewPoint viewOffset = mHelper.getViewOffset();
+            Log.w(TAG, String.format("onDraw ox=%d oy=%d", viewOffset.x, viewOffset.y));
             int gridX = gridSpacing - (viewOffset.x % gridSpacing);
             int gridY = gridSpacing - (viewOffset.y % gridSpacing);
 
@@ -198,7 +218,8 @@ public class WorkspaceView extends ViewGroup {
             if (child instanceof BlockGroup) {
                 BlockGroup bg = (BlockGroup) child;
                 WorkspacePoint wksPos = bg.getTopBlockPosition();
-                mHelper.workspaceToViewCoordinates(wksPos, mTemp);
+                mTemp.x = mHelper.workspaceToViewUnits(wksPos.x - mHelper.getOffset().x);
+                mTemp.y = mHelper.workspaceToViewUnits(wksPos.y - mHelper.getOffset().y);
 
                 int cl = rtl ? mTemp.x - bg.getMeasuredWidth() : mTemp.x;
                 int cr = rtl ? mTemp.x : mTemp.x + bg.getMeasuredWidth();
