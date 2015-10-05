@@ -283,14 +283,11 @@ public class Dragger {
      * back to the manager.
      */
     private void finalizeMove() {
-        mTempConnections.clear();
-        mTouchedBlockView.getBlock().getAllConnectionsRecursive(mTempConnections);
-        Connection cur;
         // All of the connection locations will be set relative to their block views immediately
         // after this loop.  For now we just want to unset drag mode and add the connections back
         // to the list; 0, 0 is a cheap place to put them.
         for (int i = 0; i < mTempConnections.size(); i++) {
-            cur = mTempConnections.get(i);
+            Connection cur = mTempConnections.get(i);
             cur.setPosition(0, 0);
             cur.setDragMode(false);
             mConnectionManager.addConnection(cur);
