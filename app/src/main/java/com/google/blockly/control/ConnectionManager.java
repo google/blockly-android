@@ -18,7 +18,6 @@ package com.google.blockly.control;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.blockly.model.Connection;
-import com.google.blockly.model.Input;
 import com.google.blockly.ui.ViewPoint;
 
 import java.util.ArrayList;
@@ -153,7 +152,7 @@ public class ConnectionManager {
     // an available right (female) value plug.  Don't offer to connect the
     // bottom of a statement block to one that's already connected.
     private boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
-        return moving.distanceFrom(candidate) <= maxRadius;
+        return (moving.distanceFrom(candidate) <= maxRadius);
     }
 
     @VisibleForTesting
@@ -280,15 +279,16 @@ public class ConnectionManager {
             }
 
             int baseY = conn.getPosition().y;
-            // findPositionForConnection finds an index for insertion, so may return one past the end
-            // of the list.
-            int closestIndex = Math.min(findPositionForConnection(conn), mConnections.size() - 1);
+            // findPositionForConnection finds an index for insertion, which is always after any
+            // block with the same y index.  We want to search both forward and back, so search
+            // on both sides of the index.
+            int closestIndex = findPositionForConnection(conn);
 
             Connection bestConnection = null;
             double bestRadius = maxRadius;
 
             // Walk forward and back on the y axis looking for the closest x,y point.
-            int pointerMin = closestIndex;
+            int pointerMin = closestIndex - 1;
             while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMin);
                 if (isConnectionAllowed(conn, temp, bestRadius)) {
@@ -298,7 +298,7 @@ public class ConnectionManager {
                 pointerMin--;
             }
 
-            int pointerMax = closestIndex + 1;
+            int pointerMax = closestIndex;
             while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMax);
                 if (isConnectionAllowed(conn, temp, bestRadius)) {

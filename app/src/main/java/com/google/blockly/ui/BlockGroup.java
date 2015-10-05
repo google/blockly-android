@@ -121,6 +121,17 @@ public class BlockGroup extends ViewGroup {
     }
 
     /**
+     * @return The {@link Block} for the last child in this group or null if there are no children.
+     */
+    public Block lastChildBlock() {
+        if (getChildCount() == 0) {
+            return null;
+        }
+        BlockView lastChild = (BlockView) getChildAt(getChildCount() - 1);
+        return lastChild.getBlock();
+    }
+
+    /**
      * Force every {@link BlockView} in this group to recalculate the locations of its
      * connections; used to return the views and models to a consistent state after a drag.
      */
