@@ -220,7 +220,7 @@ public class Dragger {
     }
 
     /**
-     * Splice a block or group of blocks between a previous and a next connection.
+     * Splice a block or group of blocks between a "previous" and a "next" connection.
      *
      * @param firstBlock The {@link Block} whose next connection we are interested in.
      * @param secondBlock The {@link Block} whose previous connection we are interested in.
@@ -239,7 +239,6 @@ public class Dragger {
         // For the same reason, don't add the last group of blocks back until the connections have
         // been sewn up.
         to.moveBlocksFrom(temp, secondBlock);
-        mDragGroup = to;
     }
 
     /**
@@ -253,6 +252,9 @@ public class Dragger {
      * around.
      */
     private void reconnectViews(Connection primary, Connection target, Block dragRoot) {
+        // The block and its group lived at the root level while dragging, but may cease to be a
+        // top level block after being dragged, e.g. when connecting to the "Next" connection
+        // of another block in the workspace.
         mRootBlocks.remove(dragRoot);
         mWorkspaceView.removeView(mDragGroup);
         boolean addToRoot = false;
@@ -325,11 +327,14 @@ public class Dragger {
                 return;
         }
 
+        // If the connection on the dragged block was an input or a next it's possible that the
+        // block is still a top level block.  If so, add it back to the workspace and view.
         if (addToRoot) {
             mRootBlocks.add(dragRoot);
             mWorkspaceView.addView(mDragGroup);
         }
 
+        // Primary may have been connected during a helper method; don't connect it twice.
         if (connectPrimary) {
             primary.connect(target);
         }
