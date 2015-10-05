@@ -41,6 +41,7 @@ public class WorkspaceHelper {
     private static final float SCALE_MAX = 3f;
     private final WorkspacePoint mWorkspaceOffset;
     private final ViewPoint mViewSize;
+    private final ViewPoint mTempViewPoint = new ViewPoint();
     private final Context mContext;
     private float mMinScale;
     private float mMaxScale;
@@ -251,28 +252,9 @@ public class WorkspaceHelper {
      * @param workspacePosition The Point to store the results in.
      */
     public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
-        int leftRelativeToWorkspace = view.getLeft();
-        int topRelativeToWorkspace = view.getTop();
-
-        // Move up the parent hierarchy and add parent-relative view coordinates.
-        ViewParent viewParent = view.getParent();
-        while (viewParent != null) {
-            if (viewParent instanceof WorkspaceView) {
-                break;
-            }
-
-            leftRelativeToWorkspace += ((View) viewParent).getLeft();
-            topRelativeToWorkspace += ((View) viewParent).getTop();
-
-            viewParent = viewParent.getParent();
-        }
-
-        if (viewParent == null) {
-            throw new IllegalStateException("No WorkspaceView found among view's parents.");
-        }
-
-        workspacePosition.x = viewToWorkspaceUnits(leftRelativeToWorkspace);
-        workspacePosition.y = viewToWorkspaceUnits(topRelativeToWorkspace);
+        getWorkspaceViewCoordinates(view, mTempViewPoint);
+        workspacePosition.x = viewToWorkspaceUnits(mTempViewPoint.x);
+        workspacePosition.y = viewToWorkspaceUnits(mTempViewPoint.y);
     }
 
     /**
