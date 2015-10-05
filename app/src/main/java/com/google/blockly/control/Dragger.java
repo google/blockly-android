@@ -298,20 +298,18 @@ public class Dragger {
                     addToRoot = true;
                 } else {
                     // Connecting to a previous
-                    // TODO: not remove child from root if dragging between
                      if (target.isConnected()) {
                         insertBetweenBlocks(target.getBlock().getPreviousBlock(), target.getBlock(),
-                                dragRoot);
+                            dragRoot);
                         connectPrimary = false;
-                         addToRoot = false;
+                        addToRoot = false;
                     } else {
                         mDragGroup.moveBlocksFrom(child, targetBlock);
-                         addToRoot = true;
+                        addToRoot = true;
                     }
                 }
                 break;
             case Connection.CONNECTION_TYPE_INPUT:
-                // TODO (fenichel): Implement, with special case for statment inputs.
                 targetBlock = target.getBlock();
                 child = mWorkspaceHelper.getNearestParentBlockGroup(targetBlock);
                 // Could may be also just check if the output is occupied
