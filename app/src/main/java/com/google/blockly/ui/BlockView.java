@@ -223,6 +223,7 @@ public class BlockView extends FrameLayout {
             return mHandlingEvent;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             mHandlingEvent = false;
+            return true;
         }
         return false;
     }

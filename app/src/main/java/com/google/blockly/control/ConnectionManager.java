@@ -17,6 +17,7 @@ package com.google.blockly.control;
 
 import android.support.annotation.VisibleForTesting;
 
+import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.ui.ViewPoint;
 
@@ -143,16 +144,45 @@ public class ConnectionManager {
     // TODO (fenichel): Don't offer to connect an already connected left (male) value plug to
     // an available right (female) value plug.  Don't offer to connect the
     // bottom of a statement block to one that's already connected.
-    private boolean isConnectionAllowed(Connection moving, Connection candidate, int maxRadius) {
-        return moving.distanceFrom(candidate) < maxRadius;
-    }
+    @VisibleForTesting
+    boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
+        if (moving.distanceFrom(candidate) > maxRadius) {
+            return false;
+        }
 
-    // For now this just checks that the distance is okay.
-    // TODO (fenichel): Don't offer to connect an already connected left (male) value plug to
-    // an available right (female) value plug.  Don't offer to connect the
-    // bottom of a statement block to one that's already connected.
-    private boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
-        return (moving.distanceFrom(candidate) <= maxRadius);
+        // Type checking
+        if (!moving.canConnect(candidate)) {
+            return false;
+        }
+
+        // Don't offer to connect an already connected left (male) value plug to
+        // an available right (female) value plug.  Don't offer to connect the
+        // bottom of a statement block to one that's already connected.
+        if (candidate.getType() == Connection.CONNECTION_TYPE_OUTPUT
+                || candidate.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
+            if (candidate.isConnected()) {
+                return false;
+            }
+        }
+
+        // Don't let blocks try to connect to themselves or ones they nest.
+        Block movingBlock = moving.getBlock();
+        Block candidateBlock = candidate.getBlock();
+        while (true) {
+            if (movingBlock == candidateBlock) {
+                return false;
+            }
+            if (candidateBlock.getOutputConnection() != null
+                    && candidateBlock.getOutputConnection().getTargetBlock() != null) {
+                candidateBlock = candidateBlock.getOutputConnection().getTargetBlock();
+            } else if (candidateBlock.getPreviousBlock() != null) {
+                candidateBlock = candidateBlock.getPreviousBlock();
+            } else {
+                break;
+            }
+        }
+
+        return true;
     }
 
     @VisibleForTesting

@@ -41,7 +41,7 @@ public class Dragger {
     // Blocks "snap" toward each other at the end of drags if they have compatible connections
     // near each other.  This is the farthest they can snap.
     // Units: Pixels.  TODO: Load from resources, value in dips.
-    private static final int MAX_SNAP_DISTANCE = 75;
+    private static final int MAX_SNAP_DISTANCE = 50;
 
     private final ViewPoint mDragStart = new ViewPoint();
     private final ViewPoint mDragIntermediate = new ViewPoint();
