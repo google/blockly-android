@@ -47,7 +47,7 @@ public class Dragger {
     private final ViewPoint mDragIntermediate = new ViewPoint();
     private final ConnectionManager mConnectionManager;
     private final ArrayList<Block> mRootBlocks;
-    private final ArrayList<Connection> mTempConnections = new ArrayList<>();
+    private final ArrayList<Connection> mDraggedConnections = new ArrayList<>();
 
     private BlockView mTouchedBlockView;
     private WorkspaceHelper mWorkspaceHelper;
@@ -139,12 +139,12 @@ public class Dragger {
         mDragGroup = bg;
         mDragGroup.bringToFront();
 
-        mTempConnections.clear();
+        mDraggedConnections.clear();
         // Don't track any of the connections that we're dragging around.
-        block.getAllConnectionsRecursive(mTempConnections);
-        for (int i = 0; i < mTempConnections.size(); i++) {
-            mConnectionManager.removeConnection(mTempConnections.get(i));
-            mTempConnections.get(i).setDragMode(true);
+        block.getAllConnectionsRecursive(mDraggedConnections);
+        for (int i = 0; i < mDraggedConnections.size(); i++) {
+            mConnectionManager.removeConnection(mDraggedConnections.get(i));
+            mDraggedConnections.get(i).setDragMode(true);
         }
     }
 
@@ -286,8 +286,8 @@ public class Dragger {
         // All of the connection locations will be set relative to their block views immediately
         // after this loop.  For now we just want to unset drag mode and add the connections back
         // to the list; 0, 0 is a cheap place to put them.
-        for (int i = 0; i < mTempConnections.size(); i++) {
-            Connection cur = mTempConnections.get(i);
+        for (int i = 0; i < mDraggedConnections.size(); i++) {
+            Connection cur = mDraggedConnections.get(i);
             cur.setPosition(0, 0);
             cur.setDragMode(false);
             mConnectionManager.addConnection(cur);
