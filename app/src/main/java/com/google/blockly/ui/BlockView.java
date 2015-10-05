@@ -219,6 +219,8 @@ public class BlockView extends FrameLayout {
                     return true;
                 }
             }
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            return mHandlingEvent;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             mHandlingEvent = false;
         }
@@ -235,8 +237,7 @@ public class BlockView extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return mDragger != null && (mHandlingEvent || shouldHandle(event))
-                && mDragger.onTouch(this, event);
+        return mDragger != null && shouldHandle(event) && mDragger.onTouch(this, event);
     }
 
     /**
