@@ -259,8 +259,6 @@ public class WorkspaceHelper {
 
     /**
      * Update view coordinates based on the new view coordinates of the {@link View}.
-     * TODO (fenichel): Combine this with getWorkspaceCoordinates and used cached positions to avoid
-     * walking the full hierarchy.
      *
      * @param view The view to find the position of.
      * @param viewPosition The Point to store the results in.
