@@ -15,6 +15,7 @@
 
 package com.google.blockly.control;
 
+import android.util.Log;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
@@ -80,7 +81,6 @@ public class Dragger {
             setDragGroup(mTouchedBlockView.getBlock());
             return true;
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            // TODO (fenichel): Make this not fail for slow drags.
             moveBlock(mTouchedBlockView.getBlock(), eventX - mDragStart.x, eventY - mDragStart.y);
             v.requestLayout();
             return true;

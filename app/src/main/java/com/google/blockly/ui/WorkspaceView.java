@@ -16,6 +16,7 @@
 package com.google.blockly.ui;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
@@ -44,9 +45,9 @@ public class WorkspaceView extends ViewGroup {
 
     // TODO: Replace with more intelligent defaults
     // Default desired width of the view in pixels.
-    private static final int DESIRED_WIDTH = 4096;
+    private static final int DESIRED_WIDTH = 2048;
     // Default desired height of the view in pixels.
-    private static final int DESIRED_HEIGHT = 4096;
+    private static final int DESIRED_HEIGHT = 2048;
 
     private final WorkspaceHelper mHelper;
     private final Paint mGridPaint = new Paint();
@@ -57,10 +58,14 @@ public class WorkspaceView extends ViewGroup {
     private Workspace mWorkspace;
     // Fields for workspace dragging.
     private boolean mIsDragging;
-    private WorkspacePoint mWorkspaceOffsetBeforeDraw = new WorkspacePoint();
 
-    private final WorkspacePoint mWorkspaceTopLeft = new WorkspacePoint();
-    private final WorkspacePoint mWorkspaceBottomRight = new WorkspacePoint();
+    private int mVirtualViewLeft;
+    private int mVirtualViewTop;
+    private int mVirtualViewRight;
+    private int mVirtualViewBottom;
+
+    private int mPreDragScrollX;
+    private int mPreDragScrollY;
 
     public WorkspaceView(Context context) {
         this(context, null);
@@ -68,14 +73,16 @@ public class WorkspaceView extends ViewGroup {
 
     public WorkspaceView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
-        ListView listView;
     }
 
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mHelper = new WorkspaceHelper(context, attrs);
         mGridPaint.setColor(GRID_COLOR);
+
         setWillNotDraw(false);
+        setHorizontalScrollBarEnabled(true);
+        setVerticalScrollBarEnabled(true);
     }
 
     @Override
@@ -85,17 +92,14 @@ public class WorkspaceView extends ViewGroup {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             mIsDragging = true;
             mDragStart.set((int) event.getRawX(), (int) event.getRawY());
-            mWorkspaceOffsetBeforeDraw.setFrom(mHelper.getOffset());
+            mPreDragScrollX = getScrollX();
+            mPreDragScrollY = getScrollY();
             return true;
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             if (mIsDragging) {
-                mHelper.getOffset().set(
-                        mWorkspaceOffsetBeforeDraw.x +
-                                mHelper.viewToWorkspaceUnits(mDragStart.x - (int) event.getRawX()),
-                        mWorkspaceOffsetBeforeDraw.y +
-                                mHelper.viewToWorkspaceUnits(mDragStart.y - (int) event.getRawY()));
-                requestLayout();
-                invalidate();
+                scrollTo(
+                        mPreDragScrollX + mDragStart.x - (int) event.getRawX(),
+                        mPreDragScrollY + mDragStart.y - (int) event.getRawY());
                 return true;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -109,6 +113,16 @@ public class WorkspaceView extends ViewGroup {
     }
 
     @Override
+    public void scrollTo(int x, int y) {
+        x = Math.max(mVirtualViewLeft - getWidth() / 2,
+                Math.min(mVirtualViewRight - getWidth() / 2, x));
+        y = Math.max(mVirtualViewTop - getHeight() / 2,
+                Math.min(mVirtualViewBottom - getHeight() / 2, y));
+        mHelper.getOffset().set(mHelper.viewToWorkspaceUnits(x), mHelper.viewToWorkspaceUnits(y));
+        super.scrollTo(x, y);
+    }
+
+    @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
@@ -116,16 +130,18 @@ public class WorkspaceView extends ViewGroup {
             blockGroup.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
             final WorkspacePoint position = blockGroup.getTopBlockPosition();
 
-            mWorkspaceTopLeft.x = Math.min(mWorkspaceTopLeft.x, position.x);
-            mWorkspaceTopLeft.y = Math.min(mWorkspaceTopLeft.y, position.y);
-            mWorkspaceBottomRight.x = Math.max(
-                    mWorkspaceBottomRight.x, position.x + blockGroup.getMeasuredWidth());
-            mWorkspaceBottomRight.y = Math.max(
-                    mWorkspaceBottomRight.y, position.y + blockGroup.getMeasuredHeight());
+            int childViewLeft = mHelper.workspaceToViewUnits(position.x);
+            int childViewTop = mHelper.workspaceToViewUnits(position.y);
+
+            mVirtualViewLeft = Math.min(mVirtualViewLeft, childViewLeft);
+            mVirtualViewTop = Math.min(mVirtualViewTop, childViewTop);
+            mVirtualViewRight = Math.max(
+                    mVirtualViewRight, childViewLeft + blockGroup.getMeasuredWidth());
+            mVirtualViewBottom = Math.max(
+                    mVirtualViewBottom, childViewTop + blockGroup.getMeasuredHeight());
 
             Log.d(TAG, String.format("l=%d t=%d r=%d b=%d",
-                    mWorkspaceTopLeft.x, mWorkspaceTopLeft.y,
-                    mWorkspaceBottomRight.x, mWorkspaceBottomRight.y));
+                    mVirtualViewLeft, mVirtualViewTop, mVirtualViewRight, mVirtualViewBottom));
         }
 
         int width = getMeasuredSize(widthMeasureSpec, DESIRED_WIDTH);
@@ -142,13 +158,14 @@ public class WorkspaceView extends ViewGroup {
         if (shouldDrawGrid()) {
             int gridSpacing = mGridSpacing;
             // Figure out where we should start drawing the grid
-            ViewPoint viewOffset = mHelper.getViewOffset();
-            Log.w(TAG, String.format("onDraw ox=%d oy=%d", viewOffset.x, viewOffset.y));
-            int gridX = gridSpacing - (viewOffset.x % gridSpacing);
-            int gridY = gridSpacing - (viewOffset.y % gridSpacing);
+            int beginX = getScrollX() + gridSpacing - (getScrollX() % gridSpacing);
+            int beginY = getScrollY() + gridSpacing - (getScrollY() % gridSpacing);
 
-            for (int x = gridX; x < getWidth(); x += gridSpacing) {
-                for (int y = gridY; y < getHeight(); y += gridSpacing) {
+            int endX = getWidth() + getScrollX();
+            int endY = getHeight() + getScrollY();
+
+            for (int x = beginX; x < endX; x += gridSpacing) {
+                for (int y = beginY; y < endY; y += gridSpacing) {
                     c.drawCircle(x, y, GRID_RADIUS, mGridPaint);
                 }
             }
@@ -166,11 +183,34 @@ public class WorkspaceView extends ViewGroup {
         mWorkspace.setWorkspaceHelper(mHelper);
     }
 
-    /**
-     * @return The helper for doing unit conversions and generating views in this workspace.
-     */
-    public WorkspaceHelper getWorkspaceHelper() {
-        return mHelper;
+    @Override
+    protected int computeHorizontalScrollRange() {
+        return mVirtualViewRight - mVirtualViewLeft + getWidth();
+    }
+
+    @Override
+    protected int computeHorizontalScrollExtent() {
+        return getWidth();
+    }
+
+    @Override
+    protected int computeHorizontalScrollOffset() {
+        return mVirtualViewLeft - getWidth() / 2;
+    }
+
+    @Override
+    protected int computeVerticalScrollRange() {
+        return mVirtualViewBottom - mVirtualViewTop + getHeight();
+    }
+
+    @Override
+    protected int computeVerticalScrollExtent() {
+        return getHeight();
+    }
+
+    @Override
+    protected int computeVerticalScrollOffset() {
+        return mVirtualViewTop - getHeight() / 2;
     }
 
     private boolean shouldDrawGrid() {
@@ -218,8 +258,8 @@ public class WorkspaceView extends ViewGroup {
             if (child instanceof BlockGroup) {
                 BlockGroup bg = (BlockGroup) child;
                 WorkspacePoint wksPos = bg.getTopBlockPosition();
-                mTemp.x = mHelper.workspaceToViewUnits(wksPos.x - mHelper.getOffset().x);
-                mTemp.y = mHelper.workspaceToViewUnits(wksPos.y - mHelper.getOffset().y);
+                mTemp.x = mHelper.workspaceToViewUnits(wksPos.x);
+                mTemp.y = mHelper.workspaceToViewUnits(wksPos.y);
 
                 int cl = rtl ? mTemp.x - bg.getMeasuredWidth() : mTemp.x;
                 int cr = rtl ? mTemp.x : mTemp.x + bg.getMeasuredWidth();

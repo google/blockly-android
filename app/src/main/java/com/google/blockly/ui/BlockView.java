@@ -222,9 +222,6 @@ public class BlockView extends FrameLayout {
                 if (inputView.isOnFields(
                         eventX - inputView.getLeft(), eventY - inputView.getTop())) {
                     mHandlingEvent = true;
-                    Log.d(TAG, String.format("idx=%d event=%d,%d lt=%d,%d rb=%d,%d", i,
-                            (int) eventX, (int) eventY, inputView.getLeft(), inputView.getTop(),
-                            inputView.getRight(), inputView.getBottom()));
                     return true;
                 }
             }
@@ -232,6 +229,7 @@ public class BlockView extends FrameLayout {
             return mHandlingEvent;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             mHandlingEvent = false;
+            return true;
         }
         return false;
     }
@@ -255,7 +253,7 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        adjustInputLayoutOriginsSize();
+        adjustViewPointArrayListSize(mInputLayoutOrigins);
 
         if (getBlock().getInputsInline()) {
             measureInlineInputs(widthMeasureSpec, heightMeasureSpec);
@@ -276,15 +274,12 @@ public class BlockView extends FrameLayout {
         }
 
         setMeasuredDimension(mBlockViewSize.x, mBlockViewSize.y);
-        mWorkspaceParams.setMeasuredDimensions(mBlockViewSize);
     }
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        final WorkspacePoint parentPosition = getParentWorkspacePosition();
-        getBlock().setPosition(
-                parentPosition.x + mHelper.viewToWorkspaceUnits(left),
-                parentPosition.y + mHelper.viewToWorkspaceUnits(top));
+        mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
+        getBlock().setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
 
         // Note that layout must be done regardless of the value of the "changed" parameter.
         boolean rtl = mHelper.useRtL();
@@ -323,17 +318,20 @@ public class BlockView extends FrameLayout {
     public void updateConnectorLocations() {
         final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
         if (mBlock.getPreviousConnection() != null) {
-            mHelper.viewToWorkspaceCoordinates(mPreviousConnectorOffset, mTempWorkspacePoint);
+            mTempWorkspacePoint.x = mHelper.viewToWorkspaceUnits(mPreviousConnectorOffset.x);
+            mTempWorkspacePoint.y = mHelper.viewToWorkspaceUnits(mPreviousConnectorOffset.y);
             mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
         if (mBlock.getNextConnection() != null) {
-            mHelper.viewToWorkspaceCoordinates(mNextConnectorOffset, mTempWorkspacePoint);
+            mTempWorkspacePoint.x = mHelper.viewToWorkspaceUnits(mNextConnectorOffset.x);
+            mTempWorkspacePoint.y = mHelper.viewToWorkspaceUnits(mNextConnectorOffset.y);
             mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
         if (mBlock.getOutputConnection() != null) {
-            mHelper.viewToWorkspaceCoordinates(mOutputConnectorOffset, mTempWorkspacePoint);
+            mTempWorkspacePoint.x = mHelper.viewToWorkspaceUnits(mOutputConnectorOffset.x);
+            mTempWorkspacePoint.y = mHelper.viewToWorkspaceUnits(mOutputConnectorOffset.y);
             mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
@@ -341,8 +339,10 @@ public class BlockView extends FrameLayout {
             InputView inputView = mInputViews.get(i);
             Connection conn = inputView.getInput().getConnection();
             if (conn != null) {
-                mHelper.viewToWorkspaceCoordinates(
-                        mInputConnectorLocations.get(i), mTempWorkspacePoint);
+                mTempWorkspacePoint.x =
+                        mHelper.viewToWorkspaceUnits(mInputConnectorLocations.get(i).x);
+                mTempWorkspacePoint.y =
+                        mHelper.viewToWorkspaceUnits(mInputConnectorLocations.get(i).y);
                 mConnectionManager.moveConnectionTo(conn,
                         blockWorkspacePosition, mTempWorkspacePoint);
                 if (conn.isConnected()) {
@@ -640,7 +640,6 @@ public class BlockView extends FrameLayout {
         List<Input> inputs = mBlock.getInputs();
         for (int i = 0; i < inputs.size(); i++) {
             Input in = inputs.get(i);
-            // TODO: draw appropriate input, handle inline inputs
             InputView inputView = new InputView(context, blockStyle, in, mHelper);
             mInputViews.add(inputView);
             addView(inputView);
@@ -679,52 +678,21 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Adjust size of {@link #mInputLayoutOrigins} list to match the size of {@link #mInputViews}.
-     */
-    private void adjustInputLayoutOriginsSize() {
-        if (mInputLayoutOrigins.size() != mInputViews.size()) {
-            mInputLayoutOrigins.ensureCapacity(mInputViews.size());
-            if (mInputLayoutOrigins.size() < mInputViews.size()) {
-                for (int i = mInputLayoutOrigins.size(); i < mInputViews.size(); i++) {
-                    mInputLayoutOrigins.add(new ViewPoint());
-                }
-            } else {
-                while (mInputLayoutOrigins.size() > mInputViews.size()) {
-                    mInputLayoutOrigins.remove(mInputLayoutOrigins.size() - 1);
-                }
-            }
-        }
-    }
-
-    /**
-     * Adjust size of {@link #mInputConnectorLocations} list to match the size of
+     * Adjust size of an {@link ArrayList} or {@link ViewPoint} objects to match the size of
      * {@link #mInputViews}.
      */
-    private void adjustInputConnectorLocationsSize() {
-        if (mInputConnectorLocations.size() != mInputViews.size()) {
-            mInputConnectorLocations.ensureCapacity(mInputViews.size());
-            if (mInputConnectorLocations.size() < mInputViews.size()) {
-                for (int i = mInputConnectorLocations.size(); i < mInputViews.size(); i++) {
-                    mInputConnectorLocations.add(new ViewPoint());
+    private void adjustViewPointArrayListSize(ArrayList<ViewPoint> viewPointArrayList) {
+        if (viewPointArrayList.size() != mInputViews.size()) {
+            viewPointArrayList.ensureCapacity(mInputViews.size());
+            if (viewPointArrayList.size() < mInputViews.size()) {
+                for (int i = viewPointArrayList.size(); i < mInputViews.size(); i++) {
+                    viewPointArrayList.add(new ViewPoint());
                 }
             } else {
-                while (mInputConnectorLocations.size() > mInputViews.size()) {
-                    mInputConnectorLocations.remove(mInputConnectorLocations.size() - 1);
+                while (viewPointArrayList.size() > mInputViews.size()) {
+                    viewPointArrayList.remove(viewPointArrayList.size() - 1);
                 }
             }
-        }
-    }
-
-    /**
-     * @return The workspace position if the parent, which can be either a {@link BlockGroup} or
-     * another {@link BlockView}.
-     */
-    private WorkspacePoint getParentWorkspacePosition() {
-        final ViewParent viewParent = getParent();
-        if (viewParent instanceof BlockGroup) {
-            return ((BlockGroup) viewParent).getTopBlockPosition();
-        } else {
-            return ((BlockView) viewParent).getBlock().getPosition();
         }
     }
 
@@ -736,7 +704,7 @@ public class BlockView extends FrameLayout {
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();  // Must reset(), not rewind(), to draw inline input cutouts correctly.
-        adjustInputConnectorLocationsSize();
+        adjustViewPointArrayListSize(mInputConnectorLocations);
 
         int xFrom = mLayoutMarginLeft;
         int xTo = mLayoutMarginLeft;
