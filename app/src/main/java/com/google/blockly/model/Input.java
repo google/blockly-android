@@ -112,6 +112,7 @@ public abstract class Input implements Cloneable {
             mConnection.setInput(this);
         }
     }
+
     /**
      * Creates a new input that can be added to a block.
      *

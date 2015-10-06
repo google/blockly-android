@@ -301,9 +301,9 @@ public class Dragger {
                     addToRoot = true;
                 } else {
                     // Connecting to a previous
-                     if (target.isConnected()) {
+                    if (target.isConnected()) {
                         insertBetweenBlocks(target.getBlock().getPreviousBlock(), target.getBlock(),
-                            dragRoot);
+                                dragRoot);
                         connectPrimary = false;
                         addToRoot = false;
                     } else {

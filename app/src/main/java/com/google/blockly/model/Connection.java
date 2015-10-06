@@ -46,6 +46,12 @@ public class Connection implements Cloneable {
      * a block.
      */
     public static final int CONNECTION_TYPE_OUTPUT = 3;
+    public static final int CAN_CONNECT = 0;
+    public static final int REASON_SELF_CONNECTION = 1;
+    public static final int REASON_WRONG_TYPE = 2;
+    public static final int REASON_MUST_DISCONNECT = 3;
+    public static final int REASON_TARGET_NULL = 4;
+    public static final int REASON_CHECKS_FAILED = 5;
     // If updating this, also update ConnectionManager's matchingLists and oppositeLists arrays.
     @ConnectionType
     private static final int[] OPPOSITE_TYPES = new int[]{
@@ -54,12 +60,6 @@ public class Connection implements Cloneable {
             CONNECTION_TYPE_OUTPUT, // INPUT -> OUTPUT
             CONNECTION_TYPE_INPUT // OUTPUT -> INPUT
     };
-    public static final int CAN_CONNECT = 0;
-    public static final int REASON_SELF_CONNECTION = 1;
-    public static final int REASON_WRONG_TYPE = 2;
-    public static final int REASON_MUST_DISCONNECT = 3;
-    public static final int REASON_TARGET_NULL = 4;
-    public static final int REASON_CHECKS_FAILED = 5;
     @ConnectionType
     private final int mConnectionType;
     private final String[] mConnectionChecks;
@@ -68,6 +68,7 @@ public class Connection implements Cloneable {
     private Input mInput;
     private Connection mTargetConnection;
     private boolean mInDragMode = false;
+
     public Connection(@ConnectionType int type, String[] checks) {
         mConnectionType = type;
         mConnectionChecks = checks;
@@ -317,6 +318,7 @@ public class Connection implements Cloneable {
             CONNECTION_TYPE_OUTPUT})
     public @interface ConnectionType {
     }
+
     @IntDef({CAN_CONNECT, REASON_SELF_CONNECTION, REASON_WRONG_TYPE, REASON_MUST_DISCONNECT,
             REASON_TARGET_NULL, REASON_CHECKS_FAILED})
     public @interface CheckResultType {
