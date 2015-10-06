@@ -271,6 +271,7 @@ public class Dragger {
                 if (target.getInput() != null
                         && target.getInput().getType() == Input.TYPE_STATEMENT) {
                     // Connecting to a statement input.
+                    // TODO (fenichel): Handle case where target is already connected here.
                     target.getInput().getView().setChildView(mDragGroup);
                 } else {
                     // Connecting to a next.

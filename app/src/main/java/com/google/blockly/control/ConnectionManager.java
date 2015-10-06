@@ -151,7 +151,9 @@ public class ConnectionManager {
         }
 
         // Type checking
-        if (!moving.canConnect(candidate)) {
+        int canConnect = moving.canConnectWithReason(candidate);
+        if (canConnect != Connection.CAN_CONNECT
+                && canConnect != Connection.REASON_MUST_DISCONNECT) {
             return false;
         }
 

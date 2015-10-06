@@ -54,10 +54,10 @@ public class Connection implements Cloneable {
             CONNECTION_TYPE_OUTPUT, // INPUT -> OUTPUT
             CONNECTION_TYPE_INPUT // OUTPUT -> INPUT
     };
-    private static final int CAN_CONNECT = 0;
+    public static final int CAN_CONNECT = 0;
     private static final int REASON_SELF_CONNECTION = 1;
     private static final int REASON_WRONG_TYPE = 2;
-    private static final int REASON_MUST_DISCONNECT = 3;
+    public static final int REASON_MUST_DISCONNECT = 3;
     private static final int REASON_TARGET_NULL = 4;
     private static final int REASON_CHECKS_FAILED = 5;
     @ConnectionType
@@ -237,15 +237,11 @@ public class Connection implements Cloneable {
         return mTargetConnection != null;
     }
 
-    private void connectInternal(Connection target) {
-        mTargetConnection = target;
-    }
-
-    private void disconnectInternal() {
-        mTargetConnection = null;
-    }
-
-    private int canConnectWithReason(Connection target) {
+    /**
+     * @param target The {@link Connection} to check compatibility with.
+     * @return {@code CAN_CONNECT} if the connection is legal, an error code otherwise.
+     */
+    public int canConnectWithReason(Connection target) {
         if (target == null) {
             return REASON_TARGET_NULL;
         }
@@ -262,6 +258,14 @@ public class Connection implements Cloneable {
             return REASON_CHECKS_FAILED;
         }
         return CAN_CONNECT;
+    }
+
+    private void connectInternal(Connection target) {
+        mTargetConnection = target;
+    }
+
+    private void disconnectInternal() {
+        mTargetConnection = null;
     }
 
     private void checkConnection(Connection target) {

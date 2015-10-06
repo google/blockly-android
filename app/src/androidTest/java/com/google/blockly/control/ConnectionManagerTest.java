@@ -79,15 +79,10 @@ public class ConnectionManagerTest extends AndroidTestCase {
     }
 
     public void testIsConnectionAllowed() {
-        // Need blocks or else they think they're just connecting to themselves.
-        Connection one = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
-        one.setBlock(new Block.Builder("test").build());
-        Connection two = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
-        two.setBlock(new Block.Builder("test").build());
+        // Two connections of opposite types near each other
+        Connection one = createConnection(5 /* x */, 10 /* y */, Connection.CONNECTION_TYPE_INPUT);
+        Connection two = createConnection(10 /* x */, 15 /* y */, Connection.CONNECTION_TYPE_OUTPUT);
 
-        // Two connections near each other
-        one.setPosition(5, 10);
-        two.setPosition(10, 15);
         assertTrue(manager.isConnectionAllowed(one, two, 20.0));
         // Move connections farther apart
         two.setPosition(100, 100);
@@ -95,35 +90,69 @@ public class ConnectionManagerTest extends AndroidTestCase {
 
         // Don't offer to connect an already connected left (male) value plug to
         // an available right (female) value plug.
-        Connection three = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
-        three.setBlock(new Block.Builder("test").build());
+        Connection three = createConnection(0, 0, Connection.CONNECTION_TYPE_OUTPUT);
         assertTrue(manager.isConnectionAllowed(one, three, 20.0));
-        Connection four = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
-        four.setBlock(new Block.Builder("test").build());
+        Connection four = createConnection(0, 0, Connection.CONNECTION_TYPE_INPUT);
         three.connect(four);
         assertFalse(manager.isConnectionAllowed(one, three, 20.0));
+
+        // Don't connect two connections on the same block
+        two.setBlock(one.getBlock());
+        assertFalse(manager.isConnectionAllowed(one, two, 1000.0));
     }
 
     public void testIsConnectionAllowedNext() {
-        // Need blocks or else they think they're just connecting to themselves.
-        Connection one = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
-        one.setBlock(new Block.Builder("test").build());
+        Connection one = createConnection(0, 0, Connection.CONNECTION_TYPE_NEXT);
         one.setInput(new Input.InputValue("test input", "" /* align */, null /* checks */));
 
-        Connection two = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
-        two.setBlock(new Block.Builder("test").build());
+        Connection two = createConnection(0, 0, Connection.CONNECTION_TYPE_NEXT);
         two.setInput(new Input.InputValue("test input", "" /* align */, null /* checks */));
 
         // Don't offer to connect the bottom of a statement block to one that's already connected.
-        Connection three = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
-        three.setBlock(new Block.Builder("test").build());
+        Connection three = createConnection(0, 0, Connection.CONNECTION_TYPE_PREVIOUS);
         assertTrue(manager.isConnectionAllowed(one, three, 20.0));
         three.connect(two);
         assertFalse(manager.isConnectionAllowed(one, three, 20.0));
     }
 
-    public void testIsConnectionAllowedParent() {
-        
+    public void testIsConnectionAllowedNest() {
+        Input input = new Input.InputValue("input", null, null);
+        Block root = new Block.Builder("test")
+                .setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null))
+                .addInput(input)
+                .build();
+        Block child = new Block.Builder("test")
+                .setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null))
+                .setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null))
+                .addInput(input)
+                .build();
+        root.getNextConnection().connect(child.getPreviousConnection());
+        Block grandchild = new Block.Builder("test")
+                .setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null))
+                .setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null))
+                .build();
+        child.getNextConnection().connect(grandchild.getPreviousConnection());
+
+        // Don't let blocks try to connect to themselves or ones they nest.
+        assertFalse(manager.isConnectionAllowed(root.getNextConnection(),
+                grandchild.getPreviousConnection(), 100.0 /* maxRadius */));
+
+        // But blocks can be dragged to connect to an ancestor block.
+        assertTrue(manager.isConnectionAllowed(grandchild.getPreviousConnection(),
+                root.getNextConnection(), 100.0));
+
+        Block withOutput = new Block.Builder("withOutput")
+                .setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null))
+                .build();
+
+        withOutput.getOutputConnection().connect(child.getInputByName("input").getConnection());
+
+        // Don't let blocks try to connect to themselves or ones they nest.
+        assertFalse(manager.isConnectionAllowed(root.getInputByName("input").getConnection(),
+                withOutput.getOutputConnection(), 100.0));
+        // But blocks can be dragged to connect to an ancestor block.
+        assertTrue(manager.isConnectionAllowed(withOutput.getOutputConnection(),
+                root.getInputByName("input").getConnection(), 100.0));
     }
 
     // Test YSortedList
