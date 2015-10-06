@@ -20,11 +20,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewParent;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
@@ -379,7 +377,7 @@ public class BlockView extends FrameLayout {
                 final Input input = mHighlightConnection.getInput();
                 for (int i = 0; i < mInputViews.size(); ++i) {
                     if (mInputViews.get(i).getInput() == input) {
-                        final Point offset = mInputConnectorLocations.get(i);
+                        final ViewPoint offset = mInputConnectorLocations.get(i);
                         if (input.getType() == Input.TYPE_STATEMENT) {
                             ConnectorHelper.getNextConnectorPath(rtlSign)
                                     .offset(offset.x, offset.y, mHighlightPath);
