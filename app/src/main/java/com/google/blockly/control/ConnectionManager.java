@@ -15,7 +15,6 @@
 
 package com.google.blockly.control;
 
-import android.graphics.Point;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.blockly.model.Connection;
@@ -68,7 +67,7 @@ public class ConnectionManager {
      * view.
      */
     public void moveConnectionTo(Connection conn,
-                                 WorkspacePoint newLocation, Point offset) {
+                                 WorkspacePoint newLocation, WorkspacePoint offset) {
         moveConnectionTo(conn, newLocation.x + offset.x, newLocation.y + offset.y);
     }
 
