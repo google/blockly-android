@@ -194,8 +194,6 @@ public class Block {
      * @param y The workspace y position.
      */
     public void setPosition(int x, int y) {
-        Log.d(TAG, String.format("setPosition name=%s old=%d,%d new=%d,%d",
-                getName(), mPosition.x, mPosition.y, x, y));
         mPosition.x = x;
         mPosition.y = y;
     }
