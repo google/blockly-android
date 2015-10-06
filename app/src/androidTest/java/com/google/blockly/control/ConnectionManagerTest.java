@@ -115,44 +115,17 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertFalse(manager.isConnectionAllowed(one, three, 20.0));
     }
 
-    public void testIsConnectionAllowedNest() {
-        Input input = new Input.InputValue("input", null, null);
-        Block root = new Block.Builder("test")
-                .setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null))
-                .addInput(input)
-                .build();
-        Block child = new Block.Builder("test")
-                .setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null))
-                .setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null))
-                .addInput(input)
-                .build();
-        root.getNextConnection().connect(child.getPreviousConnection());
-        Block grandchild = new Block.Builder("test")
-                .setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null))
-                .setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null))
-                .build();
-        child.getNextConnection().connect(grandchild.getPreviousConnection());
+    public void testIsConnectionAllowedDragging() {
+        Connection one = createConnection(0 /* x */, 0 /* y */, Connection.CONNECTION_TYPE_NEXT);
+        one.setDragMode(true);
+        Connection two = createConnection(0, 0, Connection.CONNECTION_TYPE_PREVIOUS);
+        two.setDragMode(false);
 
-        // Don't let blocks try to connect to themselves or ones they nest.
-        assertFalse(manager.isConnectionAllowed(root.getNextConnection(),
-                grandchild.getPreviousConnection(), 100.0 /* maxRadius */));
-
-        // But blocks can be dragged to connect to an ancestor block.
-        assertTrue(manager.isConnectionAllowed(grandchild.getPreviousConnection(),
-                root.getNextConnection(), 100.0));
-
-        Block withOutput = new Block.Builder("withOutput")
-                .setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null))
-                .build();
-
-        withOutput.getOutputConnection().connect(child.getInputByName("input").getConnection());
-
-        // Don't let blocks try to connect to themselves or ones they nest.
-        assertFalse(manager.isConnectionAllowed(root.getInputByName("input").getConnection(),
-                withOutput.getOutputConnection(), 100.0));
-        // But blocks can be dragged to connect to an ancestor block.
-        assertTrue(manager.isConnectionAllowed(withOutput.getOutputConnection(),
-                root.getInputByName("input").getConnection(), 100.0));
+        // Can't connect to a candidate connection that is being dragged because it would have to be
+        // a child of the block being dragged.
+        assertFalse(manager.isConnectionAllowed(two, one, 100.0));
+        // But a dragging connection can of course be connected.
+        assertTrue(manager.isConnectionAllowed(one, two, 100.0));
     }
 
     // Test YSortedList

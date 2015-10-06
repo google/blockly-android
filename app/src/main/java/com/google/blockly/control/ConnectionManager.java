@@ -17,7 +17,6 @@ package com.google.blockly.control;
 
 import android.support.annotation.VisibleForTesting;
 
-import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.ui.ViewPoint;
 
@@ -140,12 +139,22 @@ public class ConnectionManager {
         return two;
     }
 
-    // For now this just checks that the distance is okay.
-    // TODO (fenichel): Don't offer to connect an already connected left (male) value plug to
-    // an available right (female) value plug.  Don't offer to connect the
-    // bottom of a statement block to one that's already connected.
+    /**
+     * Check if the two connections can be dragged to connect to each other.
+     *
+     * @param moving The connection being dragged.
+     * @param candidate A nearby connection to check.
+     * @param maxRadius The maximum radius allowed for connections.
+     * @return True if the connection is allowed, false otherwise.
+     */
     @VisibleForTesting
     boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
+        // Don't let blocks try to connect to themselves or ones they nest.
+        // Since this is only called during drags it is sufficient to check dragMode.
+        if (candidate.inDragMode()) {
+            return false;
+        }
+
         if (moving.distanceFrom(candidate) > maxRadius) {
             return false;
         }
@@ -164,23 +173,6 @@ public class ConnectionManager {
                 || candidate.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
             if (candidate.isConnected()) {
                 return false;
-            }
-        }
-
-        // Don't let blocks try to connect to themselves or ones they nest.
-        Block movingBlock = moving.getBlock();
-        Block candidateBlock = candidate.getBlock();
-        while (true) {
-            if (movingBlock == candidateBlock) {
-                return false;
-            }
-            if (candidateBlock.getOutputConnection() != null
-                    && candidateBlock.getOutputConnection().getTargetBlock() != null) {
-                candidateBlock = candidateBlock.getOutputConnection().getTargetBlock();
-            } else if (candidateBlock.getPreviousBlock() != null) {
-                candidateBlock = candidateBlock.getPreviousBlock();
-            } else {
-                break;
             }
         }
 

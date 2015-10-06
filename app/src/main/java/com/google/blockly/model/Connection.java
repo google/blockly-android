@@ -55,11 +55,11 @@ public class Connection implements Cloneable {
             CONNECTION_TYPE_INPUT // OUTPUT -> INPUT
     };
     public static final int CAN_CONNECT = 0;
-    private static final int REASON_SELF_CONNECTION = 1;
-    private static final int REASON_WRONG_TYPE = 2;
+    public static final int REASON_SELF_CONNECTION = 1;
+    public static final int REASON_WRONG_TYPE = 2;
     public static final int REASON_MUST_DISCONNECT = 3;
-    private static final int REASON_TARGET_NULL = 4;
-    private static final int REASON_CHECKS_FAILED = 5;
+    public static final int REASON_TARGET_NULL = 4;
+    public static final int REASON_CHECKS_FAILED = 5;
     @ConnectionType
     private final int mConnectionType;
     private final String[] mConnectionChecks;
@@ -241,6 +241,7 @@ public class Connection implements Cloneable {
      * @param target The {@link Connection} to check compatibility with.
      * @return {@code CAN_CONNECT} if the connection is legal, an error code otherwise.
      */
+    @CheckResultType
     public int canConnectWithReason(Connection target) {
         if (target == null) {
             return REASON_TARGET_NULL;
@@ -315,5 +316,9 @@ public class Connection implements Cloneable {
     @IntDef({CONNECTION_TYPE_PREVIOUS, CONNECTION_TYPE_NEXT, CONNECTION_TYPE_INPUT,
             CONNECTION_TYPE_OUTPUT})
     public @interface ConnectionType {
+    }
+    @IntDef({CAN_CONNECT, REASON_SELF_CONNECTION, REASON_WRONG_TYPE, REASON_MUST_DISCONNECT,
+            REASON_TARGET_NULL, REASON_CHECKS_FAILED})
+    public @interface CheckResultType {
     }
 }
