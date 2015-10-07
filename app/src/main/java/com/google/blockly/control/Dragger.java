@@ -224,23 +224,23 @@ public class Dragger {
     /**
      * Splice a block or group of blocks between a "previous" and a "next" connection.
      *
-     * @param previous The {@link Block} whose next connection we are interested in.
-     * @param next The {@link Block} whose previous connection we are interested in.
+     * @param previousBlock The {@link Block} whose next connection we are interested in.
+     * @param nextBlock The {@link Block} whose previous connection we are interested in.
      * @param dragBlock The root {@link Block} of the {@link BlockGroup} to be spliced in.
      */
-    private void insertBetweenPreviousNext(Block previous, Block next, Block dragBlock) {
-        previous.getNextConnection().disconnect();
-        previous.getNextConnection().connect(dragBlock.getPreviousConnection());
+    private void insertBetweenPreviousNext(Block previousBlock, Block nextBlock, Block dragBlock) {
+        previousBlock.getNextConnection().disconnect();
+        previousBlock.getNextConnection().connect(dragBlock.getPreviousConnection());
 
-        BlockGroup to = mWorkspaceHelper.getNearestParentBlockGroup(previous);
-        BlockGroup temp = to.extractBlocksAsNewGroup(next);
-        to.moveBlocksFrom(mDragGroup, dragBlock);
+        BlockGroup toBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(previousBlock);
+        BlockGroup tempBlockGroup = toBlockGroup.extractBlocksAsNewGroup(nextBlock);
+        toBlockGroup.moveBlocksFrom(mDragGroup, dragBlock);
         // moveBlocksFrom walks the list of next connections, so don't reconnect this until after
         // moving the blocks between groups.
-        next.getPreviousConnection().connect(to.lastChildBlock().getNextConnection());
+        nextBlock.getPreviousConnection().connect(toBlockGroup.lastChildBlock().getNextConnection());
         // For the same reason, don't add the last group of blocks back until the connections have
         // been sewn up.
-        to.moveBlocksFrom(temp, next);
+        toBlockGroup.moveBlocksFrom(tempBlockGroup, nextBlock);
     }
 
     /**

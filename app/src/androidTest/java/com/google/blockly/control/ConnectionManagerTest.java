@@ -20,7 +20,7 @@ import android.test.AndroidTestCase;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
-import com.google.blockly.ui.ViewPoint;
+import com.google.blockly.model.WorkspacePoint;
 
 /**
  * Tests for {@link ConnectionManager}
@@ -54,13 +54,13 @@ public class ConnectionManagerTest extends AndroidTestCase {
     public void testMoveTo() {
         int offsetX = 10;
         int offsetY = -10;
-        ViewPoint offset = new ViewPoint(offsetX, offsetY);
+        WorkspacePoint offset = new WorkspacePoint(offsetX, offsetY);
         Connection conn = createConnection(0, 0, Connection.CONNECTION_TYPE_PREVIOUS);
         manager.addConnection(conn);
         // Move to this position + the given offset.
         int moveX = 15;
         int moveY = 20;
-        manager.moveConnectionTo(conn, new ViewPoint(moveX, moveY), offset);
+        manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
         assertEquals(moveX + offsetX, conn.getPosition().x);
         assertEquals(moveY + offsetY, conn.getPosition().y);
         // Connection should still be in the list
@@ -72,7 +72,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         // put it back into the connection manager.
         moveX = 10;
         moveY = 100;
-        manager.moveConnectionTo(conn, new ViewPoint(moveX, moveY), offset);
+        manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
         assertFalse(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
         assertEquals(moveX + offsetX, conn.getPosition().x);
         assertEquals(moveY + offsetY, conn.getPosition().y);
