@@ -44,7 +44,8 @@ public class Dragger {
     private static final int MAX_SNAP_DISTANCE = 50;
 
     private final ViewPoint mDragStart = new ViewPoint();
-    private final ViewPoint mDragIntermediate = new ViewPoint();
+    private final WorkspacePoint mBlockOriginalPosition = new WorkspacePoint();
+
     private final ConnectionManager mConnectionManager;
     private final ArrayList<Block> mRootBlocks;
     private final ArrayList<Connection> mDraggedConnections = new ArrayList<>();
@@ -71,29 +72,33 @@ public class Dragger {
     public boolean onTouch(View v, MotionEvent event) {
         int eventX = (int) event.getRawX();
         int eventY = (int) event.getRawY();
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            // TODO (fenichel): Don't start a drag until the user has passed some threshold.
-            mTouchedBlockView = (BlockView) v;
-            mDragStart.set(eventX, eventY);
-            mDragIntermediate.set(mDragStart.x, mDragStart.y);
-            setDragGroup(mTouchedBlockView.getBlock());
-            return true;
-        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            // TODO (fenichel): Make this not fail for slow drags.
-            moveBlock(mTouchedBlockView.getBlock(), eventX - mDragIntermediate.x,
-                    eventY - mDragIntermediate.y);
-            mDragIntermediate.set(eventX, eventY);
-            v.requestLayout();
-            return true;
-        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            if (!snapToConnection(mTouchedBlockView.getBlock())) {
-                moveBlock(mTouchedBlockView.getBlock(), eventX - mDragIntermediate.x,
-                        eventY - mDragIntermediate.y);
-                finalizeMove();
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN: {
+                // TODO (fenichel): Don't start a drag until the user has passed some threshold.
+                mTouchedBlockView = (BlockView) v;
+                mBlockOriginalPosition.setFrom(((BlockView) v).getBlock().getPosition());
+                mDragStart.set(eventX, eventY);
+                setDragGroup(mTouchedBlockView.getBlock());
+                return true;
             }
-            return true;
+            case MotionEvent.ACTION_MOVE: {
+                updateBlockPosition(mTouchedBlockView.getBlock(),
+                        mWorkspaceHelper.viewToWorkspaceUnits(eventX - mDragStart.x),
+                        mWorkspaceHelper.viewToWorkspaceUnits(eventY - mDragStart.y));
+                v.requestLayout();
+                return true;
+            }
+            case MotionEvent.ACTION_UP: {
+                if (!snapToConnection(mTouchedBlockView.getBlock())) {
+                    finalizeMove();
+                }
+                return true;
+            }
+            // TODO (fenichel): Handle ACTION_CANCEL.
+            default:
         }
-        // TODO (fenichel): Handle ACTION_CANCEL.
+
         return false;
     }
 
@@ -109,8 +114,6 @@ public class Dragger {
         BlockView bv = block.getView();
         BlockGroup rootBlockGroup = mWorkspaceHelper.getRootBlockGroup(block);
         BlockGroup bg = (BlockGroup) bv.getParent();
-        WorkspacePoint realPosition = new WorkspacePoint();
-        mWorkspaceHelper.getWorkspaceCoordinates(bv, realPosition);
         if (!mRootBlocks.contains(block)) {
             // Child block
             if (block.getPreviousConnection() != null
@@ -135,7 +138,6 @@ public class Dragger {
             mWorkspaceView.addView(bg);
             mRootBlocks.add(block);
         }
-        block.setPosition(realPosition.x, realPosition.y);
         mDragGroup = bg;
         mDragGroup.bringToFront();
 
@@ -149,18 +151,17 @@ public class Dragger {
     }
 
     /**
-     * Function to call in an onTouchListener to move the given block.
+     * Function to call in an onTouchListener to move the given block relative to its original
+     * position at the beginning of the drag sequence.
      * <p/>
      * All of the child blocks move with the root block based on its position during layout.
      *
-     * @param block The block to move.
-     * @param dx How far to move in the x direction.
-     * @param dy How far to move in the y direction.
+     * @param block The block whose position to update.
+     * @param dx Distance in the x direction from the original block position.
+     * @param dy Distance in the y direction from the original block position.
      */
-    private void moveBlock(Block block, int dx, int dy) {
-        dx = mWorkspaceHelper.viewToWorkspaceUnits(dx);
-        dy = mWorkspaceHelper.viewToWorkspaceUnits(dy);
-        block.setPosition(block.getPosition().x + dx, block.getPosition().y + dy);
+    private void updateBlockPosition(Block block, int dx, int dy) {
+        block.setPosition(mBlockOriginalPosition.x + dx, mBlockOriginalPosition.y + dy);
         mDragGroup.requestLayout();
     }
 

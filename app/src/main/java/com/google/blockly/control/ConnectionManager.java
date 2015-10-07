@@ -18,7 +18,7 @@ package com.google.blockly.control;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.blockly.model.Connection;
-import com.google.blockly.ui.ViewPoint;
+import com.google.blockly.model.WorkspacePoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +66,8 @@ public class ConnectionManager {
      * @param offset An additional offset, usually the position of the parent view in the workspace
      * view.
      */
-    public void moveConnectionTo(Connection conn, ViewPoint newLocation, ViewPoint offset) {
+    public void moveConnectionTo(Connection conn,
+                                 WorkspacePoint newLocation, WorkspacePoint offset) {
         moveConnectionTo(conn, newLocation.x + offset.x, newLocation.y + offset.y);
     }
 
