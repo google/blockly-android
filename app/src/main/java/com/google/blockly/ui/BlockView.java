@@ -20,7 +20,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -692,7 +691,6 @@ public class BlockView extends FrameLayout {
      * Update path for drawing the block after view size or layout have changed.
      */
     private void updateDrawPath() {
-        Log.d(TAG, "Updating draw path and repositioning connections");
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();  // Must reset(), not rewind(), to draw inline input cutouts correctly.
