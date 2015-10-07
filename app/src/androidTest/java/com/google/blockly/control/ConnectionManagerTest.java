@@ -114,20 +114,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         three.connect(two);
         assertFalse(manager.isConnectionAllowed(one, three, 20.0));
     }
-
-    public void testIsConnectionAllowedDragging() {
-        Connection one = createConnection(0 /* x */, 0 /* y */, Connection.CONNECTION_TYPE_NEXT);
-        one.setDragMode(true);
-        Connection two = createConnection(0, 0, Connection.CONNECTION_TYPE_PREVIOUS);
-        two.setDragMode(false);
-
-        // Can't connect to a candidate connection that is being dragged because it would have to be
-        // a child of the block being dragged.
-        assertFalse(manager.isConnectionAllowed(two, one, 100.0));
-        // But a dragging connection can of course be connected.
-        assertTrue(manager.isConnectionAllowed(one, two, 100.0));
-    }
-
+    
     // Test YSortedList
     public void testFindPosition() {
         ConnectionManager.YSortedList list =
