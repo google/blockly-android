@@ -275,9 +275,6 @@ public class BlockView extends FrameLayout {
 
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
-        getBlock().setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
-
         // Note that layout must be done regardless of the value of the "changed" parameter.
         boolean rtl = mHelper.useRtL();
         int rtlSign = rtl ? -1 : +1;
@@ -296,7 +293,6 @@ public class BlockView extends FrameLayout {
             inputView.layout(rowFrom, rowTop, rowFrom + inputViewWidth,
                     rowTop + inputView.getMeasuredHeight());
         }
-
         updateDrawPath();
     }
 
@@ -313,6 +309,9 @@ public class BlockView extends FrameLayout {
      * block has moved but not changed shape (e.g. during a drag).
      */
     public void updateConnectorLocations() {
+        // Ensure we have the right block location before we update the connections.
+        updateBlockPosition();
+
         final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
         if (mBlock.getPreviousConnection() != null) {
             mHelper.viewToWorkspaceUnits(mPreviousConnectorOffset, mTempWorkspacePoint);
@@ -341,6 +340,14 @@ public class BlockView extends FrameLayout {
                 }
             }
         }
+    }
+
+    /**
+     * Update the position of the block in workspace coordinates based on the view's location.
+     */
+    public void updateBlockPosition() {
+        mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
+        mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
     }
 
     /**
