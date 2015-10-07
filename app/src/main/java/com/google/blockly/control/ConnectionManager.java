@@ -144,18 +144,13 @@ public class ConnectionManager {
      * Check if the two connections can be dragged to connect to each other.
      *
      * @param moving The connection being dragged.
-     * @param candidate A nearby connection to check.
+     * @param candidate A nearby connection to check.  Must be in the {@link ConnectionManager},
+     *        and therefore not be mid-drag.
      * @param maxRadius The maximum radius allowed for connections.
      * @return True if the connection is allowed, false otherwise.
      */
     @VisibleForTesting
     boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
-        // Don't let blocks try to connect to themselves or ones they nest.
-        // Since this is only called during drags it is sufficient to check dragMode.
-        if (candidate.inDragMode()) {
-            return false;
-        }
-
         if (moving.distanceFrom(candidate) > maxRadius) {
             return false;
         }
