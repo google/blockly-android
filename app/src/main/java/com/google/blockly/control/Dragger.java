@@ -152,7 +152,7 @@ public class Dragger {
 
     /**
      * Function to call in an onTouchListener to move the given block relative to its original
-     * position.
+     * position at the beginning of the drag sequence.
      * <p/>
      * All of the child blocks move with the root block based on its position during layout.
      *

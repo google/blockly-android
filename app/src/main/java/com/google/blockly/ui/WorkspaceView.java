@@ -57,11 +57,15 @@ public class WorkspaceView extends ViewGroup {
     // Fields for workspace dragging.
     private boolean mIsDragging;
 
+    // Virtual view bounds. These define the bounding box of all blocks, in view coordinates, and
+    // are used to determine ranges and offsets for scrolling.
     private int mVirtualViewLeft;
     private int mVirtualViewTop;
     private int mVirtualViewRight;
     private int mVirtualViewBottom;
 
+    // Scroll coordinates at the beginning of dragging the workspace. During dragging, the workspace
+    // is scrolled relative to these.
     private int mPreDragScrollX;
     private int mPreDragScrollY;
 
@@ -112,10 +116,15 @@ public class WorkspaceView extends ViewGroup {
 
     @Override
     public void scrollTo(int x, int y) {
-        x = Math.max(mVirtualViewLeft - getWidth() / 2,
-                Math.min(mVirtualViewRight - getWidth() / 2, x));
-        y = Math.max(mVirtualViewTop - getHeight() / 2,
-                Math.min(mVirtualViewBottom - getHeight() / 2, y));
+        int halfWidth = getWidth() / 2;
+        int halfHeight = getHeight() / 2;
+
+        // Clamp x and y to the scroll range that will allow for 1/2 view being outside the range
+        // use by blocks. This matches the computations in computeHorizontalScrollOffset and
+        // computeVerticalScrollOffset, respectively.
+        x = Math.max(mVirtualViewLeft - halfWidth, Math.min(mVirtualViewRight - halfWidth, x));
+        y = Math.max(mVirtualViewTop - halfHeight, Math.min(mVirtualViewBottom - halfHeight, y));
+
         mHelper.getOffset().set(mHelper.viewToWorkspaceUnits(x), mHelper.viewToWorkspaceUnits(y));
         super.scrollTo(x, y);
     }
@@ -126,8 +135,9 @@ public class WorkspaceView extends ViewGroup {
         for (int i = 0; i < childCount; i++) {
             BlockGroup blockGroup = (BlockGroup) getChildAt(i);
             blockGroup.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
-            final WorkspacePoint position = blockGroup.getTopBlockPosition();
 
+            // Determine this BlockGroup's bounds and extend virtual view boundaries accordingly.
+            final WorkspacePoint position = blockGroup.getTopBlockPosition();
             int childViewLeft = mHelper.workspaceToViewUnits(position.x);
             int childViewTop = mHelper.workspaceToViewUnits(position.y);
 
@@ -137,9 +147,6 @@ public class WorkspaceView extends ViewGroup {
                     mVirtualViewRight, childViewLeft + blockGroup.getMeasuredWidth());
             mVirtualViewBottom = Math.max(
                     mVirtualViewBottom, childViewTop + blockGroup.getMeasuredHeight());
-
-            Log.d(TAG, String.format("l=%d t=%d r=%d b=%d",
-                    mVirtualViewLeft, mVirtualViewTop, mVirtualViewRight, mVirtualViewBottom));
         }
 
         int width = getMeasuredSize(widthMeasureSpec, DESIRED_WIDTH);

@@ -70,7 +70,7 @@ public class BlockView extends FrameLayout {
     private final ViewPoint mOutputConnectorOffset = new ViewPoint();
     private final ViewPoint mPreviousConnectorOffset = new ViewPoint();
     private final ViewPoint mNextConnectorOffset = new ViewPoint();
-    private final ArrayList<ViewPoint> mInputConnectorLocations = new ArrayList<>();
+    private final ArrayList<ViewPoint> mInputConnectorOffsets = new ArrayList<>();
 
     // Current measured size of this block view.
     private final ViewPoint mBlockViewSize = new ViewPoint();
@@ -250,7 +250,7 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        adjustListSize(mInputLayoutOrigins);
+        resizeList(mInputLayoutOrigins);
 
         if (getBlock().getInputsInline()) {
             measureInlineInputs(widthMeasureSpec, heightMeasureSpec);
@@ -333,7 +333,7 @@ public class BlockView extends FrameLayout {
             InputView inputView = mInputViews.get(i);
             Connection conn = inputView.getInput().getConnection();
             if (conn != null) {
-                mHelper.viewToWorkspaceUnits(mInputConnectorLocations.get(i), mTempWorkspacePoint);
+                mHelper.viewToWorkspaceUnits(mInputConnectorOffsets.get(i), mTempWorkspacePoint);
                 mConnectionManager.moveConnectionTo(conn,
                         blockWorkspacePosition, mTempWorkspacePoint);
                 if (conn.isConnected()) {
@@ -370,7 +370,7 @@ public class BlockView extends FrameLayout {
                 final Input input = mHighlightConnection.getInput();
                 for (int i = 0; i < mInputViews.size(); ++i) {
                     if (mInputViews.get(i).getInput() == input) {
-                        final ViewPoint offset = mInputConnectorLocations.get(i);
+                        final ViewPoint offset = mInputConnectorOffsets.get(i);
                         if (input.getType() == Input.TYPE_STATEMENT) {
                             ConnectorHelper.getNextConnectorPath(rtlSign)
                                     .offset(offset.x, offset.y, mHighlightPath);
@@ -672,7 +672,7 @@ public class BlockView extends FrameLayout {
      * Adjust size of an {@link ArrayList} of {@link ViewPoint} objects to match the size of
      * {@link #mInputViews}.
      */
-    private void adjustListSize(ArrayList<ViewPoint> list) {
+    private void resizeList(ArrayList<ViewPoint> list) {
         if (list.size() != mInputViews.size()) {
             list.ensureCapacity(mInputViews.size());
             if (list.size() < mInputViews.size()) {
@@ -694,7 +694,7 @@ public class BlockView extends FrameLayout {
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();  // Must reset(), not rewind(), to draw inline input cutouts correctly.
-        adjustListSize(mInputConnectorLocations);
+        resizeList(mInputConnectorOffsets);
 
         int xFrom = mLayoutMarginLeft;
         int xTo = mLayoutMarginLeft;
@@ -742,7 +742,7 @@ public class BlockView extends FrameLayout {
                     if (!mBlock.getInputsInline()) {
                         ConnectorHelper.addValueInputConnectorToPath(
                                 mDrawPath, xTo, inputLayoutOrigin.y, rtlSign);
-                        mInputConnectorLocations.get(i).set(xTo, inputLayoutOrigin.y);
+                        mInputConnectorOffsets.get(i).set(xTo, inputLayoutOrigin.y);
                     }
                     break;
                 }
@@ -760,7 +760,7 @@ public class BlockView extends FrameLayout {
                     }
                     ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
                             xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
-                    mInputConnectorLocations.get(i).set(xOffset, inputLayoutOrigin.y);
+                    mInputConnectorOffsets.get(i).set(xOffset, inputLayoutOrigin.y);
                     // Set new horizontal end coordinate for subsequent inputs.
                     xTo = xToBottom;
                     break;
@@ -794,7 +794,7 @@ public class BlockView extends FrameLayout {
                     inputView.addInlineCutoutToBlockViewPath(mDrawPath,
                             xFrom + rtlSign * inputLayoutOrigin.x, inputLayoutOrigin.y, rtlSign,
                             mTempConnectionPosition);
-                    mInputConnectorLocations.get(i).set(
+                    mInputConnectorOffsets.get(i).set(
                             mTempConnectionPosition.x, mTempConnectionPosition.y);
                 }
             }
