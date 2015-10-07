@@ -206,16 +206,6 @@ public class Dragger {
             return false;
         }
 
-        // TODO (fenichel): Shouldn't actually need to set the position unless it's staying as a
-        // root block.  Otherwise it will be derived from the position of the blocks above during
-        // layout.
-        int dx = connectionCandidates.second.getPosition().x
-                - connectionCandidates.first.getPosition().x;
-        int dy = connectionCandidates.second.getPosition().y
-                - connectionCandidates.first.getPosition().y;
-        block.setPosition(block.getPosition().x + mWorkspaceHelper.viewToWorkspaceUnits(dx),
-                block.getPosition().y + mWorkspaceHelper.viewToWorkspaceUnits(dy));
-
         reconnectViews(connectionCandidates.first, connectionCandidates.second, block);
         finalizeMove();
         return true;
@@ -397,7 +387,6 @@ public class Dragger {
             cur.setDragMode(false);
             mConnectionManager.addConnection(cur);
         }
-        mDragGroup.updateAllConnectorLocations();
         mDragGroup.requestLayout();
     }
 }
