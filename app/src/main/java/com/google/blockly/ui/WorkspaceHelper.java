@@ -174,14 +174,23 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Scales a value in view pixels to workspace units. This does not account for offsets into the
+     * Scales a value in view to workspace units. This does not account for offsets into the
      * view's space, it only uses scaling and screen density to calculate the result.
      *
-     * @param viewValue The value in pixels in the view.
+     * @param viewValue The value in view units.
      * @return The value in workspace units.
      */
     public int viewToWorkspaceUnits(int viewValue) {
         return (int) (viewValue / (mScale * mDensity));
+    }
+
+    /**
+     * Convenience function that converts x and y components from view to workspace units by
+     * applying {@link #viewToWorkspaceUnits(int)} to each component separately.
+     */
+    public void viewToWorkspaceUnits(ViewPoint viewPointIn, WorkspacePoint workspacePointOut) {
+        workspacePointOut.x = viewToWorkspaceUnits(viewPointIn.x);
+        workspacePointOut.y = viewToWorkspaceUnits(viewPointIn.y);
     }
 
     /**

@@ -251,7 +251,7 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        adjustViewPointArrayListSize(mInputLayoutOrigins);
+        adjustListSize(mInputLayoutOrigins);
 
         if (getBlock().getInputsInline()) {
             measureInlineInputs(widthMeasureSpec, heightMeasureSpec);
@@ -316,20 +316,17 @@ public class BlockView extends FrameLayout {
     public void updateConnectorLocations() {
         final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
         if (mBlock.getPreviousConnection() != null) {
-            mTempWorkspacePoint.x = mHelper.viewToWorkspaceUnits(mPreviousConnectorOffset.x);
-            mTempWorkspacePoint.y = mHelper.viewToWorkspaceUnits(mPreviousConnectorOffset.y);
+            mHelper.viewToWorkspaceUnits(mPreviousConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
         if (mBlock.getNextConnection() != null) {
-            mTempWorkspacePoint.x = mHelper.viewToWorkspaceUnits(mNextConnectorOffset.x);
-            mTempWorkspacePoint.y = mHelper.viewToWorkspaceUnits(mNextConnectorOffset.y);
+            mHelper.viewToWorkspaceUnits(mNextConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
         if (mBlock.getOutputConnection() != null) {
-            mTempWorkspacePoint.x = mHelper.viewToWorkspaceUnits(mOutputConnectorOffset.x);
-            mTempWorkspacePoint.y = mHelper.viewToWorkspaceUnits(mOutputConnectorOffset.y);
+            mHelper.viewToWorkspaceUnits(mOutputConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
@@ -337,10 +334,7 @@ public class BlockView extends FrameLayout {
             InputView inputView = mInputViews.get(i);
             Connection conn = inputView.getInput().getConnection();
             if (conn != null) {
-                mTempWorkspacePoint.x =
-                        mHelper.viewToWorkspaceUnits(mInputConnectorLocations.get(i).x);
-                mTempWorkspacePoint.y =
-                        mHelper.viewToWorkspaceUnits(mInputConnectorLocations.get(i).y);
+                mHelper.viewToWorkspaceUnits(mInputConnectorLocations.get(i), mTempWorkspacePoint);
                 mConnectionManager.moveConnectionTo(conn,
                         blockWorkspacePosition, mTempWorkspacePoint);
                 if (conn.isConnected()) {
@@ -676,19 +670,19 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Adjust size of an {@link ArrayList} or {@link ViewPoint} objects to match the size of
+     * Adjust size of an {@link ArrayList} of {@link ViewPoint} objects to match the size of
      * {@link #mInputViews}.
      */
-    private void adjustViewPointArrayListSize(ArrayList<ViewPoint> viewPointArrayList) {
-        if (viewPointArrayList.size() != mInputViews.size()) {
-            viewPointArrayList.ensureCapacity(mInputViews.size());
-            if (viewPointArrayList.size() < mInputViews.size()) {
-                for (int i = viewPointArrayList.size(); i < mInputViews.size(); i++) {
-                    viewPointArrayList.add(new ViewPoint());
+    private void adjustListSize(ArrayList<ViewPoint> list) {
+        if (list.size() != mInputViews.size()) {
+            list.ensureCapacity(mInputViews.size());
+            if (list.size() < mInputViews.size()) {
+                for (int i = list.size(); i < mInputViews.size(); i++) {
+                    list.add(new ViewPoint());
                 }
             } else {
-                while (viewPointArrayList.size() > mInputViews.size()) {
-                    viewPointArrayList.remove(viewPointArrayList.size() - 1);
+                while (list.size() > mInputViews.size()) {
+                    list.remove(list.size() - 1);
                 }
             }
         }
@@ -702,7 +696,7 @@ public class BlockView extends FrameLayout {
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();  // Must reset(), not rewind(), to draw inline input cutouts correctly.
-        adjustViewPointArrayListSize(mInputConnectorLocations);
+        adjustListSize(mInputConnectorLocations);
 
         int xFrom = mLayoutMarginLeft;
         int xTo = mLayoutMarginLeft;
