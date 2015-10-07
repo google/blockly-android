@@ -259,6 +259,22 @@ public class Block {
     }
 
     /**
+     * @return The only value input on the block, or null if there are zero or more than one.
+     */
+    public Input getOnlyValueInput() {
+        Input result = null;
+        for (int i = 0; i < mInputList.size(); i++) {
+            if (mInputList.get(i).getType() == Input.TYPE_VALUE) {
+                if (result != null) {
+                    return null;    // Found more than one value input
+                }
+                result = mInputList.get(i);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Searches through all of the fields on all of the block's inputs.  Returns the first field
      * with the given name.
      *

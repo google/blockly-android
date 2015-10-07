@@ -25,6 +25,7 @@ import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.InputView;
 import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
@@ -205,16 +206,6 @@ public class Dragger {
             return false;
         }
 
-        // TODO (fenichel): Shouldn't actually need to set the position unless it's staying as a
-        // root block.  Otherwise it will be derived from the position of the blocks above during
-        // layout.
-        int dx = connectionCandidates.second.getPosition().x
-                - connectionCandidates.first.getPosition().x;
-        int dy = connectionCandidates.second.getPosition().y
-                - connectionCandidates.first.getPosition().y;
-        block.setPosition(block.getPosition().x + mWorkspaceHelper.viewToWorkspaceUnits(dx),
-                block.getPosition().y + mWorkspaceHelper.viewToWorkspaceUnits(dy));
-
         reconnectViews(connectionCandidates.first, connectionCandidates.second, block);
         finalizeMove();
         return true;
@@ -223,23 +214,54 @@ public class Dragger {
     /**
      * Splice a block or group of blocks between a "previous" and a "next" connection.
      *
-     * @param firstBlock The {@link Block} whose next connection we are interested in.
-     * @param secondBlock The {@link Block} whose previous connection we are interested in.
-     * @param movingBlock The root {@link Block} of the {@link BlockGroup} to be spliced in.
+     * @param previousBlock The {@link Block} whose next connection we are interested in.
+     * @param nextBlock The {@link Block} whose previous connection we are interested in.
+     * @param dragBlock The root {@link Block} of the {@link BlockGroup} to be spliced in.
      */
-    private void insertBetweenBlocks(Block firstBlock, Block secondBlock, Block movingBlock) {
-        firstBlock.getNextConnection().disconnect();
-        firstBlock.getNextConnection().connect(movingBlock.getPreviousConnection());
+    private void insertBetweenPreviousNext(Block previousBlock, Block nextBlock, Block dragBlock) {
+        previousBlock.getNextConnection().disconnect();
+        previousBlock.getNextConnection().connect(dragBlock.getPreviousConnection());
 
-        BlockGroup to = mWorkspaceHelper.getNearestParentBlockGroup(firstBlock);
-        BlockGroup temp = to.extractBlocksAsNewGroup(secondBlock);
-        to.moveBlocksFrom(mDragGroup, movingBlock);
+        BlockGroup toBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(previousBlock);
+        BlockGroup tempBlockGroup = toBlockGroup.extractBlocksAsNewGroup(nextBlock);
+        toBlockGroup.moveBlocksFrom(mDragGroup, dragBlock);
         // moveBlocksFrom walks the list of next connections, so don't reconnect this until after
         // moving the blocks between groups.
-        secondBlock.getPreviousConnection().connect(to.lastChildBlock().getNextConnection());
+        nextBlock.getPreviousConnection().connect(toBlockGroup.lastChildBlock().getNextConnection());
         // For the same reason, don't add the last group of blocks back until the connections have
         // been sewn up.
-        to.moveBlocksFrom(temp, secondBlock);
+        toBlockGroup.moveBlocksFrom(tempBlockGroup, nextBlock);
+    }
+
+    /**
+     * Splice a block or group of blocks between an "input" and an "output" connection.
+     *
+     * @param previousInputView The {@link InputView} of the relevant input on the previous block.
+     * @param moving The {@link Connection} that is in mid-drag. Must be an output connection.
+     * @param candidate The input {@link Connection} on the previous block that we want to attach to.
+     */
+    private void insertBetweenInputOutput(InputView previousInputView, Connection moving,
+                                          Connection candidate) {
+        // Disconnect the blocks we want to splice between, but keep references to them so we can
+        // reconnect them after the splice.
+        BlockGroup child = (BlockGroup) previousInputView.getChildView();
+        Connection nextConnection = candidate.getTargetConnection();
+        candidate.disconnect();
+        previousInputView.unsetChildView();
+
+        // Connect the moving block to the previous block and reattach views.
+        candidate.connect(moving);
+        previousInputView.setChildView(mDragGroup);
+
+        // Connect the moving block/group to the next block and reattach views.
+        // We may be splicing in a single block or a group of blocks, so find the last connection.
+        // If the last block has no inputs or multiple inputs, bump away instead of reconnecting.
+        Input dragBlockInput = mDragGroup.lastChildBlock().getOnlyValueInput();
+        if (dragBlockInput != null && dragBlockInput.getConnection() != null) {
+            nextConnection.connect(dragBlockInput.getConnection());
+            dragBlockInput.getView().setChildView(child);
+        }
+        // TODO (fenichel): Otherwise bump and add to root blocks/views
     }
 
     /**
@@ -266,7 +288,13 @@ public class Dragger {
         // TODO (fenichel): allow dragging a block between two connected blocks.
         switch (primary.getType()) {
             case Connection.CONNECTION_TYPE_OUTPUT:
-                target.getInput().getView().setChildView(mDragGroup);
+                InputView previousInputView = target.getInput().getView();
+                if (target.isConnected()) {
+                    insertBetweenInputOutput(previousInputView, primary, target);
+                    connectPrimary = false;
+                } else {
+                    previousInputView.setChildView(mDragGroup);
+                }
                 break;
             case Connection.CONNECTION_TYPE_PREVIOUS:
                 if (target.getInput() != null
@@ -277,7 +305,7 @@ public class Dragger {
                 } else {
                     // Connecting to a next.
                     if (target.isConnected()) {
-                        insertBetweenBlocks(target.getBlock(), target.getBlock().getNextBlock(),
+                        insertBetweenPreviousNext(target.getBlock(), target.getBlock().getNextBlock(),
                                 dragRoot);
                         connectPrimary = false;
                     } else {
@@ -302,8 +330,8 @@ public class Dragger {
                     addToRoot = true;
                 } else {
                     // Connecting to a previous
-                    if (target.isConnected()) {
-                        insertBetweenBlocks(target.getBlock().getPreviousBlock(), target.getBlock(),
+                     if (target.isConnected()) {
+                        insertBetweenPreviousNext(target.getBlock().getPreviousBlock(), target.getBlock(),
                                 dragRoot);
                         connectPrimary = false;
                         addToRoot = false;
@@ -359,7 +387,6 @@ public class Dragger {
             cur.setDragMode(false);
             mConnectionManager.addConnection(cur);
         }
-        mDragGroup.updateAllConnectorLocations();
         mDragGroup.requestLayout();
     }
 }

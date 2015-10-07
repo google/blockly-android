@@ -182,5 +182,7 @@ public class BlockGroup extends ViewGroup {
                 margin = child.getLayoutMarginLeft();
             }
         }
+        // After we finish laying out we need to update the locations of the connectors
+        updateAllConnectorLocations();
     }
 }
