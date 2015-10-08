@@ -210,8 +210,6 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        resizeList(mInputLayoutOrigins);
-
         if (getBlock().getInputsInline()) {
             measureInlineInputs(widthMeasureSpec, heightMeasureSpec);
         } else {
@@ -254,6 +252,7 @@ public class BlockView extends FrameLayout {
                     rowTop + inputView.getMeasuredHeight());
         }
         updateDrawPath();
+        updateConnectorLocations();
     }
 
     /**
@@ -308,7 +307,7 @@ public class BlockView extends FrameLayout {
     /**
      * Update the position of the block in workspace coordinates based on the view's location.
      */
-    public void updateBlockPosition() {
+    private void updateBlockPosition() {
         mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
         mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
     }
@@ -655,6 +654,9 @@ public class BlockView extends FrameLayout {
             // Next blocks live in the same BlockGroup.
             mHelper.obtainBlockView(mBlock.getNextBlock(), parentGroup, mConnectionManager);
         }
+
+        resizeList(mInputConnectorOffsets);
+        resizeList(mInputLayoutOrigins);
     }
 
     private void initDrawingObjects(Context context) {
@@ -701,7 +703,6 @@ public class BlockView extends FrameLayout {
         // TODO(rohlfingt): refactor path drawing code to be more readable. (Will likely be
         // superseded by TODO: implement pretty block rendering.)
         mDrawPath.reset();  // Must reset(), not rewind(), to draw inline input cutouts correctly.
-        resizeList(mInputConnectorOffsets);
 
         int xFrom = mLayoutMarginLeft;
         int xTo = mLayoutMarginLeft;
@@ -807,7 +808,6 @@ public class BlockView extends FrameLayout {
             }
         }
 
-        updateConnectorLocations();
         mDrawPath.close();
     }
 

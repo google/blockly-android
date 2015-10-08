@@ -16,8 +16,6 @@
 package com.google.blockly.ui;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.annotation.IntDef;
 import android.util.AttributeSet;
@@ -40,35 +38,12 @@ public class WorkspaceView extends ViewGroup {
     private static final String TAG = "WorkspaceView";
     private static final boolean DEBUG = true;
 
-    private static final int DEFAULT_GRID_SPACING = 48;
-    private static final int GRID_COLOR = 0xffa0a0a0;
-    private static final int GRID_RADIUS = 2;
-    private static final float MIN_SCALE_TO_DRAW_GRID = 0.2f;
-
-    // TODO: Replace with more intelligent defaults
-    // Default desired width of the view in pixels.
-    private static final int DESIRED_WIDTH = 2048;
-    // Default desired height of the view in pixels.
-    private static final int DESIRED_HEIGHT = 2048;
-
     private final WorkspaceHelper mHelper;
-    private final Paint mGridPaint = new Paint();
-    private final int mGridSpacing = DEFAULT_GRID_SPACING;
-    private final boolean mDrawGrid = true;
     private final ViewPoint mTemp = new ViewPoint();
     private Workspace mWorkspace;
 
     // Distance threshold for detecting drag gestures.
     private final float mTouchSlop;
-
-    // Fields for workspace panning.
-    private boolean mIsPanning = false;
-    private final ViewPoint mPanningStart = new ViewPoint();
-
-    // Scroll coordinates at the beginning of panning the workspace. During panning, the workspace
-    // is scrolled relative to these.
-    private int mPrePanningScrollX;
-    private int mPrePanningScrollY;
 
     @IntDef({TOUCH_STATE_NONE, TOUCH_STATE_DOWN, TOUCH_STATE_DRAGGING, TOUCH_STATE_LONGPRESS})
     public @interface TouchState {
@@ -95,7 +70,7 @@ public class WorkspaceView extends ViewGroup {
 
     // Viewport bounds. These define the bounding box of all blocks, in view coordinates, and
     // are used to determine ranges and offsets for scrolling.
-    private final Rect mViewportBounds = new Rect();
+    private final Rect mBlocksBoundingBox = new Rect();
 
     public WorkspaceView(Context context) {
         this(context, null);
@@ -108,6 +83,7 @@ public class WorkspaceView extends ViewGroup {
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mHelper = new WorkspaceHelper(this, attrs);
+
         // Tell the workspace helper to pass onTouchBlock events straight through to the WSView.
         mHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
             @Override
@@ -116,21 +92,34 @@ public class WorkspaceView extends ViewGroup {
             }
         });
 
-        mGridPaint.setColor(GRID_COLOR);
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-
-        setWillNotDraw(false);
-        setHorizontalScrollBarEnabled(true);
-        setVerticalScrollBarEnabled(true);
     }
 
     /**
-     * Scroll to the viewport origin.
-     * <p/>
-     * This is intended to be called, for example, when the "reset view" button is clicked.
+     * Sets the workspace this view should display.
+     *
+     * @param workspace The workspace to load views for.
      */
-    public void resetViewport() {
-        scrollTo(0, 0);
+    public void setWorkspace(Workspace workspace) {
+        mWorkspace = workspace;
+        mWorkspace.setWorkspaceHelper(mHelper);
+    }
+
+    public Workspace getWorkspace() {
+        return mWorkspace;
+    }
+
+    public WorkspaceHelper getWorkspaceHelper() {
+        return mHelper;
+    }
+
+    public void setDragger(Dragger dragger) {
+        mDragger = dragger;
+    }
+
+    /** @return The bounding box in view coordinates of the workspace region occupied by blocks. */
+    public Rect getBlocksBoundingBox() {
+        return mBlocksBoundingBox;
     }
 
     /**
@@ -152,36 +141,19 @@ public class WorkspaceView extends ViewGroup {
         return mTouchState == TOUCH_STATE_DOWN;
     }
 
-    /** Handle touch events for either block dragging or workspace panning. */
+    /** Handle touch events for block dragging. */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mTouchState == TOUCH_STATE_DOWN || mTouchState == TOUCH_STATE_DRAGGING) {
             return dragBlock(event);
         }
 
-        return panWorkspace(event);
-    }
-
-    @Override
-    public void scrollTo(int x, int y) {
-        int halfWidth = getWidth() / 2;
-        int halfHeight = getHeight() / 2;
-
-        // Clamp x and y to the scroll range that will allow for 1/2 view being outside the range
-        // use by blocks. This matches the computations in computeHorizontalScrollOffset and
-        // computeVerticalScrollOffset, respectively.
-        x = Math.max(mViewportBounds.left - halfWidth,
-                Math.min(mViewportBounds.right - halfWidth, x));
-        y = Math.max(mViewportBounds.top - halfHeight,
-                Math.min(mViewportBounds.bottom - halfHeight, y));
-
-        mHelper.getOffset().set(mHelper.viewToWorkspaceUnits(x), mHelper.viewToWorkspaceUnits(y));
-        super.scrollTo(x, y);
+        return false;
     }
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        mViewportBounds.setEmpty();
+        mBlocksBoundingBox.setEmpty();
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             BlockGroup blockGroup = (BlockGroup) getChildAt(i);
@@ -192,52 +164,12 @@ public class WorkspaceView extends ViewGroup {
             int childViewLeft = mHelper.workspaceToViewUnits(position.x);
             int childViewTop = mHelper.workspaceToViewUnits(position.y);
 
-            mViewportBounds.union(childViewLeft, childViewTop,
+            mBlocksBoundingBox.union(childViewLeft, childViewTop,
                     childViewLeft + blockGroup.getMeasuredWidth(),
                     childViewTop + blockGroup.getMeasuredHeight());
         }
 
-        int width = getMeasuredSize(widthMeasureSpec, DESIRED_WIDTH);
-        int height = getMeasuredSize(heightMeasureSpec, DESIRED_HEIGHT);
-
-        if (DEBUG) {
-            Log.d(TAG, "Setting dimens to " + width + "x" + height);
-        }
-        setMeasuredDimension(width, height);
-    }
-
-    @Override
-    public void onDraw(Canvas c) {
-        if (shouldDrawGrid()) {
-            int gridSpacing = mGridSpacing;
-            // Figure out where we should start drawing the grid
-            int beginX = getScrollX() + gridSpacing - (getScrollX() % gridSpacing);
-            int beginY = getScrollY() + gridSpacing - (getScrollY() % gridSpacing);
-
-            int endX = getWidth() + getScrollX();
-            int endY = getHeight() + getScrollY();
-
-            for (int x = beginX; x < endX; x += gridSpacing) {
-                for (int y = beginY; y < endY; y += gridSpacing) {
-                    c.drawCircle(x, y, GRID_RADIUS, mGridPaint);
-                }
-            }
-        }
-        super.onDraw(c);
-    }
-
-    /**
-     * Sets the workspace this view should display.
-     *
-     * @param workspace The workspace to load views for.
-     */
-    public void setWorkspace(Workspace workspace) {
-        mWorkspace = workspace;
-        mWorkspace.setWorkspaceHelper(mHelper);
-    }
-
-    public void setDragger(Dragger dragger) {
-        mDragger = dragger;
+        setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
     }
 
     @Override
@@ -248,9 +180,6 @@ public class WorkspaceView extends ViewGroup {
         boolean rtl = mHelper.useRtL();
         int childCount = getChildCount();
 
-        if (DEBUG) {
-            Log.d(TAG, "Laying out " + childCount + " children");
-        }
         for (int i = 0; i < childCount; i++) {
             View child = getChildAt(i);
             if (child.getVisibility() == GONE) {
@@ -259,47 +188,16 @@ public class WorkspaceView extends ViewGroup {
             if (child instanceof BlockGroup) {
                 BlockGroup bg = (BlockGroup) child;
                 WorkspacePoint wksPos = bg.getTopBlockPosition();
-                mTemp.x = mHelper.workspaceToViewUnits(wksPos.x);
-                mTemp.y = mHelper.workspaceToViewUnits(wksPos.y);
+                mHelper.workspaceToViewCoordinates(wksPos, mTemp);
 
                 int cl = rtl ? mTemp.x - bg.getMeasuredWidth() : mTemp.x;
                 int cr = rtl ? mTemp.x : mTemp.x + bg.getMeasuredWidth();
                 int ct = mTemp.y;
                 int cb = mTemp.y + bg.getMeasuredHeight();
+
                 child.layout(cl, ct, cr, cb);
-                Log.d(TAG, "Laid out block group at " + cl + ", " + ct + ", " + cr + ", " + cb);
             }
         }
-    }
-
-    @Override
-    protected int computeHorizontalScrollRange() {
-        return mViewportBounds.width() + getWidth();
-    }
-
-    @Override
-    protected int computeHorizontalScrollExtent() {
-        return getWidth();
-    }
-
-    @Override
-    protected int computeHorizontalScrollOffset() {
-        return getScrollX() - (mViewportBounds.left - getWidth() / 2);
-    }
-
-    @Override
-    protected int computeVerticalScrollRange() {
-        return mViewportBounds.height() + getHeight();
-    }
-
-    @Override
-    protected int computeVerticalScrollExtent() {
-        return getHeight();
-    }
-
-    @Override
-    protected int computeVerticalScrollOffset() {
-        return getScrollY() - (mViewportBounds.top - getHeight() / 2);
     }
 
     /**
@@ -317,32 +215,6 @@ public class WorkspaceView extends ViewGroup {
             mTouchState = TOUCH_STATE_DOWN;
             mDraggingBlockView = blockView;
         }
-    }
-
-    private boolean shouldDrawGrid() {
-        return mDrawGrid && mHelper.getScale() > MIN_SCALE_TO_DRAW_GRID && mGridSpacing > 0;
-    }
-
-    /**
-     * Get size for one dimension (width or height) of the view based on measure spec and desired
-     * size.
-     *
-     * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
-     * @param desiredSize The intrinsic desired size for this view.
-     * @return The determined size, given measure spec and desired size.
-     */
-    private static int getMeasuredSize(int measureSpec, int desiredSize) {
-        int mode = MeasureSpec.getMode(measureSpec);
-        int size = MeasureSpec.getSize(measureSpec);
-
-        if (mode == MeasureSpec.EXACTLY) {
-            return size;
-        } else if (mode == MeasureSpec.AT_MOST) {
-            return Math.min(size, desiredSize);
-        } else {
-            return desiredSize;
-        }
-
     }
 
     /**
@@ -391,49 +263,5 @@ public class WorkspaceView extends ViewGroup {
                 return false;
             }
         }
-    }
-
-    /**
-     * Handle motion events while panning the workspace.
-     */
-    private boolean panWorkspace(MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN: {
-                mIsPanning = true;
-                mPanningStart.set((int) event.getX(), (int) event.getY());
-                mPrePanningScrollX = getScrollX();
-                mPrePanningScrollY = getScrollY();
-                return true;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                if (mIsPanning) {
-                    scrollTo(
-                            mPrePanningScrollX + mPanningStart.x - (int) event.getX(),
-                            mPrePanningScrollY + mPanningStart.y - (int) event.getY());
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-            case MotionEvent.ACTION_UP: {
-                if (mIsPanning) {
-                    mIsPanning = false;
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-            case MotionEvent.ACTION_CANCEL: {
-                // When cancelled, reset to original scroll position.
-                scrollTo(mPrePanningScrollX, mPrePanningScrollY);
-                mIsPanning = false;
-                return true;
-            }
-            default: {
-                break;
-            }
-        }
-
-        return false;
     }
 }

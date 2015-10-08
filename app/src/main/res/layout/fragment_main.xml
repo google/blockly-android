@@ -3,16 +3,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/activity_horizontal_margin"
     tools:context=".MainActivity$PlaceholderFragment">
 
-    <com.google.blockly.ui.WorkspaceView
-        android:id="@+id/workspace"
+    <com.google.blockly.ui.VirtualWorkspaceView
+        android:id="@+id/virtual_workspace"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="horizontal|vertical"
         android:scrollbarStyle="insideOverlay"
-        style="@style/BlocklyTheme"/>
+        style="@style/BlocklyTheme">
+
+        <com.google.blockly.ui.WorkspaceView
+            android:id="@+id/workspace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BlocklyTheme"/>
+
+    </com.google.blockly.ui.VirtualWorkspaceView>
 
     <LinearLayout
         android:layout_alignParentRight="true"
@@ -20,6 +27,24 @@
         android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/zoom_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/zoom_in"/>
+
+        <ImageButton
+            android:id="@+id/zoom_out_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/zoom_out"/>
 
         <ImageButton
             android:id="@+id/reset_view_button"
