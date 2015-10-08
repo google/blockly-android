@@ -265,6 +265,13 @@ public class Connection implements Cloneable {
         return CAN_CONNECT;
     }
 
+    /**
+     * Checks if the connection is an input.  If so, returns the input's view.  Otherwise returns
+     * null.
+     *
+     * @return The {@link InputView} of the {@link Input} on this connection, or null if it doesn't
+     *      have one.
+     */
     @Nullable
     public InputView getInputView() {
         return (getInput() == null) ? null : getInput().getView();

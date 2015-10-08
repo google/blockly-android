@@ -93,12 +93,12 @@ public class Dragger {
                 if (mHighlightedBlockView != null) {
                     mHighlightedBlockView.clearHighlight();
                 }
-                Pair<Connection, Connection> connectionCandidates = findBestConnection(mTouchedBlockView.getBlock());
-                if (connectionCandidates != null) {
-                    mHighlightedBlockView = connectionCandidates.second.getBlock().getView();
-                    mHighlightedBlockView.setHighlightConnection(connectionCandidates.second);
+                Pair<Connection, Connection> connectionCandidate = findBestConnection(
+                        mTouchedBlockView.getBlock());
+                if (connectionCandidate != null) {
+                    mHighlightedBlockView = connectionCandidate.second.getBlock().getView();
+                    mHighlightedBlockView.setHighlightConnection(connectionCandidate.second);
                 }
-
 
                 v.requestLayout();
                 return true;
@@ -214,12 +214,12 @@ public class Dragger {
     }
 
     private boolean snapToConnection(Block block) {
-        Pair<Connection, Connection> connectionCandidates = findBestConnection(block);
-        if (connectionCandidates == null) {
+        Pair<Connection, Connection> connectionCandidate = findBestConnection(block);
+        if (connectionCandidate == null) {
             return false;
         }
 
-        reconnectViews(connectionCandidates.first, connectionCandidates.second, block);
+        reconnectViews(connectionCandidate.first, connectionCandidate.second, block);
         finalizeMove();
         return true;
     }
@@ -229,40 +229,40 @@ public class Dragger {
      * being dragged from the root workspace view and reattach them in the correct places in the
      * view hierarchy, to match the new model.
      *
-     * @param primary The connection on the block being moved.
-     * @param target The closest compatible connection to primary.
+     * @param movingConnection The connection on the block being moved.
+     * @param target The closest compatible connection to movingConnection.
      * @param dragRoot The {@link Block} that is the root of the group of blocks being dragged
      * around.
      */
-    private void reconnectViews(Connection primary, Connection target, Block dragRoot) {
-        switch (primary.getType()) {
+    private void reconnectViews(Connection movingConnection, Connection target, Block dragRoot) {
+        switch (movingConnection.getType()) {
             case Connection.CONNECTION_TYPE_OUTPUT:
                 removeFromRoot(dragRoot, mDragGroup);
-                connectAsChild(target, primary);
+                connectAsChild(target, movingConnection);
                 break;
             case Connection.CONNECTION_TYPE_PREVIOUS:
                 removeFromRoot(dragRoot, mDragGroup);
                 if (target.isStatementInput()) {
-                    connectToStatement(target, primary.getBlock());
+                    connectToStatement(target, movingConnection.getBlock());
                 } else {
-                    connectAfter(primary.getBlock(), target.getBlock());
+                    connectAfter(target.getBlock(), movingConnection.getBlock());
                 }
                 break;
             case Connection.CONNECTION_TYPE_NEXT:
                 if (!target.isConnected()) {
                     removeFromRoot(target.getBlock());
                 }
-                if (primary.isStatementInput()) {
-                    connectToStatement(primary, target.getBlock());
+                if (movingConnection.isStatementInput()) {
+                    connectToStatement(movingConnection, target.getBlock());
                 } else {
-                    connectAfter(target.getBlock(), primary.getBlock());
+                    connectAfter(movingConnection.getBlock(), target.getBlock());
                 }
                 break;
             case Connection.CONNECTION_TYPE_INPUT:
                 if (!target.isConnected()) {
                     removeFromRoot(target.getBlock());
                 }
-                connectAsChild(primary, target);
+                connectAsChild(movingConnection, target);
                 break;
             default:
                 return;
@@ -292,7 +292,7 @@ public class Dragger {
             // dragging.
             Block lastBlockInGroup = mWorkspaceHelper.getNearestParentBlockGroup(toConnect)
                     .lastChildBlock();
-            connectAfter(remainderBlock, lastBlockInGroup);
+            connectAfter(lastBlockInGroup, remainderBlock);
         }
         connectAsChild(parentStatementConnection, toConnect.getPreviousConnection());
     }
@@ -302,10 +302,10 @@ public class Dragger {
      * the superior block already has a "next" block, splices the inferior block between the
      * superior block and its "next" block.
      *
-     * @param inferior The {@link Block} to be connected as the superior block's "next" block.
      * @param superior The {@link Block} after which the inferior block is connecting.
+     * @param inferior The {@link Block} to be connected as the superior block's "next" block.
      */
-    private void connectAfter(Block inferior, Block superior) {
+    private void connectAfter(Block superior, Block inferior) {
         // Assume that the inferior's previous connection is disconnected.
         // Assume that inferior's blockGroup doesn't currently live at the root level.
         BlockGroup superiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(superior);
@@ -320,23 +320,25 @@ public class Dragger {
             // We may be dragging multiple blocks.  Connect after the end of the group we are
             // dragging.
             Block lastBlockInGroup = inferiorBlockGroup.lastChildBlock();
-            // TODO (fenichel): if lastBlockInGroup doesn't have a next connection, add back to the root level.
-            connectAfter(remainderBlock, remainder, lastBlockInGroup, inferiorBlockGroup);
+            // TODO (fenichel): if lastBlockInGroup doesn't have a next connection,
+            // add back to the root level.
+            connectAfter(lastBlockInGroup, inferiorBlockGroup, remainderBlock, remainder);
         }
 
-        connectAfter(inferior, inferiorBlockGroup, superior, superiorBlockGroup);
+        connectAfter(superior, superiorBlockGroup, inferior, inferiorBlockGroup);
     }
 
     /**
      * Connects two blocks together in a previous-next relationship and merges the
      * {@link BlockGroup} of the inferior block into the {@link BlockGroup} of the superior block.
      *
-     * @param inferior The {@link Block} that will follow immediately after the superior block.
-     * @param inferiorBlockGroup The {@link BlockGroup} belonging to the inferior block.
      * @param superior The {@link Block} that the inferior block is moving to attach to.
      * @param superiorBlockGroup The {@link BlockGroup} belonging to the superior block.
+     * @param inferior The {@link Block} that will follow immediately after the superior block.
+     * @param inferiorBlockGroup The {@link BlockGroup} belonging to the inferior block.
      */
-    private void connectAfter(Block inferior, BlockGroup inferiorBlockGroup, Block superior, BlockGroup superiorBlockGroup) {
+    private void connectAfter(Block superior, BlockGroup superiorBlockGroup, Block inferior,
+                              BlockGroup inferiorBlockGroup) {
         // The superior's next connection and the inferior's previous connections must already be
         // disconnected.
         superior.getNextConnection().connect(inferior.getPreviousConnection());
@@ -359,10 +361,13 @@ public class Dragger {
             Connection remainder = parent.getTargetConnection();
             parent.disconnect();
             parentInputView.unsetChildView();
-            if (childBlockGroup.lastChildBlock() != null
-                    && childBlockGroup.lastChildBlock().getOnlyValueInput() != null) {
-                connectAsChild(childBlockGroup.lastChildBlock().getOnlyValueInput().getConnection(),
-                        remainder);
+            // TODO (fenichel): traverse the tree to ensure it doesn't branch. We only reconnect if
+            // there's a single place it could be rebased to.
+            if (childBlockGroup.lastChildBlock() != null) {
+                Input farRightOnlyValueInput = childBlockGroup.lastChildBlock().getOnlyValueInput();
+                if (farRightOnlyValueInput != null) {
+                    connectAsChild(farRightOnlyValueInput.getConnection(), remainder);
+                }
             } else {
                 // TODO (fenichel): Bump and add back to the root
             }
