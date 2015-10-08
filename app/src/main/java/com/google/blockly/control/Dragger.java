@@ -301,13 +301,14 @@ public class Dragger {
      * Connect a block after another block in the same block group.  Updates views as necessary.  If
      * the superior block already has a "next" block, splices the inferior block between the
      * superior block and its "next" block.
+     * <p>
+     * Assumes that the inferior's previous connection is disconnected.
+     * Assumes that inferior's blockGroup doesn't currently live at the root level.
      *
      * @param superior The {@link Block} after which the inferior block is connecting.
      * @param inferior The {@link Block} to be connected as the superior block's "next" block.
      */
     private void connectAfter(Block superior, Block inferior) {
-        // Assume that the inferior's previous connection is disconnected.
-        // Assume that inferior's blockGroup doesn't currently live at the root level.
         BlockGroup superiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(superior);
         BlockGroup inferiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(inferior);
 
@@ -355,6 +356,11 @@ public class Dragger {
      */
     private void connectAsChild(Connection parent, Connection child) {
         InputView parentInputView = parent.getInputView();
+        if (parentInputView == null) {
+            throw new IllegalStateException("Tried to connect as a child, but the parent didn't "
+            + "have an input view.");
+        }
+
         BlockGroup childBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(child.getBlock());
 
         if (parent.isConnected()) {
