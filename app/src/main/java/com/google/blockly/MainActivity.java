@@ -27,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.WorkspaceView;
@@ -136,13 +137,25 @@ public class MainActivity extends ActionBarActivity
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
-            WorkspaceView wv = (WorkspaceView) rootView.findViewById(R.id.workspace);
-            wv.setWorkspace(mWorkspace);
+            final ViewGroup rootView =
+                    (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
+            final WorkspaceView workspaceView =
+                    (WorkspaceView) rootView.findViewById(R.id.workspace);
+            workspaceView.setWorkspace(mWorkspace);
+
+            rootView.findViewById(R.id.reset_view_button).setOnClickListener(
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            workspaceView.resetViewport();
+                        }
+                    }
+            );
+
             // Add all blocks, or load from XML.
             MockBlocksProvider.makeTestModel(mWorkspace);
             // Let the controller create the views.
-            mWorkspace.createViewsFromModel(wv, getActivity());
+            mWorkspace.createViewsFromModel(workspaceView, getActivity());
             return rootView;
         }
 
