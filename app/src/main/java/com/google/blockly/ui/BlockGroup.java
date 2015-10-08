@@ -16,7 +16,6 @@
 package com.google.blockly.ui;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.view.View;
 import android.view.ViewGroup;
 
