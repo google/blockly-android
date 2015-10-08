@@ -205,7 +205,7 @@ public class WorkspaceView extends ViewGroup {
 
     @Override
     protected int computeHorizontalScrollOffset() {
-        return mViewportBounds.left - getWidth() / 2;
+        return getScrollX() - (mViewportBounds.left - getWidth() / 2);
     }
 
     @Override
@@ -220,7 +220,7 @@ public class WorkspaceView extends ViewGroup {
 
     @Override
     protected int computeVerticalScrollOffset() {
-        return mViewportBounds.top - getHeight() / 2;
+        return getScrollY() - (mViewportBounds.top - getHeight() / 2);
     }
 
     private boolean shouldDrawGrid() {
