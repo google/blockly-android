@@ -323,7 +323,7 @@ public class WorkspaceHelper {
      * Find the closest {@link BlockGroup} in the hierarchy that this {@link Block} descends from.
      *
      * @param block The block to start searching from.
-     * @return The highest {@link BlockGroup} found.
+     * @return The closest {@link BlockGroup} found.
      */
     public BlockGroup getNearestParentBlockGroup(Block block) {
         ViewParent viewParent = block.getView().getParent();
