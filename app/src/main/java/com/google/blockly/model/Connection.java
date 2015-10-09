@@ -17,7 +17,10 @@ package com.google.blockly.model;
 
 import android.graphics.Point;
 import android.support.annotation.IntDef;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
+
+import com.google.blockly.ui.InputView;
 
 /**
  * Describes a connection on a Block. This can be a previous/next connection, an output, or
@@ -262,6 +265,21 @@ public class Connection implements Cloneable {
         return CAN_CONNECT;
     }
 
+    /**
+     * Checks if the connection is an input.  If so, returns the input's view.  Otherwise returns
+     * null.
+     *
+     * @return The {@link InputView} of the {@link Input} on this connection, or null if it doesn't
+     *      have one.
+     */
+    @Nullable
+    public InputView getInputView() {
+        return (getInput() == null) ? null : getInput().getView();
+    }
+
+    public boolean isStatementInput() {
+        return (getInput() != null && getInput().getType() == Input.TYPE_STATEMENT);
+    }
     private void connectInternal(Connection target) {
         mTargetConnection = target;
     }

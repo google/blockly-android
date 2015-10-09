@@ -42,7 +42,7 @@ public class Dragger {
     // Blocks "snap" toward each other at the end of drags if they have compatible connections
     // near each other.  This is the farthest they can snap.
     // Units: Pixels.  TODO: Load from resources, value in dips.
-    private static final int MAX_SNAP_DISTANCE = 50;
+    private static final int MAX_SNAP_DISTANCE = 25;
 
     private final ViewPoint mDragStart = new ViewPoint();
     private final WorkspacePoint mBlockOriginalPosition = new WorkspacePoint();
@@ -55,6 +55,7 @@ public class Dragger {
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private BlockGroup mDragGroup;
+    private BlockView mHighlightedBlockView;
 
     /**
      * @param workspaceHelper For use in computing workspace coordinates.
@@ -87,6 +88,18 @@ public class Dragger {
                 updateBlockPosition(mTouchedBlockView.getBlock(),
                         mWorkspaceHelper.viewToWorkspaceUnits(eventX - mDragStart.x),
                         mWorkspaceHelper.viewToWorkspaceUnits(eventY - mDragStart.y));
+
+                // highlight as we go
+                if (mHighlightedBlockView != null) {
+                    mHighlightedBlockView.clearHighlight();
+                }
+                Pair<Connection, Connection> connectionCandidate = findBestConnection(
+                        mTouchedBlockView.getBlock());
+                if (connectionCandidate != null) {
+                    mHighlightedBlockView = connectionCandidate.second.getBlock().getView();
+                    mHighlightedBlockView.setHighlightConnection(connectionCandidate.second);
+                }
+
                 v.requestLayout();
                 return true;
             }
@@ -201,67 +214,14 @@ public class Dragger {
     }
 
     private boolean snapToConnection(Block block) {
-        Pair<Connection, Connection> connectionCandidates = findBestConnection(block);
-        if (connectionCandidates == null) {
+        Pair<Connection, Connection> connectionCandidate = findBestConnection(block);
+        if (connectionCandidate == null) {
             return false;
         }
 
-        reconnectViews(connectionCandidates.first, connectionCandidates.second, block);
+        reconnectViews(connectionCandidate.first, connectionCandidate.second, block);
         finalizeMove();
         return true;
-    }
-
-    /**
-     * Splice a block or group of blocks between a "previous" and a "next" connection.
-     *
-     * @param previousBlock The {@link Block} whose next connection we are interested in.
-     * @param nextBlock The {@link Block} whose previous connection we are interested in.
-     * @param dragBlock The root {@link Block} of the {@link BlockGroup} to be spliced in.
-     */
-    private void insertBetweenPreviousNext(Block previousBlock, Block nextBlock, Block dragBlock) {
-        previousBlock.getNextConnection().disconnect();
-        previousBlock.getNextConnection().connect(dragBlock.getPreviousConnection());
-
-        BlockGroup toBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(previousBlock);
-        BlockGroup tempBlockGroup = toBlockGroup.extractBlocksAsNewGroup(nextBlock);
-        toBlockGroup.moveBlocksFrom(mDragGroup, dragBlock);
-        // moveBlocksFrom walks the list of next connections, so don't reconnect this until after
-        // moving the blocks between groups.
-        nextBlock.getPreviousConnection().connect(toBlockGroup.lastChildBlock().getNextConnection());
-        // For the same reason, don't add the last group of blocks back until the connections have
-        // been sewn up.
-        toBlockGroup.moveBlocksFrom(tempBlockGroup, nextBlock);
-    }
-
-    /**
-     * Splice a block or group of blocks between an "input" and an "output" connection.
-     *
-     * @param previousInputView The {@link InputView} of the relevant input on the previous block.
-     * @param moving The {@link Connection} that is in mid-drag. Must be an output connection.
-     * @param candidate The input {@link Connection} on the previous block that we want to attach to.
-     */
-    private void insertBetweenInputOutput(InputView previousInputView, Connection moving,
-                                          Connection candidate) {
-        // Disconnect the blocks we want to splice between, but keep references to them so we can
-        // reconnect them after the splice.
-        BlockGroup child = (BlockGroup) previousInputView.getChildView();
-        Connection nextConnection = candidate.getTargetConnection();
-        candidate.disconnect();
-        previousInputView.unsetChildView();
-
-        // Connect the moving block to the previous block and reattach views.
-        candidate.connect(moving);
-        previousInputView.setChildView(mDragGroup);
-
-        // Connect the moving block/group to the next block and reattach views.
-        // We may be splicing in a single block or a group of blocks, so find the last connection.
-        // If the last block has no inputs or multiple inputs, bump away instead of reconnecting.
-        Input dragBlockInput = mDragGroup.lastChildBlock().getOnlyValueInput();
-        if (dragBlockInput != null && dragBlockInput.getConnection() != null) {
-            nextConnection.connect(dragBlockInput.getConnection());
-            dragBlockInput.getView().setChildView(child);
-        }
-        // TODO (fenichel): Otherwise bump and add to root blocks/views
     }
 
     /**
@@ -269,108 +229,184 @@ public class Dragger {
      * being dragged from the root workspace view and reattach them in the correct places in the
      * view hierarchy, to match the new model.
      *
-     * @param primary The connection on the block being moved.
-     * @param target The closest compatible connection to primary.
+     * @param movingConnection The connection on the block being moved.
+     * @param target The closest compatible connection to movingConnection.
      * @param dragRoot The {@link Block} that is the root of the group of blocks being dragged
      * around.
      */
-    private void reconnectViews(Connection primary, Connection target, Block dragRoot) {
-        // The block and its group lived at the root level while dragging, but may cease to be a
-        // top level block after being dragged, e.g. when connecting to the "Next" connection
-        // of another block in the workspace.
-        mRootBlocks.remove(dragRoot);
-        mWorkspaceView.removeView(mDragGroup);
-        boolean addToRoot = false;
-        boolean connectPrimary = true;
-
-        Block targetBlock;
-        BlockGroup child;
-        // TODO (fenichel): allow dragging a block between two connected blocks.
-        switch (primary.getType()) {
+    private void reconnectViews(Connection movingConnection, Connection target, Block dragRoot) {
+        switch (movingConnection.getType()) {
             case Connection.CONNECTION_TYPE_OUTPUT:
-                InputView previousInputView = target.getInput().getView();
-                if (target.isConnected()) {
-                    insertBetweenInputOutput(previousInputView, primary, target);
-                    connectPrimary = false;
-                } else {
-                    previousInputView.setChildView(mDragGroup);
-                }
+                removeFromRoot(dragRoot, mDragGroup);
+                connectAsChild(target, movingConnection);
                 break;
             case Connection.CONNECTION_TYPE_PREVIOUS:
-                if (target.getInput() != null
-                        && target.getInput().getType() == Input.TYPE_STATEMENT) {
-                    // Connecting to a statement input.
-                    // TODO (fenichel): Handle case where target is already connected here.
-                    target.getInput().getView().setChildView(mDragGroup);
+                removeFromRoot(dragRoot, mDragGroup);
+                if (target.isStatementInput()) {
+                    connectToStatement(target, movingConnection.getBlock());
                 } else {
-                    // Connecting to a next.
-                    if (target.isConnected()) {
-                        insertBetweenPreviousNext(target.getBlock(), target.getBlock().getNextBlock(),
-                                dragRoot);
-                        connectPrimary = false;
-                    } else {
-                        BlockGroup parent = mWorkspaceHelper.getNearestParentBlockGroup(target.getBlock());
-                        parent.moveBlocksFrom(mDragGroup, dragRoot);
-                    }
+                    connectAfter(target.getBlock(), movingConnection.getBlock());
                 }
                 break;
             case Connection.CONNECTION_TYPE_NEXT:
-                targetBlock = target.getBlock();
-                child = mWorkspaceHelper.getNearestParentBlockGroup(targetBlock);
-                if (!target.isConnected() && child.getParent() instanceof WorkspaceView) {
-                    // The block we are connecting to is a root block.
-                    mWorkspaceView.removeView(child);
-                    mRootBlocks.remove(targetBlock);
+                if (!target.isConnected()) {
+                    removeFromRoot(target.getBlock());
                 }
-                // All of the blocks in a chain of previous/next connections live in the same
-                // {@link BlockGroup}
-                if (primary.getInput() != null
-                        && primary.getInput().getType() == Input.TYPE_STATEMENT) {
-                    primary.getInput().getView().setChildView(child);
-                    addToRoot = true;
+                if (movingConnection.isStatementInput()) {
+                    connectToStatement(movingConnection, target.getBlock());
                 } else {
-                    // Connecting to a previous
-                     if (target.isConnected()) {
-                        insertBetweenPreviousNext(target.getBlock().getPreviousBlock(), target.getBlock(),
-                                dragRoot);
-                        connectPrimary = false;
-                        addToRoot = false;
-                    } else {
-                        mDragGroup.moveBlocksFrom(child, targetBlock);
-                        addToRoot = true;
-                    }
+                    connectAfter(movingConnection.getBlock(), target.getBlock());
                 }
                 break;
             case Connection.CONNECTION_TYPE_INPUT:
-                targetBlock = target.getBlock();
-                child = mWorkspaceHelper.getNearestParentBlockGroup(targetBlock);
-                // Could may be also just check if the output is occupied
-                if (child.getParent() instanceof WorkspaceView) {
-                    // The block we are connecting to is a root block.
-                    mWorkspaceView.removeView(child);
-                    mRootBlocks.remove(targetBlock);
+                if (!target.isConnected()) {
+                    removeFromRoot(target.getBlock());
                 }
-                primary.getInput().getView().setChildView(child);
-                addToRoot = true;
+                connectAsChild(movingConnection, target);
                 break;
             default:
                 return;
         }
 
-        // If the connection on the dragged block was an input or a next it's possible that the
-        // block is still a top level block.  If so, add it back to the workspace and view.
-        if (addToRoot) {
-            mRootBlocks.add(dragRoot);
-            mWorkspaceView.addView(mDragGroup);
-        }
-
-        // Primary may have been connected during a helper method; don't connect it twice.
-        if (connectPrimary) {
-            primary.connect(target);
-        }
         // Update the drag group so that everything that has been changed will be properly
         // invalidated.
         mDragGroup = mWorkspaceHelper.getRootBlockGroup(target.getBlock());
+    }
+
+    /**
+     * Connect a block to a statement input of another block and update views as necessary.  If the
+     * statement input already is connected to another block, splice the inferior block between
+     * them.
+     *
+     * @param parentStatementConnection The {@link Connection} on the superior block to be
+     * connected to.  Must be on a statement input.
+     * @param toConnect The {@link Block} to connect to the statement input.
+     */
+    private void connectToStatement(Connection parentStatementConnection, Block toConnect) {
+        // If there was already a block connected there.
+        if (parentStatementConnection.isConnected()) {
+            Block remainderBlock = parentStatementConnection.getTargetBlock();
+            parentStatementConnection.getInputView().unsetChildView();
+            parentStatementConnection.disconnect();
+            // We may be dragging multiple blocks.  Connect after the end of the group we are
+            // dragging.
+            Block lastBlockInGroup = mWorkspaceHelper.getNearestParentBlockGroup(toConnect)
+                    .lastChildBlock();
+            connectAfter(lastBlockInGroup, remainderBlock);
+        }
+        connectAsChild(parentStatementConnection, toConnect.getPreviousConnection());
+    }
+
+    /**
+     * Connect a block after another block in the same block group.  Updates views as necessary.  If
+     * the superior block already has a "next" block, splices the inferior block between the
+     * superior block and its "next" block.
+     * <p>
+     * Assumes that the inferior's previous connection is disconnected.
+     * Assumes that inferior's blockGroup doesn't currently live at the root level.
+     *
+     * @param superior The {@link Block} after which the inferior block is connecting.
+     * @param inferior The {@link Block} to be connected as the superior block's "next" block.
+     */
+    private void connectAfter(Block superior, Block inferior) {
+        BlockGroup superiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(superior);
+        BlockGroup inferiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(inferior);
+
+        // To splice between two blocks, just need another call to connectAfter.
+        if (superior.getNextConnection().isConnected()) {
+            Block remainderBlock = superior.getNextBlock();
+            BlockGroup remainder = superiorBlockGroup.extractBlocksAsNewGroup(
+                    remainderBlock);
+            superior.getNextConnection().disconnect();
+            // We may be dragging multiple blocks.  Connect after the end of the group we are
+            // dragging.
+            Block lastBlockInGroup = inferiorBlockGroup.lastChildBlock();
+            // TODO (fenichel): if lastBlockInGroup doesn't have a next connection,
+            // add back to the root level.
+            connectAfter(lastBlockInGroup, inferiorBlockGroup, remainderBlock, remainder);
+        }
+
+        connectAfter(superior, superiorBlockGroup, inferior, inferiorBlockGroup);
+    }
+
+    /**
+     * Connects two blocks together in a previous-next relationship and merges the
+     * {@link BlockGroup} of the inferior block into the {@link BlockGroup} of the superior block.
+     *
+     * @param superior The {@link Block} that the inferior block is moving to attach to.
+     * @param superiorBlockGroup The {@link BlockGroup} belonging to the superior block.
+     * @param inferior The {@link Block} that will follow immediately after the superior block.
+     * @param inferiorBlockGroup The {@link BlockGroup} belonging to the inferior block.
+     */
+    private void connectAfter(Block superior, BlockGroup superiorBlockGroup, Block inferior,
+                              BlockGroup inferiorBlockGroup) {
+        // The superior's next connection and the inferior's previous connections must already be
+        // disconnected.
+        superior.getNextConnection().connect(inferior.getPreviousConnection());
+        superiorBlockGroup.moveBlocksFrom(inferiorBlockGroup, inferior);
+    }
+
+    /**
+     * Connect a block or block group to an input on another block and update views as necessary.
+     * If the input was already connected, splice the child block or group in.
+     *
+     * @param parent The {@link Connection} on the superior block to connect to.  Must be an input.
+     * @param child The {@link Connection} on the inferior block.  Must be an output or previous
+     * connection.
+     */
+    private void connectAsChild(Connection parent, Connection child) {
+        InputView parentInputView = parent.getInputView();
+        if (parentInputView == null) {
+            throw new IllegalStateException("Tried to connect as a child, but the parent didn't "
+            + "have an input view.");
+        }
+
+        BlockGroup childBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(child.getBlock());
+
+        if (parent.isConnected()) {
+            Connection remainder = parent.getTargetConnection();
+            parent.disconnect();
+            parentInputView.unsetChildView();
+            // TODO (fenichel): traverse the tree to ensure it doesn't branch. We only reconnect if
+            // there's a single place it could be rebased to.
+            if (childBlockGroup.lastChildBlock() != null) {
+                Input farRightOnlyValueInput = childBlockGroup.lastChildBlock().getOnlyValueInput();
+                if (farRightOnlyValueInput != null) {
+                    connectAsChild(farRightOnlyValueInput.getConnection(), remainder);
+                }
+            } else {
+                // TODO (fenichel): Bump and add back to the root
+            }
+        }
+        parent.connect(child);
+        parentInputView.setChildView(childBlockGroup);
+    }
+
+
+    /**
+     * Removes the given block and its view from the root view.  If it didn't live at the root level
+     * do nothing.
+     *
+     * @param block The {@link Block} to look up and remove.
+     */
+    private void removeFromRoot(Block block) {
+        BlockGroup group = mWorkspaceHelper.getNearestParentBlockGroup(block);
+        if (group.getParent() instanceof WorkspaceView) {
+            // The block we are connecting to is a root block.
+            removeFromRoot(block, group);
+        }
+    }
+
+    /**
+     * Removes the given block and its view from the root view.  The block must live at the root
+     * level.
+     *
+     * @param block The {@link Block} to remove.
+     * @param group The {@link BlockGroup} to remove.
+     */
+    private void removeFromRoot(Block block, BlockGroup group) {
+        mWorkspaceView.removeView(group);
+        mRootBlocks.remove(block);
     }
 
     /**
@@ -378,6 +414,10 @@ public class Dragger {
      * back to the manager.
      */
     private void finalizeMove() {
+        if (mHighlightedBlockView != null) {
+            mHighlightedBlockView.clearHighlight();
+            mHighlightedBlockView = null;
+        }
         // All of the connection locations will be set relative to their block views immediately
         // after this loop.  For now we just want to unset drag mode and add the connections back
         // to the list; 0, 0 is a cheap place to put them.
