@@ -71,7 +71,7 @@ public class Dragger {
         mRootBlocks = rootBlocks;
     }
 
-    public boolean onTouch(View v, MotionEvent event) {
+    public boolean onTouchBlock(View v, MotionEvent event) {
         int eventX = (int) event.getRawX();
         int eventY = (int) event.getRawY();
 
@@ -107,7 +107,7 @@ public class Dragger {
                 if (!snapToConnection(mTouchedBlockView.getBlock())) {
                     finalizeMove();
                 }
-                return true;
+                return false;
             }
             // TODO (fenichel): Handle ACTION_CANCEL.
             default:

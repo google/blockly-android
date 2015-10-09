@@ -25,6 +25,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -53,19 +54,25 @@ public class WorkspaceView extends ViewGroup {
     private final int mGridSpacing = DEFAULT_GRID_SPACING;
     private final boolean mDrawGrid = true;
     private final ViewPoint mTemp = new ViewPoint();
-    private final ViewPoint mDragStart = new ViewPoint();
     private Workspace mWorkspace;
-    // Fields for workspace dragging.
-    private boolean mIsDragging;
+
+    // Fields for workspace panning.
+    private boolean mIsPanning = false;
+    private final ViewPoint mPanningStart = new ViewPoint();
+
+    // Scroll coordinates at the beginning of panning the workspace. During panning, the workspace
+    // is scrolled relative to these.
+    private int mPrePanningScrollX;
+    private int mPrePanningScrollY;
+
+    // Fields for dragging blocks in the workspace.
+    private boolean mIsDraggingBlock = false;
+    private BlockView mDraggingBlockView;
+    private Dragger mDragger;
 
     // Viewport bounds. These define the bounding box of all blocks, in view coordinates, and
     // are used to determine ranges and offsets for scrolling.
     private final Rect mViewportBounds = new Rect();
-
-    // Scroll coordinates at the beginning of dragging the workspace. During dragging, the workspace
-    // is scrolled relative to these.
-    private int mPreDragScrollX;
-    private int mPreDragScrollY;
 
     public WorkspaceView(Context context) {
         this(context, null);
@@ -77,7 +84,7 @@ public class WorkspaceView extends ViewGroup {
 
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mHelper = new WorkspaceHelper(context, attrs);
+        mHelper = new WorkspaceHelper(this, attrs);
         mGridPaint.setColor(GRID_COLOR);
 
         setWillNotDraw(false);
@@ -94,24 +101,39 @@ public class WorkspaceView extends ViewGroup {
         scrollTo(0, 0);
     }
 
+    public void onTouchBlock(BlockView blockView, MotionEvent event) {
+        mIsDraggingBlock = true;
+        mDraggingBlockView = blockView;
+        mDragger.onTouchBlock(blockView, event);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent event) {
+        return mIsDraggingBlock;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (mIsDraggingBlock) {
+            mIsDraggingBlock = mDragger.onTouchBlock(mDraggingBlockView, event);
+            return true;
+        }
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            mIsDragging = true;
-            mDragStart.set((int) event.getRawX(), (int) event.getRawY());
-            mPreDragScrollX = getScrollX();
-            mPreDragScrollY = getScrollY();
+            mIsPanning = true;
+            mPanningStart.set((int) event.getX(), (int) event.getY());
+            mPrePanningScrollX = getScrollX();
+            mPrePanningScrollY = getScrollY();
             return true;
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (mIsDragging) {
+            if (mIsPanning) {
                 scrollTo(
-                        mPreDragScrollX + mDragStart.x - (int) event.getRawX(),
-                        mPreDragScrollY + mDragStart.y - (int) event.getRawY());
+                        mPrePanningScrollX + mPanningStart.x - (int) event.getX(),
+                        mPrePanningScrollY + mPanningStart.y - (int) event.getY());
                 return true;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            if (mIsDragging) {
-                mIsDragging = false;
+            if (mIsPanning) {
+                mIsPanning = false;
                 return true;
             }
         }
@@ -191,6 +213,10 @@ public class WorkspaceView extends ViewGroup {
     public void setWorkspace(Workspace workspace) {
         mWorkspace = workspace;
         mWorkspace.setWorkspaceHelper(mHelper);
+    }
+
+    public void setDragger(Dragger dragger) {
+        mDragger = dragger;
     }
 
     @Override

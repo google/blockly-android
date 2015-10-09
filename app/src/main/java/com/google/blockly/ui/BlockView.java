@@ -26,7 +26,6 @@ import android.widget.FrameLayout;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
-import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
@@ -54,7 +53,6 @@ public class BlockView extends FrameLayout {
     private final WorkspaceHelper mHelper;
     private final Block mBlock;
     private final ConnectionManager mConnectionManager;
-    private final Dragger mDragger;
 
     // Objects for drawing the block.
     private final Path mDrawPath = new Path();
@@ -81,8 +79,6 @@ public class BlockView extends FrameLayout {
     // List of widths of multi-field rows when rendering inline inputs.
     private final ArrayList<Integer> mInlineRowWidth = new ArrayList<>();
 
-    private BlockWorkspaceParams mWorkspaceParams;
-
     // Fields for highlighting.
     private boolean mHighlightBlock;
     private Connection mHighlightConnection;
@@ -97,8 +93,7 @@ public class BlockView extends FrameLayout {
 
     // Width of the core "block", ie, rectangle box without connectors or inputs.
     private int mBlockWidth;
-    // True while this instance is handling an active drag event.
-    private boolean mHandlingEvent = false;
+
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
     /**
@@ -116,7 +111,7 @@ public class BlockView extends FrameLayout {
      */
     public BlockView(Context context, Block block, WorkspaceHelper helper, BlockGroup parentGroup,
                      ConnectionManager connectionManager) {
-        this(context, 0 /* default style */, block, helper, parentGroup, null, connectionManager);
+        this(context, 0 /* default style */, block, helper, parentGroup, connectionManager);
     }
 
     /**
@@ -128,19 +123,15 @@ public class BlockView extends FrameLayout {
      * @param block The {@link Block} represented by this view.
      * @param helper The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
-     * @param dragger Helper object that handles dragging of this view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      */
     public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
-                     BlockGroup parentGroup, Dragger dragger,
-                     ConnectionManager connectionManager) {
+                     BlockGroup parentGroup, ConnectionManager connectionManager) {
         super(context, null, 0);
 
         mBlock = block;
         mConnectionManager = connectionManager;
         mHelper = helper;
-        mWorkspaceParams = new BlockWorkspaceParams(mBlock, mHelper);
-        mDragger = dragger;
 
         parentGroup.addView(this);
         block.setView(this);
@@ -190,42 +181,45 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Determine whether a {@link MotionEvent} should be handled by this view based on the
-     * approximate area covered by this views visible parts.
+     * Test whether a {@link MotionEvent} event is (approximately) hitting a visible part of this
+     * view.
+     * <p/>
+     * This is used to determine whether the event should be handled by this view, e.g., to activate
+     * dragging or to open a context menu.
      *
      * @param event The {@link MotionEvent} to check.
      * @return True if the event is a DOWN event and the coordinate of the motion event is on the
-     * visible, non-transparent part of this view; false otherwise.  Updates {@link #mHandlingEvent}
-     * to avoid repeating the computation over the course of a move.
+     * visible, non-transparent part of this view; false otherwise.
      */
-    public boolean shouldHandle(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            float eventX = event.getX();
-            float eventY = event.getY();
-            boolean rtl = mHelper.useRtL();
+    public boolean hitTest(MotionEvent event) {
+        float eventX = event.getX();
+        float eventY = event.getY();
+        boolean rtl = mHelper.useRtL();
 
-            // First check whether event is in the general horizontal range of the block outline
-            // (minus children) and exit if it is not.
-            int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
-            int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
-            if (eventX < blockBegin || eventX > blockEnd) {
-                return false;
-            }
+        // First check whether event is in the general horizontal range of the block outline
+        // (minus children) and exit if it is not.
+        int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
+        int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
+        if (eventX < blockBegin || eventX > blockEnd) {
+            return false;
+        }
 
-            // In the ballpark - now check whether event is on a field of any of this block's
-            // inputs. If it is, then the event belongs to this BlockView, otherwise it does not.
-            for (int i = 0; i < mInputViews.size(); ++i) {
-                InputView inputView = mInputViews.get(i);
-                if (inputView.isOnFields(
-                        eventX - inputView.getLeft(), eventY - inputView.getTop())) {
-                    mHandlingEvent = true;
-                    return true;
-                }
+        // In the ballpark - now check whether event is on a field of any of this block's
+        // inputs. If it is, then the event belongs to this BlockView, otherwise it does not.
+        for (int i = 0; i < mInputViews.size(); ++i) {
+            InputView inputView = mInputViews.get(i);
+            if (inputView.isOnFields(
+                    eventX - inputView.getLeft(), eventY - inputView.getTop())) {
+                return true;
             }
-        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            return mHandlingEvent;
-        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            mHandlingEvent = false;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (hitTest(event)) {
+            mHelper.getWorkspaceView().onTouchBlock(this, event);
             return true;
         }
         return false;
@@ -237,11 +231,6 @@ public class BlockView extends FrameLayout {
         c.drawPath(mDrawPath, mBorderPaint);
         drawHighlights(c);
         drawConnectorCenters(c);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return mDragger != null && shouldHandle(event) && mDragger.onTouch(this, event);
     }
 
     /**
@@ -644,16 +633,15 @@ public class BlockView extends FrameLayout {
             if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
                 // Blocks connected to inputs live in their own BlockGroups.
                 BlockGroup bg = new BlockGroup(context, mHelper);
-                mHelper.obtainBlockView(in.getConnection().getTargetBlock(), bg, mDragger,
-                        mConnectionManager);
+                mHelper.obtainBlockView(
+                        in.getConnection().getTargetBlock(), bg, mConnectionManager);
                 inputView.setChildView(bg);
             }
         }
 
         if (mBlock.getNextBlock() != null) {
             // Next blocks live in the same BlockGroup.
-            mHelper.obtainBlockView(mBlock.getNextBlock(), parentGroup, mDragger,
-                    mConnectionManager);
+            mHelper.obtainBlockView(mBlock.getNextBlock(), parentGroup, mConnectionManager);
         }
     }
 

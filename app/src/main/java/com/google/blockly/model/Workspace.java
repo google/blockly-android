@@ -144,10 +144,10 @@ public class Workspace {
         BlockGroup bg;
         mWorkspaceView = wv;
         mDragger.setWorkspaceView(mWorkspaceView);
+        mWorkspaceView.setDragger(mDragger);
         for (int i = 0; i < mRootBlocks.size(); i++) {
             bg = new BlockGroup(context, mWorkspaceHelper);
-            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mDragger,
-                    mConnectionManager);
+            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mConnectionManager);
             mWorkspaceView.addView(bg);
         }
     }

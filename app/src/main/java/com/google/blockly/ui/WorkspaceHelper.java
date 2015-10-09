@@ -26,7 +26,6 @@ import android.view.ViewParent;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
-import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -39,10 +38,13 @@ public class WorkspaceHelper {
 
     private static final float SCALE_MIN = 0.1f;
     private static final float SCALE_MAX = 3f;
-    private final WorkspacePoint mWorkspaceOffset;
-    private final ViewPoint mViewSize;
+
+    private final WorkspaceView mWorkspaceView;
+
+    private final WorkspacePoint mWorkspaceOffset = new WorkspacePoint();
+    private final ViewPoint mViewSize = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
-    private final Context mContext;
+
     private float mMinScale;
     private float mMaxScale;
     private float mDefaultScale;
@@ -56,11 +58,11 @@ public class WorkspaceHelper {
      * Create a helper for creating and doing calculations for views in the workspace using the
      * workspace's style.
      *
-     * @param context The current context to get display metrics from.
+     * @param workspaceView The {@link WorkspaceView} for which this is a helper.
      * @param attrs The workspace attributes to load the style from.
      */
-    public WorkspaceHelper(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+    public WorkspaceHelper(WorkspaceView workspaceView, AttributeSet attrs) {
+        this(workspaceView, attrs, 0);
     }
 
     /**
@@ -75,21 +77,27 @@ public class WorkspaceHelper {
      * <li>The context's theme.</li>
      * </ol>
      *
-     * @param context The context to get display metrics and resources from.
-     * @param attrs The WorkspaceView attributes or null.
+     * @param workspaceView The {@link WorkspaceView} for which this is a helper.
+     * @param attrs The {@link WorkspaceView} attributes or null.
      * @param workspaceStyle The style to use for views.
      */
-    public WorkspaceHelper(Context context, AttributeSet attrs, int workspaceStyle) {
-        mContext = context;
+    public WorkspaceHelper(WorkspaceView workspaceView, AttributeSet attrs, int workspaceStyle) {
+        mWorkspaceView = workspaceView;
+
+        Context context = mWorkspaceView.getContext();
         Resources res = context.getResources();
         mDensity = res.getDisplayMetrics().density;
         if (mDensity == 0) {
             Log.e(TAG, "Density is not defined for this context. Defaulting to 1.");
             mDensity = 1f;
         }
-        mWorkspaceOffset = new WorkspacePoint(0, 0);
-        mViewSize = new ViewPoint();
+
         initConfig(context, attrs, workspaceStyle);
+    }
+
+    /** @return The {@link WorkspaceView} for which this is a helper. */
+    public WorkspaceView getWorkspaceView() {
+        return mWorkspaceView;
     }
 
     /**
@@ -201,43 +209,17 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Creates a non-interactive {@link BlockView} for the given block using the workspace's default
-     * style parameters. If this block is part of a {@link Workspace} or (TODO linkify) Toolbox
-     * {@link #obtainBlockView(Block, BlockGroup, Dragger, ConnectionManager)}
-     * should be used instead.
+     * Creates a {@link BlockView} for the given block using the workspace's default style.
      *
      * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @return A view for the block.
      */
-    public BlockView obtainBlockView(Block block, BlockGroup parentGroup,
-                                     ConnectionManager connectionManager) {
-        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup, null,
-                connectionManager);
-    }
-
-    /**
-     * Creates a {@link BlockView} for the given block using the workspace's default style
-     * parameters with the given onTouchListener.
-     *
-     * @param block The block to generate a view for.
-     * @param parentGroup The group to set as the parent for this block's view.
-     * @param dragger Helper object to handle dragging of blocks and block groups.
-     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
-     * @return A view for the block.
-     */
-    public BlockView obtainBlockView(Block block, BlockGroup parentGroup, Dragger dragger,
-                                     ConnectionManager connectionManager) {
-        return new BlockView(
-                mContext, getBlockStyle(), block, this, parentGroup, dragger, connectionManager);
-    }
-
-    /**
-     * @return The context used to create this helper.
-     */
-    public Context getContext() {
-        return mContext;
+    public BlockView obtainBlockView(
+            Block block, BlockGroup parentGroup, ConnectionManager connectionManager) {
+        return new BlockView(mWorkspaceView.getContext(),
+                getBlockStyle(), block, this, parentGroup, connectionManager);
     }
 
     /**
