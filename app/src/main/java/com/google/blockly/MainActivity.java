@@ -40,6 +40,10 @@ public class MainActivity extends ActionBarActivity
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
+    private ToolboxFragment mToolboxFragment;
+
+    private PlaceholderFragment mPlaceholderFragment;
+
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -49,9 +53,14 @@ public class MainActivity extends ActionBarActivity
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
+        mPlaceholderFragment = PlaceholderFragment.newInstance(position + 1);
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                .replace(R.id.container, mPlaceholderFragment)
                 .commit();
+
+        if (mToolboxFragment != null) {
+            mToolboxFragment.setWorkspace(mPlaceholderFragment.getWorkspace());
+        }
     }
 
     public void onSectionAttached(int number) {
@@ -116,6 +125,12 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        mToolboxFragment = (ToolboxFragment)
+                getSupportFragmentManager().findFragmentById(R.id.toolbox);
+        if (mToolboxFragment != null) {
+            mToolboxFragment.setWorkspace(mPlaceholderFragment.getWorkspace());
+        }
     }
 
     /**
@@ -163,7 +178,6 @@ public class MainActivity extends ActionBarActivity
             super.onAttach(activity);
             ((MainActivity) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
-            mWorkspace = new Workspace();
         }
 
         /**
@@ -175,7 +189,12 @@ public class MainActivity extends ActionBarActivity
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
+            fragment.mWorkspace = new Workspace();
             return fragment;
+        }
+
+        public Workspace getWorkspace() {
+            return mWorkspace;
         }
     }
 }

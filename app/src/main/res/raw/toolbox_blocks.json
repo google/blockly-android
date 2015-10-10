@@ -1,0 +1,67 @@
+[
+  {
+    "id": "controls_repeat_ext",
+    "message0": "repeat %1 times %2 %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "TIMES"
+      },
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "input_statement",
+        "name": "NAME"
+      }
+    ],
+    "inputsInline": true,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "controls_whileUntil",
+    "message0": "repeat %1 %2 %3",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "MODE",
+        "options": [
+          [
+            "while",
+            "WHILE"
+          ],
+          [
+            "until",
+            "Until"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "TIMES"
+      },
+      {
+        "type": "input_statement",
+        "name": "NAME"
+      }
+    ],
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "math_number",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "NUM",
+        "text": "0"
+      }
+    ],
+    "output": "Number",
+    "tooltip": "",
+    "colour": 120,
+    "helpUrl": "http://www.example.com/"
+  }
+]

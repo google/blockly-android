@@ -17,7 +17,6 @@ package com.google.blockly.control;
 
 import android.util.Pair;
 import android.view.MotionEvent;
-import android.view.View;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;

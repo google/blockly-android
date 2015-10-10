@@ -108,6 +108,14 @@ public class WorkspaceView extends ViewGroup {
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mHelper = new WorkspaceHelper(this, attrs);
+        // Tell the workspace helper to pass onTouchBlock events straight through to the WSView.
+        mHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
+            @Override
+            public void onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                WorkspaceView.this.onTouchBlock(blockView, motionEvent);
+            }
+        });
+
         mGridPaint.setColor(GRID_COLOR);
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
