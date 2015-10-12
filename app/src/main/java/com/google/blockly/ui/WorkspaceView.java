@@ -125,7 +125,20 @@ public class WorkspaceView extends ViewGroup {
         scrollTo(0, 0);
     }
 
-    /** Intercept touch events while dragging blocks. */
+    /**
+     * Intercept touch events while dragging blocks.
+     * <p/>
+     * Note that the current event does not need to be handled here, because
+     * {@link BlockView#onTouchEvent(MotionEvent)} always returns {@code false}. Therefore, the
+     * event that triggered a {@link BlockView} instance to call
+     * {@link #onTouchBlock(BlockView, MotionEvent)} will not be consumed by the block view, but
+     * be propagated all the way back up the view hierarchy and ultimately be handled by this the
+     * {@link #onTouchEvent(MotionEvent)} method of this instance.
+     * <p/>
+     * One important benefit of this procedure is that all events for the dragging interaction have
+     * locations in {@link WorkspaceView} coordinates, rather than in {@link BlockView} coordinates,
+     * as would be the case for the event handed up from {@link BlockView}.
+     */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
         return mTouchState == TOUCH_STATE_DOWN;
