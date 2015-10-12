@@ -19,6 +19,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.annotation.IntDef;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -69,16 +70,25 @@ public class WorkspaceView extends ViewGroup {
     private int mPrePanningScrollX;
     private int mPrePanningScrollY;
 
-    // Fields for dragging blocks in the workspace. The flags mBlockTouched and mDraggingBlock
-    // together define valid three states:
-    // a) mBlockTouched = false, mDraggingBlock = false, when no block dragging is happening.
-    // b) mBlockTouched = true, mDraggingBlock = false, when a Down event has been received by
-    //    a block, followed potentially by Move events, but the minimum threshold, mTouchSlop, for a
-    //    dragging gesture has not yet been met.
-    // c) mBlockTouched = true, mDraggingBlock = true, when minimum dragging threshold has
-    //    been met and block dragging is actually in progress.
-    private boolean mBlockTouched = false;
-    private boolean mDraggingBlock = false;
+    @IntDef({TOUCH_STATE_NONE, TOUCH_STATE_DOWN, TOUCH_STATE_DRAGGING, TOUCH_STATE_LONGPRESS})
+    public @interface TouchState {
+    }
+
+    // No current touch interaction.
+    private static final int TOUCH_STATE_NONE = 0;
+    // Block in this view has received "Down" event; waiting for further interactions to decide
+    // whether to drag, show context menu, etc.
+    private static final int TOUCH_STATE_DOWN = 1;
+    // Block in this view is being dragged.
+    private static final int TOUCH_STATE_DRAGGING = 2;
+    // Block in this view received a long press.
+    private static final int TOUCH_STATE_LONGPRESS = 3;
+
+    // Current state of touch interaction with blocks in this workspace view.
+    @TouchState
+    private int mTouchState = TOUCH_STATE_NONE;
+
+    // Fields for dragging blocks in the workspace.
     private BlockView mDraggingBlockView = null;
     private final ViewPoint mDraggingStart = new ViewPoint();
     private Dragger mDragger;
@@ -115,111 +125,20 @@ public class WorkspaceView extends ViewGroup {
         scrollTo(0, 0);
     }
 
-    /**
-     * Called by {@link BlockView#onTouchEvent(MotionEvent)} to let this instance know that a block
-     * was touched.
-     *
-     * @param blockView The {@link BlockView} that detected a touch event.
-     * @param event The touch event.
-     */
-    void onTouchBlock(BlockView blockView, MotionEvent event) {
-        mBlockTouched = true;
-        mDraggingBlock = false;
-        mDraggingBlockView = blockView;
-    }
-
     /** Intercept touch events while dragging blocks. */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return mBlockTouched;
+        return mTouchState == TOUCH_STATE_DOWN;
     }
 
     /** Handle touch events for either block dragging or workspace panning. */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (mBlockTouched) {
+        if (mTouchState == TOUCH_STATE_DOWN || mTouchState == TOUCH_STATE_DRAGGING) {
             return dragBlock(event);
         }
 
         return panWorkspace(event);
-    }
-
-    /**
-     * Handle motion events while dragging a block.
-     */
-    private boolean dragBlock(MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN: {
-                // Save position of Down event for later use when (if) minimum dragging distance
-                // threshold has been met. By not calling Dragger.startDragging() here already, we
-                // prevent unnecessary block operations until we are sure that the user is dragging.
-                mDraggingStart.set((int) event.getX(), (int) event.getY());
-                return true;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                if (!mDraggingBlock) {
-                    // Not dragging yet - compute distance from Down event and start dragging if
-                    // far enough.
-                    final float deltaX = mDraggingStart.x - event.getX();
-                    final float deltaY = mDraggingStart.y - event.getY();
-                    if (Math.sqrt(deltaX * deltaX + deltaY * deltaY) >= mTouchSlop) {
-                        mDraggingBlock = true;
-                        mDragger.startDragging(mDraggingBlockView,
-                                mDraggingStart.x, mDraggingStart.y);
-                    }
-                }
-                if (mDraggingBlock) {
-                    mDragger.continueDragging(event);
-                }
-                return true;
-            }
-            case MotionEvent.ACTION_UP: {
-                // Finalize dragging and reset dragging state flags.
-                mDragger.finishDragging();
-                mBlockTouched = false;
-                mDraggingBlock = false;
-                mDraggingBlockView = null;
-                return true;
-            }
-            default: {
-                return false;
-            }
-        }
-    }
-
-    private boolean panWorkspace(MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN: {
-                mIsPanning = true;
-                mPanningStart.set((int) event.getX(), (int) event.getY());
-                mPrePanningScrollX = getScrollX();
-                mPrePanningScrollY = getScrollY();
-                return true;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                if (mIsPanning) {
-                    scrollTo(
-                            mPrePanningScrollX + mPanningStart.x - (int) event.getX(),
-                            mPrePanningScrollY + mPanningStart.y - (int) event.getY());
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-            case MotionEvent.ACTION_UP: {
-                if (mIsPanning) {
-                    mIsPanning = false;
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-            default: {
-                break;
-            }
-        }
-
-        return false;
     }
 
     @Override
@@ -301,62 +220,6 @@ public class WorkspaceView extends ViewGroup {
     }
 
     @Override
-    protected int computeHorizontalScrollRange() {
-        return mViewportBounds.width() + getWidth();
-    }
-
-    @Override
-    protected int computeHorizontalScrollExtent() {
-        return getWidth();
-    }
-
-    @Override
-    protected int computeHorizontalScrollOffset() {
-        return getScrollX() - (mViewportBounds.left - getWidth() / 2);
-    }
-
-    @Override
-    protected int computeVerticalScrollRange() {
-        return mViewportBounds.height() + getHeight();
-    }
-
-    @Override
-    protected int computeVerticalScrollExtent() {
-        return getHeight();
-    }
-
-    @Override
-    protected int computeVerticalScrollOffset() {
-        return getScrollY() - (mViewportBounds.top - getHeight() / 2);
-    }
-
-    private boolean shouldDrawGrid() {
-        return mDrawGrid && mHelper.getScale() > MIN_SCALE_TO_DRAW_GRID && mGridSpacing > 0;
-    }
-
-    /**
-     * Get size for one dimension (width or height) of the view based on measure spec and desired
-     * size.
-     *
-     * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
-     * @param desiredSize The intrinsic desired size for this view.
-     * @return The determined size, given measure spec and desired size.
-     */
-    private static int getMeasuredSize(int measureSpec, int desiredSize) {
-        int mode = MeasureSpec.getMode(measureSpec);
-        int size = MeasureSpec.getSize(measureSpec);
-
-        if (mode == MeasureSpec.EXACTLY) {
-            return size;
-        } else if (mode == MeasureSpec.AT_MOST) {
-            return Math.min(size, desiredSize);
-        } else {
-            return desiredSize;
-        }
-
-    }
-
-    @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         mTemp.x = r - l;
         mTemp.y = b - t;
@@ -386,5 +249,165 @@ public class WorkspaceView extends ViewGroup {
                 Log.d(TAG, "Laid out block group at " + cl + ", " + ct + ", " + cr + ", " + cb);
             }
         }
+    }
+
+    @Override
+    protected int computeHorizontalScrollRange() {
+        return mViewportBounds.width() + getWidth();
+    }
+
+    @Override
+    protected int computeHorizontalScrollExtent() {
+        return getWidth();
+    }
+
+    @Override
+    protected int computeHorizontalScrollOffset() {
+        return getScrollX() - (mViewportBounds.left - getWidth() / 2);
+    }
+
+    @Override
+    protected int computeVerticalScrollRange() {
+        return mViewportBounds.height() + getHeight();
+    }
+
+    @Override
+    protected int computeVerticalScrollExtent() {
+        return getHeight();
+    }
+
+    @Override
+    protected int computeVerticalScrollOffset() {
+        return getScrollY() - (mViewportBounds.top - getHeight() / 2);
+    }
+
+    /**
+     * Called by {@link BlockView#onTouchEvent(MotionEvent)} to let this instance know that a block
+     * was touched.
+     *
+     * @param blockView The {@link BlockView} that detected a touch event.
+     * @param event The touch event.
+     */
+    void onTouchBlock(BlockView blockView, MotionEvent event) {
+        mTouchState = TOUCH_STATE_DOWN;
+        mDraggingBlockView = blockView;
+    }
+
+    private boolean shouldDrawGrid() {
+        return mDrawGrid && mHelper.getScale() > MIN_SCALE_TO_DRAW_GRID && mGridSpacing > 0;
+    }
+
+    /**
+     * Get size for one dimension (width or height) of the view based on measure spec and desired
+     * size.
+     *
+     * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
+     * @param desiredSize The intrinsic desired size for this view.
+     * @return The determined size, given measure spec and desired size.
+     */
+    private static int getMeasuredSize(int measureSpec, int desiredSize) {
+        int mode = MeasureSpec.getMode(measureSpec);
+        int size = MeasureSpec.getSize(measureSpec);
+
+        if (mode == MeasureSpec.EXACTLY) {
+            return size;
+        } else if (mode == MeasureSpec.AT_MOST) {
+            return Math.min(size, desiredSize);
+        } else {
+            return desiredSize;
+        }
+
+    }
+
+    /**
+     * Handle motion events while dragging a block.
+     */
+    private boolean dragBlock(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN: {
+                // Save position of Down event for later use when (if) minimum dragging distance
+                // threshold has been met. By not calling Dragger.startDragging() here already, we
+                // prevent unnecessary block operations until we are sure that the user is dragging.
+                mDraggingStart.set((int) event.getX(), (int) event.getY());
+                return true;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                if (mTouchState != TOUCH_STATE_DRAGGING) {
+                    // Not dragging yet - compute distance from Down event and start dragging if
+                    // far enough.
+                    final float deltaX = mDraggingStart.x - event.getX();
+                    final float deltaY = mDraggingStart.y - event.getY();
+                    if (Math.sqrt(deltaX * deltaX + deltaY * deltaY) >= mTouchSlop) {
+                        mTouchState = TOUCH_STATE_DRAGGING;
+                        mDragger.startDragging(mDraggingBlockView,
+                                mDraggingStart.x, mDraggingStart.y);
+                    }
+                }
+                if (mTouchState == TOUCH_STATE_DRAGGING) {
+                    mDragger.continueDragging(event);
+                }
+                return true;
+            }
+            case MotionEvent.ACTION_UP: {
+                // Finalize dragging and reset dragging state flags.
+                mDragger.finishDragging();
+                mTouchState = TOUCH_STATE_NONE;
+                mDraggingBlockView = null;
+                return true;
+            }
+            case MotionEvent.ACTION_CANCEL: {
+                // TODO(rohlfingt): have Dragger cancel dragging.
+                mTouchState = TOUCH_STATE_NONE;
+                mDraggingBlockView = null;
+                return true;
+            }
+            default: {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Handle motion events while panning the workspace.
+     */
+    private boolean panWorkspace(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN: {
+                mIsPanning = true;
+                mPanningStart.set((int) event.getX(), (int) event.getY());
+                mPrePanningScrollX = getScrollX();
+                mPrePanningScrollY = getScrollY();
+                return true;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                if (mIsPanning) {
+                    scrollTo(
+                            mPrePanningScrollX + mPanningStart.x - (int) event.getX(),
+                            mPrePanningScrollY + mPanningStart.y - (int) event.getY());
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            case MotionEvent.ACTION_UP: {
+                if (mIsPanning) {
+                    mIsPanning = false;
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            case MotionEvent.ACTION_CANCEL: {
+                // When cancelled, reset to original scroll position.
+                scrollTo(mPrePanningScrollX, mPrePanningScrollY);
+                mIsPanning = false;
+                return true;
+            }
+            default: {
+                break;
+            }
+        }
+
+        return false;
     }
 }
