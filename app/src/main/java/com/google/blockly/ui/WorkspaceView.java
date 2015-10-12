@@ -23,6 +23,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 import com.google.blockly.control.Dragger;
@@ -56,6 +57,9 @@ public class WorkspaceView extends ViewGroup {
     private final ViewPoint mTemp = new ViewPoint();
     private Workspace mWorkspace;
 
+    // Distance threshold for detecting drag gestures.
+    private final float mTouchSlop;
+
     // Fields for workspace panning.
     private boolean mIsPanning = false;
     private final ViewPoint mPanningStart = new ViewPoint();
@@ -66,8 +70,10 @@ public class WorkspaceView extends ViewGroup {
     private int mPrePanningScrollY;
 
     // Fields for dragging blocks in the workspace.
-    private boolean mIsDraggingBlock = false;
-    private BlockView mDraggingBlockView;
+    private boolean mMaybeDraggingBlock = false;
+    private boolean mDraggingBlock = false;
+    private BlockView mDraggingBlockView = null;
+    private final ViewPoint mDraggingStart = new ViewPoint();
     private Dragger mDragger;
 
     // Viewport bounds. These define the bounding box of all blocks, in view coordinates, and
@@ -86,6 +92,7 @@ public class WorkspaceView extends ViewGroup {
         super(context, attrs, defStyleAttr);
         mHelper = new WorkspaceHelper(this, attrs);
         mGridPaint.setColor(GRID_COLOR);
+        mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
         setWillNotDraw(false);
         setHorizontalScrollBarEnabled(true);
@@ -101,40 +108,100 @@ public class WorkspaceView extends ViewGroup {
         scrollTo(0, 0);
     }
 
-    public void onTouchBlock(BlockView blockView, MotionEvent event) {
-        mIsDraggingBlock = true;
+    /**
+     * Called by {@link BlockView#onTouchEvent(MotionEvent)} to let this instance know that a block
+     * was touched.
+     *
+     * @param blockView The {@link BlockView} that detected a touch event.
+     * @param event The touch event.
+     */
+    void onTouchBlock(BlockView blockView, MotionEvent event) {
+        mMaybeDraggingBlock = true;
+        mDraggingBlock = false;
         mDraggingBlockView = blockView;
-        mDragger.onTouchBlock(blockView, event);
     }
 
+    /** Intercept touch events while dragging blocks. */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return mIsDraggingBlock;
+        return mMaybeDraggingBlock;
     }
 
+    /** Handle touch events for either block dragging or workspace panning. */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (mIsDraggingBlock) {
-            mIsDraggingBlock = mDragger.onTouchBlock(mDraggingBlockView, event);
-            return true;
+        if (mMaybeDraggingBlock) {
+            return dragBlock(event);
         }
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            mIsPanning = true;
-            mPanningStart.set((int) event.getX(), (int) event.getY());
-            mPrePanningScrollX = getScrollX();
-            mPrePanningScrollY = getScrollY();
-            return true;
-        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (mIsPanning) {
-                scrollTo(
-                        mPrePanningScrollX + mPanningStart.x - (int) event.getX(),
-                        mPrePanningScrollY + mPanningStart.y - (int) event.getY());
+
+        return panWorkspace(event);
+    }
+
+    private boolean dragBlock(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN: {
+                mDraggingStart.set((int) event.getX(), (int) event.getY());
+                break;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                if (!mDraggingBlock) {
+                    final float deltaX = mDraggingStart.x - event.getX();
+                    final float deltaY = mDraggingStart.y - event.getY();
+                    if (Math.sqrt(deltaX * deltaX + deltaY * deltaY) >= mTouchSlop) {
+                        mDraggingBlock = true;
+                        mDragger.startDragging(mDraggingBlockView,
+                                mDraggingStart.x, mDraggingStart.y);
+                    }
+                }
+                if (mDraggingBlock) {
+                    mDragger.continueDragging(event);
+                }
+                break;
+            }
+            case MotionEvent.ACTION_UP: {
+                mDragger.finishDragging();
+                mMaybeDraggingBlock = false;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        if (!mMaybeDraggingBlock) {
+            mDraggingBlockView = null;
+        }
+        return true;
+    }
+
+    private boolean panWorkspace(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN: {
+                mIsPanning = true;
+                mPanningStart.set((int) event.getX(), (int) event.getY());
+                mPrePanningScrollX = getScrollX();
+                mPrePanningScrollY = getScrollY();
                 return true;
             }
-        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            if (mIsPanning) {
-                mIsPanning = false;
-                return true;
+            case MotionEvent.ACTION_MOVE: {
+                if (mIsPanning) {
+                    scrollTo(
+                            mPrePanningScrollX + mPanningStart.x - (int) event.getX(),
+                            mPrePanningScrollY + mPanningStart.y - (int) event.getY());
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            case MotionEvent.ACTION_UP: {
+                if (mIsPanning) {
+                    mIsPanning = false;
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            default: {
+                break;
             }
         }
 

@@ -71,49 +71,36 @@ public class Dragger {
         mRootBlocks = rootBlocks;
     }
 
-    public boolean onTouchBlock(View v, MotionEvent event) {
-        int eventX = (int) event.getRawX();
-        int eventY = (int) event.getRawY();
+    public void startDragging(BlockView blockView, int startX, int startY) {
+        mTouchedBlockView = (BlockView) blockView;
+        mBlockOriginalPosition.setFrom(((BlockView) blockView).getBlock().getPosition());
+        mDragStart.set(startX, startY);
+        setDragGroup(mTouchedBlockView.getBlock());
+    }
 
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN: {
-                // TODO (fenichel): Don't start a drag until the user has passed some threshold.
-                mTouchedBlockView = (BlockView) v;
-                mBlockOriginalPosition.setFrom(((BlockView) v).getBlock().getPosition());
-                mDragStart.set(eventX, eventY);
-                setDragGroup(mTouchedBlockView.getBlock());
-                return true;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                updateBlockPosition(mTouchedBlockView.getBlock(),
-                        mWorkspaceHelper.viewToWorkspaceUnits(eventX - mDragStart.x),
-                        mWorkspaceHelper.viewToWorkspaceUnits(eventY - mDragStart.y));
+    public void continueDragging(MotionEvent event) {
+        updateBlockPosition(mTouchedBlockView.getBlock(),
+                mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getX()) - mDragStart.x),
+                mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getY()) - mDragStart.y));
 
-                // highlight as we go
-                if (mHighlightedBlockView != null) {
-                    mHighlightedBlockView.clearHighlight();
-                }
-                Pair<Connection, Connection> connectionCandidate = findBestConnection(
-                        mTouchedBlockView.getBlock());
-                if (connectionCandidate != null) {
-                    mHighlightedBlockView = connectionCandidate.second.getBlock().getView();
-                    mHighlightedBlockView.setHighlightConnection(connectionCandidate.second);
-                }
-
-                v.requestLayout();
-                return true;
-            }
-            case MotionEvent.ACTION_UP: {
-                if (!snapToConnection(mTouchedBlockView.getBlock())) {
-                    finalizeMove();
-                }
-                return false;
-            }
-            // TODO (fenichel): Handle ACTION_CANCEL.
-            default:
+        // highlight as we go
+        if (mHighlightedBlockView != null) {
+            mHighlightedBlockView.clearHighlight();
+        }
+        Pair<Connection, Connection> connectionCandidate = findBestConnection(
+                mTouchedBlockView.getBlock());
+        if (connectionCandidate != null) {
+            mHighlightedBlockView = connectionCandidate.second.getBlock().getView();
+            mHighlightedBlockView.setHighlightConnection(connectionCandidate.second);
         }
 
-        return false;
+        mTouchedBlockView.requestLayout();
+    }
+
+    public void finishDragging() {
+        if (!snapToConnection(mTouchedBlockView.getBlock())) {
+            finalizeMove();
+        }
     }
 
     public void setWorkspaceHelper(WorkspaceHelper helper) {

@@ -219,9 +219,13 @@ public class BlockView extends FrameLayout {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (hitTest(event)) {
+            // Let workspaceView know that the visible parts of this BlockView were touched.
             mHelper.getWorkspaceView().onTouchBlock(this, event);
-            return true;
         }
+
+        // Never consume event here. Unless consumed by a child (e.g., text entry field), the event
+        // will propagate back up to WorkspaceView, where it will then be dispatched to a Dragger
+        // instance for workspace-level dragging.
         return false;
     }
 
