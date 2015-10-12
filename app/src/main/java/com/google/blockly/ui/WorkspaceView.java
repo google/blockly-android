@@ -69,7 +69,14 @@ public class WorkspaceView extends ViewGroup {
     private int mPrePanningScrollX;
     private int mPrePanningScrollY;
 
-    // Fields for dragging blocks in the workspace.
+    // Fields for dragging blocks in the workspace. The flags mMaybeDraggingBlock and mDraggingBlock
+    // together define valid three states:
+    // a) mMaybeDraggingBlock = false, mDraggingBlock = false, when no block dragging is happening.
+    // b) mMaybeDraggingBlock = true, mDraggingBlock = false, when a Down event has been received by
+    //    a block, followed potentially by Move events, but the minimum threshold, mTouchSlop, for a
+    //    dragging gesture has not yet been met.
+    // c) mMaybeDraggingBlock = true, mDraggingBlock = true, when minimum dragging threshold has
+    //    been met and block dragging is actually in progress.
     private boolean mMaybeDraggingBlock = false;
     private boolean mDraggingBlock = false;
     private BlockView mDraggingBlockView = null;
@@ -137,14 +144,22 @@ public class WorkspaceView extends ViewGroup {
         return panWorkspace(event);
     }
 
+    /**
+     * Handle motion events while dragging a block.
+     */
     private boolean dragBlock(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
+                // Save position of Down event for later use when (if) minimum dragging distance
+                // threshold has been met. By not calling Dragger.startDragging() here already, we
+                // prevent unnecessary block operations until we are sure that the user is dragging.
                 mDraggingStart.set((int) event.getX(), (int) event.getY());
-                break;
+                return true;
             }
             case MotionEvent.ACTION_MOVE: {
                 if (!mDraggingBlock) {
+                    // Not dragging yet - compute distance from Down event and start dragging if
+                    // far enough.
                     final float deltaX = mDraggingStart.x - event.getX();
                     final float deltaY = mDraggingStart.y - event.getY();
                     if (Math.sqrt(deltaX * deltaX + deltaY * deltaY) >= mTouchSlop) {
@@ -156,21 +171,20 @@ public class WorkspaceView extends ViewGroup {
                 if (mDraggingBlock) {
                     mDragger.continueDragging(event);
                 }
-                break;
+                return true;
             }
             case MotionEvent.ACTION_UP: {
+                // Finalize dragging and reset dragging state flags.
                 mDragger.finishDragging();
                 mMaybeDraggingBlock = false;
-                break;
+                mDraggingBlock = false;
+                mDraggingBlockView = null;
+                return true;
             }
             default: {
-                break;
+                return false;
             }
         }
-        if (!mMaybeDraggingBlock) {
-            mDraggingBlockView = null;
-        }
-        return true;
     }
 
     private boolean panWorkspace(MotionEvent event) {

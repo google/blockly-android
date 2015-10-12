@@ -71,13 +71,35 @@ public class Dragger {
         mRootBlocks = rootBlocks;
     }
 
+    /**
+     * Start dragging a block in the workspace.
+     * <p/>
+     * This method separates the block to drag into its own {@link BlockGroup} and sets the initial
+     * dragging position. It must be called before any calls to
+     * {@link #continueDragging(MotionEvent)}, but may not be called immediately on receiving a
+     * "down" event (e.g., to first wait for a minimum drag distance).
+     *
+     * @param blockView The {@link BlockView} to begin dragging.
+     * @param startX The x coordinate, in {@link WorkspaceView} coordinates, of the touch event that
+     * begins the dragging.
+     * @param startY The y coordinate, in {@link WorkspaceView} coordinates, of the touch event that
+     * begins the dragging.
+     */
     public void startDragging(BlockView blockView, int startX, int startY) {
-        mTouchedBlockView = (BlockView) blockView;
-        mBlockOriginalPosition.setFrom(((BlockView) blockView).getBlock().getPosition());
+        mTouchedBlockView = blockView;
+        mBlockOriginalPosition.setFrom(blockView.getBlock().getPosition());
         mDragStart.set(startX, startY);
         setDragGroup(mTouchedBlockView.getBlock());
     }
 
+    /**
+     * Continue dragging the currently moving block.
+     * <p/>
+     * This method must be called for each move event that is received by the {@link WorkspaceView}
+     * after {@link #startDragging(BlockView, int, int)} has previously been called.
+     *
+     * @param event The next move event to handle.
+     */
     public void continueDragging(MotionEvent event) {
         updateBlockPosition(mTouchedBlockView.getBlock(),
                 mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getX()) - mDragStart.x),
@@ -97,6 +119,11 @@ public class Dragger {
         mTouchedBlockView.requestLayout();
     }
 
+    /**
+     * Finish block dragging.
+     * <p/>
+     * This method must be called upon receiving the "up" event that ends an ongoing drag process.
+     */
     public void finishDragging() {
         if (!snapToConnection(mTouchedBlockView.getBlock())) {
             finalizeMove();
