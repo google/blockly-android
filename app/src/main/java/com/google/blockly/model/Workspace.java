@@ -38,7 +38,6 @@ import java.util.ArrayList;
 public class Workspace {
     private static final String TAG = "Workspace";
     private static final boolean DEBUG = true;
-    private static final BlocklyXmlHelper mXmlHelper = new BlocklyXmlHelper();
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
     private final ProcedureManager mProcedureManager = new ProcedureManager();
@@ -118,7 +117,7 @@ public class Workspace {
      */
     public void loadFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
-        mRootBlocks.addAll(mXmlHelper.loadFromXml(is, blockFactory, stats));
+        mRootBlocks.addAll(BlocklyXmlHelper.loadFromXml(is, blockFactory, stats));
         for (int i = 0; i < mRootBlocks.size(); i++) {
             stats.collectStats(mRootBlocks.get(i), true /* recursive */);
         }
@@ -131,7 +130,7 @@ public class Workspace {
      * @throws BlocklySerializerException
      */
     public void serialize(OutputStream os) throws BlocklySerializerException {
-        mXmlHelper.writeToXml(mRootBlocks, os);
+        BlocklyXmlHelper.writeToXml(mRootBlocks, os);
     }
 
     /**

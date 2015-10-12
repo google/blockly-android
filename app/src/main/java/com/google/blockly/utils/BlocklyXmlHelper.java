@@ -38,18 +38,10 @@ import java.util.List;
  * Helper class to serialize and deserialize blockly workspaces, including constructing new
  * parsers and serializers as needed.
  */
-public class BlocklyXmlHelper {
+public final class BlocklyXmlHelper {
     public static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
-    private static XmlPullParserFactory xppFactory;
 
-    public BlocklyXmlHelper() {
-        try {
-            xppFactory = XmlPullParserFactory.newInstance();
-        } catch (XmlPullParserException e) {
-            throw new BlocklyParserException(e);
-        }
-        xppFactory.setNamespaceAware(true);
-    }
+    private static XmlPullParserFactory mParserFactory = createParseFactory();
 
     /**
      * Loads a list of top level Blocks from XML.  Each top level Block may have many Blocks
@@ -60,12 +52,11 @@ public class BlocklyXmlHelper {
      * @return A list of top level Blocks.
      * @throws BlocklyParserException
      */
-    public List<Block> loadFromXml(InputStream is, BlockFactory blockFactory, WorkspaceStats stats)
+    public static void loadFromXml(
+            InputStream is, BlockFactory blockFactory, WorkspaceStats stats, List<Block> result)
             throws BlocklyParserException {
-        List<Block> result = new ArrayList<>();
-
         try {
-            XmlPullParser parser = xppFactory.newPullParser();
+            XmlPullParser parser = mParserFactory.newPullParser();
             parser.setInput(is, null);
 
             int eventType = parser.getEventType();
@@ -88,6 +79,14 @@ public class BlocklyXmlHelper {
         } catch (XmlPullParserException | IOException e) {
             throw new BlocklyParserException(e);
         }
+    }
+
+    /** Convenience function that creates a new {@link ArrayList}. */
+    public static List<Block> loadFromXml(
+            InputStream is, BlockFactory blockFactory, WorkspaceStats stats)
+            throws BlocklyParserException {
+        List<Block> result = new ArrayList<>();
+        loadFromXml(is, blockFactory, stats, result);
         return result;
     }
 
@@ -100,7 +99,7 @@ public class BlocklyXmlHelper {
      * @throws BlocklyParserException
      */
     @Nullable
-    public Block loadOneBlockFromXml(InputStream is, BlockFactory blockFactory)
+    public static Block loadOneBlockFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
         List<Block> temp = loadFromXml(is, blockFactory, null);
         if (temp == null || temp.isEmpty()) {
@@ -116,10 +115,10 @@ public class BlocklyXmlHelper {
      * @param os An OutputStream to which to write them.
      * @throws BlocklySerializerException
      */
-    public void writeToXml(List<Block> toSerialize, OutputStream os)
+    public static void writeToXml(List<Block> toSerialize, OutputStream os)
             throws BlocklySerializerException {
         try {
-            XmlSerializer serializer = xppFactory.newSerializer();
+            XmlSerializer serializer = mParserFactory.newSerializer();
             serializer.setOutput(os, null);
             serializer.setPrefix("", XML_NAMESPACE);
 
@@ -141,10 +140,23 @@ public class BlocklyXmlHelper {
      * @param os An OutputStream to which to write them.
      * @throws BlocklySerializerException
      */
-    public void writeOneBlockToXml(Block toSerialize, OutputStream os)
+    public static void writeOneBlockToXml(Block toSerialize, OutputStream os)
             throws BlocklySerializerException {
         List<Block> temp = new ArrayList<>();
         temp.add(toSerialize);
         writeToXml(temp, os);
+    }
+
+    private BlocklyXmlHelper() {}
+
+    private static XmlPullParserFactory createParseFactory() {
+        XmlPullParserFactory parserFactory;
+        try {
+            parserFactory = XmlPullParserFactory.newInstance();
+        } catch (XmlPullParserException e) {
+            throw new BlocklyParserException(e);
+        }
+        parserFactory.setNamespaceAware(true);
+        return parserFactory;
     }
 }

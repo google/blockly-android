@@ -31,7 +31,6 @@ import java.util.List;
  * Holds serialized BlockGroups to handle copy-paste operations within and between workspaces.
  */
 public class BlockCopyBuffer {
-    private static final BlocklyXmlHelper mXmlHelper = new BlocklyXmlHelper();
     private String mXmlString;
 
     /**
@@ -48,7 +47,7 @@ public class BlockCopyBuffer {
         }
 
         StringOutputStream os = new StringOutputStream();
-        mXmlHelper.writeToXml(toCopy, os);
+        BlocklyXmlHelper.writeToXml(toCopy, os);
         mXmlString = os.toString();
     }
 
@@ -82,7 +81,7 @@ public class BlockCopyBuffer {
             return null;
         }
 
-        return mXmlHelper.loadFromXml(
+        return BlocklyXmlHelper.loadFromXml(
                 new ByteArrayInputStream(mXmlString.getBytes()), blockFactory, null);
     }
 
