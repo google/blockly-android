@@ -78,23 +78,18 @@ public class BlockView extends FrameLayout {
     private final ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
     // List of widths of multi-field rows when rendering inline inputs.
     private final ArrayList<Integer> mInlineRowWidth = new ArrayList<>();
-
+    private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
     // Fields for highlighting.
     private boolean mHighlightBlock;
     private Connection mHighlightConnection;
-
     // Offset of the block origin inside the view's measured area.
     private int mLayoutMarginLeft;
     private int mMaxInputFieldsWidth;
     private int mMaxStatementFieldsWidth;
-
     // Vertical offset for positioning the "Next" block (if one exists).
     private int mNextBlockVerticalOffset;
-
     // Width of the core "block", ie, rectangle box without connectors or inputs.
     private int mBlockWidth;
-
-    private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
     /**
      * Create a new BlockView for the given block using the workspace's style.
@@ -181,41 +176,15 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Test whether a {@link MotionEvent} event is (approximately) hitting a visible part of this
-     * view.
-     * <p/>
-     * This is used to determine whether the event should be handled by this view, e.g., to activate
-     * dragging or to open a context menu.
+     * Test whether event hits visible parts of this block and notify {@link WorkspaceView} if it
+     * does.
      *
-     * @param event The {@link MotionEvent} to check.
-     * @return True if the event is a DOWN event and the coordinate of the motion event is on the
-     * visible, non-transparent part of this view; false otherwise.
+     * @param event The {@link MotionEvent} to handle.
+     *
+     * @return Always returns false, i.e., the event is never consumed here. Unless consumed by a
+     * child (e.g., text entry field), the event will propagate back up to {@link WorkspaceView},
+     * where it will then be dispatched for workspace-level dragging.
      */
-    public boolean hitTest(MotionEvent event) {
-        float eventX = event.getX();
-        float eventY = event.getY();
-        boolean rtl = mHelper.useRtL();
-
-        // First check whether event is in the general horizontal range of the block outline
-        // (minus children) and exit if it is not.
-        int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
-        int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
-        if (eventX < blockBegin || eventX > blockEnd) {
-            return false;
-        }
-
-        // In the ballpark - now check whether event is on a field of any of this block's
-        // inputs. If it is, then the event belongs to this BlockView, otherwise it does not.
-        for (int i = 0; i < mInputViews.size(); ++i) {
-            InputView inputView = mInputViews.get(i);
-            if (inputView.isOnFields(
-                    eventX - inputView.getLeft(), eventY - inputView.getTop())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (hitTest(event)) {
@@ -223,9 +192,6 @@ public class BlockView extends FrameLayout {
             mHelper.getWorkspaceView().onTouchBlock(this, event);
         }
 
-        // Never consume event here. Unless consumed by a child (e.g., text entry field), the event
-        // will propagate back up to WorkspaceView, where it will then be dispatched to a Dragger
-        // instance for workspace-level dragging.
         return false;
     }
 
@@ -341,6 +307,44 @@ public class BlockView extends FrameLayout {
     public void updateBlockPosition() {
         mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
         mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
+    }
+
+    /**
+     * Test whether a {@link MotionEvent} event is (approximately) hitting a visible part of this
+     * view.
+     * <p/>
+     * This is used to determine whether the event should be handled by this view, e.g., to activate
+     * dragging or to open a context menu. Since the actual block interactions are implemented at
+     * the {@link WorkspaceView} level, there is no need to store the event data in this class.
+     *
+     * @param event The {@link MotionEvent} to check.
+     *
+     * @return True if the event is a DOWN event and the coordinate of the motion event is on the
+     * visible, non-transparent part of this view; false otherwise.
+     */
+    private boolean hitTest(MotionEvent event) {
+        float eventX = event.getX();
+        float eventY = event.getY();
+        boolean rtl = mHelper.useRtL();
+
+        // First check whether event is in the general horizontal range of the block outline
+        // (minus children) and exit if it is not.
+        int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
+        int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
+        if (eventX < blockBegin || eventX > blockEnd) {
+            return false;
+        }
+
+        // In the ballpark - now check whether event is on a field of any of this block's
+        // inputs. If it is, then the event belongs to this BlockView, otherwise it does not.
+        for (int i = 0; i < mInputViews.size(); ++i) {
+            InputView inputView = mInputViews.get(i);
+            if (inputView.isOnFields(
+                    eventX - inputView.getLeft(), eventY - inputView.getTop())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

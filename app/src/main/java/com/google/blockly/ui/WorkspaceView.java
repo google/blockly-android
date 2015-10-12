@@ -69,15 +69,15 @@ public class WorkspaceView extends ViewGroup {
     private int mPrePanningScrollX;
     private int mPrePanningScrollY;
 
-    // Fields for dragging blocks in the workspace. The flags mMaybeDraggingBlock and mDraggingBlock
+    // Fields for dragging blocks in the workspace. The flags mBlockTouched and mDraggingBlock
     // together define valid three states:
-    // a) mMaybeDraggingBlock = false, mDraggingBlock = false, when no block dragging is happening.
-    // b) mMaybeDraggingBlock = true, mDraggingBlock = false, when a Down event has been received by
+    // a) mBlockTouched = false, mDraggingBlock = false, when no block dragging is happening.
+    // b) mBlockTouched = true, mDraggingBlock = false, when a Down event has been received by
     //    a block, followed potentially by Move events, but the minimum threshold, mTouchSlop, for a
     //    dragging gesture has not yet been met.
-    // c) mMaybeDraggingBlock = true, mDraggingBlock = true, when minimum dragging threshold has
+    // c) mBlockTouched = true, mDraggingBlock = true, when minimum dragging threshold has
     //    been met and block dragging is actually in progress.
-    private boolean mMaybeDraggingBlock = false;
+    private boolean mBlockTouched = false;
     private boolean mDraggingBlock = false;
     private BlockView mDraggingBlockView = null;
     private final ViewPoint mDraggingStart = new ViewPoint();
@@ -123,7 +123,7 @@ public class WorkspaceView extends ViewGroup {
      * @param event The touch event.
      */
     void onTouchBlock(BlockView blockView, MotionEvent event) {
-        mMaybeDraggingBlock = true;
+        mBlockTouched = true;
         mDraggingBlock = false;
         mDraggingBlockView = blockView;
     }
@@ -131,13 +131,13 @@ public class WorkspaceView extends ViewGroup {
     /** Intercept touch events while dragging blocks. */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return mMaybeDraggingBlock;
+        return mBlockTouched;
     }
 
     /** Handle touch events for either block dragging or workspace panning. */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (mMaybeDraggingBlock) {
+        if (mBlockTouched) {
             return dragBlock(event);
         }
 
@@ -176,7 +176,7 @@ public class WorkspaceView extends ViewGroup {
             case MotionEvent.ACTION_UP: {
                 // Finalize dragging and reset dragging state flags.
                 mDragger.finishDragging();
-                mMaybeDraggingBlock = false;
+                mBlockTouched = false;
                 mDraggingBlock = false;
                 mDraggingBlockView = null;
                 return true;
