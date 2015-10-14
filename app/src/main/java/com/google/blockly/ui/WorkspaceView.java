@@ -302,8 +302,13 @@ public class WorkspaceView extends ViewGroup {
      * @param event The touch event.
      */
     void onTouchBlock(BlockView blockView, MotionEvent event) {
-        mTouchState = TOUCH_STATE_DOWN;
-        mDraggingBlockView = blockView;
+        // Only initiate dragging of given view if in idle state - this prevents occluded blocks
+        // from grabbing drag focus because they saw an unconsumed Down event before it propagated
+        // back up to this WorkspaceView.
+        if (mTouchState == TOUCH_STATE_NONE) {
+            mTouchState = TOUCH_STATE_DOWN;
+            mDraggingBlockView = blockView;
+        }
     }
 
     private boolean shouldDrawGrid() {
