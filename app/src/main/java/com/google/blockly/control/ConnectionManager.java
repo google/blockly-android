@@ -98,6 +98,23 @@ public class ConnectionManager {
     }
 
     /**
+     * Find all compatible connections within the given radius.  This function is used for
+     * bumping so type checking does not apply.
+     *
+     * @param conn The base connection for the search.
+     * @param maxRadius How far out to search for compatible connections.
+     * @return A list of all nearby compatible connections.
+     */
+    public List<Connection> getNeighbours(Connection conn, int maxRadius) {
+        if (conn.isConnected()) {
+            // Don't offer to connect when already connected.
+            return null;
+        }
+        YSortedList compatibleList = oppositeLists[conn.getType()];
+        return compatibleList.getNeighbours(conn, maxRadius);
+    }
+
+    /**
      * Move the given connector to a specific location and update the relevant list.
      *
      * @param conn The connection to move.
@@ -145,7 +162,7 @@ public class ConnectionManager {
      *
      * @param moving The connection being dragged.
      * @param candidate A nearby connection to check.  Must be in the {@link ConnectionManager},
-     *        and therefore not be mid-drag.
+     * and therefore not be mid-drag.
      * @param maxRadius The maximum radius allowed for connections.
      * @return True if the connection is allowed, false otherwise.
      */
@@ -328,6 +345,41 @@ public class ConnectionManager {
                 pointerMax++;
             }
             return bestConnection;
+        }
+
+        @VisibleForTesting
+        List<Connection> getNeighbours(Connection conn, int maxRadius) {
+            List<Connection> neighbours = new ArrayList<>();
+            // Don't bother.
+            if (mConnections.isEmpty()) {
+                return neighbours;
+            }
+
+            int baseY = conn.getPosition().y;
+            // findPositionForConnection finds an index for insertion, which is always after any
+            // block with the same y index.  We want to search both forward and back, so search
+            // on both sides of the index.
+            int closestIndex = findPositionForConnection(conn);
+
+            // Walk forward and back on the y axis looking for the closest x,y point.
+            int pointerMin = closestIndex - 1;
+            while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
+                Connection temp = mConnections.get(pointerMin);
+                if (isConnectionAllowed(conn, temp, maxRadius)) {
+                    neighbours.add(temp);
+                }
+                pointerMin--;
+            }
+
+            int pointerMax = closestIndex;
+            while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
+                Connection temp = mConnections.get(pointerMax);
+                if (isConnectionAllowed(conn, temp, maxRadius)) {
+                    neighbours.add(temp);
+                }
+                pointerMax++;
+            }
+            return neighbours;
         }
 
         @VisibleForTesting

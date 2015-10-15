@@ -22,6 +22,8 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
+import java.util.List;
+
 /**
  * Tests for {@link ConnectionManager}
  */
@@ -114,7 +116,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         three.connect(two);
         assertFalse(manager.isConnectionAllowed(one, three, 20.0));
     }
-    
+
     // Test YSortedList
     public void testFindPosition() {
         ConnectionManager.YSortedList list =
@@ -154,7 +156,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
             list.addConnection(createConnection(0, 9 - i, Connection.CONNECTION_TYPE_PREVIOUS));
         }
 
-        for (int i = 0; i < 10; i++){
+        for (int i = 0; i < 10; i++) {
             assertEquals(i, list.get(i).getPosition().y);
         }
 
@@ -213,10 +215,65 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertEquals(5, result.getPosition().y);
     }
 
-    private Connection searchList(ConnectionManager.YSortedList list, int x, int y, int radius) {
-        return list.searchForClosest(createConnection(x, y, Connection.CONNECTION_TYPE_NEXT), radius);
+    public void testGetNeighbours() {
+
+        ConnectionManager.YSortedList list =
+                manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
+
+        // Search an empty list
+        assertTrue(getNeighbourHelper(list, 10 /* x */, 10 /* y */, 100 /* radius */).isEmpty());
+
+        // Make a list
+        for (int i = 0; i < 10; i++) {
+            list.addConnection(createConnection(0, i, Connection.CONNECTION_TYPE_PREVIOUS));
+        }
+
+        // Test block belongs at beginning
+        List<Connection> result = getNeighbourHelper(list, 0, 0, 4);
+        assertEquals(5, result.size());
+        for (int i = 0; i < result.size(); i++) {
+            assertTrue(result.contains(list.get(i)));
+        }
+
+        // Test block belongs at middle
+        result = getNeighbourHelper(list, 0, 4, 2);
+        assertEquals(5, result.size());
+        for (int i = 0; i < result.size(); i++) {
+            assertTrue(result.contains(list.get(i + 2)));
+        }
+
+        // Test block belongs at end
+        result = getNeighbourHelper(list, 0, 9, 4);
+        assertEquals(5, result.size());
+        for (int i = 0; i < result.size(); i++) {
+            assertTrue(result.contains(list.get(i + 5)));
+        }
+
+        // Test block has no neighbours due to being out of range in the x direction
+        result = getNeighbourHelper(list, 10, 9, 4);
+        assertTrue(result.isEmpty());
+
+        // Test block has no neighbours due to being out of range in the y direction
+        result = getNeighbourHelper(list, 0, 19, 4);
+        assertTrue(result.isEmpty());
+
+        // Test block has no neighbours due to being out of range diagonally
+        result = getNeighbourHelper(list, -2, -2, 2);
+        assertTrue(result.isEmpty());
     }
 
+    private List<Connection> getNeighbourHelper(ConnectionManager.YSortedList list, int x, int y,
+                                                int radius) {
+        return list.getNeighbours(createConnection(x, y, Connection.CONNECTION_TYPE_NEXT), radius);
+    }
+
+    // Helper
+    private Connection searchList(ConnectionManager.YSortedList list, int x, int y, int radius) {
+        return list.searchForClosest(createConnection(x, y, Connection.CONNECTION_TYPE_NEXT),
+                radius);
+    }
+
+    // Helper
     private Connection createConnection(int x, int y, int type) {
         Connection conn = new Connection(type, null);
         conn.setPosition(x, y);
