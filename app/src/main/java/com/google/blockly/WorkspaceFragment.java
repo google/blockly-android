@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.model.Workspace;
+import com.google.blockly.ui.VirtualWorkspaceView;
 import com.google.blockly.ui.WorkspaceView;
 
 /**
@@ -41,18 +42,37 @@ public class WorkspaceFragment extends Fragment {
                              Bundle savedInstanceState) {
         final ViewGroup rootView =
                 (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
+
         final WorkspaceView workspaceView =
                 (WorkspaceView) rootView.findViewById(R.id.workspace);
         workspaceView.setWorkspace(mWorkspace);
+
+        final VirtualWorkspaceView virtualWorkspaceView =
+                (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
 
         rootView.findViewById(R.id.reset_view_button).setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        workspaceView.resetViewport();
+                        virtualWorkspaceView.resetView();
                     }
-                }
-        );
+                });
+
+        rootView.findViewById(R.id.zoom_out_button).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        virtualWorkspaceView.zoomOut();
+                    }
+                });
+
+        rootView.findViewById(R.id.zoom_in_button).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        virtualWorkspaceView.zoomIn();
+                    }
+                });
 
         // Add all blocks, or load from XML.
         MockBlocksProvider.makeTestModel(mWorkspace);

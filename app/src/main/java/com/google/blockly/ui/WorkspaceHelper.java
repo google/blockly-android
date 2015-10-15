@@ -272,8 +272,7 @@ public class WorkspaceHelper {
      */
     public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
         getWorkspaceViewCoordinates(view, mTempViewPoint);
-        workspacePosition.x = viewToWorkspaceUnits(mTempViewPoint.x);
-        workspacePosition.y = viewToWorkspaceUnits(mTempViewPoint.y);
+        viewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
     }
 
     /**
@@ -316,7 +315,8 @@ public class WorkspaceHelper {
     public BlockGroup getRootBlockGroup(Block block) {
         // Go up and left as far as possible.
         while (true) {
-            if (block.getOutputConnection() != null && block.getOutputConnection().getTargetBlock() != null) {
+            if (block.getOutputConnection() != null &&
+                    block.getOutputConnection().getTargetBlock() != null) {
                 block = block.getOutputConnection().getTargetBlock();
             } else if (block.getPreviousBlock() != null) {
                 block = block.getPreviousBlock();
