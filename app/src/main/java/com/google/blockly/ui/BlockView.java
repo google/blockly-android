@@ -128,7 +128,9 @@ public class BlockView extends FrameLayout {
         mConnectionManager = connectionManager;
         mHelper = helper;
 
-        parentGroup.addView(this);
+        if (parentGroup != null) {
+            parentGroup.addView(this);
+        }
         block.setView(this);
 
         setWillNotDraw(false);
@@ -188,8 +190,8 @@ public class BlockView extends FrameLayout {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (hitTest(event)) {
-            // Let workspaceView know that the visible parts of this BlockView were touched.
-            mHelper.getWorkspaceView().onTouchBlock(this, event);
+            // Let workspace helper know that the visible parts of this BlockView were touched.
+            mHelper.getBlockTouchHandler().onTouchBlock(this, event);
         }
 
         return false;
@@ -200,7 +202,6 @@ public class BlockView extends FrameLayout {
         c.drawPath(mDrawPath, mAreaPaint);
         c.drawPath(mDrawPath, mBorderPaint);
         drawHighlights(c);
-        drawConnectorCenters(c);
     }
 
     /**
@@ -271,6 +272,9 @@ public class BlockView extends FrameLayout {
         // Ensure we have the right block location before we update the connections.
         updateBlockPosition();
 
+        if (mConnectionManager == null) {
+            return;
+        }
         final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
         if (mBlock.getPreviousConnection() != null) {
             mHelper.viewToWorkspaceUnits(mPreviousConnectorOffset, mTempWorkspacePoint);
@@ -641,7 +645,7 @@ public class BlockView extends FrameLayout {
             if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
                 // Blocks connected to inputs live in their own BlockGroups.
                 BlockGroup bg = new BlockGroup(context, mHelper);
-                mHelper.obtainBlockView(
+                mHelper.obtainBlockView(context,
                         in.getConnection().getTargetBlock(), bg, mConnectionManager);
                 inputView.setChildView(bg);
             }

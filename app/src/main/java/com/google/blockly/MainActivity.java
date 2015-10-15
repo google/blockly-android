@@ -32,6 +32,10 @@ public class MainActivity extends ActionBarActivity
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
+    private ToolboxFragment mToolboxFragment;
+
+    private WorkspaceFragment mWorkspaceFragment;
+
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -41,9 +45,14 @@ public class MainActivity extends ActionBarActivity
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
+        mWorkspaceFragment = WorkspaceFragment.newInstance(position + 1);
         fragmentManager.beginTransaction()
-                .replace(R.id.container, WorkspaceFragment.newInstance(position + 1))
+                .replace(R.id.container, mWorkspaceFragment)
                 .commit();
+
+        if (mToolboxFragment != null) {
+            mToolboxFragment.setWorkspace(mWorkspaceFragment.getWorkspace());
+        }
 
         onSectionAttached(position + 1);    // Because indexing.
     }
@@ -112,5 +121,11 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        mToolboxFragment = (ToolboxFragment)
+                getSupportFragmentManager().findFragmentById(R.id.toolbox);
+        if (mToolboxFragment != null) {
+            mToolboxFragment.setWorkspace(mWorkspaceFragment.getWorkspace());
+        }
     }
 }

@@ -362,6 +362,10 @@ public class Block {
         mLayoutParams = params;
     }
 
+    public Block deepCopy() {
+        return new Block.Builder(this, true /* recursive */).build();
+    }
+
     /**
      * Writes information about the editable parts of the block as XML.
      *
@@ -501,6 +505,13 @@ public class Block {
             String[] checks = Input.getChecksFromJson(json, "nextStatement");
             Connection next = new Connection(Connection.CONNECTION_TYPE_NEXT, checks);
             bob.setNext(next);
+        }
+        if (json.has("inputsInline")) {
+            try {
+                bob.setInputsInline(json.getBoolean("inputsInline"));
+            } catch (JSONException e) {
+                // Do nothing and it will remain false.
+            }
         }
 
         int colour = json.optInt("colour", DEFAULT_HSV_HUE);
@@ -762,23 +773,34 @@ public class Block {
             mPosition = new WorkspacePoint(0, 0);
         }
 
-        public Builder(Block block) {
+        private Builder(Block block, boolean recursive) {
             this(block.mName);
             mColourHue = block.mColourHue;
             mCategory = block.mCategory;
 
             mOutputConnection = Connection.cloneConnection(block.mOutputConnection);
             mNextConnection = Connection.cloneConnection(block.mNextConnection);
+            if (recursive && block.getNextBlock() != null) {
+                mNextConnection.connect(block.getNextBlock().deepCopy().getPreviousConnection());
+            }
             mPreviousConnection = Connection.cloneConnection(block.mPreviousConnection);
 
             mInputs = new ArrayList<>();
-            Input newInput = null;
+            Input newInput;
             for (int i = 0; i < block.mInputList.size(); i++) {
-                if (block.mInputList.get(i) != null) {
-                    newInput = (Input) block.mInputList.get(i).clone();
-                }
-                if (newInput != null) {
-                    mInputs.add(newInput);
+                Input oldInput = block.mInputList.get(i);
+                if (oldInput != null) {
+                    newInput = (Input) oldInput.clone();
+                    if (newInput != null) {
+                        mInputs.add(newInput);
+                        if (recursive && oldInput.getConnection() != null) {
+                            Block target = oldInput.getConnection().getTargetBlock();
+                            if (target != null) {
+                                    newInput.getConnection().connect(
+                                            target.deepCopy().getOutputConnection());
+                            }
+                        }
+                    }
                 }
             }
 
@@ -795,6 +817,10 @@ public class Block {
             mDisabled = block.mDisabled;
             mPosition.x = block.mPosition.x;
             mPosition.y = block.mPosition.y;
+        }
+
+        public Builder(Block block) {
+            this(block, false);
         }
 
         public Builder setName(String name) {

@@ -19,8 +19,10 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Build;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
 
@@ -38,13 +40,10 @@ public class WorkspaceHelper {
 
     private static final float SCALE_MIN = 0.1f;
     private static final float SCALE_MAX = 3f;
-
-    private final WorkspaceView mWorkspaceView;
-
     private final WorkspacePoint mWorkspaceOffset = new WorkspacePoint();
     private final ViewPoint mViewSize = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
-
+    private WorkspaceView mWorkspaceView;
     private float mMinScale;
     private float mMaxScale;
     private float mDefaultScale;
@@ -54,6 +53,8 @@ public class WorkspaceHelper {
     private int mBlockStyle;
     private int mFieldLabelStyle;
 
+    private BlockTouchHandler mBlockTouchHandler;
+
     /**
      * Create a helper for creating and doing calculations for views in the workspace using the
      * workspace's style.
@@ -62,7 +63,20 @@ public class WorkspaceHelper {
      * @param attrs The workspace attributes to load the style from.
      */
     public WorkspaceHelper(WorkspaceView workspaceView, AttributeSet attrs) {
-        this(workspaceView, attrs, 0);
+        this(workspaceView.getContext(), attrs, 0);
+        mWorkspaceView = workspaceView;
+    }
+
+    /**
+     * Create a helper for creating and doing calculations for views in the workspace using the
+     * workspace's style.
+     *
+     * @param context The {@link Context} of the fragment or activity this lives in.
+     * @param attrs The workspace attributes to load the style from.
+     */
+    public WorkspaceHelper(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+        mWorkspaceView = null;
     }
 
     /**
@@ -77,14 +91,11 @@ public class WorkspaceHelper {
      * <li>The context's theme.</li>
      * </ol>
      *
-     * @param workspaceView The {@link WorkspaceView} for which this is a helper.
+     * @param context The {@link Context} of the fragment or activity this lives in.
      * @param attrs The {@link WorkspaceView} attributes or null.
      * @param workspaceStyle The style to use for views.
      */
-    public WorkspaceHelper(WorkspaceView workspaceView, AttributeSet attrs, int workspaceStyle) {
-        mWorkspaceView = workspaceView;
-
-        Context context = mWorkspaceView.getContext();
+    public WorkspaceHelper(Context context, AttributeSet attrs, int workspaceStyle) {
         Resources res = context.getResources();
         mDensity = res.getDisplayMetrics().density;
         if (mDensity == 0) {
@@ -95,7 +106,9 @@ public class WorkspaceHelper {
         initConfig(context, attrs, workspaceStyle);
     }
 
-    /** @return The {@link WorkspaceView} for which this is a helper. */
+    /**
+     * @return The {@link WorkspaceView} for which this is a helper.
+     */
     public WorkspaceView getWorkspaceView() {
         return mWorkspaceView;
     }
@@ -223,6 +236,21 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Creates a {@link BlockView} for the given block using the workspace's default style.
+     *
+     * @param context The context in which to generate the view.
+     * @param block The block to generate a view for.
+     * @param parentGroup The group to set as the parent for this block's view.
+     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
+     * @return A view for the block.
+     */
+    public BlockView obtainBlockView(Context context, Block block, BlockGroup parentGroup,
+                                     ConnectionManager connectionManager) {
+        return new BlockView(context,
+                getBlockStyle(), block, this, parentGroup, connectionManager);
+    }
+
+    /**
      * @return The style resource id to use for drawing blocks.
      */
     public int getBlockStyle() {
@@ -249,7 +277,7 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Update view coordinates based on the new view coordinates of the {@link View}.
+     * Get view coordinates based on the new view coordinates of the {@link View}.
      *
      * @param view The view to find the position of.
      * @param viewPosition The Point to store the results in.
@@ -261,7 +289,7 @@ public class WorkspaceHelper {
         // Move up the parent hierarchy and add parent-relative view coordinates.
         ViewParent viewParent = view.getParent();
         while (viewParent != null) {
-            if (viewParent instanceof WorkspaceView) {
+            if (viewParent instanceof WorkspaceView || viewParent instanceof RecyclerView) {
                 break;
             }
 
@@ -314,6 +342,14 @@ public class WorkspaceHelper {
                 return (BlockGroup) viewParent;
         }
         throw new IllegalStateException("No BlockGroup found among view's parents.");
+    }
+
+    public BlockTouchHandler getBlockTouchHandler() {
+        return mBlockTouchHandler;
+    }
+
+    public void setBlockTouchHandler(BlockTouchHandler bth) {
+        mBlockTouchHandler = bth;
     }
 
     /**
@@ -400,5 +436,15 @@ public class WorkspaceHelper {
         }
         workspacePosition.x = viewToWorkspaceUnits(viewX) + mWorkspaceOffset.x;
         workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mWorkspaceOffset.y;
+    }
+
+    public static abstract class BlockTouchHandler {
+        /**
+         * Called by the BlockView when the visible area of the block has been touched.
+         *
+         * @param blockView The touched {@link BlockView}.
+         * @param motionEvent The event the blockView is responding to.
+         */
+        abstract public void onTouchBlock(BlockView blockView, MotionEvent motionEvent);
     }
 }

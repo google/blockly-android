@@ -17,8 +17,8 @@ package com.google.blockly.model;
 
 import android.content.Context;
 import android.util.Log;
-import android.view.View;
 
+import com.google.blockly.control.BlockCopyBuffer;
 import com.google.blockly.control.Dragger;
 import com.google.blockly.control.ProcedureManager;
 import com.google.blockly.control.ConnectionManager;
@@ -51,6 +51,8 @@ public class Workspace {
 
     private final Dragger mDragger =
             new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mRootBlocks);
+
+    private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
 
     public Workspace() {
     }
@@ -149,5 +151,12 @@ public class Workspace {
             mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mConnectionManager);
             mWorkspaceView.addView(bg);
         }
+    }
+
+    public void addRootBlockAndView(Block block, Context context) {
+        BlockGroup bg = new BlockGroup(context, mWorkspaceHelper);
+        mWorkspaceHelper.obtainBlockView(context, block, bg, mConnectionManager);
+        mWorkspaceView.addView(bg);
+        addRootBlock(block);
     }
 }
