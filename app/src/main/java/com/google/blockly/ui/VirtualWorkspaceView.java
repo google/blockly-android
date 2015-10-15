@@ -33,7 +33,7 @@ public class VirtualWorkspaceView extends ViewGroup {
     private final int INIT_ZOOM_SCALES_INDEX = 2;
 
     // Constants for drawing the coordinate grid.
-    private static final int DEFAULT_GRID_SPACING = 48;
+    private static final int GRID_SPACING = 48;
     private static final int GRID_COLOR = 0xffa0a0a0;
     private static final int GRID_RADIUS = 2;
     private static final float MIN_SCALE_TO_DRAW_GRID = 0.5f;
@@ -42,8 +42,7 @@ public class VirtualWorkspaceView extends ViewGroup {
     private boolean mIsPanning = false;
     private final ViewPoint mPanningStart = new ViewPoint();
 
-    // Scroll coordinates at the beginning of panning the workspace. During panning, the workspace
-    // is scrolled relative to these.
+    // Coordinates at the beginning of scrolling the workspace.
     private int mOriginalScrollX;
     private int mOriginalScrollY;
 
@@ -54,8 +53,8 @@ public class VirtualWorkspaceView extends ViewGroup {
     // Fields for grid drawing.
     private final boolean mDrawGrid = true;
     private final Paint mGridPaint = new Paint();
-    private final int mGridSpacing = DEFAULT_GRID_SPACING;
 
+    // The workspace view that backs this virtual view.
     private WorkspaceView mWorkspaceView;
 
     public VirtualWorkspaceView(Context context) {
@@ -206,7 +205,7 @@ public class VirtualWorkspaceView extends ViewGroup {
     @Override
     public void onDraw(Canvas c) {
         if (shouldDrawGrid()) {
-            int gridSpacing = (int) (mGridSpacing * mScale);
+            int gridSpacing = (int) (GRID_SPACING * mScale);
             // Figure out where we should start drawing the grid
             int scrollX = getScrollX();
             int scrollY = getScrollY();
@@ -298,6 +297,6 @@ public class VirtualWorkspaceView extends ViewGroup {
     }
 
     private boolean shouldDrawGrid() {
-        return mDrawGrid && mScale >= MIN_SCALE_TO_DRAW_GRID && mGridSpacing > 0;
+        return mDrawGrid && mScale >= MIN_SCALE_TO_DRAW_GRID;
     }
 }
