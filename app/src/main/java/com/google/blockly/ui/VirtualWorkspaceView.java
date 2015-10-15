@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -40,6 +41,7 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     // Fields for workspace panning.
     private boolean mIsPanning = false;
+    private int mPanningPointerId;
     private final ViewPoint mPanningStart = new ViewPoint();
 
     // Coordinates at the beginning of scrolling the workspace.
@@ -115,19 +117,29 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()) {
+        final int action = MotionEventCompat.getActionMasked(event);
+
+        switch (action) {
             case MotionEvent.ACTION_DOWN: {
                 mIsPanning = true;
-                mPanningStart.set((int) event.getX(), (int) event.getY());
+                final int pointerIdx = MotionEventCompat.getActionIndex(event);
+                mPanningPointerId = MotionEventCompat.getPointerId(event, pointerIdx);
+                mPanningStart.set(
+                        (int) MotionEventCompat.getX(event, pointerIdx),
+                        (int) MotionEventCompat.getY(event, pointerIdx));
                 mOriginalScrollX = getScrollX();
                 mOriginalScrollY = getScrollY();
                 return true;
             }
             case MotionEvent.ACTION_MOVE: {
                 if (mIsPanning) {
+                    final int pointerIdx =
+                            MotionEventCompat.findPointerIndex(event, mPanningPointerId);
                     scrollTo(
-                            mOriginalScrollX + mPanningStart.x - (int) event.getX(),
-                            mOriginalScrollY + mPanningStart.y - (int) event.getY());
+                            mOriginalScrollX + mPanningStart.x -
+                                    (int) MotionEventCompat.getX(event, pointerIdx),
+                            mOriginalScrollY + mPanningStart.y -
+                                    (int) MotionEventCompat.getY(event, pointerIdx));
                     return true;
                 } else {
                     return false;
@@ -142,10 +154,14 @@ public class VirtualWorkspaceView extends ViewGroup {
                 }
             }
             case MotionEvent.ACTION_CANCEL: {
-                // When cancelled, reset to original scroll position.
-                scrollTo(mOriginalScrollX, mOriginalScrollY);
-                mIsPanning = false;
-                return true;
+                if (mIsPanning) {
+                    // When cancelled, reset to original scroll position.
+                    scrollTo(mOriginalScrollX, mOriginalScrollY);
+                    mIsPanning = false;
+                    return true;
+                } else {
+                    return false;
+                }
             }
             default: {
                 break;

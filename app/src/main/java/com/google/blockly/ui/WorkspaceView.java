@@ -18,6 +18,7 @@ package com.google.blockly.ui;
 import android.content.Context;
 import android.graphics.Rect;
 import android.support.annotation.IntDef;
+import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -64,8 +65,9 @@ public class WorkspaceView extends ViewGroup {
     private int mTouchState = TOUCH_STATE_NONE;
 
     // Fields for dragging blocks in the workspace.
-    private BlockView mDraggingBlockView = null;
+    private int mDraggingPointerId;
     private final ViewPoint mDraggingStart = new ViewPoint();
+    private BlockView mDraggingBlockView = null;
     private Dragger mDragger;
 
     // Viewport bounds. These define the bounding box of all blocks, in view coordinates, and
@@ -214,6 +216,8 @@ public class WorkspaceView extends ViewGroup {
         if (mTouchState == TOUCH_STATE_NONE) {
             mTouchState = TOUCH_STATE_DOWN;
             mDraggingBlockView = blockView;
+            mDraggingPointerId =
+                    MotionEventCompat.getPointerId(event, MotionEventCompat.getActionIndex(event));
         }
     }
 
@@ -221,20 +225,28 @@ public class WorkspaceView extends ViewGroup {
      * Handle motion events while dragging a block.
      */
     private boolean dragBlock(MotionEvent event) {
-        switch (event.getAction()) {
+        final int action = MotionEventCompat.getActionMasked(event);
+        final int pointerIdx = MotionEventCompat.findPointerIndex(event, mDraggingPointerId);
+
+        switch (action) {
             case MotionEvent.ACTION_DOWN: {
                 // Save position of Down event for later use when (if) minimum dragging distance
                 // threshold has been met. By not calling Dragger.startDragging() here already, we
                 // prevent unnecessary block operations until we are sure that the user is dragging.
-                mDraggingStart.set((int) event.getX(), (int) event.getY());
+                mDraggingStart.set(
+                        (int) MotionEventCompat.getX(event, pointerIdx),
+                        (int) MotionEventCompat.getY(event, pointerIdx));
                 return true;
             }
             case MotionEvent.ACTION_MOVE: {
                 if (mTouchState != TOUCH_STATE_DRAGGING) {
                     // Not dragging yet - compute distance from Down event and start dragging if
                     // far enough.
-                    final float deltaX = mDraggingStart.x - event.getX();
-                    final float deltaY = mDraggingStart.y - event.getY();
+                    final float deltaX = mDraggingStart.x -
+                            MotionEventCompat.getX(event, pointerIdx);
+                    final float deltaY = mDraggingStart.y -
+                            MotionEventCompat.getY(event, pointerIdx);
+
                     if (Math.sqrt(deltaX * deltaX + deltaY * deltaY) >= mTouchSlop) {
                         mTouchState = TOUCH_STATE_DRAGGING;
                         mDragger.startDragging(mDraggingBlockView,
@@ -246,15 +258,10 @@ public class WorkspaceView extends ViewGroup {
                 }
                 return true;
             }
-            case MotionEvent.ACTION_UP: {
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL: {
                 // Finalize dragging and reset dragging state flags.
                 mDragger.finishDragging();
-                mTouchState = TOUCH_STATE_NONE;
-                mDraggingBlockView = null;
-                return true;
-            }
-            case MotionEvent.ACTION_CANCEL: {
-                // TODO(rohlfingt): have Dragger cancel dragging.
                 mTouchState = TOUCH_STATE_NONE;
                 mDraggingBlockView = null;
                 return true;
