@@ -305,13 +305,13 @@ public class Dragger {
             // dragging.
             Block lastBlockInGroup = mWorkspaceHelper.getNearestParentBlockGroup(toConnect)
                     .lastChildBlock();
-            if (lastBlockInGroup.getNextConnection() == null) {
+            if (lastBlockInGroup.getNextConnection() != null) {
+                connectAfter(lastBlockInGroup, remainderBlock);
+            } else {
                 // Nothing to connect to.  Bump and add to root.
                 addToRoot(remainderBlock,
                         mWorkspaceHelper.getNearestParentBlockGroup(remainderBlock));
                 bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
-            } else {
-                connectAfter(lastBlockInGroup, remainderBlock);
             }
         }
         connectAsChild(parentStatementConnection, toConnect.getPreviousConnection());
@@ -335,18 +335,18 @@ public class Dragger {
         // To splice between two blocks, just need another call to connectAfter.
         if (superior.getNextConnection().isConnected()) {
             Block remainderBlock = superior.getNextBlock();
-            BlockGroup remainder = superiorBlockGroup.extractBlocksAsNewGroup(
+            BlockGroup remainderGroup = superiorBlockGroup.extractBlocksAsNewGroup(
                     remainderBlock);
             superior.getNextConnection().disconnect();
             // We may be dragging multiple blocks.  Try to connect after the end of the group we are
             // dragging.
             Block lastBlockInGroup = inferiorBlockGroup.lastChildBlock();
-            if (lastBlockInGroup.getNextConnection() == null) {
-                // Nothing to connect to.  Bump and add to root.
-                addToRoot(remainderBlock, remainder);
-                bumpBlock(inferior.getPreviousConnection(), remainderBlock.getPreviousConnection());
+            if (lastBlockInGroup.getNextConnection() != null) {
+                connectAfter(lastBlockInGroup, inferiorBlockGroup, remainderBlock, remainderGroup);
             } else {
-                connectAfter(lastBlockInGroup, inferiorBlockGroup, remainderBlock, remainder);
+                // Nothing to connect to.  Bump and add to root.
+                addToRoot(remainderBlock, remainderGroup);
+                bumpBlock(inferior.getPreviousConnection(), remainderBlock.getPreviousConnection());
             }
         }
 
@@ -388,7 +388,7 @@ public class Dragger {
         BlockGroup childBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(child.getBlock());
 
         if (parent.isConnected()) {
-            Connection remainder = parent.getTargetConnection();
+            Connection remainderConnection = parent.getTargetConnection();
             BlockGroup remainderGroup = (BlockGroup) parentInputView.getChildView();
             parent.disconnect();
             parentInputView.unsetChildView();
@@ -396,12 +396,12 @@ public class Dragger {
             // place it could be rebased to.
             Connection lastInputConnection = childBlockGroup.getLastInputConnection();
             if (lastInputConnection != null) {
-                connectAsChild(lastInputConnection, remainder);
+                connectAsChild(lastInputConnection, remainderConnection);
             } else {
-                // Bump and add Back to root.
-                Block remainderBlock = remainder.getBlock();
-                addToRoot(remainderBlock,remainderGroup);
-                bumpBlock(parent, remainder);
+                // Bump and add back to root.
+                Block remainderBlock = remainderConnection.getBlock();
+                addToRoot(remainderBlock, remainderGroup);
+                bumpBlock(parent, remainderConnection);
             }
         }
         parent.connect(child);
@@ -463,6 +463,7 @@ public class Dragger {
     }
 
     private void bumpBlock(Connection staticConnection, Connection impingingConnection) {
+        // TODO (rohlfingt): Adapt to RTL
         int dx = (staticConnection.getPosition().x + MAX_SNAP_DISTANCE)
                 - impingingConnection.getPosition().x;
         int dy = (staticConnection.getPosition().y + MAX_SNAP_DISTANCE)

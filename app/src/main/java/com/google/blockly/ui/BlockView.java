@@ -202,7 +202,6 @@ public class BlockView extends FrameLayout {
         c.drawPath(mDrawPath, mAreaPaint);
         c.drawPath(mDrawPath, mBorderPaint);
         drawHighlights(c);
-        drawConnectorCenters(c);
     }
 
     /**
@@ -810,7 +809,6 @@ public class BlockView extends FrameLayout {
         }
 
         mDrawPath.close();
-
     }
 
     /**

@@ -33,7 +33,7 @@ public final class MockBlocksProvider {
         bob.setPosition(5, 5);
 
         bob.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
-        //bob.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
+        bob.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
 
         Input input = new Input.InputValue("input2", null, null);
         input.add(new Field.FieldLabel("checkbox?", "this is a checkbox:"));
@@ -183,13 +183,13 @@ public final class MockBlocksProvider {
         Block ivb2 = makeValueInputBlock();
         innerBlock.getInputs().get(2).getConnection().connect(ivb2.getOutputConnection());
         workspace.addRootBlock(outerBlock);
-        airstrike(10, workspace);
+        //airstrike(10, workspace);
     }
 
     public static void airstrike(int numBlocks, Workspace workspace) {
         Block dummyBlock;
         for (int i = 0; i < numBlocks; i++) {
-            dummyBlock = makeStatementBlock();
+            dummyBlock = makeDummyBlock();
             int randomX = (int) (Math.random() * 250);
             int randomY = (int) (Math.random() * 500);
             dummyBlock.setPosition(randomX, randomY);
