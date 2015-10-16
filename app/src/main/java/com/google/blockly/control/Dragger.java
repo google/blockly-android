@@ -301,11 +301,18 @@ public class Dragger {
             Block remainderBlock = parentStatementConnection.getTargetBlock();
             parentStatementConnection.getInputView().unsetChildView();
             parentStatementConnection.disconnect();
-            // We may be dragging multiple blocks.  Connect after the end of the group we are
+            // We may be dragging multiple blocks.  Try to connect after the end of the group we are
             // dragging.
             Block lastBlockInGroup = mWorkspaceHelper.getNearestParentBlockGroup(toConnect)
                     .lastChildBlock();
-            connectAfter(lastBlockInGroup, remainderBlock);
+            if (lastBlockInGroup.getNextConnection() == null) {
+                // Nothing to connect to.  Bump and add to root.
+                addToRoot(remainderBlock,
+                        mWorkspaceHelper.getNearestParentBlockGroup(remainderBlock));
+                bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
+            } else {
+                connectAfter(lastBlockInGroup, remainderBlock);
+            }
         }
         connectAsChild(parentStatementConnection, toConnect.getPreviousConnection());
     }
@@ -331,12 +338,16 @@ public class Dragger {
             BlockGroup remainder = superiorBlockGroup.extractBlocksAsNewGroup(
                     remainderBlock);
             superior.getNextConnection().disconnect();
-            // We may be dragging multiple blocks.  Connect after the end of the group we are
+            // We may be dragging multiple blocks.  Try to connect after the end of the group we are
             // dragging.
             Block lastBlockInGroup = inferiorBlockGroup.lastChildBlock();
-            // TODO (fenichel): if lastBlockInGroup doesn't have a next connection,
-            // add back to the root level.
-            connectAfter(lastBlockInGroup, inferiorBlockGroup, remainderBlock, remainder);
+            if (lastBlockInGroup.getNextConnection() == null) {
+                // Nothing to connect to.  Bump and add to root.
+                addToRoot(remainderBlock, remainder);
+                bumpBlock(inferior.getPreviousConnection(), remainderBlock.getPreviousConnection());
+            } else {
+                connectAfter(lastBlockInGroup, inferiorBlockGroup, remainderBlock, remainder);
+            }
         }
 
         connectAfter(superior, superiorBlockGroup, inferior, inferiorBlockGroup);
@@ -378,17 +389,19 @@ public class Dragger {
 
         if (parent.isConnected()) {
             Connection remainder = parent.getTargetConnection();
+            BlockGroup remainderGroup = (BlockGroup) parentInputView.getChildView();
             parent.disconnect();
             parentInputView.unsetChildView();
-            // TODO (fenichel): traverse the tree to ensure it doesn't branch. We only reconnect if
-            // there's a single place it could be rebased to.
-            if (childBlockGroup.lastChildBlock() != null) {
-                Input farRightOnlyValueInput = childBlockGroup.lastChildBlock().getOnlyValueInput();
-                if (farRightOnlyValueInput != null) {
-                    connectAsChild(farRightOnlyValueInput.getConnection(), remainder);
-                }
+            // Traverse the tree to ensure it doesn't branch. We only reconnect if there's a single
+            // place it could be rebased to.
+            Connection lastInputConnection = childBlockGroup.getLastInputConnection();
+            if (lastInputConnection != null) {
+                connectAsChild(lastInputConnection, remainder);
             } else {
-                // TODO (fenichel): Bump and add back to the root
+                // Bump and add Back to root.
+                Block remainderBlock = remainder.getBlock();
+                addToRoot(remainderBlock,remainderGroup);
+                bumpBlock(parent, remainder);
             }
         }
         parent.connect(child);
@@ -422,6 +435,11 @@ public class Dragger {
         mRootBlocks.remove(block);
     }
 
+    private void addToRoot(Block block, BlockGroup group) {
+        mRootBlocks.add(block);
+        mWorkspaceView.addView(group);
+    }
+
     /**
      * Update the positions of all of the connections that were impacted by the move and add them
      * back to the manager.
@@ -442,5 +460,16 @@ public class Dragger {
         }
 
         mWorkspaceHelper.getRootBlockGroup(mTouchedBlockView.getBlock()).requestLayout();
+    }
+
+    private void bumpBlock(Connection staticConnection, Connection impingingConnection) {
+        int dx = (staticConnection.getPosition().x + MAX_SNAP_DISTANCE)
+                - impingingConnection.getPosition().x;
+        int dy = (staticConnection.getPosition().y + MAX_SNAP_DISTANCE)
+                - impingingConnection.getPosition().y;
+        BlockGroup toBump = mWorkspaceHelper.getRootBlockGroup(impingingConnection.getBlock());
+        Block rootBlock = ((BlockView) toBump.getChildAt(0)).getBlock();
+        rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
+        toBump.requestLayout();
     }
 }

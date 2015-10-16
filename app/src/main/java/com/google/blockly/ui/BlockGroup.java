@@ -20,6 +20,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Connection;
+import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
 /**
@@ -129,6 +131,36 @@ public class BlockGroup extends ViewGroup {
         }
         BlockView lastChild = (BlockView) getChildAt(getChildCount() - 1);
         return lastChild.getBlock();
+    }
+
+    /**
+     * Walks the chain of blocks in this block group, at each stage checking if there are multiple
+     * value inputs.  If there is only one value input at each block, follows that input to the
+     * next block.
+     *
+     * @return the {@link Connection} on the only input on the last blockin the chain.
+     */
+    public Connection getLastInputConnection() {
+        if (getChildCount() == 0) {
+            return null;
+        }
+        Block block = ((BlockView) getChildAt(0)).getBlock();
+        // Loop until we run out of inputs (in which case there's nothing to connect to) or we run
+        // out of blocks (in which case the last
+        while (true) {
+            Input onlyValueInput = block.getOnlyValueInput();
+            if (onlyValueInput == null) {
+                return null;
+            }
+            Connection conn = onlyValueInput.getConnection();
+            if (conn == null) {
+                return null;
+            }
+            if (!conn.isConnected()) {
+                return conn;
+            }
+            block = conn.getTargetBlock();
+        }
     }
 
     /**
