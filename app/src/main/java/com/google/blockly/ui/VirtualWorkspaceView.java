@@ -41,7 +41,7 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     // Fields for workspace panning.
     private boolean mIsPanning = false;
-    private int mPanningPointerId;
+    private int mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
     private final ViewPoint mPanningStart = new ViewPoint();
 
     // Coordinates at the beginning of scrolling the workspace.
@@ -121,7 +121,6 @@ public class VirtualWorkspaceView extends ViewGroup {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-                mIsPanning = true;
                 final int pointerIdx = MotionEventCompat.getActionIndex(event);
                 mPanningPointerId = MotionEventCompat.getPointerId(event, pointerIdx);
                 mPanningStart.set(
@@ -132,7 +131,7 @@ public class VirtualWorkspaceView extends ViewGroup {
                 return true;
             }
             case MotionEvent.ACTION_MOVE: {
-                if (mIsPanning) {
+                if (mPanningPointerId != MotionEvent.INVALID_POINTER_ID) {
                     final int pointerIdx =
                             MotionEventCompat.findPointerIndex(event, mPanningPointerId);
                     scrollTo(
@@ -146,18 +145,18 @@ public class VirtualWorkspaceView extends ViewGroup {
                 }
             }
             case MotionEvent.ACTION_UP: {
-                if (mIsPanning) {
-                    mIsPanning = false;
+                if (mPanningPointerId != MotionEvent.INVALID_POINTER_ID) {
+                    mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
                     return true;
                 } else {
                     return false;
                 }
             }
             case MotionEvent.ACTION_CANCEL: {
-                if (mIsPanning) {
+                if (mPanningPointerId != MotionEvent.INVALID_POINTER_ID) {
                     // When cancelled, reset to original scroll position.
                     scrollTo(mOriginalScrollX, mOriginalScrollY);
-                    mIsPanning = false;
+                    mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
                     return true;
                 } else {
                     return false;

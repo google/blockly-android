@@ -65,7 +65,7 @@ public class WorkspaceView extends ViewGroup {
     private int mTouchState = TOUCH_STATE_NONE;
 
     // Fields for dragging blocks in the workspace.
-    private int mDraggingPointerId;
+    private int mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;
     private final ViewPoint mDraggingStart = new ViewPoint();
     private BlockView mDraggingBlockView = null;
     private Dragger mDragger;
@@ -263,6 +263,7 @@ public class WorkspaceView extends ViewGroup {
                 // Finalize dragging and reset dragging state flags.
                 mDragger.finishDragging();
                 mTouchState = TOUCH_STATE_NONE;
+                mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;
                 mDraggingBlockView = null;
                 return true;
             }
