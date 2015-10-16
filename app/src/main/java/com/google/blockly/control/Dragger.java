@@ -440,6 +440,7 @@ public class Dragger {
             cur.setDragMode(false);
             mConnectionManager.addConnection(cur);
         }
-        mDragGroup.requestLayout();
+
+        mWorkspaceHelper.getRootBlockGroup(mTouchedBlockView.getBlock()).requestLayout();
     }
 }
