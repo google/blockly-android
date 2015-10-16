@@ -449,6 +449,8 @@ public class Dragger {
             mHighlightedBlockView.clearHighlight();
             mHighlightedBlockView = null;
         }
+        BlockGroup rootBlockGroup = mWorkspaceHelper.getRootBlockGroup(mTouchedBlockView.getBlock());
+        bumpNeighbours(mTouchedBlockView.getBlock(), rootBlockGroup);
         // All of the connection locations will be set relative to their block views immediately
         // after this loop.  For now we just want to unset drag mode and add the connections back
         // to the list; 0, 0 is a cheap place to put them.
@@ -460,18 +462,57 @@ public class Dragger {
         }
         mDraggedConnections.clear();
 
-        mWorkspaceHelper.getRootBlockGroup(mTouchedBlockView.getBlock()).requestLayout();
+        rootBlockGroup.requestLayout();
     }
 
     private void bumpBlock(Connection staticConnection, Connection impingingConnection) {
+        BlockGroup toBump = mWorkspaceHelper.getRootBlockGroup(impingingConnection.getBlock());
+        bumpBlock(staticConnection, impingingConnection, toBump);
+
+    }
+
+    private void bumpBlock(Connection staticConnection, Connection impingingConnection,
+                           BlockGroup impingingBlockGroup) {
         // TODO (rohlfingt): Adapt to RTL
         int dx = (staticConnection.getPosition().x + MAX_SNAP_DISTANCE)
                 - impingingConnection.getPosition().x;
         int dy = (staticConnection.getPosition().y + MAX_SNAP_DISTANCE)
                 - impingingConnection.getPosition().y;
-        BlockGroup toBump = mWorkspaceHelper.getRootBlockGroup(impingingConnection.getBlock());
-        Block rootBlock = ((BlockView) toBump.getChildAt(0)).getBlock();
+        Block rootBlock = ((BlockView) impingingBlockGroup.getChildAt(0)).getBlock();
         rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
-        toBump.requestLayout();
+        impingingBlockGroup.bringToFront();
+        impingingBlockGroup.requestLayout();
+    }
+
+    /**
+     * Move all neighbours of the current block and it's sub-blocks so that they don't appear to
+     * be connected to the current block.
+     *
+     * @param currentBlock The {@link Block} to bump others away from.
+     */
+    private void bumpNeighbours(Block currentBlock, BlockGroup rootBlockGroup) {
+        List<Connection> connectionsOnBlock = new ArrayList<>();
+        currentBlock.getAllConnections(connectionsOnBlock);
+
+        List<Connection> neighbouringConnections = new ArrayList<>();
+        for (int i = 0; i < connectionsOnBlock.size(); i++) {
+            Connection conn = connectionsOnBlock.get(i);
+            if (conn.isHighPriority() && conn.isConnected()) {
+                bumpNeighbours(conn.getTargetBlock(), rootBlockGroup);
+            }
+
+            mConnectionManager.getNeighbours(conn, MAX_SNAP_DISTANCE, neighbouringConnections);
+            for (int j = 0; j < neighbouringConnections.size(); j++) {
+                Connection curNeighbour = neighbouringConnections.get(j);
+                if (mWorkspaceHelper.getRootBlockGroup(curNeighbour.getBlock()) != rootBlockGroup) {
+                    // Always bump the inferior block.
+                    if (conn.isHighPriority()) {
+                        bumpBlock(conn, curNeighbour);
+                    } else {
+                        bumpBlock(curNeighbour, conn, rootBlockGroup);
+                    }
+                }
+            }
+        }
     }
 }

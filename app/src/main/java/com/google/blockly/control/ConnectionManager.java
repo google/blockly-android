@@ -105,13 +105,10 @@ public class ConnectionManager {
      * @param maxRadius How far out to search for compatible connections.
      * @return A list of all nearby compatible connections.
      */
-    public List<Connection> getNeighbours(Connection conn, int maxRadius) {
-        if (conn.isConnected()) {
-            // Don't offer to connect when already connected.
-            return null;
-        }
+    public void getNeighbours(Connection conn, int maxRadius, List<Connection> result) {
+        result.clear();
         YSortedList compatibleList = oppositeLists[conn.getType()];
-        return compatibleList.getNeighbours(conn, maxRadius);
+        compatibleList.getNeighbours(conn, maxRadius, result);
     }
 
     /**
@@ -348,11 +345,10 @@ public class ConnectionManager {
         }
 
         @VisibleForTesting
-        List<Connection> getNeighbours(Connection conn, int maxRadius) {
-            List<Connection> neighbours = new ArrayList<>();
+         void getNeighbours(Connection conn, int maxRadius, List<Connection> neighbours) {
             // Don't bother.
             if (mConnections.isEmpty()) {
-                return neighbours;
+                return;
             }
 
             int baseY = conn.getPosition().y;
@@ -362,10 +358,13 @@ public class ConnectionManager {
             int closestIndex = findPositionForConnection(conn);
 
             // Walk forward and back on the y axis looking for the closest x,y point.
+            // If both connections are connected, that's probably fine.  But if
+            // either one of them is unconnected, then there could be confusion.
             int pointerMin = closestIndex - 1;
             while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMin);
-                if (isConnectionAllowed(conn, temp, maxRadius)) {
+                if ((!conn.isConnected() || !temp.isConnected())
+                        && isConnectionAllowed(conn, temp, maxRadius)) {
                     neighbours.add(temp);
                 }
                 pointerMin--;
@@ -374,12 +373,13 @@ public class ConnectionManager {
             int pointerMax = closestIndex;
             while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMax);
-                if (isConnectionAllowed(conn, temp, maxRadius)) {
+                if ((!conn.isConnected() || !temp.isConnected())
+                        && isConnectionAllowed(conn, temp, maxRadius)) {
                     neighbours.add(temp);
                 }
                 pointerMax++;
             }
-            return neighbours;
+            return;
         }
 
         @VisibleForTesting
