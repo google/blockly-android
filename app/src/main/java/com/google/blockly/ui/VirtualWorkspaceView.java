@@ -40,7 +40,6 @@ public class VirtualWorkspaceView extends ViewGroup {
     private static final float MIN_SCALE_TO_DRAW_GRID = 0.5f;
 
     // Fields for workspace panning.
-    private boolean mIsPanning = false;
     private int mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
     private final ViewPoint mPanningStart = new ViewPoint();
 
