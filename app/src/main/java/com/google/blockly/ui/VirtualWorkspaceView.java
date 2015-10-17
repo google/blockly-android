@@ -144,12 +144,13 @@ public class VirtualWorkspaceView extends ViewGroup {
                 }
             }
             case MotionEvent.ACTION_POINTER_UP: {
-                // Some pointer went up - check whether it was the one used for dragging.
+                // Some pointer went up - check whether it was the one used for panning.
                 final int pointerIdx = MotionEventCompat.getActionIndex(event);
                 final int pointerId = MotionEventCompat.getPointerId(event, pointerIdx);
                 if (pointerId != mPanningPointerId) {
                     return false;
                 }
+                // Pointer that went up was used for panning - treat like ACTION_UP.
                 // FALLTHROUGH INTENDED.
             }
             case MotionEvent.ACTION_UP: {

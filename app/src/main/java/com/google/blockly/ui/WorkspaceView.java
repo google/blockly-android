@@ -265,6 +265,7 @@ public class WorkspaceView extends ViewGroup {
                 if (pointerId != mDraggingPointerId) {
                     return false;
                 }
+                // Pointer that went up was used for dragging - treat like ACTION_UP.
                 // FALLTHROUGH INTENDED.
             }
             case MotionEvent.ACTION_UP:
