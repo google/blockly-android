@@ -258,6 +258,15 @@ public class WorkspaceView extends ViewGroup {
                 }
                 return true;
             }
+            case MotionEvent.ACTION_POINTER_UP: {
+                // Some pointer went up - check whether it was the one used for dragging.
+                final int pointerId = MotionEventCompat.getPointerId(
+                        event, MotionEventCompat.getActionIndex(event));
+                if (pointerId != mDraggingPointerId) {
+                    return false;
+                }
+                // FALLTHROUGH INTENDED.
+            }
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL: {
                 // Finalize dragging and reset dragging state flags.
