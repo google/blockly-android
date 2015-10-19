@@ -764,7 +764,7 @@ public class BlockView extends FrameLayout {
                     int xToBottom = xTo;
                     if (mBlock.getInputsInline()) {
                         ++inlineRowIdx;
-                        xToBottom = mLayoutMarginLeft + mInlineRowWidth.get(inlineRowIdx);
+                        xToBottom = xFrom + rtlSign * mInlineRowWidth.get(inlineRowIdx);
                     }
                     ConnectorHelper.addStatementInputConnectorToPath(mDrawPath,
                             xTo, xToBottom, inputLayoutOrigin.y, xOffset, connectorHeight, rtlSign);
@@ -791,7 +791,7 @@ public class BlockView extends FrameLayout {
         }
         mDrawPath.lineTo(xFrom, yTop);
         // Draw an additional line segment over again to get a final rounded corner.
-        mDrawPath.lineTo(xFrom + ConnectorHelper.OFFSET_FROM_CORNER, yTop);
+        mDrawPath.lineTo(xFrom + rtlSign * ConnectorHelper.OFFSET_FROM_CORNER, yTop);
 
         // Add cutout paths for "holes" from open inline Value inputs.
         if (mBlock.getInputsInline()) {
