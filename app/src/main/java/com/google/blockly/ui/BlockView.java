@@ -298,7 +298,7 @@ public class BlockView extends FrameLayout {
                 mConnectionManager.moveConnectionTo(conn,
                         blockWorkspacePosition, mTempWorkspacePoint);
                 if (conn.isConnected()) {
-                    conn.getTargetBlock().getView().updateConnectorLocations();
+                    ((BlockGroup)inputView.getChildView()).updateAllConnectorLocations();
                 }
             }
         }

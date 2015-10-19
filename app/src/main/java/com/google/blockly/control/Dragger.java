@@ -458,6 +458,7 @@ public class Dragger {
             cur.setDragMode(false);
             mConnectionManager.addConnection(cur);
         }
+        mDraggedConnections.clear();
 
         mWorkspaceHelper.getRootBlockGroup(mTouchedBlockView.getBlock()).requestLayout();
     }

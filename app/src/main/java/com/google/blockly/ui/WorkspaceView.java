@@ -271,7 +271,9 @@ public class WorkspaceView extends ViewGroup {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL: {
                 // Finalize dragging and reset dragging state flags.
-                mDragger.finishDragging();
+                if (mTouchState == TOUCH_STATE_DRAGGING) {
+                    mDragger.finishDragging();
+                }
                 mTouchState = TOUCH_STATE_NONE;
                 mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;
                 mDraggingBlockView = null;
