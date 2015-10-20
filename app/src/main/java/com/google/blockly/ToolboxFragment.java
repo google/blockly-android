@@ -69,11 +69,12 @@ public class ToolboxFragment extends Fragment {
         mToolboxWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
             @Override
             public void onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                mDrawerLayout.closeDrawers();
+
                 BlockGroup bg = mToolboxWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
                 int pos = ((RecyclerView) bg.getParent()).getChildAdapterPosition(bg);
                 Block copiedModel = mToolboxBlocks.get(pos).deepCopy();
-                mDrawerLayout.closeDrawers();
-                // TODO: Figure out where this is in the workspace.
+
                 mTempScreenPosition.set((int) motionEvent.getRawX(), (int) motionEvent.getRawY());
                 mWorkspace.getWorkspaceHelper().screenToWorkspaceCoordinates(
                         mTempScreenPosition, mTempWorkspacePosition);
