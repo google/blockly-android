@@ -93,7 +93,10 @@ public class VirtualWorkspaceView extends ViewGroup {
      */
     public void resetView() {
         updateScale(INIT_ZOOM_SCALES_INDEX);
-        scrollTo(0, 0);
+        final Rect blocksBoundingBox = mWorkspaceView.getBlocksBoundingBox();
+        scrollTo(
+                blocksBoundingBox.centerX() - getMeasuredWidth() / 2,
+                blocksBoundingBox.centerY() - getMeasuredHeight() / 2);
     }
 
     /**
