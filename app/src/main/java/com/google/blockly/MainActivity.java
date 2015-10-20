@@ -122,10 +122,12 @@ public class MainActivity extends ActionBarActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mToolboxFragment =
                 (ToolboxFragment) getSupportFragmentManager().findFragmentById(R.id.toolbox);
         if (mToolboxFragment != null) {
             mToolboxFragment.setWorkspace(mWorkspaceFragment.getWorkspace());
+            mToolboxFragment.setDrawerLayout(drawerLayout);
         }
     }
 }

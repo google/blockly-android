@@ -18,6 +18,7 @@ package com.google.blockly;
 import android.graphics.Rect;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -50,6 +51,7 @@ public class ToolboxFragment extends Fragment {
     private Workspace mWorkspace;
     private WorkspaceHelper mToolboxWorkspaceHelper;
     private List<Block> mToolboxBlocks = new ArrayList<>();
+    private DrawerLayout mDrawerLayout;
 
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
@@ -63,8 +65,9 @@ public class ToolboxFragment extends Fragment {
             @Override
             public void onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
                 BlockGroup bg = mToolboxWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
-                int pos = ((RecyclerView)bg.getParent()).getChildAdapterPosition(bg);
+                int pos = ((RecyclerView) bg.getParent()).getChildAdapterPosition(bg);
                 Block copiedModel = mToolboxBlocks.get(pos).deepCopy();
+                mDrawerLayout.closeDrawers();
                 // TODO: Figure out where this is in the workspace.
                 copiedModel.setPosition(20, 20);
                 mWorkspace.addRootBlockAndView(copiedModel, getContext());
@@ -96,6 +99,10 @@ public class ToolboxFragment extends Fragment {
         mRecyclerView.addItemDecoration(new ItemDecoration());
 
         return mRecyclerView;
+    }
+
+    public void setDrawerLayout(DrawerLayout drawerLayout) {
+        mDrawerLayout = drawerLayout;
     }
 
     private class ItemDecoration extends RecyclerView.ItemDecoration {
