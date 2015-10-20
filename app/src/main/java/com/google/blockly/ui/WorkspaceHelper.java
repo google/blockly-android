@@ -104,6 +104,7 @@ public class WorkspaceHelper {
         }
 
         initConfig(context, attrs, workspaceStyle);
+        updateRtL(context);
     }
 
     /**
