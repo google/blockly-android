@@ -18,6 +18,7 @@ package com.google.blockly.ui;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Point;
 import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
@@ -43,6 +44,7 @@ public class WorkspaceHelper {
     private final WorkspacePoint mWorkspaceOffset = new WorkspacePoint();
     private final ViewPoint mViewSize = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
+    private final int[] mTempIntArray2 = new int[2];
     private WorkspaceView mWorkspaceView;
     private float mMinScale;
     private float mMaxScale;
@@ -437,6 +439,50 @@ public class WorkspaceHelper {
         }
         workspacePosition.x = viewToWorkspaceUnits(viewX) + mWorkspaceOffset.x;
         workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mWorkspaceOffset.y;
+    }
+
+    /**
+     * Converts a point in view coordinates to screen coordinates.
+     *
+     * @param viewPosition Input coordinates of a location in {@link WorkspaceView}.
+     * @param screenPosition Output coordinates of the same location in absolute coordinates on the
+     * screen.
+     */
+    public void viewToScreenCoordinates(ViewPoint viewPosition, Point screenPosition) {
+        mWorkspaceView.getLocationOnScreen(mTempIntArray2);
+        screenPosition.x = mTempIntArray2[0] + (int) (viewPosition.x * mWorkspaceView.getScaleX());
+        screenPosition.y = mTempIntArray2[1] + (int) (viewPosition.y * mWorkspaceView.getScaleY());
+    }
+
+    /**
+     * Converts a point in screen coordinates to view coordinates.
+     *
+     * @param screenPosition Input coordinates of a location in absolute coordinates on the
+     * screen.
+     * @param viewPosition Output coordinates of the same location in {@link WorkspaceView}.
+     */
+    public void screenToViewCoordinates(Point screenPosition, ViewPoint viewPosition) {
+        mWorkspaceView.getLocationOnScreen(mTempIntArray2);
+        viewPosition.x =
+                (int) ((screenPosition.x - mTempIntArray2[0]) / mWorkspaceView.getScaleX());
+        viewPosition.y =
+                (int) ((screenPosition.y - mTempIntArray2[1]) / mWorkspaceView.getScaleY());
+    }
+
+    /**
+     * Convenience method for direct mapping of screen to workspace coordinates.
+     * <p/>
+     * This method applies {@link #screenToViewCoordinates(Point, ViewPoint)} followed by
+     * {@link #viewToWorkspaceCoordinates(ViewPoint, WorkspacePoint)} using an existing temporary
+     * {@link ViewPoint} instance as intermediate.
+     *
+     * @param screenPosition Input coordinates of a location in absolute coordinates on the
+     * screen.
+     * @param workspacePosition Output coordinates of the same location in workspace coordinates.
+     */
+    public void screenToWorkspaceCoordinates(Point screenPosition, WorkspacePoint workspacePosition) {
+        screenToViewCoordinates(screenPosition, mTempViewPoint);
+        viewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
     }
 
     public static abstract class BlockTouchHandler {

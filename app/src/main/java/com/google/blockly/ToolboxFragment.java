@@ -15,6 +15,7 @@
 
 package com.google.blockly;
 
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import android.view.ViewGroup;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockGroupAdapter;
 import com.google.blockly.ui.BlockView;
@@ -53,6 +55,9 @@ public class ToolboxFragment extends Fragment {
     private List<Block> mToolboxBlocks = new ArrayList<>();
     private DrawerLayout mDrawerLayout;
 
+    final Point mTempScreenPosition = new Point();
+    final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
+
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
     private int mBlockMargin = 10;
@@ -69,7 +74,10 @@ public class ToolboxFragment extends Fragment {
                 Block copiedModel = mToolboxBlocks.get(pos).deepCopy();
                 mDrawerLayout.closeDrawers();
                 // TODO: Figure out where this is in the workspace.
-                copiedModel.setPosition(20, 20);
+                mTempScreenPosition.set((int) motionEvent.getRawX(), (int) motionEvent.getRawY());
+                mWorkspace.getWorkspaceHelper().screenToWorkspaceCoordinates(
+                        mTempScreenPosition, mTempWorkspacePosition);
+                copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
                 mWorkspace.addRootBlockAndView(copiedModel, getContext());
             }
         });
