@@ -451,7 +451,8 @@ public class Dragger {
             mHighlightedBlockView.clearHighlight();
             mHighlightedBlockView = null;
         }
-        BlockGroup rootBlockGroup = mWorkspaceHelper.getRootBlockGroup(mTouchedBlockView.getBlock());
+        BlockGroup rootBlockGroup = mWorkspaceHelper.getRootBlockGroup(
+                mTouchedBlockView.getBlock());
         bumpNeighbours(mTouchedBlockView.getBlock(), rootBlockGroup);
         // All of the connection locations will be set relative to their block views immediately
         // after this loop.  For now we just want to unset drag mode and add the connections back
@@ -482,7 +483,8 @@ public class Dragger {
                 - impingingConnection.getPosition().y;
         Block rootBlock = ((BlockView) impingingBlockGroup.getChildAt(0)).getBlock();
         rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
-        impingingBlockGroup.moveBy(dx, dy);
+        impingingBlockGroup.moveBy(mWorkspaceHelper.workspaceToViewUnits(dx),
+                mWorkspaceHelper.workspaceToViewUnits(dy));
         impingingBlockGroup.bringToFront();
         impingingBlockGroup.updateAllConnectorLocations();
     }
@@ -526,7 +528,8 @@ public class Dragger {
      * operation.
      */
     private void bumpInferior(BlockGroup rootBlockGroup, Connection lowerPriority) {
-        mConnectionManager.getNeighbours(lowerPriority, MAX_SNAP_DISTANCE, mNeighbouringConnections);
+        mConnectionManager.getNeighbours(lowerPriority, MAX_SNAP_DISTANCE,
+                mNeighbouringConnections);
         // Bump from the first one that isn't in the same block group.
         for (int j = 0; j < mNeighbouringConnections.size(); j++) {
             Connection curNeighbour = mNeighbouringConnections.get(j);

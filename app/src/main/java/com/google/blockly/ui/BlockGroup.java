@@ -179,8 +179,8 @@ public class BlockGroup extends ViewGroup {
     /**
      * Move the block group by the specified amount.
      *
-     * @param dx How much to move in the x direction.
-     * @param dy How much to move in the y direction.
+     * @param dx How much to move in the x direction, in view coordinates.
+     * @param dy How much to move in the y direction, in view coordinates.
      */
     public void moveBy(int dx, int dy) {
         setLeft(getLeft() + dx);
