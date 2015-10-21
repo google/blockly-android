@@ -20,7 +20,6 @@ import android.graphics.Rect;
 import android.support.annotation.IntDef;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -69,6 +68,7 @@ public class WorkspaceView extends ViewGroup {
     private final ViewPoint mDraggingStart = new ViewPoint();
     private BlockView mDraggingBlockView = null;
     private Dragger mDragger;
+    private View mTrashView;
 
     // Viewport bounds. These define the bounding box of all blocks, in view coordinates, and
     // are used to determine ranges and offsets for scrolling.
@@ -115,8 +115,16 @@ public class WorkspaceView extends ViewGroup {
         return mHelper;
     }
 
+    /**
+     * Updates the dragger for this workspace view and passes through the view for the trash can.
+     *
+     * @param dragger The {@link Dragger} to use in this workspace.
+     */
     public void setDragger(Dragger dragger) {
         mDragger = dragger;
+        if (mTrashView != null) {
+            mDragger.setTrashView(mTrashView);
+        }
     }
 
     /** @return The bounding box in view coordinates of the workspace region occupied by blocks. */
@@ -174,6 +182,19 @@ public class WorkspaceView extends ViewGroup {
         setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
     }
 
+    /**
+     * Update the {@link View} for the trash can, which will be passed to the dragger that moves
+     * blocks in this view.
+     *
+     * @param trashView The {@link View} of the trash can icon.
+     */
+    public void setTrashView(View trashView) {
+        mTrashView = trashView;
+        if (mDragger != null) {
+            mDragger.setTrashView(trashView);
+        }
+    }
+
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         mTemp.x = r - l;
@@ -203,13 +224,12 @@ public class WorkspaceView extends ViewGroup {
     }
 
     /**
-     * Called by {@link BlockView#onTouchEvent(MotionEvent)} to let this instance know that a block
-     * was touched.
+     * Let this instance know that a block was touched.
      *
      * @param blockView The {@link BlockView} that detected a touch event.
      * @param event The touch event.
      */
-    void onTouchBlock(BlockView blockView, MotionEvent event) {
+    private void onTouchBlock(BlockView blockView, MotionEvent event) {
         // Only initiate dragging of given view if in idle state - this prevents occluded blocks
         // from grabbing drag focus because they saw an unconsumed Down event before it propagated
         // back up to this WorkspaceView.
@@ -272,7 +292,12 @@ public class WorkspaceView extends ViewGroup {
             case MotionEvent.ACTION_CANCEL: {
                 // Finalize dragging and reset dragging state flags.
                 if (mTouchState == TOUCH_STATE_DRAGGING) {
-                    mDragger.finishDragging();
+                    if (mDragger.touchingTrashView(event)) {
+                        removeView(mDragger.cancelDrag());
+                        mWorkspace.removeRootBlock(mDragger.getDragRootBlock());
+                    } else {
+                        mDragger.finishDragging();
+                    }
                 }
                 mTouchState = TOUCH_STATE_NONE;
                 mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;

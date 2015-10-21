@@ -49,6 +49,7 @@ public class WorkspaceFragment extends Fragment {
 
         final VirtualWorkspaceView virtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
+        workspaceView.setTrashView(rootView.findViewById(R.id.trash_button));
 
         rootView.findViewById(R.id.reset_view_button).setOnClickListener(
                 new View.OnClickListener() {

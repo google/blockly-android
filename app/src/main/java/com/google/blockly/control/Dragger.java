@@ -15,8 +15,10 @@
 
 package com.google.blockly.control;
 
+import android.graphics.Rect;
 import android.util.Pair;
 import android.view.MotionEvent;
+import android.view.View;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
@@ -55,6 +57,12 @@ public class Dragger {
     private WorkspaceView mWorkspaceView;
     private BlockGroup mDragGroup;
     private BlockView mHighlightedBlockView;
+
+    // The view for the trash can.
+    private final Rect mTrashRect = new Rect();
+    private View mTrashView;
+    // For use in getting location on screen.
+    private final int[] mTempArray = new int[2];
 
     /**
      * @param workspaceHelper For use in computing workspace coordinates.
@@ -118,6 +126,10 @@ public class Dragger {
         mTouchedBlockView.requestLayout();
     }
 
+    public Block getDragRootBlock() {
+        return ((BlockView)(mDragGroup.getChildAt(0))).getBlock();
+    }
+
     /**
      * Finish block dragging.
      * <p/>
@@ -135,6 +147,40 @@ public class Dragger {
 
     public void setWorkspaceView(WorkspaceView view) {
         mWorkspaceView = view;
+    }
+
+    public void setTrashView(View trashView) {
+        mTrashView = trashView;
+    }
+
+    /**
+     * Check whether the given event occurred on top of the trash can button.
+     *
+     * @param event The event whose location should be checked.
+     * @return Whether the event was on top of the trash can button.
+     */
+    public boolean touchingTrashView(MotionEvent event) {
+        mTrashView.getLocationOnScreen(mTempArray);
+        mTrashView.getHitRect(mTrashRect);
+
+        mTrashRect.offset((mTempArray[0] - mTrashRect.left), (mTempArray[1] - mTrashRect.top));
+        return mTrashRect.contains((int) event.getRawX(), (int) event.getRawY());
+    }
+
+    /**
+     * Cancels a drag and clears state related to that drag.
+     *
+     * @return The root {@link BlockGroup} that was being dragged, which must be a child of the
+     * {@link WorkspaceView}.
+     */
+    public BlockGroup cancelDrag() {
+        if (mHighlightedBlockView != null) {
+            mHighlightedBlockView.clearHighlight();
+            mHighlightedBlockView = null;
+        }
+        mDraggedConnections.clear();
+        mTouchedBlockView = null;
+        return mDragGroup;
     }
 
     private void setDragGroup(Block block) {
