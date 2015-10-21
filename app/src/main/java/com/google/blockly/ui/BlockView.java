@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -202,6 +203,7 @@ public class BlockView extends FrameLayout {
         c.drawPath(mDrawPath, mAreaPaint);
         c.drawPath(mDrawPath, mBorderPaint);
         drawHighlights(c);
+        drawConnectorCenters(c);
     }
 
     /**
@@ -276,17 +278,17 @@ public class BlockView extends FrameLayout {
         }
         final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
         if (mBlock.getPreviousConnection() != null) {
-            mHelper.viewToWorkspaceUnits(mPreviousConnectorOffset, mTempWorkspacePoint);
+            mHelper.viewToWorkspaceDelta(mPreviousConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
         if (mBlock.getNextConnection() != null) {
-            mHelper.viewToWorkspaceUnits(mNextConnectorOffset, mTempWorkspacePoint);
+            mHelper.viewToWorkspaceDelta(mNextConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
         if (mBlock.getOutputConnection() != null) {
-            mHelper.viewToWorkspaceUnits(mOutputConnectorOffset, mTempWorkspacePoint);
+            mHelper.viewToWorkspaceDelta(mOutputConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
@@ -294,7 +296,7 @@ public class BlockView extends FrameLayout {
             InputView inputView = mInputViews.get(i);
             Connection conn = inputView.getInput().getConnection();
             if (conn != null) {
-                mHelper.viewToWorkspaceUnits(mInputConnectorOffsets.get(i), mTempWorkspacePoint);
+                mHelper.viewToWorkspaceDelta(mInputConnectorOffsets.get(i), mTempWorkspacePoint);
                 mConnectionManager.moveConnectionTo(conn,
                         blockWorkspacePosition, mTempWorkspacePoint);
                 if (conn.isConnected()) {
@@ -855,10 +857,14 @@ public class BlockView extends FrameLayout {
                     paint.setColor(Color.CYAN);
                 }
             }
-            c.drawCircle(
-                    mHelper.workspaceToViewUnits(conn.getPosition().x - mBlock.getPosition().x),
-                    mHelper.workspaceToViewUnits(conn.getPosition().y - mBlock.getPosition().y),
-                    10, paint);
+
+            // Compute connector position relative to this view from its offset to block origin in
+            // Workspace coordinates.
+            mTempWorkspacePoint.set(
+                    conn.getPosition().x - mBlock.getPosition().x,
+                    conn.getPosition().y - mBlock.getPosition().y);
+            mHelper.workspaceToViewDelta(mTempWorkspacePoint, mTempConnectionPosition);
+            c.drawCircle(mTempConnectionPosition.x, mTempConnectionPosition.y, 10, paint);
         }
     }
 

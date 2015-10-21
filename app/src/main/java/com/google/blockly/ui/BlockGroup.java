@@ -16,6 +16,7 @@
 package com.google.blockly.ui;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -28,6 +29,8 @@ import com.google.blockly.model.WorkspacePoint;
  * This wraps a set of sequential {@link BlockView} instances.
  */
 public class BlockGroup extends ViewGroup {
+    private static final String TAG = "BlockGroup";
+
     private final WorkspaceHelper mWorkspaceHelper;
 
     private int mNextBlockVerticalOffset;
@@ -208,15 +211,9 @@ public class BlockGroup extends ViewGroup {
         for (int i = 0; i < childCount; i++) {
             BlockView child = (BlockView) getChildAt(i);
 
-            int h = child.getMeasuredHeight();
             int w = child.getMeasuredWidth();
-
             int cl = rtl ? x - margin - w : x + margin;
-            int cr = cl + w;
-            int ct = y;
-            int cb = y + h;
-
-            child.layout(cl, ct, cr, cb);
+            child.layout(cl, y, cl + w, y + child.getMeasuredHeight());
             y += child.getNextBlockVerticalOffset();
 
             // If the first child has a layout margin for an Output connector, then save margin for

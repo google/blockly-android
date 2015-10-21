@@ -108,12 +108,10 @@ public class Dragger {
      * This method must be called for each move event that is received by the {@link WorkspaceView}
      * after {@link #startDragging(BlockView, int, int)} has previously been called.
      *
-     * @param event The next move event to handle.
+     * @param event The next move event to handle, as received by the {@link WorkspaceView}.
      */
     public void continueDragging(MotionEvent event) {
-        updateBlockPosition(mTouchedBlockView.getBlock(),
-                mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getX()) - mDragStart.x),
-                mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getY()) - mDragStart.y));
+        updateBlockPosition(event);
 
         // highlight as we go
         if (mHighlightedBlockView != null) {
@@ -225,17 +223,22 @@ public class Dragger {
     }
 
     /**
-     * Function to call in an onTouchListener to move the given block relative to its original
-     * position at the beginning of the drag sequence.
+     * Move the currently dragged block in response to a new {@link MotionEvent}.
      * <p/>
      * All of the child blocks move with the root block based on its position during layout.
      *
-     * @param block The block whose position to update.
-     * @param dx Distance in the x direction from the original block position.
-     * @param dy Distance in the y direction from the original block position.
+     * @param event The {@link MotionEvent} to react to.
      */
-    private void updateBlockPosition(Block block, int dx, int dy) {
-        block.setPosition(mBlockOriginalPosition.x + dx, mBlockOriginalPosition.y + dy);
+    private void updateBlockPosition(MotionEvent event) {
+        int dx = mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getX()) - mDragStart.x);
+        int dy = mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getY()) - mDragStart.y);
+
+        if (mWorkspaceHelper.useRtL()) {
+            dx *= -1;
+        }
+
+        mTouchedBlockView.getBlock().
+                setPosition(mBlockOriginalPosition.x + dx, mBlockOriginalPosition.y + dy);
         mDragGroup.requestLayout();
     }
 

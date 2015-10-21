@@ -163,23 +163,29 @@ public class WorkspaceView extends ViewGroup {
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height = MeasureSpec.getSize(heightMeasureSpec);
+
         mBlocksBoundingBox.setEmpty();
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             BlockGroup blockGroup = (BlockGroup) getChildAt(i);
             blockGroup.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
 
-            // Determine this BlockGroup's bounds and extend viewport boundaries accordingly.
-            final WorkspacePoint position = blockGroup.getTopBlockPosition();
-            int childViewLeft = mHelper.workspaceToViewUnits(position.x);
-            int childViewTop = mHelper.workspaceToViewUnits(position.y);
+            // Determine this BlockGroup's bounds in view coordinates and extend boundaries
+            // accordingly. Do NOT use mHelper.workspaceToViewCoordinates below, since we want the
+            // bounding box independent of scroll offset.
+            mHelper.workspaceToViewDelta(blockGroup.getTopBlockPosition(), mTemp);
+            if (mHelper.useRtL()) {
+                mTemp.x -= blockGroup.getMeasuredWidth();
+            }
 
-            mBlocksBoundingBox.union(childViewLeft, childViewTop,
-                    childViewLeft + blockGroup.getMeasuredWidth(),
-                    childViewTop + blockGroup.getMeasuredHeight());
+            mBlocksBoundingBox.union(mTemp.x, mTemp.y,
+                    mTemp.x + blockGroup.getMeasuredWidth(),
+                    mTemp.y + blockGroup.getMeasuredHeight());
         }
 
-        setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
+        setMeasuredDimension(width, height);
     }
 
     /**
@@ -197,10 +203,6 @@ public class WorkspaceView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        mTemp.x = r - l;
-        mTemp.y = b - t;
-        mHelper.setViewSize(mTemp);
-        boolean rtl = mHelper.useRtL();
         int childCount = getChildCount();
 
         for (int i = 0; i < childCount; i++) {
@@ -210,15 +212,17 @@ public class WorkspaceView extends ViewGroup {
             }
             if (child instanceof BlockGroup) {
                 BlockGroup bg = (BlockGroup) child;
-                WorkspacePoint wksPos = bg.getTopBlockPosition();
-                mHelper.workspaceToViewCoordinates(wksPos, mTemp);
 
-                int cl = rtl ? mTemp.x - bg.getMeasuredWidth() : mTemp.x;
-                int cr = rtl ? mTemp.x : mTemp.x + bg.getMeasuredWidth();
-                int ct = mTemp.y;
-                int cb = mTemp.y + bg.getMeasuredHeight();
+                // Get view coordinates of child from its workspace coordinates. Note that unlike
+                // onMeasure() above, workspaceToViewCoordinates() must be used for conversion here,
+                // so view scroll offset is properly applied for positioning.
+                mHelper.workspaceToViewCoordinates(bg.getTopBlockPosition(), mTemp);
+                if (mHelper.useRtL()) {
+                    mTemp.x -= bg.getMeasuredWidth();
+                }
 
-                child.layout(cl, ct, cr, cb);
+                child.layout(mTemp.x, mTemp.y,
+                        mTemp.x + bg.getMeasuredWidth(), mTemp.y + bg.getMeasuredHeight());
             }
         }
     }

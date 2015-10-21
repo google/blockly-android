@@ -42,7 +42,6 @@ public class WorkspaceHelper {
     private static final float SCALE_MIN = 0.1f;
     private static final float SCALE_MAX = 3f;
     private final WorkspacePoint mWorkspaceOffset = new WorkspacePoint();
-    private final ViewPoint mViewSize = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final int[] mTempIntArray2 = new int[2];
     private WorkspaceView mWorkspaceView;
@@ -136,8 +135,7 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Get the current view's offset in workspace coordinates. If you want the pixel offset of the
-     * view you should use {@link #getViewOffset()} instead.
+     * Get the current view's offset in workspace coordinates.
      *
      * @return The top left corner the viewport in workspace coordinates.
      */
@@ -152,37 +150,7 @@ public class WorkspaceHelper {
      * @param workspaceOffset The view's offset into the workspace in workspace coordinates.
      */
     public void setOffset(WorkspacePoint workspaceOffset) {
-        mWorkspaceOffset.x = workspaceOffset.x;
-        mWorkspaceOffset.y = workspaceOffset.y;
-    }
-
-    /**
-     * Get the current offset of the view in pixels. If you want the offset in workspace coordinates
-     * {@link #getOffset()} should be used instead.
-     *
-     * @return The top left corner of the viewport in pixels.
-     */
-    public ViewPoint getViewOffset() {
-        return new ViewPoint(
-                workspaceToViewUnits(mWorkspaceOffset.x), workspaceToViewUnits(mWorkspaceOffset.y));
-    }
-
-    /**
-     * @return The current size of the view in pixels.
-     */
-    public ViewPoint getViewSize() {
-        return mViewSize;
-    }
-
-    /**
-     * Set the size of the view window. This is required for RtL languages to be laid out correctly.
-     * This should be called by the workspace view in onLayout.
-     *
-     * @param viewDimens The width and height of the workspace view in pixels.
-     */
-    public void setViewSize(ViewPoint viewDimens) {
-        mViewSize.x = viewDimens.x;
-        mViewSize.y = viewDimens.y;
+        mWorkspaceOffset.setFrom(workspaceOffset);
     }
 
     /**
@@ -191,6 +159,7 @@ public class WorkspaceHelper {
      * result.
      *
      * @param workspaceValue The value in workspace units.
+     *
      * @return The value in view pixels.
      */
     public int workspaceToViewUnits(int workspaceValue) {
@@ -202,6 +171,7 @@ public class WorkspaceHelper {
      * view's space, it only uses scaling and screen density to calculate the result.
      *
      * @param viewValue The value in view units.
+     *
      * @return The value in workspace units.
      */
     public int viewToWorkspaceUnits(int viewValue) {
@@ -211,10 +181,38 @@ public class WorkspaceHelper {
     /**
      * Convenience function that converts x and y components from view to workspace units by
      * applying {@link #viewToWorkspaceUnits(int)} to each component separately.
+     * <p/>
+     * This function converts only coordinate units, i.e., it does not reverse x coordinates in
+     * right-to-left more, not does it apply the workspace offset.
      */
     public void viewToWorkspaceUnits(ViewPoint viewPointIn, WorkspacePoint workspacePointOut) {
-        workspacePointOut.x = viewToWorkspaceUnits(viewPointIn.x);
-        workspacePointOut.y = viewToWorkspaceUnits(viewPointIn.y);
+        workspacePointOut.set(
+                viewToWorkspaceUnits(viewPointIn.x),
+                viewToWorkspaceUnits(viewPointIn.y));
+    }
+
+    /**
+     * Function that converts x and y components of a delta vector from view to workspace units.
+     * <p/>
+     * This function respects right-to-left mode by reversing the direction of the x coordinate, but
+     * does not apply the workspace offset.
+     */
+    public void viewToWorkspaceDelta(ViewPoint viewPointIn, WorkspacePoint workspacePointOut) {
+        workspacePointOut.set(
+                viewToWorkspaceUnits(mRtL ? -viewPointIn.x : viewPointIn.x),
+                viewToWorkspaceUnits(viewPointIn.y));
+    }
+
+    /**
+     * Function that converts x and y components of a delta vector from workspace to view units.
+     * <p/>
+     * This function respects right-to-left mode by reversing the direction of the x coordinate, but
+     * does not apply the workspace offset.
+     */
+    public void workspaceToViewDelta(WorkspacePoint workspacePointIn, ViewPoint viewPointOut) {
+        viewPointOut.set(
+                workspaceToViewUnits(mRtL ? -workspacePointIn.x : workspacePointIn.x),
+                workspaceToViewUnits(workspacePointIn.y));
     }
 
     /**
@@ -230,6 +228,7 @@ public class WorkspaceHelper {
      * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
+     *
      * @return A view for the block.
      */
     public BlockView obtainBlockView(
@@ -245,6 +244,7 @@ public class WorkspaceHelper {
      * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
+     *
      * @return A view for the block.
      */
     public BlockView obtainBlockView(Context context, Block block, BlockGroup parentGroup,
@@ -268,18 +268,21 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Update workspace coordinates based on the new view coordinates of the {@link View}.
+     * Get workspace coordinates of a given {@link View}.
      *
      * @param view The view to find the position of.
      * @param workspacePosition The Point to store the results in.
      */
     public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
         getWorkspaceViewCoordinates(view, mTempViewPoint);
+        if (mRtL) {
+            mTempViewPoint.x += view.getMeasuredWidth();
+        }
         viewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
     }
 
     /**
-     * Get view coordinates based on the new view coordinates of the {@link View}.
+     * Get workspace view coordinates of a given {@link View}.
      *
      * @param view The view to find the position of.
      * @param viewPosition The Point to store the results in.
@@ -302,7 +305,8 @@ public class WorkspaceHelper {
         }
 
         if (viewParent == null) {
-            throw new IllegalStateException("No WorkspaceView found among view's parents.");
+            throw new IllegalStateException(
+                    "No WorkspaceView or RecyclerView found among view's parents.");
         }
 
         viewPosition.x = leftRelativeToWorkspace;
@@ -313,6 +317,7 @@ public class WorkspaceHelper {
      * Find the highest {@link BlockGroup} in the hierarchy that this {@link Block} descends from.
      *
      * @param block The block to start searching from.
+     *
      * @return The highest {@link BlockGroup} found.
      */
     public BlockGroup getRootBlockGroup(Block block) {
@@ -336,6 +341,7 @@ public class WorkspaceHelper {
      * Find the closest {@link BlockGroup} in the hierarchy that this {@link Block} descends from.
      *
      * @param block The block to start searching from.
+     *
      * @return The closest {@link BlockGroup} found.
      */
     public BlockGroup getNearestParentBlockGroup(Block block) {
@@ -353,6 +359,50 @@ public class WorkspaceHelper {
 
     public void setBlockTouchHandler(BlockTouchHandler bth) {
         mBlockTouchHandler = bth;
+    }
+
+    /**
+     * Converts a point in view coordinates to screen coordinates.
+     *
+     * @param viewPosition Input coordinates of a location in {@link WorkspaceView}.
+     * @param screenPosition Output coordinates of the same location in absolute coordinates on the
+     * screen.
+     */
+    public void viewToScreenCoordinates(ViewPoint viewPosition, Point screenPosition) {
+        mWorkspaceView.getLocationOnScreen(mTempIntArray2);
+        screenPosition.x = mTempIntArray2[0] + (int) (viewPosition.x * mWorkspaceView.getScaleX());
+        screenPosition.y = mTempIntArray2[1] + (int) (viewPosition.y * mWorkspaceView.getScaleY());
+    }
+
+    /**
+     * Converts a point in screen coordinates to view coordinates.
+     *
+     * @param screenPosition Input coordinates of a location in absolute coordinates on the
+     * screen.
+     * @param viewPosition Output coordinates of the same location in {@link WorkspaceView}.
+     */
+    public void screenToViewCoordinates(Point screenPosition, ViewPoint viewPosition) {
+        mWorkspaceView.getLocationOnScreen(mTempIntArray2);
+        viewPosition.x =
+                (int) ((screenPosition.x - mTempIntArray2[0]) / mWorkspaceView.getScaleX());
+        viewPosition.y =
+                (int) ((screenPosition.y - mTempIntArray2[1]) / mWorkspaceView.getScaleY());
+    }
+
+    /**
+     * Convenience method for direct mapping of screen to workspace coordinates.
+     * <p/>
+     * This method applies {@link #screenToViewCoordinates(Point, ViewPoint)} followed by
+     * {@link #viewToWorkspaceCoordinates(ViewPoint, WorkspacePoint)} using an existing temporary
+     * {@link ViewPoint} instance as intermediate.
+     *
+     * @param screenPosition Input coordinates of a location in absolute coordinates on the
+     * screen.
+     * @param workspacePosition Output coordinates of the same location in workspace coordinates.
+     */
+    public void screenToWorkspaceCoordinates(Point screenPosition, WorkspacePoint workspacePosition) {
+        screenToViewCoordinates(screenPosition, mTempViewPoint);
+        viewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
     }
 
     /**
@@ -416,12 +466,12 @@ public class WorkspaceHelper {
      * @param viewPosition The Point to store the results in.
      */
     void workspaceToViewCoordinates(WorkspacePoint workspacePosition, ViewPoint viewPosition) {
-        viewPosition.x = workspaceToViewUnits(workspacePosition.x - mWorkspaceOffset.x);
-        viewPosition.y = workspaceToViewUnits(workspacePosition.y - mWorkspaceOffset.y);
-
-        if (useRtL()) {
-            viewPosition.x = mViewSize.x - viewPosition.x;
+        int workspaceX = workspacePosition.x;
+        if (mRtL) {
+            workspaceX *= -1;
         }
+        viewPosition.x = workspaceToViewUnits(workspaceX - mWorkspaceOffset.x);
+        viewPosition.y = workspaceToViewUnits(workspacePosition.y - mWorkspaceOffset.y);
     }
 
     /**
@@ -433,56 +483,12 @@ public class WorkspaceHelper {
      * @param workspacePosition The Point to store the results in.
      */
     void viewToWorkspaceCoordinates(ViewPoint viewPosition, WorkspacePoint workspacePosition) {
-        int viewX = viewPosition.x;
-        if (useRtL()) {
-            viewX = mViewSize.x - viewX;
+        int workspaceX = viewToWorkspaceUnits(viewPosition.x) + mWorkspaceOffset.x;
+        if (mRtL) {
+            workspaceX *= -1;
         }
-        workspacePosition.x = viewToWorkspaceUnits(viewX) + mWorkspaceOffset.x;
+        workspacePosition.x = workspaceX;
         workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mWorkspaceOffset.y;
-    }
-
-    /**
-     * Converts a point in view coordinates to screen coordinates.
-     *
-     * @param viewPosition Input coordinates of a location in {@link WorkspaceView}.
-     * @param screenPosition Output coordinates of the same location in absolute coordinates on the
-     * screen.
-     */
-    public void viewToScreenCoordinates(ViewPoint viewPosition, Point screenPosition) {
-        mWorkspaceView.getLocationOnScreen(mTempIntArray2);
-        screenPosition.x = mTempIntArray2[0] + (int) (viewPosition.x * mWorkspaceView.getScaleX());
-        screenPosition.y = mTempIntArray2[1] + (int) (viewPosition.y * mWorkspaceView.getScaleY());
-    }
-
-    /**
-     * Converts a point in screen coordinates to view coordinates.
-     *
-     * @param screenPosition Input coordinates of a location in absolute coordinates on the
-     * screen.
-     * @param viewPosition Output coordinates of the same location in {@link WorkspaceView}.
-     */
-    public void screenToViewCoordinates(Point screenPosition, ViewPoint viewPosition) {
-        mWorkspaceView.getLocationOnScreen(mTempIntArray2);
-        viewPosition.x =
-                (int) ((screenPosition.x - mTempIntArray2[0]) / mWorkspaceView.getScaleX());
-        viewPosition.y =
-                (int) ((screenPosition.y - mTempIntArray2[1]) / mWorkspaceView.getScaleY());
-    }
-
-    /**
-     * Convenience method for direct mapping of screen to workspace coordinates.
-     * <p/>
-     * This method applies {@link #screenToViewCoordinates(Point, ViewPoint)} followed by
-     * {@link #viewToWorkspaceCoordinates(ViewPoint, WorkspacePoint)} using an existing temporary
-     * {@link ViewPoint} instance as intermediate.
-     *
-     * @param screenPosition Input coordinates of a location in absolute coordinates on the
-     * screen.
-     * @param workspacePosition Output coordinates of the same location in workspace coordinates.
-     */
-    public void screenToWorkspaceCoordinates(Point screenPosition, WorkspacePoint workspacePosition) {
-        screenToViewCoordinates(screenPosition, mTempViewPoint);
-        viewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
     }
 
     public static abstract class BlockTouchHandler {
