@@ -183,7 +183,7 @@ public class WorkspaceHelper {
      * applying {@link #viewToWorkspaceUnits(int)} to each component separately.
      * <p/>
      * This function converts only coordinate units, i.e., it does not reverse x coordinates in
-     * right-to-left more, not does it apply the workspace offset.
+     * right-to-left mode, nor does it apply the workspace offset.
      */
     public void viewToWorkspaceUnits(ViewPoint viewPointIn, WorkspacePoint workspacePointOut) {
         workspacePointOut.set(
