@@ -59,8 +59,9 @@ public class Dragger {
     private BlockView mHighlightedBlockView;
 
     // The view for the trash can.
-    private final Rect mTrashRect = new Rect();
     private View mTrashView;
+    // Rect for finding the bounding box of the trash can view.
+    private final Rect mTrashRect = new Rect();
     // For use in getting location on screen.
     private final int[] mTempArray = new int[2];
 
@@ -168,19 +169,17 @@ public class Dragger {
     }
 
     /**
-     * Cancels a drag and clears state related to that drag.
-     *
-     * @return The root {@link BlockGroup} that was being dragged, which must be a child of the
-     * {@link WorkspaceView}.
+     * Ends a drag in the trash can, clearing state and deleting blocks as needed.
      */
-    public BlockGroup cancelDrag() {
+    public void dropInTrash() {
         if (mHighlightedBlockView != null) {
             mHighlightedBlockView.clearHighlight();
             mHighlightedBlockView = null;
         }
         mDraggedConnections.clear();
         mTouchedBlockView = null;
-        return mDragGroup;
+        mWorkspaceView.removeView(mDragGroup);
+        mDragGroup = null;
     }
 
     private void setDragGroup(Block block) {

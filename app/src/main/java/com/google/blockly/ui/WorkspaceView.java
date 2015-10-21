@@ -293,8 +293,8 @@ public class WorkspaceView extends ViewGroup {
                 // Finalize dragging and reset dragging state flags.
                 if (mTouchState == TOUCH_STATE_DRAGGING) {
                     if (mDragger.touchingTrashView(event)) {
-                        removeView(mDragger.cancelDrag());
                         mWorkspace.removeRootBlock(mDragger.getDragRootBlock());
+                        mDragger.dropInTrash();
                     } else {
                         mDragger.finishDragging();
                     }
