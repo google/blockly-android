@@ -242,6 +242,13 @@ public class Connection implements Cloneable {
     }
 
     /**
+     * @return Whether the connection has high priority in the context of bumping connections away.
+     */
+    public boolean isHighPriority() {
+        return mConnectionType == CONNECTION_TYPE_INPUT || mConnectionType == CONNECTION_TYPE_NEXT;
+    }
+
+    /**
      * @param target The {@link Connection} to check compatibility with.
      * @return {@code CAN_CONNECT} if the connection is legal, an error code otherwise.
      */

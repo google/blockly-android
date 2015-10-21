@@ -177,6 +177,17 @@ public class BlockGroup extends ViewGroup {
     }
 
     /**
+     * Move the block group by the specified amount.
+     *
+     * @param dx How much to move in the x direction, in view coordinates.
+     * @param dy How much to move in the y direction, in view coordinates.
+     */
+    public void moveBy(int dx, int dy) {
+        setLeft(getLeft() + dx);
+        setTop(getTop() + dy);
+    }
+
+    /**
      * @return The vertical offset from the top of this view to the position of the next block
      * <em>below</em> this group.
      */

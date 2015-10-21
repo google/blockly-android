@@ -22,6 +22,7 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -264,7 +265,9 @@ public class ConnectionManagerTest extends AndroidTestCase {
 
     private List<Connection> getNeighbourHelper(ConnectionManager.YSortedList list, int x, int y,
                                                 int radius) {
-        return list.getNeighbours(createConnection(x, y, Connection.CONNECTION_TYPE_NEXT), radius);
+        List<Connection> result = new ArrayList<>();
+        list.getNeighbours(createConnection(x, y, Connection.CONNECTION_TYPE_NEXT), radius, result);
+        return result;
     }
 
     // Helper

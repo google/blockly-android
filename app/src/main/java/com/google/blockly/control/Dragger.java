@@ -51,6 +51,8 @@ public class Dragger {
     private final ConnectionManager mConnectionManager;
     private final ArrayList<Block> mRootBlocks;
     private final ArrayList<Connection> mDraggedConnections = new ArrayList<>();
+    // For use in bumping neighbours; instance variable only to avoid repeated allocation.
+    private final ArrayList<Connection> mNeighbouringConnections = new ArrayList<>();
 
     private BlockView mTouchedBlockView;
     private WorkspaceHelper mWorkspaceHelper;
@@ -495,6 +497,9 @@ public class Dragger {
             mHighlightedBlockView.clearHighlight();
             mHighlightedBlockView = null;
         }
+        BlockGroup rootBlockGroup = mWorkspaceHelper.getRootBlockGroup(
+                mTouchedBlockView.getBlock());
+        bumpNeighbours(mTouchedBlockView.getBlock(), rootBlockGroup);
         // All of the connection locations will be set relative to their block views immediately
         // after this loop.  For now we just want to unset drag mode and add the connections back
         // to the list; 0, 0 is a cheap place to put them.
@@ -506,18 +511,97 @@ public class Dragger {
         }
         mDraggedConnections.clear();
 
-        mWorkspaceHelper.getRootBlockGroup(mTouchedBlockView.getBlock()).requestLayout();
+        rootBlockGroup.requestLayout();
     }
 
     private void bumpBlock(Connection staticConnection, Connection impingingConnection) {
+        BlockGroup toBump = mWorkspaceHelper.getRootBlockGroup(impingingConnection.getBlock());
+        bumpBlock(staticConnection, impingingConnection, toBump);
+
+    }
+
+    private void bumpBlock(Connection staticConnection, Connection impingingConnection,
+                           BlockGroup impingingBlockGroup) {
         // TODO (rohlfingt): Adapt to RTL
         int dx = (staticConnection.getPosition().x + MAX_SNAP_DISTANCE)
                 - impingingConnection.getPosition().x;
         int dy = (staticConnection.getPosition().y + MAX_SNAP_DISTANCE)
                 - impingingConnection.getPosition().y;
-        BlockGroup toBump = mWorkspaceHelper.getRootBlockGroup(impingingConnection.getBlock());
-        Block rootBlock = ((BlockView) toBump.getChildAt(0)).getBlock();
+        Block rootBlock = ((BlockView) impingingBlockGroup.getChildAt(0)).getBlock();
         rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
-        toBump.requestLayout();
+        impingingBlockGroup.moveBy(mWorkspaceHelper.workspaceToViewUnits(dx),
+                mWorkspaceHelper.workspaceToViewUnits(dy));
+        impingingBlockGroup.bringToFront();
+        impingingBlockGroup.updateAllConnectorLocations();
+    }
+
+    /**
+     * Move all neighbours of the current block and its sub-blocks so that they don't appear to
+     * be connected to the current block.
+     *
+     * @param currentBlock The {@link Block} to bump others away from.
+     */
+    private void bumpNeighbours(Block currentBlock, BlockGroup rootBlockGroup) {
+        List<Connection> connectionsOnBlock = new ArrayList<>();
+        rootBlockGroup.updateAllConnectorLocations();
+        // Move this block before trying to bump others
+        Connection prev = currentBlock.getPreviousConnection();
+        if (prev != null && !prev.isConnected()) {
+            bumpInferior(rootBlockGroup, prev);
+        }
+        Connection out = currentBlock.getOutputConnection();
+        if (out != null && !out.isConnected()) {
+            bumpInferior(rootBlockGroup, out);
+        }
+
+        currentBlock.getAllConnections(connectionsOnBlock);
+        for (int i = 0; i < connectionsOnBlock.size(); i++) {
+            Connection conn = connectionsOnBlock.get(i);
+            if (conn.isHighPriority()) {
+                if (conn.isConnected()) {
+                    bumpNeighbours(conn.getTargetBlock(), rootBlockGroup);
+                }
+                bumpConnectionNeighbours(conn, rootBlockGroup);
+            }
+        }
+    }
+
+    /**
+     * Bump the block containing {@code lowerPriority} away from the first nearby block it finds.
+     *
+     * @param rootBlockGroup The root block group of the block being bumped.
+     * @param lowerPriority The low priority connection that is the center of the current bump
+     * operation.
+     */
+    private void bumpInferior(BlockGroup rootBlockGroup, Connection lowerPriority) {
+        mConnectionManager.getNeighbours(lowerPriority, MAX_SNAP_DISTANCE,
+                mNeighbouringConnections);
+        // Bump from the first one that isn't in the same block group.
+        for (int j = 0; j < mNeighbouringConnections.size(); j++) {
+            Connection curNeighbour = mNeighbouringConnections.get(j);
+            if (mWorkspaceHelper.getRootBlockGroup(curNeighbour.getBlock()) != rootBlockGroup) {
+                bumpBlock(curNeighbour, lowerPriority, rootBlockGroup);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Find all connections near a given connection and bump their blocks away.
+     *
+     * @param conn The high priority connection that is at the center of the current bump
+     * operation.
+     * @param rootBlockGroup The root block group of the block conn belongs to.
+     */
+    private void bumpConnectionNeighbours(Connection conn, BlockGroup rootBlockGroup) {
+        mConnectionManager.getNeighbours(conn, MAX_SNAP_DISTANCE, mNeighbouringConnections);
+        for (int j = 0; j < mNeighbouringConnections.size(); j++) {
+            Connection curNeighbour = mNeighbouringConnections.get(j);
+            BlockGroup neighbourBlockGroup = mWorkspaceHelper.getRootBlockGroup(
+                    curNeighbour.getBlock());
+            if (neighbourBlockGroup != rootBlockGroup) {
+                bumpBlock(conn, curNeighbour, neighbourBlockGroup);
+            }
+        }
     }
 }
