@@ -322,29 +322,49 @@ public class BlockView extends FrameLayout {
      *
      * @param event The {@link MotionEvent} to check.
      *
-     * @return True if the event is a DOWN event and the coordinate of the motion event is on the
-     * visible, non-transparent part of this view; false otherwise.
+     * @return True if the coordinate of the motion event is on the visible, non-transparent part of
+     * this view; false otherwise.
      */
     private boolean hitTest(MotionEvent event) {
-        float eventX = event.getX();
-        float eventY = event.getY();
-        boolean rtl = mHelper.useRtL();
+        final int eventX = (int) event.getX();
+        final int eventY = (int) event.getY();
 
-        // First check whether event is in the general horizontal range of the block outline
-        // (minus children) and exit if it is not.
-        int blockBegin = rtl ? mBlockViewSize.x - mLayoutMarginLeft : mLayoutMarginLeft;
-        int blockEnd = rtl ? mBlockViewSize.x - mBlockWidth : mBlockWidth;
-        if (eventX < blockBegin || eventX > blockEnd) {
-            return false;
-        }
+        // Do the exact same thing for RTL and LTR, with reversed left and right block bounds. Note
+        // that the bounds of each InputView include any connected child blocks, so in RTL mode,
+        // the left-hand side of the input fields must be obtained from the right-hand side of the
+        // input and the field layout width.
+        if (mHelper.useRtL()) {
+            // First check whether event is in the general horizontal range of the block outline
+            // (minus children) and exit if it is not.
+            final int blockEnd = mBlockViewSize.x - mLayoutMarginLeft;
+            final int blockBegin = blockEnd - mBlockWidth;
+            if (eventX < blockBegin || eventX > blockEnd) {
+                return false;
+            }
 
-        // In the ballpark - now check whether event is on a field of any of this block's
-        // inputs. If it is, then the event belongs to this BlockView, otherwise it does not.
-        for (int i = 0; i < mInputViews.size(); ++i) {
-            InputView inputView = mInputViews.get(i);
-            if (inputView.isOnFields(
-                    eventX - inputView.getLeft(), eventY - inputView.getTop())) {
-                return true;
+            // In the ballpark - now check whether event is on a field of any of this block's
+            // inputs. If it is, then the event belongs to this BlockView, otherwise it does not.
+            for (int i = 0; i < mInputViews.size(); ++i) {
+                InputView inputView = mInputViews.get(i);
+                if (inputView.isOnFields(
+                        eventX - (inputView.getRight() - inputView.getFieldLayoutWidth()),
+                        eventY - inputView.getTop())) {
+                    return true;
+                }
+            }
+        } else {
+            final int blockBegin = mLayoutMarginLeft;
+            final int blockEnd = mBlockWidth;
+            if (eventX < blockBegin || eventX > blockEnd) {
+                return false;
+            }
+
+            for (int i = 0; i < mInputViews.size(); ++i) {
+                InputView inputView = mInputViews.get(i);
+                if (inputView.isOnFields(
+                        eventX - inputView.getLeft(), eventY - inputView.getTop())) {
+                    return true;
+                }
             }
         }
         return false;

@@ -206,8 +206,11 @@ public class InputView extends ViewGroup {
     /**
      * @return True if and only if a coordinate is on the fields of this view (any connected inputs
      * should handle events themselves and are thus not allowed here).
+     */   /**
+     * @return True if and only if a coordinate is on the fields of this view (any connected inputs
+     * should handle events themselves and are thus not allowed here).
      */
-    public boolean isOnFields(float eventX, float eventY) {
+    public boolean isOnFields(int eventX, int eventY) {
         return (eventX >= 0 && eventX < mFieldLayoutWidth) &&
                 eventY >= 0 && eventY < mRowHeight;
     }
