@@ -90,6 +90,7 @@ public class Connection implements Cloneable {
      * Check if this can be connected to the target connection.
      *
      * @param target The connection to check.
+     *
      * @return True if the target can be connected, false otherwise.
      */
     public boolean canConnect(Connection target) {
@@ -219,6 +220,7 @@ public class Connection implements Cloneable {
      * Returns the distance between this connection and another connection.
      *
      * @param other The other {@link Connection} to measure the distance to.
+     *
      * @return The distance between connections.
      */
     public double distanceFrom(Connection other) {
@@ -250,6 +252,7 @@ public class Connection implements Cloneable {
 
     /**
      * @param target The {@link Connection} to check compatibility with.
+     *
      * @return {@code CAN_CONNECT} if the connection is legal, an error code otherwise.
      */
     @CheckResultType
@@ -277,7 +280,7 @@ public class Connection implements Cloneable {
      * null.
      *
      * @return The {@link InputView} of the {@link Input} on this connection, or null if it doesn't
-     *      have one.
+     * have one.
      */
     @Nullable
     public InputView getInputView() {
@@ -287,6 +290,7 @@ public class Connection implements Cloneable {
     public boolean isStatementInput() {
         return (getInput() != null && getInput().getType() == Input.TYPE_STATEMENT);
     }
+
     private void connectInternal(Connection target) {
         mTargetConnection = target;
     }

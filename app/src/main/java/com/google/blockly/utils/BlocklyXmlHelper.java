@@ -43,13 +43,18 @@ public final class BlocklyXmlHelper {
 
     private static XmlPullParserFactory mParserFactory = createParseFactory();
 
+    private BlocklyXmlHelper() {
+    }
+
     /**
      * Loads a list of top level Blocks from XML.  Each top level Block may have many Blocks
      * contained in it or descending from it.
      *
      * @param is The input stream from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     *
      * @return A list of top level Blocks.
+     *
      * @throws BlocklyParserException
      */
     public static void loadFromXml(
@@ -81,7 +86,9 @@ public final class BlocklyXmlHelper {
         }
     }
 
-    /** Convenience function that creates a new {@link ArrayList}. */
+    /**
+     * Convenience function that creates a new {@link ArrayList}.
+     */
     public static List<Block> loadFromXml(
             InputStream is, BlockFactory blockFactory, WorkspaceStats stats)
             throws BlocklyParserException {
@@ -95,7 +102,9 @@ public final class BlocklyXmlHelper {
      *
      * @param is The input stream from which to read the Block.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     *
      * @return The first Block read from is, or null if no Block was read.
+     *
      * @throws BlocklyParserException
      */
     @Nullable
@@ -113,6 +122,7 @@ public final class BlocklyXmlHelper {
      *
      * @param toSerialize A list of Blocks to serialize.
      * @param os An OutputStream to which to write them.
+     *
      * @throws BlocklySerializerException
      */
     public static void writeToXml(List<Block> toSerialize, OutputStream os)
@@ -138,6 +148,7 @@ public final class BlocklyXmlHelper {
      *
      * @param toSerialize A Block to serialize.
      * @param os An OutputStream to which to write them.
+     *
      * @throws BlocklySerializerException
      */
     public static void writeOneBlockToXml(Block toSerialize, OutputStream os)
@@ -146,8 +157,6 @@ public final class BlocklyXmlHelper {
         temp.add(toSerialize);
         writeToXml(temp, os);
     }
-
-    private BlocklyXmlHelper() {}
 
     private static XmlPullParserFactory createParseFactory() {
         XmlPullParserFactory parserFactory;

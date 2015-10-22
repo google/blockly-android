@@ -46,6 +46,7 @@ public class ProcedureManager {
 
     /**
      * @param block The block being referenced.
+     *
      * @return True if the block is referenced one or more times.
      */
     public boolean hasReferences(Block block) {
@@ -63,6 +64,7 @@ public class ProcedureManager {
      * Adds a reference to a procedure.
      *
      * @param block The reference to add.
+     *
      * @throws IllegalStateException if the referenced procedure has not been defined.
      */
     public void addReference(Block block) {
@@ -79,6 +81,7 @@ public class ProcedureManager {
      * Removes a reference to a procedure.
      *
      * @param block The reference to remove.
+     *
      * @throws IllegalStateException if the referenced procedure has not been defined..
      */
     public void removeReference(Block block) {
@@ -117,6 +120,7 @@ public class ProcedureManager {
      * references as well.  Returns a list of Blocks to recursively delete.
      *
      * @param block A block containing the definition of the procedure to remove.
+     *
      * @return A list of Blocks that referred to the procedure defined by block.
      */
     public List<Block> removeDefinition(Block block) {

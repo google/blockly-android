@@ -17,8 +17,8 @@ package com.google.blockly;
 
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -46,18 +46,14 @@ import java.util.List;
  */
 public class ToolboxFragment extends Fragment {
     private static final String TAG = "ToolboxFragment";
-
+    final Point mTempScreenPosition = new Point();
+    final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
-
     private Workspace mWorkspace;
     private WorkspaceHelper mToolboxWorkspaceHelper;
     private List<Block> mToolboxBlocks = new ArrayList<>();
     private DrawerLayout mDrawerLayout;
-
-    final Point mTempScreenPosition = new Point();
-    final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
-
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
     private int mBlockMargin = 10;

@@ -166,6 +166,7 @@ public abstract class Input implements Cloneable {
      * Writes the value of the Input and all of its Fields as a string.
      *
      * @param serializer The XmlSerializer to write to.
+     *
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer) throws IOException {
@@ -267,6 +268,7 @@ public abstract class Input implements Cloneable {
      * Checks if a given type is a known input type.
      *
      * @param typeString The type to check.
+     *
      * @return True if the type is known to be an input type, false otherwise.
      */
     public static boolean isInputType(String typeString) {
@@ -278,6 +280,7 @@ public abstract class Input implements Cloneable {
      * type. If the type is not supported an alternate input type should be used instead.
      *
      * @param json The JSONObject that describes the input.
+     *
      * @return An instance of {@link Input} generated from the json.
      */
     public static Input fromJson(JSONObject json) {
@@ -306,6 +309,7 @@ public abstract class Input implements Cloneable {
      *
      * @param json The JSON to extract the connection checks from.
      * @param checksKey The key for the checks.
+     *
      * @return The set of checks or null.
      */
     @Nullable
@@ -336,6 +340,7 @@ public abstract class Input implements Cloneable {
      * Convert string representation of field alignment selection to internal integer Id.
      *
      * @param alignString The alignment string, e.g., ALIGN_LEFT_STRING ("LEFT").
+     *
      * @return The integer Id representing the given alignment string. If the alignment string is
      * null or does not correspond to a valid alignment, then {@code ALIGN_LEFT} is returned as the
      * default alignment.

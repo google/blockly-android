@@ -53,19 +53,17 @@ public class Dragger {
     private final ArrayList<Connection> mDraggedConnections = new ArrayList<>();
     // For use in bumping neighbours; instance variable only to avoid repeated allocation.
     private final ArrayList<Connection> mNeighbouringConnections = new ArrayList<>();
-
+    // Rect for finding the bounding box of the trash can view.
+    private final Rect mTrashRect = new Rect();
+    // For use in getting location on screen.
+    private final int[] mTempArray = new int[2];
     private BlockView mTouchedBlockView;
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private BlockGroup mDragGroup;
     private BlockView mHighlightedBlockView;
-
     // The view for the trash can.
     private View mTrashView;
-    // Rect for finding the bounding box of the trash can view.
-    private final Rect mTrashRect = new Rect();
-    // For use in getting location on screen.
-    private final int[] mTempArray = new int[2];
 
     /**
      * @param workspaceHelper For use in computing workspace coordinates.
@@ -128,7 +126,7 @@ public class Dragger {
     }
 
     public Block getDragRootBlock() {
-        return ((BlockView)(mDragGroup.getChildAt(0))).getBlock();
+        return ((BlockView) (mDragGroup.getChildAt(0))).getBlock();
     }
 
     /**
@@ -158,6 +156,7 @@ public class Dragger {
      * Check whether the given event occurred on top of the trash can button.
      *
      * @param event The event whose location should be checked.
+     *
      * @return Whether the event was on top of the trash can button.
      */
     public boolean touchingTrashView(MotionEvent event) {
@@ -247,6 +246,7 @@ public class Dragger {
      * valid connection on another block.
      *
      * @param block The {@link Block} whose connections to search.
+     *
      * @return A pair of connections, where the first is a connection on {@code block} and the
      * second is the closest compatible connection.
      */
@@ -371,7 +371,7 @@ public class Dragger {
      * Connect a block after another block in the same block group.  Updates views as necessary.  If
      * the superior block already has a "next" block, splices the inferior block between the
      * superior block and its "next" block.
-     * <p>
+     * <p/>
      * Assumes that the inferior's previous connection is disconnected.
      * Assumes that inferior's blockGroup doesn't currently live at the root level.
      *
@@ -432,7 +432,7 @@ public class Dragger {
         InputView parentInputView = parent.getInputView();
         if (parentInputView == null) {
             throw new IllegalStateException("Tried to connect as a child, but the parent didn't "
-            + "have an input view.");
+                    + "have an input view.");
         }
 
         BlockGroup childBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(child.getBlock());
