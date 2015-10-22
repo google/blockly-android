@@ -276,6 +276,9 @@ public class WorkspaceHelper {
     public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
         getWorkspaceViewCoordinates(view, mTempViewPoint);
         if (mRtL) {
+            // In right-to-left mode, the Block's position is that of its top-RIGHT corner, but
+            // Android still refers to the BlockView's layout coordinate by its top-LEFT corner.
+            // Adding the view's width to the lhs view coordinate gives us the rhs coordinate.
             mTempViewPoint.x += view.getMeasuredWidth();
         }
         viewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
