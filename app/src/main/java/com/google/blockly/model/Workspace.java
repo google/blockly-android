@@ -80,28 +80,6 @@ public class Workspace {
         return mRootBlocks.remove(block);
     }
 
-    public void connect(Connection a, Connection b) {
-        if (a == null || b == null) {
-            throw new IllegalArgumentException("Cannot connect a null connection.");
-        }
-
-        if (!a.canConnect(b)) {
-            throw new IllegalArgumentException("Connections may not be connected.");
-        }
-
-        if (a.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
-            if (removeRootBlock(a.getBlock()) && DEBUG) {
-                Log.d(TAG, "Removed root block before connecting it.");
-            }
-        } else if (b.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
-            if (removeRootBlock(b.getBlock()) && DEBUG) {
-                Log.d(TAG, "Removed root block before connecting it.");
-            }
-        }
-
-        a.connect(b);
-    }
-
     public WorkspaceHelper getWorkspaceHelper() {
         return mWorkspaceHelper;
     }
