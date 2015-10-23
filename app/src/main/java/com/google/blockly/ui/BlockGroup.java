@@ -100,6 +100,7 @@ public class BlockGroup extends ViewGroup {
      * its chain of next blocks.
      *
      * @param firstBlock The first {@link Block} to move to the new group.
+     *
      * @return A new {@link BlockGroup} containing blocks from the old group.
      */
     public BlockGroup extractBlocksAsNewGroup(Block firstBlock) {

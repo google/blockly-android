@@ -86,6 +86,7 @@ public class ConnectionManager {
      *
      * @param conn The base connection for the search.
      * @param maxRadius How far out to search for compatible connections.
+     *
      * @return The closest compatible connection.
      */
     public Connection closestConnection(Connection conn, double maxRadius) {
@@ -103,6 +104,7 @@ public class ConnectionManager {
      *
      * @param conn The base connection for the search.
      * @param maxRadius How far out to search for compatible connections.
+     *
      * @return A list of all nearby compatible connections.
      */
     public void getNeighbours(Connection conn, int maxRadius, List<Connection> result) {
@@ -138,6 +140,7 @@ public class ConnectionManager {
      * @param base The {@link Connection} to measure from.
      * @param one The first {@link Connection} to check.
      * @param two The second {@link Connection} to check.
+     *
      * @return The closer of the two connections.
      */
     private Connection closer(Connection base, Connection one, Connection two) {
@@ -161,6 +164,7 @@ public class ConnectionManager {
      * @param candidate A nearby connection to check.  Must be in the {@link ConnectionManager},
      * and therefore not be mid-drag.
      * @param maxRadius The maximum radius allowed for connections.
+     *
      * @return True if the connection is allowed, false otherwise.
      */
     @VisibleForTesting
@@ -240,6 +244,7 @@ public class ConnectionManager {
          * nearby for the exact connection.
          *
          * @param conn The connection to find.
+         *
          * @return The index of the connection, or -1 if the connection was not found.
          */
         @VisibleForTesting
@@ -280,6 +285,7 @@ public class ConnectionManager {
          * This will be in the correct y order but makes no guarantees about ordering in the x axis.
          *
          * @param conn The connection to insert.
+         *
          * @return The candidate index.
          */
         @VisibleForTesting
@@ -345,7 +351,7 @@ public class ConnectionManager {
         }
 
         @VisibleForTesting
-         void getNeighbours(Connection conn, int maxRadius, List<Connection> neighbours) {
+        void getNeighbours(Connection conn, int maxRadius, List<Connection> neighbours) {
             // Don't bother.
             if (mConnections.isEmpty()) {
                 return;

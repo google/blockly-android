@@ -72,6 +72,7 @@ public class BlockCopyBuffer {
      * call to setBufferContents.
      *
      * @param blockFactory The BlockFactory for the workspace where the blocks are being loaded.
+     *
      * @return A list of Blocks or chains of Blocks, or null if there were no previous successful
      * calls to setBufferContents.
      */
@@ -91,6 +92,7 @@ public class BlockCopyBuffer {
      * be returned.
      *
      * @param blockFactory The BlockFactory for the workspace where the blocks are being loaded.
+     *
      * @return A Block or chain of Blocks, or null if there were no previous successful calls to
      * setBufferContents.
      */

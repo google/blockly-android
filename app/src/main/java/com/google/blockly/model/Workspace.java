@@ -16,12 +16,11 @@
 package com.google.blockly.model;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.google.blockly.control.BlockCopyBuffer;
+import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.Dragger;
 import com.google.blockly.control.ProcedureManager;
-import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.WorkspaceStats;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.WorkspaceHelper;
@@ -45,14 +44,11 @@ public class Workspace {
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
-
+    private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
-
     private final Dragger mDragger =
             new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mRootBlocks);
-
-    private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
 
     public Workspace() {
     }
@@ -80,28 +76,6 @@ public class Workspace {
         return mRootBlocks.remove(block);
     }
 
-    public void connect(Connection a, Connection b) {
-        if (a == null || b == null) {
-            throw new IllegalArgumentException("Cannot connect a null connection.");
-        }
-
-        if (!a.canConnect(b)) {
-            throw new IllegalArgumentException("Connections may not be connected.");
-        }
-
-        if (a.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
-            if (removeRootBlock(a.getBlock()) && DEBUG) {
-                Log.d(TAG, "Removed root block before connecting it.");
-            }
-        } else if (b.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
-            if (removeRootBlock(b.getBlock()) && DEBUG) {
-                Log.d(TAG, "Removed root block before connecting it.");
-            }
-        }
-
-        a.connect(b);
-    }
-
     public WorkspaceHelper getWorkspaceHelper() {
         return mWorkspaceHelper;
     }
@@ -115,6 +89,7 @@ public class Workspace {
      * Reads the workspace in from an XML string.
      *
      * @param is The input stream to read from.
+     *
      * @throws BlocklyParserException
      */
     public void loadFromXml(InputStream is, BlockFactory blockFactory)
@@ -129,9 +104,10 @@ public class Workspace {
      * Outputs the workspace as an XML string.
      *
      * @param os The output stream to write to.
+     *
      * @throws BlocklySerializerException
      */
-    public void serialize(OutputStream os) throws BlocklySerializerException {
+    public void serializeToXml(OutputStream os) throws BlocklySerializerException {
         BlocklyXmlHelper.writeToXml(mRootBlocks, os);
     }
 

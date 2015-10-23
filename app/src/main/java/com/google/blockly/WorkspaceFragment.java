@@ -88,8 +88,13 @@ public class WorkspaceFragment extends Fragment {
         mWorkspace = new Workspace();
     }
 
+    public Workspace getWorkspace() {
+        return mWorkspace;
+    }
+
     /**
      * @param sectionNumber Which section's workspace to return.
+     *
      * @return a new instance of this fragment for the given section
      * number.
      */

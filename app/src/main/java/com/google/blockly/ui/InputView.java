@@ -120,6 +120,7 @@ public class InputView extends ViewGroup {
      * @param childView The {@link BlockView} or {@link BlockGroup} to attach to this input. The
      * {@code childView} will be added to the layout hierarchy for the current view
      * via a call to {@link ViewGroup#addView(View)}.
+     *
      * @throws IllegalStateException if a child view is already set. The Blockly model requires
      * disconnecting a block from an input before a new one can be connected.
      * @throws IllegalArgumentException if the method argument is {@code null}.

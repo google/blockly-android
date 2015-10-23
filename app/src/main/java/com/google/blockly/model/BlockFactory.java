@@ -71,6 +71,7 @@ public class BlockFactory {
      * Removes a block type from the factory.
      *
      * @param prototypeName The name of the block to remove.
+     *
      * @return The master block that was removed or null if it wasn't found.
      */
     public Block removeBlockTemplate(String prototypeName) {
@@ -83,6 +84,7 @@ public class BlockFactory {
      *
      * @param prototypeName The name of the block type to create.
      * @param uuid The id of the block if loaded from XML; null otherwise.
+     *
      * @return A new block of that type or null.
      */
     public Block obtainBlock(String prototypeName, String uuid) {

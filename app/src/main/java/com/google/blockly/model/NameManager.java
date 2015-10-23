@@ -40,6 +40,7 @@ public abstract class NameManager {
      *
      * @param name The name upon which to base the unique name.
      * @param addName Whether to add the generated name to the used names list.
+     *
      * @return A unique name.
      */
     public String generateUniqueName(String name, boolean addName) {
@@ -59,6 +60,7 @@ public abstract class NameManager {
 
     /**
      * @param name The string to look up.
+     *
      * @return True if name's lowercase equivalent is in the list.
      */
     public boolean contains(String name) {
@@ -75,6 +77,7 @@ public abstract class NameManager {
      *
      * @param reservedWords Reserved words in the target language.
      * @param baseName The name to convert.
+     *
      * @return A legal variable or procedure name in the target language.
      */
     public abstract String generateExternalName(Set<String> reservedWords, String baseName);
@@ -147,6 +150,7 @@ public abstract class NameManager {
          * then 'i2' to 'z2' etc.  Skip 'l'.
          *
          * @param addName Whether to add the new name to the list of variables.
+         *
          * @return New variable name.
          */
         public String generateVariableName(boolean addName) {

@@ -20,8 +20,8 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.blockly.ui.BlockWorkspaceParams;
 import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.BlockWorkspaceParams;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -246,6 +246,7 @@ public class Block {
      * Searches through the block's list of inputs and returns the first one with the given name.
      *
      * @param targetName The name of the input to search for.
+     *
      * @return The first Input with that name.
      */
     public Input getInputByName(String targetName) {
@@ -279,6 +280,7 @@ public class Block {
      * with the given name.
      *
      * @param targetName The name of the field to search for.
+     *
      * @return The first Field with that name.
      */
     public Field getFieldByName(String targetName) {
@@ -371,6 +373,7 @@ public class Block {
      *
      * @param serializer The XmlSerializer to write to.
      * @param rootBlock True if the block is a top level block, false otherwise.
+     *
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
@@ -406,6 +409,7 @@ public class Block {
      * % is escaped (eg "Escaped %%5 has no args")
      *
      * @param message The message to tokenize.
+     *
      * @return A list of Strings that are either an arg or plain text.
      */
     /*package*/
@@ -473,6 +477,7 @@ public class Block {
      *
      * @param name The name of the block.
      * @param json The JSON to generate the block from.
+     *
      * @return The generated Block.
      */
     public static Block fromJson(String name, JSONObject json) {
@@ -617,7 +622,9 @@ public class Block {
      *
      * @param parser An XmlPullParser pointed at the start tag of this block.
      * @param factory A BlockFactory that will provide Blocks by name.
+     *
      * @return The loaded block.
+     *
      * @throws XmlPullParserException
      * @throws IOException
      * @throws BlocklyParserException
@@ -796,8 +803,8 @@ public class Block {
                         if (recursive && oldInput.getConnection() != null) {
                             Block target = oldInput.getConnection().getTargetBlock();
                             if (target != null) {
-                                    newInput.getConnection().connect(
-                                            target.deepCopy().getOutputConnection());
+                                newInput.getConnection().connect(
+                                        target.deepCopy().getOutputConnection());
                             }
                         }
                     }

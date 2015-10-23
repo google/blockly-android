@@ -81,6 +81,7 @@ public abstract class Field implements Cloneable {
      * Writes information about the editable parts of the field as XML.
      *
      * @param serializer The XmlSerializer to write to.
+     *
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer) throws IOException {
@@ -141,6 +142,7 @@ public abstract class Field implements Cloneable {
      * There should be a concrete implementation for each field type.
      *
      * @param text The text value for this field from the XML.
+     *
      * @return True if the value was set, false otherwise.
      */
     public boolean setFromXmlText(String text) {
@@ -151,6 +153,7 @@ public abstract class Field implements Cloneable {
      * Checks if the given type name is a known field type.
      *
      * @param typeString The type to check.
+     *
      * @return true if this is a known field type, false otherwise.
      */
     public static boolean isFieldType(String typeString) {
@@ -163,7 +166,9 @@ public abstract class Field implements Cloneable {
      * {@link RuntimeException} will be thrown.
      *
      * @param json The JSON to generate the Field from.
+     *
      * @return A Field of the appropriate type.
+     *
      * @throws RuntimeException
      */
     public static Field fromJson(JSONObject json) {
@@ -215,8 +220,10 @@ public abstract class Field implements Cloneable {
      * Convert string representation of field type to internal integer Id.
      *
      * @param typeString The field type string, e.g., TYPE_LABEL_STRING ("field_label").
+     *
      * @return The integer Id representing the given field type string, or {@code #TYPE_UNKNOWN} if
      * the string does not represent a valid type.
+     *
      * @throws IllegalArgumentException If the string is null.
      */
     @FieldType
@@ -253,6 +260,7 @@ public abstract class Field implements Cloneable {
      * Writes the value of the Field as a string.
      *
      * @param serializer The XmlSerializer to write to.
+     *
      * @throws IOException
      */
     protected void serializeInner(XmlSerializer serializer) throws IOException {
