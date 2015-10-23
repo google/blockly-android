@@ -15,12 +15,15 @@
 
 package com.google.blockly.ui.fieldview;
 
+import android.content.ClipDescription;
 import android.content.Context;
+import android.view.DragEvent;
 import android.widget.EditText;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.ui.WorkspaceView;
 
 /**
  * Renders editable text as part of a BlockView.
@@ -59,5 +62,27 @@ public class FieldInputView extends EditText implements FieldView {
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
         return mWorkspaceParams;
+    }
+
+    /**
+     * Override onDragEvent to stop blocks from being dropped into text fields.  If the dragged
+     * information is anything but a block, let the standard EditText drag interface take care of
+     * it.
+     *
+     * @param event The {@link DragEvent} to respond to.
+     * @return False if the dragged data is a block, whatever a normal EditText would return
+     * otherwise.
+     */
+    @Override
+    public boolean onDragEvent(DragEvent event) {
+        // Don't let block groups be dropped into text fields.
+        if (event.getClipDescription() != null
+            && event.getClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)
+            && event.getClipDescription().getLabel().equals(
+                WorkspaceView.BLOCK_GROUP_CLIP_DATA_LABEL)) {
+            return false;
+        }
+
+        return super.onDragEvent(event);
     }
 }

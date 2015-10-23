@@ -17,6 +17,7 @@ package com.google.blockly.control;
 
 import android.graphics.Rect;
 import android.util.Pair;
+import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -67,6 +68,8 @@ public class Dragger {
     // For use in getting location on screen.
     private final int[] mTempArray = new int[2];
 
+    private final ViewPoint mTempViewPoint = new ViewPoint();
+
     /**
      * @param workspaceHelper For use in computing workspace coordinates.
      * @param workspaceView The root view to add block groups to.
@@ -86,19 +89,22 @@ public class Dragger {
      * <p/>
      * This method separates the block to drag into its own {@link BlockGroup} and sets the initial
      * dragging position. It must be called before any calls to
-     * {@link #continueDragging(MotionEvent)}, but may not be called immediately on receiving a
+     * {@link #continueDragging(DragEvent)}, but may not be called immediately on receiving a
      * "down" event (e.g., to first wait for a minimum drag distance).
      *
      * @param blockView The {@link BlockView} to begin dragging.
-     * @param startX The x coordinate, in {@link WorkspaceView} coordinates, of the touch event that
-     * begins the dragging.
-     * @param startY The y coordinate, in {@link WorkspaceView} coordinates, of the touch event that
-     * begins the dragging.
+     * @param startX The x coordinate, in the {@link BlockView}'s coordinate system, of the touch
+     * event that begins the dragging.
+     * @param startY The y coordinate, in the {@link BlockView}'s coordinate system, of the touch
+     * event that begins the dragging.
      */
     public void startDragging(BlockView blockView, int startX, int startY) {
         mTouchedBlockView = blockView;
         mBlockOriginalPosition.setFrom(blockView.getBlock().getPosition());
-        mDragStart.set(startX, startY);
+        // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
+        // {@link WorkspaceView} coordinates.
+        mWorkspaceHelper.getWorkspaceViewCoordinates(blockView, mTempViewPoint);
+        mDragStart.set(mTempViewPoint.x + startX, mTempViewPoint.y + startY);
         setDragGroup(mTouchedBlockView.getBlock());
     }
 
@@ -110,7 +116,7 @@ public class Dragger {
      *
      * @param event The next move event to handle, as received by the {@link WorkspaceView}.
      */
-    public void continueDragging(MotionEvent event) {
+    public void continueDragging(DragEvent event) {
         updateBlockPosition(event);
 
         // highlight as we go
@@ -155,17 +161,22 @@ public class Dragger {
     }
 
     /**
-     * Check whether the given event occurred on top of the trash can button.
+     * Check whether the given event occurred on top of the trash can button.  Should be called from
+     * {@link WorkspaceView}.
      *
-     * @param event The event whose location should be checked.
+     * @param event The event whose location should be checked, with position in WorkspaceView
+     * coordinates.
      * @return Whether the event was on top of the trash can button.
      */
-    public boolean touchingTrashView(MotionEvent event) {
+    public boolean touchingTrashView(DragEvent event) {
         mTrashView.getLocationOnScreen(mTempArray);
         mTrashView.getHitRect(mTrashRect);
 
         mTrashRect.offset((mTempArray[0] - mTrashRect.left), (mTempArray[1] - mTrashRect.top));
-        return mTrashRect.contains((int) event.getRawX(), (int) event.getRawY());
+        // offset drag event positions by the workspace view's position on screen.
+        mWorkspaceView.getLocationOnScreen(mTempArray);
+        return mTrashRect.contains((int) event.getX() + mTempArray[0],
+                (int) event.getY() + mTempArray[1]);
     }
 
     /**
@@ -229,7 +240,7 @@ public class Dragger {
      *
      * @param event The {@link MotionEvent} to react to.
      */
-    private void updateBlockPosition(MotionEvent event) {
+    private void updateBlockPosition(DragEvent event) {
         int dx = mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getX()) - mDragStart.x);
         int dy = mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getY()) - mDragStart.y);
 

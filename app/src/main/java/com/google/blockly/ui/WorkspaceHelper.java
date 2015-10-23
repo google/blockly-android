@@ -500,7 +500,8 @@ public class WorkspaceHelper {
          *
          * @param blockView The touched {@link BlockView}.
          * @param motionEvent The event the blockView is responding to.
+         * @return whether the {@link WorkspaceView} has handled the touch event.
          */
-        abstract public void onTouchBlock(BlockView blockView, MotionEvent motionEvent);
+        abstract public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent);
     }
 }

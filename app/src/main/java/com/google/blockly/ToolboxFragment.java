@@ -68,7 +68,7 @@ public class ToolboxFragment extends Fragment {
         mToolboxWorkspaceHelper = new WorkspaceHelper(getContext(), null);
         mToolboxWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
             @Override
-            public void onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
                 mDrawerLayout.closeDrawers();
 
                 BlockGroup bg = mToolboxWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
@@ -80,6 +80,7 @@ public class ToolboxFragment extends Fragment {
                         mTempScreenPosition, mTempWorkspacePosition);
                 copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
                 mWorkspace.addRootBlockAndView(copiedModel, getContext());
+                return true;
             }
         });
         BlockFactory mBlockFactory = new BlockFactory(getContext(),

@@ -183,18 +183,12 @@ public class BlockView extends FrameLayout {
      *
      * @param event The {@link MotionEvent} to handle.
      *
-     * @return Always returns false, i.e., the event is never consumed here. Unless consumed by a
-     * child (e.g., text entry field), the event will propagate back up to {@link WorkspaceView},
-     * where it will then be dispatched for workspace-level dragging.
+     * @return False if the touch was on the view but not on a visible part of the block; otherwise
+     * returns whether the {@link WorkspaceView} says that the event is being handled properly.
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (hitTest(event)) {
-            // Let workspace helper know that the visible parts of this BlockView were touched.
-            mHelper.getBlockTouchHandler().onTouchBlock(this, event);
-        }
-
-        return false;
+        return hitTest(event) && mHelper.getBlockTouchHandler().onTouchBlock(this, event);
     }
 
     @Override
@@ -880,4 +874,5 @@ public class BlockView extends FrameLayout {
     int getLayoutMarginLeft() {
         return mLayoutMarginLeft;
     }
+
 }

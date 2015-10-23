@@ -15,11 +15,13 @@
 
 package com.google.blockly.ui;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.graphics.Rect;
 import android.support.annotation.IntDef;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -27,7 +29,6 @@ import android.view.ViewGroup;
 
 import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Workspace;
-import com.google.blockly.model.WorkspacePoint;
 
 /**
  * Handles updating the viewport into the workspace and is the parent view for all blocks. This
@@ -36,6 +37,9 @@ import com.google.blockly.model.WorkspacePoint;
  */
 public class WorkspaceView extends ViewGroup {
     private static final String TAG = "WorkspaceView";
+
+    public static final String BLOCK_GROUP_CLIP_DATA_LABEL = "BlockGroupClipData";
+
     private static final boolean DEBUG = true;
 
     private final WorkspaceHelper mHelper;
@@ -89,12 +93,13 @@ public class WorkspaceView extends ViewGroup {
         // Tell the workspace helper to pass onTouchBlock events straight through to the WSView.
         mHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
             @Override
-            public void onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                WorkspaceView.this.onTouchBlock(blockView, motionEvent);
+            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                return WorkspaceView.this.onTouchBlock(blockView, motionEvent);
             }
         });
 
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        setOnDragListener(new WorkspaceDragEventListener());
     }
 
     /**
@@ -130,35 +135,6 @@ public class WorkspaceView extends ViewGroup {
     /** @return The bounding box in view coordinates of the workspace region occupied by blocks. */
     public Rect getBlocksBoundingBox() {
         return mBlocksBoundingBox;
-    }
-
-    /**
-     * Intercept touch events while dragging blocks.
-     * <p/>
-     * Note that the current event does not need to be handled here, because
-     * {@link BlockView#onTouchEvent(MotionEvent)} always returns {@code false}. Therefore, the
-     * event that triggered a {@link BlockView} instance to call
-     * {@link #onTouchBlock(BlockView, MotionEvent)} will not be consumed by the block view, but
-     * be propagated all the way back up the view hierarchy and ultimately be handled by this the
-     * {@link #onTouchEvent(MotionEvent)} method of this instance.
-     * <p/>
-     * One important benefit of this procedure is that all events for the dragging interaction have
-     * locations in {@link WorkspaceView} coordinates, rather than in {@link BlockView} coordinates,
-     * as would be the case for the event handed up from {@link BlockView}.
-     */
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent event) {
-        return mTouchState == TOUCH_STATE_DOWN;
-    }
-
-    /** Handle touch events for block dragging. */
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (mTouchState == TOUCH_STATE_DOWN || mTouchState == TOUCH_STATE_DRAGGING) {
-            return dragBlock(event);
-        }
-
-        return false;
     }
 
     @Override
@@ -229,11 +205,14 @@ public class WorkspaceView extends ViewGroup {
 
     /**
      * Let this instance know that a block was touched.
+     * This will be called when the block has been touched but a drag has not yet been started.
      *
      * @param blockView The {@link BlockView} that detected a touch event.
      * @param event The touch event.
+     * @return true if the WorkspaceView has started dragging the given {@link BlockView} or
+     * recorded it as draggable.
      */
-    private void onTouchBlock(BlockView blockView, MotionEvent event) {
+    private boolean onTouchBlock(BlockView blockView, MotionEvent event) {
         // Only initiate dragging of given view if in idle state - this prevents occluded blocks
         // from grabbing drag focus because they saw an unconsumed Down event before it propagated
         // back up to this WorkspaceView.
@@ -243,12 +222,19 @@ public class WorkspaceView extends ViewGroup {
             mDraggingPointerId =
                     MotionEventCompat.getPointerId(event, MotionEventCompat.getActionIndex(event));
         }
+        return (mTouchState == TOUCH_STATE_DOWN || mTouchState == TOUCH_STATE_DRAGGING)
+                && maybeStartDrag(event);
     }
 
     /**
-     * Handle motion events while dragging a block.
+     * Handle motion events while starting to drag a block.  This keeps track of whether the block
+     * has been dragged more than {@code mTouchSlop} and starts a drag if necessary.
+     * Once the drag has been started, all following events will be handled through the
+     * {@link com.google.blockly.ui.WorkspaceView.WorkspaceDragEventListener}.
+     *
+     * @return True if the event was ACTION_DOWN or ACTION_MOVE, false otherwise.
      */
-    private boolean dragBlock(MotionEvent event) {
+    private boolean maybeStartDrag(MotionEvent event) {
         final int action = MotionEventCompat.getActionMasked(event);
         final int pointerIdx = MotionEventCompat.findPointerIndex(event, mDraggingPointerId);
 
@@ -275,41 +261,53 @@ public class WorkspaceView extends ViewGroup {
                         mTouchState = TOUCH_STATE_DRAGGING;
                         mDragger.startDragging(mDraggingBlockView,
                                 mDraggingStart.x, mDraggingStart.y);
+                        mDraggingBlockView.startDrag(
+                                ClipData.newPlainText(BLOCK_GROUP_CLIP_DATA_LABEL, ""),
+                                new View.DragShadowBuilder(), null, 0);
                     }
                 }
-                if (mTouchState == TOUCH_STATE_DRAGGING) {
-                    mDragger.continueDragging(event);
-                }
-                return true;
-            }
-            case MotionEvent.ACTION_POINTER_UP: {
-                // Some pointer went up - check whether it was the one used for dragging.
-                final int pointerId = MotionEventCompat.getPointerId(
-                        event, MotionEventCompat.getActionIndex(event));
-                if (pointerId != mDraggingPointerId) {
-                    return false;
-                }
-                // Pointer that went up was used for dragging - treat like ACTION_UP.
-                // FALLTHROUGH INTENDED.
-            }
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL: {
-                // Finalize dragging and reset dragging state flags.
-                if (mTouchState == TOUCH_STATE_DRAGGING) {
-                    if (mDragger.touchingTrashView(event)) {
-                        mWorkspace.removeRootBlock(mDragger.getDragRootBlock());
-                        mDragger.dropInTrash();
-                    } else {
-                        mDragger.finishDragging();
-                    }
-                }
-                mTouchState = TOUCH_STATE_NONE;
-                mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;
-                mDraggingBlockView = null;
                 return true;
             }
             default: {
                 return false;
+            }
+        }
+    }
+
+    private class WorkspaceDragEventListener implements View.OnDragListener {
+        @Override
+        public boolean onDrag(View v, DragEvent event) {
+            final int action = event.getAction();
+            switch (action) {
+                case DragEvent.ACTION_DRAG_STARTED:
+                    return true;
+                case DragEvent.ACTION_DRAG_ENTERED:
+                    return true;
+                case DragEvent.ACTION_DRAG_LOCATION:
+                    mDragger.continueDragging(event);
+                    return true;
+                case DragEvent.ACTION_DRAG_EXITED:
+                case DragEvent.ACTION_DRAG_ENDED:
+                    return false;
+                case DragEvent.ACTION_DROP:
+                    // Finalize dragging and reset dragging state flags.
+                    // These state flags are still used in the initial phase of figuring out if a
+                    // drag has started.
+                    if (mTouchState == TOUCH_STATE_DRAGGING) {
+                        if (mDragger.touchingTrashView(event)) {
+                            mWorkspace.removeRootBlock(mDragger.getDragRootBlock());
+                            mDragger.dropInTrash();
+                        } else {
+                            mDragger.finishDragging();
+                        }
+                    }
+                    mTouchState = TOUCH_STATE_NONE;
+                    mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;
+                    mDraggingBlockView = null;
+                    return true;
+                default:
+                    return false;
+
             }
         }
     }
