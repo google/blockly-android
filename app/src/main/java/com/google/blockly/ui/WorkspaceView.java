@@ -291,8 +291,8 @@ public class WorkspaceView extends ViewGroup {
                 BlockGroup bg = (BlockGroup) child;
 
                 // Get view coordinates of child from its workspace coordinates. Note that unlike
-                // onMeasure() above, workspaceToVirtualViewCoordinates() must be used for conversion here,
-                // so view scroll offset is properly applied for positioning.
+                // onMeasure() above, workspaceToVirtualViewCoordinates() must be used for
+                // conversion here, so view scroll offset is properly applied for positioning.
                 mHelper.workspaceToVirtualViewCoordinates(bg.getTopBlockPosition(), mTemp);
                 if (mHelper.useRtL()) {
                     mTemp.x -= bg.getMeasuredWidth();

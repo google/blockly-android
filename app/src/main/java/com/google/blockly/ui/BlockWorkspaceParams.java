@@ -80,8 +80,8 @@ public class BlockWorkspaceParams {
      * @param viewDimens The width and height of the view in pixels..
      */
     public void setMeasuredDimensions(ViewPoint viewDimens) {
-        mWidth = mWorkspaceHelper.viewToWorkspaceUnits(viewDimens.x);
-        mHeight = mWorkspaceHelper.viewToWorkspaceUnits(viewDimens.y);
+        mWidth = mWorkspaceHelper.virtualViewToWorkspaceUnits(viewDimens.x);
+        mHeight = mWorkspaceHelper.virtualViewToWorkspaceUnits(viewDimens.y);
         mBounds.set(
                 mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
                 mWorkspacePosition.x + mWidth, mWorkspacePosition.y);

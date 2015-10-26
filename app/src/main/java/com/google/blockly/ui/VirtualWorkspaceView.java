@@ -222,6 +222,17 @@ public class VirtualWorkspaceView extends ViewGroup {
         super.onDraw(c);
     }
 
+    /**
+     * Set scroll position for the {@link WorkspaceView} wrapped by this instance.
+     * <p/>
+     * The given scroll position specifies the absolute offset of the displayed area within the
+     * virtual workspace. Inside this method, the given scroll coordinates are clamped to their
+     * valid ranges determined from the bounding box of all blocks in the virtual workspace, and
+     * allowing for overscroll of half the width (or height, respectively) of this view.
+     *
+     * @param x The horizontal scroll position in pixel units of this view.
+     * @param y The vertical scroll position in pixel units of this view.
+     */
     @Override
     public void scrollTo(int x, int y) {
         int halfViewWidth = getMeasuredWidth() / 2;
@@ -244,6 +255,10 @@ public class VirtualWorkspaceView extends ViewGroup {
 
         // Update and show scroll bars.
         super.scrollTo(x, y);
+
+        // Set view offset in the virtual workspace and request layout of the WorkspaceView with the
+        // new offset. The view offset is the location of the top-left pixel displayed in this view
+        // in virtual workspace coordinates, regardless of RtL vs. LtR mode.
         mWorkspaceView.getWorkspaceHelper()
                 .setVirtualWorkspaceViewOffset(
                         (int) (x / mViewScale), /* virtual coords. */
@@ -287,6 +302,11 @@ public class VirtualWorkspaceView extends ViewGroup {
      * Note that the units of the value returned by this method are essentially arbitrary in the
      * sense that scroll bar position and width are invariant under scaling of range, offset, and
      * extent by the same factor (up to truncation of fractions to nearest integers).
+     * <p/>
+     * We compute this by taking the total width of the available workspace and converting it to
+     * screen pixels. The available workspace is the size needed to fully enclose all blocks with
+     * half the display's width for padding, or
+     * {@code (workspace max - workspace min) in pixels + the visible width}.
      */
     @Override
     protected int computeHorizontalScrollRange() {
@@ -306,6 +326,8 @@ public class VirtualWorkspaceView extends ViewGroup {
      * Note that the units of the value returned by this method are essentially arbitrary in the
      * sense that scroll bar position and width are invariant under scaling of range, offset, and
      * extent by the same factor (up to truncation of fractions to nearest integers).
+     * <p/>
+     * We use screen pixels for the unit, so this is just the measured width of the view.
      */
     @Override
     protected int computeHorizontalScrollExtent() {
@@ -325,6 +347,11 @@ public class VirtualWorkspaceView extends ViewGroup {
      * Note that the units of the value returned by this method are essentially arbitrary in the
      * sense that scroll bar position and width are invariant under scaling of range, offset, and
      * extent by the same factor (up to truncation of fractions to nearest integers).
+     * <p/>
+     * The offset is just a translation by {@code getScrollX()}, which is the left edge of the
+     * viewport on the workspace in pixels, relative to the farthest left position (in pixels)
+     * possible. In other words, offset goes from {@code 0} to
+     * {@code (workspace max - workspace min)} in pixels.
      */
     @Override
     protected int computeHorizontalScrollOffset() {

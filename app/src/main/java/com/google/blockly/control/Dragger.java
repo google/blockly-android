@@ -101,7 +101,7 @@ public class Dragger {
         mBlockOriginalPosition.setFrom(blockView.getBlock().getPosition());
         // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
         // {@link WorkspaceView} coordinates.
-        mWorkspaceHelper.getWorkspaceViewCoordinates(blockView, mTempViewPoint);
+        mWorkspaceHelper.getVirtualViewCoordinates(blockView, mTempViewPoint);
         mDragStart.set(mTempViewPoint.x + startX, mTempViewPoint.y + startY);
         setDragGroup(mTouchedBlockView.getBlock());
     }
@@ -240,8 +240,8 @@ public class Dragger {
      * @param event The {@link MotionEvent} to react to.
      */
     private void updateBlockPosition(DragEvent event) {
-        int dx = mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getX()) - mDragStart.x);
-        int dy = mWorkspaceHelper.viewToWorkspaceUnits((int) (event.getY()) - mDragStart.y);
+        int dx = mWorkspaceHelper.virtualViewToWorkspaceUnits((int) (event.getX()) - mDragStart.x);
+        int dy = mWorkspaceHelper.virtualViewToWorkspaceUnits((int) (event.getY()) - mDragStart.y);
 
         if (mWorkspaceHelper.useRtL()) {
             dx *= -1;
@@ -542,8 +542,8 @@ public class Dragger {
                 - impingingConnection.getPosition().y;
         Block rootBlock = ((BlockView) impingingBlockGroup.getChildAt(0)).getBlock();
         rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
-        impingingBlockGroup.moveBy(mWorkspaceHelper.workspaceToViewUnits(dx),
-                mWorkspaceHelper.workspaceToViewUnits(dy));
+        impingingBlockGroup.moveBy(mWorkspaceHelper.workspaceToVirtualViewUnits(dx),
+                mWorkspaceHelper.workspaceToVirtualViewUnits(dy));
         impingingBlockGroup.bringToFront();
         impingingBlockGroup.updateAllConnectorLocations();
     }
