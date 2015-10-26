@@ -39,6 +39,7 @@ public class WorkspaceView extends ViewGroup {
     private static final String TAG = "WorkspaceView";
     private static final boolean DEBUG = true;
     public static final String BLOCK_GROUP_CLIP_DATA_LABEL = "BlockGroupClipData";
+
     // No current touch interaction.
     private static final int TOUCH_STATE_NONE = 0;
     // Block in this view has received "Down" event; waiting for further interactions to decide
@@ -139,9 +140,9 @@ public class WorkspaceView extends ViewGroup {
             blockGroup.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
 
             // Determine this BlockGroup's bounds in view coordinates and extend boundaries
-            // accordingly. Do NOT use mHelper.workspaceToViewCoordinates below, since we want the
+            // accordingly. Do NOT use mHelper.workspaceToVirtualViewCoordinates below, since we want the
             // bounding box independent of scroll offset.
-            mHelper.workspaceToViewDelta(blockGroup.getTopBlockPosition(), mTemp);
+            mHelper.workspaceToVirtualViewDelta(blockGroup.getTopBlockPosition(), mTemp);
             if (mHelper.useRtL()) {
                 mTemp.x -= blockGroup.getMeasuredWidth();
             }
@@ -337,5 +338,35 @@ public class WorkspaceView extends ViewGroup {
 
             }
         }
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        int childCount = getChildCount();
+
+        for (int i = 0; i < childCount; i++) {
+            View child = getChildAt(i);
+            if (child.getVisibility() == GONE) {
+                continue;
+            }
+            if (child instanceof BlockGroup) {
+                BlockGroup bg = (BlockGroup) child;
+
+                // Get view coordinates of child from its workspace coordinates. Note that unlike
+                // onMeasure() above, workspaceToVirtualViewCoordinates() must be used for
+                // conversion here, so view scroll offset is properly applied for positioning.
+                mHelper.workspaceToVirtualViewCoordinates(bg.getTopBlockPosition(), mTemp);
+                if (mHelper.useRtL()) {
+                    mTemp.x -= bg.getMeasuredWidth();
+                }
+
+                child.layout(mTemp.x, mTemp.y,
+                        mTemp.x + bg.getMeasuredWidth(), mTemp.y + bg.getMeasuredHeight());
+            }
+        }
+    }
+
+    @IntDef({TOUCH_STATE_NONE, TOUCH_STATE_DOWN, TOUCH_STATE_DRAGGING, TOUCH_STATE_LONGPRESS})
+    public @interface TouchState {
     }
 }

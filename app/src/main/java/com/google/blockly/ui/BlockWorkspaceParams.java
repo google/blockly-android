@@ -80,8 +80,8 @@ public class BlockWorkspaceParams {
      * @param viewDimens The width and height of the view in pixels..
      */
     public void setMeasuredDimensions(ViewPoint viewDimens) {
-        mWidth = mWorkspaceHelper.viewToWorkspaceUnits(viewDimens.x);
-        mHeight = mWorkspaceHelper.viewToWorkspaceUnits(viewDimens.y);
+        mWidth = mWorkspaceHelper.virtualViewToWorkspaceUnits(viewDimens.x);
+        mHeight = mWorkspaceHelper.virtualViewToWorkspaceUnits(viewDimens.y);
         mBounds.set(
                 mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
                 mWorkspacePosition.x + mWidth, mWorkspacePosition.y);
@@ -94,7 +94,7 @@ public class BlockWorkspaceParams {
      * @param viewPosition The position of the block in the workspace view's coordinates.
      */
     public void setPosition(ViewPoint viewPosition) {
-        mWorkspaceHelper.viewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
+        mWorkspaceHelper.virtualViewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
         mBounds.set(
                 mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
                 mWorkspacePosition.x + mWidth, mWorkspacePosition.y);

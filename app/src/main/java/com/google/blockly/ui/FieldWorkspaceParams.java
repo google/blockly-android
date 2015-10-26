@@ -58,8 +58,8 @@ public class FieldWorkspaceParams {
      * @param height The height of the block in pixels.
      */
     public void setMeasuredDimensions(int width, int height) {
-        mWidth = mWorkspaceHelper.viewToWorkspaceUnits(width);
-        mHeight = mWorkspaceHelper.viewToWorkspaceUnits(height);
+        mWidth = mWorkspaceHelper.virtualViewToWorkspaceUnits(width);
+        mHeight = mWorkspaceHelper.virtualViewToWorkspaceUnits(height);
         mBounds.set(
                 mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
                 mWorkspacePosition.x + mWidth, mWorkspacePosition.y);
@@ -72,7 +72,7 @@ public class FieldWorkspaceParams {
      * @param viewPosition The x, y position fo the block's view in pixels.
      */
     public void setPosition(ViewPoint viewPosition) {
-        mWorkspaceHelper.viewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
+        mWorkspaceHelper.virtualViewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
         mBounds.set(
                 mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
                 mWorkspacePosition.x + mWidth, mWorkspacePosition.y);

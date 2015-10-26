@@ -34,21 +34,41 @@ import com.google.blockly.model.WorkspacePoint;
 
 /**
  * Provides helper methods for converting coordinates between the workspace and the views.
+ * <p/>
+ * There are two primary coordinate systems, workspace coordinates and virtual view coordinates.
+ * <p/>
+ * <em>Workspace coordinates</em> represent Block model positions in an infinite xy plane with no
+ * pre-defined offset.
+ * <p/>
+ * <em>Virtual view coordinates</em> are workspace coordinates scaled to adjust for device display
+ * density ({@link #mDensity}) and expressed relative to an offset that facilitates workspace
+ * scrolling. In right-to-left (RtL) mode ({@link #mRtL}), the virtual view coordinates also flip
+ * the x coordinates ({@code x *= -1}) relative to workspace coordinates.
+ * <p/>
+ * The conversion from workspace to virtual view coordinates is as follows:
+ * <ul>
+ *  <li><pre>virtualViewX = workspaceX * density * rtl - virtualViewOffsetX</pre></li>
+ *  <li><pre>virtualViewY = workspaceY * density - virtualViewOffsetY</pre></li>
+ * </ul>
+ * where
+ * <ul>
+ *    <li><pre>density</pre> is display density,</li>
+ *    <li><pre>rtl<pre> is -1 in RtL mode or +1 in LtR mode,</li>
+ *    <li><pre>virtualViewOffsetX,Y</pre> is the offset of the workspace view expressed in virtual
+ *    view coordinates.</li>
+ * </ul>
+ * The virtual view offset is updated during workspace panning as:
+ * <p/>
+ * <pre>virtualViewOffsetNewX,Y = virtualViewOffsetOldX,Y + (1  / viewScale) * dragVectorX,Y</pre>.
  */
 public class WorkspaceHelper {
     private static final String TAG = "WorkspaceHelper";
     private static final boolean DEBUG = false;
 
-    private static final float SCALE_MIN = 0.1f;
-    private static final float SCALE_MAX = 3f;
-    private final WorkspacePoint mWorkspaceOffset = new WorkspacePoint();
+    private final ViewPoint mVirtualWorkspaceViewOffset = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final int[] mTempIntArray2 = new int[2];
     private WorkspaceView mWorkspaceView;
-    private float mMinScale;
-    private float mMaxScale;
-    private float mDefaultScale;
-    private float mScale = 1;
     private float mDensity;
     private boolean mRtL;
     private int mBlockStyle;
@@ -116,103 +136,72 @@ public class WorkspaceHelper {
     }
 
     /**
-     * @return The current scale of the workspace view.
+     * Set the offset of the virtual workspace view.
+     * <p/>
+     * This is the coordinate of the top-left corner of the area of the workspace shown by a
+     * {@link WorkspaceView} inside a {@link VirtualWorkspaceView}. The coordinate is represented
+     * in virtual workspace view coordinates, i.e., workspace coordinates adjusted for display
+     * density and reversed in RtL mode (this implies, that the coordinate provides here refers
+     * to the top-left corner of the view area, even in RtL mode).
      */
-    public float getScale() {
-        return mScale;
+    public void setVirtualWorkspaceViewOffset(int x, int y) {
+        mVirtualWorkspaceViewOffset.set(x, y);
     }
 
     /**
-     * Sets the scaling of the view. This scaling should be used for all drawing within the
-     * {@link WorkspaceView} and children. A value of 1 means default size with no scaling. Values
-     * larger than 1 will increase the size of drawn blocks and the grid, while a size smaller than
-     * 1 will decrease the size and allow more blocks to fit on the screen.
-     *
-     * @param scale The scale of the view.
-     */
-    public void setScale(float scale) {
-        mScale = Math.min(mMaxScale, Math.max(mMinScale, scale));
-    }
-
-    /**
-     * Get the current view's offset in workspace coordinates.
-     *
-     * @return The top left corner the viewport in workspace coordinates.
-     */
-    public WorkspacePoint getOffset() {
-        return mWorkspaceOffset;
-    }
-
-    /**
-     * Set the {@link WorkspaceView}'s offset into the workspace, in workspace units. This value
-     * should only change due to translation, not scaling, and therefore is not a pixel value.
-     *
-     * @param workspaceOffset The view's offset into the workspace in workspace coordinates.
-     */
-    public void setOffset(WorkspacePoint workspaceOffset) {
-        mWorkspaceOffset.setFrom(workspaceOffset);
-    }
-
-    /**
-     * Scales a value in workspace coordinates to a view pixel value. This does not account for
-     * offsets into the view's space, it only uses scaling and screen density to calculate the
-     * result.
+     * Scales a value in workspace coordinate units to virtual view pixel units.
+     * <p/>
+     * This does not account for offsets into the view's space, nor any scale applied by
+     * {@link VirtualWorkspaceView}, but only uses screen density to  calculate the result.
      *
      * @param workspaceValue The value in workspace units.
      *
-     * @return The value in view pixels.
+     * @return The value in virtual view units.
      */
-    public int workspaceToViewUnits(int workspaceValue) {
-        return (int) (mScale * mDensity * workspaceValue);
+    public int workspaceToVirtualViewUnits(int workspaceValue) {
+        return (int) (mDensity * workspaceValue);
     }
 
     /**
-     * Scales a value in view to workspace units. This does not account for offsets into the
-     * view's space, it only uses scaling and screen density to calculate the result.
+     * Scales a value in virtual view units to workspace units.
+     * <p/>
+     * This does not account for offsets into the view's space, nor any scale applied by
+     * {@link VirtualWorkspaceView}, but only uses screen density to  calculate the result.
      *
-     * @param viewValue The value in view units.
+     * @param viewValue The value in virtual view units.
      *
      * @return The value in workspace units.
      */
-    public int viewToWorkspaceUnits(int viewValue) {
-        return (int) (viewValue / (mScale * mDensity));
+    public int virtualViewToWorkspaceUnits(int viewValue) {
+        return (int) (viewValue / mDensity);
     }
 
     /**
-     * Convenience function that converts x and y components from view to workspace units by
-     * applying {@link #viewToWorkspaceUnits(int)} to each component separately.
-     * <p/>
-     * This function converts only coordinate units, i.e., it does not reverse x coordinates in
-     * right-to-left mode, nor does it apply the workspace offset.
-     */
-    public void viewToWorkspaceUnits(ViewPoint viewPointIn, WorkspacePoint workspacePointOut) {
-        workspacePointOut.set(
-                viewToWorkspaceUnits(viewPointIn.x),
-                viewToWorkspaceUnits(viewPointIn.y));
-    }
-
-    /**
-     * Function that converts x and y components of a delta vector from view to workspace units.
+     * Function that converts x and y components of a delta vector from virtual view to workspace
+     * coordinates.
      * <p/>
      * This function respects right-to-left mode by reversing the direction of the x coordinate, but
      * does not apply the workspace offset.
      */
-    public void viewToWorkspaceDelta(ViewPoint viewPointIn, WorkspacePoint workspacePointOut) {
+    public void virtualViewToWorkspaceDelta(ViewPoint viewPointIn,
+                                            WorkspacePoint workspacePointOut) {
         workspacePointOut.set(
-                viewToWorkspaceUnits(mRtL ? -viewPointIn.x : viewPointIn.x),
-                viewToWorkspaceUnits(viewPointIn.y));
+                virtualViewToWorkspaceUnits(mRtL ? -viewPointIn.x : viewPointIn.x),
+                virtualViewToWorkspaceUnits(viewPointIn.y));
     }
 
     /**
-     * Function that converts x and y components of a delta vector from workspace to view units.
+     * Function that converts x and y components of a delta vector from workspace to virtual view
+     * units.
      * <p/>
      * This function respects right-to-left mode by reversing the direction of the x coordinate, but
      * does not apply the workspace offset.
      */
-    public void workspaceToViewDelta(WorkspacePoint workspacePointIn, ViewPoint viewPointOut) {
+    public void workspaceToVirtualViewDelta(WorkspacePoint workspacePointIn,
+                                            ViewPoint viewPointOut) {
         viewPointOut.set(
-                workspaceToViewUnits(mRtL ? -workspacePointIn.x : workspacePointIn.x),
-                workspaceToViewUnits(workspacePointIn.y));
+                workspaceToVirtualViewUnits(mRtL ? -workspacePointIn.x : workspacePointIn.x),
+                workspaceToVirtualViewUnits(workspacePointIn.y));
     }
 
     /**
@@ -249,8 +238,8 @@ public class WorkspaceHelper {
      */
     public BlockView obtainBlockView(Context context, Block block, BlockGroup parentGroup,
                                      ConnectionManager connectionManager) {
-        return new BlockView(context,
-                getBlockStyle(), block, this, parentGroup, connectionManager);
+        return new BlockView(
+                context, getBlockStyle(), block, this, parentGroup, connectionManager);
     }
 
     /**
@@ -269,28 +258,39 @@ public class WorkspaceHelper {
 
     /**
      * Get workspace coordinates of a given {@link View}.
+     * <p/>
+     * This function always returns the coordinate of the corner of the view that corresponds to the
+     * block coordinate in workspace coordinates. In left-to-right (LtR) mode, this is the
+     * <em>top-left</em> corner of the view, in right-to-left (RtL) mode, it is the
+     * <em>top-right</em> corner of the view.
      *
      * @param view The view to find the position of.
      * @param workspacePosition The Point to store the results in.
      */
     public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
-        getWorkspaceViewCoordinates(view, mTempViewPoint);
+        getVirtualViewCoordinates(view, mTempViewPoint);
         if (mRtL) {
             // In right-to-left mode, the Block's position is that of its top-RIGHT corner, but
             // Android still refers to the BlockView's layout coordinate by its top-LEFT corner.
             // Adding the view's width to the lhs view coordinate gives us the rhs coordinate.
             mTempViewPoint.x += view.getMeasuredWidth();
         }
-        viewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
+        virtualViewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
     }
 
     /**
-     * Get workspace view coordinates of a given {@link View}.
+     * Get virtual view coordinates of a given {@link View}.
+     * <p/>
+     * This function always returns the coordinate of the top-left corner of the given view,
+     * regardless of left-to-right (LtR) vs. right-to-left (RtL) mode. Note that in RtL mode, this
+     * is not the corner that corresponds to the block's workspace coordinates. Use
+     * {@link #getWorkspaceCoordinates(View, WorkspacePoint)} to obtain  the workspace coordinates
+     * of a block from its view, adjusted for RtL mode if necessary.
      *
      * @param view The view to find the position of.
      * @param viewPosition The Point to store the results in.
      */
-    public void getWorkspaceViewCoordinates(View view, ViewPoint viewPosition) {
+    public void getVirtualViewCoordinates(View view, ViewPoint viewPosition) {
         int leftRelativeToWorkspace = view.getLeft();
         int topRelativeToWorkspace = view.getTop();
 
@@ -365,47 +365,52 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Converts a point in view coordinates to screen coordinates.
+     * Converts a point in virtual view coordinates to screen coordinates.
      *
-     * @param viewPosition Input coordinates of a location in {@link WorkspaceView}.
-     * @param screenPosition Output coordinates of the same location in absolute coordinates on the
-     * screen.
+     * @param viewPositionIn Input coordinates of a location in {@link WorkspaceView}, expressed
+     * with respect to the virtual view coordinate system.
+     * @param screenPositionOut Output coordinates of the same location in absolute coordinates on
+     * the screen.
      */
-    public void viewToScreenCoordinates(ViewPoint viewPosition, Point screenPosition) {
+    public void virtualViewToScreenCoordinates(ViewPoint viewPositionIn, Point screenPositionOut) {
         mWorkspaceView.getLocationOnScreen(mTempIntArray2);
-        screenPosition.x = mTempIntArray2[0] + (int) (viewPosition.x * mWorkspaceView.getScaleX());
-        screenPosition.y = mTempIntArray2[1] + (int) (viewPosition.y * mWorkspaceView.getScaleY());
+        screenPositionOut.x = mTempIntArray2[0] +
+                (int) (viewPositionIn.x * mWorkspaceView.getScaleX());
+        screenPositionOut.y = mTempIntArray2[1] +
+                (int) (viewPositionIn.y * mWorkspaceView.getScaleY());
     }
 
     /**
-     * Converts a point in screen coordinates to view coordinates.
+     * Converts a point in screen coordinates to virtual view coordinates.
      *
-     * @param screenPosition Input coordinates of a location in absolute coordinates on the
+     * @param screenPositionIn Input coordinates of a location in absolute coordinates on the
      * screen.
-     * @param viewPosition Output coordinates of the same location in {@link WorkspaceView}.
+     * @param viewPositionOut Output coordinates of the same location in {@link WorkspaceView},
+     * expressed with respect to the virtual view coordinate system.
      */
-    public void screenToViewCoordinates(Point screenPosition, ViewPoint viewPosition) {
+    public void screenToVirtualViewCoordinates(Point screenPositionIn, ViewPoint viewPositionOut) {
         mWorkspaceView.getLocationOnScreen(mTempIntArray2);
-        viewPosition.x =
-                (int) ((screenPosition.x - mTempIntArray2[0]) / mWorkspaceView.getScaleX());
-        viewPosition.y =
-                (int) ((screenPosition.y - mTempIntArray2[1]) / mWorkspaceView.getScaleY());
+        viewPositionOut.x =
+                (int) ((screenPositionIn.x - mTempIntArray2[0]) / mWorkspaceView.getScaleX());
+        viewPositionOut.y =
+                (int) ((screenPositionIn.y - mTempIntArray2[1]) / mWorkspaceView.getScaleY());
     }
 
     /**
      * Convenience method for direct mapping of screen to workspace coordinates.
      * <p/>
-     * This method applies {@link #screenToViewCoordinates(Point, ViewPoint)} followed by
-     * {@link #viewToWorkspaceCoordinates(ViewPoint, WorkspacePoint)} using an existing temporary
-     * {@link ViewPoint} instance as intermediate.
+     * This method applies {@link #screenToVirtualViewCoordinates(Point, ViewPoint)} followed by
+     * {@link #virtualViewToWorkspaceCoordinates(ViewPoint, WorkspacePoint)} using an existing
+     * temporary {@link ViewPoint} instance as intermediate.
      *
-     * @param screenPosition Input coordinates of a location in absolute coordinates on the
+     * @param screenPositionIn Input coordinates of a location in absolute coordinates on the
      * screen.
-     * @param workspacePosition Output coordinates of the same location in workspace coordinates.
+     * @param workspacePositionOut Output coordinates of the same location in workspace coordinates.
      */
-    public void screenToWorkspaceCoordinates(Point screenPosition, WorkspacePoint workspacePosition) {
-        screenToViewCoordinates(screenPosition, mTempViewPoint);
-        viewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
+    public void screenToWorkspaceCoordinates(Point screenPositionIn,
+                                             WorkspacePoint workspacePositionOut) {
+        screenToVirtualViewCoordinates(screenPositionIn, mTempViewPoint);
+        virtualViewToWorkspaceCoordinates(mTempViewPoint, workspacePositionOut);
     }
 
     /**
@@ -432,10 +437,6 @@ public class WorkspaceHelper {
             mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
             mFieldLabelStyle = styles.getResourceId(
                     R.styleable.BlocklyWorkspaceTheme_fieldLabelStyle, 0);
-            mMinScale = styles.getFloat(R.styleable.BlocklyWorkspaceTheme_minScale, SCALE_MIN);
-            mMaxScale = styles.getFloat(R.styleable.BlocklyWorkspaceTheme_maxScale, SCALE_MAX);
-            mDefaultScale = styles.getFloat(R.styleable.BlocklyWorkspaceTheme_defaultScale, 1.0f);
-            mScale = mDefaultScale;
             if (DEBUG) {
                 Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldLabelStyle=" + mFieldLabelStyle);
             }
@@ -460,38 +461,42 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Converts a point in workspace coordinates to view coordinates, storing the result in the
-     * second parameter. The resulting coordinates will be in the
-     * {@link WorkspaceView WorkspaceView's} coordinates in pixels and include the current offset
-     * into the workspace.
+     * Converts a point in workspace coordinates to virtual view coordinates, storing the result in
+     * the second parameter. The resulting coordinates will be in the
+     * {@link WorkspaceView WorkspaceView's} coordinates in pixels, relative to the current
+     * workspace view offset.
      *
      * @param workspacePosition The position to convert to view coordinates.
      * @param viewPosition The Point to store the results in.
      */
-    void workspaceToViewCoordinates(WorkspacePoint workspacePosition, ViewPoint viewPosition) {
+    void workspaceToVirtualViewCoordinates(WorkspacePoint workspacePosition,
+                                           ViewPoint viewPosition) {
         int workspaceX = workspacePosition.x;
         if (mRtL) {
             workspaceX *= -1;
         }
-        viewPosition.x = workspaceToViewUnits(workspaceX - mWorkspaceOffset.x);
-        viewPosition.y = workspaceToViewUnits(workspacePosition.y - mWorkspaceOffset.y);
+        viewPosition.x = workspaceToVirtualViewUnits(workspaceX) - mVirtualWorkspaceViewOffset.x;
+        viewPosition.y = workspaceToVirtualViewUnits(workspacePosition.y) - mVirtualWorkspaceViewOffset.y;
     }
 
     /**
-     * Converts a point in view coordinates to workspace coordinates, storing the result in the
-     * second parameter. The view position should be in the {@link WorkspaceView WorkspaceView's}
-     * coordinates in pixels.
+     * Converts a point in virtual view coordinates to workspace coordinates, storing the result in
+     * the second parameter. The view position should be in the {@link WorkspaceView} coordinates in
+     * pixels.
      *
      * @param viewPosition The position to convert to workspace coordinates.
      * @param workspacePosition The Point to store the results in.
      */
-    void viewToWorkspaceCoordinates(ViewPoint viewPosition, WorkspacePoint workspacePosition) {
-        int workspaceX = viewToWorkspaceUnits(viewPosition.x) + mWorkspaceOffset.x;
+    void virtualViewToWorkspaceCoordinates(ViewPoint viewPosition,
+                                           WorkspacePoint workspacePosition) {
+        int workspaceX =
+                virtualViewToWorkspaceUnits(viewPosition.x + mVirtualWorkspaceViewOffset.x);
         if (mRtL) {
             workspaceX *= -1;
         }
         workspacePosition.x = workspaceX;
-        workspacePosition.y = viewToWorkspaceUnits(viewPosition.y) + mWorkspaceOffset.y;
+        workspacePosition.y =
+                virtualViewToWorkspaceUnits(viewPosition.y + mVirtualWorkspaceViewOffset.y);
     }
 
     public static abstract class BlockTouchHandler {
