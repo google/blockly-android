@@ -348,10 +348,9 @@ public class VirtualWorkspaceView extends ViewGroup {
      * sense that scroll bar position and width are invariant under scaling of range, offset, and
      * extent by the same factor (up to truncation of fractions to nearest integers).
      * <p/>
-     * The offset is just a translation by {@code getScrollX()}, which is the left edge of the
-     * viewport on the workspace in pixels, relative to the farthest left position (in pixels)
-     * possible. In other words, offset goes from {@code 0} to
-     * {@code (workspace max - workspace min)} in pixels.
+     * The offset is just a translation of {@code getScrollX()} of the left edge of the viewport on
+     * the workspace in pixels relative to the farthest left position possible. In other words,
+     * offset goes from {@code 0} to {@code (workspace max - workspace min)} in pixels.
      */
     @Override
     protected int computeHorizontalScrollOffset() {

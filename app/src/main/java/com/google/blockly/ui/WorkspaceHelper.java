@@ -489,12 +489,14 @@ public class WorkspaceHelper {
      */
     void virtualViewToWorkspaceCoordinates(ViewPoint viewPosition,
                                            WorkspacePoint workspacePosition) {
-        int workspaceX = virtualViewToWorkspaceUnits(viewPosition.x + mVirtualWorkspaceViewOffset.x);
+        int workspaceX =
+                virtualViewToWorkspaceUnits(viewPosition.x + mVirtualWorkspaceViewOffset.x);
         if (mRtL) {
             workspaceX *= -1;
         }
         workspacePosition.x = workspaceX;
-        workspacePosition.y = virtualViewToWorkspaceUnits(viewPosition.y + mVirtualWorkspaceViewOffset.y);
+        workspacePosition.y =
+                virtualViewToWorkspaceUnits(viewPosition.y + mVirtualWorkspaceViewOffset.y);
     }
 
     public static abstract class BlockTouchHandler {
