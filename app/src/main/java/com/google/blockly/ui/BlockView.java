@@ -270,17 +270,17 @@ public class BlockView extends FrameLayout {
         }
         final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
         if (mBlock.getPreviousConnection() != null) {
-            mHelper.viewToWorkspaceDelta(mPreviousConnectorOffset, mTempWorkspacePoint);
+            mHelper.virtualViewToWorkspaceDelta(mPreviousConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
         if (mBlock.getNextConnection() != null) {
-            mHelper.viewToWorkspaceDelta(mNextConnectorOffset, mTempWorkspacePoint);
+            mHelper.virtualViewToWorkspaceDelta(mNextConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
         if (mBlock.getOutputConnection() != null) {
-            mHelper.viewToWorkspaceDelta(mOutputConnectorOffset, mTempWorkspacePoint);
+            mHelper.virtualViewToWorkspaceDelta(mOutputConnectorOffset, mTempWorkspacePoint);
             mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
                     blockWorkspacePosition, mTempWorkspacePoint);
         }
@@ -288,7 +288,8 @@ public class BlockView extends FrameLayout {
             InputView inputView = mInputViews.get(i);
             Connection conn = inputView.getInput().getConnection();
             if (conn != null) {
-                mHelper.viewToWorkspaceDelta(mInputConnectorOffsets.get(i), mTempWorkspacePoint);
+                mHelper.virtualViewToWorkspaceDelta(
+                        mInputConnectorOffsets.get(i), mTempWorkspacePoint);
                 mConnectionManager.moveConnectionTo(conn,
                         blockWorkspacePosition, mTempWorkspacePoint);
                 if (conn.isConnected()) {
@@ -855,7 +856,7 @@ public class BlockView extends FrameLayout {
             mTempWorkspacePoint.set(
                     conn.getPosition().x - mBlock.getPosition().x,
                     conn.getPosition().y - mBlock.getPosition().y);
-            mHelper.workspaceToViewDelta(mTempWorkspacePoint, mTempConnectionPosition);
+            mHelper.workspaceToVirtualViewDelta(mTempWorkspacePoint, mTempConnectionPosition);
             c.drawCircle(mTempConnectionPosition.x, mTempConnectionPosition.y, 10, paint);
         }
     }

@@ -6,12 +6,10 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
 import com.google.blockly.R;
-import com.google.blockly.model.WorkspacePoint;
 
 /**
  * Virtual view of a {@link WorkspaceView}.
@@ -28,32 +26,26 @@ public class VirtualWorkspaceView extends ViewGroup {
     private static final int DESIRED_WIDTH = 2048;
     // Default desired height of the view in pixels.
     private static final int DESIRED_HEIGHT = 2048;
-
-    // Allowed zoom scales.
-    private final float[] ZOOM_SCALES = new float[]{0.25f, 0.5f, 1.0f, 2.0f};
-    private final int INIT_ZOOM_SCALES_INDEX = 2;
-
     // Constants for drawing the coordinate grid.
     private static final int GRID_SPACING = 48;
     private static final int GRID_COLOR = 0xffa0a0a0;
     private static final int GRID_RADIUS = 2;
     private static final float MIN_SCALE_TO_DRAW_GRID = 0.5f;
-
-    // Fields for workspace panning.
-    private int mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
+    // Allowed zoom scales.
+    private final float[] ZOOM_SCALES = new float[]{0.25f, 0.5f, 1.0f, 2.0f};
+    private final int INIT_ZOOM_SCALES_INDEX = 2;
     private final ViewPoint mPanningStart = new ViewPoint();
-
-    // Coordinates at the beginning of scrolling the workspace.
-    private int mOriginalScrollX;
-    private int mOriginalScrollY;
-
-    // Scale and zoom in/out factor.
-    private int mCurrentZoomScaleIndex = INIT_ZOOM_SCALES_INDEX;
-    private float mScale = ZOOM_SCALES[INIT_ZOOM_SCALES_INDEX];
-
     // Fields for grid drawing.
     private final boolean mDrawGrid = true;
     private final Paint mGridPaint = new Paint();
+    // Fields for workspace panning.
+    private int mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
+    // Coordinates at the beginning of scrolling the workspace.
+    private int mOriginalScrollX;
+    private int mOriginalScrollY;
+    // Scale and zoom in/out factor.
+    private int mCurrentZoomScaleIndex = INIT_ZOOM_SCALES_INDEX;
+    private float mViewScale = ZOOM_SCALES[INIT_ZOOM_SCALES_INDEX];
 
     // The workspace view that backs this virtual view.
     private WorkspaceView mWorkspaceView;
@@ -190,31 +182,9 @@ public class VirtualWorkspaceView extends ViewGroup {
 
         mWorkspaceView.measure(
                 MeasureSpec.makeMeasureSpec(
-                        (int) (getMeasuredWidth() / mScale), MeasureSpec.EXACTLY),
+                        (int) (getMeasuredWidth() / mViewScale), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(
-                        (int) (getMeasuredHeight() / mScale), MeasureSpec.EXACTLY));
-    }
-
-    /**
-     * Get size for one dimension (width or height) of the view based on measure spec and desired
-     * size.
-     *
-     * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
-     * @param desiredSize The intrinsic desired size for this view.
-     * @return The determined size, given measure spec and desired size.
-     */
-    private static int getMeasuredSize(int measureSpec, int desiredSize) {
-        int mode = MeasureSpec.getMode(measureSpec);
-        int size = MeasureSpec.getSize(measureSpec);
-
-        if (mode == MeasureSpec.EXACTLY) {
-            return size;
-        } else if (mode == MeasureSpec.AT_MOST) {
-            return Math.min(size, desiredSize);
-        } else {
-            return desiredSize;
-        }
-
+                        (int) (getMeasuredHeight() / mViewScale), MeasureSpec.EXACTLY));
     }
 
     @Override
@@ -225,14 +195,14 @@ public class VirtualWorkspaceView extends ViewGroup {
         final int offsetX = getScrollX();
         final int offsetY = getScrollY();
         mWorkspaceView.layout(
-                (int) ((l / mScale) + offsetX), (int) ((t / mScale) + offsetY),
-                (int) ((r / mScale) + offsetX), (int) ((b / mScale) + offsetY));
+                (int) ((l / mViewScale) + offsetX), (int) ((t / mViewScale) + offsetY),
+                (int) ((r / mViewScale) + offsetX), (int) ((b / mViewScale) + offsetY));
     }
 
     @Override
     public void onDraw(Canvas c) {
         if (shouldDrawGrid()) {
-            int gridSpacing = (int) (GRID_SPACING * mScale);
+            int gridSpacing = (int) (GRID_SPACING * mViewScale);
             // Figure out where we should start drawing the grid
             int scrollX = getScrollX();
             int scrollY = getScrollY();
@@ -254,76 +224,161 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     @Override
     public void scrollTo(int x, int y) {
-        int halfWidth = getWidth() / 2;
-        int halfHeight = getHeight() / 2;
+        int halfViewWidth = getMeasuredWidth() / 2;
+        int halfViewHeight = getMeasuredHeight() / 2;
 
         // Clamp x and y to the scroll range that will allow for 1/2 view being outside the range
         // use by blocks. This matches the computations in computeHorizontalScrollOffset and
         // computeVerticalScrollOffset, respectively.
         final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
-        x = Math.max((int) (workspaceViewportBounds.left * mScale) - halfWidth,
-                Math.min((int) (workspaceViewportBounds.right * mScale) - halfWidth, x));
-        y = Math.max((int) (workspaceViewportBounds.top * mScale) - halfHeight,
-                Math.min((int) (workspaceViewportBounds.bottom * mScale) - halfHeight, y));
+
+        final int xMin =
+                (int) (workspaceViewportBounds.left * mViewScale /* view-scaled virtual coords. */)
+                        - halfViewWidth;
+        final int xMax = (int) (workspaceViewportBounds.right * mViewScale) - halfViewWidth;
+        x = clampToRange(x, xMin, xMax);
+
+        final int yMin = (int) (workspaceViewportBounds.top * mViewScale) - halfViewHeight;
+        final int yMax = (int) (workspaceViewportBounds.bottom * mViewScale) - halfViewHeight;
+        y = clampToRange(y, yMin, yMax);
 
         // Update and show scroll bars.
         super.scrollTo(x, y);
-        final WorkspaceHelper helper = mWorkspaceView.getWorkspaceHelper();
-        helper.getOffset().set(
-                helper.viewToWorkspaceUnits((int) (x / mScale)),
-                helper.viewToWorkspaceUnits((int) (y / mScale)));
+        mWorkspaceView.getWorkspaceHelper()
+                .setVirtualWorkspaceViewOffset(
+                        (int) (x / mViewScale), /* virtual coords. */
+                        (int) (y / mViewScale));
         mWorkspaceView.requestLayout();
     }
 
+    /**
+     * Get size for one dimension (width or height) of the view based on measure spec and desired
+     * size.
+     *
+     * @param measureSpec The measure spec provided to {@link #onMeasure(int, int)} by its caller.
+     * @param desiredSize The intrinsic desired size for this view.
+     *
+     * @return The determined size, given measure spec and desired size.
+     */
+    private static int getMeasuredSize(int measureSpec, int desiredSize) {
+        int mode = MeasureSpec.getMode(measureSpec);
+        int size = MeasureSpec.getSize(measureSpec);
+
+        if (mode == MeasureSpec.EXACTLY) {
+            return size;
+        } else if (mode == MeasureSpec.AT_MOST) {
+            return Math.min(size, desiredSize);
+        } else {
+            return desiredSize;
+        }
+
+    }
+
+    /**
+     * @return Horizontal scroll range width, which is used to position the horizontal scroll bar.
+     * <p/>
+     * This value is the upper limit of the permitted horizontal scroll range, which corresponds to
+     * the right boundary of the currently-used workspace area, plus has the view width to allow for
+     * overscroll.
+     * <p/>
+     * Together with the return value of {@link #computeHorizontalScrollOffset()}, this determines
+     * the relative position of the scroll bar.
+     * <p/>
+     * Note that the units of the value returned by this method are essentially arbitrary in the
+     * sense that scroll bar position and width are invariant under scaling of range, offset, and
+     * extent by the same factor (up to truncation of fractions to nearest integers).
+     */
     @Override
     protected int computeHorizontalScrollRange() {
         final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
-        return (int) ((workspaceViewportBounds.right - workspaceViewportBounds.left) * mScale) +
-                getMeasuredWidth();
+        final int viewScaledWorkspaceRange =
+                (int) ((workspaceViewportBounds.right - workspaceViewportBounds.left) * mViewScale);
+        return  viewScaledWorkspaceRange + getMeasuredWidth();
     }
 
+    /**
+     * @return Width of the horizontal scroll bar within its range.
+     * <p/>
+     * This value determines how wide the horizontal scroll bar is, relative to its range as
+     * returned by {@link #computeHorizontalScrollRange()}. For example, if this value is half the
+     * current range, then the scroll bar will be draw half as wide as the view.
+     * <p/>
+     * Note that the units of the value returned by this method are essentially arbitrary in the
+     * sense that scroll bar position and width are invariant under scaling of range, offset, and
+     * extent by the same factor (up to truncation of fractions to nearest integers).
+     */
     @Override
     protected int computeHorizontalScrollExtent() {
+        // Range and offset are in view-scaled units, so the extent of the displayed area is simply
+        // the width of this view.
         return getMeasuredWidth();
     }
 
+    /**
+     * @return Offset of the current horizontal scroll position, which determines the relative
+     * position of the horizontal scroll bar.
+     * <p/>
+     * This is a value between 0 and the return value of {@link #computeHorizontalScrollRange()}.
+     * Zero corresponds to the left boundary of the currently-used workspace area, minus half the
+     * width of this view to allow for overscroll.
+     * <p/>
+     * Note that the units of the value returned by this method are essentially arbitrary in the
+     * sense that scroll bar position and width are invariant under scaling of range, offset, and
+     * extent by the same factor (up to truncation of fractions to nearest integers).
+     */
     @Override
     protected int computeHorizontalScrollOffset() {
         final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
-        return getScrollX() -
-                ((int) (workspaceViewportBounds.left * mScale) - getMeasuredWidth() / 2);
+        final int viewScaledWorkspaceLeft = (int) (workspaceViewportBounds.left * mViewScale);
+        return getScrollX() - (viewScaledWorkspaceLeft - getMeasuredWidth() / 2);
     }
 
+    /**
+     * @return Vertical scroll range width. See {@link #computeHorizontalScrollRange()} for details.
+     */
     @Override
     protected int computeVerticalScrollRange() {
         final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
-        return (int) ((workspaceViewportBounds.bottom - workspaceViewportBounds.top) * mScale) +
-                getMeasuredHeight();
+        final int viewScaledWorkspaceRange =
+                (int) ((workspaceViewportBounds.bottom - workspaceViewportBounds.top) * mViewScale);
+        return viewScaledWorkspaceRange + getMeasuredHeight();
     }
 
+    /**
+     * @return Width of the vertical scroll bar within its range.
+     * See {@link #computeHorizontalScrollExtent()} for details.
+     */
     @Override
     protected int computeVerticalScrollExtent() {
         return getMeasuredHeight();
     }
 
+    /**
+     * @return Offset of the current horizontal scroll position.
+     * See {@link #computeHorizontalScrollOffset()} for details.
+     */
     @Override
     protected int computeVerticalScrollOffset() {
         final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
-        return getScrollY() -
-                ((int) (workspaceViewportBounds.top * mScale) - getMeasuredHeight() / 2);
+        final int viewScaledWorkspaceTop = (int) (workspaceViewportBounds.top * mViewScale);
+        return getScrollY() - (viewScaledWorkspaceTop - getMeasuredHeight() / 2);
     }
 
     private void updateScale(int newScaleIndex) {
         if (newScaleIndex != mCurrentZoomScaleIndex) {
             mCurrentZoomScaleIndex = newScaleIndex;
-            mScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
-            mWorkspaceView.setScaleX(mScale);
-            mWorkspaceView.setScaleY(mScale);
+            mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
+            mWorkspaceView.setScaleX(mViewScale);
+            mWorkspaceView.setScaleY(mViewScale);
             mWorkspaceView.requestLayout();
         }
     }
 
     private boolean shouldDrawGrid() {
-        return mDrawGrid && mScale >= MIN_SCALE_TO_DRAW_GRID;
+        return mDrawGrid && mViewScale >= MIN_SCALE_TO_DRAW_GRID;
+    }
+
+    private static int clampToRange(int y, int min, int max) {
+        return Math.min(max, Math.max(min, y));
     }
 }

@@ -94,7 +94,7 @@ public class BlockWorkspaceParams {
      * @param viewPosition The position of the block in the workspace view's coordinates.
      */
     public void setPosition(ViewPoint viewPosition) {
-        mWorkspaceHelper.viewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
+        mWorkspaceHelper.virtualViewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
         mBounds.set(
                 mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
                 mWorkspacePosition.x + mWidth, mWorkspacePosition.y);

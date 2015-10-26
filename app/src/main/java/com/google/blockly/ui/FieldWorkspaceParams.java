@@ -72,7 +72,7 @@ public class FieldWorkspaceParams {
      * @param viewPosition The x, y position fo the block's view in pixels.
      */
     public void setPosition(ViewPoint viewPosition) {
-        mWorkspaceHelper.viewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
+        mWorkspaceHelper.virtualViewToWorkspaceCoordinates(viewPosition, mWorkspacePosition);
         mBounds.set(
                 mWorkspacePosition.x, mWorkspacePosition.y + mHeight,
                 mWorkspacePosition.x + mWidth, mWorkspacePosition.y);
