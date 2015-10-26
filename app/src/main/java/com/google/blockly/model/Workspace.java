@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.view.MotionEvent;
 
 import com.google.blockly.control.BlockCopyBuffer;
 import com.google.blockly.control.ConnectionManager;
@@ -23,6 +24,7 @@ import com.google.blockly.control.Dragger;
 import com.google.blockly.control.ProcedureManager;
 import com.google.blockly.control.WorkspaceStats;
 import com.google.blockly.ui.BlockGroup;
+import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -45,6 +47,7 @@ public class Workspace {
     private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
     private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
+    private final ViewPoint mTempViewPoint = new ViewPoint();
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private final Dragger mDragger =
@@ -129,10 +132,31 @@ public class Workspace {
         }
     }
 
-    public void addRootBlockAndView(Block block, Context context) {
+    /**
+     * Takes in a block model, creates corresponding views and adds it to the workspace.  Also
+     * starts a drag of that block group.
+     *
+     * @param block The root block to be added to the workspace.
+     * @param context The activity context.
+     * @param event The {@link MotionEvent} that caused the block to be added to the workspace.
+     * This is used to find the correct position to start the drag event.
+     */
+    public void addBlockFromToolbox(Block block, Context context, MotionEvent event) {
         BlockGroup bg = new BlockGroup(context, mWorkspaceHelper);
         mWorkspaceHelper.obtainBlockView(context, block, bg, mConnectionManager);
         mWorkspaceView.addView(bg);
         addRootBlock(block);
+        // let the workspace view know that this is the block we want to drag
+        mWorkspaceView.setDragFocus(block.getView(), event);
+        // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
+        // {@link WorkspaceView} coordinates.
+        int xPosition = (int) event.getX() +
+                mWorkspaceHelper.workspaceToViewUnits(block.getPosition().x -
+                        mWorkspaceHelper.getOffset().x);
+        int yPosition = (int) event.getY() +
+                mWorkspaceHelper.workspaceToViewUnits(block.getPosition().y -
+                        mWorkspaceHelper.getOffset().y);
+        mWorkspaceView.setDraggingStart(xPosition, yPosition);
+        mWorkspaceView.startDrag();
     }
 }
