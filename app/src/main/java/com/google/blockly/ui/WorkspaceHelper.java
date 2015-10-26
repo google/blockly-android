@@ -47,13 +47,13 @@ import com.google.blockly.model.WorkspacePoint;
  * <p/>
  * The conversion from workspace to virtual view coordinates is as follows:
  * <ul>
- *  <li><pre>virtualViewX = workspaceX * density * rtl - virtualViewOffsetX</pre></li>
- *  <li><pre>virtualViewY = workspaceY * density - virtualViewOffsetY</pre></li>
+ * <li><pre>virtualViewX = workspaceX * density * rtl - virtualViewOffsetX</pre></li>
+ * <li><pre>virtualViewY = workspaceY * density - virtualViewOffsetY</pre></li>
  * </ul>
  * where
  * <ul>
- *    <li><pre>density</pre> is display density,</li>
- *    <li><pre>rtl<pre> is -1 in RtL mode or +1 in LtR mode,</li>
+ * <li><pre>density</pre> is display density,</li>
+ * <li><pre>rtl<pre> is -1 in RtL mode or +1 in LtR mode,</li>
  *    <li><pre>virtualViewOffsetX,Y</pre> is the offset of the workspace view expressed in virtual
  *    view coordinates.</li>
  * </ul>
@@ -414,6 +414,26 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Converts a point in workspace coordinates to virtual view coordinates, storing the result in
+     * the second parameter. The resulting coordinates will be in the
+     * {@link WorkspaceView WorkspaceView's} coordinates, relative to the current
+     * workspace view offset.
+     *
+     * @param workspacePosition The position to convert to view coordinates.
+     * @param viewPosition The Point to store the results in.
+     */
+    public void workspaceToVirtualViewCoordinates(WorkspacePoint workspacePosition,
+                                                  ViewPoint viewPosition) {
+        int workspaceX = workspacePosition.x;
+        if (mRtL) {
+            workspaceX *= -1;
+        }
+        viewPosition.x = workspaceToVirtualViewUnits(workspaceX) - mVirtualWorkspaceViewOffset.x;
+        viewPosition.y = workspaceToVirtualViewUnits(workspacePosition.y) -
+                mVirtualWorkspaceViewOffset.y;
+    }
+
+    /**
      * Loads the style configurations. The config and styles are loaded from one of three sources
      * with the following priority.
      * <ol>
@@ -505,6 +525,7 @@ public class WorkspaceHelper {
          *
          * @param blockView The touched {@link BlockView}.
          * @param motionEvent The event the blockView is responding to.
+         *
          * @return whether the {@link WorkspaceView} has handled the touch event.
          */
         abstract public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent);

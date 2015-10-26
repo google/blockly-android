@@ -183,7 +183,7 @@ public class WorkspaceView extends ViewGroup {
     }
 
     /**
-     * Set the start location of the drag, in workspace view units.
+     * Set the start location of the drag, in virtual view units.
      *
      * @param x The x position of the initial down event.
      * @param y The y position of the initial down event.
