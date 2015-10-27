@@ -481,26 +481,6 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Converts a point in workspace coordinates to virtual view coordinates, storing the result in
-     * the second parameter. The resulting coordinates will be in the
-     * {@link WorkspaceView WorkspaceView's} coordinates in pixels, relative to the current
-     * workspace view offset.
-     *
-     * @param workspacePosition The position to convert to view coordinates.
-     * @param viewPosition The Point to store the results in.
-     */
-    void workspaceToVirtualViewCoordinates(WorkspacePoint workspacePosition,
-                                           ViewPoint viewPosition) {
-        int workspaceX = workspacePosition.x;
-        if (mRtL) {
-            workspaceX *= -1;
-        }
-        viewPosition.x = workspaceToVirtualViewUnits(workspaceX) - mVirtualWorkspaceViewOffset.x;
-        viewPosition.y = workspaceToVirtualViewUnits(workspacePosition.y) -
-                mVirtualWorkspaceViewOffset.y;
-    }
-
-    /**
      * Converts a point in virtual view coordinates to workspace coordinates, storing the result in
      * the second parameter. The view position should be in the {@link WorkspaceView} coordinates in
      * pixels.
