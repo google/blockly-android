@@ -17,6 +17,8 @@ package com.google.blockly.model;
 
 import android.content.Context;
 
+import com.google.blockly.ToolboxFragment;
+import com.google.blockly.TrashFragment;
 import com.google.blockly.control.BlockCopyBuffer;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.Dragger;
@@ -29,6 +31,7 @@ import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -44,13 +47,19 @@ public class Workspace {
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
-    private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
+
+    private ToolboxFragment mToolbox;
+    private ArrayList<Block> mDeletedBlocks = new ArrayList<>();
+    private TrashFragment mTrash;
+
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private final Dragger mDragger =
             new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mRootBlocks);
 
     public Workspace() {
+        mToolbox.setWorkspace(this);
+        mTrash.setWorkspace(this);
     }
 
     /**
@@ -73,6 +82,8 @@ public class Workspace {
     }
 
     public boolean removeRootBlock(Block block) {
+        mDeletedBlocks.add(block);
+       // mTrash.
         return mRootBlocks.remove(block);
     }
 

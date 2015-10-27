@@ -16,12 +16,14 @@
 package com.google.blockly;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 
 public class MainActivity extends ActionBarActivity
@@ -33,6 +35,7 @@ public class MainActivity extends ActionBarActivity
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
     private ToolboxFragment mToolboxFragment;
+    private TrashFragment mOscar;
 
     private WorkspaceFragment mWorkspaceFragment;
 
@@ -53,8 +56,25 @@ public class MainActivity extends ActionBarActivity
         if (mToolboxFragment != null) {
             mToolboxFragment.setWorkspace(mWorkspaceFragment.getWorkspace());
         }
+        if (mOscar != null) {
+            mOscar.setWorkspace(mWorkspaceFragment.getWorkspace());
+        }
+
 
         onSectionAttached(position + 1);    // Because indexing.
+
+        mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                Fragment mTrashFragment = fragmentManager.findFragmentById(R.id.trash);
+                //(ToolboxFragment) getFragmentManager().findFragmentById(R.id.trash);
+                fragmentManager.beginTransaction()
+                        .show(mTrashFragment)
+                        .commit();
+
+            }
+        });
     }
 
     @Override
@@ -122,12 +142,22 @@ public class MainActivity extends ActionBarActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
-        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mToolboxFragment =
                 (ToolboxFragment) getSupportFragmentManager().findFragmentById(R.id.toolbox);
         if (mToolboxFragment != null) {
             mToolboxFragment.setWorkspace(mWorkspaceFragment.getWorkspace());
             mToolboxFragment.setDrawerLayout(drawerLayout);
+        }
+
+        // Set up the toolbox that lives inside the trash can.
+        mOscar = (TrashFragment) getSupportFragmentManager().findFragmentById(R.id.trash);
+        if (mOscar != null) {
+            mOscar.setWorkspace(mWorkspaceFragment.getWorkspace());
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mOscar)
+                    .commit();
+
         }
     }
 }
