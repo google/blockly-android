@@ -15,7 +15,6 @@
 
 package com.google.blockly;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -30,12 +29,26 @@ import com.google.blockly.ui.WorkspaceView;
  * Fragment that holds the active workspace and its views.
  */
 public class WorkspaceFragment extends Fragment {
+    private static final String TAG = "WorkspaceFragment";
     /**
      * The fragment argument representing the section number for this
      * fragment.
      */
     private static final String ARG_SECTION_NUMBER = "section_number";
     private Workspace mWorkspace;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mWorkspace = new Workspace();
+
+        final Bundle bundle = this.getArguments();
+        if (bundle != null && bundle.containsKey(ARG_SECTION_NUMBER)) {
+            // Add all blocks, or load from XML.
+            MockBlocksProvider.makeTestModel(mWorkspace);
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -75,17 +88,9 @@ public class WorkspaceFragment extends Fragment {
                     }
                 });
 
-        // Add all blocks, or load from XML.
-        MockBlocksProvider.makeTestModel(mWorkspace);
         // Let the controller create the views.
         mWorkspace.createViewsFromModel(workspaceView, getActivity());
         return rootView;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        mWorkspace = new Workspace();
     }
 
     public Workspace getWorkspace() {

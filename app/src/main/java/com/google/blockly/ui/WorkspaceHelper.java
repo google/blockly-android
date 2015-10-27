@@ -496,7 +496,8 @@ public class WorkspaceHelper {
             workspaceX *= -1;
         }
         viewPosition.x = workspaceToVirtualViewUnits(workspaceX) - mVirtualWorkspaceViewOffset.x;
-        viewPosition.y = workspaceToVirtualViewUnits(workspacePosition.y) - mVirtualWorkspaceViewOffset.y;
+        viewPosition.y = workspaceToVirtualViewUnits(workspacePosition.y) -
+                mVirtualWorkspaceViewOffset.y;
     }
 
     /**

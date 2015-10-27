@@ -49,6 +49,9 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     // The workspace view that backs this virtual view.
     private WorkspaceView mWorkspaceView;
+    // Flag indicating whether view should be reset before redrawing. This is set upon construction
+    // to force an initial reset in the first call to onLayout. Call postResetView() to set this.
+    private boolean mResetViewPending = true;
 
     public VirtualWorkspaceView(Context context) {
         this(context, null);
@@ -79,16 +82,34 @@ public class VirtualWorkspaceView extends ViewGroup {
     }
 
     /**
-     * Reset the view to the center of the virtual workspace with unit scale.
+     * Post a view reset to occur upon next call to {@link #onLayout(boolean, int, int, int, int)}.
      * <p/>
-     * This is called when the "reset view" button is clicked.
+     * This method can be called when workspace content has been completely replaced, to provide the
+     * user with a good initial view of the new workspace content.
+     */
+    public void postResetView() {
+        mResetViewPending = true;
+    }
+
+    /**
+     * Reset the view to the top-left corner of the virtual workspace (with a small margin), and
+     * reset zoom to unit scale.
+     * <p/>
+     * This is called when the "reset view" button is clicked, or when
+     * {@link #mResetViewPending} is set.
      */
     public void resetView() {
         updateScale(INIT_ZOOM_SCALES_INDEX);
+
         final Rect blocksBoundingBox = mWorkspaceView.getBlocksBoundingBox();
-        scrollTo(
-                blocksBoundingBox.centerX() - getMeasuredWidth() / 2,
-                blocksBoundingBox.centerY() - getMeasuredHeight() / 2);
+        final int margin = GRID_SPACING / 2;
+        final int scrollToY = (int) (blocksBoundingBox.top * mViewScale) - margin;
+        if (mWorkspaceView.getWorkspaceHelper().useRtL()) {
+            scrollTo((int) (blocksBoundingBox.right * mViewScale) - getMeasuredWidth() + margin,
+                    scrollToY);
+        } else {
+            scrollTo((int) (blocksBoundingBox.left * mViewScale) - margin, scrollToY);
+        }
     }
 
     /**
@@ -189,6 +210,11 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     @Override
     public void onLayout(boolean changed, int l, int t, int r, int b) {
+        if (mResetViewPending) {
+            resetView();
+            mResetViewPending = false;
+        }
+
         // Shift the wrapped view's position to follow scrolling along. The scrolling of view
         // content is controlled by setTranslationX() and setTranslationY() in this.scrollTo()
         // below.
