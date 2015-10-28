@@ -40,9 +40,6 @@ public class WorkspaceFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mWorkspace = new Workspace();
-
         final Bundle bundle = this.getArguments();
         if (bundle != null && bundle.containsKey(ARG_SECTION_NUMBER)) {
             // Add all blocks, or load from XML.
@@ -105,6 +102,7 @@ public class WorkspaceFragment extends Fragment {
      */
     public static WorkspaceFragment newInstance(int sectionNumber) {
         WorkspaceFragment fragment = new WorkspaceFragment();
+        fragment.mWorkspace = new Workspace();
         Bundle args = new Bundle();
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);

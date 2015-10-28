@@ -65,6 +65,10 @@ public class ToolboxFragment extends Fragment {
         mToolboxWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
+                    return false;
+                }
+
                 mDrawerLayout.closeDrawers();
 
                 BlockGroup bg = mToolboxWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
