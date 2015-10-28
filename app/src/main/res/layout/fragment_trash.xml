@@ -18,9 +18,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/toolbox_recycler_view"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/trash_recycler_view"
     tools:context=".MainActivity$TrashFragment">
 
 </android.support.v7.widget.RecyclerView>

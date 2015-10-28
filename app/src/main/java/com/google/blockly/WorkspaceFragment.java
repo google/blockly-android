@@ -17,6 +17,7 @@ package com.google.blockly;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +43,12 @@ public class WorkspaceFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FragmentManager fragmentManager = getFragmentManager();
+        mWorkspace = new Workspace();
+        mWorkspace.setTrashFragment((TrashFragment) fragmentManager.findFragmentById(R.id.trash));
+        mWorkspace.loadToolboxContents(getContext(), R.raw.toolbox_blocks, R.raw.toolbox);
+        mWorkspace.setToolboxFragment(
+                (ToolboxFragment) fragmentManager.findFragmentById(R.id.toolbox), getContext());
         final Bundle bundle = this.getArguments();
         if (bundle != null && bundle.containsKey(ARG_SECTION_NUMBER)) {
             // Add all blocks, or load from XML.
@@ -112,7 +119,6 @@ public class WorkspaceFragment extends Fragment {
      */
     public static WorkspaceFragment newInstance(int sectionNumber) {
         WorkspaceFragment fragment = new WorkspaceFragment();
-        fragment.mWorkspace = new Workspace();
         Bundle args = new Bundle();
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);

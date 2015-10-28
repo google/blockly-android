@@ -28,17 +28,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.model.Block;
-import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockGroupAdapter;
 import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.WorkspaceHelper;
-import com.google.blockly.utils.BlocklyXmlHelper;
 
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,34 +42,33 @@ import java.util.List;
  */
 public class ToolboxFragment extends Fragment {
     private static final String TAG = "ToolboxFragment";
-    final Point mTempScreenPosition = new Point();
-    final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
-    private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
-    private Workspace mWorkspace;
-    private WorkspaceHelper mToolboxWorkspaceHelper;
-    private List<Block> mToolboxBlocks = new ArrayList<>();
-    private DrawerLayout mDrawerLayout;
+    protected final Point mTempScreenPosition = new Point();
+    protected final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
+    protected RecyclerView mRecyclerView;
+    protected RecyclerView.Adapter mAdapter;
+    protected Workspace mWorkspace;
+    protected WorkspaceHelper mWorkspaceHelper;
+    protected List<Block> mContents;
+    protected DrawerLayout mDrawerLayout;
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
-    private int mBlockMargin = 10;
+    protected int mBlockMargin = 10;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mToolboxWorkspaceHelper = new WorkspaceHelper(getContext(), null);
-        mToolboxWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
+        mWorkspaceHelper = new WorkspaceHelper(getContext(), null);
+        mWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
                 if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
                     return false;
                 }
-
                 mDrawerLayout.closeDrawers();
 
-                BlockGroup bg = mToolboxWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
+                BlockGroup bg = mWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
                 int pos = ((RecyclerView) bg.getParent()).getChildAdapterPosition(bg);
-                Block copiedModel = mToolboxBlocks.get(pos).deepCopy();
+                Block copiedModel = mContents.get(pos).deepCopy();
 
                 // Make the pointer be in the same relative position on the block as it was in the
                 // toolbox.
@@ -86,15 +81,20 @@ public class ToolboxFragment extends Fragment {
                 return true;
             }
         });
-        BlockFactory mBlockFactory = new BlockFactory(getContext(),
-                new int[]{R.raw.toolbox_blocks});
-
-        InputStream is = getResources().openRawResource(R.raw.toolbox);
-        BlocklyXmlHelper.loadFromXml(is, mBlockFactory, null, mToolboxBlocks);
     }
 
     public void setWorkspace(Workspace workspace) {
         mWorkspace = workspace;
+    }
+
+    public void setContents(List<Block> contents) {
+        mContents = contents;
+        mAdapter = new BlockGroupAdapter(mContents, mWorkspaceHelper, getContext());
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    public RecyclerView.Adapter getAdapter() {
+        return mAdapter;
     }
 
     @Override
@@ -105,12 +105,7 @@ public class ToolboxFragment extends Fragment {
         // use a linear layout manager
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
-
-        // specify an adapter
-        mAdapter = new BlockGroupAdapter(mToolboxBlocks, mToolboxWorkspaceHelper, getContext());
-        mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.addItemDecoration(new ItemDecoration());
-
         return mRecyclerView;
     }
 

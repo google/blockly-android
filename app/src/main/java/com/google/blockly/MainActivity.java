@@ -53,14 +53,6 @@ public class MainActivity extends ActionBarActivity
                 .replace(R.id.container, mWorkspaceFragment)
                 .commit();
 
-        if (mToolboxFragment != null) {
-            mToolboxFragment.setWorkspace(mWorkspaceFragment.getWorkspace());
-        }
-        if (mOscar != null) {
-            mOscar.setWorkspace(mWorkspaceFragment.getWorkspace());
-        }
-
-
         onSectionAttached(position + 1);    // Because indexing.
 
         mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
@@ -68,7 +60,6 @@ public class MainActivity extends ActionBarActivity
             public void onClick(View v) {
                 FragmentManager fragmentManager = getSupportFragmentManager();
                 Fragment mTrashFragment = fragmentManager.findFragmentById(R.id.trash);
-                //(ToolboxFragment) getFragmentManager().findFragmentById(R.id.trash);
                 fragmentManager.beginTransaction()
                         .show(mTrashFragment)
                         .commit();
@@ -146,14 +137,13 @@ public class MainActivity extends ActionBarActivity
         mToolboxFragment =
                 (ToolboxFragment) getSupportFragmentManager().findFragmentById(R.id.toolbox);
         if (mToolboxFragment != null) {
-            mToolboxFragment.setWorkspace(mWorkspaceFragment.getWorkspace());
             mToolboxFragment.setDrawerLayout(drawerLayout);
         }
 
         // Set up the toolbox that lives inside the trash can.
         mOscar = (TrashFragment) getSupportFragmentManager().findFragmentById(R.id.trash);
         if (mOscar != null) {
-            mOscar.setWorkspace(mWorkspaceFragment.getWorkspace());
+            // Start hidden.
             getSupportFragmentManager().beginTransaction()
                     .hide(mOscar)
                     .commit();
