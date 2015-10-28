@@ -21,6 +21,9 @@ import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Source of test blocks for working on views and interactions.
  */
@@ -155,7 +158,13 @@ public final class MockBlocksProvider {
         return block.build();
     }
 
-    public static void makeTestModel(Workspace workspace) {
+    /**
+     * For use in unit tests.  If you want to make changes for live testing, make them in
+     * {@link #makeComplexModel(Workspace)}
+     */
+    public static List<Block> makeTestModel() {
+        List<Block> rootBlocks = new ArrayList<>();
+
         Block parent = makeDummyBlock();
         Block ivb = makeValueInputBlock();
         parent.getInputs().get(0).getConnection().connect(ivb.getOutputConnection());
@@ -174,7 +183,7 @@ public final class MockBlocksProvider {
 
         smb = makeStatementBlock();
         child.getInputs().get(3).getConnection().connect(smb.getPreviousConnection());
-        workspace.addRootBlock(parent);    // Recursively adds all of its children.
+        rootBlocks.add(parent);     // Recursively adds all of its children.
 
         Block outerBlock = makeOuterBlock();
         outerBlock.setInputsInline(true);
@@ -182,8 +191,9 @@ public final class MockBlocksProvider {
         outerBlock.getInputs().get(1).getConnection().connect(innerBlock.getOutputConnection());
         Block ivb2 = makeValueInputBlock();
         innerBlock.getInputs().get(2).getConnection().connect(ivb2.getOutputConnection());
-        workspace.addRootBlock(outerBlock);
-        //airstrike(10, workspace);
+        rootBlocks.add(outerBlock);
+
+        return rootBlocks;
     }
 
     public static void airstrike(int numBlocks, Workspace workspace) {
@@ -195,6 +205,13 @@ public final class MockBlocksProvider {
             dummyBlock.setPosition(randomX, randomY);
 
             workspace.addRootBlock(dummyBlock);
+        }
+    }
+
+    public static void makeComplexModel(Workspace workspace) {
+        List<Block> testRootBlocks = makeTestModel();
+        for (int i = 0; i < testRootBlocks.size(); i++) {
+            workspace.addRootBlock(testRootBlocks.get(i));
         }
     }
 }

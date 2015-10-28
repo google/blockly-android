@@ -43,7 +43,7 @@ public class WorkspaceFragment extends Fragment {
         final Bundle bundle = this.getArguments();
         if (bundle != null && bundle.containsKey(ARG_SECTION_NUMBER)) {
             // Add all blocks, or load from XML.
-            MockBlocksProvider.makeTestModel(mWorkspace);
+            MockBlocksProvider.makeComplexModel(mWorkspace);
         }
     }
 
