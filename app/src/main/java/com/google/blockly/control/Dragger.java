@@ -58,6 +58,7 @@ public class Dragger {
     private final Rect mTrashRect = new Rect();
     // For use in getting location on screen.
     private final int[] mTempArray = new int[2];
+    private final ViewPoint mTempViewPoint = new ViewPoint();
     private BlockView mTouchedBlockView;
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
@@ -65,8 +66,6 @@ public class Dragger {
     private BlockView mHighlightedBlockView;
     // The view for the trash can.
     private View mTrashView;
-
-    private final ViewPoint mTempViewPoint = new ViewPoint();
 
     /**
      * @param workspaceHelper For use in computing workspace coordinates.
@@ -91,18 +90,15 @@ public class Dragger {
      * "down" event (e.g., to first wait for a minimum drag distance).
      *
      * @param blockView The {@link BlockView} to begin dragging.
-     * @param startX The x coordinate, in the {@link BlockView}'s coordinate system, of the touch
+     * @param startX The x coordinate, in workspace view coordinates, of the touch
      * event that begins the dragging.
-     * @param startY The y coordinate, in the {@link BlockView}'s coordinate system, of the touch
+     * @param startY The y coordinate, in workspace view coordinates, of the touch
      * event that begins the dragging.
      */
     public void startDragging(BlockView blockView, int startX, int startY) {
         mTouchedBlockView = blockView;
         mBlockOriginalPosition.setFrom(blockView.getBlock().getPosition());
-        // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
-        // {@link WorkspaceView} coordinates.
-        mWorkspaceHelper.getVirtualViewCoordinates(blockView, mTempViewPoint);
-        mDragStart.set(mTempViewPoint.x + startX, mTempViewPoint.y + startY);
+        mDragStart.set(startX, startY);
         setDragGroup(mTouchedBlockView.getBlock());
     }
 

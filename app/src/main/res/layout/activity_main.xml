@@ -28,7 +28,7 @@
 
     <fragment android:name="com.google.blockly.ToolboxFragment"
               android:id="@+id/toolbox"
-              android:layout_width="@dimen/toolbox_width" android:layout_height="match_parent"
+              android:layout_width="match_parent" android:layout_height="match_parent"
               android:layout_gravity="end"
               tools:layout="@layout/fragment_toolbox" />
 

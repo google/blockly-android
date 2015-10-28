@@ -65,17 +65,24 @@ public class ToolboxFragment extends Fragment {
         mToolboxWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
+                    return false;
+                }
+
                 mDrawerLayout.closeDrawers();
 
                 BlockGroup bg = mToolboxWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
                 int pos = ((RecyclerView) bg.getParent()).getChildAdapterPosition(bg);
                 Block copiedModel = mToolboxBlocks.get(pos).deepCopy();
 
-                mTempScreenPosition.set((int) motionEvent.getRawX(), (int) motionEvent.getRawY());
+                // Make the pointer be in the same relative position on the block as it was in the
+                // toolbox.
+                mTempScreenPosition.set((int) motionEvent.getRawX() - (int) motionEvent.getX(),
+                        (int) motionEvent.getRawY() - (int) motionEvent.getY());
                 mWorkspace.getWorkspaceHelper().screenToWorkspaceCoordinates(
                         mTempScreenPosition, mTempWorkspacePosition);
                 copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                mWorkspace.addRootBlockAndView(copiedModel, getContext());
+                mWorkspace.addBlockFromToolbox(copiedModel, getContext(), motionEvent);
                 return true;
             }
         });
