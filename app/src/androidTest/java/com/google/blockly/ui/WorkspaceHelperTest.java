@@ -15,6 +15,7 @@
 
 package com.google.blockly.ui;
 
+import android.os.Handler;
 import android.test.AndroidTestCase;
 
 import com.google.blockly.MockBlocksProvider;
@@ -26,6 +27,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Tests for the {@link WorkspaceHelper}.
@@ -33,6 +35,7 @@ import java.util.List;
 public class WorkspaceHelperTest extends AndroidTestCase {
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
+    private Handler mMainHandler;
 
     @Mock
     ConnectionManager mockConnectionManager;
@@ -45,11 +48,12 @@ public class WorkspaceHelperTest extends AndroidTestCase {
 
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(mWorkspaceView, null);
+        mMainHandler = new Handler(getContext().getMainLooper());
     }
 
     // test getNearestParentBlockGroup
-    public void testGetNearestParentBlockGroup() {
-        List<Block> blocks = new ArrayList<>();
+    public void testGetNearestParentBlockGroup() throws InterruptedException {
+        final List<Block> blocks = new ArrayList<>();
         Block root = MockBlocksProvider.makeStatementBlock();
         Block cur = root;
         // Make a chain of statement blocks, all of which will be in the same block group.
@@ -72,7 +76,12 @@ public class WorkspaceHelperTest extends AndroidTestCase {
         // Add a completely unconnected block.
         blocks.add(MockBlocksProvider.makeStatementBlock());
 
-        createViews(blocks);
+        runOnUiThreadAndWait(new Runnable() {
+            @Override
+            public void run() {
+                createViews(blocks);
+            }
+        });
 
         assertEquals(mWorkspaceHelper.getNearestParentBlockGroup(root),
                 mWorkspaceHelper.getNearestParentBlockGroup(cur));
@@ -86,8 +95,8 @@ public class WorkspaceHelperTest extends AndroidTestCase {
 
 
     // test getRootBlockGroup
-    public void testGetRootBlockGroup() {
-        List<Block> blocks = new ArrayList<>();
+    public void testGetRootBlockGroup() throws InterruptedException {
+        final List<Block> blocks = new ArrayList<>();
         Block root = MockBlocksProvider.makeDummyBlock();
         Block cur = root;
         // Make a chain of blocks with statement inputs.  Each block will be connected to a
@@ -106,7 +115,12 @@ public class WorkspaceHelperTest extends AndroidTestCase {
         // Add a completely unconnected block.
         blocks.add(MockBlocksProvider.makeDummyBlock());
 
-        createViews(blocks);
+        runOnUiThreadAndWait(new Runnable() {
+            @Override
+            public void run() {
+                createViews(blocks);
+            }
+        });
 
         assertEquals(mWorkspaceHelper.getRootBlockGroup(root),
                 mWorkspaceHelper.getRootBlockGroup(cur));
@@ -125,6 +139,25 @@ public class WorkspaceHelperTest extends AndroidTestCase {
             mWorkspaceHelper.obtainBlockView(blocks.get(i), bg, mockConnectionManager);
             mWorkspaceView.addView(bg);
         }
+    }
+
+    /**
+     * Execute runnable in the UI thread (i.e., the main looper) and wait for it to finish.
+     *
+     * @param runnable The runnable to execute in the UI thread.
+     *
+     * @throws InterruptedException if execution of the runnable was interrupted.
+     */
+    private void runOnUiThreadAndWait(final Runnable runnable) throws InterruptedException {
+        final CountDownLatch signal = new CountDownLatch(1);
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                runnable.run();
+                signal.countDown();
+            }
+        });
+        signal.await();
     }
 
 }
