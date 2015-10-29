@@ -23,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
-import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.VirtualWorkspaceView;
 import com.google.blockly.ui.WorkspaceView;
@@ -45,12 +44,13 @@ public class WorkspaceFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FragmentManager fragmentManager = getFragmentManager();
-        mWorkspace = new Workspace();
+        mWorkspace = new Workspace(getContext(), R.raw.toolbox_blocks);
+
         mWorkspace.setTrashFragment((TrashFragment) fragmentManager.findFragmentById(R.id.trash));
-        BlockFactory blockFactory = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
-        mWorkspace.loadToolboxContents(getContext(), blockFactory, R.raw.toolbox);
+        mWorkspace.loadToolboxContents(R.raw.toolbox);
         mWorkspace.setToolboxFragment(
-                (ToolboxFragment) fragmentManager.findFragmentById(R.id.toolbox), getContext());
+                (ToolboxFragment) fragmentManager.findFragmentById(R.id.toolbox));
+
         final Bundle bundle = this.getArguments();
         if (bundle != null && bundle.containsKey(ARG_SECTION_NUMBER)) {
             // Add all blocks, or load from XML.
@@ -101,7 +101,7 @@ public class WorkspaceFragment extends Fragment {
                 });
 
         // Let the controller create the views.
-        mWorkspace.createViewsFromModel(workspaceView, getActivity());
+        mWorkspace.createViewsFromModel(workspaceView);
         return rootView;
     }
 

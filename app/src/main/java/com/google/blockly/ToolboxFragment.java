@@ -77,7 +77,7 @@ public class ToolboxFragment extends Fragment {
                 mWorkspace.getWorkspaceHelper().screenToWorkspaceCoordinates(
                         mTempScreenPosition, mTempWorkspacePosition);
                 copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                mWorkspace.addBlockFromToolbox(copiedModel, getContext(), motionEvent);
+                mWorkspace.addBlockFromToolbox(copiedModel, motionEvent);
                 return true;
             }
         });

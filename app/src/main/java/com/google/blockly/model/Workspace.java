@@ -18,7 +18,6 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.view.MotionEvent;
 
-import com.google.blockly.R;
 import com.google.blockly.ToolboxFragment;
 import com.google.blockly.TrashFragment;
 import com.google.blockly.control.BlockCopyBuffer;
@@ -37,7 +36,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 
 /**
- * Keeps track of all the global state used in the workspace. This is mostly just blocks.
+ * Controller for the workspace.  Keeps track of all the global state used in the workspace.
  */
 public class Workspace {
     private static final String TAG = "Workspace";
@@ -49,23 +48,32 @@ public class Workspace {
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
-
-    // The Workspace is the controller for the toolbox and trash as well as for the contents of
-    // the main workspace.
-    private ToolboxFragment mToolbox;
     private final ArrayList<Block> mToolboxContents = new ArrayList<>();
-    // The trash can is currently just another instance of a toolbox: it holds blocks that can be
-    // dragged into the workspace.
-    private TrashFragment mTrash;
     private final ArrayList<Block> mDeletedBlocks = new ArrayList<>();
     private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
     private final ViewPoint mTempViewPoint = new ViewPoint();
+    private final BlockFactory mBlockFactory;
+    private final Context mContext;
+    // The Workspace is the controller for the toolbox and trash as well as for the contents of
+    // the main workspace.
+    private ToolboxFragment mToolbox;
+    // The trash can is currently just another instance of a toolbox: it holds blocks that can be
+    // dragged into the workspace.
+    private TrashFragment mTrash;
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private final Dragger mDragger =
             new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mRootBlocks);
 
-    public Workspace() {
+    /**
+     * Create a workspace controller.
+     *
+     * @param context The activity context.
+     * @param blockDefinitions The resource id for the definitions of legal blocks.
+     */
+    public Workspace(Context context, int blockDefinitions) {
+        mContext = context;
+        mBlockFactory = new BlockFactory(mContext, new int[]{blockDefinitions});
     }
 
     /**
@@ -91,6 +99,7 @@ public class Workspace {
      * Remove a block from the workspace and put it in the trash.
      *
      * @param block The block block to remove, possibly with descendants attached.
+     *
      * @return True if the block was removed, false otherwise.
      */
     public boolean removeRootBlock(Block block) {
@@ -134,9 +143,8 @@ public class Workspace {
      *
      * @param toolbox The {@link ToolboxFragment} that will provide blocks to be added to the
      * workspace.
-     * @param context The app context, for finding resources.
      */
-    public void setToolboxFragment(ToolboxFragment toolbox, Context context) {
+    public void setToolboxFragment(ToolboxFragment toolbox) {
         // Invalidate the old toolbox.
         if (mToolbox != null) {
             mToolbox.setWorkspace(null);
@@ -154,26 +162,23 @@ public class Workspace {
     /**
      * Set up toolbox's contents.
      *
-     * @param context The activity's context.
-     * @param blockFactory The BlockFactory to use to create blocks in the toolbox.
      * @param blocks The resource id of the set of blocks or block groups to show in the toolbox.
      */
-    public void loadToolboxContents(Context context, BlockFactory blockFactory, int blocks) {
-        InputStream is = context.getResources().openRawResource(blocks);
-        BlocklyXmlHelper.loadFromXml(is, blockFactory, null, mToolboxContents);
+    public void loadToolboxContents(int blocks) {
+        InputStream is = mContext.getResources().openRawResource(blocks);
+        BlocklyXmlHelper.loadFromXml(is, mBlockFactory, null, mToolboxContents);
     }
 
     /**
      * Reads the workspace in from an XML string.
      *
      * @param is The input stream to read from.
-     * @param blockFactory The BlockFactory to use to create blocks.
      *
      * @throws BlocklyParserException if there was a parse failure.
      */
-    public void loadFromXml(InputStream is, BlockFactory blockFactory)
+    public void loadFromXml(InputStream is)
             throws BlocklyParserException {
-        mRootBlocks.addAll(BlocklyXmlHelper.loadFromXml(is, blockFactory, stats));
+        mRootBlocks.addAll(BlocklyXmlHelper.loadFromXml(is, mBlockFactory, stats));
         for (int i = 0; i < mRootBlocks.size(); i++) {
             stats.collectStats(mRootBlocks.get(i), true /* recursive */);
         }
@@ -194,15 +199,14 @@ public class Workspace {
      * Recursively initialize views corresponding to every block in the model.
      *
      * @param wv The root workspace view to add to.
-     * @param context The activity context.
      */
-    public void createViewsFromModel(WorkspaceView wv, Context context) {
+    public void createViewsFromModel(WorkspaceView wv) {
         BlockGroup bg;
         mWorkspaceView = wv;
         mDragger.setWorkspaceView(mWorkspaceView);
         mWorkspaceView.setDragger(mDragger);
         for (int i = 0; i < mRootBlocks.size(); i++) {
-            bg = new BlockGroup(context, mWorkspaceHelper);
+            bg = new BlockGroup(mContext, mWorkspaceHelper);
             mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mConnectionManager);
             mWorkspaceView.addView(bg);
         }
@@ -213,13 +217,12 @@ public class Workspace {
      * starts a drag of that block group.
      *
      * @param block The root block to be added to the workspace.
-     * @param context The activity context.
      * @param event The {@link MotionEvent} that caused the block to be added to the workspace.
      * This is used to find the correct position to start the drag event.
      */
-    public void addBlockFromToolbox(Block block, Context context, MotionEvent event) {
-        BlockGroup bg = new BlockGroup(context, mWorkspaceHelper);
-        mWorkspaceHelper.obtainBlockView(context, block, bg, mConnectionManager);
+    public void addBlockFromToolbox(Block block, MotionEvent event) {
+        BlockGroup bg = new BlockGroup(mContext, mWorkspaceHelper);
+        mWorkspaceHelper.obtainBlockView(mContext, block, bg, mConnectionManager);
         mWorkspaceView.addView(bg);
         addRootBlock(block);
         // let the workspace view know that this is the block we want to drag
