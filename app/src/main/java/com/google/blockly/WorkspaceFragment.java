@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
+import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.VirtualWorkspaceView;
 import com.google.blockly.ui.WorkspaceView;
@@ -46,7 +47,8 @@ public class WorkspaceFragment extends Fragment {
         FragmentManager fragmentManager = getFragmentManager();
         mWorkspace = new Workspace();
         mWorkspace.setTrashFragment((TrashFragment) fragmentManager.findFragmentById(R.id.trash));
-        mWorkspace.loadToolboxContents(getContext(), R.raw.toolbox_blocks, R.raw.toolbox);
+        BlockFactory blockFactory = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
+        mWorkspace.loadToolboxContents(getContext(), blockFactory, R.raw.toolbox);
         mWorkspace.setToolboxFragment(
                 (ToolboxFragment) fragmentManager.findFragmentById(R.id.toolbox), getContext());
         final Bundle bundle = this.getArguments();

@@ -59,11 +59,11 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v) {
                 FragmentManager fragmentManager = getSupportFragmentManager();
-                Fragment mTrashFragment = fragmentManager.findFragmentById(R.id.trash);
-                fragmentManager.beginTransaction()
-                        .show(mTrashFragment)
-                        .commit();
-
+                if (mOscar != null) {
+                    fragmentManager.beginTransaction()
+                            .show(mOscar)
+                            .commit();
+                }
             }
         });
     }

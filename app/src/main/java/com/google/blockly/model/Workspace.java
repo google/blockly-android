@@ -53,11 +53,11 @@ public class Workspace {
     // The Workspace is the controller for the toolbox and trash as well as for the contents of
     // the main workspace.
     private ToolboxFragment mToolbox;
-    private ArrayList<Block> mToolboxContents = new ArrayList<>();
+    private final ArrayList<Block> mToolboxContents = new ArrayList<>();
     // The trash can is currently just another instance of a toolbox: it holds blocks that can be
     // dragged into the workspace.
     private TrashFragment mTrash;
-    private ArrayList<Block> mDeletedBlocks = new ArrayList<>();
+    private final ArrayList<Block> mDeletedBlocks = new ArrayList<>();
     private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private WorkspaceHelper mWorkspaceHelper;
@@ -155,15 +155,12 @@ public class Workspace {
      * Set up toolbox's contents.
      *
      * @param context The activity's context.
-     * @param blockDefinitions The resource id of the block definitions.
+     * @param blockFactory The BlockFactory to use to create blocks in the toolbox.
      * @param blocks The resource id of the set of blocks or block groups to show in the toolbox.
      */
-    public void loadToolboxContents(Context context, int blockDefinitions, int blocks) {
-        BlockFactory mBlockFactory = new BlockFactory(context,
-                new int[]{blockDefinitions});
-
+    public void loadToolboxContents(Context context, BlockFactory blockFactory, int blocks) {
         InputStream is = context.getResources().openRawResource(blocks);
-        BlocklyXmlHelper.loadFromXml(is, mBlockFactory, null, mToolboxContents);
+        BlocklyXmlHelper.loadFromXml(is, blockFactory, null, mToolboxContents);
     }
 
     /**
