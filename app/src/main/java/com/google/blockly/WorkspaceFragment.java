@@ -17,10 +17,13 @@ package com.google.blockly;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
+import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.VirtualWorkspaceView;
 import com.google.blockly.ui.WorkspaceView;
@@ -36,10 +39,18 @@ public class WorkspaceFragment extends Fragment {
      */
     private static final String ARG_SECTION_NUMBER = "section_number";
     private Workspace mWorkspace;
+    private View.OnClickListener mTrashClickListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FragmentManager fragmentManager = getFragmentManager();
+        mWorkspace = new Workspace();
+        mWorkspace.setTrashFragment((TrashFragment) fragmentManager.findFragmentById(R.id.trash));
+        BlockFactory blockFactory = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
+        mWorkspace.loadToolboxContents(getContext(), blockFactory, R.raw.toolbox);
+        mWorkspace.setToolboxFragment(
+                (ToolboxFragment) fragmentManager.findFragmentById(R.id.toolbox), getContext());
         final Bundle bundle = this.getArguments();
         if (bundle != null && bundle.containsKey(ARG_SECTION_NUMBER)) {
             // Add all blocks, or load from XML.
@@ -59,7 +70,11 @@ public class WorkspaceFragment extends Fragment {
 
         final VirtualWorkspaceView virtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
-        workspaceView.setTrashView(rootView.findViewById(R.id.trash_button));
+        ImageButton trashButton = (ImageButton) rootView.findViewById(R.id.trash_button);
+        workspaceView.setTrashView(trashButton);
+        if (mTrashClickListener != null) {
+            trashButton.setOnClickListener(mTrashClickListener);
+        }
 
         rootView.findViewById(R.id.reset_view_button).setOnClickListener(
                 new View.OnClickListener() {
@@ -94,6 +109,10 @@ public class WorkspaceFragment extends Fragment {
         return mWorkspace;
     }
 
+    public void setTrashClickListener(View.OnClickListener listener) {
+        mTrashClickListener = listener;
+    }
+
     /**
      * @param sectionNumber Which section's workspace to return.
      *
@@ -102,7 +121,6 @@ public class WorkspaceFragment extends Fragment {
      */
     public static WorkspaceFragment newInstance(int sectionNumber) {
         WorkspaceFragment fragment = new WorkspaceFragment();
-        fragment.mWorkspace = new Workspace();
         Bundle args = new Bundle();
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);

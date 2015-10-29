@@ -18,6 +18,9 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.view.MotionEvent;
 
+import com.google.blockly.R;
+import com.google.blockly.ToolboxFragment;
+import com.google.blockly.TrashFragment;
 import com.google.blockly.control.BlockCopyBuffer;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.Dragger;
@@ -46,6 +49,15 @@ public class Workspace {
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
+
+    // The Workspace is the controller for the toolbox and trash as well as for the contents of
+    // the main workspace.
+    private ToolboxFragment mToolbox;
+    private final ArrayList<Block> mToolboxContents = new ArrayList<>();
+    // The trash can is currently just another instance of a toolbox: it holds blocks that can be
+    // dragged into the workspace.
+    private TrashFragment mTrash;
+    private final ArrayList<Block> mDeletedBlocks = new ArrayList<>();
     private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private WorkspaceHelper mWorkspaceHelper;
@@ -59,7 +71,7 @@ public class Workspace {
     /**
      * Adds a new block to the workspace as a root block.
      *
-     * @param block
+     * @param block The block to add to the root of the workspace.
      */
     public void addRootBlock(Block block) {
         if (block == null) {
@@ -75,7 +87,15 @@ public class Workspace {
         stats.collectStats(block, true);
     }
 
+    /**
+     * Remove a block from the workspace and put it in the trash.
+     *
+     * @param block The block block to remove, possibly with descendants attached.
+     * @return True if the block was removed, false otherwise.
+     */
     public boolean removeRootBlock(Block block) {
+        mDeletedBlocks.add(block);
+        mTrash.getAdapter().notifyDataSetChanged();
         return mRootBlocks.remove(block);
     }
 
@@ -89,11 +109,67 @@ public class Workspace {
     }
 
     /**
+     * Set up the trash fragment, which will show blocks that have been deleted from this
+     * workspace.
+     *
+     * @param trash The {@link TrashFragment} to update when blocks are deleted.
+     */
+    public void setTrashFragment(TrashFragment trash) {
+        // Invalidate the old trash.
+        if (mTrash != null) {
+            mTrash.setWorkspace(null);
+            mTrash.setContents(null);
+        }
+        // Set up the new trash.
+        mTrash = trash;
+        if (mTrash != null) {
+            mTrash.setWorkspace(this);
+            mTrash.setContents(mDeletedBlocks);
+        }
+    }
+
+    /**
+     * Loads the blocks that belong in the toolbox; sets up the relationships between the toolbox
+     * and the workspace.  The workspace provides the list of blocks that the toolbox can provide.
+     *
+     * @param toolbox The {@link ToolboxFragment} that will provide blocks to be added to the
+     * workspace.
+     * @param context The app context, for finding resources.
+     */
+    public void setToolboxFragment(ToolboxFragment toolbox, Context context) {
+        // Invalidate the old toolbox.
+        if (mToolbox != null) {
+            mToolbox.setWorkspace(null);
+            mToolbox.setContents(null);
+        }
+
+        mToolbox = toolbox;
+        // Set up the new toolbox.
+        if (mToolbox != null) {
+            mToolbox.setWorkspace(this);
+            mToolbox.setContents(mToolboxContents);
+        }
+    }
+
+    /**
+     * Set up toolbox's contents.
+     *
+     * @param context The activity's context.
+     * @param blockFactory The BlockFactory to use to create blocks in the toolbox.
+     * @param blocks The resource id of the set of blocks or block groups to show in the toolbox.
+     */
+    public void loadToolboxContents(Context context, BlockFactory blockFactory, int blocks) {
+        InputStream is = context.getResources().openRawResource(blocks);
+        BlocklyXmlHelper.loadFromXml(is, blockFactory, null, mToolboxContents);
+    }
+
+    /**
      * Reads the workspace in from an XML string.
      *
      * @param is The input stream to read from.
+     * @param blockFactory The BlockFactory to use to create blocks.
      *
-     * @throws BlocklyParserException
+     * @throws BlocklyParserException if there was a parse failure.
      */
     public void loadFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
@@ -108,7 +184,7 @@ public class Workspace {
      *
      * @param os The output stream to write to.
      *
-     * @throws BlocklySerializerException
+     * @throws BlocklySerializerException if there was a failure while serializing.
      */
     public void serializeToXml(OutputStream os) throws BlocklySerializerException {
         BlocklyXmlHelper.writeToXml(mRootBlocks, os);
