@@ -63,5 +63,98 @@
     "tooltip": "",
     "colour": 120,
     "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "simple_input_output",
+    "message0": "test block %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "value"
+      }
+    ],
+    "output": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "multiple_input_output",
+    "message0": "test block %1 %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "value_1"
+      },
+      {
+        "type": "input_value",
+        "name": "value_2"
+      }
+    ],
+    "output": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "statement_no_input",
+    "message0": "test block ",
+    "args0": [],
+    "previousStatement": null,
+    "nextStatement": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "statement_value_input",
+    "message0": "test block %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "value"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "statement_multiple_value_input",
+    "message0": "test block %1 %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "value_1"
+      },
+      {
+        "type": "input_value",
+        "name": "value_2"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "statement_statement_input",
+    "message0": "test block %1",
+    "args0": [
+      {
+        "type": "input_statement",
+        "name": "NAME"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "output_no_input",
+    "message0": "test block",
+    "args0": [],
+    "output": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
   }
 ]
