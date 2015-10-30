@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -94,7 +95,7 @@ public class BlockView extends FrameLayout {
     /**
      * Create a new BlockView for the given block using the workspace's style.
      * This constructor is for non-interactive display blocks. If this block is part of a
-     * {@link Workspace} or (TODO linkify) Toolbox
+     * {@link com.google.blockly.model.Workspace}, then
      * {@link BlockView(Context, int, Block, WorkspaceHelper, BlockGroup, View.OnTouchListener)}
      * should be used instead.
      *
@@ -137,13 +138,6 @@ public class BlockView extends FrameLayout {
 
         initViews(context, blockStyle, parentGroup);
         initDrawingObjects(context);
-    }
-
-    /**
-     * @return The {@link InputView} for the {@link Input} at the given index.
-     */
-    public InputView getInputView(int index) {
-        return mInputViews.get(index);
     }
 
     /**
@@ -254,49 +248,6 @@ public class BlockView extends FrameLayout {
      */
     public Block getBlock() {
         return mBlock;
-    }
-
-    /**
-     * Correctly set the locations of the connections based on their offsets within the
-     * {@link BlockView} and the position of the {@link BlockView} itself.  Can be used when the
-     * block has moved but not changed shape (e.g. during a drag).
-     */
-    public void updateConnectorLocations() {
-        // Ensure we have the right block location before we update the connections.
-        updateBlockPosition();
-
-        if (mConnectionManager == null) {
-            return;
-        }
-        final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
-        if (mBlock.getPreviousConnection() != null) {
-            mHelper.virtualViewToWorkspaceDelta(mPreviousConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
-                    blockWorkspacePosition, mTempWorkspacePoint);
-        }
-        if (mBlock.getNextConnection() != null) {
-            mHelper.virtualViewToWorkspaceDelta(mNextConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
-                    blockWorkspacePosition, mTempWorkspacePoint);
-        }
-        if (mBlock.getOutputConnection() != null) {
-            mHelper.virtualViewToWorkspaceDelta(mOutputConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
-                    blockWorkspacePosition, mTempWorkspacePoint);
-        }
-        for (int i = 0; i < mInputViews.size(); i++) {
-            InputView inputView = mInputViews.get(i);
-            Connection conn = inputView.getInput().getConnection();
-            if (conn != null) {
-                mHelper.virtualViewToWorkspaceDelta(
-                        mInputConnectorOffsets.get(i), mTempWorkspacePoint);
-                mConnectionManager.moveConnectionTo(conn,
-                        blockWorkspacePosition, mTempWorkspacePoint);
-                if (conn.isConnected()) {
-                    ((BlockGroup) inputView.getChildView()).updateAllConnectorLocations();
-                }
-            }
-        }
     }
 
     /**
@@ -858,6 +809,65 @@ public class BlockView extends FrameLayout {
                     conn.getPosition().y - mBlock.getPosition().y);
             mHelper.workspaceToVirtualViewDelta(mTempWorkspacePoint, mTempConnectionPosition);
             c.drawCircle(mTempConnectionPosition.x, mTempConnectionPosition.y, 10, paint);
+        }
+    }
+
+    /**
+     * @return The number of {@link InputView} instances inside this view.
+     */
+    @VisibleForTesting
+    int getInputViewCount() {
+        return mInputViews.size();
+    }
+
+    /**
+     * @return The {@link InputView} for the {@link Input} at the given index.
+     */
+    @VisibleForTesting
+    InputView getInputView(int index) {
+        return mInputViews.get(index);
+    }
+
+    /**
+     * Correctly set the locations of the connections based on their offsets within the
+     * {@link BlockView} and the position of the {@link BlockView} itself.  Can be used when the
+     * block has moved but not changed shape (e.g. during a drag).
+     */
+    void updateConnectorLocations() {
+        // Ensure we have the right block location before we update the connections.
+        updateBlockPosition();
+
+        if (mConnectionManager == null) {
+            return;
+        }
+        final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
+        if (mBlock.getPreviousConnection() != null) {
+            mHelper.virtualViewToWorkspaceDelta(mPreviousConnectorOffset, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
+                    blockWorkspacePosition, mTempWorkspacePoint);
+        }
+        if (mBlock.getNextConnection() != null) {
+            mHelper.virtualViewToWorkspaceDelta(mNextConnectorOffset, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
+                    blockWorkspacePosition, mTempWorkspacePoint);
+        }
+        if (mBlock.getOutputConnection() != null) {
+            mHelper.virtualViewToWorkspaceDelta(mOutputConnectorOffset, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
+                    blockWorkspacePosition, mTempWorkspacePoint);
+        }
+        for (int i = 0; i < mInputViews.size(); i++) {
+            InputView inputView = mInputViews.get(i);
+            Connection conn = inputView.getInput().getConnection();
+            if (conn != null) {
+                mHelper.virtualViewToWorkspaceDelta(
+                        mInputConnectorOffsets.get(i), mTempWorkspacePoint);
+                mConnectionManager.moveConnectionTo(conn,
+                        blockWorkspacePosition, mTempWorkspacePoint);
+                if (conn.isConnected()) {
+                    ((BlockGroup) inputView.getChildView()).updateAllConnectorLocations();
+                }
+            }
         }
     }
 

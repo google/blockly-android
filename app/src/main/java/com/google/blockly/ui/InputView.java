@@ -374,7 +374,6 @@ public class InputView extends ViewGroup {
                     break;
             }
             if (view != null) {
-                Log.d(TAG, "Added view " + view + " at " + j);
                 addView((View) view);
                 mFieldViews.add(view);
             } else {
