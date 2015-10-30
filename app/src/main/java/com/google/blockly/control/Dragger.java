@@ -16,6 +16,7 @@
 package com.google.blockly.control;
 
 import android.graphics.Rect;
+import android.support.annotation.VisibleForTesting;
 import android.util.Pair;
 import android.view.DragEvent;
 import android.view.MotionEvent;
@@ -352,7 +353,8 @@ public class Dragger {
      * connected to.  Must be on a statement input.
      * @param toConnect The {@link Block} to connect to the statement input.
      */
-    private void connectToStatement(Connection parentStatementConnection, Block toConnect) {
+    @VisibleForTesting
+    void connectToStatement(Connection parentStatementConnection, Block toConnect) {
         // If there was already a block connected there.
         if (parentStatementConnection.isConnected()) {
             Block remainderBlock = parentStatementConnection.getTargetBlock();
@@ -472,7 +474,8 @@ public class Dragger {
      *
      * @param block The {@link Block} to look up and remove.
      */
-    private void removeFromRoot(Block block) {
+     @VisibleForTesting
+     void removeFromRoot(Block block) {
         BlockGroup group = mWorkspaceHelper.getNearestParentBlockGroup(block);
         if (group.getParent() instanceof WorkspaceView) {
             // The block we are connecting to is a root block.

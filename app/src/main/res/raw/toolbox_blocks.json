@@ -141,7 +141,7 @@
     "args0": [
       {
         "type": "input_statement",
-        "name": "NAME"
+        "name": "statement input"
       }
     ],
     "previousStatement": null,
@@ -154,6 +154,14 @@
     "message0": "test block",
     "args0": [],
     "output": null,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "statement_no_next",
+    "message0": "test block",
+    "args0": [],
+    "previousStatement": null,
     "tooltip": "",
     "helpUrl": "http://www.example.com/"
   }

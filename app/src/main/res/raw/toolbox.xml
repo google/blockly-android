@@ -17,4 +17,5 @@
     <block type="statement_multiple_value_input"></block>
     <block type="statement_statement_input"></block>
     <block type="output_no_input"></block>
+    <block type="statement_no_next"></block>
 </xml>

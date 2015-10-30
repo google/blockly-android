@@ -18,6 +18,7 @@ package com.google.blockly.ui;
 import android.test.AndroidTestCase;
 
 import com.google.blockly.MockBlocksProvider;
+import com.google.blockly.TestUtils;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 
@@ -72,7 +73,8 @@ public class WorkspaceHelperTest extends AndroidTestCase {
         // Add a completely unconnected block.
         blocks.add(MockBlocksProvider.makeStatementBlock());
 
-        createViews(blocks);
+        TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mockConnectionManager,
+                mWorkspaceView);
 
         assertEquals(mWorkspaceHelper.getNearestParentBlockGroup(root),
                 mWorkspaceHelper.getNearestParentBlockGroup(cur));
@@ -106,7 +108,8 @@ public class WorkspaceHelperTest extends AndroidTestCase {
         // Add a completely unconnected block.
         blocks.add(MockBlocksProvider.makeDummyBlock());
 
-        createViews(blocks);
+        TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mockConnectionManager,
+                mWorkspaceView);
 
         assertEquals(mWorkspaceHelper.getRootBlockGroup(root),
                 mWorkspaceHelper.getRootBlockGroup(cur));
@@ -118,13 +121,5 @@ public class WorkspaceHelperTest extends AndroidTestCase {
                 mWorkspaceHelper.getRootBlockGroup(blocks.get(1)));
     }
 
-    private void createViews(List<Block> blocks) {
-        // Create views for all of the blocks we're interested in.
-        for (int i = 0; i < blocks.size(); i++) {
-            BlockGroup bg = new BlockGroup(getContext(), mWorkspaceHelper);
-            mWorkspaceHelper.obtainBlockView(blocks.get(i), bg, mockConnectionManager);
-            mWorkspaceView.addView(bg);
-        }
-    }
 
 }
