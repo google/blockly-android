@@ -27,7 +27,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Tests for the {@link WorkspaceHelper}.
@@ -76,12 +75,7 @@ public class WorkspaceHelperTest extends AndroidTestCase {
         // Add a completely unconnected block.
         blocks.add(MockBlocksProvider.makeStatementBlock());
 
-        runOnUiThreadAndWait(new Runnable() {
-            @Override
-            public void run() {
-                createViews(blocks);
-            }
-        });
+        createViews(blocks);
 
         assertEquals(mWorkspaceHelper.getNearestParentBlockGroup(root),
                 mWorkspaceHelper.getNearestParentBlockGroup(cur));
@@ -115,12 +109,7 @@ public class WorkspaceHelperTest extends AndroidTestCase {
         // Add a completely unconnected block.
         blocks.add(MockBlocksProvider.makeDummyBlock());
 
-        runOnUiThreadAndWait(new Runnable() {
-            @Override
-            public void run() {
-                createViews(blocks);
-            }
-        });
+        createViews(blocks);
 
         assertEquals(mWorkspaceHelper.getRootBlockGroup(root),
                 mWorkspaceHelper.getRootBlockGroup(cur));
@@ -140,24 +129,4 @@ public class WorkspaceHelperTest extends AndroidTestCase {
             mWorkspaceView.addView(bg);
         }
     }
-
-    /**
-     * Execute runnable in the UI thread (i.e., the main looper) and wait for it to finish.
-     *
-     * @param runnable The runnable to execute in the UI thread.
-     *
-     * @throws InterruptedException if execution of the runnable was interrupted.
-     */
-    private void runOnUiThreadAndWait(final Runnable runnable) throws InterruptedException {
-        final CountDownLatch signal = new CountDownLatch(1);
-        mMainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                runnable.run();
-                signal.countDown();
-            }
-        });
-        signal.await();
-    }
-
 }
