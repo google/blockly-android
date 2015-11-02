@@ -1,18 +1,16 @@
 package com.google.blockly.ui;
 
 import android.support.annotation.NonNull;
-import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
 import com.google.blockly.MockitoAndroidTestCase;
+import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
-import com.google.blockly.model.Input;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 
 /**
@@ -20,16 +18,6 @@ import org.mockito.MockitoAnnotations;
  */
 @SmallTest
 public class BlockViewTest extends MockitoAndroidTestCase {
-
-    // JSON specification of a simple block with three different inputs for testing.
-    private static final String BLOCK_TEMPLATES = "[{" +
-        "\"id\": \"TestBlock\"," +
-            "\"message0\": \"%1 %2 %3\"," +
-            "\"args0\": [" +
-            "{\"type\": \"input_dummy\"}," +
-            "{\"type\": \"input_value\"}," +
-            "{\"type\": \"input_statement\"}" +
-            "]}]";
 
     @Mock
     ConnectionManager mMockConnectionManager;
@@ -50,7 +38,7 @@ public class BlockViewTest extends MockitoAndroidTestCase {
         super.setUp();
 
         mBlockFactory = new BlockFactory(getContext());
-        assertEquals(1, mBlockFactory.loadBlocksFromString(BLOCK_TEMPLATES));
+        mBlockFactory.loadBlocksFromResource(R.raw.test_blocks);
     }
 
     // Verify correct object state after construction.
@@ -64,7 +52,8 @@ public class BlockViewTest extends MockitoAndroidTestCase {
 
     // Verify construction of a BlockView for a Block with inputs.
     public void testConstructorBlockWithInputs() {
-        final Block block = mBlockFactory.obtainBlock("TestBlock", "TestBlock");
+        final Block block = mBlockFactory.obtainBlock(
+                "test_block_one_input_each_type", "TestBlock");
         assertNotNull(block);
 
         final BlockView blockView = makeBlockView(block);

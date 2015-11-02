@@ -93,5 +93,20 @@
     "args0": [],
     "tooltip": "",
     "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "test_block_one_input_each_type",
+    "message0": "%1 %2 %3",
+    "args0": [
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "input_value"
+      },
+      {
+        "type": "input_statement"
+      }
+    ]
   }
 ]
