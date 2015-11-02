@@ -496,9 +496,10 @@ public class Dragger {
     private void removeFromRoot(Block block, BlockGroup group) {
         if (group == null) {
             removeFromRoot(block);
+        } else {
+            mWorkspaceView.removeView(group);
+            mRootBlocks.remove(block);
         }
-        mWorkspaceView.removeView(group);
-        mRootBlocks.remove(block);
     }
 
     private void addToRoot(Block block, BlockGroup group) {
