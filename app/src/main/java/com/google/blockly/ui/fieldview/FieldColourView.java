@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
+import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -263,5 +264,10 @@ public class FieldColourView extends View implements FieldView {
                 canvas.drawLine(x, 0, x, height - 1, mGridPaint);
             }
         }
+    }
+
+    @VisibleForTesting
+    PopupWindow getColorPopupWindow() {
+        return mColourPopupWindow;
     }
 }
