@@ -24,8 +24,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringBufferInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,12 +49,21 @@ public class BlockFactory {
      * @param blockSourceIds A list of JSON resources containing blocks.
      */
     public BlockFactory(Context context, int[] blockSourceIds) {
-        mResources = context.getResources();
+        this(context);
         if (blockSourceIds != null) {
             for (int i = 0; i < blockSourceIds.length; i++) {
                 loadBlocksFromResource(blockSourceIds[i]);
             }
         }
+    }
+
+    /**
+     * Create a factory.
+     *
+     * @param context The context for loading resources.
+     */
+    public BlockFactory(Context context) {
+        mResources = context.getResources();
     }
 
     /**
@@ -110,13 +121,29 @@ public class BlockFactory {
      * Adds a set of master blocks from a JSON resource.
      *
      * @param resId The id of the JSON resource to load blocks from.
+     *
+     * @return Number of blocks added to the factory.
      */
-    public void loadBlocksFromResource(int resId) {
+    public int loadBlocksFromResource(int resId) {
         InputStream blockIs = mResources.openRawResource(resId);
-        loadBlocks(blockIs);
+        return loadBlocks(blockIs);
     }
 
-    private void loadBlocks(InputStream blockIs) {
+    /**
+     * Load block templates from a string.
+     *
+     * @param json_string The JSON string to load blocks from.
+     *
+     * @return Number of blocks added to the factory.
+     */
+    public int loadBlocksFromString(String json_string) {
+        final InputStream blockIs = new ByteArrayInputStream(json_string.getBytes());
+        return loadBlocks(blockIs);
+    }
+
+    /** @return Number of blocks added to the factory. */
+    private int loadBlocks(InputStream blockIs) {
+        int blockAddedCount = 0;
         try {
             int size = blockIs.available();
             byte[] buffer = new byte[size];
@@ -129,6 +156,7 @@ public class BlockFactory {
                 String id = block.optString("id");
                 if (!TextUtils.isEmpty(id)) {
                     mBlockTemplates.put(id, Block.fromJson(id, block));
+                    ++blockAddedCount;
                 } else {
                     throw new IllegalArgumentException("Block " + i
                             + " has no id and cannot be loaded.");
@@ -139,5 +167,7 @@ public class BlockFactory {
         } catch (JSONException e) {
             Log.e(TAG, "Error parsing JSON.", e);
         }
+
+        return blockAddedCount;
     }
 }

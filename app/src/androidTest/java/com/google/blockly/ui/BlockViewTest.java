@@ -4,8 +4,10 @@ import android.support.annotation.NonNull;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
+import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Input;
 
 import org.mockito.Mock;
@@ -17,7 +19,17 @@ import org.mockito.MockitoAnnotations;
  * Tests for {@link BlockView}.
  */
 @SmallTest
-public class BlockViewTest extends AndroidTestCase {
+public class BlockViewTest extends MockitoAndroidTestCase {
+
+    // JSON specification of a simple block with three different inputs for testing.
+    private static final String BLOCK_TEMPLATES = "[{" +
+        "\"id\": \"TestBlock\"," +
+            "\"message0\": \"%1 %2 %3\"," +
+            "\"args0\": [" +
+            "{\"type\": \"input_dummy\"}," +
+            "{\"type\": \"input_value\"}," +
+            "{\"type\": \"input_statement\"}" +
+            "]}]";
 
     @Mock
     ConnectionManager mMockConnectionManager;
@@ -31,13 +43,14 @@ public class BlockViewTest extends AndroidTestCase {
     @Mock
     BlockGroup mMockBlockGroup;
 
+    private BlockFactory mBlockFactory;
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        // To solve some issue with Dexmaker.  This allows us to use mockito.
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        MockitoAnnotations.initMocks(this);
+        mBlockFactory = new BlockFactory(getContext());
+        assertEquals(1, mBlockFactory.loadBlocksFromString(BLOCK_TEMPLATES));
     }
 
     // Verify correct object state after construction.
@@ -51,7 +64,8 @@ public class BlockViewTest extends AndroidTestCase {
 
     // Verify construction of a BlockView for a Block with inputs.
     public void testConstructorBlockWithInputs() {
-        final Block block = makeBlockWithInputs();
+        final Block block = mBlockFactory.obtainBlock("TestBlock", "TestBlock");
+        assertNotNull(block);
 
         final BlockView blockView = makeBlockView(block);
         assertEquals(block, blockView.getBlock());
@@ -76,14 +90,5 @@ public class BlockViewTest extends AndroidTestCase {
     private BlockView makeBlockView(Block block) {
         return new BlockView(getContext(), block, mMockWorkspaceHelper,
                 mMockBlockGroup, mMockConnectionManager);
-    }
-
-    @NonNull
-    private Block makeBlockWithInputs() {
-        return new Block.Builder("name")
-                .addInput(new Input.InputDummy("input0", null))
-                .addInput(new Input.InputValue("input1", null, null))
-                .addInput(new Input.InputStatement("input2", null, null))
-                .build();
     }
 }

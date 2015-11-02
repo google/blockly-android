@@ -5,6 +5,7 @@ import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.view.View;
 
+import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.model.Input;
 
 import org.mockito.Mock;
@@ -15,22 +16,13 @@ import org.mockito.MockitoAnnotations;
  * Tests for {@link InputView}.
  */
 @SmallTest
-public class InputViewTest extends AndroidTestCase {
+public class InputViewTest extends MockitoAndroidTestCase {
 
     @Mock
     Input mMockInput;
 
     @Mock
     WorkspaceHelper mMockWorkspaceHelper;
-
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
-        // To solve some issue with Dexmaker.  This allows us to use mockito.
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        MockitoAnnotations.initMocks(this);
-    }
 
     // Verify correct object state after construction.
     public void testConstructor() {
