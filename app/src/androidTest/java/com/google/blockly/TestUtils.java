@@ -28,7 +28,10 @@ import java.util.List;
 /**
  * Utils for setting up blocks during testing.
  */
-public class TestUtils {
+public final class TestUtils {
+
+    private TestUtils() {}
+
     /**
      * Create views for the given blocks and add them to the workspace given by the combination
      * of connection manager, helper, and view.

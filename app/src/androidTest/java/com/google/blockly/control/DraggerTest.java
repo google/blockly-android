@@ -15,8 +15,7 @@
 
 package com.google.blockly.control;
 
-import android.test.AndroidTestCase;
-
+import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.R;
 import com.google.blockly.TestUtils;
 import com.google.blockly.model.Block;
@@ -25,14 +24,13 @@ import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 
 /**
  * Tests for the {@link Dragger}.
  */
-public class DraggerTest extends AndroidTestCase {
+public class DraggerTest extends MockitoAndroidTestCase {
     @Mock
     ConnectionManager mConnectionManager;
     private WorkspaceHelper mWorkspaceHelper;
@@ -42,11 +40,8 @@ public class DraggerTest extends AndroidTestCase {
     private ArrayList<Block> mBlocks;
 
     @Override
-    public void setUp() {
-        // To solve some issue with Dexmaker.  This allows us to use mockito.
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        MockitoAnnotations.initMocks(this);
-
+    public void setUp() throws Exception {
+        super.setUp();
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
 
         mBlocks = new ArrayList<>();

@@ -15,15 +15,13 @@
 
 package com.google.blockly.ui;
 
-import android.test.AndroidTestCase;
-
 import com.google.blockly.MockBlocksProvider;
+import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.TestUtils;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +29,7 @@ import java.util.List;
 /**
  * Tests for the {@link WorkspaceHelper}.
  */
-public class WorkspaceHelperTest extends AndroidTestCase {
+public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
 
@@ -39,10 +37,8 @@ public class WorkspaceHelperTest extends AndroidTestCase {
     ConnectionManager mockConnectionManager;
 
     @Override
-    public void setUp() {
-        // To solve some issue with Dexmaker.  This allows us to use mockito.
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        MockitoAnnotations.initMocks(this);
+    public void setUp() throws Exception {
+        super.setUp();
 
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(mWorkspaceView, null);
