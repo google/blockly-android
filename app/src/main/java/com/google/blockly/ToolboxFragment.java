@@ -90,7 +90,11 @@ public class ToolboxFragment extends Fragment {
     public void setContents(List<Block> contents) {
         mContents = contents;
         mAdapter = new BlockGroupAdapter(mContents, mWorkspaceHelper, getContext());
-        mRecyclerView.setAdapter(mAdapter);
+        // TODO(rachel-fenichel): fix lifecycle such that setContents() is never called before
+        // onCreateView().
+        if (mRecyclerView != null) {
+            mRecyclerView.setAdapter(mAdapter);
+        }
     }
 
     public RecyclerView.Adapter getAdapter() {

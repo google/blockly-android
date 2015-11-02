@@ -15,6 +15,8 @@
 
 package com.google.blockly.ui;
 
+import android.os.Handler;
+
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.TestUtils;
@@ -32,6 +34,7 @@ import java.util.List;
 public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
+    private Handler mMainHandler;
 
     @Mock
     ConnectionManager mockConnectionManager;
@@ -42,11 +45,12 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
 
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(mWorkspaceView, null);
+        mMainHandler = new Handler(getContext().getMainLooper());
     }
 
     // test getNearestParentBlockGroup
-    public void testGetNearestParentBlockGroup() {
-        List<Block> blocks = new ArrayList<>();
+    public void testGetNearestParentBlockGroup() throws InterruptedException {
+        final List<Block> blocks = new ArrayList<>();
         Block root = MockBlocksProvider.makeStatementBlock();
         Block cur = root;
         // Make a chain of statement blocks, all of which will be in the same block group.
@@ -84,8 +88,8 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
 
 
     // test getRootBlockGroup
-    public void testGetRootBlockGroup() {
-        List<Block> blocks = new ArrayList<>();
+    public void testGetRootBlockGroup() throws InterruptedException {
+        final List<Block> blocks = new ArrayList<>();
         Block root = MockBlocksProvider.makeDummyBlock();
         Block cur = root;
         // Make a chain of blocks with statement inputs.  Each block will be connected to a
@@ -116,6 +120,4 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         assertNotSame(mWorkspaceHelper.getRootBlockGroup(blocks.get(0)),
                 mWorkspaceHelper.getRootBlockGroup(blocks.get(1)));
     }
-
-
 }

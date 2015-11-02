@@ -11,11 +11,17 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    packagingOptions {
+      // Suppress file collision error from hamcrest-core and hamcrest-integration JARs.
+      exclude 'LICENSE.txt'
     }
 }
 
@@ -25,4 +31,8 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:23.0.+'
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+
+    // For UI testing with Espresso.
+    androidTestCompile 'com.android.support.test:runner:0.4.1'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
 }
