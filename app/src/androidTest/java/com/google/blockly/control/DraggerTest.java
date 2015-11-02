@@ -50,6 +50,147 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mDragger = new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mBlocks);
     }
 
+    public void testConnectAsChild() {
+        // Setup
+        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
+        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
+        Block third = mBlockFactory.obtainBlock("multiple_input_output", "third block");
+        Block fourth = mBlockFactory.obtainBlock("output_no_input", "fourth block");
+        mBlocks.add(first);
+        mBlocks.add(second);
+        mBlocks.add(third);
+        mBlocks.add(fourth);
+        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
+                mWorkspaceView);
+
+        // No bump, no splice.
+        mDragger.removeFromRoot(second);
+        mDragger.connectAsChild(first.getOnlyValueInput().getConnection(),
+                second.getOutputConnection());
+
+        // Second is now a child of first.
+        assertSame(first, second.getOutputConnection().getTargetBlock());
+        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
+                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(second));
+
+        // Bump: no next input
+        mDragger.removeFromRoot(fourth);
+        mDragger.connectAsChild(first.getOnlyValueInput().getConnection(),
+                fourth.getOutputConnection());
+
+        // Fourth is now a child of first.
+        assertSame(first, fourth.getOutputConnection().getTargetBlock());
+        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
+                mWorkspaceHelper.getNearestParentBlockGroup(fourth));
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(fourth));
+
+        // Second has been returned to the workspace root.
+        assertNull(second.getOutputConnection().getTargetBlock());
+        assertTrue(mBlocks.contains(second));
+        assertNotSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(second));
+
+        // Bump: Child block has branching inputs
+        mDragger.removeFromRoot(third);
+        mDragger.connectAsChild(first.getOnlyValueInput().getConnection(),
+                third.getOutputConnection());
+
+        // Third is now a child of first
+        assertSame(first, third.getOutputConnection().getTargetBlock());
+        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
+                mWorkspaceHelper.getNearestParentBlockGroup(third));
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(third));
+
+        // Fourth has been returned to the workspace root.
+        assertNull(fourth.getOutputConnection().getTargetBlock());
+        assertTrue(mBlocks.contains(fourth));
+        assertNotSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(fourth));
+
+        // Splice
+        mDragger.removeFromRoot(second);
+        mDragger.connectAsChild(first.getOnlyValueInput().getConnection(),
+                second.getOutputConnection());
+
+        assertSame(first, second.getOutputConnection().getTargetBlock());
+        assertSame(second, third.getOutputConnection().getTargetBlock());
+
+        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
+                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(third),
+                mWorkspaceHelper.getNearestParentBlockGroup(second));
+
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(second));
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(third));
+    }
+
+    public void testConnectAfter() {
+        // setup
+        Block first = mBlockFactory.obtainBlock("statement_no_input", "first block");
+        Block second = mBlockFactory.obtainBlock("statement_no_input", "second block");
+        Block third = mBlockFactory.obtainBlock("statement_no_input", "third block");
+        Block fourth = mBlockFactory.obtainBlock("statement_no_next", "fourth block");
+        mBlocks.add(first);
+        mBlocks.add(second);
+        mBlocks.add(third);
+        mBlocks.add(fourth);
+        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
+                mWorkspaceView);
+
+        // no bump, no splice
+        mDragger.removeFromRoot(second);
+        // Connect "second" after "first".
+        mDragger.connectAfter(first, second);
+        assertSame(first, second.getPreviousBlock());
+        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
+                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(second));
+
+        // splice, no bump
+        mDragger.removeFromRoot(third);
+        // Connect "third" after "first".
+        mDragger.connectAfter(first, third);
+
+        assertSame(first, third.getPreviousBlock());
+        assertSame(third, second.getPreviousBlock());
+
+        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
+                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(third),
+                mWorkspaceHelper.getNearestParentBlockGroup(second));
+
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(second));
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(third));
+
+        // bump, no splice
+        mDragger.removeFromRoot(fourth);
+        // Connect "fourth" after "first".  Since "fourth" has no next connection, bump.
+        mDragger.connectAfter(first, fourth);
+
+        assertSame(first, fourth.getPreviousBlock());
+        // Third has been returned to the workspace root.
+        assertNull(third.getPreviousBlock());
+        assertTrue(mBlocks.contains(third));
+        // First and fourth are connected.
+        assertSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(fourth));
+        // Second and third are separate from first and fourth.
+        assertNotSame(mWorkspaceHelper.getRootBlockGroup(first),
+                mWorkspaceHelper.getRootBlockGroup(third));
+        // At workspace root.
+        assertSame(mWorkspaceHelper.getRootBlockGroup(third),
+                mWorkspaceHelper.getRootBlockGroup(second));
+    }
+
     // Test connect statement
     public void testConnectToStatement() {
         // setup
@@ -105,7 +246,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         // First and fourth are connected.
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(fourth));
-        // Second and third are separate.
+        // Second and third are separate from first and fourth.
         assertNotSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(third));
         // At workspace root.

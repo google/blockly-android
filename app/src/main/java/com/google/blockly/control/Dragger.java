@@ -387,7 +387,8 @@ public class Dragger {
      * @param superior The {@link Block} after which the inferior block is connecting.
      * @param inferior The {@link Block} to be connected as the superior block's "next" block.
      */
-    private void connectAfter(Block superior, Block inferior) {
+    @VisibleForTesting
+    void connectAfter(Block superior, Block inferior) {
         BlockGroup superiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(superior);
         BlockGroup inferiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(inferior);
 
@@ -437,7 +438,8 @@ public class Dragger {
      * @param child The {@link Connection} on the inferior block.  Must be an output or previous
      * connection.
      */
-    private void connectAsChild(Connection parent, Connection child) {
+    @VisibleForTesting
+    void connectAsChild(Connection parent, Connection child) {
         InputView parentInputView = parent.getInputView();
         if (parentInputView == null) {
             throw new IllegalStateException("Tried to connect as a child, but the parent didn't "
