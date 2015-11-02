@@ -64,9 +64,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceView);
 
         // No bump, no splice.
-        mDragger.removeFromRoot(second);
-        mDragger.connectAsChild(first.getOnlyValueInput().getConnection(),
-                second.getOutputConnection());
+        mDragger.reconnectViews(second.getOutputConnection(),
+                first.getOnlyValueInput().getConnection(), second, null);
 
         // Second is now a child of first.
         assertSame(first, second.getOutputConnection().getTargetBlock());
@@ -76,9 +75,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceHelper.getRootBlockGroup(second));
 
         // Bump: no next input
-        mDragger.removeFromRoot(fourth);
-        mDragger.connectAsChild(first.getOnlyValueInput().getConnection(),
-                fourth.getOutputConnection());
+        mDragger.reconnectViews(fourth.getOutputConnection(),
+                first.getOnlyValueInput().getConnection(), fourth, null);
 
         // Fourth is now a child of first.
         assertSame(first, fourth.getOutputConnection().getTargetBlock());
@@ -94,9 +92,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceHelper.getRootBlockGroup(second));
 
         // Bump: Child block has branching inputs
-        mDragger.removeFromRoot(third);
-        mDragger.connectAsChild(first.getOnlyValueInput().getConnection(),
-                third.getOutputConnection());
+        mDragger.reconnectViews(third.getOutputConnection(),
+                first.getOnlyValueInput().getConnection(), third, null);
 
         // Third is now a child of first
         assertSame(first, third.getOutputConnection().getTargetBlock());
@@ -112,9 +109,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceHelper.getRootBlockGroup(fourth));
 
         // Splice
-        mDragger.removeFromRoot(second);
-        mDragger.connectAsChild(first.getOnlyValueInput().getConnection(),
-                second.getOutputConnection());
+        mDragger.reconnectViews(second.getOutputConnection(),
+                first.getOnlyValueInput().getConnection(), second, null);
 
         assertSame(first, second.getOutputConnection().getTargetBlock());
         assertSame(second, third.getOutputConnection().getTargetBlock());
@@ -144,9 +140,11 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceView);
 
         // no bump, no splice
-        mDragger.removeFromRoot(second);
-        // Connect "second" after "first".
-        mDragger.connectAfter(first, second);
+        mDragger.reconnectViews(second.getPreviousConnection(),
+                first.getNextConnection(), second, null);
+
+//        // Connect "second" after "first".
+
         assertSame(first, second.getPreviousBlock());
         assertSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
                 mWorkspaceHelper.getNearestParentBlockGroup(second));
@@ -154,9 +152,9 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceHelper.getRootBlockGroup(second));
 
         // splice, no bump
-        mDragger.removeFromRoot(third);
-        // Connect "third" after "first".
-        mDragger.connectAfter(first, third);
+        mDragger.reconnectViews(third.getPreviousConnection(),
+                first.getNextConnection(), third, null);
+//        // Connect "third" after "first".
 
         assertSame(first, third.getPreviousBlock());
         assertSame(third, second.getPreviousBlock());
@@ -172,9 +170,9 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceHelper.getRootBlockGroup(third));
 
         // bump, no splice
-        mDragger.removeFromRoot(fourth);
-        // Connect "fourth" after "first".  Since "fourth" has no next connection, bump.
-        mDragger.connectAfter(first, fourth);
+        mDragger.reconnectViews(fourth.getPreviousConnection(),
+                first.getNextConnection(), fourth, null);
+//        // Connect "fourth" after "first".  Since "fourth" has no next connection, bump.
 
         assertSame(first, fourth.getPreviousBlock());
         // Third has been returned to the workspace root.
@@ -206,9 +204,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceView);
 
         // No bump, no splice
-        mDragger.removeFromRoot(second);
-        mDragger.connectToStatement(first.getInputByName("statement input").getConnection(),
-                second);
+        mDragger.reconnectViews(second.getPreviousConnection(),
+                first.getInputByName("statement input").getConnection(), second, null);
 
         assertSame(first, second.getPreviousBlock());
         assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
@@ -217,9 +214,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceHelper.getRootBlockGroup(second));
 
         // Splice, no bump
-        mDragger.removeFromRoot(third);
-        mDragger.connectToStatement(first.getInputByName("statement input").getConnection(),
-                third);
+        mDragger.reconnectViews(third.getPreviousConnection(),
+                first.getInputByName("statement input").getConnection(), third, null);
 
         assertSame(first, third.getPreviousBlock());
         assertSame(third, second.getPreviousBlock());
@@ -235,9 +231,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mWorkspaceHelper.getRootBlockGroup(third));
 
         // Bump, no splice
-        mDragger.removeFromRoot(fourth);
-        mDragger.connectToStatement(first.getInputByName("statement input").getConnection(),
-                fourth);
+        mDragger.reconnectViews(fourth.getPreviousConnection(),
+                first.getInputByName("statement input").getConnection(), fourth, null);
 
         assertSame(first, fourth.getPreviousBlock());
         // Third has been returned to the workspace root.
