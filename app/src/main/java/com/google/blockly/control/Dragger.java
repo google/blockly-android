@@ -305,14 +305,16 @@ public class Dragger {
      * @param dragRoot The {@link Block} that is the root of the group of blocks being dragged
      * around.
      */
-    private void reconnectViews(Connection movingConnection, Connection target, Block dragRoot) {
+    @VisibleForTesting
+    void reconnectViews(Connection movingConnection, Connection target, Block dragRoot,
+                        BlockGroup dragGroup) {
         switch (movingConnection.getType()) {
             case Connection.CONNECTION_TYPE_OUTPUT:
-                removeFromRoot(dragRoot, mDragGroup);
+                removeFromRoot(dragRoot, dragGroup);
                 connectAsChild(target, movingConnection);
                 break;
             case Connection.CONNECTION_TYPE_PREVIOUS:
-                removeFromRoot(dragRoot, mDragGroup);
+                removeFromRoot(dragRoot, dragGroup);
                 if (target.isStatementInput()) {
                     connectToStatement(target, movingConnection.getBlock());
                 } else {
@@ -336,9 +338,12 @@ public class Dragger {
                 connectAsChild(movingConnection, target);
                 break;
             default:
-                return;
+                break;
         }
+    }
 
+    private void reconnectViews(Connection movingConnection, Connection target, Block dragRoot) {
+        reconnectViews(movingConnection, target, dragRoot, mDragGroup);
         // Update the drag group so that everything that has been changed will be properly
         // invalidated.
         mDragGroup = mWorkspaceHelper.getRootBlockGroup(target.getBlock());
@@ -353,8 +358,7 @@ public class Dragger {
      * connected to.  Must be on a statement input.
      * @param toConnect The {@link Block} to connect to the statement input.
      */
-    @VisibleForTesting
-    void connectToStatement(Connection parentStatementConnection, Block toConnect) {
+    private void connectToStatement(Connection parentStatementConnection, Block toConnect) {
         // If there was already a block connected there.
         if (parentStatementConnection.isConnected()) {
             Block remainderBlock = parentStatementConnection.getTargetBlock();
@@ -474,8 +478,7 @@ public class Dragger {
      *
      * @param block The {@link Block} to look up and remove.
      */
-     @VisibleForTesting
-     void removeFromRoot(Block block) {
+     private void removeFromRoot(Block block) {
         BlockGroup group = mWorkspaceHelper.getNearestParentBlockGroup(block);
         if (group.getParent() instanceof WorkspaceView) {
             // The block we are connecting to is a root block.
@@ -491,8 +494,12 @@ public class Dragger {
      * @param group The {@link BlockGroup} to remove.
      */
     private void removeFromRoot(Block block, BlockGroup group) {
-        mWorkspaceView.removeView(group);
-        mRootBlocks.remove(block);
+        if (group == null) {
+            removeFromRoot(block);
+        } else {
+            mWorkspaceView.removeView(group);
+            mRootBlocks.remove(block);
+        }
     }
 
     private void addToRoot(Block block, BlockGroup group) {

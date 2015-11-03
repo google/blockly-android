@@ -15,8 +15,6 @@
 
 package com.google.blockly.ui;
 
-import android.os.Handler;
-
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.TestUtils;
@@ -34,7 +32,6 @@ import java.util.List;
 public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
-    private Handler mMainHandler;
 
     @Mock
     ConnectionManager mockConnectionManager;
@@ -45,7 +42,6 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
 
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(mWorkspaceView, null);
-        mMainHandler = new Handler(getContext().getMainLooper());
     }
 
     // test getNearestParentBlockGroup
