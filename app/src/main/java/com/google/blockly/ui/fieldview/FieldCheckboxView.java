@@ -17,6 +17,7 @@ package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
@@ -41,6 +42,8 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
         setBackground(null);
         setChecked(mCheckboxField.isChecked());
         mCheckboxField.setView(this);
+
+        setOnCheckedChangeListener(new UpdateFieldListener());
     }
 
     @Override
@@ -60,5 +63,13 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
         return mWorkspaceParams;
+    }
+
+    /** Listener class to update state of {@link Field.FieldCheckbox} */
+    private class UpdateFieldListener implements OnCheckedChangeListener {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            mCheckboxField.setChecked(isChecked);
+        }
     }
 }
