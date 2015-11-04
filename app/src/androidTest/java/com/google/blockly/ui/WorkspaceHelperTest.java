@@ -72,7 +72,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mockConnectionManager,
                 mWorkspaceView);
 
-        assertEquals(mWorkspaceHelper.getNearestParentBlockGroup(root),
+        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(root),
                 mWorkspaceHelper.getNearestParentBlockGroup(cur));
 
         assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(blocks.get(0)),
@@ -107,10 +107,10 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mockConnectionManager,
                 mWorkspaceView);
 
-        assertEquals(mWorkspaceHelper.getRootBlockGroup(root),
+        assertSame(mWorkspaceHelper.getRootBlockGroup(root),
                 mWorkspaceHelper.getRootBlockGroup(cur));
 
-        assertEquals(mWorkspaceHelper.getRootBlockGroup(root),
+        assertSame(mWorkspaceHelper.getRootBlockGroup(root),
                 mWorkspaceHelper.getRootBlockGroup(finalBlock));
 
         assertNotSame(mWorkspaceHelper.getRootBlockGroup(blocks.get(0)),
