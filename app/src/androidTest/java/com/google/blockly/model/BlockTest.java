@@ -37,7 +37,7 @@ import java.util.List;
  * Tests for {@link Block}.
  */
 public class BlockTest extends AndroidTestCase {
-    XmlPullParserFactory factory = null;
+    private XmlPullParserFactory factory = null;
 
     public void testJson() {
         JSONObject blockJson;
@@ -59,7 +59,7 @@ public class BlockTest extends AndroidTestCase {
         String testMessage = "%%5 should have %1 %12 6 tokens %999 in the end";
         List<String> tokens = Block.tokenizeMessage(testMessage);
         List<String> expected = Arrays.asList(
-                new String[] {"%%5 should have", "%1", "%12", "6 tokens", "%999", "in the end"});
+                new String[]{"%%5 should have", "%1", "%12", "6 tokens", "%999", "in the end"});
         assertListsMatch(expected, tokens);
 
         testMessage = "This has no args %%5";
@@ -83,7 +83,7 @@ public class BlockTest extends AndroidTestCase {
 
         testMessage = "%Hello%1World%";
         tokens = Block.tokenizeMessage(testMessage);
-        expected = Arrays.asList(new String[] {"%Hello", "%1", "World%"});
+        expected = Arrays.asList(new String[]{"%Hello", "%1", "World%"});
         assertListsMatch(expected, tokens);
     }
 
@@ -125,7 +125,7 @@ public class BlockTest extends AndroidTestCase {
     public void testLoadFromXml() throws IOException, XmlPullParserException {
         // TODO: Move rest_blocks.json to the testapp's resources once
         // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
-        BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
 
         Block loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK, bf);
         assertEquals("frankenblock", loaded.getName());
@@ -290,6 +290,27 @@ public class BlockTest extends AndroidTestCase {
         assertEquals(13, allConnections.size());
     }
 
+    public void testGetOnlyValueInput() {
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
+        // No inputs.
+        assertNull(bf.obtainBlock("statement_no_input", "block id").getOnlyValueInput());
+
+        // One value input.
+        Block underTest = bf.obtainBlock("statement_value_input", "block id");
+        assertSame(underTest.getInputByName("value"), underTest.getOnlyValueInput());
+
+        // Statement input, no value inputs.
+        assertNull(bf.obtainBlock("statement_statement_input", "block id").getOnlyValueInput());
+
+        // Multiple value inputs.
+        assertNull(bf.obtainBlock("statement_multiple_value_input", "block id")
+                .getOnlyValueInput());
+
+        // Statement input, dummy input and value input.
+        underTest = bf.obtainBlock("controls_repeat_ext", "block id");
+        assertSame(underTest.getInputByName("TIMES"), underTest.getOnlyValueInput());
+    }
+
     private Block parseBlockFromXml(String testString, BlockFactory bf)
             throws IOException, XmlPullParserException {
         XmlPullParser parser = getXmlPullParser(testString, "block");
@@ -328,7 +349,7 @@ public class BlockTest extends AndroidTestCase {
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 if (eventType == XmlPullParser.START_TAG
                         && parser.getName().equalsIgnoreCase(returnFirstInstanceOf)) {
-                            return parser;
+                    return parser;
                 }
                 eventType = parser.next();
             }
