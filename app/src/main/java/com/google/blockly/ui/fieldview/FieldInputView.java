@@ -17,8 +17,12 @@ package com.google.blockly.ui.fieldview;
 
 import android.content.ClipDescription;
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.DragEvent;
+import android.view.KeyEvent;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
@@ -26,7 +30,7 @@ import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 
 /**
- * Renders editable text as part of a BlockView.
+ * Renders editable text as part of a {@link com.google.blockly.ui.InputView}.
  */
 public class FieldInputView extends EditText implements FieldView {
     private final Field.FieldInput mInput;
@@ -43,6 +47,21 @@ public class FieldInputView extends EditText implements FieldView {
         setBackground(null);
         setText(mInput.getText());
         mInput.setView(this);
+
+        addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mInput.setText(s.toString());
+            }
+        });
     }
 
     @Override

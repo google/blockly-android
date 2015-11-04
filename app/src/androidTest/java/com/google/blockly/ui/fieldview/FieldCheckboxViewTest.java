@@ -6,7 +6,7 @@ import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.WorkspaceHelper;
 
-import org.mockito.MockitoAnnotations.Mock;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link FieldCheckboxView}.
