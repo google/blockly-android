@@ -29,7 +29,7 @@ public class InputViewTest extends MockitoAndroidTestCase {
         final InputView inputView = makeDefaultInputView();
 
         // Verify Input and InputView are linked both ways.
-        assertEquals(mMockInput, inputView.getInput());
+        assertSame(mMockInput, inputView.getInput());
         Mockito.verify(mMockInput, Mockito.times(1)).setView(inputView);
     }
 
@@ -40,7 +40,7 @@ public class InputViewTest extends MockitoAndroidTestCase {
 
         final View mockView = Mockito.mock(View.class);
         inputView.setChildView(mockView);
-        assertEquals(mockView, inputView.getChildView());
+        assertSame(mockView, inputView.getChildView());
         assertEquals(1, inputView.getChildCount());
     }
 
@@ -51,11 +51,11 @@ public class InputViewTest extends MockitoAndroidTestCase {
         final View mockView = Mockito.mock(View.class);
         inputView.setChildView(mockView);
         inputView.unsetChildView();
-        assertEquals(null, inputView.getChildView());
+        assertNull(inputView.getChildView());
         assertEquals(0, inputView.getChildCount());
 
         inputView.setChildView(mockView);
-        assertEquals(mockView, inputView.getChildView());
+        assertSame(mockView, inputView.getChildView());
         assertEquals(1, inputView.getChildCount());
     }
 

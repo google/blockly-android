@@ -46,7 +46,7 @@ public class BlockViewTest extends MockitoAndroidTestCase {
         final BlockView blockView = makeBlockView(mMockBlock);
 
         // Verify Block and BlockView are linked both ways.
-        assertEquals(mMockBlock, blockView.getBlock());
+        assertSame(mMockBlock, blockView.getBlock());
         Mockito.verify(mMockBlock, Mockito.times(1)).setView(blockView);
     }
 
@@ -57,8 +57,8 @@ public class BlockViewTest extends MockitoAndroidTestCase {
         assertNotNull(block);
 
         final BlockView blockView = makeBlockView(block);
-        assertEquals(block, blockView.getBlock());
-        assertEquals(blockView, block.getView());
+        assertSame(block, blockView.getBlock());
+        assertSame(blockView, block.getView());
 
         // One InputView per Input?
         assertEquals(3, blockView.getInputViewCount());
@@ -67,9 +67,9 @@ public class BlockViewTest extends MockitoAndroidTestCase {
             // Each InputView points to an Input?
             assertNotNull(blockView.getInputView(inputIdx).getInput());
             // Each InputView points is a child of the BlockView?
-            assertEquals(blockView.getInputView(inputIdx), blockView.getChildAt(inputIdx));
+            assertSame(blockView.getInputView(inputIdx), blockView.getChildAt(inputIdx));
             // Each input view points to the correct Input?
-            assertEquals(block.getInputs().get(inputIdx),
+            assertSame(block.getInputs().get(inputIdx),
                     blockView.getInputView(inputIdx).getInput());
         }
     }
