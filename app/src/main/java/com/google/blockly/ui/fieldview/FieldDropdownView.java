@@ -16,6 +16,9 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
@@ -31,8 +34,7 @@ public class FieldDropdownView extends Spinner implements FieldView {
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mWorkspaceParams;
 
-    public FieldDropdownView(Context context, Field dropdownField,
-                             WorkspaceHelper helper) {
+    public FieldDropdownView(Context context, Field dropdownField, WorkspaceHelper helper) {
         super(context);
 
         mWorkspaceHelper = helper;
@@ -42,7 +44,15 @@ public class FieldDropdownView extends Spinner implements FieldView {
         setBackground(null);
         setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_item,
                 mDropdownField.getDisplayNames()));
-        dropdownField.setView(this);
+        mDropdownField.setView(this);
+
+        setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.d("FieldDropdownView", "onItemSelected" + position);
+                mDropdownField.setSelectedIndex(position);
+            }
+        });
     }
 
     @Override

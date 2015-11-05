@@ -796,6 +796,7 @@ public abstract class Field implements Cloneable {
                         "Index must be between 0 and the number of options - 1");
             }
             mCurrentSelection = index;
+            Log.d(TAG, "setSelectedIndex " + index + "->" + mCurrentSelection);
         }
 
         /**
