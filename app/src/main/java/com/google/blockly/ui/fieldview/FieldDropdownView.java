@@ -45,14 +45,12 @@ public class FieldDropdownView extends Spinner implements FieldView {
         setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_item,
                 mDropdownField.getDisplayNames()));
         mDropdownField.setView(this);
+    }
 
-        setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d("FieldDropdownView", "onItemSelected" + position);
-                mDropdownField.setSelectedIndex(position);
-            }
-        });
+    @Override
+    public void setSelection(int position) {
+        super.setSelection(position);
+        mDropdownField.setSelectedIndex(position);
     }
 
     @Override
