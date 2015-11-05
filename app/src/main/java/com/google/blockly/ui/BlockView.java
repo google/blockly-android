@@ -254,8 +254,13 @@ public class BlockView extends FrameLayout {
      * Update the position of the block in workspace coordinates based on the view's location.
      */
     private void updateBlockPosition() {
-        mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
-        mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
+        // Only update the block position if it isn't a top level block.
+        if (mBlock.getPreviousBlock() != null
+                || (mBlock.getOutputConnection() != null
+                && mBlock.getOutputConnection().getTargetBlock() != null)) {
+            mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
+            mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
+        }
     }
 
     /**

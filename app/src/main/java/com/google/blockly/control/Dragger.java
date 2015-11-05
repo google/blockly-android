@@ -548,10 +548,9 @@ public class Dragger {
                 - impingingConnection.getPosition().y;
         Block rootBlock = ((BlockView) impingingBlockGroup.getChildAt(0)).getBlock();
         rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
-        impingingBlockGroup.moveBy(mWorkspaceHelper.workspaceToVirtualViewUnits(dx),
-                mWorkspaceHelper.workspaceToVirtualViewUnits(dy));
         impingingBlockGroup.bringToFront();
         impingingBlockGroup.updateAllConnectorLocations();
+        mWorkspaceView.requestLayout();
     }
 
     /**
