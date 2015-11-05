@@ -31,8 +31,7 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mWorkspaceParams;
 
-    public FieldCheckboxView(Context context, Field checkboxField,
-                             WorkspaceHelper helper) {
+    public FieldCheckboxView(Context context, Field checkboxField, WorkspaceHelper helper) {
         super(context);
 
         mCheckboxField = (Field.FieldCheckbox) checkboxField;
@@ -43,7 +42,12 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
         setChecked(mCheckboxField.isChecked());
         mCheckboxField.setView(this);
 
-        setOnCheckedChangeListener(new UpdateFieldListener());
+        setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mCheckboxField.setChecked(isChecked);
+            }
+        });
     }
 
     @Override
@@ -63,13 +67,5 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
         return mWorkspaceParams;
-    }
-
-    /** Listener class to update state of {@link Field.FieldCheckbox} */
-    private class UpdateFieldListener implements OnCheckedChangeListener {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            mCheckboxField.setChecked(isChecked);
-        }
     }
 }

@@ -34,7 +34,7 @@ public class FieldColourViewTest extends ActivityInstrumentationTestCase2<MainAc
     private MainActivity mActivity;
 
     @Mock
-    WorkspaceHelper mMockWorkspaceHelper;
+    private WorkspaceHelper mMockWorkspaceHelper;
 
     public FieldColourViewTest() {
         super(MainActivity.class);
@@ -83,10 +83,35 @@ public class FieldColourViewTest extends ActivityInstrumentationTestCase2<MainAc
                         0f /* x */, 0f /* y */, 0 /* metaState */));
 
         // Verify both field and field view background have been set to correct color.
-        assertEquals(0xffffff, mFieldColour.getColour());  // setColour() masks out alpha.
-        assertEquals(0xffffffff, ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+        final int expectedColour = 0xffffff;
+        assertEquals(expectedColour, mFieldColour.getColour());  // setColour() masks out alpha.
+        assertEquals(FieldColourView.ALPHA_OPAQUE | expectedColour,
+                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
 
         // Popup window should have disappeared.
         assertFalse(popupWindow.isShowing());
+    }
+
+    // Verify that changing colour in the field updates the UI.
+    public void testFieldUpdatesView() {
+        mFieldColour.setColour(0);
+        assertEquals(FieldColourView.ALPHA_OPAQUE,
+                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+
+        mFieldColour.setColour(Color.RED);
+        assertEquals(FieldColourView.ALPHA_OPAQUE | Color.RED,
+                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+
+        mFieldColour.setColour(Color.GREEN);
+        assertEquals(FieldColourView.ALPHA_OPAQUE | Color.GREEN,
+                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+
+        mFieldColour.setColour(Color.BLUE);
+        assertEquals(FieldColourView.ALPHA_OPAQUE | Color.BLUE,
+                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+
+        mFieldColour.setColour(Color.WHITE);
+        assertEquals(FieldColourView.ALPHA_OPAQUE | Color.WHITE,
+                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
     }
 }

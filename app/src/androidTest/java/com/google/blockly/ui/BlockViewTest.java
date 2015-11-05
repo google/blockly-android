@@ -20,16 +20,16 @@ import org.mockito.Mockito;
 public class BlockViewTest extends MockitoAndroidTestCase {
 
     @Mock
-    ConnectionManager mMockConnectionManager;
+    private ConnectionManager mMockConnectionManager;
 
     @Mock
-    WorkspaceHelper mMockWorkspaceHelper;
+    private WorkspaceHelper mMockWorkspaceHelper;
 
     @Mock
-    Block mMockBlock;
+    private Block mMockBlock;
 
     @Mock
-    BlockGroup mMockBlockGroup;
+    private BlockGroup mMockBlockGroup;
 
     private BlockFactory mBlockFactory;
 

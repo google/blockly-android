@@ -19,10 +19,10 @@ import org.mockito.MockitoAnnotations;
 public class InputViewTest extends MockitoAndroidTestCase {
 
     @Mock
-    Input mMockInput;
+    private Input mMockInput;
 
     @Mock
-    WorkspaceHelper mMockWorkspaceHelper;
+    private WorkspaceHelper mMockWorkspaceHelper;
 
     // Verify correct object state after construction.
     public void testConstructor() {

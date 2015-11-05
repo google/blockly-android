@@ -97,7 +97,7 @@ public class BlockCopyBufferTest extends AndroidTestCase {
         nextBlock.setPosition(100, 1000);
         block.getNextConnection().connect(nextBlock.getPreviousConnection());
 
-        nextBlock.getFieldByName("text_input").setFromXmlText("expected_text");
+        nextBlock.getFieldByName("text_input").setFromString("expected_text");
 
         inputList.add(block);
         inputList.add(nextBlock);

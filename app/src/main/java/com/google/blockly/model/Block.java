@@ -694,7 +694,7 @@ public class Block {
                     } else if (tagname.equalsIgnoreCase("field")) {
                         Field toSet = resultBlock.getFieldByName(fieldName);
                         if (toSet != null) {
-                            if (!toSet.setFromXmlText(text)) {
+                            if (!toSet.setFromString(text)) {
                                 throw new BlocklyParserException(
                                         "Failed to set a field's value from XML.");
                             }

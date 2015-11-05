@@ -1,5 +1,6 @@
 package com.google.blockly.ui.fieldview;
 
+import android.support.annotation.NonNull;
 import android.test.AndroidTestCase;
 
 import com.google.blockly.MockitoAndroidTestCase;
@@ -28,15 +29,13 @@ public class FieldCheckboxViewTest extends MockitoAndroidTestCase {
 
     // Verify object instantiation.
     public void testInstantiation() {
-        final FieldCheckboxView view =
-                new FieldCheckboxView(getContext(), mFieldCheckbox, mMockWorkspaceHelper);
+        final FieldCheckboxView view = makeFieldCheckboxView();
         assertSame(view, mFieldCheckbox.getView());
     }
 
     // Verify field object gets updated when view is checked/unchecked.
-    public void testFieldUpdates() {
-        final FieldCheckboxView view =
-                new FieldCheckboxView(getContext(), mFieldCheckbox, mMockWorkspaceHelper);
+    public void testFieldUpdatesFromView() {
+        final FieldCheckboxView view = makeFieldCheckboxView();
         assertFalse(mFieldCheckbox.isChecked());
         assertEquals(mFieldCheckbox.isChecked(), view.isChecked());
 
@@ -45,5 +44,25 @@ public class FieldCheckboxViewTest extends MockitoAndroidTestCase {
 
         view.performClick();
         assertFalse(mFieldCheckbox.isChecked());
+    }
+
+    // Verify that view gets updated if field changes.
+    public void testViewUpdatesFromField() {
+        final FieldCheckboxView view = makeFieldCheckboxView();
+        assertEquals(mFieldCheckbox.isChecked(), view.isChecked());
+
+        mFieldCheckbox.setChecked(true);
+        assertTrue(view.isChecked());
+
+        mFieldCheckbox.setChecked(false);
+        assertFalse(view.isChecked());
+
+        mFieldCheckbox.setChecked(false);
+        assertFalse(view.isChecked());
+    }
+
+    @NonNull
+    private FieldCheckboxView makeFieldCheckboxView() {
+        return new FieldCheckboxView(getContext(), mFieldCheckbox, mMockWorkspaceHelper);
     }
 }
