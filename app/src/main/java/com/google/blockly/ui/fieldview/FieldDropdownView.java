@@ -31,8 +31,7 @@ public class FieldDropdownView extends Spinner implements FieldView {
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mWorkspaceParams;
 
-    public FieldDropdownView(Context context, Field dropdownField,
-                             WorkspaceHelper helper) {
+    public FieldDropdownView(Context context, Field dropdownField, WorkspaceHelper helper) {
         super(context);
 
         mWorkspaceHelper = helper;
@@ -42,7 +41,15 @@ public class FieldDropdownView extends Spinner implements FieldView {
         setBackground(null);
         setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_item,
                 mDropdownField.getDisplayNames()));
-        dropdownField.setView(this);
+        mDropdownField.setView(this);
+    }
+
+    // There is no suitable listener interface to be notified of changes to spinner selection.
+    // Override setter method instead to keep field updated.
+    @Override
+    public void setSelection(int position) {
+        super.setSelection(position);
+        mDropdownField.setSelectedIndex(position);
     }
 
     @Override

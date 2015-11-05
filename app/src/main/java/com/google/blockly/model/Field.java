@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.ui.FieldWorkspaceParams;
+import com.google.blockly.ui.fieldview.FieldDropdownView;
 import com.google.blockly.ui.fieldview.FieldView;
 
 import org.json.JSONArray;
@@ -64,7 +65,7 @@ public abstract class Field implements Cloneable {
     private static final String TYPE_IMAGE_STRING = "field_image";
     private final String mName;
     private final int mType;
-    private FieldView mView;
+    protected FieldView mView;
     private FieldWorkspaceParams mLayoutParams;
 
     public Field(String name, @FieldType int type) {
@@ -755,18 +756,18 @@ public abstract class Field implements Cloneable {
             if (mOptions.size() == 0) {
                 mCurrentSelection = -1;
             } else if (TextUtils.isEmpty(value)) {
-                mCurrentSelection = 0;
+                setSelectedIndex(0);
             } else {
                 boolean found = false;
                 for (int i = 0; i < mOptions.size(); i++) {
                     if (TextUtils.equals(value, mOptions.valueAt(i))) {
-                        mCurrentSelection = i;
+                        setSelectedIndex(i);
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    mCurrentSelection = 0;
+                    setSelectedIndex(0);
                 }
             }
         }
@@ -795,7 +796,15 @@ public abstract class Field implements Cloneable {
                 throw new IllegalArgumentException(
                         "Index must be between 0 and the number of options - 1");
             }
-            mCurrentSelection = index;
+
+            // If value selected index has changed, update current selection and (if it exists) let
+            // the FieldDropdownView know.
+            if (mCurrentSelection != index) {
+                mCurrentSelection = index;
+                if (mView != null) {
+                    ((FieldDropdownView) mView).setSelection(mCurrentSelection);
+                }
+            }
         }
 
         /**
