@@ -26,7 +26,7 @@ public class FieldInputViewTest extends MockitoAndroidTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
-        mFieldInput = new Field.FieldInput("FieldCheckbox", INIT_TEXT_VALUE);
+        mFieldInput = new Field.FieldInput("FieldInput", INIT_TEXT_VALUE);
         assertNotNull(mFieldInput);
     }
 
