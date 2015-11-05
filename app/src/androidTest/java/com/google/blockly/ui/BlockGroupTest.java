@@ -32,15 +32,16 @@ import java.util.ArrayList;
 public class BlockGroupTest extends MockitoAndroidTestCase {
     @Mock
     ConnectionManager mConnectionManager;
+    @Mock
+    private WorkspaceView mWorkspaceView;
+
     private BlockFactory mBlockFactory;
     private WorkspaceHelper mWorkspaceHelper;
-    private WorkspaceView mWorkspaceView;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        mWorkspaceView = new WorkspaceView(getContext());
-        mWorkspaceHelper = new WorkspaceHelper(mWorkspaceView, null);
+        mWorkspaceHelper = new WorkspaceHelper(getContext(), null);
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
     }
 
@@ -98,8 +99,6 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
 
         BlockGroup rootBlockGroup = (BlockGroup) first.getView().getParent();
         assertNull(rootBlockGroup.getLastInputConnection());
-
-        // Branch at middle.
     }
 
     public void testGetLastInputConnectionNoInput() {

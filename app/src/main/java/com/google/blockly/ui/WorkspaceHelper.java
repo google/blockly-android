@@ -68,6 +68,7 @@ public class WorkspaceHelper {
     private final ViewPoint mVirtualWorkspaceViewOffset = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final int[] mTempIntArray2 = new int[2];
+    private final Context mContext;
     private WorkspaceView mWorkspaceView;
     private float mDensity;
     private boolean mRtL;
@@ -117,15 +118,16 @@ public class WorkspaceHelper {
      * @param workspaceStyle The style to use for views.
      */
     public WorkspaceHelper(Context context, AttributeSet attrs, int workspaceStyle) {
-        Resources res = context.getResources();
+        mContext = context;
+        Resources res = mContext.getResources();
         mDensity = res.getDisplayMetrics().density;
         if (mDensity == 0) {
             Log.e(TAG, "Density is not defined for this context. Defaulting to 1.");
             mDensity = 1f;
         }
 
-        initConfig(context, attrs, workspaceStyle);
-        updateRtL(context);
+        initConfig(mContext, attrs, workspaceStyle);
+        updateRtL(mContext);
     }
 
     /**
@@ -222,8 +224,8 @@ public class WorkspaceHelper {
      */
     public BlockView obtainBlockView(
             Block block, BlockGroup parentGroup, ConnectionManager connectionManager) {
-        return new BlockView(mWorkspaceView.getContext(),
-                getBlockStyle(), block, this, parentGroup, connectionManager);
+        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup,
+                connectionManager);
     }
 
     /**
