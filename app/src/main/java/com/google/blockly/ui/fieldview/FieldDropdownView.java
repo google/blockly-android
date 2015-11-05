@@ -47,6 +47,8 @@ public class FieldDropdownView extends Spinner implements FieldView {
         mDropdownField.setView(this);
     }
 
+    // There is no suitable listener interface to be notified of changes to spinner selection.
+    // Override setter method instead to keep field updated.
     @Override
     public void setSelection(int position) {
         super.setSelection(position);
