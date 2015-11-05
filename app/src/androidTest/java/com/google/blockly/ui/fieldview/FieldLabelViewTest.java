@@ -1,7 +1,5 @@
 package com.google.blockly.ui.fieldview;
 
-import android.support.annotation.NonNull;
-
 import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.WorkspaceHelper;
