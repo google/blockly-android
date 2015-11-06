@@ -838,7 +838,8 @@ public class BlockView extends FrameLayout {
      * {@link BlockView} and the position of the {@link BlockView} itself.  Can be used when the
      * block has moved but not changed shape (e.g. during a drag).
      */
-    void updateConnectorLocations() {
+    @VisibleForTesting
+    public void updateConnectorLocations() {
         // Ensure we have the right block location before we update the connections.
         updateBlockPosition();
 

@@ -15,11 +15,14 @@
 
 package com.google.blockly.control;
 
+import android.view.DragEvent;
+
 import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.R;
 import com.google.blockly.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 
@@ -27,12 +30,17 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 
+import static org.mockito.Mockito.when;
+
 /**
  * Tests for the {@link Dragger}.
  */
 public class DraggerTest extends MockitoAndroidTestCase {
+    private ConnectionManager mConnectionManager;
+
     @Mock
-    ConnectionManager mConnectionManager;
+    private DragEvent mDragEvent;
+
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private Dragger mDragger;
@@ -46,6 +54,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());
+        mConnectionManager = new ConnectionManager();
         mWorkspaceHelper = new WorkspaceHelper(mWorkspaceView, null);
         mDragger = new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mBlocks);
     }
@@ -344,5 +353,84 @@ public class DraggerTest extends MockitoAndroidTestCase {
         // At workspace root.
         assertSame(mWorkspaceHelper.getRootBlockGroup(third),
                 mWorkspaceHelper.getRootBlockGroup(second));
+    }
+
+    /* This set of tests covers the full sequence of dragging operations.
+     * Because we're skipping layout, the connector locations will never be exactly perfect.
+     * Calling updateConnectorLocations puts all of the connections on a block at the
+     * workspace position of that block.
+     */
+
+    // Drag together two compatible blocks.
+    public void testDragConnect() {
+        // Setup
+        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
+        Block second = mBlockFactory.obtainBlock("output_no_input", "second block");
+        setupDrag(first, second);
+        dragBlockToTarget(first, second);
+
+        assertEquals(1, mBlocks.size());
+        assertEquals(1, mWorkspaceView.getChildCount());
+        assertSame(first.getInputByName("value").getConnection().getTargetConnection(),
+                second.getOutputConnection());
+    }
+
+    // Drag together two incompatible blocks.
+    public void testDragNoConnect() {
+        // Setup
+        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
+        Block second = mBlockFactory.obtainBlock("statement_no_next", "second block");
+        setupDrag(first, second);
+        dragBlockToTarget(first, second);
+
+        assertEquals(2, mBlocks.size());
+        assertEquals(2, mWorkspaceView.getChildCount());
+        assertFalse(first.getInputByName("value").getConnection().isConnected());
+        assertFalse(second.getPreviousConnection().isConnected());
+        assertFalse(first.getOutputConnection().isConnected());
+    }
+
+    private void setupDrag(Block first, Block second) {
+        // Set the blocks to not be in the same place.
+        first.setPosition(100, 100);
+        second.setPosition(0, 50);
+        mBlocks.add(first);
+        mBlocks.add(second);
+        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
+                mWorkspaceView);
+
+        // Layout never happens during this test, so we're forcing the connection locations
+        // to be set from the block positions before we try to use them.
+        first.getView().updateConnectorLocations();
+        second.getView().updateConnectorLocations();
+    }
+
+    /**
+     * Drag a block to sit directly on top of another block.
+     *
+     * @param toDrag The {@link Block} to move.
+     * @param stationary The {@link Block} to move to.
+     */
+    private void dragBlockToTarget(Block toDrag, Block stationary) {
+        BlockView bv = toDrag.getView();
+        int startX = mWorkspaceHelper.workspaceToVirtualViewUnits(toDrag.getPosition().x);
+        int startY = mWorkspaceHelper.workspaceToVirtualViewUnits(toDrag.getPosition().y);
+        mDragger.startDragging(bv, startX, startY);
+
+        // Pretend to be the last DragEvent that registers, which should be right by the
+        // stationary block.
+        // getX() returns float, even though we'll cast back to int immediately.
+        when(mDragEvent.getX()).thenReturn(
+                (float) mWorkspaceHelper.workspaceToVirtualViewUnits(stationary.getPosition().x));
+        when(mDragEvent.getY()).thenReturn(
+                (float) mWorkspaceHelper.workspaceToVirtualViewUnits(stationary.getPosition().y));
+
+        mDragger.continueDragging(mDragEvent);
+
+        // Force the connector locations to update before the call to finishDragging().
+        toDrag.getView().updateConnectorLocations();
+        stationary.getView().updateConnectorLocations();
+
+        mDragger.finishDragging();
     }
 }
