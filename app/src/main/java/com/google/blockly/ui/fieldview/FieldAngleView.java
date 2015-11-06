@@ -16,6 +16,8 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
@@ -30,8 +32,7 @@ public class FieldAngleView extends TextView implements FieldView {
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mWorkspaceParams;
 
-    public FieldAngleView(Context context, Field angleField,
-                          WorkspaceHelper helper) {
+    public FieldAngleView(Context context, Field angleField, WorkspaceHelper helper) {
         super(context);
 
         mAngleField = (Field.FieldAngle) angleField;
@@ -41,6 +42,21 @@ public class FieldAngleView extends TextView implements FieldView {
         setBackground(null);
         setText(Integer.toString(mAngleField.getAngle()));
         angleField.setView(this);
+
+        addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mAngleField.setFromString(s.toString());
+            }
+        });
     }
 
     @Override

@@ -20,9 +20,6 @@ public class FieldTest extends AndroidTestCase {
         assertEquals("name", field.getName());
         assertEquals("", field.getText());
 
-        // xml parsing
-        assertFalse(field.setFromXmlText("text"));
-
         assertNotSame(field, field.clone());
     }
 
@@ -36,7 +33,7 @@ public class FieldTest extends AndroidTestCase {
         assertEquals("new text", field.getText());
 
         // xml parsing
-        assertTrue(field.setFromXmlText("newest text"));
+        assertTrue(field.setFromString("newest text"));
         assertEquals("newest text", field.getText());
 
         assertNotSame(field, field.clone());
@@ -72,11 +69,11 @@ public class FieldTest extends AndroidTestCase {
         assertEquals(79, field.getAngle());
 
         // xml parsing
-        assertTrue(field.setFromXmlText("-180"));
+        assertTrue(field.setFromString("-180"));
         assertEquals(180, field.getAngle());
-        assertTrue(field.setFromXmlText("27"));
+        assertTrue(field.setFromString("27"));
         assertEquals(27, field.getAngle());
-        assertFalse(field.setFromXmlText("this is not a number"));
+        assertFalse(field.setFromString("this is not a number"));
 
         assertNotSame(field, field.clone());
     }
@@ -94,21 +91,21 @@ public class FieldTest extends AndroidTestCase {
         field.setChecked(true);
         assertEquals(true, field.isChecked());
 
-        assertTrue(field.setFromXmlText("false"));
+        assertTrue(field.setFromString("false"));
         assertFalse(field.isChecked());
 
-        assertTrue(field.setFromXmlText("true"));
-        assertTrue(field.setFromXmlText("TRUE"));
-        assertTrue(field.setFromXmlText("True"));
+        assertTrue(field.setFromString("true"));
+        assertTrue(field.setFromString("TRUE"));
+        assertTrue(field.setFromString("True"));
         assertTrue(field.isChecked());
 
         // xml parsing
         // Boolean.parseBoolean checks the lowercased value against "true" and returns false
         // otherwise.
-        assertTrue(field.setFromXmlText("This is not a boolean"));
+        assertTrue(field.setFromString("This is not a boolean"));
         assertFalse(field.isChecked());
         field.setChecked(true);
-        assertTrue(field.setFromXmlText("t"));
+        assertTrue(field.setFromString("t"));
         assertFalse(field.isChecked());
 
         assertNotSame(field, field.clone());
@@ -128,16 +125,16 @@ public class FieldTest extends AndroidTestCase {
         assertEquals(0xb0bb1e, field.getColour());
 
         // xml parsing
-        assertTrue(field.setFromXmlText("#ffcc66"));
+        assertTrue(field.setFromString("#ffcc66"));
         assertEquals(0xffcc66, field.getColour());
-        assertTrue(field.setFromXmlText("#00cc66"));
+        assertTrue(field.setFromString("#00cc66"));
         assertEquals(0x00cc66, field.getColour());
-        assertTrue(field.setFromXmlText("#1000cc66"));
+        assertTrue(field.setFromString("#1000cc66"));
         assertEquals(0x00cc66, field.getColour());
-        assertFalse(field.setFromXmlText("This is not a color"));
+        assertFalse(field.setFromString("This is not a color"));
         // Color does not change
         assertEquals(0x00cc66, field.getColour());
-        assertFalse(field.setFromXmlText("#fc6"));
+        assertFalse(field.setFromString("#fc6"));
         // Color does not change
         assertEquals(0x00cc66, field.getColour());
 
@@ -157,13 +154,13 @@ public class FieldTest extends AndroidTestCase {
         field.setTime(date.getTime());
         assertEquals(date, field.getDate());
 
-        assertTrue(field.setFromXmlText("2017-03-03"));
+        assertTrue(field.setFromString("2017-03-03"));
         assertEquals("2017-03-03", field.getDateString());
 
         // xml parsing
-        assertFalse(field.setFromXmlText("today"));
-        assertFalse(field.setFromXmlText("2017/03/03"));
-        assertFalse(field.setFromXmlText(""));
+        assertFalse(field.setFromString("today"));
+        assertFalse(field.setFromString("2017/03/03"));
+        assertFalse(field.setFromString(""));
 
         Field.FieldDate clone = field.clone();
         assertNotSame(field, clone);
@@ -180,9 +177,9 @@ public class FieldTest extends AndroidTestCase {
         assertEquals("newVar", field.getVariable());
 
         // xml parsing
-        assertTrue(field.setFromXmlText("newestVar"));
+        assertTrue(field.setFromString("newestVar"));
         assertEquals("newestVar", field.getVariable());
-        assertFalse(field.setFromXmlText(""));
+        assertFalse(field.setFromString(""));
 
         assertNotSame(field, field.clone());
     }
@@ -233,13 +230,13 @@ public class FieldTest extends AndroidTestCase {
         assertEquals(values[2], field.getSelectedValue());
 
         // xml parsing
-        assertTrue(field.setFromXmlText(values[1]));
+        assertTrue(field.setFromString(values[1]));
         assertEquals(1, field.getSelectedIndex());
         assertEquals(displayNames[1], field.getSelectedDisplayName());
         assertEquals(values[1], field.getSelectedValue());
 
         // xml parsing; setting a non-existent value defaults to 0
-        assertTrue(field.setFromXmlText(""));
+        assertTrue(field.setFromString(""));
         assertEquals(0, field.getSelectedIndex());
         assertEquals(displayNames[0], field.getSelectedDisplayName());
         assertEquals(values[0], field.getSelectedValue());
@@ -282,9 +279,6 @@ public class FieldTest extends AndroidTestCase {
         assertEquals(15, field.getWidth());
         assertEquals(21, field.getHeight());
         assertEquals("altText", field.getAltText());
-
-        // xml parsing
-        assertFalse(field.setFromXmlText("any text"));
 
         assertNotSame(field, field.clone());
     }

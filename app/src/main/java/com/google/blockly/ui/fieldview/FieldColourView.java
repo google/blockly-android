@@ -34,7 +34,6 @@ import com.google.blockly.ui.WorkspaceHelper;
  * Renders a color field and picker as part of a BlockView.
  */
 public class FieldColourView extends View implements FieldView {
-    private static final int ALPHA_OPAQUE = 0xFF000000;
     private static final int MIN_SIZE = 75;
 
     private final Field.FieldColour mColourField;
@@ -43,6 +42,9 @@ public class FieldColourView extends View implements FieldView {
 
     private AutoPositionPopupWindow mColourPopupWindow;
     private ColourPaletteView mColourPaletteView;
+
+    @VisibleForTesting
+    static final int ALPHA_OPAQUE = 0xFF000000;
 
     public FieldColourView(Context context, Field colourField, WorkspaceHelper helper) {
         super(context);
@@ -60,6 +62,12 @@ public class FieldColourView extends View implements FieldView {
                 openColourPickerPopupWindow();
             }
         });
+    }
+
+    /** Set colour represented by this view. */
+    public void setColour(int colour) {
+        setBackgroundColor(ALPHA_OPAQUE | colour);
+        mColourField.setColour(colour);
     }
 
     @Override

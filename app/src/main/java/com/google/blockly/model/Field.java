@@ -22,7 +22,10 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.ui.FieldWorkspaceParams;
+import com.google.blockly.ui.fieldview.FieldCheckboxView;
+import com.google.blockly.ui.fieldview.FieldColourView;
 import com.google.blockly.ui.fieldview.FieldDropdownView;
+import com.google.blockly.ui.fieldview.FieldInputView;
 import com.google.blockly.ui.fieldview.FieldView;
 
 import org.json.JSONArray;
@@ -139,16 +142,19 @@ public abstract class Field implements Cloneable {
     }
 
     /**
-     * Sets the values of the field when loading a workspace from XML.
+     * Sets the values of the field from a string.
+     * <p/>
+     * This is used for setting values of all types of fields when loading a workspace from XML. It
+     * is also used, however, as the primary means of setting text fields (e.g., inputs, labels,
+     * dates).
+     * <p/>
      * There should be a concrete implementation for each field type.
      *
      * @param text The text value for this field from the XML.
      *
      * @return True if the value was set, false otherwise.
      */
-    public boolean setFromXmlText(String text) {
-        return false;
-    }
+    public abstract boolean setFromString(String text);
 
     /**
      * Checks if the given type name is a known field type.
@@ -264,8 +270,7 @@ public abstract class Field implements Cloneable {
      *
      * @throws IOException
      */
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-    }
+    protected abstract void serializeInner(XmlSerializer serializer) throws IOException;
 
     @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR,
             TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE})
@@ -299,6 +304,17 @@ public abstract class Field implements Cloneable {
         public String getText() {
             return mText;
         }
+
+        @Override
+        public boolean setFromString(String text) {
+            throw new IllegalStateException("Label field text cannot be set after construction.");
+        }
+
+        @Override
+        protected void serializeInner(XmlSerializer serializer) throws IOException {
+            // Nothing to do.
+        }
+
     }
 
     /**
@@ -323,7 +339,7 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
-        public boolean setFromXmlText(String text) {
+        public boolean setFromString(String text) {
             setText(text);
             return true;
         }
@@ -341,7 +357,12 @@ public abstract class Field implements Cloneable {
          * @param text The text to replace the contents with.
          */
         public void setText(String text) {
-            mText = text;
+            if (!mText.equals(text)) {
+                mText = text;
+                if (mView != null) {
+                    ((FieldInputView) mView).setText(mText);
+                }
+            }
         }
 
         @Override
@@ -371,7 +392,7 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
-        public boolean setFromXmlText(String text) {
+        public boolean setFromString(String text) {
             try {
                 setAngle(Integer.parseInt(text));
             } catch (NumberFormatException e) {
@@ -432,7 +453,7 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
-        public boolean setFromXmlText(String text) {
+        public boolean setFromString(String text) {
             mChecked = Boolean.parseBoolean(text);
             return true;
         }
@@ -448,7 +469,12 @@ public abstract class Field implements Cloneable {
          * Sets the state of the checkbox.
          */
         public void setChecked(boolean checked) {
-            mChecked = checked;
+            if (mChecked != checked) {
+                mChecked = checked;
+                if (mView != null) {
+                    ((FieldCheckboxView) mView).setChecked(mChecked);
+                }
+            }
         }
 
         @Override
@@ -488,7 +514,7 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
-        public boolean setFromXmlText(String text) {
+        public boolean setFromString(String text) {
             try {
                 setColour(Color.parseColor(text));
             } catch (IllegalArgumentException e) {
@@ -510,7 +536,13 @@ public abstract class Field implements Cloneable {
          * @param colour A colour in the form 0xRRGGBB
          */
         public void setColour(int colour) {
-            mColour = 0xFFFFFF & colour;
+            final int newColor = 0xFFFFFF & colour;
+            if (mColour != newColor) {
+                mColour = newColor;
+                if (mView != null) {
+                    ((FieldColourView) mView).setColour(mColour);
+                }
+            }
         }
 
         @Override
@@ -558,7 +590,7 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
-        public boolean setFromXmlText(String text) {
+        public boolean setFromString(String text) {
             Date date = null;
             try {
                 date = DATE_FORMAT.parse(text);
@@ -630,7 +662,7 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
-        public boolean setFromXmlText(String text) {
+        public boolean setFromString(String text) {
             if (TextUtils.isEmpty(text)) {
                 return false;
             }
@@ -714,7 +746,7 @@ public abstract class Field implements Cloneable {
         }
 
         @Override
-        public boolean setFromXmlText(String text) {
+        public boolean setFromString(String text) {
             setSelectedValue(text);
             return true;
         }
@@ -930,6 +962,16 @@ public abstract class Field implements Cloneable {
             mSrc = src;
             mWidth = width;
             mHeight = height;
+        }
+
+        @Override
+        public boolean setFromString(String text) {
+            throw new IllegalStateException("Image field cannot be set from string.");
+        }
+
+        @Override
+        protected void serializeInner(XmlSerializer xmlSerializer) {
+            // Something to do here?
         }
     }
 }

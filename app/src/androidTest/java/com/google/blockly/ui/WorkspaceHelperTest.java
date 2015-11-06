@@ -34,7 +34,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     private WorkspaceView mWorkspaceView;
 
     @Mock
-    ConnectionManager mockConnectionManager;
+    private ConnectionManager mockConnectionManager;
 
     @Override
     public void setUp() throws Exception {

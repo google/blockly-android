@@ -44,15 +44,15 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         mMockProcedureManager = mock(ProcedureManager.class);
         mFieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         Field field = new Field.FieldInput("name", "nameid");
-        field.setFromXmlText("new procedure");
+        field.setFromString("new procedure");
         mFieldInput.add(field);
 
         mVariableFieldsInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         field = new Field.FieldVariable("field name", "nameid");
-        field.setFromXmlText("variable name");
+        field.setFromString("variable name");
         mVariableFieldsInput.add(field);
         field = new Field.FieldVariable("field name 2", "nameid2");
-        field.setFromXmlText("variable name");
+        field.setFromString("variable name");
         mVariableFieldsInput.add(field);
 
         mConnectionManager = new ConnectionManager();
@@ -114,7 +114,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
 
         Input in = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         Field field = new Field.FieldVariable("third block field name", "nameid");
-        field.setFromXmlText("third block variable name");
+        field.setFromString("third block variable name");
         in.add(field);
         blockBuilder.addInput(in);
         blockBuilder.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
