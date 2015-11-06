@@ -214,4 +214,23 @@ public final class MockBlocksProvider {
             workspace.addRootBlock(testRootBlocks.get(i));
         }
     }
+
+    /**
+     * Add many complex blocks to the workspace, with each connected to a statement input of the
+     * one above, to test our ability to render large blocks and to drag block groups with many
+     * connections.
+     *
+     * @param numBlocks How many blocks to add.
+     * @param workspace The workspace to add blocks to.
+     */
+    public static void spaghettiManyConnections(int numBlocks, Workspace workspace) {
+        Block rootBlock = makeDummyBlock();
+        Block prev = rootBlock;
+        for (int i = 0; i < numBlocks; i++) {
+            Block next = makeDummyBlock();
+            next.getPreviousConnection().connect(prev.getInputByName("input6").getConnection());
+            prev = next;
+        }
+        workspace.addRootBlock(rootBlock);
+    }
 }
