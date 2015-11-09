@@ -51,7 +51,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         final ImageButton resetViewButton =
                 (ImageButton) mActivity.findViewById(R.id.reset_view_button);
 
-        assertEquals(1.0, virtualWorkspaceView.getViewScale(), 1e-5);
+        assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -64,7 +64,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             @Override
             public void run() {
                 zoomOutButton.performClick();
-                assertEquals(1.0, virtualWorkspaceView.getViewScale(), 1e-5);
+                assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
             }
         });
 
@@ -80,7 +80,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             @Override
             public void run() {
                 resetViewButton.performClick();
-                assertEquals(1.0, virtualWorkspaceView.getViewScale(), 1e-5);
+                assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
             }
         });
     }
