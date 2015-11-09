@@ -68,7 +68,6 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             }
         });
 
-        assertEquals(1.0, virtualWorkspaceView.getViewScale(), 1e-5);
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
