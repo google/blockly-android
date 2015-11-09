@@ -3,7 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Blockly.iml" filepath="$PROJECT_DIR$/Blockly.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/blocklydemo/blocklydemo.iml" filepath="$PROJECT_DIR$/blocklydemo/blocklydemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/blocklylib/blocklylib.iml" filepath="$PROJECT_DIR$/blocklylib/blocklylib.iml" />
     </modules>
   </component>
 </project>
