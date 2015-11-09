@@ -130,6 +130,14 @@ public class VirtualWorkspaceView extends ViewGroup {
         }
     }
 
+    /**
+     * @return The current view scale factor. Larger than 1.0 means zoomed in, smaller than 1.0
+     * means zoomed out.
+     */
+    public float getViewScale() {
+        return mViewScale;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         final int action = MotionEventCompat.getActionMasked(event);

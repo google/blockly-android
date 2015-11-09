@@ -3,11 +3,13 @@ package com.google.blockly.ui;
 import android.app.Instrumentation;
 import android.content.pm.ActivityInfo;
 import android.test.ActivityInstrumentationTestCase2;
+import android.widget.ImageButton;
 
 import com.google.blockly.MainActivity;
+import com.google.blockly.R;
 
 /**
- * Test {@link MainActivity} lifecycle events.
+ * Test {@link MainActivity} lifecycle events and global view operations.
  */
 public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActivity> {
     private MainActivity mActivity;
@@ -37,5 +39,50 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         mInstrumentation.waitForIdleSync();
         mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
         mInstrumentation.waitForIdleSync();
+    }
+
+    // Test zooming into workspace, then out, then reset.
+    public void testZoomInOutReset() {
+        final VirtualWorkspaceView virtualWorkspaceView =
+                (VirtualWorkspaceView) mActivity.findViewById(R.id.virtual_workspace);
+        final ImageButton zoomInButton = (ImageButton) mActivity.findViewById(R.id.zoom_in_button);
+        final ImageButton zoomOutButton =
+                (ImageButton) mActivity.findViewById(R.id.zoom_out_button);
+        final ImageButton resetViewButton =
+                (ImageButton) mActivity.findViewById(R.id.reset_view_button);
+
+        assertEquals(1.0, virtualWorkspaceView.getViewScale(), 1e-5);
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                zoomInButton.performClick();
+                assertTrue(virtualWorkspaceView.getViewScale() > 1.0f);
+            }
+        });
+
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                zoomOutButton.performClick();
+                assertEquals(1.0, virtualWorkspaceView.getViewScale(), 1e-5);
+            }
+        });
+
+        assertEquals(1.0, virtualWorkspaceView.getViewScale(), 1e-5);
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                zoomOutButton.performClick();
+                assertTrue(virtualWorkspaceView.getViewScale() < 1.0f);
+            }
+        });
+
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                resetViewButton.performClick();
+                assertEquals(1.0, virtualWorkspaceView.getViewScale(), 1e-5);
+            }
+        });
     }
 }
