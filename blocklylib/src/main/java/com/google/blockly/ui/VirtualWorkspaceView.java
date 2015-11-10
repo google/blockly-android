@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.ViewGroup;
 
 import com.google.blockly.R;
@@ -53,6 +54,8 @@ public class VirtualWorkspaceView extends ViewGroup {
     // to force an initial reset in the first call to onLayout. Call postResetView() to set this.
     private boolean mResetViewPending = true;
 
+    private ScaleGestureDetector mScaleGestureDetector;
+
     public VirtualWorkspaceView(Context context) {
         this(context, null);
     }
@@ -79,6 +82,8 @@ public class VirtualWorkspaceView extends ViewGroup {
         setWillNotDraw(false);
         setHorizontalScrollBarEnabled(true);
         setVerticalScrollBarEnabled(true);
+
+        mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
     }
 
     /**
@@ -99,7 +104,7 @@ public class VirtualWorkspaceView extends ViewGroup {
      * {@link #mResetViewPending} is set.
      */
     public void resetView() {
-        updateScale(INIT_ZOOM_SCALES_INDEX);
+        updateScaleStep(INIT_ZOOM_SCALES_INDEX);
 
         final Rect blocksBoundingBox = mWorkspaceView.getBlocksBoundingBox();
         final int margin = GRID_SPACING / 2;
@@ -117,7 +122,7 @@ public class VirtualWorkspaceView extends ViewGroup {
      */
     public void zoomIn() {
         if (mCurrentZoomScaleIndex < ZOOM_SCALES.length - 1) {
-            updateScale(mCurrentZoomScaleIndex + 1);
+            updateScaleStep(mCurrentZoomScaleIndex + 1);
         }
     }
 
@@ -126,7 +131,7 @@ public class VirtualWorkspaceView extends ViewGroup {
      */
     public void zoomOut() {
         if (mCurrentZoomScaleIndex > 0) {
-            updateScale(mCurrentZoomScaleIndex - 1);
+            updateScaleStep(mCurrentZoomScaleIndex - 1);
         }
     }
 
@@ -140,6 +145,8 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        mScaleGestureDetector.onTouchEvent(event);
+
         final int action = MotionEventCompat.getActionMasked(event);
 
         switch (action) {
@@ -424,13 +431,20 @@ public class VirtualWorkspaceView extends ViewGroup {
         return getScrollY() - (viewScaledWorkspaceTop - getMeasuredHeight() / 2);
     }
 
-    private void updateScale(int newScaleIndex) {
+    private void updateScaleStep(int newScaleIndex) {
         if (newScaleIndex != mCurrentZoomScaleIndex) {
+            final float oldViewScale = mViewScale;
+
             mCurrentZoomScaleIndex = newScaleIndex;
             mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
             mWorkspaceView.setScaleX(mViewScale);
             mWorkspaceView.setScaleY(mViewScale);
-            mWorkspaceView.requestLayout();
+
+            // Add offset to current scroll coordinates so the center of the visible workspace area
+            // remains in the same place.
+            final float scaleDifference = mViewScale - oldViewScale;
+            scrollBy((int) (scaleDifference * getMeasuredWidth() / 2),
+                    (int) (scaleDifference * getMeasuredHeight() / 2));
         }
     }
 
@@ -440,5 +454,49 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     private static int clampToRange(int y, int min, int max) {
         return Math.min(max, Math.max(min, y));
+    }
+
+    /** Listener class for scaling and panning the view using pinch-to-zoom gestures. */
+    private class ScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        // Focus point at the start of the pinch gesture. This is used for simultaneous panning.
+        private float mStartFocusX;
+        private float mStartFocusY;
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            mStartFocusX = detector.getFocusX();
+            mStartFocusY = detector.getFocusY();
+            return true;
+        }
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            final float oldViewScale = mViewScale;
+
+            final float scaleFactor = detector.getScaleFactor();
+            mViewScale *= scaleFactor;
+
+            if (mViewScale < ZOOM_SCALES[0]) {
+                mCurrentZoomScaleIndex = 0;
+                mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
+            } else if (mViewScale > ZOOM_SCALES[ZOOM_SCALES.length - 1]) {
+                mCurrentZoomScaleIndex = ZOOM_SCALES.length - 1;
+                mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
+            }
+
+            mWorkspaceView.setScaleX(mViewScale);
+            mWorkspaceView.setScaleY(mViewScale);
+
+            // Compute scroll offsets based on a) the shift of the gesture focus point, and b) the
+            // shift necessary to keep the view area's center invariant under scaling.
+            final float scaleDifference = mViewScale - oldViewScale;
+            final int scrollX = (int) (detector.getFocusX() - mStartFocusX) +
+                    (int) (scaleDifference * getMeasuredWidth() / 2);
+            final int scrollY = (int) (detector.getFocusY() - mStartFocusY) +
+                    (int) (scaleDifference * getMeasuredWidth() / 2);
+            scrollBy(scrollX, scrollY);
+
+            return true;
+        }
     }
 }
