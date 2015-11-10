@@ -1,9 +1,12 @@
 package com.google.blockly.ui;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Shader;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -38,6 +41,10 @@ public class VirtualWorkspaceView extends ViewGroup {
     // Fields for grid drawing.
     private final boolean mDrawGrid = true;
     private final Paint mGridPaint = new Paint();
+    private final Paint mCirclePaint = new Paint();
+    private final Rect mTempRect = new Rect();
+    private Bitmap mGridBitmap;
+
     // Fields for workspace panning.
     private int mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
     // Coordinates at the beginning of scrolling the workspace.
@@ -63,7 +70,9 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     public VirtualWorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mGridPaint.setColor(GRID_COLOR);
+
+        mCirclePaint.setColor(GRID_COLOR);
+        updateGridBitmap();
     }
 
     @Override
@@ -99,7 +108,7 @@ public class VirtualWorkspaceView extends ViewGroup {
      * {@link #mResetViewPending} is set.
      */
     public void resetView() {
-        updateScale(INIT_ZOOM_SCALES_INDEX);
+        updateScaleStep(INIT_ZOOM_SCALES_INDEX);
 
         final Rect blocksBoundingBox = mWorkspaceView.getBlocksBoundingBox();
         final int margin = GRID_SPACING / 2;
@@ -117,7 +126,7 @@ public class VirtualWorkspaceView extends ViewGroup {
      */
     public void zoomIn() {
         if (mCurrentZoomScaleIndex < ZOOM_SCALES.length - 1) {
-            updateScale(mCurrentZoomScaleIndex + 1);
+            updateScaleStep(mCurrentZoomScaleIndex + 1);
         }
     }
 
@@ -126,7 +135,7 @@ public class VirtualWorkspaceView extends ViewGroup {
      */
     public void zoomOut() {
         if (mCurrentZoomScaleIndex > 0) {
-            updateScale(mCurrentZoomScaleIndex - 1);
+            updateScaleStep(mCurrentZoomScaleIndex - 1);
         }
     }
 
@@ -236,22 +245,14 @@ public class VirtualWorkspaceView extends ViewGroup {
     @Override
     public void onDraw(Canvas c) {
         if (shouldDrawGrid()) {
-            int gridSpacing = (int) (GRID_SPACING * mViewScale);
             // Figure out where we should start drawing the grid
-            int scrollX = getScrollX();
-            int scrollY = getScrollY();
+            final int scrollX = getScrollX();
+            final int scrollY = getScrollY();
 
-            int beginX = scrollX + gridSpacing - (scrollX % gridSpacing);
-            int beginY = scrollY + gridSpacing - (scrollY % gridSpacing);
+            mTempRect.set(scrollX - GRID_RADIUS, scrollY - GRID_RADIUS,
+                    getWidth() + scrollX, getHeight() + scrollY);
 
-            int endX = getWidth() + scrollX;
-            int endY = getHeight() + scrollY;
-
-            for (int x = beginX; x < endX; x += gridSpacing) {
-                for (int y = beginY; y < endY; y += gridSpacing) {
-                    c.drawCircle(x, y, GRID_RADIUS, mGridPaint);
-                }
-            }
+            c.drawRect(mTempRect, mGridPaint);
         }
         super.onDraw(c);
     }
@@ -424,18 +425,36 @@ public class VirtualWorkspaceView extends ViewGroup {
         return getScrollY() - (viewScaledWorkspaceTop - getMeasuredHeight() / 2);
     }
 
-    private void updateScale(int newScaleIndex) {
+    private void updateScaleStep(int newScaleIndex) {
         if (newScaleIndex != mCurrentZoomScaleIndex) {
             mCurrentZoomScaleIndex = newScaleIndex;
             mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
             mWorkspaceView.setScaleX(mViewScale);
             mWorkspaceView.setScaleY(mViewScale);
+            updateGridBitmap();
             mWorkspaceView.requestLayout();
         }
     }
 
     private boolean shouldDrawGrid() {
         return mDrawGrid && mViewScale >= MIN_SCALE_TO_DRAW_GRID;
+    }
+
+    private void updateGridBitmap() {
+        int gridSpacing = (int) (GRID_SPACING * mViewScale);
+
+        // For some reason, reusing the same Bitmap via Bitmap.reconfigure() leads to bad rendering,
+        // so recycle existing Bitmap and create a new one instead.
+        if (mGridBitmap != null) {
+            mGridBitmap.recycle();
+        }
+        mGridBitmap = Bitmap.createBitmap(gridSpacing, gridSpacing, Bitmap.Config.ARGB_8888);
+
+        Canvas bitmapCanvas = new Canvas(mGridBitmap);
+        bitmapCanvas.drawCircle(GRID_RADIUS, GRID_RADIUS, GRID_RADIUS, mCirclePaint);
+
+        mGridPaint.setShader(
+                new BitmapShader(mGridBitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT));
     }
 
     private static int clampToRange(int y, int min, int max) {
