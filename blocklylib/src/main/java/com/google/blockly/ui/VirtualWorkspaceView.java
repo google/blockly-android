@@ -431,7 +431,9 @@ public class VirtualWorkspaceView extends ViewGroup {
             mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
             mWorkspaceView.setScaleX(mViewScale);
             mWorkspaceView.setScaleY(mViewScale);
-            updateGridBitmap();
+            if (shouldDrawGrid()) {
+                updateGridBitmap();
+            }
             mWorkspaceView.requestLayout();
         }
     }
@@ -440,6 +442,9 @@ public class VirtualWorkspaceView extends ViewGroup {
         return mDrawGrid && mViewScale >= MIN_SCALE_TO_DRAW_GRID;
     }
 
+    /**
+     * Using the current view scale, create a bitmap tiling shader to render the workspace grid.
+     */
     private void updateGridBitmap() {
         int gridSpacing = (int) (GRID_SPACING * mViewScale);
 
