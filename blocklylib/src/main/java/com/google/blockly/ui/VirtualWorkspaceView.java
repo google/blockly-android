@@ -2,7 +2,6 @@ package com.google.blockly.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
@@ -27,18 +26,16 @@ public class VirtualWorkspaceView extends ViewGroup {
     private static final int DESIRED_WIDTH = 2048;
     // Default desired height of the view in pixels.
     private static final int DESIRED_HEIGHT = 2048;
-    // Constants for drawing the coordinate grid.
-    private static final int GRID_SPACING = 48;
-    private static final int GRID_COLOR = 0xffa0a0a0;
-    private static final int GRID_RADIUS = 2;
+
     private static final float MIN_SCALE_TO_DRAW_GRID = 0.5f;
+
     // Allowed zoom scales.
     private final float[] ZOOM_SCALES = new float[]{0.25f, 0.5f, 1.0f, 2.0f};
     private final int INIT_ZOOM_SCALES_INDEX = 2;
     private final ViewPoint mPanningStart = new ViewPoint();
-    // Fields for grid drawing.
-    private final boolean mDrawGrid = true;
-    private final Paint mGridPaint = new Paint();
+
+    private final WorkspaceGridRenderer mGridRenderer = new WorkspaceGridRenderer();
+
     // Fields for workspace panning.
     private int mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
     // Coordinates at the beginning of scrolling the workspace.
@@ -47,6 +44,9 @@ public class VirtualWorkspaceView extends ViewGroup {
     // Scale and zoom in/out factor.
     private int mCurrentZoomScaleIndex = INIT_ZOOM_SCALES_INDEX;
     private float mViewScale = ZOOM_SCALES[INIT_ZOOM_SCALES_INDEX];
+
+    private boolean mDrawGrid = true;
+
 
     // The workspace view that backs this virtual view.
     private WorkspaceView mWorkspaceView;
@@ -66,7 +66,6 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     public VirtualWorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mGridPaint.setColor(GRID_COLOR);
     }
 
     @Override
@@ -84,6 +83,7 @@ public class VirtualWorkspaceView extends ViewGroup {
         setVerticalScrollBarEnabled(true);
 
         mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
+        mGridRenderer.updateGridBitmap(mViewScale);
     }
 
     /**
@@ -107,7 +107,7 @@ public class VirtualWorkspaceView extends ViewGroup {
         updateScaleStep(INIT_ZOOM_SCALES_INDEX);
 
         final Rect blocksBoundingBox = mWorkspaceView.getBlocksBoundingBox();
-        final int margin = GRID_SPACING / 2;
+        final int margin = mGridRenderer.getGridSpacing() / 2;
         final int scrollToY = (int) (blocksBoundingBox.top * mViewScale) - margin;
         if (mWorkspaceView.getWorkspaceHelper().useRtL()) {
             scrollTo((int) (blocksBoundingBox.right * mViewScale) - getMeasuredWidth() + margin,
@@ -243,22 +243,7 @@ public class VirtualWorkspaceView extends ViewGroup {
     @Override
     public void onDraw(Canvas c) {
         if (shouldDrawGrid()) {
-            int gridSpacing = (int) (GRID_SPACING * mViewScale);
-            // Figure out where we should start drawing the grid
-            int scrollX = getScrollX();
-            int scrollY = getScrollY();
-
-            int beginX = scrollX + gridSpacing - (scrollX % gridSpacing);
-            int beginY = scrollY + gridSpacing - (scrollY % gridSpacing);
-
-            int endX = getWidth() + scrollX;
-            int endY = getHeight() + scrollY;
-
-            for (int x = beginX; x < endX; x += gridSpacing) {
-                for (int y = beginY; y < endY; y += gridSpacing) {
-                    c.drawCircle(x, y, GRID_RADIUS, mGridPaint);
-                }
-            }
+            mGridRenderer.drawGrid(c, getWidth(), getHeight(), getScrollX(), getScrollY());
         }
         super.onDraw(c);
     }
@@ -437,14 +422,20 @@ public class VirtualWorkspaceView extends ViewGroup {
 
             mCurrentZoomScaleIndex = newScaleIndex;
             mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
-            mWorkspaceView.setScaleX(mViewScale);
-            mWorkspaceView.setScaleY(mViewScale);
 
             // Add offset to current scroll coordinates so the center of the visible workspace area
             // remains in the same place.
             final float scaleDifference = mViewScale - oldViewScale;
             scrollBy((int) (scaleDifference * getMeasuredWidth() / 2),
                     (int) (scaleDifference * getMeasuredHeight() / 2));
+
+            if (shouldDrawGrid()) {
+                mGridRenderer.updateGridBitmap(mViewScale);
+            }
+
+            mWorkspaceView.setScaleX(mViewScale);
+            mWorkspaceView.setScaleY(mViewScale);
+            mWorkspaceView.requestLayout();
         }
     }
 
