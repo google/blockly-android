@@ -353,6 +353,9 @@ public abstract class Field implements Cloneable {
 
         /**
          * Sets the current text in this Field.
+         * <p/>
+         * If the new text is different from the old text, and a non-null {@link FieldInputView} is
+         * connected, then the input view is also updated.
          *
          * @param text The text to replace the contents with.
          */
@@ -360,7 +363,7 @@ public abstract class Field implements Cloneable {
             if (!mText.equals(text)) {
                 mText = text;
                 if (mView != null) {
-                    ((FieldInputView) mView).setText(mText);
+                    ((FieldInputView) mView).setTextIfDifferent(mText);
                 }
             }
         }
