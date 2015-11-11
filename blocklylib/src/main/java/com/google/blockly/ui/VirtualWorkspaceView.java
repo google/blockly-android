@@ -475,16 +475,20 @@ public class VirtualWorkspaceView extends ViewGroup {
                 mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
             }
 
+            if (shouldDrawGrid()) {
+                mGridRenderer.updateGridBitmap(mViewScale);
+            }
+
             mWorkspaceView.setScaleX(mViewScale);
             mWorkspaceView.setScaleY(mViewScale);
 
-            // Compute scroll offsets based on a) the shift of the gesture focus point, and b) the
-            // shift necessary to keep the view area's center invariant under scaling.
+            // Compute scroll offsets based on the shift of the gesture focus point and difference
+            // between original and new scaling factor. The effect of this is that the focus point
+            // will remain locked on the same workspace location, regardless of scale change or
+            // focus shift.
             final float scaleDifference = mViewScale - oldViewScale;
-            final int scrollX = (int) (detector.getFocusX() - mStartFocusX) +
-                    (int) (scaleDifference * getMeasuredWidth() / 2);
-            final int scrollY = (int) (detector.getFocusY() - mStartFocusY) +
-                    (int) (scaleDifference * getMeasuredWidth() / 2);
+            final int scrollX = (int) (scaleDifference * (detector.getFocusX() - mStartFocusX));
+            final int scrollY = (int) (scaleDifference * (detector.getFocusY() - mStartFocusY));
             scrollBy(scrollX, scrollY);
 
             return true;
