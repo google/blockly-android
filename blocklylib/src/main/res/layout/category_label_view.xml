@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~  Copyright  2015 Google Inc. All Rights Reserved.
   ~  Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +14,9 @@
   ~  limitations under the License.
   -->
 
-<android.support.v7.widget.RecyclerView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:id="@+id/trash_recycler_view"
-    tools:context=".BlocklyActivity">
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          style="@style/CategoryLabelStyle">
 
-</android.support.v7.widget.RecyclerView>
+</TextView>

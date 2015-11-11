@@ -329,7 +329,6 @@ public class InputView extends ViewGroup {
         TypedArray a = context.obtainStyledAttributes(blockStyle, R.styleable.BlocklyBlockView);
         mHorizontalFieldSpacing = (int) a.getDimension(
                 R.styleable.BlocklyBlockView_fieldHorizontalPadding, DEFAULT_FIELD_SPACING);
-        Log.d(TAG, "Horizontal spacing=" + mHorizontalFieldSpacing + " from style " + blockStyle);
     }
 
     /**

@@ -23,13 +23,13 @@
          the container. -->
     <fragment android:id="@+id/navigation_drawer"
         android:layout_width="@dimen/navigation_drawer_width" android:layout_height="match_parent"
-        android:layout_gravity="start" android:name="com.google.blockly.NavigationDrawerFragment"
+        android:layout_gravity="end" android:name="com.google.blockly.NavigationDrawerFragment"
         tools:layout="@layout/fragment_navigation_drawer" />
 
     <fragment android:name="com.google.blockly.ToolboxFragment"
               android:id="@+id/toolbox"
               android:layout_width="match_parent" android:layout_height="match_parent"
-              android:layout_gravity="end"
+              android:layout_gravity="start"
               tools:layout="@layout/fragment_toolbox" />
 
 </android.support.v4.widget.DrawerLayout>

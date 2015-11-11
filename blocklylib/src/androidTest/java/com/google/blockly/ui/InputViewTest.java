@@ -1,7 +1,6 @@
 package com.google.blockly.ui;
 
 import android.support.annotation.NonNull;
-import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.view.View;
 
@@ -10,7 +9,6 @@ import com.google.blockly.model.Input;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 /**
  * Tests for {@link InputView}.

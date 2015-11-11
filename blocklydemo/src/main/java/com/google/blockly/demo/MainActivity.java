@@ -15,22 +15,8 @@
 
 package com.google.blockly.demo;
 
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-
 import com.google.blockly.BlocklyActivity;
 import com.google.blockly.NavigationDrawerFragment;
-import com.google.blockly.ToolboxFragment;
-import com.google.blockly.TrashFragment;
-import com.google.blockly.WorkspaceFragment;
-import com.google.blockly.model.Workspace;
 
 
 public class MainActivity extends BlocklyActivity

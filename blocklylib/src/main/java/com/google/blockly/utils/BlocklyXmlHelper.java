@@ -22,6 +22,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.ToolboxCategory;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -39,9 +40,8 @@ import java.util.List;
  * parsers and serializers as needed.
  */
 public final class BlocklyXmlHelper {
-    public static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
-
-    private static XmlPullParserFactory mParserFactory = createParseFactory();
+    private static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
+    private static final XmlPullParserFactory mParserFactory = createParseFactory();
 
     private BlocklyXmlHelper() {
     }
@@ -54,10 +54,9 @@ public final class BlocklyXmlHelper {
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
      * @return A list of top level Blocks.
-     *
      * @throws BlocklyParserException
      */
-    public static void loadFromXml(
+    private static void loadFromXml(
             InputStream is, BlockFactory blockFactory, WorkspaceStats stats, List<Block> result)
             throws BlocklyParserException {
         try {
@@ -87,6 +86,27 @@ public final class BlocklyXmlHelper {
     }
 
     /**
+     * Loads toolbox from XML.  Each category may have multiple subcategories and/or multiple blocks
+     * contained in it or descending from it.
+     *
+     * @param is The input stream from which to read.
+     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     *
+     * @return The top level category in the toolbox.
+     * @throws BlocklyParserException when parsing fails.
+     */
+    public static ToolboxCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory)
+            throws BlocklyParserException {
+        try {
+            XmlPullParser parser = mParserFactory.newPullParser();
+            parser.setInput(is, null);
+            return ToolboxCategory.fromXml(parser, blockFactory);
+        } catch (XmlPullParserException | IOException e) {
+            throw new BlocklyParserException(e);
+        }
+    }
+
+    /**
      * Convenience function that creates a new {@link ArrayList}.
      */
     public static List<Block> loadFromXml(
@@ -104,7 +124,6 @@ public final class BlocklyXmlHelper {
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
      * @return The first Block read from is, or null if no Block was read.
-     *
      * @throws BlocklyParserException
      */
     @Nullable

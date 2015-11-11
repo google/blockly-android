@@ -15,6 +15,7 @@
 
 package com.google.blockly;
 
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -26,10 +27,13 @@ import android.view.View;
 
 import com.google.blockly.model.Workspace;
 
+import java.io.IOException;
+
 
 public class BlocklyActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
+    public static final String WORKSPACE_FOLDER_PREFIX = "sample_";
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
@@ -47,14 +51,15 @@ public class BlocklyActivity extends ActionBarActivity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
+        position++; // indexing
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
-        mWorkspaceFragment = WorkspaceFragment.newInstance(position + 1, this);
+        mWorkspaceFragment = WorkspaceFragment.newInstance(position, this);
         fragmentManager.beginTransaction()
                 .replace(R.id.container, mWorkspaceFragment)
                 .commit();
 
-        onSectionAttached(position + 1);    // Because indexing.
+        onSectionAttached(position);    // Because indexing.
 
         mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
             @Override
@@ -67,11 +72,22 @@ public class BlocklyActivity extends ActionBarActivity
                 }
             }
         });
-        // TODO Figure out how to make this a configurable part of the library
+
+        // Load workspaces and toolboxes.
         Workspace workspace = mWorkspaceFragment.getWorkspace();
+        AssetManager assetManager = getAssets();
+        try {
+            workspace.loadBlockFactory(assetManager.open(
+                    WORKSPACE_FOLDER_PREFIX + position + "/block_definitions.json"));
+            workspace.loadToolboxContents(assetManager.open(
+                    WORKSPACE_FOLDER_PREFIX + position + "/toolbox.xml"));
+            // TODO (fenichel): Load workspace contents from XML or leave empty.
+            workspace.setToolboxFragment(mToolboxFragment);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         workspace.setTrashFragment(mOscar);
-        workspace.loadToolboxContents(R.raw.toolbox);
-        workspace.setToolboxFragment(mToolboxFragment);
     }
 
     @Override
@@ -144,6 +160,8 @@ public class BlocklyActivity extends ActionBarActivity
                 (ToolboxFragment) getSupportFragmentManager().findFragmentById(R.id.toolbox);
         if (mToolboxFragment != null) {
             mToolboxFragment.setDrawerLayout(drawerLayout);
+            // HACK because of lifecycle problems.
+            mWorkspaceFragment.getWorkspace().setToolboxFragment(mToolboxFragment);
         }
 
         // Set up the toolbox that lives inside the trash can.
@@ -154,6 +172,9 @@ public class BlocklyActivity extends ActionBarActivity
                     .hide(mOscar)
                     .commit();
 
+            mOscar.setDrawerLayout(drawerLayout);
+            // HACK because of lifecycle problems.
+            mWorkspaceFragment.getWorkspace().setTrashFragment(mOscar);
         }
     }
 }

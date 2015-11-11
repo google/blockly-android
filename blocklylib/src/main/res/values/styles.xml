@@ -29,6 +29,12 @@
         <item name="defaultScale">1.0</item>
     </style>
 
+    <style name="BlocklyTestTheme" parent="AppTheme">
+        <item name="blockViewStyle">@style/TestBlockStyle</item>
+        <item name="fieldLabelStyle">@style/TestFieldLabelStyle</item>
+    </style>
+
+
     <style name="DefaultBlockStyle">
         <item name="fieldHorizontalPadding">8dp</item>
         <item name="fieldVerticalPadding">8dp</item>
@@ -36,26 +42,33 @@
         <item name="innerPadding">8dp</item>
     </style>
 
-    <style name="DefaultFieldStyle">
-        <item name="textAppearance">@style/TextAppearance.AppCompat.Large</item>
-        <item name="fieldMinHeight">24dip</item>
-        <item name="fieldMinWidth">24dip</item>
-    </style>
-    <style name="DefaultFieldLabelStyle" parent="DefaultFieldStyle"/>
-
-    <style name="BlocklyTestTheme" parent="AppTheme">
-        <item name="blockViewStyle">@style/TestBlockStyle</item>
-        <item name="fieldLabelStyle">@style/TestFieldLabelStyle</item>
-    </style>
-
     <style name="TestBlockStyle" parent="DefaultBlockStyle">
         <item name="fieldHorizontalPadding">12dp</item>
         <item name="fieldVerticalPadding">16dp</item>
     </style>
 
+
+    <style name="DefaultFieldStyle">
+        <item name="textAppearance">@style/TextAppearance.AppCompat.Large</item>
+        <item name="fieldMinHeight">24dip</item>
+        <item name="fieldMinWidth">24dip</item>
+    </style>
+
+    <style name="DefaultFieldLabelStyle" parent="DefaultFieldStyle"/>
+
     <style name="TestFieldLabelStyle" parent="DefaultFieldLabelStyle">
         <item name="textAppearance">@style/TextAppearance.AppCompat.Small</item>
         <item name="fieldMinHeight">128dip</item>
+    </style>
+
+
+    <style name="DefaultCategoryLabelStyle">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">#fff</item>
+    </style>
+
+    <style name="CategoryLabelStyle" parent="DefaultCategoryLabelStyle">
     </style>
 
 </resources>

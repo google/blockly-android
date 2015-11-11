@@ -48,12 +48,12 @@ public class Workspace {
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
-    private final ArrayList<Block> mToolboxContents = new ArrayList<>();
-    private final ArrayList<Block> mDeletedBlocks = new ArrayList<>();
+    private final ToolboxCategory mDeletedBlocks = new ToolboxCategory();
     private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
     private final ViewPoint mTempViewPoint = new ViewPoint();
-    private final BlockFactory mBlockFactory;
     private final Context mContext;
+    private ToolboxCategory mToolboxCategory;
+    private BlockFactory mBlockFactory;
     // The Workspace is the controller for the toolbox and trash as well as for the contents of
     // the main workspace.
     private ToolboxFragment mToolbox;
@@ -69,11 +69,13 @@ public class Workspace {
      * Create a workspace controller.
      *
      * @param context The activity context.
-     * @param blockDefinitions The resource id for the definitions of legal blocks.
      */
-    public Workspace(Context context, int blockDefinitions) {
+    public Workspace(Context context) {
         mContext = context;
-        mBlockFactory = new BlockFactory(mContext, new int[]{blockDefinitions});
+    }
+
+    public void loadBlockFactory(InputStream source) {
+        mBlockFactory = new BlockFactory(source);
     }
 
     /**
@@ -103,7 +105,7 @@ public class Workspace {
      * @return True if the block was removed, false otherwise.
      */
     public boolean removeRootBlock(Block block) {
-        mDeletedBlocks.add(block);
+        mDeletedBlocks.addBlock(block);
         mTrash.getAdapter().notifyDataSetChanged();
         return mRootBlocks.remove(block);
     }
@@ -155,7 +157,7 @@ public class Workspace {
         // Set up the new toolbox.
         if (mToolbox != null) {
             mToolbox.setWorkspace(this);
-            mToolbox.setContents(mToolboxContents);
+            mToolbox.setContents(mToolboxCategory);
         }
     }
 
@@ -166,7 +168,11 @@ public class Workspace {
      */
     public void loadToolboxContents(int blocks) {
         InputStream is = mContext.getResources().openRawResource(blocks);
-        BlocklyXmlHelper.loadFromXml(is, mBlockFactory, null, mToolboxContents);
+        loadToolboxContents(is);
+    }
+
+    public void loadToolboxContents(InputStream source) {
+        mToolboxCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
     }
 
     /**

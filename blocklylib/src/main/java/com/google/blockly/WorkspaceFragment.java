@@ -15,11 +15,9 @@
 
 package com.google.blockly;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -117,7 +115,7 @@ public class WorkspaceFragment extends Fragment {
     // TODO refactor this to make more sense
     private void initWorkspace(Context context) {
         if (mWorkspace == null) {
-            mWorkspace = new Workspace(context, R.raw.toolbox_blocks);
+            mWorkspace = new Workspace(context);
         }
     }
 

@@ -28,31 +28,29 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.model.Block;
+import com.google.blockly.model.ToolboxCategory;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
-import com.google.blockly.ui.BlockGroupAdapter;
 import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.ToolboxAdapter;
 import com.google.blockly.ui.WorkspaceHelper;
-
-import java.util.List;
 
 /**
  * Fragment to hold views of all of the available blocks in the toolbox.
  */
 public class ToolboxFragment extends Fragment {
     private static final String TAG = "ToolboxFragment";
-    protected final Point mTempScreenPosition = new Point();
-    protected final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
-    protected RecyclerView mRecyclerView;
-    protected RecyclerView.Adapter mAdapter;
-    protected Workspace mWorkspace;
-    protected WorkspaceHelper mWorkspaceHelper;
-    protected List<Block> mContents;
-    protected DrawerLayout mDrawerLayout;
+    final Point mTempScreenPosition = new Point();
+    final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
+    RecyclerView mRecyclerView;
+    Workspace mWorkspace;
+    WorkspaceHelper mWorkspaceHelper;
+    private DrawerLayout mDrawerLayout;
+    private RecyclerView.Adapter mAdapter;
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
-    protected int mBlockMargin = 10;
+    private int mBlockMargin = 10;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,8 +65,7 @@ public class ToolboxFragment extends Fragment {
                 mDrawerLayout.closeDrawers();
 
                 BlockGroup bg = mWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
-                int pos = ((RecyclerView) bg.getParent()).getChildAdapterPosition(bg);
-                Block copiedModel = mContents.get(pos).deepCopy();
+                Block copiedModel = ((BlockView) bg.getChildAt(0)).getBlock().deepCopy();
 
                 // Make the pointer be in the same relative position on the block as it was in the
                 // toolbox.
@@ -87,9 +84,8 @@ public class ToolboxFragment extends Fragment {
         mWorkspace = workspace;
     }
 
-    public void setContents(List<Block> contents) {
-        mContents = contents;
-        mAdapter = new BlockGroupAdapter(mContents, mWorkspaceHelper, getContext());
+    public void setContents(ToolboxCategory category) {
+        mAdapter = new ToolboxAdapter(category, mWorkspaceHelper, getContext());
         // TODO(rachel-fenichel): fix lifecycle such that setContents() is never called before
         // onCreateView().
         if (mRecyclerView != null) {

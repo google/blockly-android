@@ -16,10 +16,7 @@
 package com.google.blockly;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -34,38 +31,38 @@ import com.google.blockly.ui.WorkspaceHelper;
  * Fragment for viewing the contents of the trash can.
  */
 public class TrashFragment extends ToolboxFragment {
-        private static final String TAG = "TrashFragment";
+    private static final String TAG = "TrashFragment";
 
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            mWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
-                @Override
-                public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                    if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
-                        return false;
-                    }
-
-                    BlockGroup bg = mWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
-                    int pos = ((RecyclerView) bg.getParent()).getChildAdapterPosition(bg);
-                    Block copiedModel = mContents.get(pos).deepCopy();
-
-                    mTempScreenPosition.set((int) motionEvent.getRawX(), (int) motionEvent.getRawY());
-                    mWorkspace.getWorkspaceHelper().screenToWorkspaceCoordinates(
-                            mTempScreenPosition, mTempWorkspacePosition);
-                    copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                    mWorkspace.addBlockFromToolbox(copiedModel, motionEvent);
-                    return true;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
+            @Override
+            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
+                    return false;
                 }
-            });
-        }
+                // TODO(fenichel): make thr trash can close when blocks are selected.
 
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            super.onCreateView(inflater, container, savedInstanceState);
-            ((LinearLayoutManager)(mRecyclerView.getLayoutManager()))
-                    .setOrientation(LinearLayoutManager.HORIZONTAL);
-            return mRecyclerView;
-        }
+                BlockGroup bg = mWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
+                Block copiedModel = ((BlockView) bg.getChildAt(0)).getBlock().deepCopy();
+
+                mTempScreenPosition.set((int) motionEvent.getRawX(), (int) motionEvent.getRawY());
+                mWorkspace.getWorkspaceHelper().screenToWorkspaceCoordinates(
+                        mTempScreenPosition, mTempWorkspacePosition);
+                copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
+                mWorkspace.addBlockFromToolbox(copiedModel, motionEvent);
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
+        ((LinearLayoutManager) (mRecyclerView.getLayoutManager()))
+                .setOrientation(LinearLayoutManager.HORIZONTAL);
+        return mRecyclerView;
+    }
 }
