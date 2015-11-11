@@ -20,9 +20,7 @@ import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.DragEvent;
-import android.view.KeyEvent;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
@@ -59,23 +57,9 @@ public class FieldInputView extends EditText implements FieldView {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mInput.setText(s.toString());
+                mInput.updateTextFromView(s.toString());
             }
         });
-    }
-
-    /**
-     * Set field text, if new text is different from current text.
-     * <p/>
-     * This method is used by {@link com.google.blockly.model.Field.FieldInput} to update the edited
-     * text without creating an update feedback loop.
-     *
-     * @param text The new text for the edit field.
-     */
-    public void setTextIfDifferent(String text) {
-        if (!getText().toString().equals(text)) {
-            setText(text);
-        }
     }
 
     @Override

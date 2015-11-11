@@ -353,19 +353,26 @@ public abstract class Field implements Cloneable {
 
         /**
          * Sets the current text in this Field.
-         * <p/>
-         * If the new text is different from the old text, and a non-null {@link FieldInputView} is
-         * connected, then the input view is also updated.
          *
-         * @param text The text to replace the contents with.
+         * @param text The text to replace the field content with.
          */
         public void setText(String text) {
-            if (!mText.equals(text)) {
-                mText = text;
-                if (mView != null) {
-                    ((FieldInputView) mView).setTextIfDifferent(mText);
-                }
+            mText = text;
+            if (mView != null) {
+                ((FieldInputView) mView).setText(mText);
             }
+        }
+
+        /**
+         * Set text from the field's connected {@link FieldInputView}.
+         * <p/>
+         * Unlike {@link #setText(String)}, this method will <em>not</em> update the view, in order
+         * to prevent a feedback loop and interference with text editing.
+         *
+         * @param text The text to replace field content with.
+         */
+        public void updateTextFromView(String text) {
+            mText = text;
         }
 
         @Override
