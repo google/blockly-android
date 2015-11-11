@@ -22,6 +22,9 @@ import android.text.TextUtils;
 
 import com.google.blockly.ui.InputView;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * Describes a connection on a Block. This can be a previous/next connection, an output, or
  * the connection on an {@link Input}.
@@ -343,11 +346,13 @@ public class Connection implements Cloneable {
         return conn.clone();
     }
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({CONNECTION_TYPE_PREVIOUS, CONNECTION_TYPE_NEXT, CONNECTION_TYPE_INPUT,
             CONNECTION_TYPE_OUTPUT})
     public @interface ConnectionType {
     }
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({CAN_CONNECT, REASON_SELF_CONNECTION, REASON_WRONG_TYPE, REASON_MUST_DISCONNECT,
             REASON_TARGET_NULL, REASON_CHECKS_FAILED})
     public @interface CheckResultType {

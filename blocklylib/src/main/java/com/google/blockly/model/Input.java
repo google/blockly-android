@@ -26,6 +26,8 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -361,10 +363,12 @@ public abstract class Input implements Cloneable {
         return ALIGN_LEFT;
     }
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
     public @interface InputType {
     }
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER})
     public @interface Alignment {
     }
