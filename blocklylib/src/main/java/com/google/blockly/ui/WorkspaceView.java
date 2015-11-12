@@ -30,6 +30,9 @@ import android.view.ViewGroup;
 import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Workspace;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * Handles updating the viewport into the workspace and is the parent view for all blocks. This
  * view is responsible for handling drags. A drag on the workspace will move the viewport and a
@@ -298,6 +301,7 @@ public class WorkspaceView extends ViewGroup {
         }
     }
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({TOUCH_STATE_NONE, TOUCH_STATE_DOWN, TOUCH_STATE_DRAGGING, TOUCH_STATE_LONGPRESS})
     public @interface TouchState {
     }

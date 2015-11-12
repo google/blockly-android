@@ -34,6 +34,8 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -272,6 +274,7 @@ public abstract class Field implements Cloneable {
      */
     protected abstract void serializeInner(XmlSerializer serializer) throws IOException;
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR,
             TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE})
     public @interface FieldType {
