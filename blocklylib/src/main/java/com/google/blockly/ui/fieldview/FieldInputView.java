@@ -20,9 +20,7 @@ import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.DragEvent;
-import android.view.KeyEvent;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
@@ -59,7 +57,7 @@ public class FieldInputView extends EditText implements FieldView {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mInput.setText(s.toString());
+                mInput.updateTextFromView(s.toString());
             }
         });
     }
