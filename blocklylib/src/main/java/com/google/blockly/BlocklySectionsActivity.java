@@ -161,6 +161,8 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         // Set up the toolbox that lives inside the trash can.
         mOscar = (TrashFragment) getSupportFragmentManager().findFragmentById(R.id.trash);
         createWorkspace();
+
+        MockBlocksProvider.makeComplexModel(mWorkspaceFragment.getWorkspace());
     }
 
     /**

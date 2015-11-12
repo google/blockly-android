@@ -200,8 +200,8 @@ public final class MockBlocksProvider {
         Block dummyBlock;
         for (int i = 0; i < numBlocks; i++) {
             dummyBlock = makeDummyBlock();
-            int randomX = (int) (Math.random() * 250);
-            int randomY = (int) (Math.random() * 500);
+            int randomX = (int) (Math.random() * 5000);
+            int randomY = (int) (Math.random() * 5000);
             dummyBlock.setPosition(randomX, randomY);
 
             workspace.addRootBlock(dummyBlock);

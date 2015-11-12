@@ -241,11 +241,10 @@ public class VirtualWorkspaceView extends ViewGroup {
     }
 
     @Override
-    public void onDraw(Canvas c) {
+    protected void onDraw(Canvas c) {
         if (shouldDrawGrid()) {
             mGridRenderer.drawGrid(c, getWidth(), getHeight(), getScrollX(), getScrollY());
         }
-        super.onDraw(c);
     }
 
     /**

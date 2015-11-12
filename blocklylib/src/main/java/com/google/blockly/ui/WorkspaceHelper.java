@@ -80,6 +80,7 @@ public class WorkspaceHelper {
     private int mBlockStyle;
     private int mFieldLabelStyle;
 
+    private final PatchManager mPatchManager;
     /**
      * Create a helper for creating and doing calculations for views in the workspace using the
      * context's default style.
@@ -125,6 +126,7 @@ public class WorkspaceHelper {
             mDensity = 1f;
         }
 
+        mPatchManager = new PatchManager(res);
         initConfig(mContext, attrs, workspaceStyle);
         updateRtL(mContext);
     }
@@ -141,6 +143,13 @@ public class WorkspaceHelper {
      */
     public WorkspaceView getWorkspaceView() {
         return mWorkspaceView;
+    }
+
+    /**
+     * @return The {@link PatchManager} for drawing Blocks using 9-patches.
+     */
+    public PatchManager getPatchManager() {
+        return mPatchManager;
     }
 
     /**
