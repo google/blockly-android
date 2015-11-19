@@ -222,6 +222,15 @@ public class Workspace {
         };
         mDragger.setWorkspaceView(mWorkspaceView);
         mWorkspaceView.setDragger(mDragger);
+        initBlockViews();
+    }
+
+    /**
+     * Recursively initialize views for all the blocks in the model and add them to the
+     * view.
+     */
+    public void initBlockViews() {
+        BlockGroup bg;
         for (int i = 0; i < mRootBlocks.size(); i++) {
             bg = new BlockGroup(mContext, mWorkspaceHelper);
             mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mConnectionManager,
@@ -274,6 +283,7 @@ public class Workspace {
     }
 
     private void reset() {
+        mWorkspaceView.removeAllViews();
         mRootBlocks.clear();
         mStats.clear();
         mDeletedBlocks.clear();
