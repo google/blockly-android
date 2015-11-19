@@ -73,7 +73,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     /**
-     * onBindViewHolder calls this method to figure out what information to bind in each location.
+     * Called by {@link #onBindViewHolder} to figure out what information to bind in each location.
      * {@link ToolboxCategory} instances nest recursively, with each subcategory being either
      * expanded or collapsed.
      *
@@ -128,8 +128,8 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 mWorkspaceHelper.obtainBlockView(mContext, block, bvHolder.mBlockGroup, null);
                 break;
             case CATEGORY_VIEW_TYPE:
+                final CategoryViewHolder cvHolder = (CategoryViewHolder) holder;
                 final ToolboxCategory cat = (ToolboxCategory) item.second;
-                CategoryViewHolder cvHolder = (CategoryViewHolder) holder;
                 cvHolder.setCategory(cat);
 
                 cvHolder.mTextView.setOnClickListener(

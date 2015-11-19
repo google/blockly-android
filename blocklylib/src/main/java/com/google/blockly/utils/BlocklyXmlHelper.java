@@ -53,7 +53,7 @@ public final class BlocklyXmlHelper {
      * @param is The input stream from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
-     * @return The top level category in the toolbox.
+     * @return The top-level category in the toolbox.
      * @throws BlocklyParserException when parsing fails.
      */
     public static ToolboxCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory)
@@ -139,13 +139,13 @@ public final class BlocklyXmlHelper {
     }
 
     /**
-     * Loads a list of top level Blocks from XML.  Each top level Block may have many Blocks
+     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
      * contained in it or descending from it.
      *
      * @param is The input stream from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
-     * @return A list of top level Blocks.
+     * @return A list of top-level Blocks.
      * @throws BlocklyParserException
      */
     private static void loadBlocksFromXml(
