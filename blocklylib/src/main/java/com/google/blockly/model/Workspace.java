@@ -16,16 +16,23 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 
 import com.google.blockly.ToolboxFragment;
 import com.google.blockly.TrashFragment;
+import com.google.blockly.WorkspaceFragment;
 import com.google.blockly.control.BlockCopyBuffer;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.Dragger;
 import com.google.blockly.control.ProcedureManager;
 import com.google.blockly.control.WorkspaceStats;
 import com.google.blockly.ui.BlockGroup;
+import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
@@ -33,10 +40,13 @@ import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Controller for the workspace.  Keeps track of all the global state used in the workspace.
+ * Controller for the workspace.  Keeps track of all the global state used in the workspace and
+ * manages interaction between the different fragments.
  */
 public class Workspace {
     private static final String TAG = "Workspace";
@@ -46,7 +56,7 @@ public class Workspace {
     private final ProcedureManager mProcedureManager = new ProcedureManager();
     private final NameManager mVariableNameManager = new NameManager.VariableNameManager();
     private final ConnectionManager mConnectionManager = new ConnectionManager();
-    private final WorkspaceStats stats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
+    private final WorkspaceStats mStats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
             mConnectionManager);
     private final ArrayList<Block> mToolboxContents = new ArrayList<>();
     private final ArrayList<Block> mDeletedBlocks = new ArrayList<>();
@@ -54,26 +64,45 @@ public class Workspace {
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final BlockFactory mBlockFactory;
     private final Context mContext;
+    private final Dragger mDragger;
+
+    // The FragmentManager is used to show/hide fragments like the trash and toolbox.
+    private FragmentManager mFragmentManager;
     // The Workspace is the controller for the toolbox and trash as well as for the contents of
     // the main workspace.
-    private ToolboxFragment mToolbox;
+    private ToolboxFragment mToolboxFragment;
+    private DrawerLayout mToolboxDrawer;
+    private boolean mCanCloseToolbox;
     // The trash can is currently just another instance of a toolbox: it holds blocks that can be
     // dragged into the workspace.
-    private TrashFragment mTrash;
+    private TrashFragment mTrashFragment;
+    private boolean mCanCloseTrash;
+    // The workspace fragment contains the main editor for users block code.
+    private WorkspaceFragment mWorkspaceFragment;
+
     private WorkspaceHelper mWorkspaceHelper;
+    private WorkspaceHelper.BlockTouchHandler mTouchHandler;
     private WorkspaceView mWorkspaceView;
-    private final Dragger mDragger =
-            new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mRootBlocks);
 
     /**
      * Create a workspace controller.
      *
      * @param context The activity context.
-     * @param blockDefinitions The resource id for the definitions of legal blocks.
+     * @param blockFactory The factory to use for building new blocks.
+     * @param style The resource id to load style configuration from. The style must inherit from
+     *              {@link com.google.blockly.R.style#BlocklyTheme}
      */
-    public Workspace(Context context, int blockDefinitions) {
+    private Workspace(Context context, BlockFactory blockFactory, int style) {
+        if (context == null) {
+            throw new IllegalArgumentException("context may not be null.");
+        }
+        if (blockFactory == null) {
+            throw new IllegalArgumentException("blockFactory may not be null.");
+        }
         mContext = context;
-        mBlockFactory = new BlockFactory(mContext, new int[]{blockDefinitions});
+        mBlockFactory = blockFactory;
+        mWorkspaceHelper = new WorkspaceHelper(mContext, null, style);
+        mDragger = new Dragger(mWorkspaceHelper, mConnectionManager, mRootBlocks);
     }
 
     /**
@@ -92,7 +121,7 @@ public class Workspace {
             throw new IllegalArgumentException("Block is already a root block.");
         }
         mRootBlocks.add(block);
-        stats.collectStats(block, true);
+        mStats.collectStats(block, true);
     }
 
     /**
@@ -104,73 +133,45 @@ public class Workspace {
      */
     public boolean removeRootBlock(Block block) {
         mDeletedBlocks.add(block);
-        mTrash.getAdapter().notifyDataSetChanged();
+        mTrashFragment.getAdapter().notifyDataSetChanged();
         return mRootBlocks.remove(block);
     }
 
+    /**
+     * The {@link WorkspaceHelper} for the workspace can be used to get config and style properties
+     * and to convert between units.
+     *
+     * @return The {@link WorkspaceHelper} for this workspace.
+     */
     public WorkspaceHelper getWorkspaceHelper() {
         return mWorkspaceHelper;
-    }
-
-    public void setWorkspaceHelper(WorkspaceHelper helper) {
-        mWorkspaceHelper = helper;
-        mDragger.setWorkspaceHelper(mWorkspaceHelper);
-    }
-
-    /**
-     * Set up the trash fragment, which will show blocks that have been deleted from this
-     * workspace.
-     *
-     * @param trash The {@link TrashFragment} to update when blocks are deleted.
-     */
-    public void setTrashFragment(TrashFragment trash) {
-        // Invalidate the old trash.
-        if (mTrash != null) {
-            mTrash.setWorkspace(null);
-            mTrash.setContents(null);
-        }
-        // Set up the new trash.
-        mTrash = trash;
-        if (mTrash != null) {
-            mTrash.setWorkspace(this);
-            mTrash.setContents(mDeletedBlocks);
-        }
-    }
-
-    /**
-     * Loads the blocks that belong in the toolbox; sets up the relationships between the toolbox
-     * and the workspace.  The workspace provides the list of blocks that the toolbox can provide.
-     *
-     * @param toolbox The {@link ToolboxFragment} that will provide blocks to be added to the
-     * workspace.
-     */
-    public void setToolboxFragment(ToolboxFragment toolbox) {
-        // Invalidate the old toolbox.
-        if (mToolbox != null) {
-            mToolbox.setWorkspace(null);
-            mToolbox.setContents(null);
-        }
-
-        mToolbox = toolbox;
-        // Set up the new toolbox.
-        if (mToolbox != null) {
-            mToolbox.setWorkspace(this);
-            mToolbox.setContents(mToolboxContents);
-        }
     }
 
     /**
      * Set up toolbox's contents.
      *
-     * @param blocks The resource id of the set of blocks or block groups to show in the toolbox.
+     * @param toolboxResId The resource id of the set of blocks or block groups to show in the
+     *                     toolbox.
      */
-    public void loadToolboxContents(int blocks) {
-        InputStream is = mContext.getResources().openRawResource(blocks);
+    public void loadToolboxContents(int toolboxResId) {
+        InputStream is = mContext.getResources().openRawResource(toolboxResId);
         BlocklyXmlHelper.loadFromXml(is, mBlockFactory, null, mToolboxContents);
     }
 
     /**
-     * Reads the workspace in from an XML string.
+     * Set up toolbox's contents.
+     *
+     * @param toolboxXml The resource id of the set of blocks or block groups to show in the
+     *                   toolbox.
+     */
+    public void loadToolboxContents(String toolboxXml) {
+        BlocklyXmlHelper.loadFromXml(new StringReader(toolboxXml), mBlockFactory, null,
+                mToolboxContents);
+    }
+
+    /**
+     * Reads the workspace in from a XML stream. This will clear the workspace and replace it with
+     * the contents of the xml.
      *
      * @param is The input stream to read from.
      *
@@ -178,9 +179,10 @@ public class Workspace {
      */
     public void loadFromXml(InputStream is)
             throws BlocklyParserException {
-        mRootBlocks.addAll(BlocklyXmlHelper.loadFromXml(is, mBlockFactory, stats));
+        reset();
+        mRootBlocks.addAll(BlocklyXmlHelper.loadFromXml(is, mBlockFactory, mStats));
         for (int i = 0; i < mRootBlocks.size(); i++) {
-            stats.collectStats(mRootBlocks.get(i), true /* recursive */);
+            mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
         }
     }
 
@@ -196,18 +198,34 @@ public class Workspace {
     }
 
     /**
-     * Recursively initialize views corresponding to every block in the model.
+     * Set up the {@link WorkspaceView} with this workspace's model. This method will perform the
+     * following steps:
+     * <ul>
+     *     <li>Set the block touch handler for the view.</li>
+     *     <li>Configure the dragger for the view.</li>
+     *     <li>Recursively initialize views for all the blocks in the model and add them to the
+     *         view.</li>
+     * </ul>
      *
      * @param wv The root workspace view to add to.
      */
-    public void createViewsFromModel(WorkspaceView wv) {
+    public void initWorkspaceView(final WorkspaceView wv) {
         BlockGroup bg;
         mWorkspaceView = wv;
+        mWorkspaceHelper.setWorkspaceView(wv);
+        // Tell the workspace helper to pass onTouchBlock events straight through to the WSView.
+        mTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
+            @Override
+            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                return wv.onTouchBlock(blockView, motionEvent);
+            }
+        };
         mDragger.setWorkspaceView(mWorkspaceView);
         mWorkspaceView.setDragger(mDragger);
         for (int i = 0; i < mRootBlocks.size(); i++) {
             bg = new BlockGroup(mContext, mWorkspaceHelper);
-            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mConnectionManager);
+            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mConnectionManager,
+                    mTouchHandler);
             mWorkspaceView.addView(bg);
         }
     }
@@ -220,9 +238,9 @@ public class Workspace {
      * @param event The {@link MotionEvent} that caused the block to be added to the workspace.
      * This is used to find the correct position to start the drag event.
      */
-    public void addBlockFromToolbox(Block block, MotionEvent event) {
+    public void addBlockFromToolbox(Block block, MotionEvent event, ToolboxFragment fragment) {
         BlockGroup bg = new BlockGroup(mContext, mWorkspaceHelper);
-        mWorkspaceHelper.obtainBlockView(mContext, block, bg, mConnectionManager);
+        mWorkspaceHelper.obtainBlockView(mContext, block, bg, mConnectionManager, mTouchHandler);
         mWorkspaceView.addView(bg);
         addRootBlock(block);
         // let the workspace view know that this is the block we want to drag
@@ -237,5 +255,242 @@ public class Workspace {
                         mWorkspaceHelper.getOffset().y);
         mWorkspaceView.setDraggingStart(xPosition, yPosition);
         mWorkspaceView.startDrag();
+
+        // Close the appropriate toolbox
+        if (mCanCloseTrash && fragment == mTrashFragment) {
+            mFragmentManager.beginTransaction().hide(mTrashFragment).commit();
+        }
+        // TODO: Remove if we don't see any issues closing the toolbox.
+        Log.d(TAG, "Can close toolbox " + mCanCloseToolbox + " toolbox " + mToolboxFragment +
+                " fragment " + fragment);
+        if (mCanCloseToolbox && fragment == mToolboxFragment) {
+            mToolboxDrawer.closeDrawers();
+        }
+    }
+
+    @VisibleForTesting
+    List<Block> getRootBlocks() {
+        return mRootBlocks;
+    }
+
+    private void reset() {
+        mRootBlocks.clear();
+        mStats.clear();
+        mDeletedBlocks.clear();
+        // TODO(fenichel): notify adapters when contents change.
+    }
+
+    private void setFragments(final WorkspaceFragment workspace, final TrashFragment trash,
+            final ToolboxFragment toolbox, final DrawerLayout toolboxDrawer,
+            final FragmentManager manager) {
+        mWorkspaceFragment = workspace;
+        mTrashFragment = trash;
+        mToolboxFragment = toolbox;
+        mToolboxDrawer = toolboxDrawer;
+        mFragmentManager = manager;
+
+        if (workspace != null) {
+            workspace.setWorkspace(this);
+            if (trash != null && manager != null) {
+                mCanCloseTrash = true; // TODO: also check the config
+                if (mCanCloseTrash) {
+                    workspace.setTrashClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            // Don't open the trash if it's empty.
+                            if (mDeletedBlocks.size() > 0) {
+                                manager.beginTransaction().show(trash).commit();
+                            }
+                        }
+                    });
+                    // Start the trash hidden if it can be opened/closed
+                    manager.beginTransaction().hide(trash).commit();
+                }
+            }
+        }
+        if (trash != null) {
+            trash.setWorkspace(this);
+            trash.setContents(mDeletedBlocks);
+        }
+        if (toolbox != null) {
+            toolbox.setWorkspace(this);
+            toolbox.setContents(mToolboxContents);
+            mCanCloseToolbox = mToolboxDrawer != null; // TODO: Check config
+        }
+    }
+
+    /**
+     * Builder for configuring a new workspace.
+     */
+    public static class Builder {
+        private Context mContext;
+        private WorkspaceFragment mWorkspaceFragment;
+        private ToolboxFragment mToolboxFragment;
+        private DrawerLayout mToolboxDrawer;
+        private TrashFragment mTrashFragment;
+        private FragmentManager mFragmentManager;
+        private int mStyle;
+        private String mWorkspaceXml;
+        private String mToolboxXml;
+
+        // TODO: Should these be part of the style?
+        private int mToolboxResId;
+        private ArrayList<Integer> mBlockDefResources = new ArrayList<>();
+        private ArrayList<Block> mBlockDefs = new ArrayList<>();
+
+
+        public Builder(Context context) {
+            mContext = context;
+        }
+
+        public Builder setWorkspaceFragment(WorkspaceFragment workspace) {
+            mWorkspaceFragment = workspace;
+            return this;
+        }
+
+        public Builder setToolboxFragment(ToolboxFragment toolbox, DrawerLayout toolboxDrawer) {
+            mToolboxFragment = toolbox;
+            mToolboxDrawer = toolboxDrawer;
+            return this;
+        }
+
+        public Builder setTrashFragment(TrashFragment trash) {
+            mTrashFragment = trash;
+            return this;
+        }
+
+        /**
+         * A {@link FragmentManager} is used to show and hide the Toolbox or Trash. It is required
+         * if you have set a {@link TrashFragment} or a {@link ToolboxFragment} that is not always
+         * visible.
+         *
+         * @param fragmentManager The support manager to use for showing and hiding fragments.
+         * @return this
+         */
+        public Builder setFragmentManager(FragmentManager fragmentManager) {
+            mFragmentManager = fragmentManager;
+            return this;
+        }
+
+        /**
+         * Set the resource id for the style to use when rendering blocks. The style must inherit
+         * from {@link com.google.blockly.R.style#BlocklyTheme}.
+         *
+         * @param styleResId The resource id for the style to use.
+         * @return this
+         */
+        public Builder setBlocklyStyle(int styleResId) {
+            mStyle = styleResId;
+            return this;
+        }
+
+        /**
+         * Add a set of block definitions to load from a resource file. These will be added to the
+         * set of all known blocks, but will not appear in the user's toolbox unless they are also
+         * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
+         * <p/>
+         * The resource must be a json file in the raw directory. If the file contains blocks that
+         * were previously defined they will be overridden.
+         * <p/>
+         * A duplicate block is any block with the same {@link Block#getName() name}.
+         *
+         * @param blockDefinitionsResId The resource to load blocks from.
+         * @return
+         */
+        public Builder addBlockDefinitions(int blockDefinitionsResId) {
+            mBlockDefResources.add(blockDefinitionsResId);
+            return this;
+        }
+
+        /**
+         * Adds a list of blocks to the set of all known blocks. These will be added to the
+         * set of all known blocks, but will not appear in the user's toolbox unless they are also
+         * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
+         * <p/>
+         * These blocks may not have any child blocks attached to them. If these blocks are
+         * duplicates of blocks loaded from a resource they will override the block from resources.
+         * Blocks added here will always be loaded after any blocks added with
+         * {@link #addBlockDefinitions(int)};
+         * <p/>
+         * A duplicate block is any block with the same {@link Block#getName() name}.
+         *
+         * @param blocks The list of blocks to add to the workspace.
+         * @return this
+         */
+        public Builder addBlockDefinitions(List<Block> blocks) {
+            mBlockDefs.addAll(blocks);
+            return this;
+        }
+
+        /**
+         * Sets the resource to load the toolbox configuration from. This must be an xml resource in
+         * the raw directory.
+         * <p/>
+         * If this is set, {@link #setToolboxConfiguration(String)} may not be set.
+         *
+         * @param toolboxResId The resource id for the toolbox config file.
+         * @return this
+         */
+        public Builder setToolboxConfigurationResId(int toolboxResId) {
+            if (mToolboxXml != null) {
+                throw new IllegalStateException("Toolbox res id may not be set if xml is set.");
+            }
+            mToolboxResId = toolboxResId;
+            return this;
+        }
+
+        /**
+         * Sets the XML to use for toolbox configuration.
+         * <p/>
+         * If this is set, {@link #setToolboxConfigurationResId(int)} may not be set.
+         *
+         * @param toolboxXml The XML for configuring the toolbox.
+         * @return this
+         */
+        public Builder setToolboxConfiguration(String toolboxXml) {
+            if (mToolboxResId != 0) {
+                throw new IllegalStateException("Toolbox xml may not be set if a res id is set");
+            }
+            mToolboxXml = toolboxXml;
+            return this;
+        }
+
+        /**
+         * Sets an XML String to load the initial workspace from. This can be used when
+         * transitioning between activities to load the user's previous code. When changing levels
+         * within the same activity {@link Workspace#loadToolboxContents(int)} may be used instead
+         * to simply change the Toolbox's configuration.
+         *
+         * @param workspaceXml The XML to load into the workspace.
+         * @return this
+         */
+        public Builder setStartingWorkspace(String workspaceXml) {
+            mWorkspaceXml = workspaceXml;
+            return this;
+        }
+
+        /**
+         * Create a new workspace using the configuration in this builder.
+         *
+         * @return A new {@link Workspace}.
+         */
+        public Workspace build() {
+            BlockFactory factory = new BlockFactory(mContext, null);
+            for (int i = 0; i < mBlockDefResources.size(); i++) {
+                factory.loadBlocksFromResource(mBlockDefResources.get(i));
+            }
+            for (int i = 0; i < mBlockDefs.size(); i++) {
+                factory.addBlockTemplate(mBlockDefs.get(i));
+            }
+            Workspace workspace = new Workspace(mContext, factory, mStyle);
+            if (mToolboxResId != 0) {
+                workspace.loadToolboxContents(mToolboxResId);
+            } else if (mToolboxXml != null) {
+                workspace.loadToolboxContents(mToolboxXml);
+            }
+            workspace.setFragments(mWorkspaceFragment, mTrashFragment, mToolboxFragment,
+                    mToolboxDrawer, mFragmentManager);
+            return workspace;
+        }
     }
 }

@@ -19,7 +19,8 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,51 +28,37 @@ import android.view.View;
 import com.google.blockly.model.Workspace;
 
 
-public class BlocklyActivity extends ActionBarActivity
+public class BlocklyActivity extends AppCompatActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+    private static final String TAG = "BlocklyActivity";
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
+    private Workspace mWorkspace;
     private ToolboxFragment mToolboxFragment;
+    private DrawerLayout mDrawerLayout;
     private TrashFragment mOscar;
-
     private WorkspaceFragment mWorkspaceFragment;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
+    private int mCurrentPosition;
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        mWorkspaceFragment = WorkspaceFragment.newInstance(position + 1, this);
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, mWorkspaceFragment)
-                .commit();
+        if (position == mCurrentPosition) {
+            return;
+        }
+
+        mWorkspace = createWorkspace();
 
         onSectionAttached(position + 1);    // Because indexing.
-
-        mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                if (mOscar != null) {
-                    fragmentManager.beginTransaction()
-                            .show(mOscar)
-                            .commit();
-                }
-            }
-        });
-        // TODO Figure out how to make this a configurable part of the library
-        Workspace workspace = mWorkspaceFragment.getWorkspace();
-        workspace.setTrashFragment(mOscar);
-        workspace.loadToolboxContents(R.raw.toolbox);
-        workspace.setToolboxFragment(mToolboxFragment);
+        mCurrentPosition = position;
     }
 
     @Override
@@ -102,6 +89,61 @@ public class BlocklyActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_blockly);
+        mNavigationDrawerFragment = (NavigationDrawerFragment)
+                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
+        mTitle = getTitle();
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        // Set up the drawer.
+        mNavigationDrawerFragment.setUp(R.id.navigation_drawer, mDrawerLayout);
+
+        mToolboxFragment =
+                (ToolboxFragment) getSupportFragmentManager().findFragmentById(R.id.toolbox);
+
+        // Set up the toolbox that lives inside the trash can.
+        mOscar = (TrashFragment) getSupportFragmentManager().findFragmentById(R.id.trash);
+        if (mOscar != null) {
+            // Start hidden.
+            getSupportFragmentManager().beginTransaction()
+                    .hide(mOscar)
+                    .commit();
+
+        }
+        mWorkspace = createWorkspace();
+        MockBlocksProvider.makeComplexModel(mWorkspace);
+        mCurrentPosition = 0;
+    }
+
+    /**
+     * Build the workspace for this activity.
+     */
+    protected Workspace createWorkspace() {
+        // update the main content by replacing fragments
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        mWorkspaceFragment = (WorkspaceFragment) fragmentManager.findFragmentById(R.id.container);
+        if (mWorkspaceFragment == null) {
+            mWorkspaceFragment = new WorkspaceFragment();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, mWorkspaceFragment)
+                    .commit();
+        }
+
+        Workspace.Builder bob = new Workspace.Builder(this);
+        bob.setBlocklyStyle(R.style.BlocklyTheme);
+        bob.addBlockDefinitions(R.raw.toolbox_blocks);
+
+        bob.setWorkspaceFragment(mWorkspaceFragment);
+        bob.setTrashFragment(mOscar);
+        bob.setToolboxConfigurationResId(R.raw.toolbox);
+        bob.setToolboxFragment(mToolboxFragment, mDrawerLayout);
+        bob.setFragmentManager(getSupportFragmentManager());
+        return bob.build();
+    }
+
     private void onSectionAttached(int number) {
         switch (number) {
             case 1:
@@ -123,37 +165,5 @@ public class BlocklyActivity extends ActionBarActivity
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setTitle(mTitle);
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_blockly);
-
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
-
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
-
-        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mToolboxFragment =
-                (ToolboxFragment) getSupportFragmentManager().findFragmentById(R.id.toolbox);
-        if (mToolboxFragment != null) {
-            mToolboxFragment.setDrawerLayout(drawerLayout);
-        }
-
-        // Set up the toolbox that lives inside the trash can.
-        mOscar = (TrashFragment) getSupportFragmentManager().findFragmentById(R.id.trash);
-        if (mOscar != null) {
-            // Start hidden.
-            getSupportFragmentManager().beginTransaction()
-                    .hide(mOscar)
-                    .commit();
-
-        }
     }
 }

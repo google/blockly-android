@@ -36,36 +36,12 @@ import com.google.blockly.ui.WorkspaceHelper;
 public class TrashFragment extends ToolboxFragment {
         private static final String TAG = "TrashFragment";
 
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            mWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
-                @Override
-                public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                    if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
-                        return false;
-                    }
-
-                    BlockGroup bg = mWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
-                    int pos = ((RecyclerView) bg.getParent()).getChildAdapterPosition(bg);
-                    Block copiedModel = mContents.get(pos).deepCopy();
-
-                    mTempScreenPosition.set((int) motionEvent.getRawX(), (int) motionEvent.getRawY());
-                    mWorkspace.getWorkspaceHelper().screenToWorkspaceCoordinates(
-                            mTempScreenPosition, mTempWorkspacePosition);
-                    copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                    mWorkspace.addBlockFromToolbox(copiedModel, motionEvent);
-                    return true;
-                }
-            });
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            super.onCreateView(inflater, container, savedInstanceState);
-            ((LinearLayoutManager)(mRecyclerView.getLayoutManager()))
-                    .setOrientation(LinearLayoutManager.HORIZONTAL);
-            return mRecyclerView;
-        }
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
+        ((LinearLayoutManager)(mRecyclerView.getLayoutManager()))
+                .setOrientation(LinearLayoutManager.HORIZONTAL);
+        return mRecyclerView;
+    }
 }

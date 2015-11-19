@@ -41,6 +41,7 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
 
     // Test switching around device orientation to make sure there are no crashes.
     public void testSwitchDeviceOrientation() {
+        mInstrumentation.waitForIdleSync();
         mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mInstrumentation.waitForIdleSync();
         mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);

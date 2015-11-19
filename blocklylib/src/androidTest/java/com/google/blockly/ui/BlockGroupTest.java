@@ -53,12 +53,12 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
         // One child block
         Block childBlock = mBlockFactory.obtainBlock("simple_input_output", "child block");
         // Add the block's view to bg.
-        mWorkspaceHelper.obtainBlockView(getContext(), childBlock, bg, mConnectionManager);
+        mWorkspaceHelper.obtainBlockView(getContext(), childBlock, bg, mConnectionManager, null);
         assertSame(childBlock, bg.lastChildBlock());
 
         // Two child blocks.  The blocks don't have to be connected in the model.
         childBlock = mBlockFactory.obtainBlock("multiple_input_output", "child block");
-        mWorkspaceHelper.obtainBlockView(getContext(), childBlock, bg, mConnectionManager);
+        mWorkspaceHelper.obtainBlockView(getContext(), childBlock, bg, mConnectionManager, null);
         assertSame(childBlock, bg.lastChildBlock());
     }
 

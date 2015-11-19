@@ -23,6 +23,7 @@ import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
@@ -33,7 +34,11 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
 /**
- * Provides helper methods for converting coordinates between the workspace and the views.
+ * Provides helper methods for views and coordinate conversions.
+ * <p/>
+ * Style attributes can be obtained for any views by calling the appropriate getXStyle method.
+ * BlockView hierarchies can also be created with the configured styles by calling
+ * {@link #obtainBlockView(Block, BlockGroup, ConnectionManager)}.
  * <p/>
  * There are two primary coordinate systems, workspace coordinates and virtual view coordinates.
  * <p/>
@@ -75,30 +80,24 @@ public class WorkspaceHelper {
     private int mBlockStyle;
     private int mFieldLabelStyle;
 
-    private BlockTouchHandler mBlockTouchHandler;
-
     /**
      * Create a helper for creating and doing calculations for views in the workspace using the
-     * workspace's style.
+     * context's default style.
      *
-     * @param workspaceView The {@link WorkspaceView} for which this is a helper.
-     * @param attrs The workspace attributes to load the style from.
+     * @param context The {@link Context} of the fragment or activity this lives in.
      */
-    public WorkspaceHelper(WorkspaceView workspaceView, AttributeSet attrs) {
-        this(workspaceView.getContext(), attrs, 0);
-        mWorkspaceView = workspaceView;
+    public WorkspaceHelper(Context context) {
+        this(context, null);
     }
 
     /**
-     * Create a helper for creating and doing calculations for views in the workspace using the
-     * workspace's style.
+     * Create a helper for creating and doing calculations for views in the workspace.
      *
      * @param context The {@link Context} of the fragment or activity this lives in.
      * @param attrs The workspace attributes to load the style from.
      */
     public WorkspaceHelper(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
-        mWorkspaceView = null;
     }
 
     /**
@@ -128,6 +127,13 @@ public class WorkspaceHelper {
 
         initConfig(mContext, attrs, workspaceStyle);
         updateRtL(mContext);
+    }
+
+    /**
+     * Sets the workspace view to use when converting between coordinate systems.
+     */
+    public void setWorkspaceView(WorkspaceView workspaceView) {
+        mWorkspaceView = workspaceView;
     }
 
     /**
@@ -222,10 +228,11 @@ public class WorkspaceHelper {
      *
      * @return A view for the block.
      */
-    public BlockView obtainBlockView(
-            Block block, BlockGroup parentGroup, ConnectionManager connectionManager) {
+    public BlockView obtainBlockView(Block block, BlockGroup parentGroup,
+            ConnectionManager connectionManager, BlockTouchHandler touchHandler) {
+        // TODO: Refactor to use a BlockViewFactory to instantiate and combine all the views.
         return new BlockView(mContext, getBlockStyle(), block, this, parentGroup,
-                connectionManager);
+                connectionManager, touchHandler);
     }
 
     /**
@@ -239,9 +246,9 @@ public class WorkspaceHelper {
      * @return A view for the block.
      */
     public BlockView obtainBlockView(Context context, Block block, BlockGroup parentGroup,
-                                     ConnectionManager connectionManager) {
-        return new BlockView(
-                context, getBlockStyle(), block, this, parentGroup, connectionManager);
+            ConnectionManager connectionManager, BlockTouchHandler touchHandler) {
+        return new BlockView(context, getBlockStyle(), block, this, parentGroup, connectionManager,
+                touchHandler);
     }
 
     /**
@@ -356,14 +363,6 @@ public class WorkspaceHelper {
                 return (BlockGroup) viewParent;
         }
         throw new IllegalStateException("No BlockGroup found among view's parents.");
-    }
-
-    public BlockTouchHandler getBlockTouchHandler() {
-        return mBlockTouchHandler;
-    }
-
-    public void setBlockTouchHandler(BlockTouchHandler bth) {
-        mBlockTouchHandler = bth;
     }
 
     /**

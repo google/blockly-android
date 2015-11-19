@@ -31,6 +31,7 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,23 +48,52 @@ public final class BlocklyXmlHelper {
     }
 
     /**
-     * Loads a list of top level Blocks from XML.  Each top level Block may have many Blocks
+     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
      * contained in it or descending from it.
      *
      * @param is The input stream from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
-     *
-     * @return A list of top level Blocks.
+     * @param stats The WorkspaceStats to store connection information in.
+     * @param result The List to add the parsed blocks to.
      *
      * @throws BlocklyParserException
      */
-    public static void loadFromXml(
-            InputStream is, BlockFactory blockFactory, WorkspaceStats stats, List<Block> result)
-            throws BlocklyParserException {
+    public static void loadFromXml(InputStream is, BlockFactory blockFactory, WorkspaceStats stats,
+            List<Block> result) throws BlocklyParserException {
         try {
             XmlPullParser parser = mParserFactory.newPullParser();
             parser.setInput(is, null);
+            loadFromXmlInternal(parser, blockFactory, stats, result);
+        } catch (XmlPullParserException e) {
+            throw new BlocklyParserException(e);
+        }
+    }
 
+    /**
+     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
+     * contained in it or descending from it.
+     *
+     * @param reader The reader from which to read.
+     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     * @param stats The WorkspaceStats to store connection information in.
+     * @param result The List to add the parsed blocks to.
+     *
+     * @throws BlocklyParserException
+     */
+    public static void loadFromXml(Reader reader, BlockFactory blockFactory, WorkspaceStats stats,
+            List<Block> result) throws BlocklyParserException {
+        try {
+            XmlPullParser parser = mParserFactory.newPullParser();
+            parser.setInput(reader);
+            loadFromXmlInternal(parser, blockFactory, stats, result);
+        } catch (XmlPullParserException e) {
+            throw new BlocklyParserException(e);
+        }
+    }
+
+    private static void loadFromXmlInternal(XmlPullParser parser, BlockFactory blockFactory,
+            WorkspaceStats stats, List<Block> result) {
+        try {
             int eventType = parser.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 switch (eventType) {

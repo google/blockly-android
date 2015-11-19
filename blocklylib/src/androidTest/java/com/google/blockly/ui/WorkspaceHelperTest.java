@@ -41,7 +41,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         super.setUp();
 
         mWorkspaceView = new WorkspaceView(getContext());
-        mWorkspaceHelper = new WorkspaceHelper(mWorkspaceView, null);
+        mWorkspaceHelper = new WorkspaceHelper(getContext());
     }
 
     // test getNearestParentBlockGroup

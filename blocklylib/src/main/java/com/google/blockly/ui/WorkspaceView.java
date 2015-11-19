@@ -52,7 +52,6 @@ public class WorkspaceView extends ViewGroup {
     private static final int TOUCH_STATE_DRAGGING = 2;
     // Block in this view received a long press.
     private static final int TOUCH_STATE_LONGPRESS = 3;
-    private final WorkspaceHelper mHelper;
     private final ViewPoint mTemp = new ViewPoint();
     // Distance threshold for detecting drag gestures.
     private final float mTouchSlop;
@@ -61,6 +60,7 @@ public class WorkspaceView extends ViewGroup {
     // are used to determine ranges and offsets for scrolling.
     private final Rect mBlocksBoundingBox = new Rect();
     private Workspace mWorkspace;
+    private WorkspaceHelper mHelper;
     // Current state of touch interaction with blocks in this workspace view.
     @TouchState
     private int mTouchState = TOUCH_STATE_NONE;
@@ -80,16 +80,6 @@ public class WorkspaceView extends ViewGroup {
 
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mHelper = new WorkspaceHelper(this, attrs);
-
-        // Tell the workspace helper to pass onTouchBlock events straight through to the WSView.
-        mHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
-            @Override
-            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                return WorkspaceView.this.onTouchBlock(blockView, motionEvent);
-            }
-        });
-
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         setOnDragListener(new WorkspaceDragEventListener());
     }
@@ -105,7 +95,9 @@ public class WorkspaceView extends ViewGroup {
      */
     public void setWorkspace(Workspace workspace) {
         mWorkspace = workspace;
-        mWorkspace.setWorkspaceHelper(mHelper);
+        if (workspace != null) {
+            mHelper = mWorkspace.getWorkspaceHelper();
+        }
     }
 
     public WorkspaceHelper getWorkspaceHelper() {
@@ -217,7 +209,7 @@ public class WorkspaceView extends ViewGroup {
      * @return true if the WorkspaceView has started dragging the given {@link BlockView} or
      * recorded it as draggable.
      */
-    private boolean onTouchBlock(BlockView blockView, MotionEvent event) {
+    public boolean onTouchBlock(BlockView blockView, MotionEvent event) {
         // Only initiate dragging of given view if in idle state - this prevents occluded blocks
         // from grabbing drag focus because they saw an unconsumed Down event before it propagated
         // back up to this WorkspaceView.

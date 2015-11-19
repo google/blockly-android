@@ -29,6 +29,7 @@ import java.util.List;
 public class BlockGroupAdapter extends RecyclerView.Adapter<BlockGroupAdapter.ViewHolder> {
     private final List<Block> mRootBlocks;
     private final WorkspaceHelper mWorkspaceHelper;
+    private final WorkspaceHelper.BlockTouchHandler mTouchHandler;
     private final Context mContext;
 
     /**
@@ -39,9 +40,10 @@ public class BlockGroupAdapter extends RecyclerView.Adapter<BlockGroupAdapter.Vi
      * @param context The context of the fragment.
      */
     public BlockGroupAdapter(List<Block> rootBlocks, WorkspaceHelper workspaceHelper,
-                             Context context) {
+            WorkspaceHelper.BlockTouchHandler touchHandler, Context context) {
         mRootBlocks = rootBlocks;
         mWorkspaceHelper = workspaceHelper;
+        mTouchHandler = touchHandler;
         mContext = context;
     }
 
@@ -55,7 +57,7 @@ public class BlockGroupAdapter extends RecyclerView.Adapter<BlockGroupAdapter.Vi
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.mBlockGroup.removeAllViews();
         mWorkspaceHelper.obtainBlockView(mContext, mRootBlocks.get(position), holder.mBlockGroup,
-                null);
+                null, mTouchHandler);
     }
 
     // Return the size of your dataset (invoked by the layout manager)

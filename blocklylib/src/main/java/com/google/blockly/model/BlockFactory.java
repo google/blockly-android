@@ -73,7 +73,7 @@ public class BlockFactory {
      */
     public void addBlockTemplate(Block block) {
         if (mBlockTemplates.containsKey(block.getName())) {
-            throw new IllegalArgumentException("There is already a block named " + block.getName());
+            Log.i(TAG, "Replacing block: " + block.getName());
         }
         mBlockTemplates.put(block.getName(), new Block.Builder(block).build());
     }
