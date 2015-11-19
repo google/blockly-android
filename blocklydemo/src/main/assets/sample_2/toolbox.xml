@@ -21,13 +21,13 @@
         <block type="statement_statement_input"></block>
         <block type="statement_value_input"></block>
     </category>
-<category name="Outputs">
-    <block type="simple_input_output"></block>
-    <block type="multiple_input_output"></block>
-    <block type="statement_multiple_value_input"></block>
-    <block type="statement_statement_input"></block>
-    <block type="statement_value_input"></block>
-</category>
+    <category name="Outputs">
+        <block type="simple_input_output"></block>
+        <block type="multiple_input_output"></block>
+        <block type="statement_multiple_value_input"></block>
+        <block type="statement_statement_input"></block>
+        <block type="statement_value_input"></block>
+    </category>
     <block type="statement_no_input"></block>
     <block type="output_no_input"></block>
     <block type="statement_no_next"></block>

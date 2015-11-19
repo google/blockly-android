@@ -17,6 +17,7 @@ package com.google.blockly.ui;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,9 +30,13 @@ import com.google.blockly.model.ToolboxCategory;
 /**
  * Adapter for displaying blocks and categories in the toolbox.
  */
-public class ToolboxAdapter extends RecyclerView.Adapter<ToolboxAdapter.ViewHolder> {
+public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final String TAG = "ToolboxAdapter";
+
     private static final int BLOCK_GROUP_VIEW_TYPE = 0;
     private static final int CATEGORY_VIEW_TYPE = 1;
+    private static final int UNKNOWN_VIEW_TYPE = 2;
+
     private final ToolboxCategory mTopLevelCategory;
     private final WorkspaceHelper mWorkspaceHelper;
     private final Context mContext;
@@ -41,7 +46,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<ToolboxAdapter.ViewHold
      *
      * @param topLevelCategory All of the blocks/groups of blocks that should be displayed in the
      * toolbox.
-     * @param workspaceHelper A {@link WorkspaceHelper} for obtaining {@link BlockView}s.
+     * @param workspaceHelper A {@link WorkspaceHelper} for obtaining {@link BlockView} instances.
      * @param context The context of the fragment.
      */
     public ToolboxAdapter(ToolboxCategory topLevelCategory, WorkspaceHelper workspaceHelper,
@@ -52,7 +57,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<ToolboxAdapter.ViewHold
     }
 
     @Override
-    public ToolboxAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == BLOCK_GROUP_VIEW_TYPE) {
             return new BlockViewHolder(new BlockGroup(mContext, mWorkspaceHelper));
         } else {
@@ -64,35 +69,83 @@ public class ToolboxAdapter extends RecyclerView.Adapter<ToolboxAdapter.ViewHold
 
     @Override
     public int getItemViewType(int position) {
-        return getItemViewType(mTopLevelCategory, position);
+        return getItemForPosition(mTopLevelCategory, position).first;
+    }
+
+    /**
+     * onBindViewHolder calls this method to figure out what information to bind in each location.
+     * {@link ToolboxCategory} instances nest recursively, with each subcategory being either
+     * expanded or collapsed.
+     *
+     * In a given category the blocks come first, followed by each subcategory.  The item to display
+     * at a given position is either a block or a subcategory's name.
+     *
+     * @param currentCategory The {@link ToolboxCategory} to search recursively.
+     * @param position The position for which an element should be found.
+     * @return A pair containing the type of the item and the item itself.
+     */
+    private Pair<Integer, Object> getItemForPosition(ToolboxCategory currentCategory, int position) {
+        if (position < currentCategory.getBlocks().size()) {
+            return new Pair<>(BLOCK_GROUP_VIEW_TYPE,
+                    (Object) currentCategory.getBlocks().get(position));
+        }
+        int categoryNumber = 0;
+        // Start after all of the blocks in this category.
+        int elementNumber = currentCategory.getBlocks().size();
+        while (elementNumber <= position) {
+            if (categoryNumber < currentCategory.getSubcategories().size()) {
+                ToolboxCategory subcategory =
+                        currentCategory.getSubcategories().get(categoryNumber);
+                if (elementNumber == position) {
+                    return new Pair<>(CATEGORY_VIEW_TYPE, (Object) subcategory);
+                } else {
+                    elementNumber++; // skip past the header for this category
+                }
+
+                if (subcategory.isExpanded()) {
+                    if (position - elementNumber < subcategory.getCurrentSize()) {
+                        return getItemForPosition(subcategory, position - elementNumber);
+                    } else {
+                        elementNumber += subcategory.getCurrentSize();
+                    }
+                }
+                categoryNumber++;
+            }
+        }
+        // Wasn't in subcategories or blocks
+        return new Pair<>(UNKNOWN_VIEW_TYPE, null);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        Pair<Integer, Object> item = getItemForPosition(mTopLevelCategory, position);
+        switch (item.first) {
+            case BLOCK_GROUP_VIEW_TYPE:
+                final BlockViewHolder bvHolder = (BlockViewHolder) holder;
+                final Block block = (Block) item.second;
+                bvHolder.mBlockGroup.removeAllViews();
+                mWorkspaceHelper.obtainBlockView(mContext, block, bvHolder.mBlockGroup, null);
+                break;
+            case CATEGORY_VIEW_TYPE:
+                final ToolboxCategory cat = (ToolboxCategory) item.second;
+                CategoryViewHolder cvHolder = (CategoryViewHolder) holder;
+                cvHolder.setCategory(cat);
 
-        if (getItemViewType(position) == BLOCK_GROUP_VIEW_TYPE) {
-            BlockViewHolder bvHolder = (BlockViewHolder) holder;
-            bvHolder.mBlockGroup.removeAllViews();
-            mWorkspaceHelper.obtainBlockView(mContext,
-                    getBlockForPosition(mTopLevelCategory, position), bvHolder.mBlockGroup, null);
-        } else if (getItemViewType(position) == CATEGORY_VIEW_TYPE) {
-            final ToolboxCategory cat = getCategoryForPosition(mTopLevelCategory, position);
-            CategoryViewHolder cvHolder = (CategoryViewHolder) holder;
-            cvHolder.setCategory(cat);
-
-            cvHolder.mTextView.setOnClickListener(
-                    new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            cat.setExpanded(!cat.isExpanded());
-                            ToolboxAdapter.this.notifyDataSetChanged();
-                        }
-                    });
+                cvHolder.mTextView.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                cat.setExpanded(!cat.isExpanded());
+                                ToolboxAdapter.this.notifyDataSetChanged();
+                            }
+                        });
+                break;
+            default:
+                // Shouldn't get here.  Now what?
         }
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         if (mTopLevelCategory != null) {
@@ -101,95 +154,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<ToolboxAdapter.ViewHold
         return 0;
     }
 
-    private int getItemViewType(ToolboxCategory currentCategory, int position) {
-        int categoryNumber = 0;
-        int elementNumber = 0;
-        while (elementNumber <= position) {
-            if (categoryNumber < currentCategory.getSubcategories().size()) {
-                ToolboxCategory subcategory =
-                        currentCategory.getSubcategories().get(categoryNumber);
-                if (elementNumber == position) {
-                    return CATEGORY_VIEW_TYPE;
-                }
-                if (subcategory.isExpanded()) {
-                    elementNumber++; // skip past the header for this category
-                    if (position - elementNumber < subcategory.getCurrentSize()) {
-                        return getItemViewType(subcategory, position - elementNumber);
-                    } else {
-                        elementNumber += subcategory.getCurrentSize();
-                    }
-                } else {
-                    elementNumber++;
-                }
-                categoryNumber++;
-            } else if (position - elementNumber >= 0) {
-                // Wasn't in subcategories; must be in blocks
-                return BLOCK_GROUP_VIEW_TYPE;
-            }
-        }
-        // Wasn't in subcategories or blocks
-        return -1;
-    }
-
-    private Block getBlockForPosition(ToolboxCategory currentCategory, int position) {
-        int categoryNumber = 0;
-
-        int elementNumber = 0;
-        while (elementNumber <= position) {
-            if (categoryNumber < currentCategory.getSubcategories().size()) {
-                ToolboxCategory subcategory =
-                        currentCategory.getSubcategories().get(categoryNumber);
-                if (subcategory.isExpanded()) {
-                    elementNumber++; // skip past the header for this category
-                    if (position - elementNumber < subcategory.getCurrentSize()) {
-                        return getBlockForPosition(subcategory, position - elementNumber);
-                    } else {
-                        elementNumber += subcategory.getCurrentSize();
-                    }
-                } else {
-                    elementNumber++;
-                }
-                categoryNumber++;
-            } else if (position - elementNumber >= 0) {
-                // Wasn't in subcategories; must be in blocks
-                return currentCategory.getBlocks().get(position - elementNumber);
-            }
-        }
-        // Wasn't in subcategories or blocks
-        return null;
-    }
-
-    private ToolboxCategory getCategoryForPosition(ToolboxCategory currentCategory, int position) {
-        int categoryNumber = 0;
-
-        int elementNumber = 0;
-        while (elementNumber <= position) {
-            if (categoryNumber < currentCategory.getSubcategories().size()) {
-                ToolboxCategory subcategory =
-                        currentCategory.getSubcategories().get(categoryNumber);
-                if (elementNumber == position) {
-                    return subcategory;
-                } else if (subcategory.isExpanded()) {
-                    elementNumber += subcategory.getCurrentSize();
-                }
-                elementNumber++;    // The header
-                categoryNumber++;
-            } else if (position - elementNumber >= 0) {
-                // Wasn't in subcategories; must be in blocks
-                return null;
-            }
-        }
-        // Wasn't in subcategories or blocks
-        return null;
-    }
-
-    public abstract class ViewHolder extends RecyclerView.ViewHolder {
-        public ViewHolder(View v) {
-            super(v);
-        }
-    }
-
-    public class BlockViewHolder extends ToolboxAdapter.ViewHolder {
+    public class BlockViewHolder extends RecyclerView.ViewHolder {
         public final BlockGroup mBlockGroup;
 
         public BlockViewHolder(BlockGroup v) {
@@ -198,7 +163,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<ToolboxAdapter.ViewHold
         }
     }
 
-    public class CategoryViewHolder extends ToolboxAdapter.ViewHolder {
+    public class CategoryViewHolder extends RecyclerView.ViewHolder {
         public final TextView mTextView;
         public ToolboxCategory mCategory;
 
@@ -212,8 +177,5 @@ public class ToolboxAdapter extends RecyclerView.Adapter<ToolboxAdapter.ViewHold
             mCategory = newCategory;
             mTextView.setText(mCategory.getCategoryName());
         }
-
     }
-
-
 }

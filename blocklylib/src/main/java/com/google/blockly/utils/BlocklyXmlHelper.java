@@ -47,45 +47,6 @@ public final class BlocklyXmlHelper {
     }
 
     /**
-     * Loads a list of top level Blocks from XML.  Each top level Block may have many Blocks
-     * contained in it or descending from it.
-     *
-     * @param is The input stream from which to read.
-     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
-     *
-     * @return A list of top level Blocks.
-     * @throws BlocklyParserException
-     */
-    private static void loadFromXml(
-            InputStream is, BlockFactory blockFactory, WorkspaceStats stats, List<Block> result)
-            throws BlocklyParserException {
-        try {
-            XmlPullParser parser = mParserFactory.newPullParser();
-            parser.setInput(is, null);
-
-            int eventType = parser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                switch (eventType) {
-                    case XmlPullParser.START_TAG:
-                        if (parser.getName() == null) {
-                            throw new BlocklyParserException("Malformed XML; aborting.");
-                        }
-                        if (parser.getName().equalsIgnoreCase("block")) {
-                            result.add(Block.fromXml(parser, blockFactory));
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-                eventType = parser.next();
-            }
-        } catch (XmlPullParserException | IOException e) {
-            throw new BlocklyParserException(e);
-        }
-    }
-
-    /**
      * Loads toolbox from XML.  Each category may have multiple subcategories and/or multiple blocks
      * contained in it or descending from it.
      *
@@ -113,7 +74,7 @@ public final class BlocklyXmlHelper {
             InputStream is, BlockFactory blockFactory, WorkspaceStats stats)
             throws BlocklyParserException {
         List<Block> result = new ArrayList<>();
-        loadFromXml(is, blockFactory, stats, result);
+        loadBlocksFromXml(is, blockFactory, stats, result);
         return result;
     }
 
@@ -175,6 +136,45 @@ public final class BlocklyXmlHelper {
         List<Block> temp = new ArrayList<>();
         temp.add(toSerialize);
         writeToXml(temp, os);
+    }
+
+    /**
+     * Loads a list of top level Blocks from XML.  Each top level Block may have many Blocks
+     * contained in it or descending from it.
+     *
+     * @param is The input stream from which to read.
+     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     *
+     * @return A list of top level Blocks.
+     * @throws BlocklyParserException
+     */
+    private static void loadBlocksFromXml(
+            InputStream is, BlockFactory blockFactory, WorkspaceStats stats, List<Block> result)
+            throws BlocklyParserException {
+        try {
+            XmlPullParser parser = mParserFactory.newPullParser();
+            parser.setInput(is, null);
+
+            int eventType = parser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        if (parser.getName() == null) {
+                            throw new BlocklyParserException("Malformed XML; aborting.");
+                        }
+                        if (parser.getName().equalsIgnoreCase("block")) {
+                            result.add(Block.fromXml(parser, blockFactory));
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+                eventType = parser.next();
+            }
+        } catch (XmlPullParserException | IOException e) {
+            throw new BlocklyParserException(e);
+        }
     }
 
     private static XmlPullParserFactory createParseFactory() {

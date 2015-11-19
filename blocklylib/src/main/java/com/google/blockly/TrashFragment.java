@@ -42,7 +42,7 @@ public class TrashFragment extends ToolboxFragment {
                 if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
                     return false;
                 }
-                // TODO(fenichel): make thr trash can close when blocks are selected.
+                // TODO(fenichel): make the trash can close when blocks are selected.
 
                 BlockGroup bg = mWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
                 Block copiedModel = ((BlockView) bg.getChildAt(0)).getBlock().deepCopy();
