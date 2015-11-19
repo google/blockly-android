@@ -77,7 +77,7 @@ public class BlockViewTest extends MockitoAndroidTestCase {
     // Make a BlockView for the given Block and default mock objects otherwise.
     @NonNull
     private BlockView makeBlockView(Block block) {
-        return new BlockView(getContext(), block, mMockWorkspaceHelper,
-                mMockBlockGroup, mMockConnectionManager);
+        return new BlockView(getContext(), block, mMockWorkspaceHelper, mMockBlockGroup,
+                mMockConnectionManager, null);
     }
 }

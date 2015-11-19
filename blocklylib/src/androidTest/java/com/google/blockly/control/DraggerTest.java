@@ -55,8 +55,9 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());
         mConnectionManager = new ConnectionManager();
-        mWorkspaceHelper = new WorkspaceHelper(mWorkspaceView, null);
-        mDragger = new Dragger(mWorkspaceHelper, mWorkspaceView, mConnectionManager, mBlocks);
+        mWorkspaceHelper = new WorkspaceHelper(getContext(), null);
+        mDragger = new Dragger(mWorkspaceHelper, mConnectionManager, mBlocks);
+        mDragger.setWorkspaceView(mWorkspaceView);
     }
 
     /** This set of tests exercises the many paths through reconnectViews. **/

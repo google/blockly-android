@@ -36,30 +36,17 @@ public class WorkspaceFragment extends Fragment {
      * The fragment argument representing the section number for this
      * fragment.
      */
-    private static final String ARG_SECTION_NUMBER = "section_number";
+    private static final String ARG_BUILD_DEBUG_MODEL = "debug_model";
     private Workspace mWorkspace;
     private View.OnClickListener mTrashClickListener;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        final Bundle bundle = this.getArguments();
-        if (bundle != null && bundle.containsKey(ARG_SECTION_NUMBER)) {
-            // Add all blocks, or load from XML.
-            MockBlocksProvider.makeComplexModel(mWorkspace);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        initWorkspace(context);
-        super.onAttach(context);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (mWorkspace == null) {
+            throw new IllegalStateException(
+                    "A Workspace must be set before this fragment's view is created.");
+        }
         final ViewGroup rootView =
                 (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -100,37 +87,34 @@ public class WorkspaceFragment extends Fragment {
                 });
 
         // Let the controller create the views.
-        mWorkspace.createViewsFromModel(workspaceView);
+        mWorkspace.initWorkspaceView(workspaceView);
         return rootView;
     }
 
+    /**
+     * Sets the workspace to use in this fragment for instantiating views. This should be the same
+     * workspace used for an associated {@link ToolboxFragment} or {@link TrashFragment}.
+     *
+     * @param workspace The workspace backing this fragment.
+     */
+    public void setWorkspace(Workspace workspace) {
+        mWorkspace = workspace;
+    }
+
+    /**
+     * @return The workspace being used by this fragment.
+     */
     public Workspace getWorkspace() {
         return mWorkspace;
     }
 
+    /**
+     * Sets the listener to be called when the trash is clicked. This is generally used to open
+     * the {@link TrashFragment}.
+     *
+     * @param listener The listener to call when the trash is clicked.
+     */
     public void setTrashClickListener(View.OnClickListener listener) {
         mTrashClickListener = listener;
-    }
-
-    // TODO refactor this to make more sense
-    private void initWorkspace(Context context) {
-        if (mWorkspace == null) {
-            mWorkspace = new Workspace(context);
-        }
-    }
-
-    /**
-     * @param sectionNumber Which section's workspace to return.
-     *
-     * @return a new instance of this fragment for the given section
-     * number.
-     */
-    public static WorkspaceFragment newInstance(int sectionNumber, Context context) {
-        WorkspaceFragment fragment = new WorkspaceFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        fragment.setArguments(args);
-        fragment.initWorkspace(context);
-        return fragment;
     }
 }

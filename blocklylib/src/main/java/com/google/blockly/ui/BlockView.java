@@ -52,6 +52,7 @@ public class BlockView extends FrameLayout {
     private static final int HIGHLIGHT_COLOR = Color.YELLOW;
 
     private final WorkspaceHelper mHelper;
+    private final WorkspaceHelper.BlockTouchHandler mTouchHandler;
     private final Block mBlock;
     private final ConnectionManager mConnectionManager;
 
@@ -93,21 +94,23 @@ public class BlockView extends FrameLayout {
     private int mBlockWidth;
 
     /**
-     * Create a new BlockView for the given block using the workspace's style.
-     * This constructor is for non-interactive display blocks. If this block is part of a
-     * {@link com.google.blockly.model.Workspace}, then
-     * {@link BlockView(Context, int, Block, WorkspaceHelper, BlockGroup, View.OnTouchListener)}
-     * should be used instead.
+     * Create a new BlockView for the given block using the workspace's style. This constructor is
+     * for non-interactive display blocks. If this block is part of a {@link
+     * com.google.blockly.model.Workspace}, then {@link BlockView(Context, int, Block,
+     * WorkspaceHelper, BlockGroup, View.OnTouchListener)} should be used instead.
      *
      * @param context The context for creating this view.
      * @param block The {@link Block} represented by this view.
      * @param helper The helper for loading workspace configs and doing calculations.
      * @param parentGroup The {@link BlockGroup} this view will live in.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
+     * @param touchHandler The {@link WorkspaceHelper.BlockTouchHandler} to call when the block is
+     * touched.
      */
     public BlockView(Context context, Block block, WorkspaceHelper helper, BlockGroup parentGroup,
-                     ConnectionManager connectionManager) {
-        this(context, 0 /* default style */, block, helper, parentGroup, connectionManager);
+            ConnectionManager connectionManager, WorkspaceHelper.BlockTouchHandler touchHandler) {
+        this(context, 0 /* default style */, block, helper, parentGroup, connectionManager,
+                touchHandler);
     }
 
     /**
@@ -122,12 +125,14 @@ public class BlockView extends FrameLayout {
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      */
     public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
-                     BlockGroup parentGroup, ConnectionManager connectionManager) {
+            BlockGroup parentGroup, ConnectionManager connectionManager,
+            WorkspaceHelper.BlockTouchHandler touchHandler) {
         super(context, null, 0);
 
         mBlock = block;
         mConnectionManager = connectionManager;
         mHelper = helper;
+        mTouchHandler = touchHandler;
 
         if (parentGroup != null) {
             parentGroup.addView(this);
@@ -182,7 +187,7 @@ public class BlockView extends FrameLayout {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return hitTest(event) && mHelper.getBlockTouchHandler().onTouchBlock(this, event);
+        return hitTest(event) && mTouchHandler.onTouchBlock(this, event);
     }
 
     @Override
@@ -615,15 +620,16 @@ public class BlockView extends FrameLayout {
             if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
                 // Blocks connected to inputs live in their own BlockGroups.
                 BlockGroup bg = new BlockGroup(context, mHelper);
-                mHelper.obtainBlockView(context,
-                        in.getConnection().getTargetBlock(), bg, mConnectionManager);
+                mHelper.obtainBlockView(context, in.getConnection().getTargetBlock(),
+                        bg, mConnectionManager, mTouchHandler);
                 inputView.setChildView(bg);
             }
         }
 
         if (mBlock.getNextBlock() != null) {
             // Next blocks live in the same BlockGroup.
-            mHelper.obtainBlockView(mBlock.getNextBlock(), parentGroup, mConnectionManager);
+            mHelper.obtainBlockView(mBlock.getNextBlock(), parentGroup, mConnectionManager,
+                    mTouchHandler);
         }
 
         resizeList(mInputConnectorOffsets);

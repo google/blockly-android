@@ -19,7 +19,6 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -40,29 +39,28 @@ import com.google.blockly.ui.WorkspaceHelper;
  * Fragment to hold views of all of the available blocks in the toolbox.
  */
 public class ToolboxFragment extends Fragment {
-    private static final String TAG = "ToolboxFragment";
-    final Point mTempScreenPosition = new Point();
-    final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
-    RecyclerView mRecyclerView;
-    Workspace mWorkspace;
-    WorkspaceHelper mWorkspaceHelper;
-    private DrawerLayout mDrawerLayout;
-    private RecyclerView.Adapter mAdapter;
+    protected static final String TAG = "ToolboxFragment";
+    protected final Point mTempScreenPosition = new Point();
+    protected final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
+
+    protected RecyclerView mRecyclerView;
+    protected RecyclerView.Adapter mAdapter;
+    protected Workspace mWorkspace;
+    protected WorkspaceHelper mWorkspaceHelper;
+    protected WorkspaceHelper.BlockTouchHandler mBlockTouchHandler;
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
     private int mBlockMargin = 10;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mWorkspaceHelper = new WorkspaceHelper(getContext(), null);
-        mWorkspaceHelper.setBlockTouchHandler(new WorkspaceHelper.BlockTouchHandler() {
+    public void setWorkspace(Workspace workspace) {
+        mWorkspace = workspace;
+        mWorkspaceHelper = mWorkspace.getWorkspaceHelper();
+        mBlockTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
                 if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
                     return false;
                 }
-                mDrawerLayout.closeDrawers();
 
                 BlockGroup bg = mWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
                 Block copiedModel = ((BlockView) bg.getChildAt(0)).getBlock().deepCopy();
@@ -71,21 +69,17 @@ public class ToolboxFragment extends Fragment {
                 // toolbox.
                 mTempScreenPosition.set((int) motionEvent.getRawX() - (int) motionEvent.getX(),
                         (int) motionEvent.getRawY() - (int) motionEvent.getY());
-                mWorkspace.getWorkspaceHelper().screenToWorkspaceCoordinates(
+                mWorkspaceHelper.screenToWorkspaceCoordinates(
                         mTempScreenPosition, mTempWorkspacePosition);
                 copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                mWorkspace.addBlockFromToolbox(copiedModel, motionEvent);
+                mWorkspace.addBlockFromToolbox(copiedModel, motionEvent, ToolboxFragment.this);
                 return true;
             }
-        });
-    }
-
-    public void setWorkspace(Workspace workspace) {
-        mWorkspace = workspace;
+        };
     }
 
     public void setContents(ToolboxCategory category) {
-        mAdapter = new ToolboxAdapter(category, mWorkspaceHelper, getContext());
+        mAdapter = new ToolboxAdapter(category, mWorkspaceHelper, mBlockTouchHandler, getContext());
         // TODO(rachel-fenichel): fix lifecycle such that setContents() is never called before
         // onCreateView().
         if (mRecyclerView != null) {
@@ -107,10 +101,6 @@ public class ToolboxFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new ItemDecoration());
         return mRecyclerView;
-    }
-
-    public void setDrawerLayout(DrawerLayout drawerLayout) {
-        mDrawerLayout = drawerLayout;
     }
 
     private class ItemDecoration extends RecyclerView.ItemDecoration {

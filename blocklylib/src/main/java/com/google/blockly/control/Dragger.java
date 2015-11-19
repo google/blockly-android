@@ -70,14 +70,12 @@ public class Dragger {
 
     /**
      * @param workspaceHelper For use in computing workspace coordinates.
-     * @param workspaceView The root view to add block groups to.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param rootBlocks The list of blocks to update when moving blocks.
      */
-    public Dragger(WorkspaceHelper workspaceHelper, WorkspaceView workspaceView,
-                   ConnectionManager connectionManager, ArrayList<Block> rootBlocks) {
+    public Dragger(WorkspaceHelper workspaceHelper, ConnectionManager connectionManager,
+                   ArrayList<Block> rootBlocks) {
         mWorkspaceHelper = workspaceHelper;
-        mWorkspaceView = workspaceView;
         mConnectionManager = connectionManager;
         mRootBlocks = rootBlocks;
     }

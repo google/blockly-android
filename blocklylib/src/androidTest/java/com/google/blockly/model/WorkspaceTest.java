@@ -30,11 +30,15 @@ public class WorkspaceTest extends AndroidTestCase {
     public void testXmlParsing() {
         // TODO: Move test_blocks.json to the testapp's resources once
         // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
-        Workspace workspace = new Workspace(getContext());
-        workspace.loadBlockFactory(mContext.getResources().openRawResource(R.raw.test_blocks));
+        Workspace.Builder bob = new Workspace.Builder(getContext());
+        bob.addBlockDefinitions(R.raw.test_blocks);
+        Workspace workspace = bob.build();
         workspace.loadFromXml(assembleWorkspace(""));
+        assertEquals("Workspace should be empty", 0, workspace.getRootBlocks().size());
         workspace.loadFromXml(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK));
+        assertEquals("Workspace should have one block", 1, workspace.getRootBlocks().size());
         workspace.loadFromXml(new ByteArrayInputStream(EMPTY_WORKSPACE.getBytes()));
+        assertEquals("Workspace should be empty", 0, workspace.getRootBlocks().size());
 
         try {
             workspace.loadFromXml(assembleWorkspace(BAD_XML));
@@ -45,7 +49,9 @@ public class WorkspaceTest extends AndroidTestCase {
     }
 
     public void testSerialization() throws BlocklySerializerException {
-        Workspace workspace = new Workspace(getContext());
+        Workspace.Builder bob = new Workspace.Builder(getContext());
+        bob.addBlockDefinitions(R.raw.test_blocks);
+        Workspace workspace = bob.build();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         workspace.serializeToXml(os);
         assertEquals(EMPTY_WORKSPACE, os.toString());

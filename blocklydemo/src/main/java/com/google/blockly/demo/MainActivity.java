@@ -21,4 +21,5 @@ import com.google.blockly.NavigationDrawerFragment;
 
 public class MainActivity extends BlocklyActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+    // TODO: Figure out how this customizes
 }
