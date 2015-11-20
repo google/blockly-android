@@ -92,7 +92,7 @@ public class Workspace {
      * @param context The activity context.
      * @param blockFactory The factory to use for building new blocks.
      * @param style The resource id to load style configuration from. The style must inherit from
-     *              {@link com.google.blockly.R.style#BlocklyTheme}
+     * {@link com.google.blockly.R.style#BlocklyTheme}
      */
     private Workspace(Context context, BlockFactory blockFactory, int style) {
         if (context == null) {
@@ -153,7 +153,7 @@ public class Workspace {
      * Set up toolbox's contents.
      *
      * @param toolboxResId The resource id of the set of blocks or block groups to show in the
-     *                     toolbox.
+     * toolbox.
      */
     public void loadToolboxContents(int toolboxResId) {
         InputStream is = mContext.getResources().openRawResource(toolboxResId);
@@ -210,10 +210,10 @@ public class Workspace {
      * Set up the {@link WorkspaceView} with this workspace's model. This method will perform the
      * following steps:
      * <ul>
-     *     <li>Set the block touch handler for the view.</li>
-     *     <li>Configure the dragger for the view.</li>
-     *     <li>Recursively initialize views for all the blocks in the model and add them to the
-     *         view.</li>
+     * <li>Set the block touch handler for the view.</li>
+     * <li>Configure the dragger for the view.</li>
+     * <li>Recursively initialize views for all the blocks in the model and add them to the
+     * view.</li>
      * </ul>
      *
      * @param wv The root workspace view to add to.
@@ -266,12 +266,10 @@ public class Workspace {
      * @param block The root block to be added to the workspace.
      * @param event The {@link MotionEvent} that caused the block to be added to the workspace.
      * This is used to find the correct position to start the drag event.
+     * @param fragment The {@link ToolboxFragment} where the event originated.
      */
     public void addBlockFromToolbox(Block block, MotionEvent event, ToolboxFragment fragment) {
-        BlockGroup bg = new BlockGroup(mContext, mWorkspaceHelper);
-        mWorkspaceHelper.obtainBlockView(mContext, block, bg, mConnectionManager, mTouchHandler);
-        mWorkspaceView.addView(bg);
-        addRootBlock(block);
+        addBlockWithView(block);
         // let the workspace view know that this is the block we want to drag
         mWorkspaceView.setDragFocus(block.getView(), event);
         // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
@@ -293,9 +291,16 @@ public class Workspace {
         }
     }
 
-    @VisibleForTesting
-    List<Block> getRootBlocks() {
-        return mRootBlocks;
+    /**
+     * Takes in a block model, creates corresponding views and adds it to the workspace.
+     *
+     * @param block The {@link Block} to add to the workspace.
+     */
+    public void addBlockWithView(Block block) {
+        BlockGroup bg = new BlockGroup(mContext, mWorkspaceHelper);
+        mWorkspaceHelper.obtainBlockView(mContext, block, bg, mConnectionManager, mTouchHandler);
+        mWorkspaceView.addView(bg);
+        addRootBlock(block);
     }
 
     private void reset() {
@@ -307,8 +312,8 @@ public class Workspace {
     }
 
     private void setFragments(final WorkspaceFragment workspace, final TrashFragment trash,
-            final ToolboxFragment toolbox, final DrawerLayout toolboxDrawer,
-            final FragmentManager manager) {
+                              final ToolboxFragment toolbox, final DrawerLayout toolboxDrawer,
+                              final FragmentManager manager) {
         mWorkspaceFragment = workspace;
         mTrashFragment = trash;
         mToolboxFragment = toolbox;
@@ -343,6 +348,11 @@ public class Workspace {
             toolbox.setContents(mToolboxCategory);
             mCanCloseToolbox = mToolboxDrawer != null; // TODO: Check config
         }
+    }
+
+    @VisibleForTesting
+    List<Block> getRootBlocks() {
+        return mRootBlocks;
     }
 
     /**
@@ -399,6 +409,7 @@ public class Workspace {
          * visible.
          *
          * @param fragmentManager The support manager to use for showing and hiding fragments.
+         *
          * @return this
          */
         public Builder setFragmentManager(FragmentManager fragmentManager) {
@@ -411,6 +422,7 @@ public class Workspace {
          * from {@link com.google.blockly.R.style#BlocklyTheme}.
          *
          * @param styleResId The resource id for the style to use.
+         *
          * @return this
          */
         public Builder setBlocklyStyle(int styleResId) {
@@ -429,6 +441,7 @@ public class Workspace {
          * A duplicate block is any block with the same {@link Block#getName() name}.
          *
          * @param blockDefinitionsResId The resource to load blocks from.
+         *
          * @return this
          */
         public Builder addBlockDefinitions(int blockDefinitionsResId) {
@@ -447,6 +460,7 @@ public class Workspace {
          * A duplicate block is any block with the same {@link Block#getName() name}.
          *
          * @param assetName the path of the asset to load from.
+         *
          * @return this
          */
         public Builder addBlockDefinitionsFromAsset(String assetName) {
@@ -467,6 +481,7 @@ public class Workspace {
          * A duplicate block is any block with the same {@link Block#getName() name}.
          *
          * @param blocks The list of blocks to add to the workspace.
+         *
          * @return this
          */
         public Builder addBlockDefinitions(List<Block> blocks) {
@@ -482,6 +497,7 @@ public class Workspace {
          * {@link #setToolboxConfigurationAsset(String)} may not be set.
          *
          * @param toolboxResId The resource id for the toolbox config file.
+         *
          * @return this
          */
         public Builder setToolboxConfigurationResId(int toolboxResId) {
@@ -500,6 +516,7 @@ public class Workspace {
          * {@link #setToolboxConfigurationResId(int)} may not be set.
          *
          * @param assetName The asset for the toolbox config file.
+         *
          * @return this
          */
         public Builder setToolboxConfigurationAsset(String assetName) {
@@ -517,6 +534,7 @@ public class Workspace {
          * {@link #setToolboxConfigurationAsset(String)} may not be set.
          *
          * @param toolboxXml The XML for configuring the toolbox.
+         *
          * @return this
          */
         public Builder setToolboxConfiguration(String toolboxXml) {
@@ -534,6 +552,7 @@ public class Workspace {
          * to simply change the Toolbox's configuration.
          *
          * @param workspaceXml The XML to load into the workspace.
+         *
          * @return this
          */
         public Builder setStartingWorkspace(String workspaceXml) {

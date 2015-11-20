@@ -109,9 +109,38 @@ public class BlocklyActivity extends AppCompatActivity
                 e.printStackTrace();
             }
             return true;
+        } else if (id == R.id.action_airstrike) {
+            mToolboxFragment.airstrike();
+            return true;
+        } else if (id == R.id.action_carpet_bomb) {
+            mToolboxFragment.carpetBomb();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void onSectionAttached(int number) {
+        switch (number) {
+            case 1:
+                mTitle = getString(R.string.title_section1);
+                break;
+            case 2:
+                mTitle = getString(R.string.title_section2);
+                break;
+            case 3:
+                mTitle = getString(R.string.title_section3);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void restoreActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setTitle(mTitle);
     }
 
     @Override
@@ -168,28 +197,5 @@ public class BlocklyActivity extends AppCompatActivity
         bob.setToolboxFragment(mToolboxFragment, mDrawerLayout);
         bob.setFragmentManager(getSupportFragmentManager());
         return bob.build();
-    }
-
-    private void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_section2);
-                break;
-            case 3:
-                mTitle = getString(R.string.title_section3);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void restoreActionBar() {
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
     }
 }

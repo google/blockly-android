@@ -9,4 +9,8 @@
           android:orderInCategory="10" app:showAsAction="never"/>
     <item android:id="@+id/action_load" android:title="Load"
           android:orderInCategory="11" app:showAsAction="never"/>
+    <item android:id="@+id/action_airstrike" android:title="Airstrike"
+          android:orderInCategory="90" app:showAsAction="never"/>
+    <item android:id="@+id/action_carpet_bomb" android:title="Carpet Bomb"
+          android:orderInCategory="91" app:showAsAction="never"/>
 </menu>

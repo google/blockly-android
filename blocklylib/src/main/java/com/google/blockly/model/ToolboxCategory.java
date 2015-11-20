@@ -80,6 +80,19 @@ public class ToolboxCategory {
         return size;
     }
 
+    /**
+     * Fill the given list with of the {@link Block} instances in this category and its
+     * subcategories.
+     *
+     * @param blocks The list to add to, which is not cleared before adding blocks.
+     */
+    public void getAllBlocksRecursive(List<Block> blocks) {
+        blocks.addAll(mBlocks);
+        for (int i = 0; i < mSubcategories.size(); i++) {
+            mSubcategories.get(i).getAllBlocksRecursive(blocks);
+        }
+    }
+
     private void addSubcategory(ToolboxCategory subcategory) {
         mSubcategories.add(subcategory);
     }

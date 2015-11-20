@@ -35,6 +35,9 @@ import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.ToolboxAdapter;
 import com.google.blockly.ui.WorkspaceHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Fragment to hold views of all of the available blocks in the toolbox.
  * No name will be shown for the top-level category, but names for all subcategories will be shown.
@@ -49,9 +52,12 @@ public class ToolboxFragment extends Fragment {
     protected Workspace mWorkspace;
     protected WorkspaceHelper mWorkspaceHelper;
     protected WorkspaceHelper.BlockTouchHandler mBlockTouchHandler;
+
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
     private int mBlockMargin = 10;
+    private int CARPET_SIZE = 1000;
+    private ToolboxCategory mTopLevelCategory;
 
     public void setWorkspace(Workspace workspace) {
         mWorkspace = workspace;
@@ -85,11 +91,41 @@ public class ToolboxFragment extends Fragment {
      * @param category The top-level category in the toolbox.
      */
     public void setContents(ToolboxCategory category) {
+        mTopLevelCategory = category;
         mAdapter = new ToolboxAdapter(category, mWorkspaceHelper, mBlockTouchHandler, getContext());
+        mAdapter.setHasStableIds(true);
         // TODO(rachel-fenichel): fix lifecycle such that setContents() is never called before
         // onCreateView().
         if (mRecyclerView != null) {
             mRecyclerView.setAdapter(mAdapter);
+        }
+    }
+
+    /**
+     * Drop one instance of each block in the toolbox, all in the same place.
+     */
+    public void airstrike() {
+        List<Block> blocks = new ArrayList<>();
+        mTopLevelCategory.getAllBlocksRecursive(blocks);
+        for (int i = 0; i < blocks.size(); i++) {
+            Block copiedModel = blocks.get(i).deepCopy();
+            copiedModel.setPosition(0, 0);
+            mWorkspace.addBlockWithView(copiedModel);
+        }
+    }
+
+    /**
+     * Drop one instance of each block in the toolbox, randomly placed across a section of the
+     * workspace.
+     */
+    public void carpetBomb() {
+        List<Block> blocks = new ArrayList<>();
+        mTopLevelCategory.getAllBlocksRecursive(blocks);
+        for (int i = 0; i < blocks.size(); i++) {
+            Block copiedModel = blocks.get(i).deepCopy();
+            copiedModel.setPosition((int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2,
+                    (int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2);
+            mWorkspace.addBlockWithView(copiedModel);
         }
     }
 
