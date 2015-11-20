@@ -21,16 +21,14 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.google.blockly.model.Workspace;
 
-import java.io.IOException;
-
-
+/**
+ * Activity holding a full blockly workspace.
+ */
 public class BlocklyActivity extends AppCompatActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     private static final String TAG = "BlocklyActivity";
@@ -59,7 +57,8 @@ public class BlocklyActivity extends AppCompatActivity
             return;
         }
 
-        mWorkspace = createWorkspace();
+        mWorkspace = createWorkspace(position);
+        mWorkspace.resetWorkspaceView();
 
         onSectionAttached(position + 1);    // Because indexing.
         mCurrentPosition = position;
@@ -115,20 +114,15 @@ public class BlocklyActivity extends AppCompatActivity
             getSupportFragmentManager().beginTransaction()
                     .hide(mOscar)
                     .commit();
-
-            mOscar.setDrawerLayout(drawerLayout);
-            // HACK because of lifecycle problems.
-            mWorkspaceFragment.getWorkspace().setTrashFragment(mOscar);
         }
-        mWorkspace = createWorkspace();
-        MockBlocksProvider.makeComplexModel(mWorkspace);
+        mWorkspace = createWorkspace(1);
         mCurrentPosition = 0;
     }
 
     /**
      * Build the workspace for this activity.
      */
-    protected Workspace createWorkspace() {
+    protected Workspace createWorkspace(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
         mWorkspaceFragment = (WorkspaceFragment) fragmentManager.findFragmentById(R.id.container);
@@ -139,13 +133,16 @@ public class BlocklyActivity extends AppCompatActivity
                     .commit();
         }
 
+        AssetManager assetManager = getAssets();
+
         Workspace.Builder bob = new Workspace.Builder(this);
         bob.setBlocklyStyle(R.style.BlocklyTheme);
-        bob.addBlockDefinitions(R.raw.toolbox_blocks);
-
+        bob.setAssetManager(assetManager);
+        bob.addBlockDefinitionsFromAsset(
+                WORKSPACE_FOLDER_PREFIX + (position + 1) + "/block_definitions.json");
+        bob.setToolboxConfigurationAsset(WORKSPACE_FOLDER_PREFIX + (position + 1) + "/toolbox.xml");
         bob.setWorkspaceFragment(mWorkspaceFragment);
         bob.setTrashFragment(mOscar);
-        bob.setToolboxConfigurationResId(R.raw.toolbox);
         bob.setToolboxFragment(mToolboxFragment, mDrawerLayout);
         bob.setFragmentManager(getSupportFragmentManager());
         return bob.build();

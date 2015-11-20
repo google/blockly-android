@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -38,9 +39,10 @@ import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -229,12 +231,32 @@ public class Workspace {
         };
         mDragger.setWorkspaceView(mWorkspaceView);
         mWorkspaceView.setDragger(mDragger);
+        initBlockViews();
+    }
+
+    /**
+     * Recursively initialize views for all the blocks in the model and add them to the
+     * view.
+     */
+    public void initBlockViews() {
+        BlockGroup bg;
         for (int i = 0; i < mRootBlocks.size(); i++) {
             bg = new BlockGroup(mContext, mWorkspaceHelper);
             mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mConnectionManager,
                     mTouchHandler);
             mWorkspaceView.addView(bg);
         }
+    }
+
+    /**
+     * Reset the workspace view when changing workspaces.  Removes old views and creates all
+     * necessary new views.
+     */
+    public void resetWorkspaceView() {
+        mWorkspaceView = mWorkspaceFragment.getWorkspaceView();
+        mWorkspaceView.setWorkspace(this);
+        mWorkspaceView.removeAllViews();
+        initWorkspaceView(mWorkspaceView);
     }
 
     /**
@@ -254,13 +276,9 @@ public class Workspace {
         mWorkspaceView.setDragFocus(block.getView(), event);
         // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
         // {@link WorkspaceView} coordinates.
-        int xPosition = (int) event.getX() +
-                mWorkspaceHelper.workspaceToViewUnits(block.getPosition().x -
-                        mWorkspaceHelper.getOffset().x);
-        int yPosition = (int) event.getY() +
-                mWorkspaceHelper.workspaceToViewUnits(block.getPosition().y -
-                        mWorkspaceHelper.getOffset().y);
-        mWorkspaceView.setDraggingStart(xPosition, yPosition);
+        mWorkspaceHelper.workspaceToVirtualViewCoordinates(block.getPosition(), mTempViewPoint);
+        mWorkspaceView.setDraggingStart((int) event.getX() + mTempViewPoint.x,
+                (int) event.getY() + mTempViewPoint.y);
         mWorkspaceView.startDrag();
 
         // Close the appropriate toolbox
@@ -281,6 +299,7 @@ public class Workspace {
     }
 
     private void reset() {
+        mWorkspaceView.removeAllViews();
         mRootBlocks.clear();
         mStats.clear();
         mDeletedBlocks.clear();
@@ -305,7 +324,7 @@ public class Workspace {
                         @Override
                         public void onClick(View v) {
                             // Don't open the trash if it's empty.
-                            if (mDeletedBlocks.size() > 0) {
+                            if (!mDeletedBlocks.isEmpty()) {
                                 manager.beginTransaction().show(trash).commit();
                             }
                         }
@@ -321,7 +340,7 @@ public class Workspace {
         }
         if (toolbox != null) {
             toolbox.setWorkspace(this);
-            toolbox.setContents(mToolboxContents);
+            toolbox.setContents(mToolboxCategory);
             mCanCloseToolbox = mToolboxDrawer != null; // TODO: Check config
         }
     }
@@ -342,7 +361,10 @@ public class Workspace {
 
         // TODO: Should these be part of the style?
         private int mToolboxResId;
+        private String mToolboxAssetId;
+        private AssetManager mAssetManager;
         private ArrayList<Integer> mBlockDefResources = new ArrayList<>();
+        private ArrayList<String> mBlockDefAssets = new ArrayList<>();
         private ArrayList<Block> mBlockDefs = new ArrayList<>();
 
 
@@ -363,6 +385,11 @@ public class Workspace {
 
         public Builder setTrashFragment(TrashFragment trash) {
             mTrashFragment = trash;
+            return this;
+        }
+
+        public Builder setAssetManager(AssetManager manager) {
+            mAssetManager = manager;
             return this;
         }
 
@@ -402,10 +429,28 @@ public class Workspace {
          * A duplicate block is any block with the same {@link Block#getName() name}.
          *
          * @param blockDefinitionsResId The resource to load blocks from.
-         * @return
+         * @return this
          */
         public Builder addBlockDefinitions(int blockDefinitionsResId) {
             mBlockDefResources.add(blockDefinitionsResId);
+            return this;
+        }
+
+        /**
+         * Add a set of block definitions to load from an asset file. These will be added to the
+         * set of all known blocks, but will not appear in the user's toolbox unless they are also
+         * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
+         * <p/>
+         * The asset name must be a path to a file in the assets directory. If the file contains
+         * blocks that were previously defined they will be overridden.
+         * <p/>
+         * A duplicate block is any block with the same {@link Block#getName() name}.
+         *
+         * @param assetName the path of the asset to load from.
+         * @return this
+         */
+        public Builder addBlockDefinitionsFromAsset(String assetName) {
+            mBlockDefAssets.add(assetName);
             return this;
         }
 
@@ -433,13 +478,14 @@ public class Workspace {
          * Sets the resource to load the toolbox configuration from. This must be an xml resource in
          * the raw directory.
          * <p/>
-         * If this is set, {@link #setToolboxConfiguration(String)} may not be set.
+         * If this is set, {@link #setToolboxConfiguration(String)} and
+         * {@link #setToolboxConfigurationAsset(String)} may not be set.
          *
          * @param toolboxResId The resource id for the toolbox config file.
          * @return this
          */
         public Builder setToolboxConfigurationResId(int toolboxResId) {
-            if (mToolboxXml != null) {
+            if (mToolboxXml != null && mToolboxAssetId != null) {
                 throw new IllegalStateException("Toolbox res id may not be set if xml is set.");
             }
             mToolboxResId = toolboxResId;
@@ -447,15 +493,34 @@ public class Workspace {
         }
 
         /**
+         * Sets the asset to load the toolbox configuration from. The asset name must be a path to
+         * a file in the assets directory.
+         * <p/>
+         * If this is set, {@link #setToolboxConfiguration(String)} and
+         * {@link #setToolboxConfigurationResId(int)} may not be set.
+         *
+         * @param assetName The asset for the toolbox config file.
+         * @return this
+         */
+        public Builder setToolboxConfigurationAsset(String assetName) {
+            if (mToolboxXml != null && mToolboxResId != 0) {
+                throw new IllegalStateException("Toolbox res id may not be set if xml is set.");
+            }
+            mToolboxAssetId = assetName;
+            return this;
+        }
+
+        /**
          * Sets the XML to use for toolbox configuration.
          * <p/>
-         * If this is set, {@link #setToolboxConfigurationResId(int)} may not be set.
+         * If this is set, {@link #setToolboxConfigurationResId(int)} and
+         * {@link #setToolboxConfigurationAsset(String)} may not be set.
          *
          * @param toolboxXml The XML for configuring the toolbox.
          * @return this
          */
         public Builder setToolboxConfiguration(String toolboxXml) {
-            if (mToolboxResId != 0) {
+            if (mToolboxResId != 0 && mToolboxAssetId != null) {
                 throw new IllegalStateException("Toolbox xml may not be set if a res id is set");
             }
             mToolboxXml = toolboxXml;
@@ -486,6 +551,11 @@ public class Workspace {
             for (int i = 0; i < mBlockDefResources.size(); i++) {
                 factory.loadBlocksFromResource(mBlockDefResources.get(i));
             }
+            if (mAssetManager != null) {
+                for (int i = 0; i < mBlockDefAssets.size(); i++) {
+                    factory.loadBlocksFromAsset(mAssetManager, mBlockDefAssets.get(i));
+                }
+            }
             for (int i = 0; i < mBlockDefs.size(); i++) {
                 factory.addBlockTemplate(mBlockDefs.get(i));
             }
@@ -494,6 +564,12 @@ public class Workspace {
                 workspace.loadToolboxContents(mToolboxResId);
             } else if (mToolboxXml != null) {
                 workspace.loadToolboxContents(mToolboxXml);
+            } else if (mToolboxAssetId != null && mAssetManager != null) {
+                try {
+                    workspace.loadToolboxContents(mAssetManager.open(mToolboxAssetId));
+                } catch (IOException e) {
+                    Log.d(TAG, "Failed to load toolbox from assets");
+                }
             }
             workspace.setFragments(mWorkspaceFragment, mTrashFragment, mToolboxFragment,
                     mToolboxDrawer, mFragmentManager);

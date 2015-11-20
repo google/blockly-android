@@ -15,7 +15,6 @@
 
 package com.google.blockly;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -37,6 +36,7 @@ public class WorkspaceFragment extends Fragment {
      * fragment.
      */
     private static final String ARG_BUILD_DEBUG_MODEL = "debug_model";
+    private WorkspaceView mWorkspaceView;
     private Workspace mWorkspace;
     private View.OnClickListener mTrashClickListener;
 
@@ -50,14 +50,13 @@ public class WorkspaceFragment extends Fragment {
         final ViewGroup rootView =
                 (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
 
-        final WorkspaceView workspaceView =
-                (WorkspaceView) rootView.findViewById(R.id.workspace);
-        workspaceView.setWorkspace(mWorkspace);
+        mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
+        mWorkspaceView.setWorkspace(mWorkspace);
 
         final VirtualWorkspaceView virtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
         ImageButton trashButton = (ImageButton) rootView.findViewById(R.id.trash_button);
-        workspaceView.setTrashView(trashButton);
+        mWorkspaceView.setTrashView(trashButton);
         if (mTrashClickListener != null) {
             trashButton.setOnClickListener(mTrashClickListener);
         }
@@ -87,7 +86,7 @@ public class WorkspaceFragment extends Fragment {
                 });
 
         // Let the controller create the views.
-        mWorkspace.initWorkspaceView(workspaceView);
+        mWorkspace.initWorkspaceView(mWorkspaceView);
         return rootView;
     }
 
@@ -106,6 +105,10 @@ public class WorkspaceFragment extends Fragment {
      */
     public Workspace getWorkspace() {
         return mWorkspace;
+    }
+
+    public WorkspaceView getWorkspaceView() {
+        return mWorkspaceView;
     }
 
     /**
