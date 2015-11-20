@@ -5,4 +5,8 @@
         app:showAsAction="withText|ifRoom" />
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_save" android:title="Save"
+          android:orderInCategory="10" app:showAsAction="never"/>
+    <item android:id="@+id/action_load" android:title="Load"
+          android:orderInCategory="11" app:showAsAction="never"/>
 </menu>

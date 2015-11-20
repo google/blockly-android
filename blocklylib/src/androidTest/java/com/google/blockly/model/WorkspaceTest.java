@@ -3,6 +3,7 @@ package com.google.blockly.model;
 import android.test.AndroidTestCase;
 
 import com.google.blockly.R;
+import com.google.blockly.ui.WorkspaceView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +34,7 @@ public class WorkspaceTest extends AndroidTestCase {
         Workspace.Builder bob = new Workspace.Builder(getContext());
         bob.addBlockDefinitions(R.raw.test_blocks);
         Workspace workspace = bob.build();
+        workspace.initWorkspaceView(new WorkspaceView(getContext()));
         workspace.loadFromXml(assembleWorkspace(""));
         assertEquals("Workspace should be empty", 0, workspace.getRootBlocks().size());
         workspace.loadFromXml(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK));

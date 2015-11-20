@@ -16,6 +16,7 @@
 package com.google.blockly;
 
 import android.content.res.AssetManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -24,7 +25,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+
+import java.io.FileNotFoundException;
 
 /**
  * Activity holding a full blockly workspace.
@@ -86,6 +90,24 @@ public class BlocklyActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            return true;
+        } else if (id == R.id.action_save) {
+            Workspace workspace = mWorkspaceFragment.getWorkspace();
+            try {
+                workspace.serializeToXml(openFileOutput("workspace.xml", Context.MODE_PRIVATE));
+            } catch (FileNotFoundException | BlocklySerializerException e) {
+                e.printStackTrace();
+            }
+            return true;
+        } else if (id == R.id.action_load) {
+            Workspace workspace = mWorkspaceFragment.getWorkspace();
+            try {
+                workspace.loadFromXml(openFileInput("workspace.xml"));
+
+                workspace.initBlockViews();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
             return true;
         }
 
