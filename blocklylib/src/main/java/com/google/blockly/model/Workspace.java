@@ -167,6 +167,7 @@ public class Workspace {
      */
     public void loadToolboxContents(InputStream source) {
         mToolboxCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
+        updateToolbox();
     }
 
     /**
@@ -188,11 +189,33 @@ public class Workspace {
      */
     public void loadFromXml(InputStream is)
             throws BlocklyParserException {
-        reset();
+        resetWorkspace();
         mRootBlocks.addAll(BlocklyXmlHelper.loadFromXml(is, mBlockFactory, mStats));
         for (int i = 0; i < mRootBlocks.size(); i++) {
             mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
         }
+    }
+
+    /**
+     * Reads the workspace in from a XML stream. This will clear the workspace and replace it with
+     * the contents of the xml.
+     *
+     * @param xml The input stream to read from.
+     *
+     * @throws BlocklyParserException if there was a parse failure.
+     */
+    public void loadFromXml(String xml) throws BlocklyParserException {
+        loadFromXml(new ByteArrayInputStream(xml.getBytes()));
+    }
+
+    /**
+     * Gets the {@link BlockFactory} being used by this workspace. This can be used to update or
+     * replace the set of known blocks.
+     *
+     * @return The block factory used by this workspace.
+     */
+    public BlockFactory getBlockFactory() {
+        return mBlockFactory;
     }
 
     /**
@@ -219,7 +242,6 @@ public class Workspace {
      * @param wv The root workspace view to add to.
      */
     public void initWorkspaceView(final WorkspaceView wv) {
-        BlockGroup bg;
         mWorkspaceView = wv;
         mWorkspaceHelper.setWorkspaceView(wv);
         // Tell the workspace helper to pass onTouchBlock events straight through to the WSView.
@@ -246,17 +268,6 @@ public class Workspace {
                     mTouchHandler);
             mWorkspaceView.addView(bg);
         }
-    }
-
-    /**
-     * Reset the workspace view when changing workspaces.  Removes old views and creates all
-     * necessary new views.
-     */
-    public void resetWorkspaceView() {
-        mWorkspaceView = mWorkspaceFragment.getWorkspaceView();
-        mWorkspaceView.setWorkspace(this);
-        mWorkspaceView.removeAllViews();
-        initWorkspaceView(mWorkspaceView);
     }
 
     /**
@@ -303,17 +314,31 @@ public class Workspace {
         addRootBlock(block);
     }
 
-    private void reset() {
-        mWorkspaceView.removeAllViews();
+
+    /**
+     * Reset the workspace view when changing workspaces.  Removes old views and creates all
+     * necessary new views.
+     */
+    public void resetWorkspace() {
         mRootBlocks.clear();
         mStats.clear();
         mDeletedBlocks.clear();
+        if (mWorkspaceView != null) {
+            mWorkspaceView.removeAllViews();
+            initBlockViews();
+        }
         // TODO(fenichel): notify adapters when contents change.
     }
 
+    private void updateToolbox() {
+        if (mToolboxFragment != null) {
+            mToolboxFragment.setContents(mToolboxCategory);
+        }
+    }
+
     private void setFragments(final WorkspaceFragment workspace, final TrashFragment trash,
-                              final ToolboxFragment toolbox, final DrawerLayout toolboxDrawer,
-                              final FragmentManager manager) {
+            final ToolboxFragment toolbox, final DrawerLayout toolboxDrawer,
+            final FragmentManager manager) {
         mWorkspaceFragment = workspace;
         mTrashFragment = trash;
         mToolboxFragment = toolbox;
@@ -345,8 +370,8 @@ public class Workspace {
         }
         if (toolbox != null) {
             toolbox.setWorkspace(this);
-            toolbox.setContents(mToolboxCategory);
             mCanCloseToolbox = mToolboxDrawer != null; // TODO: Check config
+            updateToolbox();
         }
     }
 
@@ -365,14 +390,16 @@ public class Workspace {
         private DrawerLayout mToolboxDrawer;
         private TrashFragment mTrashFragment;
         private FragmentManager mFragmentManager;
+        private AssetManager mAssetManager;
         private int mStyle;
-        private String mWorkspaceXml;
-        private String mToolboxXml;
 
         // TODO: Should these be part of the style?
         private int mToolboxResId;
         private String mToolboxAssetId;
-        private AssetManager mAssetManager;
+        private String mToolboxXml;
+        private int mWorkspaceXmlResId;
+        private String mWorkspaceXml;
+        private String mWorkspaceAssetId;
         private ArrayList<Integer> mBlockDefResources = new ArrayList<>();
         private ArrayList<String> mBlockDefAssets = new ArrayList<>();
         private ArrayList<Block> mBlockDefs = new ArrayList<>();
@@ -546,17 +573,67 @@ public class Workspace {
         }
 
         /**
-         * Sets an XML String to load the initial workspace from. This can be used when
-         * transitioning between activities to load the user's previous code. When changing levels
+         * Sets a XML resource to load the initial workspace from. This can be used when
+         * creating a new workspace to start with a predefined set of blocks. When changing levels
          * within the same activity {@link Workspace#loadToolboxContents(int)} may be used instead
          * to simply change the Toolbox's configuration.
+         * <p/>
+         * If this is set, {@link #setStartingWorkspace(String)} and
+         * {@link #setStartingWorkspaceAsset(String)} may not be set.
+         *
+         * @param workspaceXmlResId The resource id for a XML file to load into the workspace.
+         * @return this
+         */
+        public Builder setStartingWorkspace(int workspaceXmlResId) {
+            if (mWorkspaceXml != null) {
+                throw new IllegalStateException(
+                        "Workspace res id may not have been set if xml is set");
+            }
+            mWorkspaceXmlResId = workspaceXmlResId;
+            return this;
+        }
+
+        /**
+         * Sets an XML String to load the initial workspace from. This can be used when
+         * creating a new workspace to start with a predefined set of blocks. When changing levels
+         * within the same activity {@link Workspace#loadToolboxContents(int)} may be used instead
+         * to simply change the Toolbox's configuration.
+         * <p/>
+         * If this is set, {@link #setStartingWorkspace(int)} and
+         * {@link #setStartingWorkspaceAsset(String)} may not be set.
          *
          * @param workspaceXml The XML to load into the workspace.
          *
          * @return this
          */
         public Builder setStartingWorkspace(String workspaceXml) {
+            if (mWorkspaceXmlResId != 0 || mWorkspaceAssetId != null) {
+                throw new IllegalStateException(
+                        "Workspace xml may not have been set if res id is set");
+            }
             mWorkspaceXml = workspaceXml;
+            return this;
+        }
+
+        /**
+         * Sets an asset path to load the initial workspace from. This can be used when
+         * creating a new workspace to start with a predefined set of blocks. When changing levels
+         * within the same activity {@link Workspace#loadToolboxContents(int)} may be used instead
+         * to simply change the Toolbox's configuration without wiping the workspace state.
+         * <p/>
+         * If this is set, {@link #setStartingWorkspace(int)} and
+         * {@link #setStartingWorkspace(String)} may not be set.
+         *
+         * @param assetPath The asset path to the workspace.
+         *
+         * @return this
+         */
+        public Builder setStartingWorkspaceAsset(String assetPath) {
+            if (mWorkspaceXmlResId != 0 || mWorkspaceXml != null) {
+                throw new IllegalStateException(
+                        "Workspace xml may not have been set if res id is set");
+            }
+            mWorkspaceXml = mWorkspaceAssetId;
             return this;
         }
 
@@ -568,11 +645,16 @@ public class Workspace {
         public Workspace build() {
             BlockFactory factory = new BlockFactory(mContext, null);
             for (int i = 0; i < mBlockDefResources.size(); i++) {
-                factory.loadBlocksFromResource(mBlockDefResources.get(i));
+                factory.addBlocks(mBlockDefResources.get(i));
             }
             if (mAssetManager != null) {
                 for (int i = 0; i < mBlockDefAssets.size(); i++) {
-                    factory.loadBlocksFromAsset(mAssetManager, mBlockDefAssets.get(i));
+                    try {
+                        factory.addBlocks(mAssetManager.open(mBlockDefAssets.get(i)));
+                    } catch (IOException e) {
+                        throw new IllegalArgumentException("Failed to load block definitions "
+                                + mBlockDefAssets.get(i), e);
+                    }
                 }
             }
             for (int i = 0; i < mBlockDefs.size(); i++) {
@@ -587,8 +669,15 @@ public class Workspace {
                 try {
                     workspace.loadToolboxContents(mAssetManager.open(mToolboxAssetId));
                 } catch (IOException e) {
-                    Log.d(TAG, "Failed to load toolbox from assets");
+                    throw new IllegalArgumentException("Failed to load toolbox from assets "
+                            + mToolboxAssetId, e);
                 }
+            }
+            if (mWorkspaceXmlResId != 0) {
+                InputStream is = mContext.getResources().openRawResource(mWorkspaceXmlResId);
+                workspace.loadFromXml(is);
+            } else if (mWorkspaceXml != null) {
+                workspace.loadFromXml(mWorkspaceXml);
             }
             workspace.setFragments(mWorkspaceFragment, mTrashFragment, mToolboxFragment,
                     mToolboxDrawer, mFragmentManager);

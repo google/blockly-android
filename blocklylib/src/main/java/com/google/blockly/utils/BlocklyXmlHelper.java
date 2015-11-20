@@ -81,68 +81,14 @@ public final class BlocklyXmlHelper {
      */
     public static void loadFromXml(InputStream is, BlockFactory blockFactory, WorkspaceStats stats,
             List<Block> result) throws BlocklyParserException {
-        try {
-            XmlPullParser parser = mParserFactory.newPullParser();
-            parser.setInput(is, null);
-            loadFromXmlInternal(parser, blockFactory, stats, result);
-        } catch (XmlPullParserException e) {
-            throw new BlocklyParserException(e);
-        }
-    }
-
-    /**
-     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
-     * contained in it or descending from it.
-     *
-     * @param reader The reader from which to read.
-     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
-     * @param stats The WorkspaceStats to store connection information in.
-     * @param result The List to add the parsed blocks to.
-     *
-     * @throws BlocklyParserException
-     */
-    public static void loadFromXml(Reader reader, BlockFactory blockFactory, WorkspaceStats stats,
-            List<Block> result) throws BlocklyParserException {
-        try {
-            XmlPullParser parser = mParserFactory.newPullParser();
-            parser.setInput(reader);
-            loadFromXmlInternal(parser, blockFactory, stats, result);
-        } catch (XmlPullParserException e) {
-            throw new BlocklyParserException(e);
-        }
-    }
-
-    private static void loadFromXmlInternal(XmlPullParser parser, BlockFactory blockFactory,
-            WorkspaceStats stats, List<Block> result) {
-        try {
-            int eventType = parser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                switch (eventType) {
-                    case XmlPullParser.START_TAG:
-                        if (parser.getName() == null) {
-                            throw new BlocklyParserException("Malformed XML; aborting.");
-                        }
-                        if (parser.getName().equalsIgnoreCase("block")) {
-                            result.add(Block.fromXml(parser, blockFactory));
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-                eventType = parser.next();
-            }
-        } catch (XmlPullParserException | IOException e) {
-            throw new BlocklyParserException(e);
-        }
+        loadBlocksFromXml(is, blockFactory, stats, result);
     }
 
     /**
      * Convenience function that creates a new {@link ArrayList}.
      */
-    public static List<Block> loadFromXml(
-            InputStream is, BlockFactory blockFactory, WorkspaceStats stats)
-            throws BlocklyParserException {
+    public static List<Block> loadFromXml(InputStream is, BlockFactory blockFactory,
+            WorkspaceStats stats) throws BlocklyParserException {
         List<Block> result = new ArrayList<>();
         loadBlocksFromXml(is, blockFactory, stats, result);
         return result;
@@ -224,7 +170,6 @@ public final class BlocklyXmlHelper {
         try {
             XmlPullParser parser = mParserFactory.newPullParser();
             parser.setInput(is, null);
-
             int eventType = parser.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 switch (eventType) {

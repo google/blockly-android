@@ -51,7 +51,7 @@ public class BlockFactory {
         this(context);
         if (blockSourceIds != null) {
             for (int i = 0; i < blockSourceIds.length; i++) {
-                loadBlocksFromResource(blockSourceIds[i]);
+                addBlocks(blockSourceIds[i]);
             }
         }
     }
@@ -82,7 +82,8 @@ public class BlockFactory {
     }
 
     /**
-     * Removes a block type from the factory.
+     * Removes a block type from the factory. If the Block is still in use by the workspace this
+     * could cause a crash if the user tries to load a new block of this type.
      *
      * @param prototypeName The name of the block to remove.
      *
@@ -121,27 +122,45 @@ public class BlockFactory {
     }
 
     /**
-     * Adds a set of master blocks from a JSON resource.
+     * Loads and adds block templates from a resource.
      *
      * @param resId The id of the JSON resource to load blocks from.
      *
      * @return Number of blocks added to the factory.
      */
-    public int loadBlocksFromResource(int resId) {
+    public int addBlocks(int resId) {
         InputStream blockIs = mResources.openRawResource(resId);
         return loadBlocks(blockIs);
     }
 
     /**
-     * Load block templates from a string.
+     * Loads and adds block templates from a string.
      *
      * @param json_string The JSON string to load blocks from.
      *
      * @return Number of blocks added to the factory.
      */
-    public int loadBlocksFromString(String json_string) {
+    public int addBlocks(String json_string) {
         final InputStream blockIs = new ByteArrayInputStream(json_string.getBytes());
         return loadBlocks(blockIs);
+    }
+
+    /**
+     * Loads and adds block templates from an input stream.
+     *
+     * @param is The json stream to read blocks from.
+     *
+     * @return Number of blocks added to the factory.
+     */
+    public int addBlocks(InputStream is) {
+        return loadBlocks(is);
+    }
+
+    /**
+     * Removes all blocks from the factory.
+     */
+    public void clear() {
+        mBlockTemplates.clear();
     }
 
     /** @return Number of blocks added to the factory. */

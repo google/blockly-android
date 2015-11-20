@@ -50,7 +50,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
+        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
 
         mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());

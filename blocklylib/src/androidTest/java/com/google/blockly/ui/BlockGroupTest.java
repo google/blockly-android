@@ -42,7 +42,7 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
     public void setUp() throws Exception {
         super.setUp();
         mWorkspaceHelper = new WorkspaceHelper(getContext(), null);
-        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
+        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
     }
 
     public void testLastChildBlock() {

@@ -15,11 +15,56 @@
 
 package com.google.blockly.demo;
 
-import com.google.blockly.BlocklyActivity;
+import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
+
+import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.NavigationDrawerFragment;
 
 
-public class MainActivity extends BlocklyActivity
+/**
+ * Demo app with a multi-section workspace, a toolbox, and a trash can.
+ */
+public class MainActivity extends BlocklySectionsActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
-    // TODO: Figure out how this customizes
+    public static final String WORKSPACE_FOLDER_PREFIX = "sample_sections/level_";
+
+    @Override
+    protected String getWorkspaceBlocksPath(int section) {
+        // Use the same blocks for all the levels. This lets the user's block code carry over from
+        // level to level. The set of blocks shown in the toolbox for each level is defined by the
+        // toolbox path below.
+        return "sample_sections/block_definitions.json";
+    }
+
+    @Override
+    protected String getWorkspaceToolboxPath(int section) {
+        // Expose a different set of blocks to the user at each level.
+        return WORKSPACE_FOLDER_PREFIX + (section + 1)
+                + "/toolbox.xml";
+    }
+
+    @Override
+    protected void onSectionChanged(int oldSection, int newSection) {
+        // If we just went down a level clear the workspace, otherwise keep the previous blocks.
+        if (newSection < oldSection) {
+            // Instead of clearing we could also load a default workspace for this level.
+            getWorkspace().resetWorkspace();
+        }
+    }
+
+    @Override
+    protected ListAdapter onCreateSectionsAdapter() {
+        // Create three sections with the labels "Level 1", "Level 2", and "Level 3" displaying them
+        // as simple text items in the sections drawer.
+        return new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                new String[]{
+                        getString(R.string.level_1),
+                        getString(R.string.level_2),
+                        getString(R.string.level_3)
+                });
+    }
 }

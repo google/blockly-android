@@ -291,7 +291,7 @@ public class BlockTest extends AndroidTestCase {
     }
 
     public void testGetOnlyValueInput() {
-        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.toolbox_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         // No inputs.
         assertNull(bf.obtainBlock("statement_no_input", "block id").getOnlyValueInput());
 

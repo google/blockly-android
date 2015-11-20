@@ -14,21 +14,33 @@
   -->
 
 <xml xmlns="http://www.w3.org/1999/xhtml">
-    <category name="Inputs">
-        <block type="simple_input_output"></block>
-        <block type="multiple_input_output"></block>
-        <block type="statement_multiple_value_input"></block>
-        <block type="statement_statement_input"></block>
-        <block type="statement_value_input"></block>
+    <category name="Some blocks">
+        <category name="Subcategory">
+            <block type="simple_input_output"></block>
+            <block type="multiple_input_output"></block>
+            <block type="statement_multiple_value_input"></block>
+            <block type="statement_statement_input"></block>
+            <block type="statement_value_input"></block>
+        </category>
+        <block type="statement_no_input"></block>
+        <block type="output_no_input"></block>
+        <block type="statement_no_next"></block>
     </category>
     <category name="Outputs">
+        <block type="controls_repeat_ext">
+            <value name="TIMES">
+                <block type="math_number">
+                    <field name="NUM">0</field>
+                </block>
+            </value>
+        </block>
+        <block type="controls_whileUntil">
+            <field name="MODE">UNTIL</field>
+        </block>
         <block type="simple_input_output"></block>
         <block type="multiple_input_output"></block>
         <block type="statement_multiple_value_input"></block>
         <block type="statement_statement_input"></block>
         <block type="statement_value_input"></block>
     </category>
-    <block type="statement_no_input"></block>
-    <block type="output_no_input"></block>
-    <block type="statement_no_next"></block>
 </xml>

@@ -38,7 +38,7 @@ public class BlockViewTest extends MockitoAndroidTestCase {
         super.setUp();
 
         mBlockFactory = new BlockFactory(getContext());
-        mBlockFactory.loadBlocksFromResource(R.raw.test_blocks);
+        mBlockFactory.addBlocks(R.raw.test_blocks);
     }
 
     // Verify correct object state after construction.

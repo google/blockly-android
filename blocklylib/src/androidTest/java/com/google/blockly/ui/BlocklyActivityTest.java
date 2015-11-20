@@ -19,18 +19,18 @@ import android.content.pm.ActivityInfo;
 import android.test.ActivityInstrumentationTestCase2;
 import android.widget.ImageButton;
 
-import com.google.blockly.BlocklyActivity;
+import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.R;
 
 /**
- * Test {@link BlocklyActivity} lifecycle events.
+ * Test {@link BlocklySectionsActivity} lifecycle events.
  */
-public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<BlocklyActivity> {
-    private BlocklyActivity mActivity;
+public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<BlocklySectionsActivity> {
+    private BlocklySectionsActivity mActivity;
     private Instrumentation mInstrumentation;
 
     public BlocklyActivityTest() {
-        super(BlocklyActivity.class);
+        super(BlocklySectionsActivity.class);
     }
 
     @Override
