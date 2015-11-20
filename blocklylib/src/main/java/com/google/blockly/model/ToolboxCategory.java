@@ -24,6 +24,7 @@ import java.util.List;
 
 /**
  * A category of a toolbox, which holds zero or more blocks and zero or more subcategories.
+ * {@link com.google.blockly.ui.ToolboxAdapter} is responsible for displaying this.
  */
 public class ToolboxCategory {
     private final List<ToolboxCategory> mSubcategories = new ArrayList<>();
@@ -55,6 +56,10 @@ public class ToolboxCategory {
         mBlocks.add(block);
     }
 
+    /**
+     * @return True if this category should display all of its contents in the
+     * {@link com.google.blockly.ui.ToolboxAdapter}; false if only its name should be shown.
+     */
     public boolean isExpanded() {
         return mIsExpanded;
     }

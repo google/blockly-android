@@ -29,6 +29,11 @@ import com.google.blockly.model.ToolboxCategory;
 
 /**
  * Adapter for displaying blocks and categories in the toolbox.
+ * Categories contain zero or more blocks and zero or more subcategories.
+ * Subcategories are displayed with their name as a clickable title and when clicked they expand to
+ * show their contents.  Blocks may be dragged into the workspace.
+ * When there are both blocks and subcategories, the subcategories are displayed first.  Multiple
+ * subcategories may be expanded at one time.
  */
 public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String TAG = "ToolboxAdapter";
@@ -48,6 +53,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      * toolbox.
      * @param workspaceHelper A {@link WorkspaceHelper} for obtaining {@link BlockView} instances.
      * @param context The context of the fragment.
+     * @param touchHandler The function to call when a block is touched.
      */
     public ToolboxAdapter(ToolboxCategory topLevelCategory, WorkspaceHelper workspaceHelper,
                           Context context) {
@@ -77,7 +83,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      * {@link ToolboxCategory} instances nest recursively, with each subcategory being either
      * expanded or collapsed.
      *
-     * In a given category the blocks come first, followed by each subcategory.  The item to display
+     * In a given category the subcategories come first, followed by blocks.  The item to display
      * at a given position is either a block or a subcategory's name.
      *
      * @param currentCategory The {@link ToolboxCategory} to search recursively.

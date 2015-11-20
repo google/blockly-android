@@ -37,6 +37,7 @@ import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Fragment to hold views of all of the available blocks in the toolbox.
+ * No name will be shown for the top-level category, but names for all subcategories will be shown.
  */
 public class ToolboxFragment extends Fragment {
     protected static final String TAG = "ToolboxFragment";
@@ -78,6 +79,11 @@ public class ToolboxFragment extends Fragment {
         };
     }
 
+    /**
+     * Sets the contents that should be displayed in the toolbox.
+     *
+     * @param category The top-level category in the toolbox.
+     */
     public void setContents(ToolboxCategory category) {
         mAdapter = new ToolboxAdapter(category, mWorkspaceHelper, mBlockTouchHandler, getContext());
         // TODO(rachel-fenichel): fix lifecycle such that setContents() is never called before
