@@ -85,33 +85,30 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      * @return A pair containing the type of the item and the item itself.
      */
     private Pair<Integer, Object> getItemForPosition(ToolboxCategory currentCategory, int position) {
-        int categoryNumber = 0;
         int elementNumber = 0;
-        while (elementNumber <= position) {
-            if (categoryNumber < currentCategory.getSubcategories().size()) {
-                ToolboxCategory subcategory =
-                        currentCategory.getSubcategories().get(categoryNumber);
-                if (elementNumber == position) {
-                    return new Pair<>(CATEGORY_VIEW_TYPE, (Object) subcategory);
-                } else {
-                    elementNumber++; // skip past the header for this category
-                }
-
-                if (subcategory.isExpanded()) {
-                    if (position - elementNumber < subcategory.getCurrentSize()) {
-                        return getItemForPosition(subcategory, position - elementNumber);
-                    } else {
-                        elementNumber += subcategory.getCurrentSize();
-                    }
-                }
-                categoryNumber++;
-            } else {    // Wasn't in subcategories--check this category's blocks.
-                int blockPosition = position - elementNumber;
-                if (blockPosition >= 0 && blockPosition < currentCategory.getBlocks().size()) {
-                    return new Pair<>(BLOCK_GROUP_VIEW_TYPE,
-                            (Object) currentCategory.getBlocks().get(blockPosition));
+        // Check all of the subcategories.
+        for (int i = 0; i < currentCategory.getSubcategories().size(); i++) {
+            ToolboxCategory subcategory = currentCategory.getSubcategories().get(i);
+            // Is it the subcategory title?
+            if (elementNumber == position) {
+                return new Pair<>(CATEGORY_VIEW_TYPE, (Object) subcategory);
+            } else { // If not skip past the header for this category
+                elementNumber++;
+            }
+            // Is it in the subcategory?
+            if (subcategory.isExpanded()) {
+                if (position - elementNumber < subcategory.getCurrentSize()) {
+                    return getItemForPosition(subcategory, position - elementNumber);
+                } else { // If not, just skip past all of the blocks in the subcategory.
+                    elementNumber += subcategory.getCurrentSize();
                 }
             }
+        }
+        // Is it a block in this category?
+        int blockPosition = position - elementNumber;
+        if (blockPosition >= 0 && blockPosition < currentCategory.getBlocks().size()) {
+            return new Pair<>(BLOCK_GROUP_VIEW_TYPE,
+                    (Object) currentCategory.getBlocks().get(blockPosition));
         }
         // Wasn't in subcategories or blocks
         return new Pair<>(UNKNOWN_VIEW_TYPE, null);
