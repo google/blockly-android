@@ -85,13 +85,8 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      * @return A pair containing the type of the item and the item itself.
      */
     private Pair<Integer, Object> getItemForPosition(ToolboxCategory currentCategory, int position) {
-        if (position < currentCategory.getBlocks().size()) {
-            return new Pair<>(BLOCK_GROUP_VIEW_TYPE,
-                    (Object) currentCategory.getBlocks().get(position));
-        }
         int categoryNumber = 0;
-        // Start after all of the blocks in this category.
-        int elementNumber = currentCategory.getBlocks().size();
+        int elementNumber = 0;
         while (elementNumber <= position) {
             if (categoryNumber < currentCategory.getSubcategories().size()) {
                 ToolboxCategory subcategory =
@@ -110,6 +105,12 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     }
                 }
                 categoryNumber++;
+            } else {    // Wasn't in subcategories--check this category's blocks.
+                int blockPosition = position - elementNumber;
+                if (blockPosition >= 0 && blockPosition < currentCategory.getBlocks().size()) {
+                    return new Pair<>(BLOCK_GROUP_VIEW_TYPE,
+                            (Object) currentCategory.getBlocks().get(blockPosition));
+                }
             }
         }
         // Wasn't in subcategories or blocks
