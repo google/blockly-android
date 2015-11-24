@@ -12,7 +12,7 @@
       },
       {
         "type": "input_statement",
-        "name": "NAME"
+        "name": "DO"
       }
     ],
     "inputsInline": true,
@@ -33,17 +33,17 @@
           ],
           [
             "until",
-            "Until"
+            "UNTIL"
           ]
         ]
       },
       {
         "type": "input_value",
-        "name": "TIMES"
+        "name": "BOOL"
       },
       {
         "type": "input_statement",
-        "name": "NAME"
+        "name": "DO"
       }
     ],
     "tooltip": "",

@@ -15,6 +15,7 @@
 
 package com.google.blockly;
 
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.content.Context;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import android.widget.ListAdapter;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -50,7 +52,7 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
     private ToolboxFragment mToolboxFragment;
     private DrawerLayout mDrawerLayout;
     private TrashFragment mOscar;
-    private WorkspaceFragment mWorkspaceFragment;
+    protected WorkspaceFragment mWorkspaceFragment;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -117,6 +119,20 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
             return true;
         } else if (id == R.id.action_carpet_bomb) {
             mToolboxFragment.carpetBomb();
+            return true;
+        } else if (id == R.id.action_compile) {
+            try {
+                StringOutputStream serialized = new StringOutputStream();
+                mWorkspaceFragment.getWorkspace().serializeToXml(serialized);
+
+                Intent intent = new Intent(this, CodeGeneratorService.class);
+                intent.setAction(Intent.ACTION_SEND);
+                intent.putExtra(CodeGeneratorService.EXTRA_WORKSPACE_XML, serialized.toString());
+
+                startService(intent);
+            } catch (BlocklySerializerException e) {
+                e.printStackTrace();
+            }
             return true;
         }
 

@@ -22,56 +22,41 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 /**
- * Created by fenichel on 11/20/15.
+ * Background service that uses a WebView to statically load the Web Blockly libraries and use them
+ * to generate code.
  */
 public class CodeGeneratorService extends Service {
     private static final String TAG = "CodeGeneratorService";
 
     public static final String EXTRA_WORKSPACE_XML = "com.google.blockly.WORKSPACE_XML";
-    public static final String EXTRA_TOOLBOX_XML = "com.google.blockly.TOOLBOX_XML";
-
-    WebView mWebview;
-//    public CodeGeneratorService() {
-//        super("CodeGeneratorService");
-//    }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //String blocklyXml = intent.getStringExtra(EXTRA_WORKSPACE_XML);
-
-        final String blocklyXml = "<xml xmlns=\"http://www.w3.org/1999/xhtml\"> <block type=\"math_arithmetic\" x=\"-38\" y=\"-38\"><field name=\"OP\">ADD</field><value name=\"A\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow><block type=\"math_number\"><field name=\"NUM\">0</field></block></value><value name=\"B\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow><block type=\"math_number\"><field name=\"NUM\">1</field></block></value></block></xml>";
-
-        //blockly = blockly.replace("'", "\\'");
-        Log.e(TAG, "blockly:" + blocklyXml);
-        mWebview = new WebView(this);
-        mWebview.getSettings().setJavaScriptEnabled(true);
-        mWebview.setWebChromeClient(new WebChromeClient());
+        final String blocklyXml = intent.getStringExtra(EXTRA_WORKSPACE_XML);
+        final WebView webview = new WebView(this);
+        webview.getSettings().setJavaScriptEnabled(true);
+        webview.setWebChromeClient(new WebChromeClient());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-        mWebview.addJavascriptInterface(new BlocklyJsObject(), "BlocklyController");
+        webview.addJavascriptInterface(new BlocklyJsObject(), "BlocklyController");
 
         /* WebViewClient must be set BEFORE calling loadUrl! */
-        mWebview.setWebViewClient(new WebViewClient() {
+        webview.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
-                mWebview.loadUrl("javascript:generate('" + blocklyXml + "')");
+                webview.loadUrl("javascript:generate('" + blocklyXml + "')");
             }
         });
-        mWebview.loadUrl("file:///android_asset/index.html");
-        return 1;
+        webview.loadUrl("file:///android_asset/index.html");
+        stopSelf();
+        return 0;
     }
 
     @Nullable
@@ -80,10 +65,11 @@ public class CodeGeneratorService extends Service {
         return null;
     }
 
-    class BlocklyJsObject {
+    private class BlocklyJsObject {
         @JavascriptInterface
         public void execute(String program) {
             Log.d(TAG, "code: " + program);
+            Toast.makeText(getApplicationContext(), program, Toast.LENGTH_LONG).show();
         }
     }
 }
