@@ -15,4 +15,6 @@
           android:orderInCategory="90" app:showAsAction="never"/>
     <item android:id="@+id/action_carpet_bomb" android:title="Carpet Bomb"
           android:orderInCategory="91" app:showAsAction="never"/>
+    <item android:id="@+id/action_compile" android:title="Compile"
+          android:orderInCategory="95" app:showAsAction="never"/>
 </menu>
