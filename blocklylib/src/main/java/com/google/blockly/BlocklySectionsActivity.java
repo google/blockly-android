@@ -109,6 +109,9 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
                 e.printStackTrace();
             }
             return true;
+        } else if (id == R.id.action_clear) {
+            mWorkspaceFragment.getWorkspace().resetWorkspace();
+            return true;
         } else if (id == R.id.action_airstrike) {
             mToolboxFragment.airstrike();
             return true;
