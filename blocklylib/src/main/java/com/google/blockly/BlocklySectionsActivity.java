@@ -15,21 +15,27 @@
 
 package com.google.blockly;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.AssetManager;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
+import android.widget.Toast;
 
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.CodeGenerationRequest;
 import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
@@ -43,16 +49,49 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     private static final String TAG = "BlocklySectionsActivity";
 
+    private final CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
+            new CodeGenerationRequest.CodeGeneratorCallback() {
+                @Override
+                public void onFinishCodeGeneration(String generatedCode) {
+                    // Sample callback.
+                    Log.d(TAG, "code: " + generatedCode);
+                    Toast.makeText(getApplicationContext(), generatedCode,
+                            Toast.LENGTH_LONG).show();
+                }
+            };
+
+    protected WorkspaceFragment mWorkspaceFragment;
+
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
     private ListAdapter mLevelsAdapter;
-
     private ToolboxFragment mToolboxFragment;
     private DrawerLayout mDrawerLayout;
     private TrashFragment mOscar;
-    protected WorkspaceFragment mWorkspaceFragment;
+    private CodeGeneratorService mCodeGeneratorService;
+    private boolean mBound = false;
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    private final ServiceConnection mCodeGenerationConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                IBinder service) {
+            CodeGeneratorService.CodeGeneratorBinder binder =
+                    (CodeGeneratorService.CodeGeneratorBinder) service;
+            mCodeGeneratorService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+            mCodeGeneratorService = null;
+        }
+    };
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -97,18 +136,21 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
             Workspace workspace = mWorkspaceFragment.getWorkspace();
             try {
                 workspace.serializeToXml(openFileOutput("workspace.xml", Context.MODE_PRIVATE));
+                Toast.makeText(getApplicationContext(), "Saved workspace contents",
+                        Toast.LENGTH_LONG).show();
             } catch (FileNotFoundException | BlocklySerializerException e) {
-                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "Couldn't save workspace.",
+                        Toast.LENGTH_LONG).show();
             }
             return true;
         } else if (id == R.id.action_load) {
             Workspace workspace = mWorkspaceFragment.getWorkspace();
             try {
                 workspace.loadFromXml(openFileInput("workspace.xml"));
-
                 workspace.initBlockViews();
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "Couldn't find saved workspace.",
+                        Toast.LENGTH_LONG).show();
             }
             return true;
         } else if (id == R.id.action_clear) {
@@ -122,16 +164,19 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
             return true;
         } else if (id == R.id.action_compile) {
             try {
-                StringOutputStream serialized = new StringOutputStream();
-                mWorkspaceFragment.getWorkspace().serializeToXml(serialized);
+                if (mBound) {
+                    final StringOutputStream serialized = new StringOutputStream();
+                    mWorkspaceFragment.getWorkspace().serializeToXml(serialized);
 
-                Intent intent = new Intent(this, CodeGeneratorService.class);
-                intent.setAction(Intent.ACTION_SEND);
-                intent.putExtra(CodeGeneratorService.EXTRA_WORKSPACE_XML, serialized.toString());
-
-                startService(intent);
+                    mCodeGeneratorService.requestCodeGeneration(
+                            new CodeGenerationRequest(serialized.toString(),
+                                    mCodeGeneratorCallback));
+                }
             } catch (BlocklySerializerException e) {
-                e.printStackTrace();
+                Log.wtf(TAG, e);
+                Toast.makeText(getApplicationContext(), "Code generation failed.",
+                        Toast.LENGTH_LONG).show();
+
             }
             return true;
         }
@@ -139,6 +184,18 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unbindService(mCodeGenerationConnection);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent = new Intent(this, CodeGeneratorService.class);
+        bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+    }
 
     /**
      * Apps should not override onCreate if using this class. If you have a completely custom view
@@ -237,13 +294,6 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
     }
 
     /**
-     * @return The number of sections in this activity.
-     */
-    protected int getSectionCount() {
-        return mLevelsAdapter.getCount();
-    }
-
-    /**
      * Returns the title to show in the action bar for this section.
      *
      * @param section The section to retrieve the title for.
@@ -255,6 +305,41 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         } else {
             return "Secret cow level";
         }
+    }
+
+    /**
+     * Called after a section has been loaded. If you don't want to re-use the previous section's
+     * code {@link Workspace#loadFromXml(InputStream)} should be called here.
+     *
+     * @param oldSection The previous level.
+     * @param newSection The level that was just configured.
+     */
+    protected void onSectionChanged(int oldSection, int newSection) {
+    }
+
+    /**
+     * @return The number of sections in this activity.
+     */
+    protected int getSectionCount() {
+        return mLevelsAdapter.getCount();
+    }
+
+    /**
+     * Creates an adapter for the sections drawer. This adapter is passed to {@link
+     * android.widget.ListView#setAdapter(ListAdapter)}
+     *
+     * @return An adapter for the section items.
+     */
+    protected ListAdapter onCreateSectionsAdapter() {
+        return new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                new String[]{
+                        getString(R.string.title_section1),
+                        getString(R.string.title_section2),
+                        getString(R.string.title_section3),
+                });
     }
 
     /**
@@ -275,34 +360,6 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
      */
     protected String getWorkspaceBlocksPath(int section) {
         return "default/toolbox_blocks.json";
-    }
-
-    /**
-     * Called after a section has been loaded. If you don't want to re-use the previous section's
-     * code {@link Workspace#loadFromXml(InputStream)} should be called here.
-     *
-     * @param oldSection The previous level.
-     * @param newSection The level that was just configured.
-     */
-    protected void onSectionChanged(int oldSection, int newSection) {
-    }
-
-    /**
-     * Creates an adapter for the sections drawer. This adapter is passed to {@link
-     * android.widget.ListView#setAdapter(ListAdapter)}
-     *
-     * @return An adapter for the section items.
-     */
-    protected ListAdapter onCreateSectionsAdapter() {
-        return new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_section1),
-                        getString(R.string.title_section2),
-                        getString(R.string.title_section3),
-                });
     }
 
     private void changeLevel(int level) {

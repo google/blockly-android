@@ -17,15 +17,19 @@ package com.google.blockly;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
+
+import com.google.blockly.utils.CodeGenerationRequest;
+
+import java.util.ArrayDeque;
 
 /**
  * Background service that uses a WebView to statically load the Web Blockly libraries and use them
@@ -34,42 +38,92 @@ import android.widget.Toast;
 public class CodeGeneratorService extends Service {
     private static final String TAG = "CodeGeneratorService";
 
-    public static final String EXTRA_WORKSPACE_XML = "com.google.blockly.WORKSPACE_XML";
+    // Binder given to clients
+    private final IBinder mBinder = new CodeGeneratorBinder();
+    private final ArrayDeque<CodeGenerationRequest> mRequestQueue = new ArrayDeque<>();
+    private boolean mReady = false;
+    private WebView mWebview;
+    private CodeGenerationRequest.CodeGeneratorCallback mCallback;
+    private Handler mHandler;
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        final String blocklyXml = intent.getStringExtra(EXTRA_WORKSPACE_XML);
-        final WebView webview = new WebView(this);
-        webview.getSettings().setJavaScriptEnabled(true);
-        webview.setWebChromeClient(new WebChromeClient());
+    public void onCreate() {
+        mHandler = new Handler();
+        mWebview = new WebView(this);
+        mWebview.getSettings().setJavaScriptEnabled(true);
+        mWebview.setWebChromeClient(new WebChromeClient());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-        webview.addJavascriptInterface(new BlocklyJsObject(), "BlocklyController");
+        mWebview.addJavascriptInterface(new BlocklyJsObject(), "BlocklyController");
 
         /* WebViewClient must be set BEFORE calling loadUrl! */
-        webview.setWebViewClient(new WebViewClient() {
+        mWebview.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
-                webview.loadUrl("javascript:generate('" + blocklyXml + "')");
+                synchronized (this) {
+                    mReady = true;
+                }
+                generateCode();
             }
         });
-        webview.loadUrl("file:///android_asset/index.html");
-        stopSelf();
-        return 0;
+        mWebview.loadUrl("file:///android_asset/index.html");
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
+    }
+
+    /**
+     * Enqueues a {@link CodeGenerationRequest} and kicks off generation of the first request in the
+     * queue if no request is in progress.
+     *
+     * @param request The request to add to the queue.
+     */
+    public void requestCodeGeneration(CodeGenerationRequest request) {
+        synchronized (this) {
+            mRequestQueue.add(request);
+        }
+        generateCode();
+    }
+
+    /**
+     * If no {@link CodeGenerationRequest} instances are already being processed, kicks off
+     * generation of code for the first request in the queue.
+     */
+    private void generateCode() {
+        synchronized (this) {
+            if (mReady && mRequestQueue.size() > 0) {
+                mReady = false;
+                final CodeGenerationRequest request = mRequestQueue.pop();
+                // Run on the main thread.
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mCallback = request.getCallback();
+                        mWebview.loadUrl("javascript:generate('" + request.getXml() + "')");
+                    }
+                });
+            }
+        }
     }
 
     private class BlocklyJsObject {
         @JavascriptInterface
         public void execute(String program) {
-            Log.d(TAG, "code: " + program);
-            Toast.makeText(getApplicationContext(), program, Toast.LENGTH_LONG).show();
+            mReady = true;
+            if (mCallback != null) {
+                mCallback.onFinishCodeGeneration(program);
+            }
+            generateCode();
+        }
+    }
+
+    public class CodeGeneratorBinder extends Binder {
+        CodeGeneratorService getService() {
+            return CodeGeneratorService.this;
         }
     }
 }
