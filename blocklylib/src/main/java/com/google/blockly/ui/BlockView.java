@@ -49,8 +49,6 @@ import java.util.List;
  *     the amount ot vertical field padding.</li>
  *     <li>Connector positions are not correct in RtL mode (this issue was also present in
  *     path-based rendering).</li>
- *     <li>Bottom of Statement connector is overdrawn by block boundary if it is the last input in
- *     the block.</li>
  *     <li>Connector or block highlighting is not implemented. Related, support for drawing over
  *     neighbouring blocks is not yet implemented (this is needed for highlighting in the style of
  *     Web Blockly).</li>
@@ -439,6 +437,12 @@ public class BlockView extends FrameLayout {
             // If this is a Statement input, force its field width to be the maximum over all
             // Statements, and begin a new layout row.
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+                // If the first input is a Statement, add vertical space above to draw top of
+                // connector just below block top boundary.
+                if (i == 0) {
+                    rowTop += mPatchManager.mBlockTopPadding;
+                }
+
                 // Force all Statement inputs to have the same field width.
                 inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
 
@@ -465,6 +469,12 @@ public class BlockView extends FrameLayout {
             if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
                 // The block width is that of the widest row.
                 maxRowWidth = Math.max(maxRowWidth, inputView.getMeasuredWidth());
+
+                // If the last input is a Statement, add vertical space below to draw bottom of
+                // connector just above block top boundary.
+                if (i == mInputCount - 1) {
+                    rowTop += mPatchManager.mBlockBottomPadding;
+                }
 
                 // New row AFTER each Statement input.
                 rowTop += rowHeight;
@@ -585,7 +595,14 @@ public class BlockView extends FrameLayout {
         int rowTop = 0;
         for (int i = 0; i < mInputViews.size(); i++) {
             InputView inputView = mInputViews.get(i);
-            if (inputView.getInput().getType() == Input.TYPE_STATEMENT) {
+            final int inputType = inputView.getInput().getType();
+            if (inputType == Input.TYPE_STATEMENT) {
+                // If the first input is a Statement, add vertical space above to draw top of
+                // connector just below block top boundary.
+                if (i == 0) {
+                    rowTop += mPatchManager.mBlockTopPadding;
+                }
+
                 // Force all Statement inputs to have the same field width.
                 inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
             } else {
@@ -595,6 +612,12 @@ public class BlockView extends FrameLayout {
             inputView.measure(widthMeasureSpec, heightMeasureSpec);
 
             mInputLayoutOrigins.get(i).set(0, rowTop);
+
+            // If the last input is a Statement, add vertical space below to draw bottom of
+            // connector just above block top boundary.
+            if ((inputType == Input.TYPE_STATEMENT) && (i == mInputCount - 1)) {
+                rowTop += mPatchManager.mBlockBottomPadding;
+            }
 
             // The block height is the sum of all the row heights.
             rowTop += inputView.getMeasuredHeight();
@@ -868,7 +891,8 @@ public class BlockView extends FrameLayout {
      * @param inputLayoutOrigin The layout origin for the current input. This is used to determine
      * the vertical position for the patch.
      */
-    private void addExternalValueInputPatch(int i, int xTo, InputView inputView, ViewPoint inputLayoutOrigin) {
+    private void addExternalValueInputPatch(int i, int xTo,
+                                            InputView inputView, ViewPoint inputLayoutOrigin) {
         // Position patch and connector for external value input.
         mInputConnectorOffsets.get(i).set(xTo, inputLayoutOrigin.y);
 
@@ -937,8 +961,7 @@ public class BlockView extends FrameLayout {
         // Fill below inline input cutout.
         final int cutoutEndX = cutoutX + inputView.getTotalChildWidth();
         final int cutoutEndY = inputLayoutOrigin.y + inputView.getRowHeight();
-        fillRect(cutoutX, cutoutY + inputView.getTotalChildHeight(),
-                cutoutEndX, cutoutEndY);
+        fillRect(cutoutX, cutoutY + inputView.getTotalChildHeight(), cutoutEndX, cutoutEndY);
 
         // Fill after inline input cutout.
         fillRect(cutoutEndX, inputLayoutOrigin.y,
@@ -949,18 +972,18 @@ public class BlockView extends FrameLayout {
         final int nextI = i + 1;
         if ((nextI == mInputCount) ||
                 (mInputViews.get(nextI).getInput().getType() == Input.TYPE_STATEMENT)) {
-            final NinePatchDrawable blockBorderDrawable =
-                    getColoredPatchDrawable(R.drawable.dummy_input);
-
             // Horizontal patch position is the position of inputs in the block, plus offset of the
             // current input in its row, plus padding before and after the input fields.
             final int patchX = blockFromX + mInlineRowWidth.get(inlineRowIdx) -
                     mPatchManager.mBlockTotalPaddingX;
+
             // Vertical patch position is the input layout origin, plus room for block boundary if
             // this is the first input row.
             final int patchY = inputLayoutOrigin.y +
                     (inlineRowIdx > 0 ? 0 : mPatchManager.mBlockTopPadding);
 
+            final NinePatchDrawable blockBorderDrawable =
+                    getColoredPatchDrawable(R.drawable.dummy_input);
             setBoundsMaybeFlip(blockBorderDrawable,
                     patchX, patchY, patchX + mPatchManager.mBlockRightPadding, cutoutEndY);
             mBlockPatches.add(blockBorderDrawable);

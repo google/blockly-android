@@ -101,6 +101,17 @@ public final class MockBlocksProvider {
         return block.build();
     }
 
+    public static Block makeStatementInputBlock() {
+        Block.Builder block = new Block.Builder("statement-only");
+        block.setPosition(500, 370);
+
+        Input input = new Input.InputStatement("input", null, null);
+        input.add(new Field.FieldLabel("DO", "this is a loop"));
+        block.addInput(input);
+
+        return block.build();
+    }
+
     public static Block makeInnerBlock() {
         Block.Builder block = new Block.Builder("inner");
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
@@ -192,6 +203,8 @@ public final class MockBlocksProvider {
         Block ivb2 = makeValueInputBlock();
         innerBlock.getInputs().get(2).getConnection().connect(ivb2.getOutputConnection());
         rootBlocks.add(outerBlock);
+
+        rootBlocks.add(makeStatementInputBlock());
 
         return rootBlocks;
     }
