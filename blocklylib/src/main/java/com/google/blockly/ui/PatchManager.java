@@ -173,7 +173,6 @@ public class PatchManager {
         if (!getPatchDrawable(R.drawable.tl_default).getPadding(mTempRect)) {
             throw new IllegalStateException("9-patch 'tl_default' does not have padding.");
         }
-        mBlockTopPadding = mTempRect.top;
         mBlockLeftPadding = mTempRect.left;
 
         mBlockRightPadding = getPatchDrawable(R.drawable.dummy_input).getIntrinsicWidth();
@@ -200,6 +199,7 @@ public class PatchManager {
         if (!topLeftOutputPatch.getPadding(mTempRect)) {
             throw new IllegalStateException("9-patch 'tl_output' does not have padding.");
         };
+        mBlockTopPadding = mTempRect.top;
         mOutputConnectorWidth = mTempRect.left - mBlockLeftPadding;
         mOutputConnectorHeight = topLeftOutputPatch.getIntrinsicHeight();
 
