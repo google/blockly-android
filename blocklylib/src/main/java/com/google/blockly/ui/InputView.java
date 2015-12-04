@@ -17,7 +17,6 @@ package com.google.blockly.ui;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Path;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,14 +43,6 @@ import java.util.List;
 public class InputView extends ViewGroup {
     private static final String TAG = "InputView";
 
-    // Horizontal padding between field bounds and content.
-    static final int FIELD_PADDING_X = 30;
-    // Vertical padding between field bounds and content.
-    static final int FIELD_PADDING_Y = 10;
-
-    // The minimum height of an input is what is needed for a centered input connector with padding.
-    static final int MIN_HEIGHT =
-            2 * ConnectorHelper.OFFSET_FROM_CORNER + ConnectorHelper.SIZE_PARALLEL;
     // The minimum width of an input, in dips.
     static final int MIN_WIDTH = 40;
 
@@ -60,6 +51,7 @@ public class InputView extends ViewGroup {
 
     private final Input mInput;
     private final WorkspaceHelper mHelper;
+    private final PatchManager mPatchManager;
     private final ArrayList<FieldView> mFieldViews = new ArrayList<>();
 
     private int mHorizontalFieldSpacing;
@@ -92,6 +84,7 @@ public class InputView extends ViewGroup {
         mInput = input;
         mInput.setView(this);
         mHelper = helper;
+        mPatchManager = mHelper.getPatchManager();  // Shortcut.
 
         initAttrs(context, blockStyle);
         initViews(context);
@@ -162,14 +155,13 @@ public class InputView extends ViewGroup {
         }
         mHasMeasuredFieldsAndInput = false;
 
-        int width = mFieldLayoutWidth + mChildWidth;
-        if (getInput().getType() == Input.TYPE_VALUE && getInput().getBlock().getInputsInline()) {
-            width += FIELD_PADDING_X;
-        }
+        // Width is the width of all fields, plus padding, plus width of child.
+        final int width = mFieldLayoutWidth + mPatchManager.mBlockTotalPaddingX + mChildWidth;
 
-        // Height is maximum of field height with padding or child height, and at least MIN_HEIGHT.
-        int height = Math.max(MIN_HEIGHT,
-                Math.max(mMaxFieldHeight + 2 * FIELD_PADDING_Y, mChildHeight));
+        // Height is maximum of field height with padding or child height, and at least the minimum
+        // height for an empty block.
+        final int height = Math.max(mPatchManager.mMinBlockHeight,
+                Math.max(mMaxFieldHeight + mPatchManager.mBlockTotalPaddingY, mChildHeight));
 
         setMeasuredDimension(width, height);
 
@@ -195,7 +187,8 @@ public class InputView extends ViewGroup {
             int fieldHeight = view.getMeasuredHeight();
 
             int left = rtl ? viewWidth - (cursorX + fieldWidth) : cursorX;
-            view.layout(left, FIELD_PADDING_Y, left + fieldWidth, FIELD_PADDING_Y + fieldHeight);
+            view.layout(left, mPatchManager.mBlockTopPadding, left + fieldWidth,
+                    mPatchManager.mBlockTopPadding + fieldHeight);
 
             // Move x position left or right, depending on RTL mode.
             cursorX += fieldWidth + mHorizontalFieldSpacing;
@@ -218,23 +211,45 @@ public class InputView extends ViewGroup {
      */
     private void layoutChild() {
         if (mChildView != null) {
-            int inputType = mInput.getType();
-            if (inputType == Input.TYPE_STATEMENT || inputType == Input.TYPE_VALUE) {
-                int width = mChildView.getMeasuredWidth();
-                int height = mChildView.getMeasuredHeight();
+            // Can only be VALUE or STATEMENT at this point, since child view exists.
+            final int inputType = mInput.getType();
 
-                // Align top of fields and input, unless this is an inline Value input, in which
-                // case field padding must be added.
-                int top = 0;
-                if (inputType == Input.TYPE_VALUE && getInput().getBlock().getInputsInline()) {
-                    top = FIELD_PADDING_Y;
+            // Compute offset of child relative to InputView. By default, align top of fields and
+            // input, and shift right by left padding plus field width.
+            int topOffset = 0;
+            int leftOffset = mFieldLayoutWidth + mPatchManager.mBlockLeftPadding;
+            switch (inputType) {
+                case Input.TYPE_VALUE: {
+                    if (getInput().getBlock().getInputsInline()) {
+                        topOffset += mPatchManager.mBlockTopPadding +
+                                mPatchManager.mInlineInputTopPadding;
+                        leftOffset += mPatchManager.mInlineInputLeftPadding;
+                    } else {
+                        // The child block overlaps the parent block slightly at the connector, by
+                        // the width of the extruding output connector.
+                        leftOffset +=
+                                mPatchManager.mBlockRightPadding + mPatchManager.mValueInputWidth -
+                                mPatchManager.mOutputConnectorWidth;
+                    }
+                    break;
                 }
-
-                boolean rtl = mHelper.useRtL();
-                int left = rtl ? getMeasuredWidth() - mFieldLayoutWidth - width : mFieldLayoutWidth;
-
-                mChildView.layout(left, top, left + width, top + height);
+                case Input.TYPE_STATEMENT: {
+                    topOffset += mPatchManager.mStatementTopThickness;
+                    leftOffset += mPatchManager.mStatementInputPadding;
+                    break;
+                }
+                default:
+                    // Nothing to do.
             }
+
+            final int width = mChildView.getMeasuredWidth();
+            final int height = mChildView.getMeasuredHeight();
+
+            if (mHelper.useRtL()) {
+                leftOffset = getMeasuredWidth() - leftOffset - width;
+            }
+
+            mChildView.layout(leftOffset, topOffset, leftOffset + width, topOffset + height);
         }
     }
 
@@ -247,20 +262,20 @@ public class InputView extends ViewGroup {
         switch (mInput.getAlign()) {
             default:
             case Input.ALIGN_LEFT: {
-                return FIELD_PADDING_X;
+                return mPatchManager.mBlockLeftPadding;
             }
             case Input.ALIGN_CENTER: {
-                return FIELD_PADDING_X + (mFieldLayoutWidth - mTotalFieldWidth) / 2;
+                return mPatchManager.mBlockLeftPadding + (mFieldLayoutWidth - mTotalFieldWidth) / 2;
             }
             case Input.ALIGN_RIGHT: {
-                return FIELD_PADDING_X + mFieldLayoutWidth - mTotalFieldWidth;
+                return mPatchManager.mBlockLeftPadding + mFieldLayoutWidth - mTotalFieldWidth;
             }
         }
     }
 
     // Measure only the fields of this input view.
     private void measureFields(int widthMeasureSpec, int heightMeasureSpec) {
-        mTotalFieldWidth = 2 * FIELD_PADDING_X;
+        mTotalFieldWidth = 0;
         mMaxFieldHeight = 0;
 
         if (mFieldViews.size() > 1) {
@@ -282,41 +297,62 @@ public class InputView extends ViewGroup {
 
     // Measure only blocks connected to this input.
     private void measureInputs(int widthMeasureSpec, int heightMeasureSpec) {
+        final boolean inputsInline = getInput().getBlock().getInputsInline();
+        final int inputType = getInput().getType();
+
         if (mChildView != null) {
             // There is a block group connected to this input - measure it and add its size
             // to this InputView's size.
             mChildView.measure(widthMeasureSpec, heightMeasureSpec);
             mChildWidth = mChildView.getMeasuredWidth();
             mChildHeight = mChildView.getMeasuredHeight();
-        } else {
-            // There's nothing connected to this input - use the size of the empty connectors.
-            if (getInput().getBlock().getInputsInline()) {
-                switch (getInput().getType()) {
-                    default:
-                    case Input.TYPE_DUMMY: {
-                        break;
-                    }
-                    case Input.TYPE_VALUE: {
-                        mChildWidth = ConnectorHelper.OPEN_INLINE_CONNECTOR_WIDTH;
-                        mChildHeight = ConnectorHelper.OPEN_INLINE_CONNECTOR_HEIGHT;
-                        break;
-                    }
-                    case Input.TYPE_STATEMENT: {
-                        mChildWidth = MIN_WIDTH;
-                        mChildHeight = MIN_HEIGHT + ConnectorHelper.SIZE_PERPENDICULAR;
-                        break;
-                    }
+
+            // Only add space for decorations around inline Value and external Statement inputs.
+            if (inputsInline) {
+                // Inline Value input - add space for connector that is enclosing connected
+                // block(s).
+                if (inputType == Input.TYPE_VALUE) {
+                    mChildWidth += mPatchManager.mInlineInputTotalPaddingX;
+                    mChildHeight += mPatchManager.mInlineInputTotalPaddingY;
                 }
             } else {
-                if (getInput().getType() == Input.TYPE_STATEMENT) {
-                    mChildWidth = MIN_WIDTH;
-                    mChildHeight = MIN_HEIGHT + ConnectorHelper.SIZE_PERPENDICULAR;
-                } else {
-                    mChildWidth = 0;
-                    mChildHeight = 0;
+                // External Statement input - add space for top and bottom of C-connector.
+                if (inputType == Input.TYPE_STATEMENT) {
+                    mChildHeight += mPatchManager.mStatementTopThickness +
+                            mPatchManager.mStatementBottomThickness;
                 }
             }
+        } else {
+            // There's nothing connected to this input - use the size of the empty connectors.
+            mChildWidth = emptyConnectorWidth(mPatchManager, inputType, inputsInline);
+            mChildHeight = emptyConnectorHeight(mPatchManager, inputType, inputsInline);
         }
+    }
+
+    private static int emptyConnectorWidth(
+            PatchManager patchManager, @Input.InputType int inputType, boolean inputsInline) {
+        if (inputType == Input.TYPE_STATEMENT) {
+            return MIN_WIDTH;
+        }
+
+        if (inputsInline && inputType == Input.TYPE_VALUE) {
+            return patchManager.mInlineInputMinimumWidth;
+        }
+
+        return 0;
+    }
+
+    private static int emptyConnectorHeight(
+            PatchManager patchManager, @Input.InputType int inputType, boolean inputsInline) {
+        if (inputType == Input.TYPE_STATEMENT) {
+            return patchManager.mStatementMinHeight;
+        }
+
+        if (inputsInline &&  inputType == Input.TYPE_VALUE) {
+            return patchManager.mInlineInputMinimumHeight;
+        }
+
+        return 0;
     }
 
     /**
@@ -461,37 +497,9 @@ public class InputView extends ViewGroup {
     }
 
     /**
-     * Add cutout for inline value input to draw path of {@link BlockView}.
-     *
-     * @param path The draw path of the {@link BlockView} as assembled so far. Commands to draw the
-     * cutout are appended to this path.
-     * @param xOffset The horizontal offset for cutout path coordinates provided by the caller to
-     * position the cutout in the parent's view area. In RTL mode, this is the
-     * relative position of the right-hand side of the cutout, otherwise of its
-     * left-hand side.
-     * @param yOffset The vertical offset for cutout path coordinates provided by the caller to
-     * position the cutout in the parent's view area.
-     * @param rtlSign Sign of horizontal layout direction. In RTL mode, this is -1, otherwise +1.
-     * @param connectorPosition A {@link ViewPoint} in which the function returns the coordinate of
-     * the input connector in parent coordinates.
+     * Get horizontal position for inline connector in this input view.
      */
-    void addInlineCutoutToBlockViewPath(Path path, int xOffset, int yOffset, int rtlSign,
-                                        ViewPoint connectorPosition) {
-        int top = yOffset + InputView.FIELD_PADDING_Y;
-        int bottom = top + getTotalChildHeight();
-
-        int right = xOffset + rtlSign * (getMeasuredWidth() - InputView.FIELD_PADDING_X);
-        int left = right + rtlSign * (ConnectorHelper.SIZE_PERPENDICULAR - getTotalChildWidth());
-
-        path.moveTo(left, top);
-        path.lineTo(right, top);
-        path.lineTo(right, bottom);
-        path.lineTo(left, bottom);
-        ConnectorHelper.addOutputConnectorToPath(path, left, top, rtlSign);
-        path.lineTo(left, top);
-        // Draw an additional line segment over again to get a final rounded corner.
-        path.lineTo(left + rtlSign * ConnectorHelper.OFFSET_FROM_CORNER, top);
-
-        connectorPosition.set(left, top);
+    int getInlineInputX() {
+        return getMeasuredWidth() - mPatchManager.mBlockTotalPaddingX - getTotalChildWidth();
     }
 }

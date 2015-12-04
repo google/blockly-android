@@ -34,7 +34,7 @@ import com.google.blockly.ui.WorkspaceHelper;
  * Renders a color field and picker as part of a BlockView.
  */
 public class FieldColourView extends View implements FieldView {
-    private static final int MIN_SIZE = 75;
+    private static final int MIN_SIZE = 40;
 
     private final Field.FieldColour mColourField;
     private final WorkspaceHelper mWorkspaceHelper;
