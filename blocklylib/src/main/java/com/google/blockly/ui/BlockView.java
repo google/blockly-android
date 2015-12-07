@@ -47,8 +47,6 @@ import java.util.List;
  * <ul>
  *     <li>With inline inputs, blocks connected to Statement inputs take too much vertical space by
  *     the amount ot vertical field padding.</li>
- *     <li>Connector positions are not correct in RtL mode (this issue was also present in
- *     path-based rendering).</li>
  *     <li>Connector or block highlighting is not implemented. Related, support for drawing over
  *     neighbouring blocks is not yet implemented (this is needed for highlighting in the style of
  *     Web Blockly).</li>
@@ -891,7 +889,7 @@ public class BlockView extends FrameLayout {
     private void addExternalValueInputPatch(int i, int xTo,
                                             InputView inputView, ViewPoint inputLayoutOrigin) {
         // Position patch and connector for external value input.
-        mInputConnectorOffsets.get(i).set(xTo, inputLayoutOrigin.y);
+        setPointMaybeFlip(mInputConnectorOffsets.get(i), xTo, inputLayoutOrigin.y);
 
         final NinePatchDrawable inputDrawable =
                 getColoredPatchDrawable(R.drawable.value_input_external);
@@ -1074,7 +1072,12 @@ public class BlockView extends FrameLayout {
                     conn.getPosition().y - mBlock.getPosition().y);
             mHelper.workspaceToVirtualViewDelta(mTempWorkspacePoint, mTempConnectionPosition);
             if (mHelper.useRtL()) {
-                mTempConnectionPosition.x = mBlockViewSize.x - mTempConnectionPosition.x;
+                // In RtL mode, add block view size to x coordinate. This is counter-intuitive, but
+                // equivalent to "x = size - (-x)", with the inner negation "-x" undoing the
+                // side-effect of workspaceToVirtualViewDelta reversing the x coordinate. This is,
+                // the addition mirrors the re-negated in-block x coordinate w.r.t. the right-hand
+                // side of the block view, which is the origin of the block in RtL mode.
+                mTempConnectionPosition.x += mBlockViewSize.x;
             }
             c.drawCircle(mTempConnectionPosition.x, mTempConnectionPosition.y, 10, paint);
         }
@@ -1109,31 +1112,39 @@ public class BlockView extends FrameLayout {
         if (mConnectionManager == null) {
             return;
         }
+
         final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
-        if (mBlock.getPreviousConnection() != null) {
+
+        final Connection previousConnection = mBlock.getPreviousConnection();
+        if (previousConnection != null) {
             mHelper.virtualViewToWorkspaceDelta(mPreviousConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(mBlock.getPreviousConnection(),
-                    blockWorkspacePosition, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(
+                    previousConnection, blockWorkspacePosition, mTempWorkspacePoint);
         }
-        if (mBlock.getNextConnection() != null) {
+
+        final Connection nextConnection = mBlock.getNextConnection();
+        if (nextConnection != null) {
             mHelper.virtualViewToWorkspaceDelta(mNextConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(mBlock.getNextConnection(),
-                    blockWorkspacePosition, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(
+                    nextConnection, blockWorkspacePosition, mTempWorkspacePoint);
         }
-        if (mBlock.getOutputConnection() != null) {
+
+        final Connection outputConnection = mBlock.getOutputConnection();
+        if (outputConnection != null) {
             mHelper.virtualViewToWorkspaceDelta(mOutputConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(mBlock.getOutputConnection(),
-                    blockWorkspacePosition, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(
+                    outputConnection, blockWorkspacePosition, mTempWorkspacePoint);
         }
+
         for (int i = 0; i < mInputViews.size(); i++) {
-            InputView inputView = mInputViews.get(i);
-            Connection conn = inputView.getInput().getConnection();
-            if (conn != null) {
+            final InputView inputView = mInputViews.get(i);
+            final Connection connection = inputView.getInput().getConnection();
+            if (connection != null) {
                 mHelper.virtualViewToWorkspaceDelta(
                         mInputConnectorOffsets.get(i), mTempWorkspacePoint);
-                mConnectionManager.moveConnectionTo(conn,
-                        blockWorkspacePosition, mTempWorkspacePoint);
-                if (conn.isConnected()) {
+                mConnectionManager.moveConnectionTo(
+                        connection, blockWorkspacePosition, mTempWorkspacePoint);
+                if (connection.isConnected()) {
                     ((BlockGroup) inputView.getChildView()).updateAllConnectorLocations();
                 }
             }
@@ -1254,7 +1265,7 @@ public class BlockView extends FrameLayout {
      * @param y The  new y coordinate.
      */
     private void setPointMaybeFlip(ViewPoint viewPoint, int x, int y) {
-        viewPoint.set(x, y);
+        viewPoint.set(mHelper.useRtL() ? -x : x, y);
     }
 
     private NinePatchDrawable getColoredPatchDrawable(int id) {
