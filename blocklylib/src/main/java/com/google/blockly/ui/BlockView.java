@@ -800,7 +800,7 @@ public class BlockView extends FrameLayout {
         // bottom-left corner.
         int blResource = R.drawable.bl_default;
         if (mBlock.getNextConnection() != null) {
-            setPointMaybeFlip(mNextConnectorOffset, xFrom, mNextBlockVerticalOffset);
+            setPointMaybeFlip(mNextConnectorOffset, mLayoutMarginLeft, mNextBlockVerticalOffset);
             blResource = R.drawable.bl_next;
         }
         final NinePatchDrawable blDrawable = getColoredPatchDrawable(blResource);
@@ -937,7 +937,13 @@ public class BlockView extends FrameLayout {
         // Determine position for inline connector cutout.
         final int cutoutX = blockFromX + inputLayoutOrigin.x + inputView.getInlineInputX();
         final int cutoutY = inputLayoutOrigin.y + mPatchManager.mBlockTopPadding;
-        setPointMaybeFlip(mInputConnectorOffsets.get(i), cutoutX, cutoutY);
+
+        // Set connector position - shift w.r.t. patch location to where the corner of connected
+        // blocks will be positioned.
+        setPointMaybeFlip(mInputConnectorOffsets.get(i),
+                cutoutX + mPatchManager.mInlineInputLeftPadding +
+                        mPatchManager.mOutputConnectorWidth,
+                cutoutY + mPatchManager.mInlineInputTopPadding);
 
         // Fill above inline input connector, unless first row, where connector top
         // is aligned with block boundary patch.
@@ -1004,9 +1010,12 @@ public class BlockView extends FrameLayout {
      */
     private void addStatementInputPatches(int i, int xFrom, int xToAbove, int xToBelow,
                                           InputView inputView, ViewPoint inputLayoutOrigin) {
-        // Position connector.
+        // Position connector. Shift by horizontal and vertical patch thickness to line up with
+        // "Previous" connector on child block.
         int xOffset = xFrom + inputView.getFieldLayoutWidth();
-        setPointMaybeFlip(mInputConnectorOffsets.get(i), xOffset, inputLayoutOrigin.y);
+        setPointMaybeFlip(mInputConnectorOffsets.get(i),
+                xOffset + mPatchManager.mStatementInputPadding,
+                inputLayoutOrigin.y + mPatchManager.mStatementTopThickness);
 
         // Position patch for the top part of the Statement connector. This patch is
         // stretched only horizontally to extend to the block boundary.
