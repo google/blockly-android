@@ -745,7 +745,7 @@ public class BlockView extends FrameLayout {
         // Position top-left corner drawable. Retain drawable object so we can position bottom-left
         // drawable correctly.
         int yTop = 0;
-        final NinePatchDrawable tlDrawable = addTopLeftPatch(xFrom, yTop);
+        final NinePatchDrawable tlDrawable = addTopLeftPatch(xTo, yTop);
 
         // Position inputs and connectors.
         for (int i = 0; i < mInputCount; ++i) {
@@ -815,34 +815,31 @@ public class BlockView extends FrameLayout {
     /**
      * Add the top-left corner drawable.
      *
-     * @param xFrom Horizontal position for the drawable.
+     * @param xTo Horizontal end position for the drawable.
      * @param yTop Vertical position for the drawable.
      *
      * @return The added drawable. This can be used to position other drawables, e.g., the
      * bottom-left drawable, relative to it.
      */
     @NonNull
-    private NinePatchDrawable addTopLeftPatch(int xFrom, int yTop) {
+    private NinePatchDrawable addTopLeftPatch(int xTo, int yTop) {
         // Select and position the correct patch for the top and left block sides including the
         // top-left corner.
         NinePatchDrawable tlDrawable;
         if (mBlock.getPreviousConnection() != null) {
-            setPointMaybeFlip(mPreviousConnectorOffset, xFrom, yTop);
+            setPointMaybeFlip(mPreviousConnectorOffset, mLayoutMarginLeft, yTop);
             tlDrawable = getColoredPatchDrawable(R.drawable.tl_prev);
             setBoundsMaybeFlip(tlDrawable,
-                    mLayoutMarginLeft, 0, mLayoutMarginLeft + mBlockContentWidth,
-                    tlDrawable.getIntrinsicHeight());
+                    0, 0, xTo, tlDrawable.getIntrinsicHeight());
         } else if (mBlock.getOutputConnection() != null) {
-            setPointMaybeFlip(mOutputConnectorOffset, xFrom, yTop);
+            setPointMaybeFlip(mOutputConnectorOffset, mLayoutMarginLeft, yTop);
             tlDrawable = getColoredPatchDrawable(R.drawable.tl_output);
             setBoundsMaybeFlip(tlDrawable,
-                    0, 0, mBlockContentWidth + mPatchManager.mOutputConnectorWidth,
-                    tlDrawable.getIntrinsicHeight());
+                    0, 0, xTo, tlDrawable.getIntrinsicHeight());
         } else {
             tlDrawable = getColoredPatchDrawable(R.drawable.tl_default);
             setBoundsMaybeFlip(tlDrawable,
-                    mLayoutMarginLeft, 0, mLayoutMarginLeft + mBlockContentWidth,
-                    tlDrawable.getIntrinsicHeight());
+                    0, 0, xTo, tlDrawable.getIntrinsicHeight());
         }
         mBlockPatches.add(tlDrawable);
         return tlDrawable;
