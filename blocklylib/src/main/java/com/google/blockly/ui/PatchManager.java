@@ -126,11 +126,7 @@ public class PatchManager {
         if (!getPatchDrawable(R.drawable.tl_default).getPadding(mTempRect)) {
             throw new IllegalStateException("9-patch 'tl_default' does not have padding.");
         }
-        if (rtl) {
-            mBlockStartPadding = mTempRect.right;
-        } else {
-            mBlockStartPadding = mTempRect.left;
-        }
+        mBlockStartPadding = rtl ? mTempRect.right : mTempRect.left;
 
         mBlockEndPadding = getPatchDrawable(R.drawable.dummy_input).getIntrinsicWidth();
         mValueInputWidth = getPatchDrawable(R.drawable.value_input_external).getIntrinsicWidth() -
@@ -157,11 +153,7 @@ public class PatchManager {
             throw new IllegalStateException("9-patch 'tl_output' does not have padding.");
         };
         mBlockTopPadding = mTempRect.top;
-        if (rtl) {
-            mOutputConnectorWidth = mTempRect.right - mBlockStartPadding;
-        } else {
-            mOutputConnectorWidth = mTempRect.left - mBlockStartPadding;
-        }
+        mOutputConnectorWidth = (rtl ? mTempRect.right : mTempRect.left) - mBlockStartPadding;
         mOutputConnectorHeight = topLeftOutputPatch.getIntrinsicHeight();
 
         // Block height must be sufficient to at least accomodate vertical padding and an Output
@@ -174,11 +166,7 @@ public class PatchManager {
         };
         mStatementTopThickness = mTempRect.top;
         mStatementInputIndent = statementTopPatch.getIntrinsicWidth();
-        if (rtl) {
-            mStatementInputPadding = mTempRect.right;
-        } else {
-            mStatementInputPadding = mTempRect.left;
-        }
+        mStatementInputPadding = rtl ? mTempRect.right : mTempRect.left;
 
         final NinePatchDrawable statementBottomPatch =
                 getPatchDrawable(R.drawable.statementinput_bottom);
@@ -196,11 +184,7 @@ public class PatchManager {
         mInlineInputMinimumHeight = inlineInputPatch.getIntrinsicHeight();
 
         inlineInputPatch.getPadding(mTempRect);
-        if (rtl) {
-            mInlineInputLeftPadding = mTempRect.right;
-        } else {
-            mInlineInputLeftPadding = mTempRect.left;
-        }
+        mInlineInputLeftPadding = rtl ? mTempRect.right : mTempRect.left;
         mInlineInputTopPadding = mTempRect.top;
         mInlineInputTotalPaddingX = mTempRect.left + mTempRect.right;
         mInlineInputTotalPaddingY = mTempRect.top + mTempRect.bottom;
