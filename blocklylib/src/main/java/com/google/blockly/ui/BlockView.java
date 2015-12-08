@@ -523,7 +523,7 @@ public class BlockView extends FrameLayout {
         // and padding, and at least the width of the widest input row.
         mBlockViewSize.x = Math.max(mBlockContentWidth,
                 mMaxStatementFieldsWidth + maxStatementChildWidth +
-                        mPatchManager.mBlockLeftPadding + mPatchManager.mStatementInputPadding);
+                        mPatchManager.mBlockStartPadding + mPatchManager.mStatementInputPadding);
 
         // Height is vertical position of next (non-existent) inputs row, and at least MIN_HEIGHT.
         mBlockContentHeight = Math.max(mPatchManager.mMinBlockHeight, rowTop);
@@ -641,7 +641,7 @@ public class BlockView extends FrameLayout {
         // Maximum total width of all Statement inputs is the sum of maximum field and and widths,
         // plus field padding on the left and C-connector padding in the middle.
         final int maxStatementInputTotalWidth = mMaxStatementFieldsWidth + maxStatementChildWidth +
-                mPatchManager.mBlockLeftPadding +
+                mPatchManager.mBlockStartPadding +
                 mPatchManager.mStatementInputPadding;
 
         // View width is maximum of content width and the Value input and Statement input total
@@ -727,7 +727,7 @@ public class BlockView extends FrameLayout {
 
         // Leave room on the left for margin (accomodates optional output connector) and block
         // padding (accomodates block boundary).
-        int xFrom = mLayoutMarginLeft + mPatchManager.mBlockLeftPadding;
+        int xFrom = mLayoutMarginLeft + mPatchManager.mBlockStartPadding;
 
         // For inline inputs, the upper horizontal coordinate of the block boundary varies by
         // section and changes after each Statement input. For external inputs, it is constant as
@@ -780,7 +780,7 @@ public class BlockView extends FrameLayout {
                     if (mBlock.getInputsInline()) {
                         ++inlineRowIdx;
                         xToBottom = xFrom + mInlineRowWidth.get(inlineRowIdx) -
-                                mPatchManager.mBlockLeftPadding;
+                                mPatchManager.mBlockStartPadding;
                     }
 
                     // Place the connector patches.
@@ -986,12 +986,12 @@ public class BlockView extends FrameLayout {
             final NinePatchDrawable blockBorderDrawable =
                     getColoredPatchDrawable(R.drawable.dummy_input);
             setBoundsMaybeFlip(blockBorderDrawable,
-                    patchX, patchY, patchX + mPatchManager.mBlockRightPadding, cutoutEndY);
+                    patchX, patchY, patchX + mPatchManager.mBlockEndPadding, cutoutEndY);
             mBlockPatches.add(blockBorderDrawable);
 
             // Also at the end of the current input row, fill background up to
             // block boundary.
-            fillRect(inputLayoutOrigin.x + mPatchManager.mBlockLeftPadding +
+            fillRect(inputLayoutOrigin.x + mPatchManager.mBlockStartPadding +
                     inputView.getMeasuredWidth(), patchY, patchX, cutoutEndY);
         }
     }
@@ -1269,7 +1269,7 @@ public class BlockView extends FrameLayout {
     }
 
     private NinePatchDrawable getColoredPatchDrawable(int id) {
-        NinePatchDrawable drawable = mPatchManager.getPatchDrawable(id, mHelper.useRtL());
+        NinePatchDrawable drawable = mPatchManager.getPatchDrawable(id);
         drawable.setColorFilter(mBlockColorFilter);
         return drawable;
     }

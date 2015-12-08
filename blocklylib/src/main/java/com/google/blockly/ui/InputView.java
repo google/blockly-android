@@ -217,7 +217,7 @@ public class InputView extends ViewGroup {
             // Compute offset of child relative to InputView. By default, align top of fields and
             // input, and shift right by left padding plus field width.
             int topOffset = 0;
-            int leftOffset = mFieldLayoutWidth + mPatchManager.mBlockLeftPadding;
+            int leftOffset = mFieldLayoutWidth + mPatchManager.mBlockStartPadding;
             switch (inputType) {
                 case Input.TYPE_VALUE: {
                     if (getInput().getBlock().getInputsInline()) {
@@ -228,7 +228,7 @@ public class InputView extends ViewGroup {
                         // The child block overlaps the parent block slightly at the connector, by
                         // the width of the extruding output connector.
                         leftOffset +=
-                                mPatchManager.mBlockRightPadding + mPatchManager.mValueInputWidth -
+                                mPatchManager.mBlockEndPadding + mPatchManager.mValueInputWidth -
                                 mPatchManager.mOutputConnectorWidth;
                     }
                     break;
@@ -262,13 +262,13 @@ public class InputView extends ViewGroup {
         switch (mInput.getAlign()) {
             default:
             case Input.ALIGN_LEFT: {
-                return mPatchManager.mBlockLeftPadding;
+                return mPatchManager.mBlockStartPadding;
             }
             case Input.ALIGN_CENTER: {
-                return mPatchManager.mBlockLeftPadding + (mFieldLayoutWidth - mTotalFieldWidth) / 2;
+                return mPatchManager.mBlockStartPadding + (mFieldLayoutWidth - mTotalFieldWidth) / 2;
             }
             case Input.ALIGN_RIGHT: {
-                return mPatchManager.mBlockLeftPadding + mFieldLayoutWidth - mTotalFieldWidth;
+                return mPatchManager.mBlockStartPadding + mFieldLayoutWidth - mTotalFieldWidth;
             }
         }
     }

@@ -15,15 +15,12 @@
 
 package com.google.blockly.ui;
 
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.NinePatchDrawable;
-import android.util.Log;
 
 import com.google.blockly.R;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Helper class to manage patches, including 9-patches, for drawing blocks.
@@ -32,17 +29,16 @@ public class PatchManager {
     private final Resources mResources;
 
     private final Rect mTempRect = new Rect();
-    private final Map<Integer, Integer> mRightToLeftPatchTable = new HashMap<>();
 
     // Horizontal block padding - this space accomodates left and right block boundaries.
-    int mBlockLeftPadding;
-    int mBlockRightPadding;
+    int mBlockStartPadding;
+    int mBlockEndPadding;
 
     // Vertical block padding - this space accomodates top and bottom block boundaries.
     int mBlockTopPadding;
     int mBlockBottomPadding;
 
-    // Convenience fields - these are the sums of mBlockLeftPadding and mBlockRightPadding, or
+    // Convenience fields - these are the sums of mBlockStartPadding and mBlockEndPadding, or
     // mBlockTopPadding and mBlockBottomPadding, respectively.
     int mBlockTotalPaddingX;
     int mBlockTotalPaddingY;
@@ -52,14 +48,14 @@ public class PatchManager {
     int mNextConnectorHeight;
 
     // Width of the "Output" connector - this is in addition to the left block boundary thickness,
-    // which is mBlockLeftPadding.
+    // which is mBlockStartPadding.
     int mOutputConnectorWidth;
 
     // Intrinsic height of the "Output" connector patch.
     int mOutputConnectorHeight;
 
     // Width of a value input. This is in addition to the width of the right block boundary in a
-    // block without inputs (the latter is mBlockRightPadding).
+    // block without inputs (the latter is mBlockEndPadding).
     int mValueInputWidth;
 
     // Minimum indent of the Statement connector w.r.t. the right side of the block.
@@ -106,38 +102,9 @@ public class PatchManager {
     // Minimum height of a block.
     int mMinBlockHeight;
 
-    PatchManager(Resources resources) {
+    PatchManager(Resources resources, boolean rtl) {
         mResources = resources;
-
-        computePatchLayoutMeasures();
-        makeRightToLeftPatchTable();
-    }
-
-    /** Build lookup table from Left-to-Right 9-patch resource Ids to Right-to-Left Ids. */
-    private void makeRightToLeftPatchTable() {
-        // Bottom-left corner (in LtR mode; bottom-right in RtL).
-        mRightToLeftPatchTable.put(R.drawable.bl_default, R.drawable.bl_default_rtl);
-        mRightToLeftPatchTable.put(R.drawable.bl_next, R.drawable.bl_next_rtl);
-
-        // Top-left corner (in LtR mode; top-right in RtL).
-        mRightToLeftPatchTable.put(R.drawable.tl_default, R.drawable.tl_default_rtl);
-        mRightToLeftPatchTable.put(R.drawable.tl_output, R.drawable.tl_output_rtl);
-        mRightToLeftPatchTable.put(R.drawable.tl_prev, R.drawable.tl_prev_rtl);
-
-        // Value inputs.
-        mRightToLeftPatchTable.put(
-                R.drawable.value_input_external, R.drawable.value_input_external_rtl);
-        mRightToLeftPatchTable.put(
-                R.drawable.value_input_inline, R.drawable.value_input_inline_rtl);
-
-        // Dummy input.
-        mRightToLeftPatchTable.put(R.drawable.dummy_input, R.drawable.dummy_input_rtl);
-
-        // Statement inputs.
-        mRightToLeftPatchTable.put(
-                R.drawable.statementinput_top, R.drawable.statementinput_top_rtl);
-        mRightToLeftPatchTable.put(
-                R.drawable.statementinput_bottom, R.drawable.statementinput_bottom_rtl);
+        computePatchLayoutMeasures(rtl);
     }
 
     /**
@@ -147,37 +114,27 @@ public class PatchManager {
      * @return The drawable for the requested patch.
      */
     public NinePatchDrawable getPatchDrawable(int id) {
-        return getPatchDrawable(id, false);
-    }
-
-    /**
-     * Get a patch drawable for either left-to-right or right-to-left layout.
-     *
-     * @param id The resource Id of the patch.
-     * @param rtl If this is true, the patch for right-to-left layouts is produced. Otherwise, the
-     * patch for left-to-right layouts is returned.
-     * @return The drawable for the requested patch.
-     */
-    public NinePatchDrawable getPatchDrawable(int id, boolean rtl) {
-        if (rtl) {
-            return (NinePatchDrawable) mResources.getDrawable(mRightToLeftPatchTable.get(id));
-        } else {
-            return (NinePatchDrawable) mResources.getDrawable(id);
-        }
+        return (NinePatchDrawable) mResources.getDrawable(id);
     }
 
     /**
      * Compute layout measures such as offsets and paddings from the various block patches.
      */
-    private void computePatchLayoutMeasures() {
+    private void computePatchLayoutMeasures(boolean rtl) {
+        final Configuration config = mResources.getConfiguration();
+
         if (!getPatchDrawable(R.drawable.tl_default).getPadding(mTempRect)) {
             throw new IllegalStateException("9-patch 'tl_default' does not have padding.");
         }
-        mBlockLeftPadding = mTempRect.left;
+        if (rtl) {
+            mBlockStartPadding = mTempRect.right;
+        } else {
+            mBlockStartPadding = mTempRect.left;
+        }
 
-        mBlockRightPadding = getPatchDrawable(R.drawable.dummy_input).getIntrinsicWidth();
+        mBlockEndPadding = getPatchDrawable(R.drawable.dummy_input).getIntrinsicWidth();
         mValueInputWidth = getPatchDrawable(R.drawable.value_input_external).getIntrinsicWidth() -
-                mBlockRightPadding;
+                mBlockEndPadding;
 
         final NinePatchDrawable bottomPatchDefault = getPatchDrawable(R.drawable.bl_default);
         if (!bottomPatchDefault.getPadding(mTempRect)) {
@@ -186,7 +143,7 @@ public class PatchManager {
         mBlockBottomPadding = mTempRect.bottom;
 
         // Convenience fields.
-        mBlockTotalPaddingX = mBlockLeftPadding + mBlockRightPadding;
+        mBlockTotalPaddingX = mBlockStartPadding + mBlockEndPadding;
         mBlockTotalPaddingY = mBlockTopPadding + mBlockBottomPadding;
 
         final NinePatchDrawable bottomPatchNext = getPatchDrawable(R.drawable.bl_next);
@@ -200,7 +157,11 @@ public class PatchManager {
             throw new IllegalStateException("9-patch 'tl_output' does not have padding.");
         };
         mBlockTopPadding = mTempRect.top;
-        mOutputConnectorWidth = mTempRect.left - mBlockLeftPadding;
+        if (rtl) {
+            mOutputConnectorWidth = mTempRect.right - mBlockStartPadding;
+        } else {
+            mOutputConnectorWidth = mTempRect.left - mBlockStartPadding;
+        }
         mOutputConnectorHeight = topLeftOutputPatch.getIntrinsicHeight();
 
         // Block height must be sufficient to at least accomodate vertical padding and an Output
@@ -213,7 +174,11 @@ public class PatchManager {
         };
         mStatementTopThickness = mTempRect.top;
         mStatementInputIndent = statementTopPatch.getIntrinsicWidth();
-        mStatementInputPadding = mTempRect.left;
+        if (rtl) {
+            mStatementInputPadding = mTempRect.right;
+        } else {
+            mStatementInputPadding = mTempRect.left;
+        }
 
         final NinePatchDrawable statementBottomPatch =
                 getPatchDrawable(R.drawable.statementinput_bottom);
@@ -231,7 +196,11 @@ public class PatchManager {
         mInlineInputMinimumHeight = inlineInputPatch.getIntrinsicHeight();
 
         inlineInputPatch.getPadding(mTempRect);
-        mInlineInputLeftPadding = mTempRect.left;
+        if (rtl) {
+            mInlineInputLeftPadding = mTempRect.right;
+        } else {
+            mInlineInputLeftPadding = mTempRect.left;
+        }
         mInlineInputTopPadding = mTempRect.top;
         mInlineInputTotalPaddingX = mTempRect.left + mTempRect.right;
         mInlineInputTotalPaddingY = mTempRect.top + mTempRect.bottom;

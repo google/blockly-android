@@ -119,16 +119,17 @@ public class WorkspaceHelper {
      */
     public WorkspaceHelper(Context context, AttributeSet attrs, int workspaceStyle) {
         mContext = context;
-        Resources res = mContext.getResources();
+        final Resources res = mContext.getResources();
         mDensity = res.getDisplayMetrics().density;
         if (mDensity == 0) {
             Log.e(TAG, "Density is not defined for this context. Defaulting to 1.");
             mDensity = 1f;
         }
 
-        mPatchManager = new PatchManager(res);
+        updateRtL(res);
+
+        mPatchManager = new PatchManager(res, mRtL);
         initConfig(mContext, attrs, workspaceStyle);
-        updateRtL(mContext);
     }
 
     /**
@@ -478,11 +479,11 @@ public class WorkspaceHelper {
     /**
      * Updates the current RtL state for the app.
      *
-     * @param context The context to get the RtL setting from.
+     * @param resources The context resources to get the RtL setting from.
      */
-    private void updateRtL(Context context) {
+    private void updateRtL(Resources resources) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            mRtL = context.getResources().getConfiguration().getLayoutDirection()
+            mRtL = resources.getConfiguration().getLayoutDirection()
                     == View.LAYOUT_DIRECTION_RTL;
         } else {
             // TODO: Handle pre 17 versions.
