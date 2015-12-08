@@ -743,7 +743,7 @@ public class BlockView extends FrameLayout {
         // Position top-left corner drawable. Retain drawable object so we can position bottom-left
         // drawable correctly.
         int yTop = 0;
-        final NinePatchDrawable tlDrawable = addTopLeftPatch(xTo, yTop);
+        final NinePatchDrawable topStartDrawable = addTopLeftPatch(xTo, yTop);
 
         // Position inputs and connectors.
         for (int i = 0; i < mInputCount; ++i) {
@@ -796,15 +796,16 @@ public class BlockView extends FrameLayout {
 
         // Select and position correct patch for bottom and left-hand side of the block, including
         // bottom-left corner.
-        int blResource = R.drawable.bl_default;
+        int bottomStartResourceId = R.drawable.bottom_start_default;
         if (mBlock.getNextConnection() != null) {
             setPointMaybeFlip(mNextConnectorOffset, mLayoutMarginLeft, mNextBlockVerticalOffset);
-            blResource = R.drawable.bl_next;
+            bottomStartResourceId = R.drawable.bottom_start_next;
         }
-        final NinePatchDrawable blDrawable = getColoredPatchDrawable(blResource);
-        setBoundsMaybeFlip(blDrawable, mLayoutMarginLeft, tlDrawable.getIntrinsicHeight(),
-                xTo, mBlockViewSize.y);
-        mBlockPatches.add(blDrawable);
+        final NinePatchDrawable bottomStartDrawable =
+                getColoredPatchDrawable(bottomStartResourceId);
+        setBoundsMaybeFlip(bottomStartDrawable,
+                mLayoutMarginLeft, topStartDrawable.getIntrinsicHeight(), xTo, mBlockViewSize.y);
+        mBlockPatches.add(bottomStartDrawable);
 
         // Finish the final rect, if there is one.
         finishFillRect();
@@ -823,24 +824,24 @@ public class BlockView extends FrameLayout {
     private NinePatchDrawable addTopLeftPatch(int xTo, int yTop) {
         // Select and position the correct patch for the top and left block sides including the
         // top-left corner.
-        NinePatchDrawable tlDrawable;
+        NinePatchDrawable topStartDrawable;
         if (mBlock.getPreviousConnection() != null) {
             setPointMaybeFlip(mPreviousConnectorOffset, mLayoutMarginLeft, yTop);
-            tlDrawable = getColoredPatchDrawable(R.drawable.tl_prev);
-            setBoundsMaybeFlip(tlDrawable,
-                    0, 0, xTo, tlDrawable.getIntrinsicHeight());
+            topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_previous);
+            setBoundsMaybeFlip(topStartDrawable,
+                    0, 0, xTo, topStartDrawable.getIntrinsicHeight());
         } else if (mBlock.getOutputConnection() != null) {
             setPointMaybeFlip(mOutputConnectorOffset, mLayoutMarginLeft, yTop);
-            tlDrawable = getColoredPatchDrawable(R.drawable.tl_output);
-            setBoundsMaybeFlip(tlDrawable,
-                    0, 0, xTo, tlDrawable.getIntrinsicHeight());
+            topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_output);
+            setBoundsMaybeFlip(topStartDrawable,
+                    0, 0, xTo, topStartDrawable.getIntrinsicHeight());
         } else {
-            tlDrawable = getColoredPatchDrawable(R.drawable.tl_default);
-            setBoundsMaybeFlip(tlDrawable,
-                    0, 0, xTo, tlDrawable.getIntrinsicHeight());
+            topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_default);
+            setBoundsMaybeFlip(topStartDrawable,
+                    0, 0, xTo, topStartDrawable.getIntrinsicHeight());
         }
-        mBlockPatches.add(tlDrawable);
-        return tlDrawable;
+        mBlockPatches.add(topStartDrawable);
+        return topStartDrawable;
     }
 
     /**

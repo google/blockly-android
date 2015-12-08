@@ -124,8 +124,8 @@ public class PatchManager {
     private void computePatchLayoutMeasures(boolean rtl) {
         final Configuration config = mResources.getConfiguration();
 
-        if (!getPatchDrawable(R.drawable.tl_default).getPadding(mTempRect)) {
-            throw new IllegalStateException("9-patch 'tl_default' does not have padding.");
+        if (!getPatchDrawable(R.drawable.top_start_default).getPadding(mTempRect)) {
+            throw new IllegalStateException("9-patch 'top_start_default' does not have padding.");
         }
         mBlockStartPadding = rtl ? mTempRect.right : mTempRect.left;
 
@@ -133,9 +133,11 @@ public class PatchManager {
         mValueInputWidth = getPatchDrawable(R.drawable.value_input_external).getIntrinsicWidth() -
                 mBlockEndPadding;
 
-        final NinePatchDrawable bottomPatchDefault = getPatchDrawable(R.drawable.bl_default);
+        final NinePatchDrawable bottomPatchDefault =
+                getPatchDrawable(R.drawable.bottom_start_default);
         if (!bottomPatchDefault.getPadding(mTempRect)) {
-            throw new IllegalStateException("9-patch 'bl_default' does not have padding.");
+            throw new IllegalStateException(
+                    "9-patch 'bottom_start_default' does not have padding.");
         }
         mBlockBottomPadding = mTempRect.bottom;
 
@@ -143,15 +145,15 @@ public class PatchManager {
         mBlockTotalPaddingX = mBlockStartPadding + mBlockEndPadding;
         mBlockTotalPaddingY = mBlockTopPadding + mBlockBottomPadding;
 
-        final NinePatchDrawable bottomPatchNext = getPatchDrawable(R.drawable.bl_next);
+        final NinePatchDrawable bottomPatchNext = getPatchDrawable(R.drawable.bottom_start_next);
         if (!bottomPatchNext.getPadding(mTempRect)) {
-            throw new IllegalStateException("9-patch 'bl_next' does not have padding.");
+            throw new IllegalStateException("9-patch 'blottom_start_next' does not have padding.");
         }
         mNextConnectorHeight = mTempRect.bottom - mBlockBottomPadding;
 
-        final NinePatchDrawable topLeftOutputPatch = getPatchDrawable(R.drawable.tl_output);
+        final NinePatchDrawable topLeftOutputPatch = getPatchDrawable(R.drawable.top_start_output);
         if (!topLeftOutputPatch.getPadding(mTempRect)) {
-            throw new IllegalStateException("9-patch 'tl_output' does not have padding.");
+            throw new IllegalStateException("9-patch 'top_start_output' does not have padding.");
         };
         mBlockTopPadding = mTempRect.top;
         mOutputConnectorWidth = (rtl ? mTempRect.right : mTempRect.left) - mBlockStartPadding;
