@@ -265,7 +265,8 @@ public class InputView extends ViewGroup {
                 return mPatchManager.mBlockStartPadding;
             }
             case Input.ALIGN_CENTER: {
-                return mPatchManager.mBlockStartPadding + (mFieldLayoutWidth - mTotalFieldWidth) / 2;
+                return mPatchManager.mBlockStartPadding +
+                        (mFieldLayoutWidth - mTotalFieldWidth) / 2;
             }
             case Input.ALIGN_RIGHT: {
                 return mPatchManager.mBlockStartPadding + mFieldLayoutWidth - mTotalFieldWidth;
