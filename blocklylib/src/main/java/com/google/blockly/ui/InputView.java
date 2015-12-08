@@ -223,7 +223,7 @@ public class InputView extends ViewGroup {
                     if (getInput().getBlock().getInputsInline()) {
                         topOffset += mPatchManager.mBlockTopPadding +
                                 mPatchManager.mInlineInputTopPadding;
-                        leftOffset += mPatchManager.mInlineInputLeftPadding;
+                        leftOffset += mPatchManager.mInlineInputStartPadding;
                     } else {
                         // The child block overlaps the parent block slightly at the connector, by
                         // the width of the extruding output connector.

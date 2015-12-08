@@ -47,22 +47,23 @@ public class PatchManager {
     // which is mBlockBottomPadding.
     int mNextConnectorHeight;
 
-    // Width of the "Output" connector - this is in addition to the left block boundary thickness,
-    // which is mBlockStartPadding.
+    // Width of the "Output" connector - this is in addition to the left (right, in RtL mode) block
+    // boundary thickness, which is mBlockStartPadding.
     int mOutputConnectorWidth;
 
     // Intrinsic height of the "Output" connector patch.
     int mOutputConnectorHeight;
 
-    // Width of a value input. This is in addition to the width of the right block boundary in a
-    // block without inputs (the latter is mBlockEndPadding).
+    // Width of a value input. This is in addition to the width of the right block boundary (left
+    // boundary in RtL mode) in a block without inputs (the latter is mBlockEndPadding).
     int mValueInputWidth;
 
-    // Minimum indent of the Statement connector w.r.t. the right side of the block.
+    // Minimum indent of the Statement connector w.r.t. the right side of the block (left side in
+    // RtL mode).
     int mStatementInputIndent;
 
-    // Padding between rightmost field of the Statement input and the placement of a connected
-    // block.
+    // Padding between rightmost (leftmost, in RtL mode) field of the Statement input and the
+    // placement of a connected block.
     int mStatementInputPadding;
 
     // Thickness of the Statement connector top - this is the vertical offset of a connected block
@@ -83,9 +84,9 @@ public class PatchManager {
     // Minimum height of an (empty) inline input connector.
     int mInlineInputMinimumHeight;
 
-    // Left padding of the inline input connector - this is the horizontal offset between the
+    // Start padding of the inline input connector - this is the horizontal offset between the
     // connector position and the position of a connected block.
-    int mInlineInputLeftPadding;
+    int mInlineInputStartPadding;
 
     // Top padding of the inline input connector - this is the vertical offset between the connector
     // top and the top of a connected block.
@@ -184,7 +185,7 @@ public class PatchManager {
         mInlineInputMinimumHeight = inlineInputPatch.getIntrinsicHeight();
 
         inlineInputPatch.getPadding(mTempRect);
-        mInlineInputLeftPadding = rtl ? mTempRect.right : mTempRect.left;
+        mInlineInputStartPadding = rtl ? mTempRect.right : mTempRect.left;
         mInlineInputTopPadding = mTempRect.top;
         mInlineInputTotalPaddingX = mTempRect.left + mTempRect.right;
         mInlineInputTotalPaddingY = mTempRect.top + mTempRect.bottom;

@@ -939,7 +939,7 @@ public class BlockView extends FrameLayout {
         // Set connector position - shift w.r.t. patch location to where the corner of connected
         // blocks will be positioned.
         setPointMaybeFlip(mInputConnectorOffsets.get(i),
-                cutoutX + mPatchManager.mInlineInputLeftPadding +
+                cutoutX + mPatchManager.mInlineInputStartPadding +
                         mPatchManager.mOutputConnectorWidth,
                 cutoutY + mPatchManager.mInlineInputTopPadding);
 
