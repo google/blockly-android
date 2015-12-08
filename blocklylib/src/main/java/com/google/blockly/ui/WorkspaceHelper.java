@@ -203,7 +203,7 @@ public class WorkspaceHelper {
     public void virtualViewToWorkspaceDelta(ViewPoint viewPointIn,
                                             WorkspacePoint workspacePointOut) {
         workspacePointOut.set(
-                virtualViewToWorkspaceUnits(mRtL ? -viewPointIn.x : viewPointIn.x),
+                (mRtL ? -1 : 1) * virtualViewToWorkspaceUnits(viewPointIn.x),
                 virtualViewToWorkspaceUnits(viewPointIn.y));
     }
 
