@@ -490,14 +490,10 @@ public class InputView extends ViewGroup {
         measureFields(widthMeasureSpec, heightMeasureSpec);
         measureChild(widthMeasureSpec, heightMeasureSpec);
 
-        // For inline inputs, consider the connected input block(s) like a field for measurement.
-        // Width is treated equally for inline and external inputs, since in both cases connected
-        // blocks are positioned to the right (or left, in RTL mode) of the fields.
+        // For inline Value inputs only, treat the connected input block(s) like a field for
+        // measurement of input height.
         if (getInput().getBlock().getInputsInline()) {
-            if (getInput().getType() == Input.TYPE_STATEMENT) {
-                mMaxFieldHeight = Math.max(mMaxFieldHeight,
-                        mChildHeight - mPatchManager.mBlockTotalPaddingY);
-            } else {
+            if (getInput().getType() == Input.TYPE_VALUE) {
                 mMaxFieldHeight = Math.max(mMaxFieldHeight, mChildHeight);
             }
         }
