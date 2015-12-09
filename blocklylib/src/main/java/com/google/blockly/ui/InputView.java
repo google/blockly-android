@@ -47,6 +47,8 @@ public class InputView extends ViewGroup {
     private static final int DEFAULT_FIELD_SPACING = 10;
 
     private final Input mInput;
+    private final @Input.InputType int mInputType;
+
     private final WorkspaceHelper mHelper;
     private final PatchManager mPatchManager;
     private final ArrayList<FieldView> mFieldViews = new ArrayList<>();
@@ -79,6 +81,7 @@ public class InputView extends ViewGroup {
         super(context);
 
         mInput = input;
+        mInputType = mInput.getType();
         mInput.setView(this);
         mHelper = helper;
         mPatchManager = mHelper.getPatchManager();  // Shortcut.
@@ -208,16 +211,13 @@ public class InputView extends ViewGroup {
      */
     private void layoutChild() {
         if (mChildView != null) {
-            // Can only be VALUE or STATEMENT at this point, since child view exists.
-            final int inputType = mInput.getType();
-
             // Compute offset of child relative to InputView. By default, align top of fields and
             // input, and shift right by left padding plus field width.
             int topOffset = 0;
             int leftOffset = mFieldLayoutWidth + mPatchManager.mBlockStartPadding;
-            switch (inputType) {
+            switch (mInputType) {
                 case Input.TYPE_VALUE: {
-                    if (getInput().getBlock().getInputsInline()) {
+                    if (mInput.getBlock().getInputsInline()) {
                         topOffset += mPatchManager.mBlockTopPadding +
                                 mPatchManager.mInlineInputTopPadding;
                         leftOffset += mPatchManager.mInlineInputStartPadding;
@@ -295,8 +295,7 @@ public class InputView extends ViewGroup {
 
     // Measure only blocks connected to this input.
     private void measureChild(int widthMeasureSpec, int heightMeasureSpec) {
-        final boolean inputsInline = getInput().getBlock().getInputsInline();
-        final int inputType = getInput().getType();
+        final boolean inputsInline = mInput.getBlock().getInputsInline();
 
         if (mChildView != null) {
             // There is a block group connected to this input - measure it and add its size
@@ -306,7 +305,7 @@ public class InputView extends ViewGroup {
             mChildHeight = mChildView.getMeasuredHeight();
 
             // Only add space for decorations around Statement and inline Value inputs.
-            switch (inputType) {
+            switch (mInputType) {
                 case  Input.TYPE_VALUE: {
                     if (inputsInline) {
                         // Inline Value input - add space for connector that is enclosing connected
@@ -328,32 +327,30 @@ public class InputView extends ViewGroup {
             }
         } else {
             // There's nothing connected to this input - use the size of the empty connectors.
-            mChildWidth = emptyConnectorWidth(mPatchManager, inputType, inputsInline);
-            mChildHeight = emptyConnectorHeight(mPatchManager, inputType, inputsInline);
+            mChildWidth = emptyConnectorWidth(inputsInline);
+            mChildHeight = emptyConnectorHeight(inputsInline);
         }
     }
 
-    private static int emptyConnectorWidth(
-            PatchManager patchManager, @Input.InputType int inputType, boolean inputsInline) {
-        if (inputType == Input.TYPE_STATEMENT) {
-            return patchManager.mBlockTotalPaddingX + patchManager.mStatementInputPadding;
+    private int emptyConnectorWidth(boolean inputsInline) {
+        if (mInputType == Input.TYPE_STATEMENT) {
+            return mPatchManager.mBlockTotalPaddingX + mPatchManager.mStatementInputPadding;
         }
 
-        if (inputsInline && inputType == Input.TYPE_VALUE) {
-            return patchManager.mInlineInputMinimumWidth;
+        if (inputsInline && mInputType == Input.TYPE_VALUE) {
+            return mPatchManager.mInlineInputMinimumWidth;
         }
 
         return 0;
     }
 
-    private static int emptyConnectorHeight(
-            PatchManager patchManager, @Input.InputType int inputType, boolean inputsInline) {
-        if (inputType == Input.TYPE_STATEMENT) {
-            return patchManager.mStatementMinHeight;
+    private int emptyConnectorHeight(boolean inputsInline) {
+        if (mInputType == Input.TYPE_STATEMENT) {
+            return mPatchManager.mStatementMinHeight;
         }
 
-        if (inputsInline &&  inputType == Input.TYPE_VALUE) {
-            return patchManager.mInlineInputMinimumHeight;
+        if (inputsInline && mInputType == Input.TYPE_VALUE) {
+            return mPatchManager.mInlineInputMinimumHeight;
         }
 
         return 0;
@@ -492,7 +489,7 @@ public class InputView extends ViewGroup {
 
         // For inline Value inputs only, treat the connected input block(s) like a field for
         // measurement of input height.
-        if (mInput.getBlock().getInputsInline() && mInput.getType() == Input.TYPE_VALUE) {
+        if (mInput.getBlock().getInputsInline() && mInputType == Input.TYPE_VALUE) {
             mMaxFieldHeight = Math.max(mMaxFieldHeight, mChildHeight);
         }
 
