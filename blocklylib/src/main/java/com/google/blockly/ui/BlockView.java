@@ -53,8 +53,9 @@ import java.util.List;
 public class BlockView extends FrameLayout {
     private static final String TAG = "BlockView";
 
-    // TODO: Replace these with dimens so they get scaled correctly
-    private static final int MIN_WIDTH = 40;
+    // TODO: Replace with dimens so it gets scaled correctly, or better yet, somehow derive from
+    // ninepatch measurements.
+    private static final int MIN_BLOCK_WIDTH = 40;
 
     private final WorkspaceHelper mHelper;
     private final WorkspaceHelper.BlockTouchHandler mTouchHandler;
@@ -512,8 +513,8 @@ public class BlockView extends FrameLayout {
         mInlineRowWidth.add(Math.max(rowLeft,
                 mMaxStatementFieldsWidth + mPatchManager.mStatementInputIndent));
 
-        // Block width is the computed width of the widest input row, and at least MIN_WIDTH.
-        mBlockContentWidth = Math.max(MIN_WIDTH, maxRowWidth);
+        // Block width is the computed width of the widest input row, and at least MIN_BLOCK_WIDTH.
+        mBlockContentWidth = Math.max(MIN_BLOCK_WIDTH, maxRowWidth);
         mBlockViewSize.x = mBlockContentWidth;
 
         // View width is the computed width of the widest statement input, including child blocks
@@ -542,7 +543,7 @@ public class BlockView extends FrameLayout {
      * </p>
      */
     private void measureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
-        int maxInputFieldsWidth = MIN_WIDTH;
+        int maxInputFieldsWidth = MIN_BLOCK_WIDTH;
         // Initialize max Statement width as zero so presence of Statement inputs can be determined
         // later; apply minimum size after that.
         mMaxStatementFieldsWidth = 0;
@@ -580,7 +581,7 @@ public class BlockView extends FrameLayout {
         // If there was a statement, force all other input fields to be at least as wide as required
         // by the Statement field plus port width.
         if (mMaxStatementFieldsWidth > 0) {
-            mMaxStatementFieldsWidth = Math.max(mMaxStatementFieldsWidth, MIN_WIDTH);
+            mMaxStatementFieldsWidth = Math.max(mMaxStatementFieldsWidth, MIN_BLOCK_WIDTH);
             maxInputFieldsWidth = Math.max(maxInputFieldsWidth,
                     mMaxStatementFieldsWidth + mPatchManager.mStatementInputIndent);
         }

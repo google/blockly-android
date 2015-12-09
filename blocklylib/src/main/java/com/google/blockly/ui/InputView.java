@@ -294,7 +294,7 @@ public class InputView extends ViewGroup {
     }
 
     // Measure only blocks connected to this input.
-    private void measureChild(int widthMeasureSpec, int heightMeasureSpec) {
+    private void measureChildView(int widthMeasureSpec, int heightMeasureSpec) {
         final boolean inputsInline = mInput.getBlock().getInputsInline();
 
         if (mChildView != null) {
@@ -485,7 +485,7 @@ public class InputView extends ViewGroup {
     void measureFieldsAndInputs(int widthMeasureSpec, int heightMeasureSpec) {
         // Measure fields and connected inputs separately.
         measureFields(widthMeasureSpec, heightMeasureSpec);
-        measureChild(widthMeasureSpec, heightMeasureSpec);
+        measureChildView(widthMeasureSpec, heightMeasureSpec);
 
         // For inline Value inputs only, treat the connected input block(s) like a field for
         // measurement of input height.
