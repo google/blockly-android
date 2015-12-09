@@ -141,10 +141,6 @@ public class PatchManager {
         }
         mBlockBottomPadding = mTempRect.bottom;
 
-        // Convenience fields.
-        mBlockTotalPaddingX = mBlockStartPadding + mBlockEndPadding;
-        mBlockTotalPaddingY = mBlockTopPadding + mBlockBottomPadding;
-
         final NinePatchDrawable bottomPatchNext = getPatchDrawable(R.drawable.bottom_start_next);
         if (!bottomPatchNext.getPadding(mTempRect)) {
             throw new IllegalStateException("9-patch 'blottom_start_next' does not have padding.");
@@ -191,5 +187,9 @@ public class PatchManager {
         mInlineInputTopPadding = mTempRect.top;
         mInlineInputTotalPaddingX = mTempRect.left + mTempRect.right;
         mInlineInputTotalPaddingY = mTempRect.top + mTempRect.bottom;
+
+        // Convenience fields.
+        mBlockTotalPaddingX = mBlockStartPadding + mBlockEndPadding;
+        mBlockTotalPaddingY = mBlockTopPadding + mBlockBottomPadding;
     }
 }

@@ -43,9 +43,6 @@ import java.util.List;
 public class InputView extends ViewGroup {
     private static final String TAG = "InputView";
 
-    // The minimum width of an input, in dips.
-    static final int MIN_WIDTH = 40;
-
     // The horizontal distance between fields, in dips.
     private static final int DEFAULT_FIELD_SPACING = 10;
 
@@ -297,7 +294,7 @@ public class InputView extends ViewGroup {
     }
 
     // Measure only blocks connected to this input.
-    private void measureInputs(int widthMeasureSpec, int heightMeasureSpec) {
+    private void measureChild(int widthMeasureSpec, int heightMeasureSpec) {
         final boolean inputsInline = getInput().getBlock().getInputsInline();
         final int inputType = getInput().getType();
 
@@ -308,19 +305,25 @@ public class InputView extends ViewGroup {
             mChildWidth = mChildView.getMeasuredWidth();
             mChildHeight = mChildView.getMeasuredHeight();
 
-            // Only add space for decorations around inline Value and external Statement inputs.
-            if (inputsInline) {
-                // Inline Value input - add space for connector that is enclosing connected
-                // block(s).
-                if (inputType == Input.TYPE_VALUE) {
-                    mChildWidth += mPatchManager.mInlineInputTotalPaddingX;
-                    mChildHeight += mPatchManager.mInlineInputTotalPaddingY;
+            // Only add space for decorations around Statement and inline Value inputs.
+            switch (inputType) {
+                case  Input.TYPE_VALUE: {
+                    if (inputsInline) {
+                        // Inline Value input - add space for connector that is enclosing connected
+                        // block(s).
+                        mChildWidth += mPatchManager.mInlineInputTotalPaddingX;
+                        mChildHeight += mPatchManager.mInlineInputTotalPaddingY;
+                    }
+                    break;
                 }
-            } else {
-                // External Statement input - add space for top and bottom of C-connector.
-                if (inputType == Input.TYPE_STATEMENT) {
+                case Input.TYPE_STATEMENT: {
+                    // Statement input - add space for top and bottom of C-connector.
                     mChildHeight += mPatchManager.mStatementTopThickness +
                             mPatchManager.mStatementBottomThickness;
+                    break;
+                }
+                default: {
+                    // Nothing to do for other types of inputs.
                 }
             }
         } else {
@@ -333,7 +336,7 @@ public class InputView extends ViewGroup {
     private static int emptyConnectorWidth(
             PatchManager patchManager, @Input.InputType int inputType, boolean inputsInline) {
         if (inputType == Input.TYPE_STATEMENT) {
-            return MIN_WIDTH;
+            return patchManager.mBlockTotalPaddingX + patchManager.mStatementInputPadding;
         }
 
         if (inputsInline && inputType == Input.TYPE_VALUE) {
@@ -485,13 +488,18 @@ public class InputView extends ViewGroup {
     void measureFieldsAndInputs(int widthMeasureSpec, int heightMeasureSpec) {
         // Measure fields and connected inputs separately.
         measureFields(widthMeasureSpec, heightMeasureSpec);
-        measureInputs(widthMeasureSpec, heightMeasureSpec);
+        measureChild(widthMeasureSpec, heightMeasureSpec);
 
-        // For inline inputs, consider the connected input block(s) like a field for  measurement.
+        // For inline inputs, consider the connected input block(s) like a field for measurement.
         // Width is treated equally for inline and external inputs, since in both cases connected
         // blocks are positioned to the right (or left, in RTL mode) of the fields.
         if (getInput().getBlock().getInputsInline()) {
-            mMaxFieldHeight = Math.max(mMaxFieldHeight, mChildHeight);
+            if (getInput().getType() == Input.TYPE_STATEMENT) {
+                mMaxFieldHeight = Math.max(mMaxFieldHeight,
+                        mChildHeight - mPatchManager.mBlockTotalPaddingY);
+            } else {
+                mMaxFieldHeight = Math.max(mMaxFieldHeight, mChildHeight);
+            }
         }
 
         mHasMeasuredFieldsAndInput = true;

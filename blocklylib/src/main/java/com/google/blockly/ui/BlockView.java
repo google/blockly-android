@@ -45,8 +45,6 @@ import java.util.List;
  * <p/>
  * Known issues:
  * <ul>
- *     <li>With inline inputs, blocks connected to Statement inputs take too much vertical space by
- *     the amount ot vertical field padding.</li>
  *     <li>Connector or block highlighting is not implemented. Related, support for drawing over
  *     neighbouring blocks is not yet implemented (this is needed for highlighting in the style of
  *     Web Blockly).</li>
@@ -56,8 +54,7 @@ public class BlockView extends FrameLayout {
     private static final String TAG = "BlockView";
 
     // TODO: Replace these with dimens so they get scaled correctly
-    // Minimum width of a block should be the same as an empty field.
-    private static final int MIN_WIDTH = InputView.MIN_WIDTH;
+    private static final int MIN_WIDTH = 40;
 
     private final WorkspaceHelper mHelper;
     private final WorkspaceHelper.BlockTouchHandler mTouchHandler;
