@@ -492,10 +492,8 @@ public class InputView extends ViewGroup {
 
         // For inline Value inputs only, treat the connected input block(s) like a field for
         // measurement of input height.
-        if (getInput().getBlock().getInputsInline()) {
-            if (getInput().getType() == Input.TYPE_VALUE) {
-                mMaxFieldHeight = Math.max(mMaxFieldHeight, mChildHeight);
-            }
+        if (mInput.getBlock().getInputsInline() && mInput.getType() == Input.TYPE_VALUE) {
+            mMaxFieldHeight = Math.max(mMaxFieldHeight, mChildHeight);
         }
 
         mHasMeasuredFieldsAndInput = true;
