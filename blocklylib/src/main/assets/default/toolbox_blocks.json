@@ -47,7 +47,6 @@
       }
     ],
     "tooltip": "",
-    "colour": 280,
     "helpUrl": "http://www.example.com/"
   },
   {
@@ -76,7 +75,6 @@
     ],
     "output": null,
     "tooltip": "",
-    "colour": 60,
     "helpUrl": "http://www.example.com/"
   },
   {
@@ -94,7 +92,6 @@
     ],
     "output": null,
     "tooltip": "",
-    "colour": 220,
     "helpUrl": "http://www.example.com/"
   },
   {
@@ -104,7 +101,6 @@
     "previousStatement": null,
     "nextStatement": null,
     "tooltip": "",
-    "colour": 120,
     "helpUrl": "http://www.example.com/"
   },
   {
@@ -119,7 +115,6 @@
     "previousStatement": null,
     "nextStatement": null,
     "tooltip": "",
-    "colour": 300,
     "helpUrl": "http://www.example.com/"
   },
   {
@@ -138,7 +133,6 @@
     "previousStatement": null,
     "nextStatement": null,
     "tooltip": "",
-    "colour": 300,
     "helpUrl": "http://www.example.com/"
   },
   {
@@ -161,7 +155,6 @@
     "args0": [],
     "output": null,
     "tooltip": "",
-    "colour": 200,
     "helpUrl": "http://www.example.com/"
   },
   {
@@ -170,35 +163,6 @@
     "args0": [],
     "previousStatement": null,
     "tooltip": "",
-    "colour": 60,
-    "helpUrl": "http://www.example.com/"
-  },
-  {
-    "id": "statement_multiple_inputs",
-    "message0": "test block %1 then test %2 with %3 and %4",
-    "args0": [
-      {
-        "type": "input_statement",
-        "name": "statement input"
-      },
-      {
-        "type": "input_statement",
-        "name": "statement input"
-      },
-      {
-        "type": "input_value",
-        "name": "value_1"
-      },
-      {
-        "type": "input_value",
-        "name": "value_2"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "tooltip": "",
-    "inputsInline": true,
-    "colour": 120,
     "helpUrl": "http://www.example.com/"
   }
 ]

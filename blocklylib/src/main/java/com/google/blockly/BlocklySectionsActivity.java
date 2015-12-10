@@ -208,13 +208,13 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
 
         // Set up the workspace fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
-        mWorkspaceFragment = (WorkspaceFragment) fragmentManager.findFragmentById(R.id.container);
+        mWorkspaceFragment = (WorkspaceFragment) fragmentManager.findFragmentById(R.id.blockly_workspace_container);
         // The container only needs to be replaced the first time. When the activity is recreated
         // we can reuse the same fragment.
         if (mWorkspaceFragment == null) {
             mWorkspaceFragment = new WorkspaceFragment();
             fragmentManager.beginTransaction()
-                    .replace(R.id.container, mWorkspaceFragment)
+                    .replace(R.id.blockly_workspace_container, mWorkspaceFragment)
                     .commit();
         }
 
@@ -234,8 +234,6 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         // Set up the toolbox that lives inside the trash can.
         mOscar = (TrashFragment) getSupportFragmentManager().findFragmentById(R.id.trash);
         createWorkspace();
-
-        MockBlocksProvider.makeComplexModel(mWorkspaceFragment.getWorkspace());
     }
 
     /**
