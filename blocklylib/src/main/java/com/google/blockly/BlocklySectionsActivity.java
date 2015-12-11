@@ -49,7 +49,7 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     private static final String TAG = "BlocklySectionsActivity";
 
-    private final CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
+    protected CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new CodeGenerationRequest.CodeGeneratorCallback() {
                 @Override
                 public void onFinishCodeGeneration(String generatedCode) {

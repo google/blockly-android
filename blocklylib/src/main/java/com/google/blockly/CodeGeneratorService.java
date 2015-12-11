@@ -22,13 +22,22 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import org.json.JSONArray;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.SequenceInputStream;
 import java.util.ArrayDeque;
 
 /**
@@ -45,6 +54,9 @@ public class CodeGeneratorService extends Service {
     private WebView mWebview;
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private Handler mHandler;
+    private String mBlockJsSource = "sample_sections/block_definitions.js";
+    private String mBlockJSONSource = "sample_sections/block_definitions.json";
+    private static final String ANDROID_ASSET_PREFIX = "file:///android_asset/";
 
     @Override
     public void onCreate() {
@@ -52,6 +64,44 @@ public class CodeGeneratorService extends Service {
         mWebview = new WebView(this);
         mWebview.getSettings().setJavaScriptEnabled(true);
         mWebview.setWebChromeClient(new WebChromeClient());
+
+        mWebview.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest (final WebView view, String url) {
+                Log.d(TAG, url);
+                if (url.equals(ANDROID_ASSET_PREFIX + mBlockJSONSource)) {
+                    try {
+                        return new WebResourceResponse("text/javascript", "UTF-8",
+                                // Add a "var jsonArr = " to the front of the file.
+                                new SequenceInputStream(
+                                        new ByteArrayInputStream("var jsonArr = ".getBytes()),
+                                        getAssets().open(mBlockJSONSource)));
+                    } catch (IOException e) {
+                        Log.d(TAG, "Couldn't read file");
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest (final WebView view,
+                    WebResourceRequest request) {
+                Log.d(TAG, "hineini");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    return shouldInterceptRequest(view, request.getUrl().toString());
+                }
+                return null;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                Log.d(TAG, url);
+                return true;
+            }
+        });
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -67,7 +117,7 @@ public class CodeGeneratorService extends Service {
                 generateCode();
             }
         });
-        mWebview.loadUrl("file:///android_asset/index.html");
+        mWebview.loadUrl(ANDROID_ASSET_PREFIX + "index.html");
     }
 
     @Nullable
