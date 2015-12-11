@@ -37,6 +37,7 @@ import java.util.ArrayDeque;
  */
 public class CodeGeneratorService extends Service {
     private static final String TAG = "CodeGeneratorService";
+    private static final String BLOCKLY_COMPILER_PAGE = "file:///android_asset/background_compiler.html";
 
     // Binder given to clients
     private final IBinder mBinder = new CodeGeneratorBinder();
@@ -45,6 +46,7 @@ public class CodeGeneratorService extends Service {
     private WebView mWebview;
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private Handler mHandler;
+    private String mBlockDefinitionsFile = "";
 
     @Override
     public void onCreate() {
@@ -55,7 +57,7 @@ public class CodeGeneratorService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-        mWebview.addJavascriptInterface(new BlocklyJsObject(), "BlocklyController");
+        mWebview.addJavascriptInterface(new BlocklyController(), "BlocklyController");
 
         /* WebViewClient must be set BEFORE calling loadUrl! */
         mWebview.setWebViewClient(new WebViewClient() {
@@ -64,10 +66,10 @@ public class CodeGeneratorService extends Service {
                 synchronized (this) {
                     mReady = true;
                 }
-                generateCode();
+                handleRequest();
             }
         });
-        mWebview.loadUrl("file:///android_asset/index.html");
+        mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
     }
 
     @Nullable
@@ -86,14 +88,14 @@ public class CodeGeneratorService extends Service {
         synchronized (this) {
             mRequestQueue.add(request);
         }
-        generateCode();
+        handleRequest();
     }
 
     /**
      * If no {@link CodeGenerationRequest} instances are already being processed, kicks off
      * generation of code for the first request in the queue.
      */
-    private void generateCode() {
+    private void handleRequest() {
         synchronized (this) {
             if (mReady && mRequestQueue.size() > 0) {
                 mReady = false;
@@ -103,21 +105,39 @@ public class CodeGeneratorService extends Service {
                     @Override
                     public void run() {
                         mCallback = request.getCallback();
-                        mWebview.loadUrl("javascript:generate('" + request.getXml() + "')");
+                        if (!request.getBlockDefinitionsFilename().equals(mBlockDefinitionsFile)) {
+                            // Reload the page with the new block definitions.  Push the request
+                            // back onto the queue until the page is loaded.
+                            mBlockDefinitionsFile = request.getBlockDefinitionsFilename();
+                            mRequestQueue.addFirst(request);
+                            mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
+                        } else {
+                            mWebview.loadUrl("javascript:" +
+                                    "generate('" + request.getXml() + "')");
+                        }
                     }
                 });
             }
         }
     }
 
-    private class BlocklyJsObject {
+    private class BlocklyController {
         @JavascriptInterface
         public void execute(String program) {
-            mReady = true;
-            if (mCallback != null) {
-                mCallback.onFinishCodeGeneration(program);
+            CodeGenerationRequest.CodeGeneratorCallback cb;
+            synchronized (this) {
+                cb = mCallback;
+                mReady = true;
             }
-            generateCode();
+            if (cb != null) {
+                cb.onFinishCodeGeneration(program);
+            }
+            handleRequest();
+        }
+
+        @JavascriptInterface
+        public String getBlockDefinitionsFilename() {
+            return mBlockDefinitionsFile;
         }
     }
 

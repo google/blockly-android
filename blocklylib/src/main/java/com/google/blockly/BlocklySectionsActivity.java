@@ -54,9 +54,15 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
                 @Override
                 public void onFinishCodeGeneration(String generatedCode) {
                     // Sample callback.
-                    Log.d(TAG, "code: " + generatedCode);
-                    Toast.makeText(getApplicationContext(), generatedCode,
-                            Toast.LENGTH_LONG).show();
+                    if (generatedCode.isEmpty()) {
+                        Toast.makeText(getApplicationContext(),
+                                "Something went wrong while we were lovingly handcrafting your" +
+                                        " artisan code", Toast.LENGTH_LONG).show();
+                    } else {
+                        Log.d(TAG, "code: " + generatedCode);
+                        Toast.makeText(getApplicationContext(), generatedCode,
+                                Toast.LENGTH_LONG).show();
+                    }
                 }
             };
 
@@ -170,7 +176,8 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
 
                     mCodeGeneratorService.requestCodeGeneration(
                             new CodeGenerationRequest(serialized.toString(),
-                                    mCodeGeneratorCallback));
+                                    mCodeGeneratorCallback,
+                                    "sample_sections/block_definitions.js"));
                 }
             } catch (BlocklySerializerException e) {
                 Log.wtf(TAG, e);
@@ -208,7 +215,8 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
 
         // Set up the workspace fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
-        mWorkspaceFragment = (WorkspaceFragment) fragmentManager.findFragmentById(R.id.blockly_workspace_container);
+        mWorkspaceFragment = (WorkspaceFragment) fragmentManager
+                .findFragmentById(R.id.blockly_workspace_container);
         // The container only needs to be replaced the first time. When the activity is recreated
         // we can reuse the same fragment.
         if (mWorkspaceFragment == null) {

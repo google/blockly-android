@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Blockly Demo: Headless</title>
+    <script src="blockly_compressed.js"></script>
+    <script src="blocks_compressed.js"></script>
+    <script src="javascript_compressed.js"></script>
+    <script src="msg/js/en.js"></script>
+    <!-- Load the app's block definitions and generated code from the correct file.-->
+    <script>
+        function import_definitions(filename) {
+            if (!!filename) {
+                var script = document.createElement('script');
+                script.setAttribute('type', 'text/javascript');
+                script.setAttribute('src', filename);
+                document.head.appendChild(script);
+            }
+        }
+        import_definitions(BlocklyController.getBlockDefinitionsFilename());
+    </script>
+</head>
+<body>
+
+<script>
+    function generate(blocklyxml) {
+      // Parse the XML into a tree.
+      var xmlText = blocklyxml;
+      try {
+        var xml = Blockly.Xml.textToDom(xmlText)
+      } catch (e) {
+        alert(e);
+        return;
+      }
+      // Create a headless workspace.
+      var workspace = new Blockly.Workspace();
+      try {
+        Blockly.Xml.domToWorkspace(workspace, xml);
+        var code = Blockly.JavaScript.workspaceToCode(workspace);
+        BlocklyController.execute(code);
+      } catch (e) {
+        console.log(e);
+        alert(e);
+        BlocklyController.execute("");
+      }
+    }
+  </script>
+</body>
+</html>
