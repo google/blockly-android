@@ -129,7 +129,8 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 final BlockViewHolder bvHolder = (BlockViewHolder) holder;
                 final Block block = (Block) item.second;
                 bvHolder.mBlockGroup.removeAllViews();
-                mWorkspaceHelper.obtainBlockView(mContext, block, bvHolder.mBlockGroup, null);
+                mWorkspaceHelper.buildBlockViewTree(
+                        block, bvHolder.mBlockGroup, null, mTouchHandler);
                 break;
             case CATEGORY_VIEW_TYPE:
                 final CategoryViewHolder cvHolder = (CategoryViewHolder) holder;

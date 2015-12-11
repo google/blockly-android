@@ -19,6 +19,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
@@ -34,6 +35,14 @@ public class BlockGroup extends ViewGroup {
 
     private int mNextBlockVerticalOffset;
 
+    /**
+     * Creates a BlockGroup to wrap one or more BlockViews. App developers should not call this
+     * constructor directly.  Instead, use
+     * {@link WorkspaceHelper#buildBlockGroupTree(Block, ConnectionManager, WorkspaceHelper.BlockTouchHandler)}.
+     *
+     * @param context The context for creating this view.
+     * @param helper The helper for loading workspace configs and doing calculations.
+     */
     public BlockGroup(Context context, WorkspaceHelper helper) {
         super(context);
         mWorkspaceHelper = helper;

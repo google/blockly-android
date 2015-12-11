@@ -39,7 +39,10 @@ import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 
 /**
  * Draws a block and handles laying out all its inputs/fields.
@@ -111,41 +114,22 @@ public class BlockView extends FrameLayout {
     private boolean mHasValueInput = false;
 
     /**
-     * Create a new BlockView for the given block using the workspace's style. This constructor is
-     * for non-interactive display blocks. If this block is part of a {@link
-     * com.google.blockly.model.Workspace}, then {@link BlockView(Context, int, Block,
-     * WorkspaceHelper, BlockGroup, View.OnTouchListener)} should be used instead.
+     * Create a new BlockView and associated InputViews for the given block using the
+     * WorkspaceHelper's provided style.
+     * <p>
+     * App developers should not call this constructor directly.  Instead use
+     * {@link WorkspaceHelper#buildBlockViewTree(Block, BlockGroup, ConnectionManager, WorkspaceHelper.BlockTouchHandler)}.
      *
      * @param context The context for creating this view.
      * @param block The {@link Block} represented by this view.
      * @param helper The helper for loading workspace configs and doing calculations.
-     * @param parentGroup The {@link BlockGroup} this view will live in.
-     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
-     * @param touchHandler The {@link WorkspaceHelper.BlockTouchHandler} to call when the block is
-     * touched.
-     */
-    public BlockView(Context context, Block block, WorkspaceHelper helper, BlockGroup parentGroup,
-            ConnectionManager connectionManager, WorkspaceHelper.BlockTouchHandler touchHandler) {
-        this(context, 0 /* default style */, block, helper, parentGroup, connectionManager,
-                touchHandler);
-    }
-
-    /**
-     * Create a new BlockView for the given block using the specified style. The style must extend
-     * {@link R.style#DefaultBlockStyle}.
-     *
-     * @param context The context for creating this view.
-     * @param blockStyle The resource id for the style to use on this view.
-     * @param block The {@link Block} represented by this view.
-     * @param helper The helper for loading workspace configs and doing calculations.
-     * @param parentGroup The {@link BlockGroup} this view will live in.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param touchHandler The handler for forwarding touch events on this block to the
      * {@link WorkspaceHelper}.
      */
-    public BlockView(Context context, int blockStyle, Block block, WorkspaceHelper helper,
-            BlockGroup parentGroup, ConnectionManager connectionManager,
-            WorkspaceHelper.BlockTouchHandler touchHandler) {
+    public BlockView(Context context, Block block, WorkspaceHelper helper,
+                     ConnectionManager connectionManager,
+                     WorkspaceHelper.BlockTouchHandler touchHandler) {
         super(context, null, 0);
 
         mBlock = block;
@@ -154,14 +138,10 @@ public class BlockView extends FrameLayout {
         mTouchHandler = touchHandler;
         mPatchManager = mHelper.getPatchManager();  // Shortcut.
 
-        if (parentGroup != null) {
-            parentGroup.addView(this);
-        }
         block.setView(this);
+        createInputViews();  // BlockView is responsible for creating InputViews.
 
         setWillNotDraw(false);
-
-        initViews(context, blockStyle, parentGroup);
         initDrawingObjects();
     }
 
@@ -656,34 +636,20 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * A block is responsible for initializing the views all of its fields and sub-blocks,
-     * meaning both inputs and next blocks.
-     *
-     * @param parentGroup The group the current block and all next blocks live in.
+     * Instantiates new InputViews for this Block, using the block style from mHelper.
      */
-    private void initViews(Context context, int blockStyle, BlockGroup parentGroup) {
+    private void createInputViews() {
+        mInputViews.clear();
+
         List<Input> inputs = mBlock.getInputs();
-        for (int i = 0; i < inputs.size(); i++) {
+        for (int i = 0; i < inputs.size(); ++i) {
             Input in = inputs.get(i);
-            InputView inputView = new InputView(context, blockStyle, in, mHelper);
-            mInputViews.add(inputView);
+            InputView inputView = new InputView(getContext(), mHelper.getBlockStyle(), in, mHelper);
             addView(inputView);
-            if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
-                // Blocks connected to inputs live in their own BlockGroups.
-                BlockGroup bg = new BlockGroup(context, mHelper);
-                mHelper.obtainBlockView(context, in.getConnection().getTargetBlock(),
-                        bg, mConnectionManager, mTouchHandler);
-                inputView.setChildView(bg);
-            }
             if (in.getType() == Input.TYPE_VALUE) {
                 mHasValueInput = true;
             }
-        }
-
-        if (mBlock.getNextBlock() != null) {
-            // Next blocks live in the same BlockGroup.
-            mHelper.obtainBlockView(mBlock.getNextBlock(), parentGroup, mConnectionManager,
-                    mTouchHandler);
+            mInputViews.add(inputView);
         }
 
         mInputCount = mInputViews.size();

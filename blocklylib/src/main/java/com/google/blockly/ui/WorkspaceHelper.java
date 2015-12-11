@@ -23,7 +23,6 @@ import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
@@ -31,14 +30,18 @@ import android.view.ViewParent;
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
+
+import java.util.List;
 
 /**
  * Provides helper methods for views and coordinate conversions.
  * <p/>
  * Style attributes can be obtained for any views by calling the appropriate getXStyle method.
  * BlockView hierarchies can also be created with the configured styles by calling
- * {@link #obtainBlockView(Block, BlockGroup, ConnectionManager)}.
+ * {@link #buildBlockGroupTree(Block, ConnectionManager, BlockTouchHandler)} or
+ * {@link #buildBlockViewTree(Block, BlockGroup, ConnectionManager, BlockTouchHandler)}.
  * <p/>
  * There are two primary coordinate systems, workspace coordinates and virtual view coordinates.
  * <p/>
@@ -230,35 +233,61 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Creates a {@link BlockView} for the given block using the workspace's default style.
+     * Creates a {@link BlockGroup} for the given block and its children using the workspace's
+     * default style.
      *
-     * @param block The block to generate a view for.
-     * @param parentGroup The group to set as the parent for this block's view.
+     * @param rootBlock The root block to generate a view for.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
+     * @param touchHandler The {@link BlockTouchHandler} to manage all touches.
      *
      * @return A view for the block.
      */
-    public BlockView obtainBlockView(Block block, BlockGroup parentGroup,
-            ConnectionManager connectionManager, BlockTouchHandler touchHandler) {
-        // TODO: Refactor to use a BlockViewFactory to instantiate and combine all the views.
-        return new BlockView(mContext, getBlockStyle(), block, this, parentGroup,
-                connectionManager, touchHandler);
+    public BlockGroup buildBlockGroupTree(Block rootBlock,
+                                          ConnectionManager connectionManager,
+                                          BlockTouchHandler touchHandler) {
+        BlockGroup bg = new BlockGroup(mContext, this);
+        buildBlockViewTree(rootBlock, bg, connectionManager, touchHandler);
+        return bg;
     }
 
     /**
-     * Creates a {@link BlockView} for the given block using the workspace's default style.
+     * Creates a {@link BlockView} for the given block and its children using the workspace's
+     * default style.
      *
-     * @param context The context in which to generate the view.
      * @param block The block to generate a view for.
      * @param parentGroup The group to set as the parent for this block's view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
+     * @param touchHandler The {@link BlockTouchHandler} to manage all touches.
      *
      * @return A view for the block.
      */
-    public BlockView obtainBlockView(Context context, Block block, BlockGroup parentGroup,
-            ConnectionManager connectionManager, BlockTouchHandler touchHandler) {
-        return new BlockView(context, getBlockStyle(), block, this, parentGroup, connectionManager,
-                touchHandler);
+    public BlockView buildBlockViewTree(Block block, BlockGroup parentGroup,
+                                        ConnectionManager connectionManager,
+                                        BlockTouchHandler touchHandler) {
+        // TODO: Refactor to use a BlockViewFactory to instantiate and combine all the views.
+        BlockView blockView = new BlockView(mContext, block, this, connectionManager, touchHandler);
+        List<Input> inputs = block.getInputs();
+        for (int i = 0; i < inputs.size(); i++) {
+            Input in = inputs.get(i);
+            InputView inputView = blockView.getInputView(i);
+            if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
+                // Blocks connected to inputs live in their own BlockGroups.
+                BlockGroup subgroup = buildBlockGroupTree(
+                        in.getConnection().getTargetBlock(), connectionManager, touchHandler);
+                inputView.setChildView(subgroup);
+            }
+        }
+        parentGroup.addView(blockView);
+
+        Block next = block.getNextBlock();
+        if (next != null) {
+            // Next blocks live in the same BlockGroup.
+            BlockView child = buildBlockViewTree(
+                    next, parentGroup, connectionManager, touchHandler);
+            // Recursively calls buildBlockViewTree(..) for the rest of the sequence.
+        }
+
+        return blockView;
     }
 
     /**

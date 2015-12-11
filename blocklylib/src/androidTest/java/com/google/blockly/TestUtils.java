@@ -41,9 +41,8 @@ public final class TestUtils {
                              WorkspaceView workspaceView) {
         // Create views for all of the blocks we're interested in.
         for (int i = 0; i < blocks.size(); i++) {
-            BlockGroup bg = new BlockGroup(context, workspaceHelper);
-            workspaceHelper.obtainBlockView(blocks.get(i), bg, connectionManager, null);
-            workspaceView.addView(bg);
+            workspaceView.addView(
+                    workspaceHelper.buildBlockGroupTree(blocks.get(i), connectionManager, null));
         }
     }
 }

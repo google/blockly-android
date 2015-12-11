@@ -50,13 +50,15 @@ public class BlockViewTest extends MockitoAndroidTestCase {
         Mockito.verify(mMockBlock, Mockito.times(1)).setView(blockView);
     }
 
+
     // Verify construction of a BlockView for a Block with inputs.
-    public void testConstructorBlockWithInputs() {
+    public void testBuildBlockViewWithInputs() {
         final Block block = mBlockFactory.obtainBlock(
                 "test_block_one_input_each_type", "TestBlock");
+        final BlockView blockView = makeBlockView(block);
         assertNotNull(block);
 
-        final BlockView blockView = makeBlockView(block);
+        final BlockGroup bg = new BlockGroup(getContext(), mMockWorkspaceHelper);
         assertSame(block, blockView.getBlock());
         assertSame(blockView, block.getView());
 
@@ -66,7 +68,7 @@ public class BlockViewTest extends MockitoAndroidTestCase {
         for (int inputIdx = 0; inputIdx < 3; ++inputIdx) {
             // Each InputView points to an Input?
             assertNotNull(blockView.getInputView(inputIdx).getInput());
-            // Each InputView points is a child of the BlockView?
+            // Each InputView is a child of the BlockView?
             assertSame(blockView.getInputView(inputIdx), blockView.getChildAt(inputIdx));
             // Each input view points to the correct Input?
             assertSame(block.getInputs().get(inputIdx),
@@ -77,7 +79,7 @@ public class BlockViewTest extends MockitoAndroidTestCase {
     // Make a BlockView for the given Block and default mock objects otherwise.
     @NonNull
     private BlockView makeBlockView(Block block) {
-        return new BlockView(getContext(), block, mMockWorkspaceHelper, mMockBlockGroup,
-                mMockConnectionManager, null);
+        return new BlockView(getContext(), block, mMockWorkspaceHelper, mMockConnectionManager,
+                null);
     }
 }

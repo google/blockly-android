@@ -264,7 +264,7 @@ public class Workspace {
         BlockGroup bg;
         for (int i = 0; i < mRootBlocks.size(); i++) {
             bg = new BlockGroup(mContext, mWorkspaceHelper);
-            mWorkspaceHelper.obtainBlockView(mRootBlocks.get(i), bg, mConnectionManager,
+            mWorkspaceHelper.buildBlockViewTree(mRootBlocks.get(i), bg, mConnectionManager,
                     mTouchHandler);
             mWorkspaceView.addView(bg);
         }
@@ -308,9 +308,8 @@ public class Workspace {
      * @param block The {@link Block} to add to the workspace.
      */
     public void addBlockWithView(Block block) {
-        BlockGroup bg = new BlockGroup(mContext, mWorkspaceHelper);
-        mWorkspaceHelper.obtainBlockView(mContext, block, bg, mConnectionManager, mTouchHandler);
-        mWorkspaceView.addView(bg);
+        mWorkspaceView.addView(
+                mWorkspaceHelper.buildBlockGroupTree(block, mConnectionManager, mTouchHandler));
         addRootBlock(block);
     }
 

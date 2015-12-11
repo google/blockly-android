@@ -17,13 +17,17 @@ package com.google.blockly.ui;
 
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.MockitoAndroidTestCase;
+import com.google.blockly.R;
 import com.google.blockly.TestUtils;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockFactory;
 
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,6 +39,8 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
 
     @Mock
     private ConnectionManager mockConnectionManager;
+    @Mock
+    private WorkspaceHelper.BlockTouchHandler mockTouchHandler;
 
     @Override
     public void setUp() throws Exception {
@@ -113,7 +119,8 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         assertSame(mWorkspaceHelper.getRootBlockGroup(root),
                 mWorkspaceHelper.getRootBlockGroup(finalBlock));
 
-        assertNotSame(mWorkspaceHelper.getRootBlockGroup(blocks.get(0)),
+        assertNotSame(Arrays.toString(blocks.toArray()),
+                mWorkspaceHelper.getRootBlockGroup(blocks.get(0)),
                 mWorkspaceHelper.getRootBlockGroup(blocks.get(1)));
     }
-}
+ }
