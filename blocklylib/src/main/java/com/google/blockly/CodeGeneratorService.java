@@ -39,6 +39,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.SequenceInputStream;
 import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Background service that uses a WebView to statically load the Web Blockly libraries and use them
@@ -67,15 +69,23 @@ public class CodeGeneratorService extends Service {
 
         mWebview.setWebViewClient(new WebViewClient() {
             @Override
-            public WebResourceResponse shouldInterceptRequest (final WebView view, String url) {
+            public WebResourceResponse shouldInterceptRequest(final WebView view, String url) {
                 Log.d(TAG, url);
-                if (url.equals(ANDROID_ASSET_PREFIX + mBlockJSONSource)) {
+                if (url.equals("http://android_asset/sample_sections/block_definitions.json")) {
                     try {
-                        return new WebResourceResponse("text/javascript", "UTF-8",
-                                // Add a "var jsonArr = " to the front of the file.
-                                new SequenceInputStream(
-                                        new ByteArrayInputStream("var jsonArr = ".getBytes()),
-                                        getAssets().open(mBlockJSONSource)));
+                        WebResourceResponse response =
+                                new WebResourceResponse("text/javascript", "UTF-8",
+                                        getAssets().open(mBlockJSONSource));
+                                        // Add a "var jsonArr = " to the front of the file.
+//                                        new SequenceInputStream(
+//                                                new ByteArrayInputStream(
+//                                                        "var jsonArr = ".getBytes()),
+//                                                getAssets().open(mBlockJSONSource)));
+
+                        Map<String, String> responseHeaders = new HashMap<>();
+                        responseHeaders.put("Access-Control-Allow-Origin", "*");
+                        response.setResponseHeaders(responseHeaders);
+                        return response;
                     } catch (IOException e) {
                         Log.d(TAG, "Couldn't read file");
                         e.printStackTrace();
@@ -85,7 +95,7 @@ public class CodeGeneratorService extends Service {
             }
 
             @Override
-            public WebResourceResponse shouldInterceptRequest (final WebView view,
+            public WebResourceResponse shouldInterceptRequest(final WebView view,
                     WebResourceRequest request) {
                 Log.d(TAG, "hineini");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -99,6 +109,14 @@ public class CodeGeneratorService extends Service {
                 Log.d(TAG, url);
                 return true;
             }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                synchronized (this) {
+                    mReady = true;
+                }
+            generateCode();
+            }
         });
 
 
@@ -108,15 +126,15 @@ public class CodeGeneratorService extends Service {
         mWebview.addJavascriptInterface(new BlocklyJsObject(), "BlocklyController");
 
         /* WebViewClient must be set BEFORE calling loadUrl! */
-        mWebview.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                synchronized (this) {
-                    mReady = true;
-                }
-                generateCode();
-            }
-        });
+//        mWebview.setWebViewClient(new WebViewClient() {
+//            @Override
+//            public void onPageFinished(WebView view, String url) {
+//                synchronized (this) {
+//                    mReady = true;
+//                }
+//                generateCode();
+//            }
+//        });
         mWebview.loadUrl(ANDROID_ASSET_PREFIX + "index.html");
     }
 
