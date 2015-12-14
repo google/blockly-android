@@ -15,6 +15,7 @@
 
 package com.google.blockly.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -50,6 +51,7 @@ import java.util.List;
  *     Web Blockly).</li>
  * </ul>
  */
+@SuppressLint("ViewConstructor")
 public class BlockView extends FrameLayout {
     private static final String TAG = "BlockView";
 
@@ -98,6 +100,8 @@ public class BlockView extends FrameLayout {
     // Objects for drawing the block.
     private final PatchManager mPatchManager;
     private final ArrayList<Drawable> mBlockPatches = new ArrayList<>();
+    // Overlay patches used to draw a selection border when mHighlightBlock is true.
+    private final ArrayList<Drawable> mBlockBorderPatches = new ArrayList<>();
     private final ArrayList<Rect> mFillRects = new ArrayList<>();
     private Rect mNextFillRect = null;
     private ColorFilter mBlockColorFilter;
@@ -363,6 +367,9 @@ public class BlockView extends FrameLayout {
     private void drawHighlights(Canvas c) {
         if (mHighlightBlock) {
             // Draw entire block highlighted..
+            for (int i = 0; i < mBlockBorderPatches.size(); ++i) {
+                mBlockBorderPatches.get(i).draw(c);
+            }
         } else if (mHighlightConnection != null) {
             int rtlSign = mHelper.useRtL() ? -1 : +1;
             if (mHighlightConnection == mBlock.getOutputConnection()) {
@@ -721,6 +728,7 @@ public class BlockView extends FrameLayout {
      */
     private void layoutPatchesAndConnectors() {
         mBlockPatches.clear();
+        mBlockBorderPatches.clear();
         mFillRects.clear();
 
         // Leave room on the left for margin (accomodates optional output connector) and block
@@ -795,15 +803,20 @@ public class BlockView extends FrameLayout {
         // Select and position correct patch for bottom and left-hand side of the block, including
         // bottom-left corner.
         int bottomStartResourceId = R.drawable.bottom_start_default;
+        int bottomStartBorderResourceId = R.drawable.bottom_start_default_border;
         if (mBlock.getNextConnection() != null) {
             setPointMaybeFlip(mNextConnectorOffset, mLayoutMarginLeft, mNextBlockVerticalOffset);
             bottomStartResourceId = R.drawable.bottom_start_next;
+            bottomStartBorderResourceId = R.drawable.bottom_start_next_border;
         }
         final NinePatchDrawable bottomStartDrawable =
                 getColoredPatchDrawable(bottomStartResourceId);
-        setBoundsMaybeFlip(bottomStartDrawable,
+        final NinePatchDrawable bottomStartBorderDrawable =
+                mPatchManager.getPatchDrawable(bottomStartBorderResourceId);
+        setBoundsMaybeFlip(bottomStartDrawable, bottomStartBorderDrawable,
                 mLayoutMarginLeft, topStartDrawable.getIntrinsicHeight(), xTo, mBlockViewSize.y);
         mBlockPatches.add(bottomStartDrawable);
+        mBlockBorderPatches.add(bottomStartBorderDrawable);
 
         // Finish the final rect, if there is one.
         finishFillRect();
@@ -823,22 +836,26 @@ public class BlockView extends FrameLayout {
         // Select and position the correct patch for the top and left block sides including the
         // top-left corner.
         NinePatchDrawable topStartDrawable;
+        NinePatchDrawable topStartBorderDrawable;
         if (mBlock.getPreviousConnection() != null) {
             setPointMaybeFlip(mPreviousConnectorOffset, mLayoutMarginLeft, yTop);
             topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_previous);
-            setBoundsMaybeFlip(topStartDrawable,
-                    0, 0, xTo, topStartDrawable.getIntrinsicHeight());
+            topStartBorderDrawable =
+                    mPatchManager.getPatchDrawable(R.drawable.top_start_previous_border);
         } else if (mBlock.getOutputConnection() != null) {
             setPointMaybeFlip(mOutputConnectorOffset, mLayoutMarginLeft, yTop);
             topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_output);
-            setBoundsMaybeFlip(topStartDrawable,
-                    0, 0, xTo, topStartDrawable.getIntrinsicHeight());
+            topStartBorderDrawable =
+                    mPatchManager.getPatchDrawable(R.drawable.top_start_output_border);
         } else {
             topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_default);
-            setBoundsMaybeFlip(topStartDrawable,
-                    0, 0, xTo, topStartDrawable.getIntrinsicHeight());
+            topStartBorderDrawable =
+                    mPatchManager.getPatchDrawable(R.drawable.top_start_default_border);
         }
+        setBoundsMaybeFlip(topStartDrawable, topStartBorderDrawable,
+                0, 0, xTo, topStartDrawable.getIntrinsicHeight());
         mBlockPatches.add(topStartDrawable);
+        mBlockBorderPatches.add(topStartBorderDrawable);
         return topStartDrawable;
     }
 
@@ -859,6 +876,8 @@ public class BlockView extends FrameLayout {
         // For external dummy inputs, put a patch for the block boundary.
         final NinePatchDrawable inputDrawable =
                 getColoredPatchDrawable(R.drawable.dummy_input);
+        final NinePatchDrawable inputBorderDrawable =
+                mPatchManager.getPatchDrawable(R.drawable.dummy_input_border);
         int width = inputDrawable.getIntrinsicWidth();
         if (mHasValueInput) {
             // Stretch the patch horizontally if this block has at least one value
@@ -866,11 +885,14 @@ public class BlockView extends FrameLayout {
             // boundary with value input connector.
             width += mPatchManager.mValueInputWidth;
         }
-        setBoundsMaybeFlip(inputDrawable,
-                xTo - width, inputLayoutOrigin.y +
-                        (i > 0 ? 0 : mPatchManager.mBlockTopPadding),
-                xTo, inputLayoutOrigin.y + inputView.getMeasuredHeight());
+
+        setBoundsMaybeFlip(inputDrawable, inputBorderDrawable,
+                /* left */ xTo - width,
+                /* top */ inputLayoutOrigin.y + (i > 0 ? 0 : mPatchManager.mBlockTopPadding),
+                /* right */ xTo,
+                /* bottom */ inputLayoutOrigin.y + inputView.getMeasuredHeight());
         mBlockPatches.add(inputDrawable);
+        mBlockBorderPatches.add(inputBorderDrawable);
     }
 
     /**
@@ -892,11 +914,18 @@ public class BlockView extends FrameLayout {
 
         final NinePatchDrawable inputDrawable =
                 getColoredPatchDrawable(R.drawable.value_input_external);
-        setBoundsMaybeFlip(inputDrawable,
-                xTo - inputDrawable.getIntrinsicWidth(),
-                inputLayoutOrigin.y + mPatchManager.mBlockTopPadding,
-                xTo, inputLayoutOrigin.y + inputView.getMeasuredHeight());
+        final NinePatchDrawable inputBorderDrawable =
+                mPatchManager.getPatchDrawable(R.drawable.value_input_external_border);
+
+        int patchLeft = xTo - inputDrawable.getIntrinsicWidth();
+        int patchRight = xTo;
+        int connectorTop = inputLayoutOrigin.y + mPatchManager.mBlockTopPadding;
+        int connectorBottom = inputLayoutOrigin.y + inputView.getMeasuredHeight();
+
+        setBoundsMaybeFlip(inputDrawable, inputBorderDrawable,
+                patchLeft, connectorTop, patchRight, connectorBottom);
         mBlockPatches.add(inputDrawable);
+        mBlockBorderPatches.add(inputBorderDrawable);
 
         if (i > 0) {
             // If this is not the first input in the block, then a gap above the
@@ -905,11 +934,12 @@ public class BlockView extends FrameLayout {
             // boundary.
             final NinePatchDrawable boundaryGapDrawable =
                     getColoredPatchDrawable(R.drawable.dummy_input);
-            setBoundsMaybeFlip(boundaryGapDrawable,
-                    xTo - inputDrawable.getIntrinsicWidth(),
-                    inputLayoutOrigin.y, xTo,
-                    inputLayoutOrigin.y + mPatchManager.mBlockTopPadding);
+            final NinePatchDrawable boundaryGapBorderDrawable =
+                    mPatchManager.getPatchDrawable(R.drawable.dummy_input_border);
+            setBoundsMaybeFlip(boundaryGapDrawable, boundaryGapBorderDrawable,
+                    patchLeft, inputLayoutOrigin.y, patchRight, connectorTop);
             mBlockPatches.add(boundaryGapDrawable);
+            mBlockBorderPatches.add(boundaryGapBorderDrawable);
         }
     }
 
@@ -981,12 +1011,16 @@ public class BlockView extends FrameLayout {
             // this is the first input row.
             final int patchY = inputLayoutOrigin.y +
                     (inlineRowIdx > 0 ? 0 : mPatchManager.mBlockTopPadding);
+            final int patchRight = patchX + mPatchManager.mBlockEndPadding;
 
-            final NinePatchDrawable blockBorderDrawable =
+            final NinePatchDrawable blockFillDrawable =
                     getColoredPatchDrawable(R.drawable.dummy_input);
-            setBoundsMaybeFlip(blockBorderDrawable,
-                    patchX, patchY, patchX + mPatchManager.mBlockEndPadding, cutoutEndY);
-            mBlockPatches.add(blockBorderDrawable);
+            final NinePatchDrawable blockFillBorderDrawable =
+                    mPatchManager.getPatchDrawable(R.drawable.dummy_input_border);
+            setBoundsMaybeFlip(blockFillDrawable, blockFillBorderDrawable,
+                    patchX, patchY, patchRight, cutoutEndY);
+            mBlockPatches.add(blockFillDrawable);
+            mBlockBorderPatches.add(blockFillBorderDrawable);
 
             // Also at the end of the current input row, fill background up to
             // block boundary.
@@ -1018,9 +1052,15 @@ public class BlockView extends FrameLayout {
         // stretched only horizontally to extend to the block boundary.
         final NinePatchDrawable statementTopDrawable =
                 getColoredPatchDrawable(R.drawable.statementinput_top);
-        setBoundsMaybeFlip(statementTopDrawable, xOffset, inputLayoutOrigin.y,
-                xToAbove, inputLayoutOrigin.y + statementTopDrawable.getIntrinsicHeight());
+        final NinePatchDrawable statementTopBorderDrawable =
+                mPatchManager.getPatchDrawable(R.drawable.statementinput_top_border);
+        setBoundsMaybeFlip(statementTopDrawable, statementTopBorderDrawable,
+                /* left */ xOffset,
+                /* top */ inputLayoutOrigin.y,
+                /* right */ xToAbove,
+                /* bottom */ inputLayoutOrigin.y + statementTopDrawable.getIntrinsicHeight());
         mBlockPatches.add(statementTopDrawable);
+        mBlockBorderPatches.add(statementTopBorderDrawable);
 
         // Position patch for the bottom part of the Statement connector. The bottom
         // patch is stretched horizontally, like the top patch, but also vertically to
@@ -1028,15 +1068,20 @@ public class BlockView extends FrameLayout {
         // blocks.
         final NinePatchDrawable statementBottomDrawable =
                 getColoredPatchDrawable(R.drawable.statementinput_bottom);
+        final NinePatchDrawable statementBottomBorderDrawable =
+                mPatchManager.getPatchDrawable(R.drawable.statementinput_bottom_border);
 
         final int connectorHeight =
                 Math.max(inputView.getTotalChildHeight(),
                         inputView.getMeasuredHeight());
 
-        setBoundsMaybeFlip(statementBottomDrawable, xOffset,
-                inputLayoutOrigin.y + statementTopDrawable.getIntrinsicHeight(),
-                xToBelow, inputLayoutOrigin.y + connectorHeight);
+        setBoundsMaybeFlip(statementBottomDrawable, statementBottomBorderDrawable,
+                /* left */ xOffset,
+                /* top */ inputLayoutOrigin.y + statementTopDrawable.getIntrinsicHeight(),
+                /* right */ xToBelow,
+                /* bottom */ inputLayoutOrigin.y + connectorHeight);
         mBlockPatches.add(statementBottomDrawable);
+        mBlockBorderPatches.add(statementBottomBorderDrawable);
     }
 
     /**
@@ -1240,19 +1285,45 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Set bounds of a {@link Drawable}, and flip x bounds in RtL mode.
+     * Set bounds of a {@link Drawable}, flipping horizontal bounds in RtL mode.
      *
      * @param drawable The drawable whose bounds to set.
-     * @param left The new left coordinate in LtR mode.
+     * @param ltrStart The new left coordinate in LtR mode.
      * @param top The new top coordinate.
-     * @param right The new right coordinate in LtR mode.
+     * @param ltrEnd The new right coordinate in LtR mode.
      * @param bottom The new bottom coordinate.
      */
-    private void setBoundsMaybeFlip(Drawable drawable, int left, int top, int right, int bottom) {
+    private void setBoundsMaybeFlip(
+            Drawable drawable, int ltrStart, int top, int ltrEnd, int bottom) {
         if (mHelper.useRtL()) {
-            drawable.setBounds(mBlockViewSize.x - right, top, mBlockViewSize.x - left, bottom);
+            int rtlStart = mBlockViewSize.x - ltrStart;
+            int rtlEnd = mBlockViewSize.x - ltrEnd;
+            drawable.setBounds(rtlEnd, top, rtlStart, bottom);
         } else {
-            drawable.setBounds(left, top, right, bottom);
+            drawable.setBounds(ltrStart, top, ltrEnd, bottom);
+        }
+    }
+
+    /**
+     * Set identical bounds on two {@link Drawable}s, flipping horizontal bounds in RtL mode.
+     *
+     * @param first The first drawable whose bounds to set.
+     * @param second The second drawable whose bounds to set.
+     * @param ltrStart The new left coordinate in LtR mode.
+     * @param top The new top coordinate.
+     * @param ltrEnd The new right coordinate in LtR mode.
+     * @param bottom The new bottom coordinate.
+     */
+    private void setBoundsMaybeFlip(
+            Drawable first, Drawable second, int ltrStart, int top, int ltrEnd, int bottom) {
+        if (mHelper.useRtL()) {
+            int rtlStart = mBlockViewSize.x - ltrStart;
+            int rtlEnd = mBlockViewSize.x - ltrEnd;
+            first.setBounds(rtlEnd, top, rtlStart, bottom);
+            second.setBounds(rtlEnd, top, rtlStart, bottom);
+        } else {
+            first.setBounds(ltrStart, top, ltrEnd, bottom);
+            second.setBounds(ltrStart, top, ltrEnd, bottom);
         }
     }
 

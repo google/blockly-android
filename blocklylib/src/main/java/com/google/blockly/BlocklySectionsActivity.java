@@ -162,7 +162,7 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         } else if (id == R.id.action_carpet_bomb) {
             mToolboxFragment.carpetBomb();
             return true;
-        } else if (id == R.id.action_compile) {
+        } else if (id == R.id.action_run) {
             try {
                 if (mBound) {
                     final StringOutputStream serialized = new StringOutputStream();
