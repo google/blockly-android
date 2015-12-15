@@ -25,22 +25,14 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.google.blockly.utils.CodeGenerationRequest;
 
-import org.json.JSONArray;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.SequenceInputStream;
+import java.io.InputStream;
 import java.util.ArrayDeque;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Background service that uses a WebView to statically load the Web Blockly libraries and use them
@@ -48,6 +40,8 @@ import java.util.Map;
  */
 public class CodeGeneratorService extends Service {
     private static final String TAG = "CodeGeneratorService";
+    private static final String BLOCKLY_COMPILER_PAGE =
+            "file:///android_asset/background_compiler.html";
 
     // Binder given to clients
     private final IBinder mBinder = new CodeGeneratorBinder();
@@ -56,9 +50,8 @@ public class CodeGeneratorService extends Service {
     private WebView mWebview;
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private Handler mHandler;
-    private String mBlockJsSource = "sample_sections/block_definitions.js";
-    private String mBlockJSONSource = "sample_sections/block_definitions.json";
-    private static final String ANDROID_ASSET_PREFIX = "file:///android_asset/";
+    private String mDefinitions = "";
+    private String mGenerators = "";
 
     @Override
     public void onCreate() {
@@ -66,76 +59,21 @@ public class CodeGeneratorService extends Service {
         mWebview = new WebView(this);
         mWebview.getSettings().setJavaScriptEnabled(true);
         mWebview.setWebChromeClient(new WebChromeClient());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+        mWebview.addJavascriptInterface(new BlocklyController(), "BlocklyController");
 
         mWebview.setWebViewClient(new WebViewClient() {
-            @Override
-            public WebResourceResponse shouldInterceptRequest(final WebView view, String url) {
-                Log.d(TAG, url);
-                if (url.equals("http://android_asset/sample_sections/block_definitions.json")) {
-                    try {
-                        WebResourceResponse response =
-                                new WebResourceResponse("text/javascript", "UTF-8",
-                                        getAssets().open(mBlockJSONSource));
-                                        // Add a "var jsonArr = " to the front of the file.
-//                                        new SequenceInputStream(
-//                                                new ByteArrayInputStream(
-//                                                        "var jsonArr = ".getBytes()),
-//                                                getAssets().open(mBlockJSONSource)));
-
-                        Map<String, String> responseHeaders = new HashMap<>();
-                        responseHeaders.put("Access-Control-Allow-Origin", "*");
-                        response.setResponseHeaders(responseHeaders);
-                        return response;
-                    } catch (IOException e) {
-                        Log.d(TAG, "Couldn't read file");
-                        e.printStackTrace();
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            public WebResourceResponse shouldInterceptRequest(final WebView view,
-                    WebResourceRequest request) {
-                Log.d(TAG, "hineini");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    return shouldInterceptRequest(view, request.getUrl().toString());
-                }
-                return null;
-            }
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.d(TAG, url);
-                return true;
-            }
-
             @Override
             public void onPageFinished(WebView view, String url) {
                 synchronized (this) {
                     mReady = true;
                 }
-            generateCode();
+                handleRequest();
             }
         });
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true);
-        }
-        mWebview.addJavascriptInterface(new BlocklyJsObject(), "BlocklyController");
-
-        /* WebViewClient must be set BEFORE calling loadUrl! */
-//        mWebview.setWebViewClient(new WebViewClient() {
-//            @Override
-//            public void onPageFinished(WebView view, String url) {
-//                synchronized (this) {
-//                    mReady = true;
-//                }
-//                generateCode();
-//            }
-//        });
-        mWebview.loadUrl(ANDROID_ASSET_PREFIX + "index.html");
+        mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
     }
 
     @Nullable
@@ -154,14 +92,14 @@ public class CodeGeneratorService extends Service {
         synchronized (this) {
             mRequestQueue.add(request);
         }
-        generateCode();
+        handleRequest();
     }
 
     /**
      * If no {@link CodeGenerationRequest} instances are already being processed, kicks off
      * generation of code for the first request in the queue.
      */
-    private void generateCode() {
+    private void handleRequest() {
         synchronized (this) {
             if (mReady && mRequestQueue.size() > 0) {
                 mReady = false;
@@ -171,21 +109,56 @@ public class CodeGeneratorService extends Service {
                     @Override
                     public void run() {
                         mCallback = request.getCallback();
-                        mWebview.loadUrl("javascript:generate('" + request.getXml() + "')");
+                        if (!request.getBlockDefinitionsFilename().equals(mDefinitions)
+                                || !request.getBlockGeneratorsFilename().equals(mGenerators)) {
+                             //Reload the page with the new block definitions.  Push the request
+                             //back onto the queue until the page is loaded.
+                            mDefinitions = request.getBlockDefinitionsFilename();
+                            mGenerators = request.getBlockGeneratorsFilename();
+                            mRequestQueue.addFirst(request);
+                            mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
+                        } else {
+                            mWebview.loadUrl("javascript:" +
+                                    "generate('" + request.getXml() + "')");
+                        }
                     }
                 });
             }
         }
     }
 
-    private class BlocklyJsObject {
+    private class BlocklyController {
         @JavascriptInterface
         public void execute(String program) {
-            mReady = true;
-            if (mCallback != null) {
-                mCallback.onFinishCodeGeneration(program);
+            CodeGenerationRequest.CodeGeneratorCallback cb;
+            synchronized (this) {
+                cb = mCallback;
+                mReady = true;
             }
-            generateCode();
+            if (cb != null) {
+                cb.onFinishCodeGeneration(program);
+            }
+            handleRequest();
+        }
+
+        @JavascriptInterface
+        public String getBlockGeneratorsFilename() {
+            return mGenerators;
+        }
+
+        @JavascriptInterface
+        public String getBlockDefinitions() {
+            try {
+                InputStream blockIs = getAssets().open(mDefinitions);
+                int size = blockIs.available();
+                byte[] buffer = new byte[size];
+                blockIs.read(buffer);
+
+                return "var jsonArr = " + new String(buffer, "UTF-8");
+            } catch (IOException e) {
+                Log.d(TAG, "Couldn't find block definitions file " + mDefinitions);
+            }
+            return "";
         }
     }
 
