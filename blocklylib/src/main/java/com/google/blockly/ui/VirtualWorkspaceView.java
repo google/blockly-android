@@ -146,6 +146,11 @@ public class VirtualWorkspaceView extends ViewGroup {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         mScaleGestureDetector.onTouchEvent(event);
+        if (mScaleGestureDetector.isInProgress()) {
+            // If the scale gesture detector is handling a scale-and-pan gesture, then exit here
+            // since otherwise we would also be generating dragging events below.
+            return true;
+        }
 
         final int action = MotionEventCompat.getActionMasked(event);
 
@@ -448,14 +453,27 @@ public class VirtualWorkspaceView extends ViewGroup {
 
     /** Listener class for scaling and panning the view using pinch-to-zoom gestures. */
     private class ScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        // Focus point at the start of the pinch gesture. This is used for simultaneous panning.
+        // Focus point at the start of the pinch gesture. This is used for computing proper scroll
+        // offsets during scaling, as well as for simultaneous panning.
         private float mStartFocusX;
         private float mStartFocusY;
+        // View scale at the beginning of the gesture. This is used for computing proper scroll
+        // offsets during scaling.
+        private float mStartScale;
+        // View scroll offsets at the beginning of the gesture. These provide the reference point
+        // for adjusting scroll in response to scaling and panning.
+        private int mStartScrollX;
+        private int mStartScrollY;
 
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
             mStartFocusX = detector.getFocusX();
             mStartFocusY = detector.getFocusY();
+
+            mStartScrollX = getScrollX();
+            mStartScrollY = getScrollY();
+
+            mStartScale = mViewScale;
             return true;
         }
 
@@ -481,14 +499,23 @@ public class VirtualWorkspaceView extends ViewGroup {
             mWorkspaceView.setScaleX(mViewScale);
             mWorkspaceView.setScaleY(mViewScale);
 
-            // Compute scroll offsets based on the shift of the gesture focus point and difference
-            // between original and new scaling factor. The effect of this is that the focus point
-            // will remain locked on the same workspace location, regardless of scale change or
-            // focus shift.
-            final float scaleDifference = mViewScale - oldViewScale;
-            final int scrollX = (int) (scaleDifference * (detector.getFocusX() - mStartFocusX));
-            final int scrollY = (int) (scaleDifference * (detector.getFocusY() - mStartFocusY));
-            scrollBy(scrollX, scrollY);
+            // Compute scroll offsets based on difference between original and new scaling factor
+            // and the focus point where the gesture started. This makes sure that the scroll offset
+            // is adjusted to keep the focus point in place on the screen unless there is also a
+            // focus point shift (see next scroll component below).
+            final float scaleDifference = mViewScale - mStartScale;
+            final int scrollScaleX = (int) (scaleDifference * mStartFocusX);
+            final int scrollScaleY = (int) (scaleDifference * mStartFocusY);
+
+            // Compute scroll offset based on shift of the focus point. This makes sure the view
+            // pans along with the focus.
+            final int scrollPanX = (int) (mStartFocusX - detector.getFocusX());
+            final int scrollPanY = (int) (mStartFocusY - detector.getFocusY());
+
+            // Apply the computed scroll components for scale and panning relative to the scroll
+            // coordinates at the beginning of the gesture.
+            scrollTo(mStartScrollX + scrollScaleX + scrollPanX,
+                    mStartScrollY + scrollScaleY + scrollPanY);
 
             return true;
         }
