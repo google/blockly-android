@@ -10,7 +10,7 @@
     <!-- Load the app's block definitions and generated code from the correct files.-->
     <script>
         function import_generators(filename) {
-            if (!!filename) {
+            if (filename) {
                 var script = document.createElement('script');
                 script.setAttribute('type', 'text/javascript');
                 script.setAttribute('src', filename);
@@ -18,15 +18,19 @@
             }
         }
 
+        function init_factory(elem) {
+            return function() {
+                this.jsonInit(elem);
+            };
+        }
+
         function import_definitions(definitions) {
-            if (!!definitions) {
-                eval(definitions)
+            if (definitions) {
+                var jsonArr = JSON.parse(definitions);
                 for (var index = 0; index < jsonArr.length; index++) {
                     var elem = jsonArr[index];
                     Blockly.Blocks[elem.id] = {
-                        init:function() {
-                            this.jsonInit(elem);
-                        }
+                        init: init_factory(elem)
                     }
                 }
             }
@@ -43,8 +47,9 @@
     function generate(blocklyxml) {
       // Parse the XML into a tree.
       var xmlText = blocklyxml;
+      var dom;
       try {
-        var xml = Blockly.Xml.textToDom(xmlText)
+        dom = Blockly.Xml.textToDom(xmlText)
       } catch (e) {
         alert(e);
         return;
@@ -52,12 +57,12 @@
       // Create a headless workspace.
       var workspace = new Blockly.Workspace();
       try {
-        Blockly.Xml.domToWorkspace(workspace, xml);
+        Blockly.Xml.domToWorkspace(workspace, dom);
         var code = Blockly.JavaScript.workspaceToCode(workspace);
+        console.log(code);
         BlocklyController.execute(code);
       } catch (e) {
-        console.log(e);
-        alert(e);
+        console.log(e.message);
         BlocklyController.execute("");
       }
     }

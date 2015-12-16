@@ -76,8 +76,8 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
     private ToolboxFragment mToolboxFragment;
     private DrawerLayout mDrawerLayout;
     private TrashFragment mOscar;
-    private CodeGeneratorService mCodeGeneratorService;
-    private boolean mBound = false;
+    protected CodeGeneratorService mCodeGeneratorService;
+    protected boolean mBound = false;
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
