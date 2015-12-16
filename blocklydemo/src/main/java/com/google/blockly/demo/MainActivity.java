@@ -36,7 +36,7 @@ public class MainActivity extends BlocklySectionsActivity
         // Use the same blocks for all the levels. This lets the user's block code carry over from
         // level to level. The set of blocks shown in the toolbox for each level is defined by the
         // toolbox path below.
-        return "sample_sections/block_definitions.json";
+        return "sample_sections/definitions.json";
     }
 
     @Override

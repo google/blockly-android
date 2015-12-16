@@ -49,7 +49,7 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     private static final String TAG = "BlocklySectionsActivity";
 
-    private final CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
+    protected CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new CodeGenerationRequest.CodeGeneratorCallback() {
                 @Override
                 public void onFinishCodeGeneration(String generatedCode) {
@@ -177,7 +177,8 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
                     mCodeGeneratorService.requestCodeGeneration(
                             new CodeGenerationRequest(serialized.toString(),
                                     mCodeGeneratorCallback,
-                                    "sample_sections/block_definitions.js"));
+                                    "sample_sections/definitions.json",
+                                    "sample_sections/generators.js"));
                 }
             } catch (BlocklySerializerException e) {
                 Log.wtf(TAG, e);

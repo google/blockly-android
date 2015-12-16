@@ -22,6 +22,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -29,6 +30,8 @@ import android.webkit.WebViewClient;
 
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayDeque;
 
 /**
@@ -37,7 +40,8 @@ import java.util.ArrayDeque;
  */
 public class CodeGeneratorService extends Service {
     private static final String TAG = "CodeGeneratorService";
-    private static final String BLOCKLY_COMPILER_PAGE = "file:///android_asset/background_compiler.html";
+    private static final String BLOCKLY_COMPILER_PAGE =
+            "file:///android_asset/background_compiler.html";
 
     // Binder given to clients
     private final IBinder mBinder = new CodeGeneratorBinder();
@@ -46,7 +50,8 @@ public class CodeGeneratorService extends Service {
     private WebView mWebview;
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private Handler mHandler;
-    private String mBlockDefinitionsFile = "";
+    private String mDefinitions = "";
+    private String mGenerators = "";
 
     @Override
     public void onCreate() {
@@ -59,7 +64,6 @@ public class CodeGeneratorService extends Service {
         }
         mWebview.addJavascriptInterface(new BlocklyController(), "BlocklyController");
 
-        /* WebViewClient must be set BEFORE calling loadUrl! */
         mWebview.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -105,10 +109,12 @@ public class CodeGeneratorService extends Service {
                     @Override
                     public void run() {
                         mCallback = request.getCallback();
-                        if (!request.getBlockDefinitionsFilename().equals(mBlockDefinitionsFile)) {
-                            // Reload the page with the new block definitions.  Push the request
-                            // back onto the queue until the page is loaded.
-                            mBlockDefinitionsFile = request.getBlockDefinitionsFilename();
+                        if (!request.getBlockDefinitionsFilename().equals(mDefinitions)
+                                || !request.getBlockGeneratorsFilename().equals(mGenerators)) {
+                             //Reload the page with the new block definitions.  Push the request
+                             //back onto the queue until the page is loaded.
+                            mDefinitions = request.getBlockDefinitionsFilename();
+                            mGenerators = request.getBlockGeneratorsFilename();
                             mRequestQueue.addFirst(request);
                             mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
                         } else {
@@ -136,8 +142,23 @@ public class CodeGeneratorService extends Service {
         }
 
         @JavascriptInterface
-        public String getBlockDefinitionsFilename() {
-            return mBlockDefinitionsFile;
+        public String getBlockGeneratorsFilename() {
+            return mGenerators;
+        }
+
+        @JavascriptInterface
+        public String getBlockDefinitions() {
+            try {
+                InputStream blockIs = getAssets().open(mDefinitions);
+                int size = blockIs.available();
+                byte[] buffer = new byte[size];
+                blockIs.read(buffer);
+
+                return "var jsonArr = " + new String(buffer, "UTF-8");
+            } catch (IOException e) {
+                Log.d(TAG, "Couldn't find block definitions file " + mDefinitions);
+            }
+            return "";
         }
     }
 
