@@ -1,36 +1,4 @@
 'use strict';
-
-var jsonArr = [];
-var mygetrequest = new XMLHttpRequest();
-
-mygetrequest.onreadystatechange=function(){
- if (mygetrequest.readyState==4){
-  if (mygetrequest.status==200 || window.location.href.indexOf("http")==-1){
-  //console.log(mygetrequest.responseText);
-   jsonArr=eval(mygetrequest.responseText) //retrieve result as an JavaScript object
-   console.log(jsonArr);
-  }
-  else{
-   alert("An error has occured making the request");
-  }
- }
-};
-
-mygetrequest.open("GET", "http://android_asset/sample_sections/block_definitions.json");
-mygetrequest.send();
-
-
-console.log(jsonArr);
-//
-//if(jsonArr) {
-//  for (elem in jsonArr) {
-//    Blockly.Blocks[elem.id] = {
-//      init:function() {
-//        this.jsonInit(elem);
-//      }
-//    }
-//  }
-//}
 // Define each block's generated code
 
 Blockly.JavaScript['simple_input_output'] = function(block) {

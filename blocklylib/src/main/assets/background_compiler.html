@@ -7,9 +7,9 @@
     <script src="blocks_compressed.js"></script>
     <script src="javascript_compressed.js"></script>
     <script src="msg/js/en.js"></script>
-    <!-- Load the app's block definitions and generated code from the correct file.-->
+    <!-- Load the app's block definitions and generated code from the correct files.-->
     <script>
-        function import_definitions(filename) {
+        function import_generators(filename) {
             if (!!filename) {
                 var script = document.createElement('script');
                 script.setAttribute('type', 'text/javascript');
@@ -17,7 +17,24 @@
                 document.head.appendChild(script);
             }
         }
-        import_definitions(BlocklyController.getBlockDefinitionsFilename());
+
+        function import_definitions(definitions) {
+            if (!!definitions) {
+                eval(definitions)
+                for (var index = 0; index < jsonArr.length; index++) {
+                    var elem = jsonArr[index];
+                    Blockly.Blocks[elem.id] = {
+                        init:function() {
+                            this.jsonInit(elem);
+                        }
+                    }
+                }
+            }
+        }
+
+        import_generators(BlocklyController.getBlockGeneratorsFilename());
+        import_definitions(BlocklyController.getBlockDefinitions());
+
     </script>
 </head>
 <body>

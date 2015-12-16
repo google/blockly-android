@@ -24,17 +24,20 @@ public class CodeGenerationRequest {
     private final CodeGeneratorCallback mCallback;
     private final String mBlocklyXml;
     private final String mBlockDefinitionsFilename;
+    private final String mBlockGeneratorsFilename;
 
     /**
      * Constructor for a code generation request.
      *
      * @param xml The xml of a full workspace for which code should be generated.
      * @param callback A callback specifying what to do with the generated code.
-     * @param blockDefinitionsFilename The path of the js file containing block definitions and
-     * generators, relative to file:///android_assets/background_compiler.html.
+     * @param blockDefinitionsFilename The path of the js file containing block definitions,
+     * relative to file:///android_assets/background_compiler.html.
+     * @param blockGeneratorsFilename The path of the js file containing block generators, relative
+     * to file:///android_assets/background_compiler.html.
      */
     public CodeGenerationRequest(String xml, CodeGeneratorCallback callback,
-            String blockDefinitionsFilename) {
+            String blockDefinitionsFilename, String blockGeneratorsFilename) {
         if (xml == null || xml.isEmpty()) {
             throw new IllegalArgumentException("The blockly workspace string must not be empty " +
                     "or null.");
@@ -42,6 +45,7 @@ public class CodeGenerationRequest {
         mCallback = callback;
         mBlocklyXml = xml;
         mBlockDefinitionsFilename = blockDefinitionsFilename;
+        mBlockGeneratorsFilename = blockGeneratorsFilename;
     }
 
     public CodeGeneratorCallback getCallback() {
@@ -54,6 +58,10 @@ public class CodeGenerationRequest {
 
     public String getBlockDefinitionsFilename() {
         return mBlockDefinitionsFilename;
+    }
+
+    public String getBlockGeneratorsFilename() {
+        return mBlockGeneratorsFilename;
     }
 
     public interface CodeGeneratorCallback {

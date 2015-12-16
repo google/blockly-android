@@ -177,7 +177,8 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
                     mCodeGeneratorService.requestCodeGeneration(
                             new CodeGenerationRequest(serialized.toString(),
                                     mCodeGeneratorCallback,
-                                    "sample_sections/block_definitions.js"));
+                                    "sample_sections/definitions.json",
+                                    "sample_sections/generators.js"));
                 }
             } catch (BlocklySerializerException e) {
                 Log.wtf(TAG, e);
