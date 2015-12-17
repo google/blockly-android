@@ -26,9 +26,9 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.FrameLayout;
 
 import com.google.blockly.R;
@@ -39,10 +39,7 @@ import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
 
 /**
  * Draws a block and handles laying out all its inputs/fields.
@@ -56,8 +53,6 @@ import java.util.Map;
  */
 @SuppressLint("ViewConstructor")
 public class BlockView extends FrameLayout {
-    private static final String TAG = "BlockView";
-
     // TODO: Replace with dimens so it gets scaled correctly, or better yet, somehow derive from
     // ninepatch measurements.
     private static final int MIN_BLOCK_WIDTH = 40;
@@ -105,13 +100,20 @@ public class BlockView extends FrameLayout {
     private final ArrayList<Drawable> mBlockPatches = new ArrayList<>();
     // Overlay patches used to draw a selection border when mHighlightBlock is true.
     private final ArrayList<Drawable> mBlockBorderPatches = new ArrayList<>();
+    @Nullable private Drawable mOutputConnectorHighlightPatch = null;
+    @Nullable private Drawable mPreviousConnectorHighlightPatch = null;
+    @Nullable private Drawable mNextConnectionHighlightPatch = null;
+    private final ArrayList<Drawable> mInputConnectionHighlightPatches = new ArrayList<>();
+
     private final ArrayList<Rect> mFillRects = new ArrayList<>();
-    private Rect mNextFillRect = null;
+    @Nullable private Rect mNextFillRect = null;
     private ColorFilter mBlockColorFilter;
     private final Paint mFillPaint = new Paint();
 
     // Flag is set to true if this block has at least one "Value" input.
     private boolean mHasValueInput = false;
+
+    private final Rect tempRect = new Rect(); // Only use in main thread functions.
 
     /**
      * Create a new BlockView and associated InputViews for the given block using the
@@ -200,7 +202,7 @@ public class BlockView extends FrameLayout {
             mBlockPatches.get(i).draw(c);
         }
 
-        drawConnectorCenters(c);
+        // drawConnectorCenters(c);  // Enable to debug connection positions.
         drawHighlights(c);
     }
 
@@ -351,10 +353,12 @@ public class BlockView extends FrameLayout {
                 mBlockBorderPatches.get(i).draw(c);
             }
         } else if (mHighlightConnection != null) {
-            int rtlSign = mHelper.useRtL() ? -1 : +1;
             if (mHighlightConnection == mBlock.getOutputConnection()) {
+                mOutputConnectorHighlightPatch.draw(c);
             } else if (mHighlightConnection == mBlock.getPreviousConnection()) {
+                mPreviousConnectorHighlightPatch.draw(c);
             } else if (mHighlightConnection == mBlock.getNextConnection()) {
+                mNextConnectionHighlightPatch.draw(c);
             } else {
                 // If the connection to highlight is not one of the three block-level connectors,
                 // then it must be one of the inputs (either a "Next" connector for a Statement or
@@ -363,11 +367,11 @@ public class BlockView extends FrameLayout {
                 final Input input = mHighlightConnection.getInput();
                 for (int i = 0; i < mInputViews.size(); ++i) {
                     if (mInputViews.get(i).getInput() == input) {
-                        final ViewPoint offset = mInputConnectorOffsets.get(i);
-                        if (input.getType() == Input.TYPE_STATEMENT) {
-                        } else {
+                        Drawable connectionHighlight = mInputConnectionHighlightPatches.get(i);
+                        if (connectionHighlight != null) {
+                            connectionHighlight.draw(c);
                         }
-                        break;  // Break out of loop once connection has been found.
+                        break;
                     }
                 }
             }
@@ -718,9 +722,15 @@ public class BlockView extends FrameLayout {
         final NinePatchDrawable topStartDrawable = addTopLeftPatch(xTo, yTop);
 
         // Position inputs and connectors.
+        mInputConnectionHighlightPatches.clear();
+        mInputConnectionHighlightPatches.ensureCapacity(mInputCount);
         for (int i = 0; i < mInputCount; ++i) {
             final InputView inputView = mInputViews.get(i);
             final ViewPoint inputLayoutOrigin = mInputLayoutOrigins.get(i);
+
+            // Placeholder for connection patch.  Even if input does not have a connection, makes
+            // sure later patches use indices matching their inputs.
+            mInputConnectionHighlightPatches.add(null);
 
             // Start filling background of the input based on its origin and measured size.
             fillRectBySize(xFrom + inputLayoutOrigin.x, inputLayoutOrigin.y,
@@ -779,8 +789,18 @@ public class BlockView extends FrameLayout {
                 getColoredPatchDrawable(bottomStartResourceId);
         final NinePatchDrawable bottomStartBorderDrawable =
                 mPatchManager.getPatchDrawable(bottomStartBorderResourceId);
-        setBoundsMaybeFlip(bottomStartDrawable, bottomStartBorderDrawable,
+
+        calculateRtlAwareBounds(tempRect,
                 mLayoutMarginLeft, topStartDrawable.getIntrinsicHeight(), xTo, mBlockViewSize.y);
+        bottomStartDrawable.setBounds(tempRect);
+        bottomStartBorderDrawable.setBounds(tempRect);
+
+        if (mBlock.getNextConnection() != null) {
+            mNextConnectionHighlightPatch =
+                    mPatchManager.getPatchDrawable(R.drawable.bottom_start_next_connection);
+            mNextConnectionHighlightPatch.setBounds(tempRect);
+        }
+
         mBlockPatches.add(bottomStartDrawable);
         mBlockBorderPatches.add(bottomStartBorderDrawable);
 
@@ -808,18 +828,30 @@ public class BlockView extends FrameLayout {
             topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_previous);
             topStartBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_previous_border);
+            mPreviousConnectorHighlightPatch =
+                    mPatchManager.getPatchDrawable(R.drawable.top_start_previous_connection);
         } else if (mBlock.getOutputConnection() != null) {
             setPointMaybeFlip(mOutputConnectorOffset, mLayoutMarginLeft, yTop);
             topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_output);
             topStartBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_output_border);
+            mOutputConnectorHighlightPatch =
+                    mPatchManager.getPatchDrawable(R.drawable.top_start_output_connection);
         } else {
             topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_default);
             topStartBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_default_border);
         }
-        setBoundsMaybeFlip(topStartDrawable, topStartBorderDrawable,
-                0, 0, xTo, topStartDrawable.getIntrinsicHeight());
+        calculateRtlAwareBounds(tempRect, 0, 0, xTo, topStartDrawable.getIntrinsicHeight());
+        topStartDrawable.setBounds(tempRect);
+        topStartBorderDrawable.setBounds(tempRect);
+        if (mPreviousConnectorHighlightPatch != null) {
+            mPreviousConnectorHighlightPatch.setBounds(tempRect);
+        }
+        if (mOutputConnectorHighlightPatch != null) {
+            mOutputConnectorHighlightPatch.setBounds(tempRect);
+        }
+
         mBlockPatches.add(topStartDrawable);
         mBlockBorderPatches.add(topStartBorderDrawable);
         return topStartDrawable;
@@ -852,11 +884,13 @@ public class BlockView extends FrameLayout {
             width += mPatchManager.mValueInputWidth;
         }
 
-        setBoundsMaybeFlip(inputDrawable, inputBorderDrawable,
-                /* left */ xTo - width,
+        calculateRtlAwareBounds(tempRect,
+                /* ltrStart */ xTo - width,
                 /* top */ inputLayoutOrigin.y + (i > 0 ? 0 : mPatchManager.mBlockTopPadding),
-                /* right */ xTo,
+                /* ltrEnd */ xTo,
                 /* bottom */ inputLayoutOrigin.y + inputView.getMeasuredHeight());
+        inputDrawable.setBounds(tempRect);
+        inputBorderDrawable.setBounds(tempRect);
         mBlockPatches.add(inputDrawable);
         mBlockBorderPatches.add(inputBorderDrawable);
     }
@@ -882,16 +916,22 @@ public class BlockView extends FrameLayout {
                 getColoredPatchDrawable(R.drawable.value_input_external);
         final NinePatchDrawable inputBorderDrawable =
                 mPatchManager.getPatchDrawable(R.drawable.value_input_external_border);
+        final NinePatchDrawable connectionHighlightDrawable =
+                mPatchManager.getPatchDrawable(R.drawable.value_input_external_connection);
 
         int patchLeft = xTo - inputDrawable.getIntrinsicWidth();
         int patchRight = xTo;
         int connectorTop = inputLayoutOrigin.y + mPatchManager.mBlockTopPadding;
         int connectorBottom = inputLayoutOrigin.y + inputView.getMeasuredHeight();
 
-        setBoundsMaybeFlip(inputDrawable, inputBorderDrawable,
-                patchLeft, connectorTop, patchRight, connectorBottom);
+        calculateRtlAwareBounds(tempRect, patchLeft, connectorTop, patchRight, connectorBottom);
+        inputDrawable.setBounds(tempRect);
+        inputBorderDrawable.setBounds(tempRect);
+        connectionHighlightDrawable.setBounds(tempRect);
+
         mBlockPatches.add(inputDrawable);
         mBlockBorderPatches.add(inputBorderDrawable);
+        mInputConnectionHighlightPatches.set(i, connectionHighlightDrawable);
 
         if (i > 0) {
             // If this is not the first input in the block, then a gap above the
@@ -902,8 +942,10 @@ public class BlockView extends FrameLayout {
                     getColoredPatchDrawable(R.drawable.dummy_input);
             final NinePatchDrawable boundaryGapBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.dummy_input_border);
-            setBoundsMaybeFlip(boundaryGapDrawable, boundaryGapBorderDrawable,
+            calculateRtlAwareBounds(tempRect,
                     patchLeft, inputLayoutOrigin.y, patchRight, connectorTop);
+            boundaryGapDrawable.setBounds(tempRect);
+            boundaryGapBorderDrawable.setBounds(tempRect);
             mBlockPatches.add(boundaryGapDrawable);
             mBlockBorderPatches.add(boundaryGapBorderDrawable);
         }
@@ -949,10 +991,16 @@ public class BlockView extends FrameLayout {
         // Position a properly-sized input cutout patch.
         final NinePatchDrawable inputDrawable =
                 getColoredPatchDrawable(R.drawable.value_input_inline);
-        setBoundsMaybeFlip(inputDrawable, cutoutX, cutoutY,
+        final NinePatchDrawable connectionHighlightDrawable =
+                mPatchManager.getPatchDrawable(R.drawable.value_input_inline_connection);
+        calculateRtlAwareBounds(tempRect,
+                cutoutX, cutoutY,
                 cutoutX + inputView.getTotalChildWidth(),
                 cutoutY + inputView.getTotalChildHeight());
+        inputDrawable.setBounds(tempRect);
+        connectionHighlightDrawable.setBounds(tempRect);
         mBlockPatches.add(inputDrawable);
+        mInputConnectionHighlightPatches.set(i, connectionHighlightDrawable);
 
         // Fill below inline input cutout.
         final int cutoutEndX = cutoutX + inputView.getTotalChildWidth();
@@ -983,8 +1031,11 @@ public class BlockView extends FrameLayout {
                     getColoredPatchDrawable(R.drawable.dummy_input);
             final NinePatchDrawable blockFillBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.dummy_input_border);
-            setBoundsMaybeFlip(blockFillDrawable, blockFillBorderDrawable,
-                    patchX, patchY, patchRight, cutoutEndY);
+
+            calculateRtlAwareBounds(tempRect, patchX, patchY, patchRight, cutoutEndY);
+            blockFillDrawable.setBounds(tempRect);
+            blockFillBorderDrawable.setBounds(tempRect);
+
             mBlockPatches.add(blockFillDrawable);
             mBlockBorderPatches.add(blockFillBorderDrawable);
 
@@ -1020,13 +1071,21 @@ public class BlockView extends FrameLayout {
                 getColoredPatchDrawable(R.drawable.statementinput_top);
         final NinePatchDrawable statementTopBorderDrawable =
                 mPatchManager.getPatchDrawable(R.drawable.statementinput_top_border);
-        setBoundsMaybeFlip(statementTopDrawable, statementTopBorderDrawable,
-                /* left */ xOffset,
+        final NinePatchDrawable statementConnectionHighlight =
+                mPatchManager.getPatchDrawable(R.drawable.statementinput_top_connection);
+
+        calculateRtlAwareBounds(tempRect,
+                /* ltrStart */ xOffset,
                 /* top */ inputLayoutOrigin.y,
-                /* right */ xToAbove,
+                /* ltrEnd */ xToAbove,
                 /* bottom */ inputLayoutOrigin.y + statementTopDrawable.getIntrinsicHeight());
+        statementTopDrawable.setBounds(tempRect);
+        statementTopBorderDrawable.setBounds(tempRect);
+        statementConnectionHighlight.setBounds(tempRect);
+
         mBlockPatches.add(statementTopDrawable);
         mBlockBorderPatches.add(statementTopBorderDrawable);
+        mInputConnectionHighlightPatches.set(i, statementConnectionHighlight);
 
         // Position patch for the bottom part of the Statement connector. The bottom
         // patch is stretched horizontally, like the top patch, but also vertically to
@@ -1041,11 +1100,14 @@ public class BlockView extends FrameLayout {
                 Math.max(inputView.getTotalChildHeight(),
                         inputView.getMeasuredHeight());
 
-        setBoundsMaybeFlip(statementBottomDrawable, statementBottomBorderDrawable,
-                /* left */ xOffset,
+        calculateRtlAwareBounds(tempRect,
+                /* ltrStart */ xOffset,
                 /* top */ inputLayoutOrigin.y + statementTopDrawable.getIntrinsicHeight(),
-                /* right */ xToBelow,
+                /* ltrEnd */ xToBelow,
                 /* bottom */ inputLayoutOrigin.y + connectorHeight);
+        statementBottomDrawable.setBounds(tempRect);
+        statementBottomBorderDrawable.setBounds(tempRect);
+
         mBlockPatches.add(statementBottomDrawable);
         mBlockBorderPatches.add(statementBottomBorderDrawable);
     }
@@ -1251,46 +1313,19 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Set bounds of a {@link Drawable}, flipping horizontal bounds in RtL mode.
+     * Assigned rect given bounds, possibly flipping horizontal bounds in RtL mode.
      *
-     * @param drawable The drawable whose bounds to set.
-     * @param ltrStart The new left coordinate in LtR mode.
-     * @param top The new top coordinate.
-     * @param ltrEnd The new right coordinate in LtR mode.
-     * @param bottom The new bottom coordinate.
+     * @param ltrStart The left coordinate in LtR mode.
+     * @param top The top coordinate.
+     * @param ltrEnd The right coordinate in LtR mode.
+     * @param bottom The bottom coordinate.
      */
-    private void setBoundsMaybeFlip(
-            Drawable drawable, int ltrStart, int top, int ltrEnd, int bottom) {
-        if (mHelper.useRtL()) {
-            int rtlStart = mBlockViewSize.x - ltrStart;
-            int rtlEnd = mBlockViewSize.x - ltrEnd;
-            drawable.setBounds(rtlEnd, top, rtlStart, bottom);
-        } else {
-            drawable.setBounds(ltrStart, top, ltrEnd, bottom);
-        }
-    }
-
-    /**
-     * Set identical bounds on two {@link Drawable}s, flipping horizontal bounds in RtL mode.
-     *
-     * @param first The first drawable whose bounds to set.
-     * @param second The second drawable whose bounds to set.
-     * @param ltrStart The new left coordinate in LtR mode.
-     * @param top The new top coordinate.
-     * @param ltrEnd The new right coordinate in LtR mode.
-     * @param bottom The new bottom coordinate.
-     */
-    private void setBoundsMaybeFlip(
-            Drawable first, Drawable second, int ltrStart, int top, int ltrEnd, int bottom) {
-        if (mHelper.useRtL()) {
-            int rtlStart = mBlockViewSize.x - ltrStart;
-            int rtlEnd = mBlockViewSize.x - ltrEnd;
-            first.setBounds(rtlEnd, top, rtlStart, bottom);
-            second.setBounds(rtlEnd, top, rtlStart, bottom);
-        } else {
-            first.setBounds(ltrStart, top, ltrEnd, bottom);
-            second.setBounds(ltrStart, top, ltrEnd, bottom);
-        }
+    private void calculateRtlAwareBounds(Rect rect, int ltrStart, int top, int ltrEnd, int bottom) {
+        boolean isRtl = mHelper.useRtL();
+        rect.left = isRtl ? mBlockViewSize.x - ltrEnd : ltrStart;
+        rect.top = top;
+        rect.right = isRtl ? mBlockViewSize.x - ltrStart : ltrEnd;
+        rect.bottom = bottom;
     }
 
     /**
