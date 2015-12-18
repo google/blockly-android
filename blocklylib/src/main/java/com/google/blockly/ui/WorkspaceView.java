@@ -171,10 +171,25 @@ public class WorkspaceView extends ViewGroup {
      * @param event The {@link MotionEvent} that starts the drag.
      */
     public void setDragFocus(BlockView blockView, MotionEvent event) {
+        setDraggingBlockView(blockView);
         mTouchState = TOUCH_STATE_DOWN;
-        mDraggingBlockView = blockView;
         mDraggingPointerId =
                 MotionEventCompat.getPointerId(event, MotionEventCompat.getActionIndex(event));
+    }
+
+    /**
+     * Sets the block view currently being dragged, and marks it 'pressed'.
+     *
+     * @param blockView The {@link BlockView} that will be dragged.
+     */
+    protected void setDraggingBlockView(BlockView blockView) {
+        if (mDraggingBlockView != null) {
+            mDraggingBlockView.setPressed(false);
+        }
+        mDraggingBlockView = blockView;
+        if (mDraggingBlockView != null) {
+            mDraggingBlockView.setPressed(true);
+        }
     }
 
     /**
@@ -327,7 +342,7 @@ public class WorkspaceView extends ViewGroup {
                     }
                     mTouchState = TOUCH_STATE_NONE;
                     mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;
-                    mDraggingBlockView = null;
+                    setDraggingBlockView(null);
                     return true;
                 default:
                     return false;

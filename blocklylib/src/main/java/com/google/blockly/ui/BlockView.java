@@ -82,9 +82,8 @@ public class BlockView extends FrameLayout {
     // List of widths of multi-field rows when rendering inline inputs.
     private final ArrayList<Integer> mInlineRowWidth = new ArrayList<>();
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
-    // Fields for highlighting.
-    private boolean mHighlightBlock;
-    private Connection mHighlightConnection;
+    // Currently highlighted connection.
+    @Nullable private Connection mHighlightConnection = null;
     // Offset of the block origin inside the view's measured area.
     private int mLayoutMarginLeft;
     private int mMaxStatementFieldsWidth;
@@ -152,30 +151,18 @@ public class BlockView extends FrameLayout {
      *
      * @param connection The connection whose port to highlight. This must be a connection
      * associated with the {@link Block} represented by this {@link BlockView}
-     * instance.
+     * instance.  Disables all connection highlights if connection is null.
      */
-    public void setHighlightConnection(Connection connection) {
-        mHighlightBlock = false;
+    public void setHighlightedConnection(@Nullable Connection connection) {
         mHighlightConnection = connection;
         invalidate();
     }
 
     /**
-     * Set highlighting of the entire block, including all inline Value input ports.
+     * Check if border highlight is rendered.
      */
-    public void setHighlightEntireBlock() {
-        mHighlightBlock = true;
-        mHighlightConnection = null;
-        invalidate();
-    }
-
-    /**
-     * Clear all highlighting and return everything to normal rendering.
-     */
-    public void clearHighlight() {
-        mHighlightBlock = false;
-        mHighlightConnection = null;
-        invalidate();
+    protected boolean isEntireBlockHighlighted() {
+        return isPressed() || isFocused() || isSelected();
     }
 
     /**
@@ -347,7 +334,7 @@ public class BlockView extends FrameLayout {
      * @param c The canvas to draw on.
      */
     private void drawHighlights(Canvas c) {
-        if (mHighlightBlock) {
+        if (isEntireBlockHighlighted()) {
             // Draw entire block highlighted..
             for (int i = 0; i < mBlockBorderPatches.size(); ++i) {
                 mBlockBorderPatches.get(i).draw(c);

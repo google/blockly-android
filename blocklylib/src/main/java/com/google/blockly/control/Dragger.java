@@ -114,13 +114,13 @@ public class Dragger {
 
         // highlight as we go
         if (mHighlightedBlockView != null) {
-            mHighlightedBlockView.clearHighlight();
+            mHighlightedBlockView.setHighlightedConnection(null);
         }
         Pair<Connection, Connection> connectionCandidate = findBestConnection(
                 mTouchedBlockView.getBlock());
         if (connectionCandidate != null) {
             mHighlightedBlockView = connectionCandidate.second.getBlock().getView();
-            mHighlightedBlockView.setHighlightConnection(connectionCandidate.second);
+            mHighlightedBlockView.setHighlightedConnection(connectionCandidate.second);
         }
 
         mTouchedBlockView.requestLayout();
@@ -178,7 +178,7 @@ public class Dragger {
      */
     public void dropInTrash() {
         if (mHighlightedBlockView != null) {
-            mHighlightedBlockView.clearHighlight();
+            mHighlightedBlockView.setHighlightedConnection(null);
             mHighlightedBlockView = null;
         }
         mDraggedConnections.clear();
@@ -511,7 +511,7 @@ public class Dragger {
      */
     private void finalizeMove() {
         if (mHighlightedBlockView != null) {
-            mHighlightedBlockView.clearHighlight();
+            mHighlightedBlockView.setHighlightedConnection(null);
             mHighlightedBlockView = null;
         }
         BlockGroup rootBlockGroup = mWorkspaceHelper.getRootBlockGroup(
