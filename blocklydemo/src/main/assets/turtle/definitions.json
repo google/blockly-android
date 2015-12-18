@@ -1,0 +1,142 @@
+[
+  {
+    "id": "draw_move",
+    "message0": "move %1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIR",
+        "options": [
+          [
+            "forward by",
+            "moveForward"
+          ],
+          [
+            "backward by",
+            "moveBackward"
+          ]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "VALUE",
+        "options": [
+          [
+            "20",
+            "20"
+          ],
+          [
+            "50",
+            "50"
+          ],
+          [
+            "100",
+            "100"
+          ],
+          [
+            "150",
+            "150"
+          ]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#f95n7i"
+  },
+  {
+    "id": "controls_repeat_ext",
+    "message0": "repeat %1 times %2 %3",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "TIMES",
+        "options": [
+          [
+            "3",
+            "3"
+          ],
+          [
+            "4",
+            "4"
+          ],
+          [
+            "5",
+            "5"
+          ],
+          [
+            "360",
+            "360"
+          ]
+        ]
+      },
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "input_statement",
+        "name": "DO"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 120,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#kqncx5"
+  },
+  {
+    "id": "draw_turn",
+    "message0": "turn %1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIR",
+        "options": [
+          [
+            "right by \u21BB",
+            "turnRight"
+          ],
+          [
+            "left by \u21BA'",
+            "turnLeft"
+          ]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "VALUE",
+        "options": [
+          [
+            "1\u00B0",
+            "1"
+          ],
+          [
+            "45\u00B0",
+            "45"
+          ],
+          [
+            "72\u00B0",
+            "72"
+          ],
+          [
+            "90\u00B0",
+            "90"
+          ],
+          [
+            "120\u00B0",
+            "120"
+          ],
+          [
+            "144\u00B0",
+            "144"
+          ]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#m62qt5"
+  }
+]

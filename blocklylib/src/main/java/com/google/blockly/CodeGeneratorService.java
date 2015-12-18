@@ -154,9 +154,9 @@ public class CodeGeneratorService extends Service {
                 byte[] buffer = new byte[size];
                 blockIs.read(buffer);
 
-                return "var jsonArr = " + new String(buffer, "UTF-8");
+                return new String(buffer, "UTF-8");
             } catch (IOException e) {
-                Log.d(TAG, "Couldn't find block definitions file " + mDefinitions);
+                Log.e(TAG, "Couldn't find block definitions file " + mDefinitions);
             }
             return "";
         }

@@ -13,11 +13,18 @@
   ~  limitations under the License.
   -->
 
-<resources>
-  <string name="app_name">Blockly Demo</string>
-  <string name="level_1">Level 1</string>
-  <string name="level_2">Level 2</string>
-  <string name="level_3">Level 3</string>
-  <string name="split_activity_name">Split Activity Demo"</string>
-  <string name="turtle_activity_name">Turtle Demo"</string>
-</resources>
+<xml xmlns="http://www.w3.org/1999/xhtml">
+    <category name="Turtle">
+        <block type="draw_move">
+            <field name="VALUE">100</field>
+        </block>
+        <block type="draw_turn">
+            <field name="VALUE">90</field>
+        </block>
+    </category>
+    <category name="Loops">
+        <block type="controls_repeat_ext">
+            <field name="TIMES">4</field>
+        </block>
+    </category>
+</xml>
