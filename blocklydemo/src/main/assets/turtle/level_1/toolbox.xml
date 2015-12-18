@@ -17,6 +17,7 @@
     <category name="Turtle">
         <block type="draw_move">
             <field name="VALUE">100</field>
+            <field name="DIR">moveForward</field>
         </block>
         <block type="draw_turn">
             <field name="VALUE">90</field>

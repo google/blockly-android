@@ -36,6 +36,7 @@ public class FieldDropdownViewTest extends MockitoAndroidTestCase {
 
     // Verify object instantiation.
     public void testInstantiation() {
+        mFieldDropdown.setSelectedIndex(2);
         final FieldDropdownView view = makeFieldDropdownView();
         assertSame(view, mFieldDropdown.getView());
         assertEquals(mNameValueMap.size(), view.getCount());
