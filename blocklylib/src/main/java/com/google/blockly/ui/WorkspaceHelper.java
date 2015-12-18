@@ -61,7 +61,7 @@ import java.util.List;
  * where
  * <ul>
  * <li><pre>density</pre> is display density,</li>
- * <li><pre>rtl<pre> is -1 in RTL mode or +1 in LtR mode,</li>
+ * <li><pre>rtl<pre> is -1 in RTL mode or +1 in LTR mode,</li>
  *    <li><pre>virtualViewOffsetX,Y</pre> is the offset of the workspace view expressed in virtual
  *    view coordinates.</li>
  * </ul>
@@ -330,7 +330,7 @@ public class WorkspaceHelper {
      * Get virtual view coordinates of a given {@link View}.
      * <p/>
      * This function always returns the coordinate of the top-left corner of the given view,
-     * regardless of left-to-right (LtR) vs. right-to-left (RTL) mode. Note that in RTL mode, this
+     * regardless of left-to-right (LTR) vs. right-to-left (RTL) mode. Note that in RTL mode, this
      * is not the corner that corresponds to the block's workspace coordinates. Use
      * {@link #getWorkspaceCoordinates(View, WorkspacePoint)} to obtain  the workspace coordinates
      * of a block from its view, adjusted for RTL mode if necessary.

@@ -958,7 +958,7 @@ public class BlockView extends FrameLayout {
      * connector, and stretches to fit all child blocks.
      * <p/>
      * An inline input is usually drawn with an input 9-patch and three rects for padding between
-     * inputs: one above, one below, and one after (i.e., to  the right in LtR and to the left in
+     * inputs: one above, one below, and one after (i.e., to  the right in LTR and to the left in
      * RTL).
      *
      * @param i The index of the input in the block.
@@ -1238,10 +1238,10 @@ public class BlockView extends FrameLayout {
      * rectangle of different size (or with unaligned position) between them. If this assumption is
      * violated, call {@link #finishFillRect()} prior to the next call to this method.
      *
-     * @param left Left coordinate of the new rectangle in LtR mode. In RTL mode, coordinates are
+     * @param left Left coordinate of the new rectangle in LTR mode. In RTL mode, coordinates are
      * automatically flipped when the rectangle is committed by calling {@link #finishFillRect()}.
      * @param top Top coordinate of the new rectangle.
-     * @param right Right coordinate of the new rectangle in LtR mode. In RTL mode, coordinates are
+     * @param right Right coordinate of the new rectangle in LTR mode. In RTL mode, coordinates are
      * automatically flipped when the rectangle is committed by calling {@link #finishFillRect()}.
      * @param bottom Bottom coordinate of the new rectangle.
      */
@@ -1271,7 +1271,7 @@ public class BlockView extends FrameLayout {
      * coordinates, respectively. That makes client code more readable in places where the rectangle
      * is naturally defined by its origin and size.
      *
-     * @param left Left coordinate of the new rectangle in LtR mode. In RTL mode, coordinates are
+     * @param left Left coordinate of the new rectangle in LTR mode. In RTL mode, coordinates are
      * automatically flipped when the rectangle is committed by calling {@link #finishFillRect()}.
      * @param top Top coordinate of the new rectangle.
      * @param width Width of the new rectangle.
@@ -1315,9 +1315,9 @@ public class BlockView extends FrameLayout {
     /**
      * Assigned rect given bounds, possibly flipping horizontal bounds in RtL mode.
      *
-     * @param ltrStart The left coordinate in LtR mode.
+     * @param ltrStart The left coordinate in LTR mode.
      * @param top The top coordinate.
-     * @param ltrEnd The right coordinate in LtR mode.
+     * @param ltrEnd The right coordinate in LTR mode.
      * @param bottom The bottom coordinate.
      */
     private void calculateRtlAwareBounds(Rect rect, int ltrStart, int top, int ltrEnd, int bottom) {
@@ -1332,7 +1332,7 @@ public class BlockView extends FrameLayout {
      * Set a {@link ViewPoint} and flip x coordinate in RTL mode.
      *
      * @param viewPoint The point in view coordinates to set.
-     * @param x The new x coordinate in LtR mode.
+     * @param x The new x coordinate in LTR mode.
      * @param y The  new y coordinate.
      */
     private void setPointMaybeFlip(ViewPoint viewPoint, int x, int y) {
