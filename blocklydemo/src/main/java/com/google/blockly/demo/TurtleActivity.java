@@ -18,7 +18,6 @@ package com.google.blockly.demo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.ViewGroup;
@@ -35,9 +34,6 @@ import com.google.blockly.NavigationDrawerFragment;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.utils.CodeGenerationRequest;
 import com.google.blockly.utils.StringOutputStream;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 
 /**
@@ -75,29 +71,18 @@ public class TurtleActivity extends BlocklySectionsActivity
         // Use the same blocks for all the levels. This lets the user's block code carry over from
         // level to level. The set of blocks shown in the toolbox for each level is defined by the
         // toolbox path below.
-        return "turtle/blocks.json";
+        return "turtle/definitions.json";
     }
 
     @Override
     protected String getWorkspaceToolboxPath(int section) {
-        // Expose a different set of blocks to the user at each level.
-        return WORKSPACE_FOLDER_PREFIX + (section + 1)
-                + "/toolbox.xml";
-    }
-
-    @Override
-    protected void onSectionChanged(int oldSection, int newSection) {
-        // If we just went down a level clear the workspace, otherwise keep the previous blocks.
-        if (newSection < oldSection) {
-            // Instead of clearing we could also load a default workspace for this level.
-            getWorkspace().resetWorkspace();
-        }
+        return "turtle/level_1/toolbox.xml";
     }
 
     @Override
     protected ListAdapter onCreateSectionsAdapter() {
-        // Create three sections with the labels "Level 1", "Level 2", and "Level 3" displaying them
-        // as simple text items in the sections drawer.
+        // Create three sections with the labels "Turtle 1", "Turtle 2", and "Turtle 3" displaying
+        // them as simple text items in the sections drawer.
         return new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
@@ -121,7 +106,7 @@ public class TurtleActivity extends BlocklySectionsActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-        mTurtleWebview.loadUrl("file:///android_asset/turtle/index.html");
+        mTurtleWebview.loadUrl("file:///android_asset/turtle/turtle.html");
         frLayout.addView(mTurtleWebview);
     }
 
@@ -136,8 +121,8 @@ public class TurtleActivity extends BlocklySectionsActivity
                     mCodeGeneratorService.requestCodeGeneration(
                             new CodeGenerationRequest(serialized.toString(),
                                     mCodeGeneratorCallback,
-                                    "turtle/blocks.json",
-                                    "turtle/blocks.js"));
+                                    "turtle/definitions.json",
+                                    "turtle/generators.js"));
                 }
             } catch (BlocklySerializerException e) {
                 Log.wtf(TAG, e);

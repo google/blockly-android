@@ -10,7 +10,7 @@
     <!-- Load the app's block definitions and generated code from the correct files.-->
     <script>
         function import_generators(filename) {
-            if (filename) {
+            if (!!filename) {
                 var script = document.createElement('script');
                 script.setAttribute('type', 'text/javascript');
                 script.setAttribute('src', filename);
@@ -25,7 +25,7 @@
         }
 
         function import_definitions(definitions) {
-            if (definitions) {
+            if (!!definitions) {
                 var jsonArr = JSON.parse(definitions);
                 for (var index = 0; index < jsonArr.length; index++) {
                     var elem = jsonArr[index];
@@ -59,7 +59,6 @@
       try {
         Blockly.Xml.domToWorkspace(workspace, dom);
         var code = Blockly.JavaScript.workspaceToCode(workspace);
-        console.log(code);
         BlocklyController.execute(code);
       } catch (e) {
         console.log(e.message);

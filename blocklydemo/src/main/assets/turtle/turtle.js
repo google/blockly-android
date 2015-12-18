@@ -1,25 +1,21 @@
-/**
- * Blockly Apps: Turtle Graphics
- *
- * Copyright 2012 Google Inc.
- * https://blockly.googlecode.com/
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+/*
+ *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 /**
- * @fileoverview JavaScript for Blockly's Turtle application.
- * @author fraser@google.com (Neil Fraser)
+ * @fileoverview Javascript for the Turtle Blockly demo on Android.
+ * @author fenichel@google.com (Rachel Fenichel)
  */
 'use strict';
 
@@ -27,16 +23,6 @@
  * Create a namespace for the application.
  */
 var Turtle = {};
-
-// Supported languages.
-BlocklyApps.LANGUAGES =
-    ['ar', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es', 'fa', 'fr', 'hi', 'hrx',
-     'hu', 'is', 'it', 'ko', 'ms', 'nl', 'pl', 'pms', 'pt-br', 'ro', 'ru',
-     'sco', 'sv', 'tr', 'uk', 'vi', 'zh-hans', 'zh-hant'];
-BlocklyApps.LANG = BlocklyApps.getLang();
-
-document.write('<script type="text/javascript" src="generated/' +
-               BlocklyApps.LANG + '.js"></script>\n');
 
 Turtle.HEIGHT = 400;
 Turtle.WIDTH = 400;
@@ -55,77 +41,15 @@ Turtle.visible = true;
  * Initialize Blockly and the turtle.  Called on page load.
  */
 Turtle.init = function() {
-  //BlocklyApps.init();
-
-  //var rtl = BlocklyApps.isRtl();
-  //var blocklyDiv = document.getElementById('blockly');
   var visualization = document.getElementById('visualization');
-  /*
-  var onresize = function(e) {
-    var top = visualization.offsetTop;
-    blocklyDiv.style.top = Math.max(10, top - window.pageYOffset) + 'px';
-    blocklyDiv.style.left = rtl ? '10px' : '420px';
-    blocklyDiv.style.width = (window.innerWidth - 440) + 'px';
-  };
-  */
-  /*window.addEventListener('scroll', function() {
-      onresize();
-      //Blockly.fireUiEvent(window, 'resize');
-    });
-  window.addEventListener('resize', onresize);
-  onresize();
-*/
-  var toolbox = document.getElementById('toolbox');
-  /*Blockly.inject(document.getElementById('blockly'),
-      {path: '../../',
-       rtl: rtl,
-       toolbox: toolbox,
-       trashcan: true});
-       */
-
-  //Blockly.JavaScript.INFINITE_LOOP_TRAP = '  BlocklyApps.checkTimeout(%1);\n';
-
   // Add to reserved word list: API, local variables in execution evironment
   // (execute) and the infinite loop detection function.
   //Blockly.JavaScript.addReservedWords('Turtle,code');
   // TODO (fenichel): Make this possible in android blockly.
 
-  /*window.addEventListener('beforeunload', function(e) {
-    if (Blockly.mainWorkspace.getAllBlocks().length > 2) {
-      e.returnValue = BlocklyApps.getMsg('Turtle_unloadWarning');  // Gecko.
-      return BlocklyApps.getMsg('Turtle_unloadWarning');  // Webkit.
-    }
-    return null;
-  });
-  */
-
-
-  // Initialize the slider.
-  //var sliderSvg = document.getElementById('slider');
-  //Turtle.speedSlider = new Slider(10, 35, 130, sliderSvg);
-
-  /*var defaultXml =
-      '<xml>' +
-      '  <block type="draw_move" x="70" y="70">' +
-      '    <value name="VALUE">' +
-      '      <block type="math_number">' +
-      '        <field name="NUM">100</field>' +
-      '      </block>' +
-      '    </value>' +
-      '  </block>' +
-      '</xml>';
-  BlocklyApps.loadBlocks(defaultXml);
-  */
-
   Turtle.ctxDisplay = document.getElementById('display').getContext('2d');
   Turtle.ctxScratch = document.getElementById('scratch').getContext('2d');
   Turtle.reset();
-
-  //BlocklyApps.bindClick('runButton', Turtle.runButtonClick);
-  //BlocklyApps.bindClick('resetButton', Turtle.resetButtonClick);
-
-  // Lazy-load the syntax-highlighting.
-  //window.setTimeout(BlocklyApps.importPrettify, 1);
 };
 
 window.addEventListener('load', Turtle.init);
@@ -209,51 +133,11 @@ Turtle.display = function() {
 };
 
 /**
- * Click the run button.  Start the program.
- */
-Turtle.runButtonClick = function() {
-  var runButton = document.getElementById('runButton');
-  var resetButton = document.getElementById('resetButton');
-  // Ensure that Reset button is at least as wide as Run button.
-  if (!resetButton.style.minWidth) {
-    resetButton.style.minWidth = runButton.offsetWidth + 'px';
-  }
-  runButton.style.display = 'none';
-  resetButton.style.display = 'inline';
-  // Prevent double-clicks or double-taps.
-  resetButton.disabled = true;
-  setTimeout(function() {resetButton.disabled = false;},
-             BlocklyApps.DOUBLE_CLICK_TIME);
-
-  document.getElementById('spinner').style.visibility = 'visible';
-  Blockly.mainWorkspace.traceOn(true);
-  Turtle.execute();
-};
-
-/**
- * Click the reset button.  Reset the Turtle.
- */
-Turtle.resetButtonClick = function() {
-  var runButton = document.getElementById('runButton');
-  runButton.style.display = 'inline';
-  document.getElementById('resetButton').style.display = 'none';
-  // Prevent double-clicks or double-taps.
-  runButton.disabled = true;
-  setTimeout(function() {runButton.disabled = false;},
-             BlocklyApps.DOUBLE_CLICK_TIME);
-
-  document.getElementById('spinner').style.visibility = 'hidden';
-  Blockly.mainWorkspace.traceOn(false);
-  Turtle.reset();
-};
-
-
-/**
  * Execute the user's code.  Heaven help us...
  */
 Turtle.execute = function(code) {
-  BlocklyApps.log = [];
-  BlocklyApps.ticks = 1000000;
+  Turtle.log = [];
+  Turtle.ticks = 1000000;
 
   try {
     eval(code);
@@ -265,7 +149,7 @@ Turtle.execute = function(code) {
     }
   }
 
-  // BlocklyApps.log now contains a transcript of all the user's actions.
+  // Turtle.log now contains a transcript of all the user's actions.
   // Reset the graphic and animate the transcript.
   Turtle.reset();
   Turtle.pid = window.setTimeout(Turtle.animate, 100);
@@ -278,14 +162,11 @@ Turtle.animate = function() {
   // All tasks should be complete now.  Clean up the PID list.
   Turtle.pid = 0;
 
-  var tuple = BlocklyApps.log.shift();
+  var tuple = Turtle.log.shift();
   if (!tuple) {
-    //document.getElementById('spinner').style.visibility = 'hidden';
-    //Blockly.mainWorkspace.highlightBlock(null);
     return;
   }
   var command = tuple.shift();
-  //BlocklyApps.highlight(tuple.pop());
   Turtle.step(command, tuple);
   Turtle.display();
 
@@ -359,65 +240,52 @@ Turtle.step = function(command, values) {
   }
 };
 
-/**
- * Save an image of the SVG canvas.
- */
-Turtle.createImageLink = function() {
-  var imgLink = document.getElementById('downloadImageLink');
-  imgLink.setAttribute('href',
-      document.getElementById('display').toDataURL('image/png'));
-  var temp = window.onbeforeunload;
-  window.onbeforeunload = null;
-  imgLink.click();
-  window.onbeforeunload = temp;
-};
-
 // Turtle API.
 
 Turtle.moveForward = function(distance, id) {
-  BlocklyApps.log.push(['FD', distance, id]);
+  Turtle.log.push(['FD', distance, id]);
 };
 
 Turtle.moveBackward = function(distance, id) {
-  BlocklyApps.log.push(['FD', -distance, id]);
+  Turtle.log.push(['FD', -distance, id]);
 };
 
 Turtle.turnRight = function(angle, id) {
-  BlocklyApps.log.push(['RT', angle, id]);
+  Turtle.log.push(['RT', angle, id]);
 };
 
 Turtle.turnLeft = function(angle, id) {
-  BlocklyApps.log.push(['RT', -angle, id]);
+  Turtle.log.push(['RT', -angle, id]);
 };
 
 Turtle.penUp = function(id) {
-  BlocklyApps.log.push(['PU', id]);
+  Turtle.log.push(['PU', id]);
 };
 
 Turtle.penDown = function(id) {
-  BlocklyApps.log.push(['PD', id]);
+  Turtle.log.push(['PD', id]);
 };
 
 Turtle.penWidth = function(width, id) {
-  BlocklyApps.log.push(['PW', Math.max(width, 0), id]);
+  Turtle.log.push(['PW', Math.max(width, 0), id]);
 };
 
 Turtle.penColour = function(colour, id) {
-  BlocklyApps.log.push(['PC', colour, id]);
+  Turtle.log.push(['PC', colour, id]);
 };
 
 Turtle.hideTurtle = function(id) {
-  BlocklyApps.log.push(['HT', id]);
+  Turtle.log.push(['HT', id]);
 };
 
 Turtle.showTurtle = function(id) {
-  BlocklyApps.log.push(['ST', id]);
+  Turtle.log.push(['ST', id]);
 };
 
 Turtle.drawPrint = function(text, id) {
-  BlocklyApps.log.push(['DP', text, id]);
+  Turtle.log.push(['DP', text, id]);
 };
 
 Turtle.drawFont = function(font, size, style, id) {
-  BlocklyApps.log.push(['DF', font, size, style, id]);
+  Turtle.log.push(['DF', font, size, style, id]);
 };
