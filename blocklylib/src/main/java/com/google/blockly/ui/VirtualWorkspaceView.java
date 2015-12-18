@@ -109,7 +109,7 @@ public class VirtualWorkspaceView extends ViewGroup {
         final Rect blocksBoundingBox = mWorkspaceView.getBlocksBoundingBox();
         final int margin = mGridRenderer.getGridSpacing() / 2;
         final int scrollToY = (int) (blocksBoundingBox.top * mViewScale) - margin;
-        if (mWorkspaceView.getWorkspaceHelper().useRtL()) {
+        if (mWorkspaceView.getWorkspaceHelper().useRtl()) {
             scrollTo((int) (blocksBoundingBox.right * mViewScale) - getMeasuredWidth() + margin,
                     scrollToY);
         } else {
@@ -288,7 +288,7 @@ public class VirtualWorkspaceView extends ViewGroup {
 
         // Set view offset in the virtual workspace and request layout of the WorkspaceView with the
         // new offset. The view offset is the location of the top-left pixel displayed in this view
-        // in virtual workspace coordinates, regardless of RtL vs. LtR mode.
+        // in virtual workspace coordinates, regardless of RTL vs. LTR mode.
         mWorkspaceView.getWorkspaceHelper()
                 .setVirtualWorkspaceViewOffset(
                         (int) (x / mViewScale), /* virtual coords. */

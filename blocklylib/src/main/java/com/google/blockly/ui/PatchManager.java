@@ -47,7 +47,7 @@ public class PatchManager {
     // which is mBlockBottomPadding.
     int mNextConnectorHeight;
 
-    // Width of the "Output" connector - this is in addition to the left (right, in RtL mode) block
+    // Width of the "Output" connector - this is in addition to the left (right, in RTL mode) block
     // boundary thickness, which is mBlockStartPadding.
     int mOutputConnectorWidth;
 
@@ -55,14 +55,14 @@ public class PatchManager {
     int mOutputConnectorHeight;
 
     // Width of a value input. This is in addition to the width of the right block boundary (left
-    // boundary in RtL mode) in a block without inputs (the latter is mBlockEndPadding).
+    // boundary in RTL mode) in a block without inputs (the latter is mBlockEndPadding).
     int mValueInputWidth;
 
     // Minimum indent of the Statement connector w.r.t. the right side of the block (left side in
-    // RtL mode).
+    // RTL mode).
     int mStatementInputIndent;
 
-    // Padding between rightmost (leftmost, in RtL mode) field of the Statement input and the
+    // Padding between rightmost (leftmost, in RTL mode) field of the Statement input and the
     // placement of a connected block.
     int mStatementInputPadding;
 

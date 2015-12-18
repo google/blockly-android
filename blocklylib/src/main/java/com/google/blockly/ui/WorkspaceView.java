@@ -138,7 +138,7 @@ public class WorkspaceView extends ViewGroup {
             // accordingly. Do NOT use mHelper.workspaceToVirtualViewCoordinates below, since we want the
             // bounding box independent of scroll offset.
             mHelper.workspaceToVirtualViewDelta(blockGroup.getTopBlockPosition(), mTemp);
-            if (mHelper.useRtL()) {
+            if (mHelper.useRtl()) {
                 mTemp.x -= blockGroup.getMeasuredWidth();
             }
 
@@ -280,10 +280,10 @@ public class WorkspaceView extends ViewGroup {
                 BlockGroup bg = (BlockGroup) child;
 
                 // Get view coordinates of child from its workspace coordinates. Note that unlike
-                // onMeasure() above, workspaceToViewCoordinates() must be used for conversion here,
-                // so view scroll offset is properly applied for positioning.
-                mHelper.workspaceToViewCoordinates(bg.getTopBlockPosition(), mTemp);
-                if (mHelper.useRtL()) {
+                // onMeasure() above, workspaceToVirtualViewCoordinates() must be used for
+                // conversion here, so view scroll offset is properly applied for positioning.
+                mHelper.workspaceToVirtualViewCoordinates(bg.getTopBlockPosition(), mTemp);
+                if (mHelper.useRtl()) {
                     mTemp.x -= bg.getMeasuredWidth();
                 }
 

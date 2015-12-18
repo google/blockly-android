@@ -210,7 +210,7 @@ public class BlockGroup extends ViewGroup {
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int childCount = getChildCount();
-        boolean rtl = mWorkspaceHelper.useRtL();
+        boolean rtl = mWorkspaceHelper.useRtl();
         int x = rtl ? getMeasuredWidth() : 0;
         int y = 0;
 

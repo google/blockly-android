@@ -59,13 +59,13 @@ public abstract class Input implements Cloneable {
     public static final int TYPE_DUMMY = 2;
     public static final String TYPE_DUMMY_STRING = "input_dummy";
     /**
-     * This input's fields should be aligned at the left of the block, or the right in a RtL
+     * This input's fields should be aligned at the left of the block, or the right in a RTL
      * configuration.
      */
     public static final int ALIGN_LEFT = 0;
     public static final String ALIGN_LEFT_STRING = "LEFT";
     /**
-     * This input's fields should be aligned at the right of the block, or the left in a RtL
+     * This input's fields should be aligned at the right of the block, or the left in a RTL
      * configuration.
      */
     public static final int ALIGN_RIGHT = 1;

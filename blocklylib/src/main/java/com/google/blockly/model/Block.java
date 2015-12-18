@@ -144,7 +144,7 @@ public class Block {
 
     /**
      * Gets the position of this block. The position is the top left for LtR configurations and the
-     * top right for RtL configurations. This position is only meaningful for top level blocks. All
+     * top right for RTL configurations. This position is only meaningful for top level blocks. All
      * other blocks will have a position that is dependent on the block rendering relative to the
      * top level block.
      *

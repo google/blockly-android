@@ -108,7 +108,7 @@ public class BlockWorkspaceParams {
     }
 
     /**
-     * @return The top left (top right in RtL) corner of this block in workspace coordinates.
+     * @return The top left (top right in RTL) corner of this block in workspace coordinates.
      */
     public WorkspacePoint getWorkspacePosition() {
         return mWorkspacePosition;

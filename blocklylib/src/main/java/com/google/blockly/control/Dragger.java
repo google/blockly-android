@@ -238,7 +238,7 @@ public class Dragger {
         int dx = mWorkspaceHelper.virtualViewToWorkspaceUnits((int) (event.getX()) - mDragStart.x);
         int dy = mWorkspaceHelper.virtualViewToWorkspaceUnits((int) (event.getY()) - mDragStart.y);
 
-        if (mWorkspaceHelper.useRtL()) {
+        if (mWorkspaceHelper.useRtl()) {
             dx *= -1;
         }
 

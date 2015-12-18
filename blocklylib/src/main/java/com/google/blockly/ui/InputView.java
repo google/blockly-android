@@ -172,7 +172,7 @@ public class InputView extends ViewGroup {
 
     @Override
     public void onLayout(boolean changed, int l, int t, int r, int b) {
-        boolean rtl = mHelper.useRtL();
+        boolean rtl = mHelper.useRtl();
         int viewWidth = getMeasuredWidth();
 
         // Initialize horizontal layout cursor. The cursor value increases as layout proceeds, but
@@ -242,7 +242,7 @@ public class InputView extends ViewGroup {
             final int width = mChildView.getMeasuredWidth();
             final int height = mChildView.getMeasuredHeight();
 
-            if (mHelper.useRtL()) {
+            if (mHelper.useRtl()) {
                 leftOffset = getMeasuredWidth() - leftOffset - width;
             }
 

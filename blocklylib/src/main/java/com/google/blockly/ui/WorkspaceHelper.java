@@ -50,7 +50,7 @@ import java.util.List;
  * <p/>
  * <em>Virtual view coordinates</em> are workspace coordinates scaled to adjust for device display
  * density ({@link #mDensity}) and expressed relative to an offset that facilitates workspace
- * scrolling. In right-to-left (RtL) mode ({@link #mRtL}), the virtual view coordinates also flip
+ * scrolling. In right-to-left (RTL) mode ({@link #mRtl}), the virtual view coordinates also flip
  * the x coordinates ({@code x *= -1}) relative to workspace coordinates.
  * <p/>
  * The conversion from workspace to virtual view coordinates is as follows:
@@ -61,7 +61,7 @@ import java.util.List;
  * where
  * <ul>
  * <li><pre>density</pre> is display density,</li>
- * <li><pre>rtl<pre> is -1 in RtL mode or +1 in LtR mode,</li>
+ * <li><pre>rtl<pre> is -1 in RTL mode or +1 in LtR mode,</li>
  *    <li><pre>virtualViewOffsetX,Y</pre> is the offset of the workspace view expressed in virtual
  *    view coordinates.</li>
  * </ul>
@@ -79,7 +79,7 @@ public class WorkspaceHelper {
     private final Context mContext;
     private WorkspaceView mWorkspaceView;
     private float mDensity;
-    private boolean mRtL;
+    private boolean mRtl;
     private int mBlockStyle;
     private int mFieldLabelStyle;
 
@@ -129,9 +129,9 @@ public class WorkspaceHelper {
             mDensity = 1f;
         }
 
-        updateRtL(res);
+        updateRtl(res);
 
-        mPatchManager = new PatchManager(res, mRtL);
+        mPatchManager = new PatchManager(res, mRtl);
         initConfig(mContext, attrs, workspaceStyle);
     }
 
@@ -162,8 +162,8 @@ public class WorkspaceHelper {
      * This is the coordinate of the top-left corner of the area of the workspace shown by a
      * {@link WorkspaceView} inside a {@link VirtualWorkspaceView}. The coordinate is represented
      * in virtual workspace view coordinates, i.e., workspace coordinates adjusted for display
-     * density and reversed in RtL mode (this implies, that the coordinate provides here refers
-     * to the top-left corner of the view area, even in RtL mode).
+     * density and reversed in RTL mode (this implies, that the coordinate provides here refers
+     * to the top-left corner of the view area, even in RTL mode).
      */
     public void setVirtualWorkspaceViewOffset(int x, int y) {
         mVirtualWorkspaceViewOffset.set(x, y);
@@ -207,7 +207,7 @@ public class WorkspaceHelper {
     public void virtualViewToWorkspaceDelta(ViewPoint viewPointIn,
                                             WorkspacePoint workspacePointOut) {
         workspacePointOut.set(
-                (mRtL ? -1 : 1) * virtualViewToWorkspaceUnits(viewPointIn.x),
+                (mRtl ? -1 : 1) * virtualViewToWorkspaceUnits(viewPointIn.x),
                 virtualViewToWorkspaceUnits(viewPointIn.y));
     }
 
@@ -221,15 +221,15 @@ public class WorkspaceHelper {
     public void workspaceToVirtualViewDelta(WorkspacePoint workspacePointIn,
                                             ViewPoint viewPointOut) {
         viewPointOut.set(
-                workspaceToVirtualViewUnits(mRtL ? -workspacePointIn.x : workspacePointIn.x),
+                workspaceToVirtualViewUnits(mRtl ? -workspacePointIn.x : workspacePointIn.x),
                 workspaceToVirtualViewUnits(workspacePointIn.y));
     }
 
     /**
      * @return True if using Right to Left layout, false otherwise.
      */
-    public boolean useRtL() {
-        return mRtL;
+    public boolean useRtl() {
+        return mRtl;
     }
 
     /**
@@ -308,8 +308,8 @@ public class WorkspaceHelper {
      * Get workspace coordinates of a given {@link View}.
      * <p/>
      * This function always returns the coordinate of the corner of the view that corresponds to the
-     * block coordinate in workspace coordinates. In left-to-right (LtR) mode, this is the
-     * <em>top-left</em> corner of the view, in right-to-left (RtL) mode, it is the
+     * block coordinate in workspace coordinates. In left-to-right (LTR) mode, this is the
+     * <em>top-left</em> corner of the view, in right-to-left (RTL) mode, it is the
      * <em>top-right</em> corner of the view.
      *
      * @param view The view to find the position of.
@@ -317,7 +317,7 @@ public class WorkspaceHelper {
      */
     public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
         getVirtualViewCoordinates(view, mTempViewPoint);
-        if (mRtL) {
+        if (mRtl) {
             // In right-to-left mode, the Block's position is that of its top-RIGHT corner, but
             // Android still refers to the BlockView's layout coordinate by its top-LEFT corner.
             // Adding the view's width to the lhs view coordinate gives us the rhs coordinate.
@@ -330,10 +330,10 @@ public class WorkspaceHelper {
      * Get virtual view coordinates of a given {@link View}.
      * <p/>
      * This function always returns the coordinate of the top-left corner of the given view,
-     * regardless of left-to-right (LtR) vs. right-to-left (RtL) mode. Note that in RtL mode, this
+     * regardless of left-to-right (LtR) vs. right-to-left (RTL) mode. Note that in RTL mode, this
      * is not the corner that corresponds to the block's workspace coordinates. Use
      * {@link #getWorkspaceCoordinates(View, WorkspacePoint)} to obtain  the workspace coordinates
-     * of a block from its view, adjusted for RtL mode if necessary.
+     * of a block from its view, adjusted for RTL mode if necessary.
      *
      * @param view The view to find the position of.
      * @param viewPosition The Point to store the results in.
@@ -465,7 +465,7 @@ public class WorkspaceHelper {
     public void workspaceToVirtualViewCoordinates(WorkspacePoint workspacePosition,
                                                   ViewPoint viewPosition) {
         int workspaceX = workspacePosition.x;
-        if (mRtL) {
+        if (mRtl) {
             workspaceX *= -1;
         }
         viewPosition.x = workspaceToVirtualViewUnits(workspaceX) - mVirtualWorkspaceViewOffset.x;
@@ -506,17 +506,17 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Updates the current RtL state for the app.
+     * Updates the current RTL state for the app.
      *
-     * @param resources The context resources to get the RtL setting from.
+     * @param resources The context resources to get the RTL setting from.
      */
-    private void updateRtL(Resources resources) {
+    private void updateRtl(Resources resources) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            mRtL = resources.getConfiguration().getLayoutDirection()
+            mRtl = resources.getConfiguration().getLayoutDirection()
                     == View.LAYOUT_DIRECTION_RTL;
         } else {
             // TODO: Handle pre 17 versions.
-            mRtL = false;
+            mRtl = false;
         }
     }
 
@@ -532,7 +532,7 @@ public class WorkspaceHelper {
                                            WorkspacePoint workspacePosition) {
         int workspaceX =
                 virtualViewToWorkspaceUnits(viewPosition.x + mVirtualWorkspaceViewOffset.x);
-        if (mRtL) {
+        if (mRtl) {
             workspaceX *= -1;
         }
         workspacePosition.x = workspaceX;

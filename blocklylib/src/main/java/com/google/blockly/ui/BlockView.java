@@ -235,7 +235,7 @@ public class BlockView extends FrameLayout {
     @Override
     public void onLayout(boolean changed, int left, int top, int right, int bottom) {
         // Note that layout must be done regardless of the value of the "changed" parameter.
-        boolean rtl = mHelper.useRtL();
+        boolean rtl = mHelper.useRtl();
         int rtlSign = rtl ? -1 : +1;
 
         int xFrom = mLayoutMarginLeft;
@@ -302,7 +302,7 @@ public class BlockView extends FrameLayout {
         // that the bounds of each InputView include any connected child blocks, so in RTL mode,
         // the left-hand side of the input fields must be obtained from the right-hand side of the
         // input and the field layout width.
-        if (mHelper.useRtL()) {
+        if (mHelper.useRtl()) {
             // First check whether event is in the general horizontal range of the block outline
             // (minus children) and exit if it is not.
             final int blockEnd = mBlockViewSize.x - mLayoutMarginLeft;
@@ -351,7 +351,7 @@ public class BlockView extends FrameLayout {
                 mBlockBorderPatches.get(i).draw(c);
             }
         } else if (mHighlightConnection != null) {
-            int rtlSign = mHelper.useRtL() ? -1 : +1;
+            int rtlSign = mHelper.useRtl() ? -1 : +1;
             if (mHighlightConnection == mBlock.getOutputConnection()) {
             } else if (mHighlightConnection == mBlock.getPreviousConnection()) {
             } else if (mHighlightConnection == mBlock.getNextConnection()) {
@@ -917,7 +917,7 @@ public class BlockView extends FrameLayout {
      * <p/>
      * An inline input is usually drawn with an input 9-patch and three rects for padding between
      * inputs: one above, one below, and one after (i.e., to  the right in LtR and to the left in
-     * RtL).
+     * RTL).
      *
      * @param i The index of the input in the block.
      * @param inlineRowIdx The (horizontal) index of the input in the current input row.
@@ -1081,12 +1081,12 @@ public class BlockView extends FrameLayout {
                     conn.getPosition().x - mBlock.getPosition().x,
                     conn.getPosition().y - mBlock.getPosition().y);
             mHelper.workspaceToVirtualViewDelta(mTempWorkspacePoint, mTempConnectionPosition);
-            if (mHelper.useRtL()) {
-                // In RtL mode, add block view size to x coordinate. This is counter-intuitive, but
+            if (mHelper.useRtl()) {
+                // In RTL mode, add block view size to x coordinate. This is counter-intuitive, but
                 // equivalent to "x = size - (-x)", with the inner negation "-x" undoing the
                 // side-effect of workspaceToVirtualViewDelta reversing the x coordinate. This is,
                 // the addition mirrors the re-negated in-block x coordinate w.r.t. the right-hand
-                // side of the block view, which is the origin of the block in RtL mode.
+                // side of the block view, which is the origin of the block in RTL mode.
                 mTempConnectionPosition.x += mBlockViewSize.x;
             }
             c.drawCircle(mTempConnectionPosition.x, mTempConnectionPosition.y, 10, paint);
@@ -1176,10 +1176,10 @@ public class BlockView extends FrameLayout {
      * rectangle of different size (or with unaligned position) between them. If this assumption is
      * violated, call {@link #finishFillRect()} prior to the next call to this method.
      *
-     * @param left Left coordinate of the new rectangle in LtR mode. In RtL mode, coordinates are
+     * @param left Left coordinate of the new rectangle in LtR mode. In RTL mode, coordinates are
      * automatically flipped when the rectangle is committed by calling {@link #finishFillRect()}.
      * @param top Top coordinate of the new rectangle.
-     * @param right Right coordinate of the new rectangle in LtR mode. In RtL mode, coordinates are
+     * @param right Right coordinate of the new rectangle in LtR mode. In RTL mode, coordinates are
      * automatically flipped when the rectangle is committed by calling {@link #finishFillRect()}.
      * @param bottom Bottom coordinate of the new rectangle.
      */
@@ -1209,7 +1209,7 @@ public class BlockView extends FrameLayout {
      * coordinates, respectively. That makes client code more readable in places where the rectangle
      * is naturally defined by its origin and size.
      *
-     * @param left Left coordinate of the new rectangle in LtR mode. In RtL mode, coordinates are
+     * @param left Left coordinate of the new rectangle in LtR mode. In RTL mode, coordinates are
      * automatically flipped when the rectangle is committed by calling {@link #finishFillRect()}.
      * @param top Top coordinate of the new rectangle.
      * @param width Width of the new rectangle.
@@ -1238,8 +1238,8 @@ public class BlockView extends FrameLayout {
             mNextFillRect.bottom = Math.min(mNextFillRect.bottom,
                     mBlockContentHeight - mPatchManager.mBlockBottomPadding);
 
-            // In RtL mode, mirror Rect w.r.t. right-hand side of the block area.
-            if (mHelper.useRtL()) {
+            // In RTL mode, mirror Rect w.r.t. right-hand side of the block area.
+            if (mHelper.useRtl()) {
                 final int left = mNextFillRect.left;
                 mNextFillRect.left = mBlockViewSize.x - mNextFillRect.right;
                 mNextFillRect.right = mBlockViewSize.x - left;
@@ -1251,7 +1251,7 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Set bounds of a {@link Drawable}, flipping horizontal bounds in RtL mode.
+     * Set bounds of a {@link Drawable}, flipping horizontal bounds in RTL mode.
      *
      * @param drawable The drawable whose bounds to set.
      * @param ltrStart The new left coordinate in LtR mode.
@@ -1261,7 +1261,7 @@ public class BlockView extends FrameLayout {
      */
     private void setBoundsMaybeFlip(
             Drawable drawable, int ltrStart, int top, int ltrEnd, int bottom) {
-        if (mHelper.useRtL()) {
+        if (mHelper.useRtl()) {
             int rtlStart = mBlockViewSize.x - ltrStart;
             int rtlEnd = mBlockViewSize.x - ltrEnd;
             drawable.setBounds(rtlEnd, top, rtlStart, bottom);
@@ -1271,7 +1271,7 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Set identical bounds on two {@link Drawable}s, flipping horizontal bounds in RtL mode.
+     * Set identical bounds on two {@link Drawable}s, flipping horizontal bounds in RTL mode.
      *
      * @param first The first drawable whose bounds to set.
      * @param second The second drawable whose bounds to set.
@@ -1282,7 +1282,7 @@ public class BlockView extends FrameLayout {
      */
     private void setBoundsMaybeFlip(
             Drawable first, Drawable second, int ltrStart, int top, int ltrEnd, int bottom) {
-        if (mHelper.useRtL()) {
+        if (mHelper.useRtl()) {
             int rtlStart = mBlockViewSize.x - ltrStart;
             int rtlEnd = mBlockViewSize.x - ltrEnd;
             first.setBounds(rtlEnd, top, rtlStart, bottom);
@@ -1294,14 +1294,14 @@ public class BlockView extends FrameLayout {
     }
 
     /**
-     * Set a {@link ViewPoint} and flip x coordinate in RtL mode.
+     * Set a {@link ViewPoint} and flip x coordinate in RTL mode.
      *
      * @param viewPoint The point in view coordinates to set.
      * @param x The new x coordinate in LtR mode.
      * @param y The  new y coordinate.
      */
     private void setPointMaybeFlip(ViewPoint viewPoint, int x, int y) {
-        viewPoint.set(mHelper.useRtL() ? -x : x, y);
+        viewPoint.set(mHelper.useRtl() ? -x : x, y);
     }
 
     private NinePatchDrawable getColoredPatchDrawable(int id) {
