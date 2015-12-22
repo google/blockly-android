@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * View representation of an {@link Input} to a {@link com.google.blockly.model.Block}.
  */
-public class InputView extends ViewGroup {
+public class InputView extends NonPropagatingViewGroup {
     private static final String TAG = "InputView";
 
     // The horizontal distance between fields, in dips.

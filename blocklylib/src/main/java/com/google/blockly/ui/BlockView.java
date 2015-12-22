@@ -29,7 +29,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
-import android.widget.FrameLayout;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
@@ -45,7 +44,7 @@ import java.util.List;
  * Draws a block and handles laying out all its inputs/fields.
  */
 @SuppressLint("ViewConstructor")
-public class BlockView extends FrameLayout {
+public class BlockView extends NonPropagatingViewGroup {
     // TODO: Replace with dimens so it gets scaled correctly, or better yet, somehow derive from
     // ninepatch measurements.
     private static final int MIN_BLOCK_WIDTH = 40;
@@ -131,6 +130,9 @@ public class BlockView extends FrameLayout {
         mHelper = helper;
         mTouchHandler = touchHandler;
         mPatchManager = mHelper.getPatchManager();  // Shortcut.
+
+        setClickable(true);
+        setFocusable(true);
 
         block.setView(this);
         createInputViews();  // BlockView is responsible for creating InputViews.

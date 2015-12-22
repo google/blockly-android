@@ -7,7 +7,6 @@ import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.ViewGroup;
 
 import com.google.blockly.R;
 
@@ -17,7 +16,7 @@ import com.google.blockly.R;
  * This view class provides a viewport-sized window into a larger workspace and supports panning and
  * zoom.
  */
-public class VirtualWorkspaceView extends ViewGroup {
+public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private static final String TAG = "VirtualWorkspaceView";
     private static final boolean DEBUG = true;
 

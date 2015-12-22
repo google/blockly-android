@@ -17,7 +17,6 @@ package com.google.blockly.ui;
 
 import android.content.Context;
 import android.view.View;
-import android.view.ViewGroup;
 
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
@@ -28,7 +27,7 @@ import com.google.blockly.model.WorkspacePoint;
 /**
  * This wraps a set of sequential {@link BlockView} instances.
  */
-public class BlockGroup extends ViewGroup {
+public class BlockGroup extends NonPropagatingViewGroup {
     private static final String TAG = "BlockGroup";
 
     private final WorkspaceHelper mWorkspaceHelper;

@@ -25,7 +25,6 @@ import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewGroup;
 
 import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Workspace;
@@ -38,7 +37,7 @@ import java.lang.annotation.RetentionPolicy;
  * is responsible for handling drags. A drag on the workspace will move the viewport and a drag on a
  * block or stack of blocks will drag those within the workspace.
  */
-public class WorkspaceView extends ViewGroup {
+public class WorkspaceView extends NonPropagatingViewGroup {
     private static final String TAG = "WorkspaceView";
     private static final boolean DEBUG = true;
     public static final String BLOCK_GROUP_CLIP_DATA_LABEL = "BlockGroupClipData";
