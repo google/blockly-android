@@ -20,7 +20,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
-import android.graphics.ColorMatrixColorFilter;
+import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -650,12 +650,12 @@ public class BlockView extends FrameLayout {
 
     private void initDrawingObjects() {
         final int blockColor = mBlock.getColour();
-        mBlockColorFilter = new ColorMatrixColorFilter(new float[]{
-                0, 0, 0, Color.red(blockColor) / 255f, 0,
-                0, 0, 0, Color.green(blockColor) / 255f, 0,
-                0, 0, 0, Color.blue(blockColor) / 255f, 0,
-                0, 0, 0, 1, 0
-        });
+
+        // Highlight color channels are added to each color multiplied color channel, and since the
+        // patches are 50% gray, the addition should be 50% of the base value.
+        final int highlight = Color.argb(255, Color.red(blockColor) / 2,
+                Color.green(blockColor) / 2, Color.blue(blockColor) / 2);
+        mBlockColorFilter = new LightingColorFilter(blockColor, highlight);
 
         mFillPaint.setColor(mBlock.getColour());
         mFillPaint.setStyle(Paint.Style.FILL);
