@@ -24,6 +24,7 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
+            android:taskAffinity="com.google.blockly.demo.MainActivity"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,7 +34,9 @@
 
         <activity
             android:name=".SplitActivity"
-            android:label="@string/split_activity_name">
+            android:label="@string/split_activity_name"
+            android:taskAffinity="com.google.blockly.demo.SplitActivity"
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -42,7 +45,9 @@
 
         <activity
             android:name=".TurtleActivity"
-            android:label="@string/turtle_activity_name">
+            android:label="@string/turtle_activity_name"
+            android:taskAffinity="com.google.blockly.demo.TurtleActivity"
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
