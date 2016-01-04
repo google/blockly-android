@@ -51,7 +51,6 @@ public class WorkspaceFragment extends Fragment {
                 (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
 
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
-        mWorkspaceView.setWorkspace(mWorkspace);
 
         final VirtualWorkspaceView virtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
