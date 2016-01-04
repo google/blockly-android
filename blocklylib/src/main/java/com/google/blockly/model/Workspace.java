@@ -243,6 +243,8 @@ public class Workspace {
      */
     public void initWorkspaceView(final WorkspaceView wv) {
         mWorkspaceView = wv;
+        mWorkspaceView.setWorkspace(this);
+
         mWorkspaceHelper.setWorkspaceView(wv);
         // Tell the workspace helper to pass onTouchBlock events straight through to the WSView.
         mTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
