@@ -550,5 +550,7 @@ public class WorkspaceHelper {
          * @return whether the {@link WorkspaceView} has handled the touch event.
          */
         abstract public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent);
+
+        abstract public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent);
     }
 }

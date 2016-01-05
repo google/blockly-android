@@ -180,6 +180,11 @@ public class BlockView extends FrameLayout {
     }
 
     @Override
+    public boolean onInterceptTouchEvent(MotionEvent event) {
+        return hitTest(event) && mTouchHandler.onInterceptTouchEvent(this, event);
+    }
+
+    @Override
     protected void onDraw(Canvas c) {
         for (int i = 0; i < mFillRects.size(); ++i) {
             c.drawRect(mFillRects.get(i), mFillPaint);

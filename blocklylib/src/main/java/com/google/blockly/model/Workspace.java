@@ -252,6 +252,11 @@ public class Workspace {
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
                 return wv.onTouchBlock(blockView, motionEvent);
             }
+
+            @Override
+            public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
+                return wv.onInterceptTouchEvent(blockView, motionEvent);
+            }
         };
         mDragger.setWorkspaceView(mWorkspaceView);
         mWorkspaceView.setDragger(mDragger);

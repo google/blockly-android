@@ -82,6 +82,11 @@ public class ToolboxFragment extends Fragment {
                 mWorkspace.addBlockFromToolbox(copiedModel, motionEvent, ToolboxFragment.this);
                 return true;
             }
+
+            @Override
+            public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
+                return false;
+            }
         };
     }
 
