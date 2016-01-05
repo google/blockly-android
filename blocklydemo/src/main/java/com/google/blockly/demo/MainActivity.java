@@ -21,7 +21,7 @@ import android.widget.ListAdapter;
 import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.NavigationDrawerFragment;
-import com.google.blockly.model.Workspace;
+import com.google.blockly.control.BlocklyController;
 
 
 /**
@@ -71,9 +71,9 @@ public class MainActivity extends BlocklySectionsActivity
     }
 
     @Override
-    protected Workspace onConfigureWorkspace() {
-        Workspace ws = super.onConfigureWorkspace();
-        MockBlocksProvider.makeComplexModel(ws);
-        return ws;
+    protected BlocklyController onConfigureBlockly() {
+        BlocklyController controller = super.onConfigureBlockly();
+        MockBlocksProvider.makeComplexModel(controller.getWorkspace());
+        return controller;
     }
 }

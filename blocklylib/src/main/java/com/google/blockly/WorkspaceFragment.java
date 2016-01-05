@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
+import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.VirtualWorkspaceView;
 import com.google.blockly.ui.WorkspaceView;
@@ -36,16 +37,18 @@ public class WorkspaceFragment extends Fragment {
      * fragment.
      */
     private static final String ARG_BUILD_DEBUG_MODEL = "debug_model";
-    private WorkspaceView mWorkspaceView;
+
+    private BlocklyController mController;
     private Workspace mWorkspace;
+    private WorkspaceView mWorkspaceView;
     private View.OnClickListener mTrashClickListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if (mWorkspace == null) {
+        if (mController == null) {
             throw new IllegalStateException(
-                    "A Workspace must be set before this fragment's view is created.");
+                    "A controller must be set before this fragment's view is created.");
         }
         final ViewGroup rootView =
                 (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
@@ -90,13 +93,21 @@ public class WorkspaceFragment extends Fragment {
     }
 
     /**
-     * Sets the workspace to use in this fragment for instantiating views. This should be the same
-     * workspace used for an associated {@link ToolboxFragment} or {@link TrashFragment}.
+     * Sets the controller to use in this fragment for instantiating views. This should be the same
+     * controller used for an associated {@link ToolboxFragment} or {@link TrashFragment}.
      *
-     * @param workspace The workspace backing this fragment.
+     * @param controller The controller backing this fragment.
      */
-    public void setWorkspace(Workspace workspace) {
-        mWorkspace = workspace;
+    public void setController(BlocklyController controller) {
+        if (controller == mController) {
+            return; // no-op
+        }
+
+        // Reset...
+        mTrashClickListener = null;
+
+        mController = controller;
+        mWorkspace = (controller == null) ? null : mController.getWorkspace();
     }
 
     /**

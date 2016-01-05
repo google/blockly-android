@@ -3,7 +3,7 @@ package com.google.blockly.model;
 import android.test.AndroidTestCase;
 
 import com.google.blockly.R;
-import com.google.blockly.ui.WorkspaceView;
+import com.google.blockly.control.BlocklyController;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,28 +22,36 @@ public class WorkspaceTest extends AndroidTestCase {
 
     public static final String EMPTY_WORKSPACE =
             "<xml xmlns=\"http://www.w3.org/1999/xhtml\" />";
+    private Workspace mWorkspace;
 
-    private static ByteArrayInputStream assembleWorkspace(String interior) {
-        return new ByteArrayInputStream(
-                (WORKSPACE_XML_START + interior + WORKSPACE_XML_END).getBytes());
-    }
-
-    public void testXmlParsing() {
+    @Override
+    protected void setUp() throws Exception {
         // TODO: Move test_blocks.json to the testapp's resources once
         // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
-        Workspace.Builder bob = new Workspace.Builder(getContext());
-        bob.addBlockDefinitions(R.raw.test_blocks);
-        Workspace workspace = bob.build();
-        workspace.initWorkspaceView(new WorkspaceView(getContext()));
-        workspace.loadFromXml(assembleWorkspace(""));
-        assertEquals("Workspace should be empty", 0, workspace.getRootBlocks().size());
-        workspace.loadFromXml(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK));
-        assertEquals("Workspace should have one block", 1, workspace.getRootBlocks().size());
-        workspace.loadFromXml(new ByteArrayInputStream(EMPTY_WORKSPACE.getBytes()));
-        assertEquals("Workspace should be empty", 0, workspace.getRootBlocks().size());
+        BlocklyController.Builder builder = new BlocklyController.Builder(getContext());
+        builder.addBlockDefinitions(R.raw.test_blocks);
+        BlocklyController controller = builder.build();
+        mWorkspace = controller.getWorkspace();
+    }
 
+    public void testSimpleXmlParsing() {
+        mWorkspace.loadWorkspaceContents(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK));
+        assertEquals("Workspace should have one block", 1, mWorkspace.getRootBlocks().size());
+    }
+
+    public void testEmptyXmlParsing() {
+        // Normal end tag.
+        mWorkspace.loadWorkspaceContents(assembleWorkspace(""));
+        assertEquals("Workspace should be empty", 0, mWorkspace.getRootBlocks().size());
+
+        // Abbreviated end tag.
+        mWorkspace.loadWorkspaceContents(new ByteArrayInputStream(EMPTY_WORKSPACE.getBytes()));
+        assertEquals("Workspace should be empty", 0, mWorkspace.getRootBlocks().size());
+    }
+
+    public void testBadXmlParsing() {
         try {
-            workspace.loadFromXml(assembleWorkspace(BAD_XML));
+            mWorkspace.loadWorkspaceContents(assembleWorkspace(BAD_XML));
             fail("Should have thrown a BlocklyParseException.");
         } catch (BlocklyParserException expected) {
             // expected
@@ -51,11 +59,13 @@ public class WorkspaceTest extends AndroidTestCase {
     }
 
     public void testSerialization() throws BlocklySerializerException {
-        Workspace.Builder bob = new Workspace.Builder(getContext());
-        bob.addBlockDefinitions(R.raw.test_blocks);
-        Workspace workspace = bob.build();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        workspace.serializeToXml(os);
+        mWorkspace.serializeToXml(os);
         assertEquals(EMPTY_WORKSPACE, os.toString());
+    }
+
+    private static ByteArrayInputStream assembleWorkspace(String interior) {
+        return new ByteArrayInputStream(
+                (WORKSPACE_XML_START + interior + WORKSPACE_XML_END).getBytes());
     }
 }

@@ -18,14 +18,8 @@ package com.google.blockly;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.google.blockly.model.Block;
-import com.google.blockly.ui.BlockGroup;
-import com.google.blockly.ui.BlockView;
-import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Fragment for viewing the contents of the trash can.
