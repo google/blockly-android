@@ -34,9 +34,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Handles updating the viewport into the workspace and is the parent view for all blocks. This
- * view is responsible for handling drags. A drag on the workspace will move the viewport and a
- * drag on a block or stack of blocks will drag those within the workspace.
+ * Handles updating the viewport into the workspace and is the parent view for all blocks. This view
+ * is responsible for handling drags. A drag on the workspace will move the viewport and a drag on a
+ * block or stack of blocks will drag those within the workspace.
  */
 public class WorkspaceView extends ViewGroup {
     private static final String TAG = "WorkspaceView";
@@ -84,6 +84,59 @@ public class WorkspaceView extends ViewGroup {
         setOnDragListener(new WorkspaceDragEventListener());
     }
 
+    @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height = MeasureSpec.getSize(heightMeasureSpec);
+
+        mBlocksBoundingBox.setEmpty();
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            BlockGroup blockGroup = (BlockGroup) getChildAt(i);
+            blockGroup.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+
+            // Determine this BlockGroup's bounds in view coordinates and extend boundaries
+            // accordingly. Do NOT use mHelper.workspaceToVirtualViewCoordinates below, since we want the
+            // bounding box independent of scroll offset.
+            mHelper.workspaceToVirtualViewDelta(blockGroup.getTopBlockPosition(), mTemp);
+            if (mHelper.useRtl()) {
+                mTemp.x -= blockGroup.getMeasuredWidth();
+            }
+
+            mBlocksBoundingBox.union(mTemp.x, mTemp.y,
+                    mTemp.x + blockGroup.getMeasuredWidth(),
+                    mTemp.y + blockGroup.getMeasuredHeight());
+        }
+
+        setMeasuredDimension(width, height);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        int childCount = getChildCount();
+
+        for (int i = 0; i < childCount; i++) {
+            View child = getChildAt(i);
+            if (child.getVisibility() == GONE) {
+                continue;
+            }
+            if (child instanceof BlockGroup) {
+                BlockGroup bg = (BlockGroup) child;
+
+                // Get view coordinates of child from its workspace coordinates. Note that unlike
+                // onMeasure() above, workspaceToVirtualViewCoordinates() must be used for
+                // conversion here, so view scroll offset is properly applied for positioning.
+                mHelper.workspaceToVirtualViewCoordinates(bg.getTopBlockPosition(), mTemp);
+                if (mHelper.useRtl()) {
+                    mTemp.x -= bg.getMeasuredWidth();
+                }
+
+                child.layout(mTemp.x, mTemp.y,
+                        mTemp.x + bg.getMeasuredWidth(), mTemp.y + bg.getMeasuredHeight());
+            }
+        }
+    }
+
     public Workspace getWorkspace() {
         return mWorkspace;
     }
@@ -123,33 +176,6 @@ public class WorkspaceView extends ViewGroup {
         return mBlocksBoundingBox;
     }
 
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = MeasureSpec.getSize(heightMeasureSpec);
-
-        mBlocksBoundingBox.setEmpty();
-        int childCount = getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            BlockGroup blockGroup = (BlockGroup) getChildAt(i);
-            blockGroup.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
-
-            // Determine this BlockGroup's bounds in view coordinates and extend boundaries
-            // accordingly. Do NOT use mHelper.workspaceToVirtualViewCoordinates below, since we want the
-            // bounding box independent of scroll offset.
-            mHelper.workspaceToVirtualViewDelta(blockGroup.getTopBlockPosition(), mTemp);
-            if (mHelper.useRtl()) {
-                mTemp.x -= blockGroup.getMeasuredWidth();
-            }
-
-            mBlocksBoundingBox.union(mTemp.x, mTemp.y,
-                    mTemp.x + blockGroup.getMeasuredWidth(),
-                    mTemp.y + blockGroup.getMeasuredHeight());
-        }
-
-        setMeasuredDimension(width, height);
-    }
-
     /**
      * Update the {@link View} for the trash can, which will be passed to the dragger that moves
      * blocks in this view.
@@ -164,8 +190,8 @@ public class WorkspaceView extends ViewGroup {
     }
 
     /**
-     * Record information that will be useful during a drag, including which pointer to use (in
-     * case of multitouch) and which block will be dragged.
+     * Record information that will be useful during a drag, including which pointer to use (in case
+     * of multitouch) and which block will be dragged.
      *
      * @param blockView The {@link BlockView} that will be dragged.
      * @param event The {@link MotionEvent} that starts the drag.
@@ -175,21 +201,6 @@ public class WorkspaceView extends ViewGroup {
         mTouchState = TOUCH_STATE_DOWN;
         mDraggingPointerId =
                 MotionEventCompat.getPointerId(event, MotionEventCompat.getActionIndex(event));
-    }
-
-    /**
-     * Sets the block view currently being dragged, and marks it 'pressed'.
-     *
-     * @param blockView The {@link BlockView} that will be dragged.
-     */
-    protected void setDraggingBlockView(BlockView blockView) {
-        if (mDraggingBlockView != null) {
-            mDraggingBlockView.setPressed(false);
-        }
-        mDraggingBlockView = blockView;
-        if (mDraggingBlockView != null) {
-            mDraggingBlockView.setPressed(true);
-        }
     }
 
     /**
@@ -215,20 +226,26 @@ public class WorkspaceView extends ViewGroup {
     }
 
     /**
-     * Let this instance know that a block was touched.
-     * This will be called when the block has been touched but a drag has not yet been started.
+     * Let this instance know that a block was touched. This will be called when the block has been
+     * touched but a drag has not yet been started.
      *
      * @param blockView The {@link BlockView} that detected a touch event.
      * @param event The touch event.
-     *
      * @return true if the WorkspaceView has started dragging the given {@link BlockView} or
      * recorded it as draggable.
      */
     public boolean onTouchBlock(BlockView blockView, MotionEvent event) {
+        // Handle the case when the user releases before moving far enough to start a drag.
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            resetDragState();
+            return true;
+        }
+
         // Only initiate dragging of given view if in idle state - this prevents occluded blocks
         // from grabbing drag focus because they saw an unconsumed Down event before it propagated
         // back up to this WorkspaceView.
-        if (mTouchState == TOUCH_STATE_NONE) {
+
+        if (event.getAction() == MotionEvent.ACTION_DOWN && mTouchState == TOUCH_STATE_NONE) {
             setDragFocus(blockView, event);
         }
         return (mTouchState == TOUCH_STATE_DOWN || mTouchState == TOUCH_STATE_DRAGGING)
@@ -236,10 +253,35 @@ public class WorkspaceView extends ViewGroup {
     }
 
     /**
+     * Clear the {@link WorkspaceView} dragging state, such as which {@link BlockView} had been
+     * touched.
+     */
+    public void resetDragState() {
+        mTouchState = TOUCH_STATE_NONE;
+        mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;
+        setDraggingBlockView(null);
+    }
+
+    /**
+     * Sets the block view currently being dragged, and marks it 'pressed'.
+     *
+     * @param blockView The {@link BlockView} that will be dragged.
+     */
+    protected void setDraggingBlockView(BlockView blockView) {
+        if (mDraggingBlockView != null) {
+            mDraggingBlockView.setPressed(false);
+        }
+        mDraggingBlockView = blockView;
+        if (mDraggingBlockView != null) {
+            mDraggingBlockView.setPressed(true);
+        }
+    }
+
+    /**
      * Handle motion events while starting to drag a block.  This keeps track of whether the block
-     * has been dragged more than {@code mTouchSlop} and starts a drag if necessary.
-     * Once the drag has been started, all following events will be handled through the
-     * {@link com.google.blockly.ui.WorkspaceView.WorkspaceDragEventListener}.
+     * has been dragged more than {@code mTouchSlop} and starts a drag if necessary. Once the drag
+     * has been started, all following events will be handled through the {@link
+     * com.google.blockly.ui.WorkspaceView.WorkspaceDragEventListener}.
      *
      * @return True if the event was ACTION_DOWN or ACTION_MOVE, false otherwise.
      */
@@ -282,32 +324,6 @@ public class WorkspaceView extends ViewGroup {
         }
     }
 
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        int childCount = getChildCount();
-
-        for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i);
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-            if (child instanceof BlockGroup) {
-                BlockGroup bg = (BlockGroup) child;
-
-                // Get view coordinates of child from its workspace coordinates. Note that unlike
-                // onMeasure() above, workspaceToVirtualViewCoordinates() must be used for
-                // conversion here, so view scroll offset is properly applied for positioning.
-                mHelper.workspaceToVirtualViewCoordinates(bg.getTopBlockPosition(), mTemp);
-                if (mHelper.useRtl()) {
-                    mTemp.x -= bg.getMeasuredWidth();
-                }
-
-                child.layout(mTemp.x, mTemp.y,
-                        mTemp.x + bg.getMeasuredWidth(), mTemp.y + bg.getMeasuredHeight());
-            }
-        }
-    }
-
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({TOUCH_STATE_NONE, TOUCH_STATE_DOWN, TOUCH_STATE_DRAGGING, TOUCH_STATE_LONGPRESS})
     public @interface TouchState {
@@ -340,9 +356,7 @@ public class WorkspaceView extends ViewGroup {
                             mDragger.finishDragging();
                         }
                     }
-                    mTouchState = TOUCH_STATE_NONE;
-                    mDraggingPointerId = MotionEvent.INVALID_POINTER_ID;
-                    setDraggingBlockView(null);
+                    resetDragState();
                     return true;
                 default:
                     return false;
