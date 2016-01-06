@@ -43,13 +43,6 @@ import java.util.List;
 
 /**
  * Draws a block and handles laying out all its inputs/fields.
- * <p/>
- * Known issues:
- * <ul>
- *     <li>Connector or block highlighting is not implemented. Related, support for drawing over
- *     neighbouring blocks is not yet implemented (this is needed for highlighting in the style of
- *     Web Blockly).</li>
- * </ul>
  */
 @SuppressLint("ViewConstructor")
 public class BlockView extends FrameLayout {
