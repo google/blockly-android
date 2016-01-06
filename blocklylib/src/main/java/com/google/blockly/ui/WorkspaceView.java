@@ -25,7 +25,6 @@ import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewGroup;
 
 import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Workspace;
@@ -38,7 +37,7 @@ import java.lang.annotation.RetentionPolicy;
  * is responsible for handling drags. A drag on the workspace will move the viewport and a drag on a
  * block or stack of blocks will drag those within the workspace.
  */
-public class WorkspaceView extends ViewGroup {
+public class WorkspaceView extends NonPropagatingViewGroup {
     private static final String TAG = "WorkspaceView";
     private static final boolean DEBUG = true;
     public static final String BLOCK_GROUP_CLIP_DATA_LABEL = "BlockGroupClipData";
@@ -238,12 +237,13 @@ public class WorkspaceView extends ViewGroup {
     public boolean onTouchBlock(BlockView blockView, MotionEvent event) {
         final int action = MotionEventCompat.getActionMasked(event);
         // Handle the case when the user releases before moving far enough to start a drag.
-        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+        if (action == MotionEvent.ACTION_UP) {
             resetDragState();
             return true;
         }
 
         return mTouchState == TOUCH_STATE_DOWN;
+        // TODO(fenichel): what about ACTION_CANCEL?
 
         // Only initiate dragging of given view if in idle state - this prevents occluded blocks
         // from grabbing drag focus because they saw an unconsumed Down event before it propagated
@@ -359,15 +359,15 @@ public class WorkspaceView extends ViewGroup {
             final int action = event.getAction();
             switch (action) {
                 case DragEvent.ACTION_DRAG_STARTED:
-                    return true;
-                case DragEvent.ACTION_DRAG_ENTERED:
-                    return true;
+                    return true;    // We want to keep listening for drag events
                 case DragEvent.ACTION_DRAG_LOCATION:
                     mDragger.continueDragging(event);
-                    return true;
-                case DragEvent.ACTION_DRAG_EXITED:
+                    break;
                 case DragEvent.ACTION_DRAG_ENDED:
-                    return false;
+                    if (event.getResult()) {
+                        break;
+                    }
+                    // Otherwise fall through
                 case DragEvent.ACTION_DROP:
                     // Finalize dragging and reset dragging state flags.
                     // These state flags are still used in the initial phase of figuring out if a
@@ -381,11 +381,11 @@ public class WorkspaceView extends ViewGroup {
                         }
                     }
                     resetDragState();
-                    return true;
+                    return true;    // The drop succeeded.
                 default:
-                    return false;
-
+                    break;
             }
+            return false;   // In every case that gets here, the return value won't be checked.
         }
     }
 

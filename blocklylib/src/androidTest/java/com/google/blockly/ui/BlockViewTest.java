@@ -19,6 +19,8 @@ import org.mockito.Mockito;
 @SmallTest
 public class BlockViewTest extends MockitoAndroidTestCase {
 
+    private BlockFactory mBlockFactory;
+
     @Mock
     private ConnectionManager mMockConnectionManager;
 
@@ -26,19 +28,19 @@ public class BlockViewTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mMockWorkspaceHelper;
 
     @Mock
+    private WorkspaceView mMockWorkspaceView;
+
+    @Mock
     private Block mMockBlock;
 
     @Mock
     private BlockGroup mMockBlockGroup;
 
-    private BlockFactory mBlockFactory;
-
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        mBlockFactory = new BlockFactory(getContext());
-        mBlockFactory.addBlocks(R.raw.test_blocks);
+        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
     }
 
     // Verify correct object state after construction.

@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * View representation of an {@link Input} to a {@link com.google.blockly.model.Block}.
  */
-public class InputView extends ViewGroup {
+public class InputView extends NonPropagatingViewGroup {
     private static final String TAG = "InputView";
 
     // The horizontal distance between fields, in dips.
@@ -198,11 +198,12 @@ public class InputView extends ViewGroup {
     }
 
     /**
-     * @return True if and only if a coordinate is on the fields of this view (any connected inputs
-     * should handle events themselves and are thus not allowed here).
+     * @return True if and only if a coordinate is on the fields of this view, including the padding
+     * to the left and right of the fields.  Any connected inputs should handle events themselves
+     * and are thus not allowed here.
      */
     public boolean isOnFields(int eventX, int eventY) {
-        return (eventX >= 0 && eventX < mFieldLayoutWidth) &&
+        return (eventX >= 0 && eventX < (mFieldLayoutWidth + mPatchManager.mBlockTotalPaddingX)) &&
                 eventY >= 0 && eventY < mRowHeight;
     }
 
