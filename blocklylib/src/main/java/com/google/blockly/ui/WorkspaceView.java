@@ -236,16 +236,19 @@ public class WorkspaceView extends ViewGroup {
      */
     public boolean onTouchBlock(BlockView blockView, MotionEvent event) {
         // Handle the case when the user releases before moving far enough to start a drag.
-        if (event.getAction() == MotionEvent.ACTION_UP) {
+        final int action = event.getAction();
+        if (action == MotionEvent.ACTION_UP) {
             resetDragState();
             return true;
         }
+
+        // TODO(fenichel): what about ACTION_CANCEL?
 
         // Only initiate dragging of given view if in idle state - this prevents occluded blocks
         // from grabbing drag focus because they saw an unconsumed Down event before it propagated
         // back up to this WorkspaceView.
 
-        if (event.getAction() == MotionEvent.ACTION_DOWN && mTouchState == TOUCH_STATE_NONE) {
+        if (action == MotionEvent.ACTION_DOWN && mTouchState == TOUCH_STATE_NONE) {
             setDragFocus(blockView, event);
         }
         return (mTouchState == TOUCH_STATE_DOWN || mTouchState == TOUCH_STATE_DRAGGING)
@@ -335,15 +338,15 @@ public class WorkspaceView extends ViewGroup {
             final int action = event.getAction();
             switch (action) {
                 case DragEvent.ACTION_DRAG_STARTED:
-                    return true;
-                case DragEvent.ACTION_DRAG_ENTERED:
-                    return true;
+                    return true;    // We want to keep listening for drag events
                 case DragEvent.ACTION_DRAG_LOCATION:
                     mDragger.continueDragging(event);
-                    return true;
-                case DragEvent.ACTION_DRAG_EXITED:
+                    break;
                 case DragEvent.ACTION_DRAG_ENDED:
-                    return false;
+                    if (event.getResult()) {
+                        break;
+                    }
+                    // Otherwise fall through
                 case DragEvent.ACTION_DROP:
                     // Finalize dragging and reset dragging state flags.
                     // These state flags are still used in the initial phase of figuring out if a
@@ -357,11 +360,11 @@ public class WorkspaceView extends ViewGroup {
                         }
                     }
                     resetDragState();
-                    return true;
+                    return true;    // The drop succeeded.
                 default:
-                    return false;
-
+                    break;
             }
+            return false;   // In every case that gets here, the return value won't be checked.
         }
     }
 
