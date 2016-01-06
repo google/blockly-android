@@ -16,6 +16,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            // To generate code coverage run './gradlew connectedCheck'.
+            // Coverage report at blocklylib/build/reports/coverage/debug/index.html
+            testCoverageEnabled true
+        }
     }
 
     packagingOptions {
