@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,7 +54,7 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     private static final int TOUCH_STATE_LONGPRESS = 3;
     private final ViewPoint mTemp = new ViewPoint();
     // Distance threshold for detecting drag gestures.
-    private final float mTouchSlop;
+    private final float mTouchSlopSquared;
     private final ViewPoint mDraggingStart = new ViewPoint();
     // Viewport bounds. These define the bounding box of all blocks, in view coordinates, and
     // are used to determine ranges and offsets for scrolling.
@@ -82,7 +82,8 @@ public class WorkspaceView extends NonPropagatingViewGroup {
 
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        float touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        mTouchSlopSquared = touchSlop * touchSlop;
         setOnDragListener(new WorkspaceDragEventListener());
     }
 
@@ -289,9 +290,9 @@ public class WorkspaceView extends NonPropagatingViewGroup {
 
     /**
      * Handle motion events while starting to drag a block.  This keeps track of whether the block
-     * has been dragged more than {@code mTouchSlop} and starts a drag if necessary. Once the drag
-     * has been started, all following events will be handled through the {@link
-     * com.google.blockly.ui.WorkspaceView.WorkspaceDragEventListener}.
+     * has been dragged more than {@code ViewConfiguration#getScaledTouchSlop()} and starts a drag
+     * if necessary. Once the drag has been started, all following events will be handled through
+     * the {@link WorkspaceView.WorkspaceDragEventListener}.
      *
      * @return True if the event was ACTION_DOWN or ACTION_MOVE, false otherwise.
      */
@@ -322,7 +323,7 @@ public class WorkspaceView extends NonPropagatingViewGroup {
                     final float deltaY = mDraggingStart.y -
                             MotionEventCompat.getY(event, pointerIdx);
 
-                    if (Math.sqrt(deltaX * deltaX + deltaY * deltaY) >= mTouchSlop) {
+                    if ((deltaX * deltaX + deltaY * deltaY) >= mTouchSlopSquared) {
                         startDrag();
                     }
                 }
