@@ -32,6 +32,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.Toast;
 
+import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
@@ -152,7 +153,7 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         } else if (id == R.id.action_load) {
             Workspace workspace = mWorkspaceFragment.getWorkspace();
             try {
-                workspace.loadFromXml(openFileInput("workspace.xml"));
+                workspace.loadWorkspaceContents(openFileInput("workspace.xml"));
                 workspace.initBlockViews();
             } catch (FileNotFoundException e) {
                 Toast.makeText(getApplicationContext(), "Couldn't find saved workspace.",
@@ -242,7 +243,8 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
 
         // Set up the toolbox that lives inside the trash can.
         mOscar = (TrashFragment) getSupportFragmentManager().findFragmentById(R.id.trash);
-        createWorkspace();
+        getSupportFragmentManager().beginTransaction().hide(mOscar).commit();
+        createController();
     }
 
     /**
@@ -253,30 +255,27 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
      * com.google.blockly.R.layout#activity_blockly}.
      */
     @Override
-    protected Workspace onConfigureWorkspace() {
+    protected BlocklyController onConfigureBlockly() {
         int currLevel = getCurrentSection();
         String toolboxPath = getWorkspaceToolboxPath(currLevel);
         String blockDefsPath = getWorkspaceBlocksPath(currLevel);
         AssetManager assetManager = getAssets();
 
-        Workspace workspace = getWorkspace();
-        if (workspace == null) {
-            Workspace.Builder bob = new Workspace.Builder(this);
-            bob.setBlocklyStyle(R.style.BlocklyTheme);
-
-            bob.setAssetManager(assetManager);
-            bob.addBlockDefinitionsFromAsset(blockDefsPath);
-            bob.setToolboxConfigurationAsset(toolboxPath);
-
-            bob.setWorkspaceFragment(mWorkspaceFragment);
-            bob.setTrashFragment(mOscar);
-            bob.setToolboxFragment(mToolboxFragment, mDrawerLayout);
-            bob.setFragmentManager(getSupportFragmentManager());
-
-            bob.setStartingWorkspaceAsset("default/demo_workspace.xml");
-            workspace = bob.build();
+        BlocklyController controller = getController();
+        if (controller == null) {
+            BlocklyController.Builder builder = new BlocklyController.Builder(this)
+                .setBlocklyStyle(R.style.BlocklyTheme)
+                .setAssetManager(assetManager)
+                .addBlockDefinitionsFromAsset(blockDefsPath)
+                .setToolboxConfigurationAsset(toolboxPath)
+                .setWorkspaceFragment(mWorkspaceFragment)
+                .setTrashFragment(mOscar)
+                .setToolboxFragment(mToolboxFragment, mDrawerLayout)
+                .setFragmentManager(getSupportFragmentManager())
+                .setStartingWorkspaceAsset("default/demo_workspace.xml");
+            controller = builder.build();
         } else {
-            BlockFactory factory = workspace.getBlockFactory();
+            BlockFactory factory = controller.getBlockFactory();
             factory.clear();
 
             try {
@@ -286,13 +285,13 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
                         e);
             }
             try {
-                workspace.loadToolboxContents(assetManager.open(toolboxPath));
+                controller.loadToolboxContents(assetManager.open(toolboxPath));
             } catch (IOException e) {
                 throw new IllegalArgumentException("Error opening toolbox at " + toolboxPath, e);
             }
         }
 
-        return workspace;
+        return controller;
     }
 
     /**
@@ -375,7 +374,7 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
         int oldLevel = mCurrentPosition;
         mCurrentPosition = level;
         mTitle = getWorkspaceTitle(level);
-        createWorkspace();
+        createController();
         onSectionChanged(oldLevel, level);
     }
 

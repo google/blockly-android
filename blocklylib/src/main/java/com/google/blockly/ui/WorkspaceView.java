@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
+import com.google.blockly.control.BlocklyController;
 import com.google.blockly.control.Dragger;
 import com.google.blockly.model.Workspace;
 
@@ -54,13 +55,15 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     private static final int TOUCH_STATE_LONGPRESS = 3;
     private final ViewPoint mTemp = new ViewPoint();
     // Distance threshold for detecting drag gestures.
-    private final float mTouchSlop;
+    private final float mTouchSlopSquared;
     private final ViewPoint mDraggingStart = new ViewPoint();
     // Viewport bounds. These define the bounding box of all blocks, in view coordinates, and
     // are used to determine ranges and offsets for scrolling.
     private final Rect mBlocksBoundingBox = new Rect();
-    private Workspace mWorkspace;
-    private WorkspaceHelper mHelper;
+
+    private BlocklyController mController = null;
+    private Workspace mWorkspace = null;
+    private WorkspaceHelper mHelper = null;
     // Current state of touch interaction with blocks in this workspace view.
     @TouchState
     private int mTouchState = TOUCH_STATE_NONE;
@@ -80,7 +83,8 @@ public class WorkspaceView extends NonPropagatingViewGroup {
 
     public WorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        float touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        mTouchSlopSquared = touchSlop * touchSlop;
         setOnDragListener(new WorkspaceDragEventListener());
     }
 
@@ -144,12 +148,17 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     /**
      * Sets the workspace this view should display.
      *
-     * @param workspace The workspace to load views for.
+     * @param controller The controller for this instance.
      */
-    public void setWorkspace(Workspace workspace) {
-        mWorkspace = workspace;
-        if (workspace != null) {
+    public void setController(BlocklyController controller) {
+        mController = controller;
+
+        if (mController != null) {
+            mWorkspace = mController.getWorkspace();
             mHelper = mWorkspace.getWorkspaceHelper();
+        } else {
+            mWorkspace = null;
+            mHelper = null;
         }
     }
 

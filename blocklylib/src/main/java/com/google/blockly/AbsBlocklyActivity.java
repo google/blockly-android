@@ -18,6 +18,7 @@ package com.google.blockly;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.Workspace;
 
 /**
@@ -28,32 +29,38 @@ public abstract class AbsBlocklyActivity extends AppCompatActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     private static final String TAG = "AbsBlocklyActivity";
 
-    private Workspace mWorkspace;
+    private BlocklyController mController;
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        if (mWorkspace == null) {
-            throw new IllegalArgumentException("A Workspace must have been created in onCreate");
+        if (mController == null) {
+            throw new IllegalArgumentException(
+                    "A BlocklyController must have been created in onCreate");
         }
     }
 
+    public final BlocklyController getController() {
+        return mController;
+    }
+
     public final Workspace getWorkspace() {
-        return mWorkspace;
+        return mController == null ? null : mController.getWorkspace();
     }
 
     /**
-     * Create the workspace if necessary and configures it. This must be called during onCreate. It
-     * may also be called while the activity is running to reconfigure the workspace.
+     * Create the BlocklyController if necessary and configures it. This must be called during
+     * {@link #onCreate}. It may also be called while the activity is running to reconfigure the
+     * controller.
      */
-    public final void createWorkspace() {
-        mWorkspace = onConfigureWorkspace();
+    public final void createController() {
+        mController = onConfigureBlockly();
     }
 
     /**
-     * Builds the workspace for this activity. Override to build a workspace with a custom
-     * configuration. This should not be called directly, instead call {@link #createWorkspace()} to
-     * create or reconfigure the workspace.
+     * Builds the BlocklyController for this activity. Override to build a controller with a custom
+     * configuration. This should not be called directly, instead call {@link #createController()}
+     * to create or reconfigure the controller.
      */
-    abstract protected Workspace onConfigureWorkspace();
+    abstract protected BlocklyController onConfigureBlockly();
 }

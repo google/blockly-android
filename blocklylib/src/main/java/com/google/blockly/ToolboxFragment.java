@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.ToolboxCategory;
 import com.google.blockly.model.Workspace;
@@ -49,6 +50,8 @@ public class ToolboxFragment extends Fragment {
 
     protected RecyclerView mRecyclerView;
     protected RecyclerView.Adapter mAdapter;
+
+    protected BlocklyController mController;
     protected Workspace mWorkspace;
     protected WorkspaceHelper mWorkspaceHelper;
     protected WorkspaceHelper.BlockTouchHandler mBlockTouchHandler;
@@ -59,9 +62,29 @@ public class ToolboxFragment extends Fragment {
     private int CARPET_SIZE = 1000;
     private ToolboxCategory mTopLevelCategory;
 
-    public void setWorkspace(Workspace workspace) {
-        mWorkspace = workspace;
-        mWorkspaceHelper = mWorkspace.getWorkspaceHelper();
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        mRecyclerView = (RecyclerView) inflater.inflate(
+                R.layout.fragment_toolbox, container, false);
+        // use a linear layout manager
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.addItemDecoration(new ItemDecoration());
+        return mRecyclerView;
+    }
+
+    public void setController(BlocklyController controller) {
+        mController = controller;
+        if (mController == null) {
+            mWorkspace = null;
+            mWorkspaceHelper = null;
+            mBlockTouchHandler = null;
+            return;
+        }
+
+        mWorkspace = mController.getWorkspace();
+        mWorkspaceHelper = mController.getWorkspaceHelper();
         mBlockTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
@@ -136,18 +159,6 @@ public class ToolboxFragment extends Fragment {
 
     public RecyclerView.Adapter getAdapter() {
         return mAdapter;
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        mRecyclerView = (RecyclerView) inflater.inflate(
-                R.layout.fragment_toolbox, container, false);
-        // use a linear layout manager
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.addItemDecoration(new ItemDecoration());
-        return mRecyclerView;
     }
 
     private class ItemDecoration extends RecyclerView.ItemDecoration {
