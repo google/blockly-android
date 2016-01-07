@@ -17,6 +17,7 @@ package com.google.blockly.control;
 
 import android.graphics.Rect;
 import android.support.annotation.VisibleForTesting;
+import android.util.Log;
 import android.util.Pair;
 import android.view.DragEvent;
 import android.view.MotionEvent;
@@ -99,6 +100,8 @@ public class Dragger {
         mBlockOriginalPosition.setFrom(blockView.getBlock().getPosition());
         mDragStart.set(startX, startY);
         setDragGroup(mTouchedBlockView.getBlock());
+        Log.d(TAG, "In startDragging, blockView was " + blockView);
+        Log.d(TAG, "In startDragging, mTouchedBlockView was " + mTouchedBlockView);
     }
 
     /**

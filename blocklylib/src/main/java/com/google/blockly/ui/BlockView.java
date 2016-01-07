@@ -189,7 +189,7 @@ public class BlockView extends NonPropagatingViewGroup {
             mBlockPatches.get(i).draw(c);
         }
 
-        // drawConnectorCenters(c);  // Enable to debug connection positions.
+        drawConnectorCenters(c);  // Enable to debug connection positions.
         drawHighlights(c);
     }
 
