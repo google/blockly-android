@@ -55,17 +55,18 @@ public class SplitActivity extends AbstractBlocklyActivity {
         mHandler = new Handler();
     }
 
+    // TODO: Demonstrate loading in a different layout XML
     @Override
     protected void onCreateContentView() {
         super.onCreateContentView();
-        FrameLayout frLayout = (FrameLayout) findViewById(R.id.container);
+        FrameLayout container = (FrameLayout) findViewById(R.id.container);
 
         mGeneratedTextView = new TextView(this);
         mGeneratedTextView.setText("Run the block code\nto see it in javascript!");
 
         mGeneratedTextView.setLayoutParams(
                 new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-        frLayout.addView(mGeneratedTextView);
+        container.addView(mGeneratedTextView);
     }
 
     @Override
