@@ -18,6 +18,8 @@
   <string name="level_1">Level 1</string>
   <string name="level_2">Level 2</string>
   <string name="level_3">Level 3</string>
-  <string name="split_activity_name">Split Activity Demo"</string>
-  <string name="turtle_activity_name">Turtle Demo"</string>
+  <string name="simple_activity_name">Blockly Simple</string>
+  <string name="dev_activity_name">Blockly Dev Tests</string>
+  <string name="split_activity_name">Blockly Split</string>
+  <string name="turtle_activity_name">Blockly Turtle</string>
 </resources>

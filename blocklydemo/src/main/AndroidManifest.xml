@@ -21,9 +21,21 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
         android:supportsRtl="true" >
+
         <activity
-            android:name=".MainActivity"
-            android:label="@string/app_name"
+            android:name=".SimpleActivity"
+            android:label="@string/simple_activity_name"
+            android:taskAffinity="com.google.blockly.SimpleActivity"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".DevTestsActivity"
+            android:label="@string/dev_activity_name"
             android:taskAffinity="com.google.blockly.demo.MainActivity"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
