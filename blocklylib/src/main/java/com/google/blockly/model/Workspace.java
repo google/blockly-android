@@ -279,13 +279,12 @@ public class Workspace {
     public void addBlockFromToolbox(Block block, MotionEvent event, ToolboxFragment fragment) {
         addBlockWithView(block);
         // let the workspace view know that this is the block we want to drag
-        mWorkspaceView.setDragFocus(block.getView(), event);
+        mDragger.setTouchedBlock(block.getView(), event);
         // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
         // {@link WorkspaceView} coordinates.
         mWorkspaceHelper.workspaceToVirtualViewCoordinates(block.getPosition(), mTempViewPoint);
-        mWorkspaceView.setDraggingStart((int) event.getX() + mTempViewPoint.x,
+        mDragger.startDragging((int) event.getX() + mTempViewPoint.x,
                 (int) event.getY() + mTempViewPoint.y);
-        mWorkspaceView.startDrag();
         mController.maybeCloseToolboxFragment(fragment);
     }
 
