@@ -361,7 +361,7 @@ public class WorkspaceView extends NonPropagatingViewGroup {
                     // drag has started.
                     if (mTouchState == TOUCH_STATE_DRAGGING) {
                         if (mDragger.touchingTrashView(event)) {
-                            mWorkspace.removeRootBlock(mDragger.getDragRootBlock());
+                            mController.removeRootBlock(mDragger.getDragRootBlock());
                             mDragger.dropInTrash();
                         } else {
                             mDragger.finishDragging();
