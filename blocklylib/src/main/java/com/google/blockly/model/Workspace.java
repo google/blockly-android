@@ -236,16 +236,16 @@ public class Workspace {
         mWorkspaceView.setController(mController);
 
         mWorkspaceHelper.setWorkspaceView(wv);
-        // Tell the workspace helper to pass onTouchBlock events straight through to the WSView.
+        // Tell the workspace helper to pass onTouchBlock events straight through to the Dragger.
         mTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                return wv.onTouchBlock(blockView, motionEvent);
+                return mDragger.onTouchBlock(blockView, motionEvent);
             }
 
             @Override
             public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
-                return wv.onInterceptTouchEvent(blockView, motionEvent);
+                return mDragger.onInterceptTouchEvent(blockView, motionEvent);
             }
         };
         mDragger.setWorkspaceView(mWorkspaceView);
@@ -283,8 +283,9 @@ public class Workspace {
         // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
         // {@link WorkspaceView} coordinates.
         mWorkspaceHelper.workspaceToVirtualViewCoordinates(block.getPosition(), mTempViewPoint);
-        mDragger.startDragging((int) event.getX() + mTempViewPoint.x,
+        mDragger.setDragStartPos((int) event.getX() + mTempViewPoint.x,
                 (int) event.getY() + mTempViewPoint.y);
+        mDragger.startDragging();
         mController.maybeCloseToolboxFragment(fragment);
     }
 

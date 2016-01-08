@@ -38,6 +38,8 @@ import static org.mockito.Mockito.when;
 public class DraggerTest extends MockitoAndroidTestCase {
     private ConnectionManager mConnectionManager;
 
+    private static final int POINTER_ID = 1;
+
     @Mock
     private DragEvent mDragEvent;
 
@@ -416,7 +418,10 @@ public class DraggerTest extends MockitoAndroidTestCase {
         BlockView bv = toDrag.getView();
         int startX = mWorkspaceHelper.workspaceToVirtualViewUnits(toDrag.getPosition().x);
         int startY = mWorkspaceHelper.workspaceToVirtualViewUnits(toDrag.getPosition().y);
-        mDragger.startDragging(bv, startX, startY);
+
+        mDragger.setTouchedBlock(bv, POINTER_ID);
+        mDragger.setDragStartPos(startX, startY);
+        mDragger.startDragInternal();
 
         // Pretend to be the last DragEvent that registers, which should be right by the
         // stationary block.
