@@ -14,11 +14,11 @@
  */
 package com.google.blockly;
 
-import android.support.annotation.NonNull;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 /**
- * Simplest implementation of AbstractBlocklyActivity using mock block definitions.
+ * Simplest implementation of AbstractBlocklyActivity using mock block definitions. Does not load a
+ * workspace at start.
  */
 public class BlocklyTestActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SimpleActivity";
@@ -27,31 +27,25 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
             new LoggingCodeGeneratorCallback(this, TAG);
 
     @Override
-    protected String getWorkspaceToolboxPath() {
+    protected String getToolboxContentsXmlPath() {
         return "default/toolbox.xml";
     }
 
     @Override
-    protected String getWorkspaceBlocksPath() {
+    protected String getBlockDefinitionsJsonPath() {
         return "default/toolbox_blocks.json";
     }
 
     @Override
-    protected String getStartingWorkspacePath() {
-        return "default/demo_workspace.xml";
-    }
-
-    @NonNull
     protected String getGeneratorJsFilename() {
         return "sample_sections/generators.js";
     }
 
-    @NonNull
-    protected String getBlockDefinitionsFilename() {
+    @Override
+    protected String getBlockDefinitionsPath() {
         return "sample_sections/definitions.json";
     }
 
-    @NonNull
     @Override
     protected CodeGenerationRequest.CodeGeneratorCallback getCreateCodeGenerationCallback() {
         // Uses the same callback for every generation call.

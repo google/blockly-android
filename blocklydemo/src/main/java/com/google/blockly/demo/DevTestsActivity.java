@@ -38,13 +38,13 @@ public class DevTestsActivity extends BlocklySectionsActivity
             new LoggingCodeGeneratorCallback(this, TAG);
 
     @Override
-    protected String getWorkspaceToolboxPath() {
+    protected String getToolboxContentsXmlPath() {
         // Expose a different set of blocks to the user at each level.
         return WORKSPACE_FOLDER_PREFIX + (getCurrentSection() + 1) + "/toolbox.xml";
     }
 
     @Override
-    protected String getWorkspaceBlocksPath() {
+    protected String getBlockDefinitionsJsonPath() {
         return "default/toolbox_blocks.json";
     }
 
@@ -59,7 +59,7 @@ public class DevTestsActivity extends BlocklySectionsActivity
     }
 
     @NonNull
-    protected String getBlockDefinitionsFilename() {
+    protected String getBlockDefinitionsPath() {
         return "sample_sections/definitions.json";
     }
 

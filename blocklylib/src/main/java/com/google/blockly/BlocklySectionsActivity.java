@@ -48,30 +48,6 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
     }
 
     /**
-     * Updates {@link #mController} to the the currently selected section.
-     */
-    protected void updateBlockly() {
-        String toolboxPath = getWorkspaceToolboxPath();
-        String blockDefsPath = getWorkspaceBlocksPath();
-        AssetManager assetManager = getAssets();
-
-        BlocklyController controller = getController();
-        BlockFactory factory = controller.getBlockFactory();
-        factory.clear();
-
-        try {
-            factory.addBlocks(assetManager.open(blockDefsPath));
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Error opening block defs at " + blockDefsPath, e);
-        }
-        try {
-            controller.loadToolboxContents(assetManager.open(getWorkspaceToolboxPath()));
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Error opening toolbox at " + toolboxPath, e);
-        }
-    }
-
-    /**
      * @return The section that is currently displayed.
      */
     public final int getCurrentSection() {
@@ -136,7 +112,8 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
     private void changeLevel(int level) {
         int oldLevel = mCurrentSection;
         mCurrentSection = level;
-        updateBlockly();
+        reloadBlockDefintiions();
+        reloadToolbar();
         onSectionChanged(oldLevel, level);
     }
 }

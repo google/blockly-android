@@ -18,7 +18,6 @@ package com.google.blockly.demo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -64,7 +63,7 @@ public class TurtleActivity extends BlocklySectionsActivity
             };
 
     @Override
-    protected String getWorkspaceBlocksPath() {
+    protected String getBlockDefinitionsJsonPath() {
         // Use the same blocks for all the levels. This lets the user's block code carry over from
         // level to level. The set of blocks shown in the toolbox for each level is defined by the
         // toolbox path below.
@@ -72,11 +71,11 @@ public class TurtleActivity extends BlocklySectionsActivity
     }
 
     @Override
-    protected String getWorkspaceToolboxPath() {
+    protected String getToolboxContentsXmlPath() {
         return "turtle/level_1/toolbox.xml";
     }
 
-    @Override @NonNull
+    @Override
     protected ListAdapter onCreateSectionsAdapter() {
         // Create three sections with the labels "Turtle 1", "Turtle 2", and "Turtle 3" displaying
         // them as simple text items in the sections drawer.
@@ -107,17 +106,16 @@ public class TurtleActivity extends BlocklySectionsActivity
         frLayout.addView(mTurtleWebview);
     }
 
-    @NonNull
+    @Override
     protected String getGeneratorJsFilename() {
         return "turtle/generators.js";
     }
 
-    @NonNull
-    protected String getBlockDefinitionsFilename() {
+    @Override
+    protected String getBlockDefinitionsPath() {
         return "turtle/definitions.json";
     }
 
-    @NonNull
     @Override
     protected CodeGenerationRequest.CodeGeneratorCallback getCreateCodeGenerationCallback() {
         return mCodeGeneratorCallback;

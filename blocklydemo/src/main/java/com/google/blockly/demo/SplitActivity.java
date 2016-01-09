@@ -17,7 +17,6 @@ package com.google.blockly.demo;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
@@ -56,7 +55,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
         mHandler = new Handler();
     }
 
-    // TODO: Demonstrate loading in a different layout XML
+    // TODO(#280): Demonstrate using a different layout XML
     @Override
     protected void onCreateContentView() {
         super.onCreateContentView();
@@ -71,30 +70,25 @@ public class SplitActivity extends AbstractBlocklyActivity {
     }
 
     @Override
-    @NonNull
-    protected String getWorkspaceBlocksPath() {
+    protected String getBlockDefinitionsJsonPath() {
         return "turtle/definitions.json";
     }
 
     @Override
-    @NonNull
-    protected String getWorkspaceToolboxPath() {
+    protected String getToolboxContentsXmlPath() {
         return "turtle/level_1/toolbox.xml";
     }
 
     @Override
-    @NonNull
     protected String getGeneratorJsFilename() {
         return "turtle/generators.js";
     }
 
     @Override
-    @NonNull
-    protected String getBlockDefinitionsFilename() {
+    protected String getBlockDefinitionsPath() {
         return "turtle/definitions.json";
     }
 
-    @NonNull
     @Override
     protected CodeGenerationRequest.CodeGeneratorCallback getCreateCodeGenerationCallback() {
         // Uses the same callback for every generation call.

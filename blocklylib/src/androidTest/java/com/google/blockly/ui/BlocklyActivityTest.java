@@ -23,7 +23,7 @@ import com.google.blockly.BlocklyTestActivity;
 import com.google.blockly.R;
 
 /**
- * Test Activity lifecycle events using BlocklyTestActivity.
+ * Test Activity lifecycle events using {@link BlocklyTestActivity}.
  */
 public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
     private BlocklyTestActivity mActivity;
