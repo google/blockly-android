@@ -21,7 +21,6 @@ import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.NavigationDrawerFragment;
-import com.google.blockly.WorkspaceFragment;
 import com.google.blockly.control.BlocklyController;
 import com.google.blockly.utils.CodeGenerationRequest;
 
@@ -38,21 +37,12 @@ public class DevTestsActivity extends BlocklySectionsActivity
     protected CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
 
-    private BlocklyController mController;
-    protected WorkspaceFragment mWorkspaceFragment;
-
-    /**
-     * @return The asset path for the current xml toolbox config.
-     */
     @Override
     protected String getWorkspaceToolboxPath() {
         // Expose a different set of blocks to the user at each level.
         return WORKSPACE_FOLDER_PREFIX + (getCurrentSection() + 1) + "/toolbox.xml";
     }
 
-    /**
-     * @return The asset path for the json block definitions.
-     */
     @Override
     protected String getWorkspaceBlocksPath() {
         return "default/toolbox_blocks.json";
@@ -78,5 +68,12 @@ public class DevTestsActivity extends BlocklySectionsActivity
         BlocklyController controller = super.onCreateController();
         MockBlocksProvider.makeComplexModel(controller.getWorkspace());
         return controller;
+    }
+
+    @NonNull
+    @Override
+    protected CodeGenerationRequest.CodeGeneratorCallback getCreateCodeGenerationCallback() {
+        // Uses the same callback for every generation call.
+        return mCodeGeneratorCallback;
     }
 }

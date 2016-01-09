@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Activity holding a full Blockly workspace with multiple sections, a toolbox, and a trash can.
+ * Activity holding a full-screen Blockly workspace with multiple sections in the navigation menu.
  */
 public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
     private static final String TAG = BlocklySectionsActivity.class.getSimpleName();

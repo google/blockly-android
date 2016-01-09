@@ -25,6 +25,7 @@ import android.widget.TextView;
 import com.google.blockly.AbstractBlocklyActivity;
 import com.google.blockly.utils.CodeGenerationRequest;
 
+
 /**
  * Demo activity that programmatically adds a view to split the screen between the Blockly workspace
  * and an arbitrary other view or fragment.
