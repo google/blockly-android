@@ -91,12 +91,6 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
      */
     @Override
     protected ListAdapter onCreateNavigationMenuAdapter() {
-        mLevelsAdapter = onCreateSectionsAdapter();
-        return mLevelsAdapter;
-    }
-
-    @NonNull
-    protected ListAdapter onCreateSectionsAdapter() {
         mLevelsAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_activated_1,

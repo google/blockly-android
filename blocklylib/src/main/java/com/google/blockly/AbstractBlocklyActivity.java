@@ -184,7 +184,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     }
 
     /**
-     * @return name to show in the {@link ActionBar}.  Defaults to the activity name.
+     * @return The name to show in the {@link ActionBar}.  Defaults to the activity name.
      */
     @NonNull
     protected CharSequence getWorkspaceTitle() {
@@ -192,7 +192,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     }
 
     /**
-     * @return the content view layout resource id.
+     * @return The content view layout resource id.
      */
     @NonNull
     protected int getContentViewResId() {
@@ -205,17 +205,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     @NonNull
     abstract protected String getToolboxContentsXmlPath();
 
-        /**
+    /**
      * @return The asset path for the json block definitions.
      */
     @NonNull
-    abstract protected String getBlockDefinitionsJsonPath();;
+    abstract protected String getBlockDefinitionsJsonPath();
 
     /**
      * Returns the asset path to the initial workspace to load.  If null, no workspace file will be
      * loaded.
      *
-     * @return the asset path to the initial workspace to load.
+     * @return The asset path to the initial workspace to load.
      */
     @Nullable
     protected String getStartingWorkspacePath() {
@@ -229,26 +229,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
      * @return The generation callback.
      */
     @NonNull
-    abstract protected CodeGenerationRequest.CodeGeneratorCallback
-        getCreateCodeGenerationCallback();
+    abstract protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback();
 
     /**
      * Returns the asset file path and name to the generator Javascript to use for the most
      * recently requested "Run" action. Called from {@link #onRunCode()}.
      *
-     * @return the asset file path and name to the generator Javascript.
+     * @return The asset file path and name to the generator Javascript.
      */
     @NonNull
     abstract protected String getGeneratorJsFilename();
-
-    /**
-     * Returns the asset file path and name to the JSON blocks defintion file to use for the most
-     * recently requested "Run" action. Called from {@link #onRunCode()}.
-     *
-     * @return the asset file path and name to the JSON blocks defintion file.
-     */
-    @NonNull
-    abstract protected String getBlockDefinitionsPath();
 
     /**
      * Creates or loads the root content view for the Activity.  By default, this is
@@ -271,7 +261,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
      * Creates and returns a {@link ListAdapter} used to populate the navigation menu.  By default,
      * the menu is empty.
      *
-     * @return the adapter that populates the navigation menu.
+     * @return The adapter that populates the navigation menu.
      */
     // TODO(#281): Factor out the navigation menu contents from the AbstractBlocklyActivity.
     @NonNull
@@ -280,12 +270,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         return new ArrayAdapter<>(this, 0, 0, new String[]{});
     }
 
-/**
+    /**
      * Creates the Views and Fragments before the BlocklyController is constructed.  Override to
-     * implement to load a custom View hierarchy.  Responsible for assigning
+     * load a custom View hierarchy.  Responsible for assigning
      * {@link #mWorkspaceFragment}, and optionally, {@link #mToolboxFragment} and
-     * {@link #mTrashFragment}. Always called once from {@link #onCreate} and before
-     * {@link #onCreateController()}.
+     * {@link #mTrashFragment}. This base implementation attempts to acquire references to the
+     * {@link #mToolboxFragment} and {@link #mTrashFragment} using the layout ids
+     * {@link R.id.toolbox} and {@link R.id.trash}, respectively. Subclasses may leave these
+     * {@code null} if the views are not present in the UI.
+     * <p>
+     * Always called once from {@link #onCreate} and before {@link #onCreateController()}.
      */
     protected void onCreateFragments() {
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -311,7 +305,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     }
 
     /**
-     * Create the BlocklyController if necessary and configures it. This must be called during
+     * Creates the BlocklyController, if necessary, and configures it. This must be called during
      * {@link #onCreate}. It may also be called while the activity is running to reconfigure the
      * controller.
      */
@@ -339,7 +333,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
 
     /**
      * Runs the code generator. Called when user selects "Run" action.
-     * @see #getCreateCodeGenerationCallback()
+     * @see #getCodeGenerationCallback()
      */
     protected void onRunCode() {
         try {
@@ -349,7 +343,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
 
                 mCodeGeneratorService.requestCodeGeneration(
                         new CodeGenerationRequest(serialized.toString(),
-                                getCreateCodeGenerationCallback(),
+                                getCodeGenerationCallback(),
                                 getBlockDefinitionsJsonPath(),
                                 getGeneratorJsFilename()));
             }
@@ -362,8 +356,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     }
 
     /**
-     * Restores the {@link ActionBar} contents when the navigation window closes, per Material deign
-     * guidleines.
+     * Restores the {@link ActionBar} contents when the navigation window closes, per
+     * {@link http://developer.android.com/design/material/index.html Material design guidelines}.
      */
     protected void restoreActionBar() {
         ActionBar actionBar = getSupportActionBar();

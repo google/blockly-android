@@ -85,12 +85,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
     }
 
     @Override
-    protected String getBlockDefinitionsPath() {
-        return "turtle/definitions.json";
-    }
-
-    @Override
-    protected CodeGenerationRequest.CodeGeneratorCallback getCreateCodeGenerationCallback() {
+    protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
     }

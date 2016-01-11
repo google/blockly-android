@@ -17,8 +17,7 @@ package com.google.blockly;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 /**
- * Simplest implementation of AbstractBlocklyActivity using mock block definitions. Does not load a
- * workspace at start.
+ * Simplest implementation of AbstractBlocklyActivity. Does not load a workspace at start.
  */
 public class BlocklyTestActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SimpleActivity";
@@ -42,12 +41,7 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
     }
 
     @Override
-    protected String getBlockDefinitionsPath() {
-        return "sample_sections/definitions.json";
-    }
-
-    @Override
-    protected CodeGenerationRequest.CodeGeneratorCallback getCreateCodeGenerationCallback() {
+    protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
     }

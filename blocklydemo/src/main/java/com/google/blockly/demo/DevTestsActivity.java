@@ -72,7 +72,7 @@ public class DevTestsActivity extends BlocklySectionsActivity
 
     @NonNull
     @Override
-    protected CodeGenerationRequest.CodeGeneratorCallback getCreateCodeGenerationCallback() {
+    protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
     }

@@ -76,7 +76,7 @@ public class TurtleActivity extends BlocklySectionsActivity
     }
 
     @Override
-    protected ListAdapter onCreateSectionsAdapter() {
+    protected ListAdapter onCreateNavigationMenuAdapter() {
         // Create three sections with the labels "Turtle 1", "Turtle 2", and "Turtle 3" displaying
         // them as simple text items in the sections drawer.
         return new ArrayAdapter<>(
@@ -112,12 +112,7 @@ public class TurtleActivity extends BlocklySectionsActivity
     }
 
     @Override
-    protected String getBlockDefinitionsPath() {
-        return "turtle/definitions.json";
-    }
-
-    @Override
-    protected CodeGenerationRequest.CodeGeneratorCallback getCreateCodeGenerationCallback() {
+    protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         return mCodeGeneratorCallback;
     }
 }
