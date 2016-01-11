@@ -808,15 +808,21 @@ public class Block {
             Input newInput;
             for (int i = 0; i < block.mInputList.size(); i++) {
                 Input oldInput = block.mInputList.get(i);
-                if (oldInput != null) {
-                    newInput = (Input) oldInput.clone();
-                    if (newInput != null) {
-                        mInputs.add(newInput);
-                        if (recursive && oldInput.getConnection() != null) {
-                            Block target = oldInput.getConnection().getTargetBlock();
-                            if (target != null) {
-                                newInput.getConnection().connect(
-                                        target.deepCopy().getOutputConnection());
+                newInput = oldInput.clone();
+                if (newInput != null) {
+                    mInputs.add(newInput);
+                    if (recursive && oldInput.getConnection() != null) {
+                        Block target = oldInput.getConnection().getTargetBlock();
+                        if (target != null && newInput.getConnection() != null) {
+                            Block newTarget = target.deepCopy();
+                            if (newTarget != null) {
+                                if (newInput.getType() == Input.TYPE_VALUE) {
+                                    newInput.getConnection().connect(
+                                            newTarget.getOutputConnection());
+                                } else if (newInput.getType() == Input.TYPE_STATEMENT) {
+                                    newInput.getConnection().connect(
+                                            newTarget.getPreviousConnection());
+                                }
                             }
                         }
                     }
