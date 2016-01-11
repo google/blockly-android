@@ -341,10 +341,13 @@ public class BlockView extends NonPropagatingViewGroup {
             }
         } else if (mHighlightConnection != null) {
             if (mHighlightConnection == mBlock.getOutputConnection()) {
+                assert mOutputConnectorHighlightPatch != null; // Never null with output.
                 mOutputConnectorHighlightPatch.draw(c);
             } else if (mHighlightConnection == mBlock.getPreviousConnection()) {
+                assert mPreviousConnectorHighlightPatch != null;  // Never null with previous.
                 mPreviousConnectorHighlightPatch.draw(c);
             } else if (mHighlightConnection == mBlock.getNextConnection()) {
+                assert (mNextConnectionHighlightPatch != null);  // Never null with next.
                 mNextConnectionHighlightPatch.draw(c);
             } else {
                 // If the connection to highlight is not one of the three block-level connectors,
@@ -726,8 +729,13 @@ public class BlockView extends NonPropagatingViewGroup {
             switch (inputView.getInput().getType()) {
                 default:
                 case Input.TYPE_DUMMY: {
-                    if (!mBlock.getInputsInline()) {
-                        addDummyBoundaryPatch(i, xTo, inputView, inputLayoutOrigin);
+                    boolean isLastInput = (i + 1 == mInputCount);
+                    boolean nextIsStatement = !isLastInput
+                            && mInputViews.get(i+1).getInput().getType() == Input.TYPE_STATEMENT;
+                    boolean isEndOfLine = !mBlock.getInputsInline() || isLastInput
+                            || nextIsStatement;
+                    if (isEndOfLine) {
+                        addDummyBoundaryPatch(xTo, inputView, inputLayoutOrigin);
                     }
                     break;
                 }
@@ -847,8 +855,6 @@ public class BlockView extends NonPropagatingViewGroup {
     /**
      * Add boundary patch for external Dummy input.
      *
-     * @param i The index of the current input. This is used to determine whether to position patch
-     * vertically below the field top boundary to account for the block's top boundary.
      * @param xTo Horizontal coordinate to which the patch should extend. The starting coordinate
      * is determined from this by subtracting patch width.
      * @param inputView The {@link InputView} for the current input. This is used to determine patch
@@ -856,8 +862,7 @@ public class BlockView extends NonPropagatingViewGroup {
      * @param inputLayoutOrigin The layout origin for the current input. This is used to determine
      * the vertical position for the patch.
      */
-    private void addDummyBoundaryPatch(int i, int xTo, InputView inputView,
-                                       ViewPoint inputLayoutOrigin) {
+    private void addDummyBoundaryPatch(int xTo, InputView inputView, ViewPoint inputLayoutOrigin) {
         // For external dummy inputs, put a patch for the block boundary.
         final NinePatchDrawable inputDrawable =
                 getColoredPatchDrawable(R.drawable.dummy_input);
@@ -871,11 +876,12 @@ public class BlockView extends NonPropagatingViewGroup {
             width += mPatchManager.mValueInputWidth;
         }
 
+        boolean inTopRow = (inputLayoutOrigin.y == 0);
         calculateRtlAwareBounds(tempRect,
                 /* ltrStart */ xTo - width,
-                /* top */ inputLayoutOrigin.y + (i > 0 ? 0 : mPatchManager.mBlockTopPadding),
+                /* top */ inputLayoutOrigin.y + (inTopRow ? mPatchManager.mBlockTopPadding : 0),
                 /* ltrEnd */ xTo,
-                /* bottom */ inputLayoutOrigin.y + inputView.getMeasuredHeight());
+                /* bottom */ inputLayoutOrigin.y + inputView.getRowHeight());
         inputDrawable.setBounds(tempRect);
         inputBorderDrawable.setBounds(tempRect);
         mBlockPatches.add(inputDrawable);
