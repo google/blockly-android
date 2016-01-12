@@ -18,6 +18,7 @@ package com.google.blockly.model;
 import android.graphics.Point;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.google.blockly.ui.InputView;
@@ -263,7 +264,7 @@ public class Connection implements Cloneable {
         if (target == null) {
             return REASON_TARGET_NULL;
         }
-        if (target.getBlock() == getBlock()) {
+        if (getBlock() != null && target.getBlock() == getBlock()) {
             return REASON_SELF_CONNECTION;
         }
         if (target.getType() != OPPOSITE_TYPES[mConnectionType]) {
@@ -302,7 +303,8 @@ public class Connection implements Cloneable {
         mTargetConnection = null;
     }
 
-    private void checkConnection(Connection target) {
+    @VisibleForTesting
+    public void checkConnection(Connection target) {
         switch (canConnectWithReason(target)) {
             case CAN_CONNECT:
                 break;

@@ -45,6 +45,7 @@ import java.util.List;
  */
 @SuppressLint("ViewConstructor")
 public class BlockView extends NonPropagatingViewGroup {
+    private static final boolean DEBUG = false;
     // TODO: Replace with dimens so it gets scaled correctly, or better yet, somehow derive from
     // ninepatch measurements.
     private static final int MIN_BLOCK_WIDTH = 40;
@@ -189,7 +190,9 @@ public class BlockView extends NonPropagatingViewGroup {
             mBlockPatches.get(i).draw(c);
         }
 
-        drawConnectorCenters(c);  // Enable to debug connection positions.
+        if (DEBUG) {
+            drawConnectorCenters(c);  // Enable to debug connection positions.
+        }
         drawHighlights(c);
     }
 
