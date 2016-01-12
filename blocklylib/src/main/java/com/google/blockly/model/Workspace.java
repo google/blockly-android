@@ -40,7 +40,6 @@ public class Workspace {
     private static final boolean DEBUG = true;
 
     private final BlocklyController mController;
-    private final WorkspaceHelper mWorkspaceHelper;
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
     private final ProcedureManager mProcedureManager = new ProcedureManager();
@@ -59,19 +58,15 @@ public class Workspace {
      *
      * @param controller The controller for this Workspace. {@link com.google.blockly.R.style#BlocklyTheme}
      */
-    public Workspace(Context context, BlocklyController controller, WorkspaceHelper helper,
+    public Workspace(Context context, BlocklyController controller,
             BlockFactory factory) {
 
         if (controller == null) {
             throw new IllegalArgumentException("BlocklyController may not be null.");
         }
-        if (helper == null) {
-            throw new IllegalArgumentException("WorkspaceHelper may not be null.");
-        }
 
         mContext = context;
         mController = controller;
-        mWorkspaceHelper = helper;
         mBlockFactory = factory;
     }
 
@@ -107,16 +102,6 @@ public class Workspace {
         }
         // else
         return false;
-    }
-
-    /**
-     * The {@link WorkspaceHelper} for the workspace can be used to get config and style properties
-     * and to convert between units.
-     *
-     * @return The {@link WorkspaceHelper} for this workspace.
-     */
-    public WorkspaceHelper getWorkspaceHelper() {
-        return mWorkspaceHelper;
     }
 
     public ConnectionManager getConnectionManager() {

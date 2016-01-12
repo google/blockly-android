@@ -91,7 +91,7 @@ public class BlocklyController {
         mFragmentManager = fragmentManager;
         mBlockFactory = blockFactory;
         mHelper = new WorkspaceHelper(mContext, null, style);
-        mWorkspace = new Workspace(mContext, this, mHelper, mBlockFactory);
+        mWorkspace = new Workspace(mContext, this, mBlockFactory);
 
         mDragger = new Dragger(mWorkspace, mHelper, mWorkspace.getConnectionManager(),
                 mWorkspace.getRootBlocks());
