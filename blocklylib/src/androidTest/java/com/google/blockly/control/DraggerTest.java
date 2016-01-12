@@ -22,6 +22,7 @@ import com.google.blockly.R;
 import com.google.blockly.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
@@ -58,7 +59,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mWorkspaceView = new WorkspaceView(getContext());
         mConnectionManager = new ConnectionManager();
         mWorkspaceHelper = new WorkspaceHelper(getContext(), null);
-        mDragger = new Dragger(mWorkspaceHelper, mConnectionManager, mBlocks);
+        mDragger = new Dragger(null, mWorkspaceHelper, mConnectionManager, mBlocks);
         mDragger.setWorkspaceView(mWorkspaceView);
     }
 

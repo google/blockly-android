@@ -88,7 +88,7 @@ public class Workspace {
         mWorkspaceHelper = helper;
         mBlockFactory = factory;
 
-        mDragger = new Dragger(mWorkspaceHelper, mConnectionManager, mRootBlocks);
+        mDragger = new Dragger(this, mWorkspaceHelper, mConnectionManager, mRootBlocks);
     }
 
     /**

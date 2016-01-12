@@ -28,6 +28,7 @@ import android.view.View;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
+import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockView;
@@ -82,6 +83,7 @@ public class Dragger {
     private BlockView mHighlightedBlockView;
     // The view for the trash can.
     private View mTrashView;
+    private Workspace mWorkspace;
     //The square of the required touch slop before starting a drag, precomputed to avoid
     // square root operations at runtime.
     private float mTouchSlopSquared = 0.0f;
@@ -98,8 +100,9 @@ public class Dragger {
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param rootBlocks The list of blocks to update when moving blocks.
      */
-    public Dragger(WorkspaceHelper workspaceHelper, ConnectionManager connectionManager,
+    public Dragger(Workspace ws, WorkspaceHelper workspaceHelper, ConnectionManager connectionManager,
             ArrayList<Block> rootBlocks) {
+        mWorkspace = ws;
         mWorkspaceHelper = workspaceHelper;
         mConnectionManager = connectionManager;
         mRootBlocks = rootBlocks;
@@ -818,7 +821,7 @@ public class Dragger {
                     // drag has started.
                     if (mTouchState == TOUCH_STATE_DRAGGING) {
                         if (touchingTrashView(event)) {
-                            //TODO: mWorkspace.removeRootBlock(getDragRootBlock());
+                            mWorkspace.removeRootBlock(mTouchedBlockView.getBlock());
                             dropInTrash();
                         } else {
                             finishDragging();
