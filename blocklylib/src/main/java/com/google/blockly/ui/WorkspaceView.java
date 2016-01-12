@@ -44,7 +44,6 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     private final Rect mBlocksBoundingBox = new Rect();
 
     private BlocklyController mController = null;
-    private Workspace mWorkspace = null;
     private WorkspaceHelper mHelper = null;
     private Dragger mDragger;
     private View mTrashView;
@@ -116,10 +115,6 @@ public class WorkspaceView extends NonPropagatingViewGroup {
         }
     }
 
-    public Workspace getWorkspace() {
-        return mWorkspace;
-    }
-
     /**
      * Sets the workspace this view should display.
      *
@@ -129,10 +124,8 @@ public class WorkspaceView extends NonPropagatingViewGroup {
         mController = controller;
 
         if (mController != null) {
-            mWorkspace = mController.getWorkspace();
-            mHelper = mWorkspace.getWorkspaceHelper();
+            mHelper = controller.getWorkspaceHelper();
         } else {
-            mWorkspace = null;
             mHelper = null;
         }
     }
