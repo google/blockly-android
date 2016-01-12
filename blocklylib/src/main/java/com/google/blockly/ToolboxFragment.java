@@ -29,7 +29,6 @@ import android.view.ViewGroup;
 import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.ToolboxCategory;
-import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockView;
@@ -40,8 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Fragment to hold views of all of the available blocks in the toolbox.
- * No name will be shown for the top-level category, but names for all subcategories will be shown.
+ * Fragment to hold views of all of the available blocks in the toolbox. No name will be shown for
+ * the top-level category, but names for all subcategories will be shown.
  */
 public class ToolboxFragment extends Fragment {
     protected static final String TAG = "ToolboxFragment";
@@ -52,7 +51,6 @@ public class ToolboxFragment extends Fragment {
     protected RecyclerView.Adapter mAdapter;
 
     protected BlocklyController mController;
-    protected Workspace mWorkspace;
     protected WorkspaceHelper mWorkspaceHelper;
     protected WorkspaceHelper.BlockTouchHandler mBlockTouchHandler;
 
@@ -64,7 +62,7 @@ public class ToolboxFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
         mRecyclerView = (RecyclerView) inflater.inflate(
                 R.layout.fragment_toolbox, container, false);
         // use a linear layout manager
@@ -77,13 +75,11 @@ public class ToolboxFragment extends Fragment {
     public void setController(BlocklyController controller) {
         mController = controller;
         if (mController == null) {
-            mWorkspace = null;
             mWorkspaceHelper = null;
             mBlockTouchHandler = null;
             return;
         }
 
-        mWorkspace = mController.getWorkspace();
         mWorkspaceHelper = mController.getWorkspaceHelper();
         mBlockTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
             @Override
@@ -102,7 +98,7 @@ public class ToolboxFragment extends Fragment {
                 mWorkspaceHelper.screenToWorkspaceCoordinates(
                         mTempScreenPosition, mTempWorkspacePosition);
                 copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                mWorkspace.addBlockFromToolbox(copiedModel, motionEvent, ToolboxFragment.this);
+                mController.addBlockFromToolbox(copiedModel, motionEvent, ToolboxFragment.this);
                 return true;
             }
 
@@ -138,7 +134,7 @@ public class ToolboxFragment extends Fragment {
         for (int i = 0; i < blocks.size(); i++) {
             Block copiedModel = blocks.get(i).deepCopy();
             copiedModel.setPosition(0, 0);
-            mWorkspace.addBlockWithView(copiedModel);
+            mController.addBlockWithView(copiedModel);
         }
     }
 
@@ -153,7 +149,7 @@ public class ToolboxFragment extends Fragment {
             Block copiedModel = blocks.get(i).deepCopy();
             copiedModel.setPosition((int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2,
                     (int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2);
-            mWorkspace.addBlockWithView(copiedModel);
+            mController.addBlockWithView(copiedModel);
         }
     }
 

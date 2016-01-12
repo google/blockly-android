@@ -16,21 +16,13 @@
 package com.google.blockly.model;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
-import android.view.MotionEvent;
 
-import com.google.blockly.ToolboxFragment;
-import com.google.blockly.control.BlockCopyBuffer;
 import com.google.blockly.control.BlocklyController;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.control.Dragger;
 import com.google.blockly.control.ProcedureManager;
 import com.google.blockly.control.WorkspaceStats;
-import com.google.blockly.ui.BlockGroup;
-import com.google.blockly.ui.BlockView;
-import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
-import com.google.blockly.ui.WorkspaceView;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.ByteArrayInputStream;
@@ -54,24 +46,18 @@ public class Workspace {
     private final ProcedureManager mProcedureManager = new ProcedureManager();
     private final NameManager mVariableNameManager = new NameManager.VariableNameManager();
     private final ConnectionManager mConnectionManager = new ConnectionManager();
-    private final WorkspaceStats mStats = new WorkspaceStats(mVariableNameManager, mProcedureManager,
-            mConnectionManager);
+    private final WorkspaceStats mStats =
+            new WorkspaceStats(mVariableNameManager, mProcedureManager,
+                    mConnectionManager);
     private final ToolboxCategory mDeletedBlocks = new ToolboxCategory();
-    private final BlockCopyBuffer mCopyBuffer = new BlockCopyBuffer();
-    private final ViewPoint mTempViewPoint = new ViewPoint();
     private final Context mContext;
-    private final Dragger mDragger;
     private ToolboxCategory mToolboxCategory;
     private BlockFactory mBlockFactory;
-
-    private WorkspaceHelper.BlockTouchHandler mTouchHandler;
-    private WorkspaceView mWorkspaceView;
 
     /**
      * Create a workspace.
      *
-     * @param controller The controller for this Workspace.
-     * {@link com.google.blockly.R.style#BlocklyTheme}
+     * @param controller The controller for this Workspace. {@link com.google.blockly.R.style#BlocklyTheme}
      */
     public Workspace(Context context, BlocklyController controller, WorkspaceHelper helper,
             BlockFactory factory) {
@@ -87,8 +73,6 @@ public class Workspace {
         mController = controller;
         mWorkspaceHelper = helper;
         mBlockFactory = factory;
-
-        mDragger = new Dragger(this, mWorkspaceHelper, mConnectionManager, mRootBlocks);
     }
 
     /**
@@ -114,7 +98,6 @@ public class Workspace {
      * Remove a block from the workspace and put it in the trash.
      *
      * @param block The block block to remove, possibly with descendants attached.
-     *
      * @return True if the block was removed, false otherwise.
      */
     public boolean removeRootBlock(Block block) {
@@ -174,12 +157,11 @@ public class Workspace {
      * the contents of the xml.
      *
      * @param is The input stream to read from.
-     *
      * @throws BlocklyParserException if there was a parse failure.
      */
     public void loadWorkspaceContents(InputStream is)
             throws BlocklyParserException {
-        resetWorkspace();
+        mController.resetWorkspace();
         mRootBlocks.addAll(BlocklyXmlHelper.loadFromXml(is, mBlockFactory, mStats));
         for (int i = 0; i < mRootBlocks.size(); i++) {
             mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
@@ -191,7 +173,6 @@ public class Workspace {
      * the contents of the xml.
      *
      * @param xml The XML source string to read from.
-     *
      * @throws BlocklyParserException if there was a parse failure.
      */
     public void loadWorkspaceContents(String xml) throws BlocklyParserException {
@@ -212,92 +193,10 @@ public class Workspace {
      * Outputs the workspace as an XML string.
      *
      * @param os The output stream to write to.
-     *
      * @throws BlocklySerializerException if there was a failure while serializing.
      */
     public void serializeToXml(OutputStream os) throws BlocklySerializerException {
         BlocklyXmlHelper.writeToXml(mRootBlocks, os);
-    }
-
-    /**
-     * Set up the {@link WorkspaceView} with this workspace's model. This method will perform the
-     * following steps:
-     * <ul>
-     * <li>Set the block touch handler for the view.</li>
-     * <li>Configure the dragger for the view.</li>
-     * <li>Recursively initialize views for all the blocks in the model and add them to the
-     * view.</li>
-     * </ul>
-     *
-     * @param wv The root workspace view to add to.
-     */
-    public void initWorkspaceView(final WorkspaceView wv) {
-        mWorkspaceView = wv;
-        mWorkspaceView.setController(mController);
-
-        mWorkspaceHelper.setWorkspaceView(wv);
-        // Tell the workspace helper to pass onTouchBlock events straight through to the Dragger.
-        mTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
-            @Override
-            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                return mDragger.onTouchBlock(blockView, motionEvent);
-            }
-
-            @Override
-            public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
-                return mDragger.onInterceptTouchEvent(blockView, motionEvent);
-            }
-        };
-        mDragger.setWorkspaceView(mWorkspaceView);
-        mWorkspaceView.setDragger(mDragger);
-        initBlockViews();
-    }
-
-    /**
-     * Recursively initialize views for all the blocks in the model and add them to the
-     * view.
-     */
-    public void initBlockViews() {
-        BlockGroup bg;
-        for (int i = 0; i < mRootBlocks.size(); i++) {
-            bg = new BlockGroup(mContext, mWorkspaceHelper);
-            mWorkspaceHelper.buildBlockViewTree(mRootBlocks.get(i), bg, mConnectionManager,
-                    mTouchHandler);
-            mWorkspaceView.addView(bg);
-        }
-    }
-
-    /**
-     * Takes in a block model, creates corresponding views and adds it to the workspace.  Also
-     * starts a drag of that block group.
-     *
-     * @param block The root block to be added to the workspace.
-     * @param event The {@link MotionEvent} that caused the block to be added to the workspace.
-     * This is used to find the correct position to start the drag event.
-     * @param fragment The {@link ToolboxFragment} where the event originated.
-     */
-    public void addBlockFromToolbox(Block block, MotionEvent event, ToolboxFragment fragment) {
-        addBlockWithView(block);
-        // let the workspace view know that this is the block we want to drag
-        mDragger.setTouchedBlock(block.getView(), event);
-        // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
-        // {@link WorkspaceView} coordinates.
-        mWorkspaceHelper.workspaceToVirtualViewCoordinates(block.getPosition(), mTempViewPoint);
-        mDragger.setDragStartPos((int) event.getX() + mTempViewPoint.x,
-                (int) event.getY() + mTempViewPoint.y);
-        mDragger.startDragging();
-        mController.maybeCloseToolboxFragment(fragment);
-    }
-
-    /**
-     * Takes in a block model, creates corresponding views and adds it to the workspace.
-     *
-     * @param block The {@link Block} to add to the workspace.
-     */
-    public void addBlockWithView(Block block) {
-        mWorkspaceView.addView(
-                mWorkspaceHelper.buildBlockGroupTree(block, mConnectionManager, mTouchHandler));
-        addRootBlock(block);
     }
 
     /**
@@ -308,10 +207,6 @@ public class Workspace {
         mRootBlocks.clear();
         mStats.clear();
         mDeletedBlocks.clear();
-        if (mWorkspaceView != null) {
-            mWorkspaceView.removeAllViews();
-            initBlockViews();
-        }
         // TODO(fenichel): notify adapters when contents change.
     }
 
@@ -327,8 +222,8 @@ public class Workspace {
         return mDeletedBlocks;
     }
 
-    @VisibleForTesting
-    List<Block> getRootBlocks() {
+
+    public ArrayList<Block> getRootBlocks() {
         return mRootBlocks;
     }
 }
