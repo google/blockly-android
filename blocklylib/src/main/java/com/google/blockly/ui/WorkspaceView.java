@@ -23,7 +23,7 @@ import android.view.ViewConfiguration;
 
 import com.google.blockly.control.BlocklyController;
 import com.google.blockly.control.Dragger;
-import com.google.blockly.model.Workspace;
+
 
 /**
  * Handles updating the viewport into the workspace and is the parent view for all blocks. This view
