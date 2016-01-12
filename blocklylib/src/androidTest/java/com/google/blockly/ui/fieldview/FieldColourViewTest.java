@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 
-import com.google.blockly.BlocklySectionsActivity;
+import com.google.blockly.BlocklyTestActivity;
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.WorkspaceHelper;
 
@@ -18,7 +18,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link FieldColourView}.
  */
-public class FieldColourViewTest extends ActivityInstrumentationTestCase2<BlocklySectionsActivity> {
+public class FieldColourViewTest extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
 
     private static final int LAYOUT_HEIGHT = 1000;
     private static final int LAYOUT_WIDTH = 1000;
@@ -28,13 +28,13 @@ public class FieldColourViewTest extends ActivityInstrumentationTestCase2<Blockl
 
     // Cannot mock final classes.
     private Field.FieldColour mFieldColour;
-    private BlocklySectionsActivity mActivity;
+    private BlocklyTestActivity mActivity;
 
     @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
 
     public FieldColourViewTest() {
-        super(BlocklySectionsActivity.class);
+        super(BlocklyTestActivity.class);
     }
 
     @Override
