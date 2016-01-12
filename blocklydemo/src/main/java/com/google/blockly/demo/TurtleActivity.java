@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,6 @@ package com.google.blockly.demo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
-import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -31,9 +29,7 @@ import android.widget.Toast;
 
 import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.NavigationDrawerFragment;
-import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.utils.CodeGenerationRequest;
-import com.google.blockly.utils.StringOutputStream;
 
 
 /**
@@ -41,7 +37,7 @@ import com.google.blockly.utils.StringOutputStream;
  */
 public class TurtleActivity extends BlocklySectionsActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
-    private static final String TAG = "BlocklyTurtleActivity";
+    private static final String TAG = "TurtleActivity";
 
     public static final String WORKSPACE_FOLDER_PREFIX = "turtle/level_";
     private final Handler mHandler = new Handler();
@@ -67,7 +63,7 @@ public class TurtleActivity extends BlocklySectionsActivity
             };
 
     @Override
-    protected String getWorkspaceBlocksPath(int section) {
+    protected String getBlockDefinitionsJsonPath() {
         // Use the same blocks for all the levels. This lets the user's block code carry over from
         // level to level. The set of blocks shown in the toolbox for each level is defined by the
         // toolbox path below.
@@ -75,12 +71,12 @@ public class TurtleActivity extends BlocklySectionsActivity
     }
 
     @Override
-    protected String getWorkspaceToolboxPath(int section) {
+    protected String getToolboxContentsXmlPath() {
         return "turtle/level_1/toolbox.xml";
     }
 
     @Override
-    protected ListAdapter onCreateSectionsAdapter() {
+    protected ListAdapter onCreateNavigationMenuAdapter() {
         // Create three sections with the labels "Turtle 1", "Turtle 2", and "Turtle 3" displaying
         // them as simple text items in the sections drawer.
         return new ArrayAdapter<>(
@@ -111,27 +107,12 @@ public class TurtleActivity extends BlocklySectionsActivity
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == com.google.blockly.R.id.action_run) {
-            try {
-                if (mBound) {
-                    final StringOutputStream serialized = new StringOutputStream();
-                    mWorkspaceFragment.getWorkspace().serializeToXml(serialized);
+    protected String getGeneratorJsFilename() {
+        return "turtle/generators.js";
+    }
 
-                    mCodeGeneratorService.requestCodeGeneration(
-                            new CodeGenerationRequest(serialized.toString(),
-                                    mCodeGeneratorCallback,
-                                    "turtle/definitions.json",
-                                    "turtle/generators.js"));
-                }
-            } catch (BlocklySerializerException e) {
-                Log.wtf(TAG, e);
-                Toast.makeText(getApplicationContext(), "Code generation failed.",
-                        Toast.LENGTH_LONG).show();
-
-            }
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    @Override
+    protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
+        return mCodeGeneratorCallback;
     }
 }
