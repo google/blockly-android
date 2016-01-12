@@ -51,7 +51,7 @@ public class MainActivity extends BlocklySectionsActivity
         // If we just went down a level clear the workspace, otherwise keep the previous blocks.
         if (newSection < oldSection) {
             // Instead of clearing we could also load a default workspace for this level.
-            getWorkspace().resetWorkspace();
+            getController().resetWorkspace();
         }
     }
 

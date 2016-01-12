@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.google.blockly.ToolboxFragment;
@@ -30,7 +31,11 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.ui.BlockGroup;
+import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.ui.WorkspaceView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,15 +55,18 @@ public class BlocklyController {
     private final WorkspaceHelper mHelper;
 
     private final Workspace mWorkspace;
+    private final ViewPoint mTempViewPoint = new ViewPoint();
 
+    private WorkspaceView mWorkspaceView;
     private WorkspaceFragment mWorkspaceFragment = null;
     private TrashFragment mTrashFragment = null;
     private ToolboxFragment mToolboxFragment = null;
     private DrawerLayout mToolboxDrawer = null;
+    private Dragger mDragger;
+    private WorkspaceHelper.BlockTouchHandler mTouchHandler;
 
     private boolean mCanCloseToolbox;
     private boolean mCanShowAndHideTrash;
-
     private View.OnClickListener mTrashClickListener = null;
 
     /**
@@ -66,8 +74,8 @@ public class BlocklyController {
      *
      * @param context Android context, such as an Activity.
      * @param blockFactory Factory used to create new Blocks.
-     * @param fragmentManager Support fragment manager, if controlling the Blockly fragment and
-     *     view classes.
+     * @param fragmentManager Support fragment manager, if controlling the Blockly fragment and view
+     * classes.
      * @param style Workspace view style id, or 0.
      */
     private BlocklyController(Context context, BlockFactory blockFactory,
@@ -84,10 +92,14 @@ public class BlocklyController {
         mBlockFactory = blockFactory;
         mHelper = new WorkspaceHelper(mContext, null, style);
         mWorkspace = new Workspace(mContext, this, mHelper, mBlockFactory);
+
+        mDragger = new Dragger(mWorkspace, mHelper, mWorkspace.getConnectionManager(),
+                mWorkspace.getRootBlocks());
     }
 
     /**
      * Connects a WorkspaceFragment to this controller.
+     *
      * @param workspaceFragment
      */
     public void setWorkspaceFragment(@Nullable WorkspaceFragment workspaceFragment) {
@@ -145,6 +157,7 @@ public class BlocklyController {
 
     /**
      * Connects a TrashFragment to this controller.
+     *
      * @param trashFragment
      */
     public void setTrashFragment(@Nullable TrashFragment trashFragment) {
@@ -181,7 +194,7 @@ public class BlocklyController {
      * Loads the toolbox contents from a JSON string.
      *
      * @param toolboxJson The JSON source of the set of blocks or block groups to show in the
-     *     toolbox.
+     * toolbox.
      */
     public void loadToolboxContents(String toolboxJson) {
         mWorkspace.loadToolboxContents(toolboxJson);
@@ -192,7 +205,7 @@ public class BlocklyController {
      * Loads the toolbox contents from a JSON input stream.
      *
      * @param toolboxJson A stream of the JSON source of the set of blocks or block groups to show
-     *     in the toolbox.
+     * in the toolbox.
      */
     public void loadToolboxContents(InputStream toolboxJson) {
         mWorkspace.loadToolboxContents(toolboxJson);
@@ -204,7 +217,6 @@ public class BlocklyController {
      * the contents of the xml.
      *
      * @param workspaceXmlString The XML source string to read from.
-     *
      * @throws BlocklyParserException if there was a parse failure.
      */
     public void loadWorkspaceContents(String workspaceXmlString) throws BlocklyParserException {
@@ -216,7 +228,6 @@ public class BlocklyController {
      * the contents of the xml.
      *
      * @param workspaceXmlStream The input stream to read from.
-     *
      * @throws BlocklyParserException if there was a parse failure.
      */
     public void loadWorkspaceContents(InputStream workspaceXmlStream)
@@ -244,7 +255,6 @@ public class BlocklyController {
      * Remove a block from the workspace and put it in the trash.
      *
      * @param block The block block to remove, possibly with descendants attached.
-     *
      * @return True if the block was removed, false otherwise.
      */
     public boolean removeRootBlock(Block block) {
@@ -259,7 +269,7 @@ public class BlocklyController {
      * Closes the provided {@link ToolboxFragment}, if allowed by the current configuration.
      *
      * @param fragmentToClose {@link ToolboxFragment} to close, , which will either be the toolbox
-     *     or the trash.
+     * or the trash.
      */
     public void maybeCloseToolboxFragment(ToolboxFragment fragmentToClose) {
         // Close the appropriate toolbox
@@ -275,6 +285,91 @@ public class BlocklyController {
 
         if (fragmentToClose == mTrashFragment && mCanShowAndHideTrash) {
             mFragmentManager.beginTransaction().hide(mTrashFragment).commit();
+        }
+    }
+
+    /**
+     * Takes in a block model, creates corresponding views and adds it to the workspace.
+     *
+     * @param block The {@link Block} to add to the workspace.
+     */
+    public void addBlockWithView(Block block) {
+        mWorkspaceView.addView(mHelper.buildBlockGroupTree(
+                block, mWorkspace.getConnectionManager(), mTouchHandler));
+        mWorkspace.addRootBlock(block);
+    }
+
+    /**
+     * Set up the {@link WorkspaceView} with this workspace's model. This method will perform the
+     * following steps: <ul> <li>Set the block touch handler for the view.</li> <li>Configure the
+     * dragger for the view.</li> <li>Recursively initialize views for all the blocks in the model
+     * and add them to the view.</li> </ul>
+     *
+     * @param wv The root workspace view to add to.
+     */
+    public void initWorkspaceView(final WorkspaceView wv) {
+        mWorkspaceView = wv;
+        mWorkspaceView.setController(this);
+
+        mHelper.setWorkspaceView(wv);
+        // Tell the workspace helper to pass onTouchBlock events straight through to the Dragger.
+        mTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
+            @Override
+            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                return mDragger.onTouchBlock(blockView, motionEvent);
+            }
+
+            @Override
+            public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
+                return mDragger.onInterceptTouchEvent(blockView, motionEvent);
+            }
+        };
+        mDragger.setWorkspaceView(mWorkspaceView);
+        mWorkspaceView.setDragger(mDragger);
+        initBlockViews();
+    }
+
+    /**
+     * Recursively initialize views for all the blocks in the model and add them to the view.
+     */
+    public void initBlockViews() {
+        List<Block> rootBlocks = mWorkspace.getRootBlocks();
+        ConnectionManager connManager = mWorkspace.getConnectionManager();
+        for (int i = 0; i < rootBlocks.size(); i++) {
+            BlockGroup bg = new BlockGroup(mContext, mHelper);
+            mHelper.buildBlockViewTree(rootBlocks.get(i), bg, connManager,
+                    mTouchHandler);
+            mWorkspaceView.addView(bg);
+        }
+    }
+
+    /**
+     * Takes in a block model, creates corresponding views and adds it to the workspace.  Also
+     * starts a drag of that block group.
+     *
+     * @param block The root block to be added to the workspace.
+     * @param event The {@link MotionEvent} that caused the block to be added to the workspace. This
+     * is used to find the correct position to start the drag event.
+     * @param fragment The {@link ToolboxFragment} where the event originated.
+     */
+    public void addBlockFromToolbox(Block block, MotionEvent event, ToolboxFragment fragment) {
+        addBlockWithView(block);
+        // let the workspace view know that this is the block we want to drag
+        mDragger.setTouchedBlock(block.getView(), event);
+        // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
+        // {@link WorkspaceView} coordinates.
+        mHelper.workspaceToVirtualViewCoordinates(block.getPosition(), mTempViewPoint);
+        mDragger.setDragStartPos((int) event.getX() + mTempViewPoint.x,
+                (int) event.getY() + mTempViewPoint.y);
+        mDragger.startDragging();
+        maybeCloseToolboxFragment(fragment);
+    }
+
+    public void resetWorkspace() {
+        mWorkspace.resetWorkspace();
+        if (mWorkspaceView != null) {
+            mWorkspaceView.removeAllViews();
+            initBlockViews();
         }
     }
 
@@ -365,7 +460,6 @@ public class BlocklyController {
          * visible.
          *
          * @param fragmentManager The support manager to use for showing and hiding fragments.
-         *
          * @return this
          */
         public Builder setFragmentManager(FragmentManager fragmentManager) {
@@ -378,7 +472,6 @@ public class BlocklyController {
          * from {@link com.google.blockly.R.style#BlocklyTheme}.
          *
          * @param styleResId The resource id for the style to use.
-         *
          * @return this
          */
         public Builder setBlocklyStyle(int styleResId) {
@@ -397,7 +490,6 @@ public class BlocklyController {
          * A duplicate block is any block with the same {@link Block#getName() name}.
          *
          * @param blockDefinitionsResId The resource to load blocks from.
-         *
          * @return this
          */
         public Builder addBlockDefinitions(int blockDefinitionsResId) {
@@ -406,8 +498,8 @@ public class BlocklyController {
         }
 
         /**
-         * Add a set of block definitions to load from an asset file. These will be added to the
-         * set of all known blocks, but will not appear in the user's toolbox unless they are also
+         * Add a set of block definitions to load from an asset file. These will be added to the set
+         * of all known blocks, but will not appear in the user's toolbox unless they are also
          * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
          * <p/>
          * The asset name must be a path to a file in the assets directory. If the file contains
@@ -416,7 +508,6 @@ public class BlocklyController {
          * A duplicate block is any block with the same {@link Block#getName() name}.
          *
          * @param assetName the path of the asset to load from.
-         *
          * @return this
          */
         public Builder addBlockDefinitionsFromAsset(String assetName) {
@@ -425,19 +516,18 @@ public class BlocklyController {
         }
 
         /**
-         * Adds a list of blocks to the set of all known blocks. These will be added to the
-         * set of all known blocks, but will not appear in the user's toolbox unless they are also
-         * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
+         * Adds a list of blocks to the set of all known blocks. These will be added to the set of
+         * all known blocks, but will not appear in the user's toolbox unless they are also defined
+         * in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
          * <p/>
          * These blocks may not have any child blocks attached to them. If these blocks are
          * duplicates of blocks loaded from a resource they will override the block from resources.
-         * Blocks added here will always be loaded after any blocks added with
-         * {@link #addBlockDefinitions(int)};
+         * Blocks added here will always be loaded after any blocks added with {@link
+         * #addBlockDefinitions(int)};
          * <p/>
          * A duplicate block is any block with the same {@link Block#getName() name}.
          *
          * @param blocks The list of blocks to add to the workspace.
-         *
          * @return this
          */
         public Builder addBlockDefinitions(List<Block> blocks) {
@@ -449,11 +539,10 @@ public class BlocklyController {
          * Sets the resource to load the toolbox configuration from. This must be an xml resource in
          * the raw directory.
          * <p/>
-         * If this is set, {@link #setToolboxConfiguration(String)} and
-         * {@link #setToolboxConfigurationAsset(String)} may not be set.
+         * If this is set, {@link #setToolboxConfiguration(String)} and {@link
+         * #setToolboxConfigurationAsset(String)} may not be set.
          *
          * @param toolboxResId The resource id for the toolbox config file.
-         *
          * @return this
          */
         public Builder setToolboxConfigurationResId(int toolboxResId) {
@@ -465,14 +554,13 @@ public class BlocklyController {
         }
 
         /**
-         * Sets the asset to load the toolbox configuration from. The asset name must be a path to
-         * a file in the assets directory.
+         * Sets the asset to load the toolbox configuration from. The asset name must be a path to a
+         * file in the assets directory.
          * <p/>
-         * If this is set, {@link #setToolboxConfiguration(String)} and
-         * {@link #setToolboxConfigurationResId(int)} may not be set.
+         * If this is set, {@link #setToolboxConfiguration(String)} and {@link
+         * #setToolboxConfigurationResId(int)} may not be set.
          *
          * @param assetName The asset for the toolbox config file.
-         *
          * @return this
          */
         public Builder setToolboxConfigurationAsset(String assetName) {
@@ -486,11 +574,10 @@ public class BlocklyController {
         /**
          * Sets the XML to use for toolbox configuration.
          * <p/>
-         * If this is set, {@link #setToolboxConfigurationResId(int)} and
-         * {@link #setToolboxConfigurationAsset(String)} may not be set.
+         * If this is set, {@link #setToolboxConfigurationResId(int)} and {@link
+         * #setToolboxConfigurationAsset(String)} may not be set.
          *
          * @param toolboxXml The XML for configuring the toolbox.
-         *
          * @return this
          */
         public Builder setToolboxConfiguration(String toolboxXml) {
@@ -502,13 +589,13 @@ public class BlocklyController {
         }
 
         /**
-         * Sets a XML resource to load the initial workspace from. This can be used when
-         * creating a new workspace to start with a predefined set of blocks. When changing levels
-         * within the same activity {@link Workspace#loadToolboxContents(int)} may be used instead
-         * to simply change the Toolbox's configuration.
+         * Sets a XML resource to load the initial workspace from. This can be used when creating a
+         * new workspace to start with a predefined set of blocks. When changing levels within the
+         * same activity {@link Workspace#loadToolboxContents(int)} may be used instead to simply
+         * change the Toolbox's configuration.
          * <p/>
-         * If this is set, {@link #setStartingWorkspace(String)} and
-         * {@link #setStartingWorkspaceAsset(String)} may not be set.
+         * If this is set, {@link #setStartingWorkspace(String)} and {@link
+         * #setStartingWorkspaceAsset(String)} may not be set.
          *
          * @param workspaceXmlResId The resource id for a XML file to load into the workspace.
          * @return this
@@ -523,16 +610,15 @@ public class BlocklyController {
         }
 
         /**
-         * Sets an XML String to load the initial workspace from. This can be used when
-         * creating a new workspace to start with a predefined set of blocks. When changing levels
-         * within the same activity {@link Workspace#loadToolboxContents(int)} may be used instead
-         * to simply change the Toolbox's configuration.
+         * Sets an XML String to load the initial workspace from. This can be used when creating a
+         * new workspace to start with a predefined set of blocks. When changing levels within the
+         * same activity {@link Workspace#loadToolboxContents(int)} may be used instead to simply
+         * change the Toolbox's configuration.
          * <p/>
-         * If this is set, {@link #setStartingWorkspace(int)} and
-         * {@link #setStartingWorkspaceAsset(String)} may not be set.
+         * If this is set, {@link #setStartingWorkspace(int)} and {@link
+         * #setStartingWorkspaceAsset(String)} may not be set.
          *
          * @param workspaceXml The XML to load into the workspace.
-         *
          * @return this
          */
         public Builder setStartingWorkspace(String workspaceXml) {
@@ -545,16 +631,15 @@ public class BlocklyController {
         }
 
         /**
-         * Sets an asset path to load the initial workspace from. This can be used when
-         * creating a new workspace to start with a predefined set of blocks. When changing levels
-         * within the same activity {@link Workspace#loadToolboxContents(int)} may be used instead
-         * to simply change the Toolbox's configuration without wiping the workspace state.
+         * Sets an asset path to load the initial workspace from. This can be used when creating a
+         * new workspace to start with a predefined set of blocks. When changing levels within the
+         * same activity {@link Workspace#loadToolboxContents(int)} may be used instead to simply
+         * change the Toolbox's configuration without wiping the workspace state.
          * <p/>
-         * If this is set, {@link #setStartingWorkspace(int)} and
-         * {@link #setStartingWorkspace(String)} may not be set.
+         * If this is set, {@link #setStartingWorkspace(int)} and {@link
+         * #setStartingWorkspace(String)} may not be set.
          *
          * @param assetPath The asset path to the workspace.
-         *
          * @return this
          */
         public Builder setStartingWorkspaceAsset(String assetPath) {

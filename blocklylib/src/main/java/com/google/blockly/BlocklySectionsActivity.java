@@ -154,14 +154,14 @@ public class BlocklySectionsActivity extends AbsBlocklyActivity
             Workspace workspace = mWorkspaceFragment.getWorkspace();
             try {
                 workspace.loadWorkspaceContents(openFileInput("workspace.xml"));
-                workspace.initBlockViews();
+                getController().initBlockViews();
             } catch (FileNotFoundException e) {
                 Toast.makeText(getApplicationContext(), "Couldn't find saved workspace.",
                         Toast.LENGTH_LONG).show();
             }
             return true;
         } else if (id == R.id.action_clear) {
-            mWorkspaceFragment.getWorkspace().resetWorkspace();
+            getController().resetWorkspace();
             return true;
         } else if (id == R.id.action_airstrike) {
             mToolboxFragment.airstrike();

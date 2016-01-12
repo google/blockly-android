@@ -26,7 +26,7 @@ public class TestWorkspaceViewActivity extends Activity {
         mWorkspaceHelper = mController.getWorkspaceHelper();
 
         mWorkspaceView = new WorkspaceView(this);
-        mWorkspace.initWorkspaceView(mWorkspaceView);
+        mController.initWorkspaceView(mWorkspaceView);
 
         setContentView(mWorkspaceView);
     }

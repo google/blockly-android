@@ -88,7 +88,7 @@ public class WorkspaceFragment extends Fragment {
                 });
 
         // Let the controller create the views.
-        mWorkspace.initWorkspaceView(mWorkspaceView);
+        mController.initWorkspaceView(mWorkspaceView);
         return rootView;
     }
 
