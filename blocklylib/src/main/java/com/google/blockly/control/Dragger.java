@@ -28,7 +28,6 @@ import android.view.View;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
-import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockView;
@@ -76,6 +75,7 @@ public class Dragger {
     // For use in getting location on screen.
     private final int[] mTempArray = new int[2];
     private final ViewPoint mTempViewPoint = new ViewPoint();
+    private final BlocklyController mController;
     // Which {@link BlockView} was touched, and possibly may be being dragged.
     private BlockView mTouchedBlockView;
     private WorkspaceHelper mWorkspaceHelper;
@@ -84,7 +84,6 @@ public class Dragger {
     private BlockView mHighlightedBlockView;
     // The view for the trash can.
     private View mTrashView;
-    private Workspace mWorkspace;
     //The square of the required touch slop before starting a drag, precomputed to avoid
     // square root operations at runtime.
     private float mTouchSlopSquared = 0.0f;
@@ -118,7 +117,6 @@ public class Dragger {
                     // drag has started.
                     if (mTouchState == TOUCH_STATE_DRAGGING) {
                         if (touchingTrashView(event)) {
-                            mWorkspace.removeRootBlock(mTouchedBlockView.getBlock());
                             dropInTrash();
                         } else {
                             finishDragging();
@@ -139,13 +137,15 @@ public class Dragger {
      * @param workspaceHelper For use in computing workspace coordinates.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param rootBlocks The list of blocks to update when moving blocks.
+     * @param blocklyController
      */
-    public Dragger(Workspace ws, WorkspaceHelper workspaceHelper, ConnectionManager connectionManager,
-            ArrayList<Block> rootBlocks) {
-        mWorkspace = ws;
+    public Dragger(WorkspaceHelper workspaceHelper,
+            ConnectionManager connectionManager,
+            ArrayList<Block> rootBlocks, BlocklyController blocklyController) {
         mWorkspaceHelper = workspaceHelper;
         mConnectionManager = connectionManager;
         mRootBlocks = rootBlocks;
+        mController = blocklyController;
     }
 
     /**
@@ -458,8 +458,8 @@ public class Dragger {
             mHighlightedBlockView = null;
         }
         mDraggedConnections.clear();
+        mController.trashRootBlock(mTouchedBlockView.getBlock());
         mTouchedBlockView = null;
-        mWorkspaceView.removeView(mDragGroup);
         mDragGroup = null;
     }
 

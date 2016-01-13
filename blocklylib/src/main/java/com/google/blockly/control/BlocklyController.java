@@ -94,8 +94,8 @@ public class BlocklyController {
         mHelper = new WorkspaceHelper(mContext, style);
         mWorkspace = new Workspace(mContext, this, mBlockFactory);
 
-        mDragger = new Dragger(mWorkspace, mHelper, mWorkspace.getConnectionManager(),
-                mWorkspace.getRootBlocks());
+        mDragger = new Dragger(mHelper, mWorkspace.getConnectionManager(),
+                mWorkspace.getRootBlocks(), this);
     }
 
     /**
@@ -254,13 +254,15 @@ public class BlocklyController {
 
     /**
      * Remove a block from the workspace and put it in the trash.
-     *
+     * TODO(#301) Make this handle any block, not just root blocks.
      * @param block The block block to remove, possibly with descendants attached.
      * @return True if the block was removed, false otherwise.
      */
-    public boolean removeRootBlock(Block block) {
+    public boolean trashRootBlock(Block block) {
         boolean rootBlockDeleted = mWorkspace.removeRootBlock(block);
         if (rootBlockDeleted) {
+            mWorkspace.addBlockToTrash(block);
+            mWorkspaceView.removeView((BlockGroup)block.getView().getParent());
             mTrashFragment.getAdapter().notifyDataSetChanged();
         }
         return rootBlockDeleted;

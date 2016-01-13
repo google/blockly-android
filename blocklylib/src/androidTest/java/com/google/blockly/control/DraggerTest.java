@@ -42,6 +42,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
     @Mock
     private DragEvent mDragEvent;
+    @Mock
+    private BlocklyController mMockController;
 
     private ViewPoint mTempViewPoint = new ViewPoint();
     private ConnectionManager mConnectionManager;
@@ -55,12 +57,11 @@ public class DraggerTest extends MockitoAndroidTestCase {
     public void setUp() throws Exception {
         super.setUp();
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-
         mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());
         mConnectionManager = new ConnectionManager();
         mWorkspaceHelper = new WorkspaceHelper(getContext());
-        mDragger = new Dragger(null, mWorkspaceHelper, mConnectionManager, mBlocks);
+        mDragger = new Dragger(mWorkspaceHelper, mConnectionManager, mBlocks, mMockController);
         mDragger.setWorkspaceView(mWorkspaceView);
     }
 

@@ -88,18 +88,23 @@ public class Workspace {
     }
 
     /**
-     * Remove a block from the workspace and put it in the trash.
+     * Remove a block from the workspace.
      *
      * @param block The block block to remove, possibly with descendants attached.
      * @return True if the block was removed, false otherwise.
      */
     public boolean removeRootBlock(Block block) {
-        if (mRootBlocks.remove(block)) {
-            mDeletedBlocks.addBlock(block);
-            return true;
-        }
-        // else
-        return false;
+        return mRootBlocks.remove(block);
+    }
+
+    /**
+     * Add a root block to the trash.
+     *
+     * TODO(#306): Make sure the block doesn't have a parent.
+     * @param block The block to put in the trash, possibly with descendants attached.
+     */
+    public void addBlockToTrash(Block block) {
+        mDeletedBlocks.addBlock(block);
     }
 
     public ConnectionManager getConnectionManager() {
