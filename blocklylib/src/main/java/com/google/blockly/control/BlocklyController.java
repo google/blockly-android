@@ -32,6 +32,7 @@ import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.BlockGroup;
+import com.google.blockly.ui.BlockTouchHandler;
 import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
@@ -63,7 +64,7 @@ public class BlocklyController {
     private ToolboxFragment mToolboxFragment = null;
     private DrawerLayout mToolboxDrawer = null;
     private Dragger mDragger;
-    private WorkspaceHelper.BlockTouchHandler mTouchHandler;
+    private BlockTouchHandler mTouchHandler;
 
     private boolean mCanCloseToolbox;
     private boolean mCanShowAndHideTrash;
@@ -90,7 +91,7 @@ public class BlocklyController {
         mContext = context;
         mFragmentManager = fragmentManager;
         mBlockFactory = blockFactory;
-        mHelper = new WorkspaceHelper(mContext, null, style);
+        mHelper = new WorkspaceHelper(mContext, style);
         mWorkspace = new Workspace(mContext, this, mBlockFactory);
 
         mDragger = new Dragger(mWorkspace, mHelper, mWorkspace.getConnectionManager(),
@@ -313,7 +314,7 @@ public class BlocklyController {
 
         mHelper.setWorkspaceView(wv);
         // Tell the workspace helper to pass onTouchBlock events straight through to the Dragger.
-        mTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
+        mTouchHandler = new BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
                 return mDragger.onTouchBlock(blockView, motionEvent);

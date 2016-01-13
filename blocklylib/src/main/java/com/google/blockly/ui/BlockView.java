@@ -51,13 +51,12 @@ public class BlockView extends NonPropagatingViewGroup {
     private static final int MIN_BLOCK_WIDTH = 40;
 
     private final WorkspaceHelper mHelper;
-    private final WorkspaceHelper.BlockTouchHandler mTouchHandler;
+    private final BlockTouchHandler mTouchHandler;
     private final Block mBlock;
     private final ConnectionManager mConnectionManager;
 
     // Child views for the block inputs and their children.
     private final ArrayList<InputView> mInputViews = new ArrayList<>();
-    private int mInputCount;
 
     // Reference points for connectors relative to this view (needed for selective highlighting).
     private final ViewPoint mOutputConnectorOffset = new ViewPoint();
@@ -104,6 +103,7 @@ public class BlockView extends NonPropagatingViewGroup {
 
     // Flag is set to true if this block has at least one "Value" input.
     private boolean mHasValueInput = false;
+    private int mInputCount;
 
     private final Rect tempRect = new Rect(); // Only use in main thread functions.
 
@@ -112,7 +112,7 @@ public class BlockView extends NonPropagatingViewGroup {
      * WorkspaceHelper's provided style.
      * <p>
      * App developers should not call this constructor directly.  Instead use
-     * {@link WorkspaceHelper#buildBlockViewTree(Block, BlockGroup, ConnectionManager, WorkspaceHelper.BlockTouchHandler)}.
+     * {@link WorkspaceHelper#buildBlockViewTree(Block, BlockGroup, ConnectionManager, BlockTouchHandler)}.
      *
      * @param context The context for creating this view.
      * @param block The {@link Block} represented by this view.
@@ -123,7 +123,7 @@ public class BlockView extends NonPropagatingViewGroup {
      */
     public BlockView(Context context, Block block, WorkspaceHelper helper,
                      ConnectionManager connectionManager,
-                     WorkspaceHelper.BlockTouchHandler touchHandler) {
+                     BlockTouchHandler touchHandler) {
         super(context, null, 0);
 
         mBlock = block;
@@ -140,25 +140,6 @@ public class BlockView extends NonPropagatingViewGroup {
 
         setWillNotDraw(false);
         initDrawingObjects();
-    }
-
-    /**
-     * Select a connection for highlighted drawing.
-     *
-     * @param connection The connection whose port to highlight. This must be a connection
-     * associated with the {@link Block} represented by this {@link BlockView}
-     * instance.  Disables all connection highlights if connection is null.
-     */
-    public void setHighlightedConnection(@Nullable Connection connection) {
-        mHighlightConnection = connection;
-        invalidate();
-    }
-
-    /**
-     * Check if border highlight is rendered.
-     */
-    protected boolean isEntireBlockHighlighted() {
-        return isPressed() || isFocused() || isSelected();
     }
 
     /**
@@ -254,10 +235,112 @@ public class BlockView extends NonPropagatingViewGroup {
     }
 
     /**
+     * Select a connection for highlighted drawing.
+     *
+     * @param connection The connection whose port to highlight. This must be a connection
+     * associated with the {@link Block} represented by this {@link BlockView}
+     * instance.  Disables all connection highlights if connection is null.
+     */
+    public void setHighlightedConnection(@Nullable Connection connection) {
+        mHighlightConnection = connection;
+        invalidate();
+    }
+
+    /**
      * @return The block for this view.
      */
     public Block getBlock() {
         return mBlock;
+    }
+
+    /**
+     * Correctly set the locations of the connections based on their offsets within the
+     * {@link BlockView} and the position of the {@link BlockView} itself.  Can be used when the
+     * block has moved but not changed shape (e.g. during a drag).
+     */
+    @VisibleForTesting
+    public void updateConnectorLocations() {
+        // Ensure we have the right block location before we update the connections.
+        updateBlockPosition();
+
+        if (mConnectionManager == null) {
+            return;
+        }
+
+        final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
+
+        final Connection previousConnection = mBlock.getPreviousConnection();
+        if (previousConnection != null) {
+            mHelper.virtualViewToWorkspaceDelta(mPreviousConnectorOffset, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(
+                    previousConnection, blockWorkspacePosition, mTempWorkspacePoint);
+        }
+
+        final Connection nextConnection = mBlock.getNextConnection();
+        if (nextConnection != null) {
+            mHelper.virtualViewToWorkspaceDelta(mNextConnectorOffset, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(
+                    nextConnection, blockWorkspacePosition, mTempWorkspacePoint);
+        }
+
+        final Connection outputConnection = mBlock.getOutputConnection();
+        if (outputConnection != null) {
+            mHelper.virtualViewToWorkspaceDelta(mOutputConnectorOffset, mTempWorkspacePoint);
+            mConnectionManager.moveConnectionTo(
+                    outputConnection, blockWorkspacePosition, mTempWorkspacePoint);
+        }
+
+        for (int i = 0; i < mInputViews.size(); i++) {
+            final InputView inputView = mInputViews.get(i);
+            final Connection connection = inputView.getInput().getConnection();
+            if (connection != null) {
+                mHelper.virtualViewToWorkspaceDelta(
+                        mInputConnectorOffsets.get(i), mTempWorkspacePoint);
+                mConnectionManager.moveConnectionTo(
+                        connection, blockWorkspacePosition, mTempWorkspacePoint);
+                if (connection.isConnected()) {
+                    ((BlockGroup) inputView.getChildView()).updateAllConnectorLocations();
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if border highlight is rendered.
+     */
+    protected boolean isEntireBlockHighlighted() {
+        return isPressed() || isFocused() || isSelected();
+    }
+
+    /**
+     * @return The number of {@link InputView} instances inside this view.
+     */
+    @VisibleForTesting
+    int getInputViewCount() {
+        return mInputViews.size();
+    }
+
+    /**
+     * @return The {@link InputView} for the {@link Input} at the given index.
+     */
+    @VisibleForTesting
+    InputView getInputView(int index) {
+        return mInputViews.get(index);
+    }
+
+    /**
+     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
+     * the top of this view's area.
+     */
+    int getNextBlockVerticalOffset() {
+        return mNextBlockVerticalOffset;
+    }
+
+    /**
+     * @return Layout margin on the left-hand side of the block (for optional Output connector).
+     */
+    int getLayoutMarginLeft() {
+        return mLayoutMarginLeft;
     }
 
     /**
@@ -1152,74 +1235,6 @@ public class BlockView extends NonPropagatingViewGroup {
     }
 
     /**
-     * @return The number of {@link InputView} instances inside this view.
-     */
-    @VisibleForTesting
-    int getInputViewCount() {
-        return mInputViews.size();
-    }
-
-    /**
-     * @return The {@link InputView} for the {@link Input} at the given index.
-     */
-    @VisibleForTesting
-    InputView getInputView(int index) {
-        return mInputViews.get(index);
-    }
-
-    /**
-     * Correctly set the locations of the connections based on their offsets within the
-     * {@link BlockView} and the position of the {@link BlockView} itself.  Can be used when the
-     * block has moved but not changed shape (e.g. during a drag).
-     */
-    @VisibleForTesting
-    public void updateConnectorLocations() {
-        // Ensure we have the right block location before we update the connections.
-        updateBlockPosition();
-
-        if (mConnectionManager == null) {
-            return;
-        }
-
-        final WorkspacePoint blockWorkspacePosition = mBlock.getPosition();
-
-        final Connection previousConnection = mBlock.getPreviousConnection();
-        if (previousConnection != null) {
-            mHelper.virtualViewToWorkspaceDelta(mPreviousConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(
-                    previousConnection, blockWorkspacePosition, mTempWorkspacePoint);
-        }
-
-        final Connection nextConnection = mBlock.getNextConnection();
-        if (nextConnection != null) {
-            mHelper.virtualViewToWorkspaceDelta(mNextConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(
-                    nextConnection, blockWorkspacePosition, mTempWorkspacePoint);
-        }
-
-        final Connection outputConnection = mBlock.getOutputConnection();
-        if (outputConnection != null) {
-            mHelper.virtualViewToWorkspaceDelta(mOutputConnectorOffset, mTempWorkspacePoint);
-            mConnectionManager.moveConnectionTo(
-                    outputConnection, blockWorkspacePosition, mTempWorkspacePoint);
-        }
-
-        for (int i = 0; i < mInputViews.size(); i++) {
-            final InputView inputView = mInputViews.get(i);
-            final Connection connection = inputView.getInput().getConnection();
-            if (connection != null) {
-                mHelper.virtualViewToWorkspaceDelta(
-                        mInputConnectorOffsets.get(i), mTempWorkspacePoint);
-                mConnectionManager.moveConnectionTo(
-                        connection, blockWorkspacePosition, mTempWorkspacePoint);
-                if (connection.isConnected()) {
-                    ((BlockGroup) inputView.getChildView()).updateAllConnectorLocations();
-                }
-            }
-        }
-    }
-
-    /**
      * Add a rectangular area for filling either by creating a new rectangle or extending an
      * existing one.
      * <p/>
@@ -1339,20 +1354,5 @@ public class BlockView extends NonPropagatingViewGroup {
         NinePatchDrawable drawable = mPatchManager.getPatchDrawable(id);
         drawable.setColorFilter(mBlockColorFilter);
         return drawable;
-    }
-
-    /**
-     * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
-     * the top of this view's area.
-     */
-    int getNextBlockVerticalOffset() {
-        return mNextBlockVerticalOffset;
-    }
-
-    /**
-     * @return Layout margin on the left-hand side of the block (for optional Output connector).
-     */
-    int getLayoutMarginLeft() {
-        return mLayoutMarginLeft;
     }
 }

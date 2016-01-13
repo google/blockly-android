@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,6 @@ import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
 
@@ -77,13 +76,13 @@ public class WorkspaceHelper {
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final int[] mTempIntArray2 = new int[2];
     private final Context mContext;
+    private final PatchManager mPatchManager;
     private WorkspaceView mWorkspaceView;
     private float mDensity;
     private boolean mRtl;
     private int mBlockStyle;
     private int mFieldLabelStyle;
 
-    private final PatchManager mPatchManager;
     /**
      * Create a helper for creating and doing calculations for views in the workspace using the
      * context's default style.
@@ -91,36 +90,18 @@ public class WorkspaceHelper {
      * @param context The {@link Context} of the fragment or activity this lives in.
      */
     public WorkspaceHelper(Context context) {
-        this(context, null);
-    }
-
-    /**
-     * Create a helper for creating and doing calculations for views in the workspace.
-     *
-     * @param context The {@link Context} of the fragment or activity this lives in.
-     * @param attrs The workspace attributes to load the style from.
-     */
-    public WorkspaceHelper(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        this(context, 0);
     }
 
     /**
      * Create a helper for creating and doing calculations for views in the workspace, with a
      * specific style. The style must be a resource id for a style that extends
      * {@link R.style#BlocklyTheme}.
-     * <p/>
-     * The config and styles are loaded from one of three sources with the following priority.
-     * <ol>
-     * <li>The specified style id if it is not 0.</li>
-     * <li>The attribute's style if it is not null.</li>
-     * <li>The context's theme.</li>
-     * </ol>
      *
      * @param context The {@link Context} of the fragment or activity this lives in.
-     * @param attrs The {@link WorkspaceView} attributes or null.
      * @param workspaceStyle The style to use for views.
      */
-    public WorkspaceHelper(Context context, AttributeSet attrs, int workspaceStyle) {
+    public WorkspaceHelper(Context context, int workspaceStyle) {
         mContext = context;
         final Resources res = mContext.getResources();
         mDensity = res.getDisplayMetrics().density;
@@ -132,14 +113,7 @@ public class WorkspaceHelper {
         updateRtl(res);
 
         mPatchManager = new PatchManager(res, mRtl);
-        initConfig(mContext, attrs, workspaceStyle);
-    }
-
-    /**
-     * Sets the workspace view to use when converting between coordinate systems.
-     */
-    public void setWorkspaceView(WorkspaceView workspaceView) {
-        mWorkspaceView = workspaceView;
+        initConfig(mContext, workspaceStyle);
     }
 
     /**
@@ -147,6 +121,13 @@ public class WorkspaceHelper {
      */
     public WorkspaceView getWorkspaceView() {
         return mWorkspaceView;
+    }
+
+    /**
+     * Sets the workspace view to use when converting between coordinate systems.
+     */
+    public void setWorkspaceView(WorkspaceView workspaceView) {
+        mWorkspaceView = workspaceView;
     }
 
     /**
@@ -474,22 +455,33 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Loads the style configurations. The config and styles are loaded from one of three sources
-     * with the following priority.
-     * <ol>
-     * <li>The specified style id.</li>
-     * <li>The attribute's style.</li>
-     * <li>The context's theme.</li>
-     * </ol>
+     * Converts a point in virtual view coordinates to workspace coordinates, storing the result in
+     * the second parameter. The view position should be in the {@link WorkspaceView} coordinates in
+     * pixels.
+     *
+     * @param viewPosition The position to convert to workspace coordinates.
+     * @param workspacePosition The Point to store the results in.
      */
-    private void initConfig(Context context, AttributeSet attrs, int style) {
+    void virtualViewToWorkspaceCoordinates(ViewPoint viewPosition,
+                                           WorkspacePoint workspacePosition) {
+        int workspaceX =
+                virtualViewToWorkspaceUnits(viewPosition.x + mVirtualWorkspaceViewOffset.x);
+        if (mRtl) {
+            workspaceX *= -1;
+        }
+        workspacePosition.x = workspaceX;
+        workspacePosition.y =
+                virtualViewToWorkspaceUnits(viewPosition.y + mVirtualWorkspaceViewOffset.y);
+    }
+
+    /**
+     * Loads the style configurations using the selected style (if not 0), or from context's theme.
+     */
+    private void initConfig(Context context, int style) {
         TypedArray styles;
 
         if (style != 0) {
             styles = context.obtainStyledAttributes(style, R.styleable.BlocklyWorkspaceTheme);
-        } else if (attrs != null) {
-            int styleId = attrs.getStyleAttribute();
-            styles = context.obtainStyledAttributes(styleId, R.styleable.BlocklyWorkspaceTheme);
         } else {
             styles = context.obtainStyledAttributes(R.styleable.BlocklyWorkspaceTheme);
         }
@@ -520,37 +512,4 @@ public class WorkspaceHelper {
         }
     }
 
-    /**
-     * Converts a point in virtual view coordinates to workspace coordinates, storing the result in
-     * the second parameter. The view position should be in the {@link WorkspaceView} coordinates in
-     * pixels.
-     *
-     * @param viewPosition The position to convert to workspace coordinates.
-     * @param workspacePosition The Point to store the results in.
-     */
-    void virtualViewToWorkspaceCoordinates(ViewPoint viewPosition,
-                                           WorkspacePoint workspacePosition) {
-        int workspaceX =
-                virtualViewToWorkspaceUnits(viewPosition.x + mVirtualWorkspaceViewOffset.x);
-        if (mRtl) {
-            workspaceX *= -1;
-        }
-        workspacePosition.x = workspaceX;
-        workspacePosition.y =
-                virtualViewToWorkspaceUnits(viewPosition.y + mVirtualWorkspaceViewOffset.y);
-    }
-
-    public static abstract class BlockTouchHandler {
-        /**
-         * Called by the BlockView when the visible area of the block has been touched.
-         *
-         * @param blockView The touched {@link BlockView}.
-         * @param motionEvent The event the blockView is responding to.
-         *
-         * @return whether the {@link WorkspaceView} has handled the touch event.
-         */
-        abstract public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent);
-
-        abstract public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent);
-    }
 }

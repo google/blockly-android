@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -17,17 +17,14 @@ package com.google.blockly.ui;
 
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.MockitoAndroidTestCase;
-import com.google.blockly.R;
 import com.google.blockly.TestUtils;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.BlockFactory;
 
 import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,7 +37,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     @Mock
     private ConnectionManager mockConnectionManager;
     @Mock
-    private WorkspaceHelper.BlockTouchHandler mockTouchHandler;
+    private BlockTouchHandler mockTouchHandler;
 
     @Override
     public void setUp() throws Exception {
@@ -75,8 +72,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         // Add a completely unconnected block.
         blocks.add(MockBlocksProvider.makeStatementBlock());
 
-        TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mockConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(blocks, mWorkspaceHelper, mockConnectionManager, mWorkspaceView);
 
         assertSame(mWorkspaceHelper.getNearestParentBlockGroup(root),
                 mWorkspaceHelper.getNearestParentBlockGroup(cur));
@@ -110,8 +106,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         // Add a completely unconnected block.
         blocks.add(MockBlocksProvider.makeDummyBlock());
 
-        TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mockConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(blocks, mWorkspaceHelper, mockConnectionManager, mWorkspaceView);
 
         assertSame(mWorkspaceHelper.getRootBlockGroup(root),
                 mWorkspaceHelper.getRootBlockGroup(cur));

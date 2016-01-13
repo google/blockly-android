@@ -31,6 +31,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.ToolboxCategory;
 import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
+import com.google.blockly.ui.BlockTouchHandler;
 import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.ToolboxAdapter;
 import com.google.blockly.ui.WorkspaceHelper;
@@ -52,7 +53,7 @@ public class ToolboxFragment extends Fragment {
 
     protected BlocklyController mController;
     protected WorkspaceHelper mWorkspaceHelper;
-    protected WorkspaceHelper.BlockTouchHandler mBlockTouchHandler;
+    protected BlockTouchHandler mBlockTouchHandler;
 
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
@@ -81,7 +82,7 @@ public class ToolboxFragment extends Fragment {
         }
 
         mWorkspaceHelper = mController.getWorkspaceHelper();
-        mBlockTouchHandler = new WorkspaceHelper.BlockTouchHandler() {
+        mBlockTouchHandler = new BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
                 if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {

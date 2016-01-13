@@ -44,7 +44,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private final ToolboxCategory mTopLevelCategory;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final WorkspaceHelper.BlockTouchHandler mTouchHandler;
+    private final BlockTouchHandler mTouchHandler;
     private final Context mContext;
 
     /**
@@ -57,7 +57,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      * @param touchHandler The function to call when a block is touched.
      */
     public ToolboxAdapter(ToolboxCategory topLevelCategory, WorkspaceHelper workspaceHelper,
-                          WorkspaceHelper.BlockTouchHandler touchHandler, Context context) {
+                          BlockTouchHandler touchHandler, Context context) {
         mTopLevelCategory = topLevelCategory;
         mWorkspaceHelper = workspaceHelper;
         mContext = context;
@@ -78,6 +78,45 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public int getItemViewType(int position) {
         return getItemForPosition(mTopLevelCategory, position).first;
+    }
+
+    // Replace the contents of a view (invoked by the layout manager)
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        Pair<Integer, Object> item = getItemForPosition(mTopLevelCategory, position);
+        switch (item.first) {
+            case BLOCK_GROUP_VIEW_TYPE:
+                final BlockViewHolder bvHolder = (BlockViewHolder) holder;
+                final Block block = (Block) item.second;
+                bvHolder.mBlockGroup.removeAllViews();
+                mWorkspaceHelper.buildBlockViewTree(
+                        block, bvHolder.mBlockGroup, null, mTouchHandler);
+                break;
+            case CATEGORY_VIEW_TYPE:
+                final CategoryViewHolder cvHolder = (CategoryViewHolder) holder;
+                final ToolboxCategory cat = (ToolboxCategory) item.second;
+                cvHolder.setCategory(cat);
+
+                cvHolder.mTextView.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                cat.setExpanded(!cat.isExpanded());
+                                ToolboxAdapter.this.notifyDataSetChanged();
+                            }
+                        });
+                break;
+            default:
+                // Shouldn't get here.  Now what?
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        if (mTopLevelCategory != null) {
+            return mTopLevelCategory.getCurrentSize();
+        }
+        return 0;
     }
 
     /**
@@ -120,45 +159,6 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
         // Wasn't in subcategories or blocks
         return new Pair<>(UNKNOWN_VIEW_TYPE, null);
-    }
-
-    // Replace the contents of a view (invoked by the layout manager)
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        Pair<Integer, Object> item = getItemForPosition(mTopLevelCategory, position);
-        switch (item.first) {
-            case BLOCK_GROUP_VIEW_TYPE:
-                final BlockViewHolder bvHolder = (BlockViewHolder) holder;
-                final Block block = (Block) item.second;
-                bvHolder.mBlockGroup.removeAllViews();
-                mWorkspaceHelper.buildBlockViewTree(
-                        block, bvHolder.mBlockGroup, null, mTouchHandler);
-                break;
-            case CATEGORY_VIEW_TYPE:
-                final CategoryViewHolder cvHolder = (CategoryViewHolder) holder;
-                final ToolboxCategory cat = (ToolboxCategory) item.second;
-                cvHolder.setCategory(cat);
-
-                cvHolder.mTextView.setOnClickListener(
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                cat.setExpanded(!cat.isExpanded());
-                                ToolboxAdapter.this.notifyDataSetChanged();
-                            }
-                        });
-                break;
-            default:
-                // Shouldn't get here.  Now what?
-        }
-    }
-
-    @Override
-    public int getItemCount() {
-        if (mTopLevelCategory != null) {
-            return mTopLevelCategory.getCurrentSize();
-        }
-        return 0;
     }
 
     public class BlockViewHolder extends RecyclerView.ViewHolder {

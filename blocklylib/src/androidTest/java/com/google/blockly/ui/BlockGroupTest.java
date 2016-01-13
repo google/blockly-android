@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -41,7 +41,7 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        mWorkspaceHelper = new WorkspaceHelper(getContext(), null);
+        mWorkspaceHelper = new WorkspaceHelper(getContext());
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
     }
 
@@ -70,8 +70,7 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
         first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
         blocks.add(first);
 
-        TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(blocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         BlockGroup rootBlockGroup = (BlockGroup) first.getView().getParent();
         assertSame(second.getInputByName("value").getConnection(),
@@ -94,8 +93,7 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
         second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
         blocks.add(first);
 
-        TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(blocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         BlockGroup rootBlockGroup = (BlockGroup) first.getView().getParent();
         assertNull(rootBlockGroup.getLastInputConnection());
@@ -110,8 +108,7 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
         second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
         blocks.add(first);
 
-        TestUtils.createViews(blocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(blocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         BlockGroup rootBlockGroup = (BlockGroup) first.getView().getParent();
         assertNull(rootBlockGroup.getLastInputConnection());

@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -22,7 +22,6 @@ import com.google.blockly.R;
 import com.google.blockly.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
-import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
@@ -37,13 +36,12 @@ import static org.mockito.Mockito.when;
  * Tests for the {@link Dragger}.
  */
 public class DraggerTest extends MockitoAndroidTestCase {
-    private ConnectionManager mConnectionManager;
-
     private static final int POINTER_ID = 1;
 
     @Mock
     private DragEvent mDragEvent;
 
+    private ConnectionManager mConnectionManager;
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private Dragger mDragger;
@@ -58,7 +56,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());
         mConnectionManager = new ConnectionManager();
-        mWorkspaceHelper = new WorkspaceHelper(getContext(), null);
+        mWorkspaceHelper = new WorkspaceHelper(getContext());
         mDragger = new Dragger(null, mWorkspaceHelper, mConnectionManager, mBlocks);
         mDragger.setWorkspaceView(mWorkspaceView);
     }
@@ -71,8 +69,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
         mBlocks.add(first);
         mBlocks.add(second);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // No bump, no splice.
         mDragger.reconnectViews(second.getOutputConnection(),
@@ -97,8 +94,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mBlocks.add(first);
         mBlocks.add(third);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Bump: no next input
         mDragger.reconnectViews(third.getOutputConnection(),
@@ -129,8 +125,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mBlocks.add(first);
         mBlocks.add(third);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Bump: Child block has branching inputs
         mDragger.reconnectViews(third.getOutputConnection(),
@@ -162,8 +157,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mBlocks.add(first);
         mBlocks.add(third);
 
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Splice third between second and first.
         mDragger.reconnectViews(third.getOutputConnection(),
@@ -189,8 +183,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         Block second = mBlockFactory.obtainBlock("statement_no_input", "second block");
         mBlocks.add(first);
         mBlocks.add(second);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Connect "second" after "first": no bump, no splice
         mDragger.reconnectViews(second.getPreviousConnection(),
@@ -213,8 +206,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mBlocks.add(first);
         mBlocks.add(third);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Connect "third" after "first", causing a splice.
         mDragger.reconnectViews(third.getPreviousConnection(),
@@ -247,8 +239,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mBlocks.add(first);
         mBlocks.add(fourth);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Connect "fourth" after "first".  Since "fourth" has no next connection, bump.
         mDragger.reconnectViews(fourth.getPreviousConnection(),
@@ -275,8 +266,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         Block second = mBlockFactory.obtainBlock("statement_statement_input", "second block");
         mBlocks.add(first);
         mBlocks.add(second);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // No bump, no splice
         mDragger.reconnectViews(second.getPreviousConnection(),
@@ -301,8 +291,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mBlocks.add(first);
         mBlocks.add(third);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Splice third in between first and second.
         mDragger.reconnectViews(third.getPreviousConnection(),
@@ -336,8 +325,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mBlocks.add(first);
         mBlocks.add(fourth);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Connect fourth where second is currently connected.  This will bump second (and third,
         // which is connected to it) back to the root.
@@ -400,8 +388,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         second.setPosition(0, 50);
         mBlocks.add(first);
         mBlocks.add(second);
-        TestUtils.createViews(mBlocks, getContext(), mWorkspaceHelper, mConnectionManager,
-                mWorkspaceView);
+        TestUtils.createViews(mBlocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
 
         // Layout never happens during this test, so we're forcing the connection locations
         // to be set from the block positions before we try to use them.

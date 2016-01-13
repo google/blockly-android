@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -15,11 +15,8 @@
 
 package com.google.blockly;
 
-import android.content.Context;
-
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
-import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 
@@ -36,9 +33,9 @@ public final class TestUtils {
      * Create views for the given blocks and add them to the workspace given by the combination
      * of connection manager, helper, and view.
      */
-    public static void createViews(List<Block> blocks, Context context,
-                             WorkspaceHelper workspaceHelper, ConnectionManager connectionManager,
-                             WorkspaceView workspaceView) {
+    public static void createViews(List<Block> blocks, WorkspaceHelper workspaceHelper,
+            ConnectionManager connectionManager, WorkspaceView workspaceView) {
+
         // Create views for all of the blocks we're interested in.
         for (int i = 0; i < blocks.size(); i++) {
             workspaceView.addView(

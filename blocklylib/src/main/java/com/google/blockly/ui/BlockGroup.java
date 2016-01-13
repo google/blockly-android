@@ -37,7 +37,7 @@ public class BlockGroup extends NonPropagatingViewGroup {
     /**
      * Creates a BlockGroup to wrap one or more BlockViews. App developers should not call this
      * constructor directly.  Instead, use
-     * {@link WorkspaceHelper#buildBlockGroupTree(Block, ConnectionManager, WorkspaceHelper.BlockTouchHandler)}.
+     * {@link WorkspaceHelper#buildBlockGroupTree(Block, ConnectionManager, BlockTouchHandler)}.
      *
      * @param context The context for creating this view.
      * @param helper The helper for loading workspace configs and doing calculations.
@@ -90,6 +90,34 @@ public class BlockGroup extends NonPropagatingViewGroup {
             throw new IllegalArgumentException("BlockGroups may only contain BlockViews");
         }
         super.addView(child, index, params);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        int childCount = getChildCount();
+        boolean rtl = mWorkspaceHelper.useRtl();
+        int x = rtl ? getMeasuredWidth() : 0;
+        int y = 0;
+
+        // Layout margin for Output connector.
+        int margin = 0;
+
+        for (int i = 0; i < childCount; i++) {
+            BlockView child = (BlockView) getChildAt(i);
+
+            int w = child.getMeasuredWidth();
+            int cl = rtl ? x - margin - w : x + margin;
+            child.layout(cl, y, cl + w, y + child.getMeasuredHeight());
+            y += child.getNextBlockVerticalOffset();
+
+            // If the first child has a layout margin for an Output connector, then save margin for
+            // all children that follow.
+            if (i == 0) {
+                margin = child.getLayoutMarginLeft();
+            }
+        }
+        // After we finish laying out we need to update the locations of the connectors
+        updateAllConnectorLocations();
     }
 
     /**
@@ -204,33 +232,5 @@ public class BlockGroup extends NonPropagatingViewGroup {
      */
     int getNextBlockVerticalOffset() {
         return mNextBlockVerticalOffset;
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        int childCount = getChildCount();
-        boolean rtl = mWorkspaceHelper.useRtl();
-        int x = rtl ? getMeasuredWidth() : 0;
-        int y = 0;
-
-        // Layout margin for Output connector.
-        int margin = 0;
-
-        for (int i = 0; i < childCount; i++) {
-            BlockView child = (BlockView) getChildAt(i);
-
-            int w = child.getMeasuredWidth();
-            int cl = rtl ? x - margin - w : x + margin;
-            child.layout(cl, y, cl + w, y + child.getMeasuredHeight());
-            y += child.getNextBlockVerticalOffset();
-
-            // If the first child has a layout margin for an Output connector, then save margin for
-            // all children that follow.
-            if (i == 0) {
-                margin = child.getLayoutMarginLeft();
-            }
-        }
-        // After we finish laying out we need to update the locations of the connectors
-        updateAllConnectorLocations();
     }
 }
