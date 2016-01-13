@@ -28,11 +28,11 @@ public class BlockFactoryTest extends AndroidTestCase {
 
     public void testObtainBlock() {
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
-        Block emptyBlock = bf.obtainBlock("empty_block");
+        Block emptyBlock = bf.obtainBlock("empty_block", null);
         assertNotNull("Failed to create the empty block.", emptyBlock);
         assertEquals("Empty block has the wrong name", "empty_block", emptyBlock.getName());
 
-        Block frankenblock = bf.obtainBlock("frankenblock");
+        Block frankenblock = bf.obtainBlock("frankenblock", null);
         assertNotNull("Failed to create the frankenblock.", frankenblock);
 
         List<Input> inputs = frankenblock.getInputs();
@@ -49,10 +49,10 @@ public class BlockFactoryTest extends AndroidTestCase {
 
     public void testObtainRepeated() {
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
-        Block frankenblock = bf.obtainBlock("frankenblock");
+        Block frankenblock = bf.obtainBlock("frankenblock", null);
         assertNotNull("Failed to create the frankenblock.", frankenblock);
 
-        Block frankencopy = bf.obtainBlock("frankenblock");
+        Block frankencopy = bf.obtainBlock("frankenblock", null);
         assertNotSame("Obtained blocks should be distinct objects.", frankenblock, frankencopy);
 
         assertNotSame("Obtained blocks should not share connections.",

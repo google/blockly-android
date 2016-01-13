@@ -139,7 +139,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
             Workspace workspace = mWorkspaceFragment.getWorkspace();
             try {
                 workspace.loadWorkspaceContents(openFileInput("workspace.xml"));
-                workspace.initBlockViews();
+                getController().initBlockViews();
             } catch (FileNotFoundException e) {
                 Toast.makeText(getApplicationContext(), "Couldn't find saved workspace.",
                         Toast.LENGTH_LONG).show();

@@ -44,6 +44,7 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private final ToolboxCategory mTopLevelCategory;
     private final WorkspaceHelper mWorkspaceHelper;
+    private final WorkspaceHelper.BlockTouchHandler mTouchHandler;
     private final Context mContext;
 
     /**
@@ -56,10 +57,11 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      * @param touchHandler The function to call when a block is touched.
      */
     public ToolboxAdapter(ToolboxCategory topLevelCategory, WorkspaceHelper workspaceHelper,
-                          Context context) {
+                          WorkspaceHelper.BlockTouchHandler touchHandler, Context context) {
         mTopLevelCategory = topLevelCategory;
         mWorkspaceHelper = workspaceHelper;
         mContext = context;
+        mTouchHandler = touchHandler;
     }
 
     @Override

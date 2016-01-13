@@ -1314,7 +1314,7 @@ public class BlockView extends NonPropagatingViewGroup {
      * @param bottom The bottom coordinate.
      */
     private void calculateRtlAwareBounds(Rect rect, int ltrStart, int top, int ltrEnd, int bottom) {
-        boolean isRtl = mHelper.useRtL();
+        boolean isRtl = mHelper.useRtl();
         rect.left = isRtl ? mBlockViewSize.x - ltrEnd : ltrStart;
         rect.top = top;
         rect.right = isRtl ? mBlockViewSize.x - ltrStart : ltrEnd;

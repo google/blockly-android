@@ -68,6 +68,21 @@ public class ToolboxCategory {
         mIsExpanded = expanded;
     }
 
+    /**
+     * Clear the contents of this category and all subcategories; remove subcategories.
+     */
+    public void clear() {
+        for (int i = 0; i < mSubcategories.size(); i++) {
+            mSubcategories.get(i).clear();
+        }
+        mBlocks.clear();
+        mSubcategories.clear();
+    }
+
+    public boolean isEmpty() {
+        return mSubcategories.isEmpty() && mBlocks.isEmpty();
+    }
+
     public int getCurrentSize() {
         int size = 0;
         size += mSubcategories.size();

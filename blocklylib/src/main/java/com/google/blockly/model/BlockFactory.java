@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.text.TextUtils;
 import android.util.Log;
@@ -144,6 +145,7 @@ public class BlockFactory {
         final InputStream blockIs = new ByteArrayInputStream(json_string.getBytes());
         return loadBlocks(blockIs);
     }
+
 
     /**
      * Loads and adds block templates from an input stream.

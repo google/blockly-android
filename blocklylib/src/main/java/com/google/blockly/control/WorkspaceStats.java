@@ -41,7 +41,7 @@ public class WorkspaceStats {
     public WorkspaceStats(NameManager variableManager, ProcedureManager procedureManager,
                           ConnectionManager connectionManager) {
         mVariableNameManager = variableManager;
-        mProcedureNameManager = procedureManager;
+        mProcedureManager = procedureManager;
         mConnectionManager = connectionManager;
     }
 

@@ -31,7 +31,7 @@ public class TrashFragment extends ToolboxFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        ((LinearLayoutManager)(mRecyclerView.getLayoutManager()))
+        ((LinearLayoutManager) (mRecyclerView.getLayoutManager()))
                 .setOrientation(LinearLayoutManager.HORIZONTAL);
         return mRecyclerView;
     }

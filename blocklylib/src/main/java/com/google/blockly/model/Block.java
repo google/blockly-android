@@ -705,6 +705,10 @@ public class Block {
                                     || childBlock.getOutputConnection() == null) {
                                 throw new BlocklyParserException("A connection was null.");
                             }
+                            if (valueInput.getConnection().isConnected()) {
+                                throw new BlocklyParserException(
+                                        "Multiple values were provided for the same input.");
+                            }
                             valueInput.getConnection().connect(childBlock.getOutputConnection());
                             valueInput = null;
                             childBlock = null;
@@ -717,6 +721,10 @@ public class Block {
                             if (statementInput.getConnection() == null
                                     || childBlock.getPreviousConnection() == null) {
                                 throw new BlocklyParserException("A connection was null.");
+                            }
+                            if (statementInput.getConnection().isConnected()) {
+                                throw new BlocklyParserException(
+                                        "Multiple statements were provided for the same input.");
                             }
                             statementInput.getConnection().connect(
                                     childBlock.getPreviousConnection());
@@ -732,6 +740,10 @@ public class Block {
                         if (resultBlock.getNextConnection() == null
                                 || childBlock.getPreviousConnection() == null) {
                             throw new BlocklyParserException("A connection was null.");
+                        }
+                        if (resultBlock.getNextConnection().isConnected()) {
+                            throw new BlocklyParserException(
+                                    "Multiple next blocks were provided for the same block.");
                         }
                         resultBlock.getNextConnection().connect(childBlock.getPreviousConnection());
                     }
