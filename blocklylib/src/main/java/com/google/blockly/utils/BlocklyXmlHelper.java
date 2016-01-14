@@ -192,7 +192,7 @@ public final class BlocklyXmlHelper {
         }
     }
 
-    private static XmlPullParserFactory createParseFactory() {
+    private static XmlPullParserFactory createParseFactory() throws BlocklyParserException {
         XmlPullParserFactory parserFactory;
         try {
             parserFactory = XmlPullParserFactory.newInstance();

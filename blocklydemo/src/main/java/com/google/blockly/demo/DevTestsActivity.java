@@ -21,7 +21,6 @@ import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.NavigationDrawerFragment;
-import com.google.blockly.control.BlocklyController;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 
@@ -58,16 +57,9 @@ public class DevTestsActivity extends BlocklySectionsActivity
         return "sample_sections/generators.js";
     }
 
-    @NonNull
-    protected String getBlockDefinitionsPath() {
-        return "sample_sections/definitions.json";
-    }
-
     @Override
-    protected BlocklyController onCreateController() {
-        BlocklyController controller = super.onCreateController();
-        MockBlocksProvider.makeComplexModel(controller.getWorkspace());
-        return controller;
+    protected void onLoadInitialWorkspace() {
+        MockBlocksProvider.makeComplexModel(getController().getWorkspace());
     }
 
     @NonNull

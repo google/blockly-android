@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,11 +27,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
- * Controller for the workspace.  Keeps track of all the global state used in the workspace and
- * manages interaction between the different fragments.
+ * The root class for the Blockly model.  Keeps track of all the global state used in the workspace.
  */
 public class Workspace {
     private static final String TAG = "Workspace";
@@ -149,8 +149,11 @@ public class Workspace {
      */
     public void loadWorkspaceContents(InputStream is)
             throws BlocklyParserException {
+        List<Block> newBlocks = BlocklyXmlHelper.loadFromXml(is, mBlockFactory, mStats);
+
+        // Successfully deserialized.  Update workspace.
         mController.resetWorkspace();
-        mRootBlocks.addAll(BlocklyXmlHelper.loadFromXml(is, mBlockFactory, mStats));
+        mRootBlocks.addAll(newBlocks);
         for (int i = 0; i < mRootBlocks.size(); i++) {
             mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
         }

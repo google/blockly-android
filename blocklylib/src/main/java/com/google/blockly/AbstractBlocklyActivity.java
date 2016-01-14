@@ -28,7 +28,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -86,7 +85,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     /**
      * Creates the Activity Views, Fragments, and Blocklycontroller via a sequence of calls to
      * {@link #onCreateContentView()}, {@link #onCreateFragments()}, and
-     * {@link #onCreateController()}.  Subclasses should prefer to override those classes.
+     * {@link #onCreateController}.  Subclasses should prefer to override those classes.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,9 +95,59 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         onCreateFragments();
         mController = onCreateController();
 
+        boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
+                && mController.onRestoreSnapshot(savedInstanceState);
+        if (!loadedPriorInstance) {
+            onLoadInitialWorkspace();
+        }
+
         // TODO(#281): Factor out the navigation menu contents.
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer, mDrawerLayout,
                 onCreateNavigationMenuAdapter());
+    }
+
+    /**
+     * Creates the BlocklyController, if necessary, and configures it. This must be called during
+     * {@link #onCreate}. It may also be called while the activity is running to reconfigure the
+     * controller.
+     */
+    @NonNull
+    protected BlocklyController onCreateController() {
+        String toolboxPath = getToolboxContentsXmlPath();
+        String blockDefsPath = getBlockDefinitionsJsonPath();
+
+        BlocklyController.Builder builder = new BlocklyController.Builder(this)
+                .setBlocklyStyle(getStyleResId())
+                .setAssetManager(getAssets())
+                .addBlockDefinitionsFromAsset(blockDefsPath)
+                .setToolboxConfigurationAsset(toolboxPath)
+                .setWorkspaceFragment(mWorkspaceFragment)
+                .setTrashFragment(mTrashFragment)
+                .setToolboxFragment(mToolboxFragment, mDrawerLayout)
+                .setFragmentManager(getSupportFragmentManager());
+
+        return builder.build();
+    }
+
+    /**
+     * Returns true if the app should proceed to restore the blockly state from the
+     * {@code savedInstanceState} Bundle. By default, it always returns true, but Activity
+     * developers can override this method to add conditional logic.
+     * <p/>
+     * This does not prevent the state from saving to a Bundle during {@link #onSaveInstanceState}.
+     *
+     * @param savedInstanceState The Bundle to restore state from.
+     * @return True if Blockly state should be restored. Otherwise, null.
+     */
+    protected boolean checkAllowRestoreBlocklyState(Bundle savedInstanceState) {
+        return true;
+    }
+
+    /**
+     * Hook for subclasses to load an initial workspace.
+     */
+    protected void onLoadInitialWorkspace() {
+        // Nothing loaded by default.
     }
 
     @Override
@@ -167,6 +216,25 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         super.onResume();
         Intent intent = new Intent(this, CodeGeneratorService.class);
         bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        onSaveWorkspaceSnapshot(outState);
+    }
+
+    /**
+     * Saves a snapshot of the current workspace.  Called during {@link #onSaveInstanceState}. By
+     * default, it just calls {@link BlocklyController#onSaveSnapshot}, but subclasses can overload
+     * it change the behavior (e.g., only save based on some condition.).
+     *
+     * @param outState
+     */
+    protected void onSaveWorkspaceSnapshot(Bundle outState) {
+        // TODO(#316): Support optionally saving workspace state to persistence state.
+        //     Requires checking API Level >=21.
+        mController.onSaveSnapshot(outState);
     }
 
     @Override
@@ -290,7 +358,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
      * {@link R.id#toolbox} and {@link R.id#trash}, respectively. Subclasses may leave these
      * {@code null} if the views are not present in the UI.
      * <p>
-     * Always called once from {@link #onCreate} and before {@link #onCreateController()}.
+     * Always called once from {@link #onCreate} and before {@link #onCreateController}.
      */
     protected void onCreateFragments() {
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -313,33 +381,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
 
         // Trash should begin in a closed state.
         getSupportFragmentManager().beginTransaction().hide(mTrashFragment).commit();
-    }
-
-    /**
-     * Creates the BlocklyController, if necessary, and configures it. This must be called during
-     * {@link #onCreate}. It may also be called while the activity is running to reconfigure the
-     * controller.
-     */
-    @NonNull
-    protected BlocklyController onCreateController() {
-        String toolboxPath = getToolboxContentsXmlPath();
-        String blockDefsPath = getBlockDefinitionsJsonPath();
-
-        BlocklyController.Builder builder = new BlocklyController.Builder(this)
-                .setBlocklyStyle(getStyleResId())
-                .setAssetManager(getAssets())
-                .addBlockDefinitionsFromAsset(blockDefsPath)
-                .setToolboxConfigurationAsset(toolboxPath)
-                .setWorkspaceFragment(mWorkspaceFragment)
-                .setTrashFragment(mTrashFragment)
-                .setToolboxFragment(mToolboxFragment, mDrawerLayout)
-                .setFragmentManager(getSupportFragmentManager());
-
-        String startingWorkspacePath = getStartingWorkspacePath();
-        if (!TextUtils.isEmpty(startingWorkspacePath)) {
-            builder.setStartingWorkspaceAsset(startingWorkspacePath);
-        }
-        return builder.build();
     }
 
     /**
