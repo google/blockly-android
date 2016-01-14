@@ -360,8 +360,8 @@ public class BlocklyController {
         // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
         // {@link WorkspaceView} coordinates.
         mHelper.workspaceToVirtualViewCoordinates(block.getPosition(), mTempViewPoint);
-        mDragger.setDragStartPos((int) event.getX() + mTempViewPoint.x,
-                (int) event.getY() + mTempViewPoint.y);
+        mDragger.setDragStartPos((int) event.getX(), (int) event.getY(), mTempViewPoint.x,
+                mTempViewPoint.y);
         mDragger.startDragging();
         maybeCloseToolboxFragment(fragment);
     }

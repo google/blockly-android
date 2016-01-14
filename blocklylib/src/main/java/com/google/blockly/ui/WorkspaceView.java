@@ -142,7 +142,7 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     public void setDragger(Dragger dragger) {
         mDragger = dragger;
         mDragger.setTouchSlop(mTouchSlop);
-        setOnDragListener(mDragger.new WorkspaceDragEventListener());
+        setOnDragListener(mDragger.getDragEventListener());
         if (mTrashView != null) {
             mDragger.setTrashView(mTrashView);
         }

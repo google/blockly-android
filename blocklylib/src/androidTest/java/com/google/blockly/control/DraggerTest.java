@@ -16,13 +16,16 @@
 package com.google.blockly.control;
 
 import android.view.DragEvent;
+import android.view.MotionEvent;
 
 import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.R;
 import com.google.blockly.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.Connection;
 import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 
@@ -36,11 +39,11 @@ import static org.mockito.Mockito.when;
  * Tests for the {@link Dragger}.
  */
 public class DraggerTest extends MockitoAndroidTestCase {
-    private static final int POINTER_ID = 1;
 
     @Mock
     private DragEvent mDragEvent;
 
+    private ViewPoint mTempViewPoint = new ViewPoint();
     private ConnectionManager mConnectionManager;
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
@@ -359,6 +362,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
         Block second = mBlockFactory.obtainBlock("output_no_input", "second block");
         setupDrag(first, second);
+        Connection conn = second.getInputs().get(0).getConnection();
         dragBlockToTarget(first, second);
 
         assertEquals(1, mBlocks.size());
@@ -398,31 +402,44 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
     /**
      * Drag a block to sit directly on top of another block.
-     *
      * @param toDrag The {@link Block} to move.
      * @param stationary The {@link Block} to move to.
      */
     private void dragBlockToTarget(Block toDrag, Block stationary) {
         BlockView bv = toDrag.getView();
-        int startX = mWorkspaceHelper.workspaceToVirtualViewUnits(toDrag.getPosition().x);
-        int startY = mWorkspaceHelper.workspaceToVirtualViewUnits(toDrag.getPosition().y);
+        // This is how far we need to move the block by
+        int diffX = mWorkspaceHelper.workspaceToVirtualViewUnits(
+                stationary.getPosition().x - toDrag.getPosition().x);
+        int diffY = mWorkspaceHelper.workspaceToVirtualViewUnits(
+                stationary.getPosition().y - toDrag.getPosition().y);
+        // Get the initial offset
+        mWorkspaceHelper.getVirtualViewCoordinates(bv, mTempViewPoint);
+        // And calculate the view position to move to to reach the stationary block
+        float stationaryX = diffX + mTempViewPoint.x;
+        float stationaryY = diffY + mTempViewPoint.y;
 
-        mDragger.setTouchedBlock(bv, POINTER_ID);
-        mDragger.setDragStartPos(startX, startY);
-        mDragger.startDragInternal();
+        long time = System.currentTimeMillis();
+        MotionEvent me = MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, 0, 0, 0);
+
+        mDragger.onTouchBlock(bv, me);
+        time = System.currentTimeMillis();
+        me = MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 30, -10, 0);
+        mDragger.onTouchBlock(bv, me);
+
+        when(mDragEvent.getAction()).thenReturn(DragEvent.ACTION_DRAG_STARTED);
+        mDragger.getDragEventListener().onDrag(bv, mDragEvent);
 
         // Pretend to be the last DragEvent that registers, which should be right by the
         // stationary block.
         // getX() returns float, even though we'll cast back to int immediately.
-        when(mDragEvent.getX()).thenReturn(
-                (float) mWorkspaceHelper.workspaceToVirtualViewUnits(stationary.getPosition().x));
-        when(mDragEvent.getY()).thenReturn(
-                (float) mWorkspaceHelper.workspaceToVirtualViewUnits(stationary.getPosition().y));
+        when(mDragEvent.getAction()).thenReturn(DragEvent.ACTION_DRAG_LOCATION);
+        when(mDragEvent.getX()).thenReturn(stationaryX);
+        when(mDragEvent.getY()).thenReturn(stationaryY);
 
-        mDragger.continueDragging(mDragEvent);
+        mDragger.getDragEventListener().onDrag(bv, mDragEvent);
 
         // Force the connector locations to update before the call to finishDragging().
-        toDrag.getView().updateConnectorLocations();
+        bv.updateConnectorLocations();
         stationary.getView().updateConnectorLocations();
 
         mDragger.finishDragging();
