@@ -223,6 +223,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     }
 
     /**
+     * Returns a style to override the application's theme with when rendering Blockly. If 0 is
+     * returned the application's theme will be used, with attributes defaulting to those in
+     * {@link R.style#BlocklyTheme}.
+     *
+     * @return A style that inherits from {@link R.style#BlocklyTheme} or 0.
+     */
+    protected int getStyleResId() {
+        return 0;
+    }
+
+    /**
      * Returns a generation callback to use for the most recently requested "Run" action.
      * Called from {@link #onRunCode()}.
      *
@@ -276,7 +287,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
      * {@link #mWorkspaceFragment}, and optionally, {@link #mToolboxFragment} and
      * {@link #mTrashFragment}. This base implementation attempts to acquire references to the
      * {@link #mToolboxFragment} and {@link #mTrashFragment} using the layout ids
-     * {@link R.id.toolbox} and {@link R.id.trash}, respectively. Subclasses may leave these
+     * {@link R.id#toolbox} and {@link R.id#trash}, respectively. Subclasses may leave these
      * {@code null} if the views are not present in the UI.
      * <p>
      * Always called once from {@link #onCreate} and before {@link #onCreateController()}.
@@ -315,7 +326,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         String blockDefsPath = getBlockDefinitionsJsonPath();
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
-                .setBlocklyStyle(R.style.BlocklyTheme)
+                .setBlocklyStyle(getStyleResId())
                 .setAssetManager(getAssets())
                 .addBlockDefinitionsFromAsset(blockDefsPath)
                 .setToolboxConfigurationAsset(toolboxPath)
@@ -356,8 +367,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     }
 
     /**
-     * Restores the {@link ActionBar} contents when the navigation window closes, per
-     * {@link http://developer.android.com/design/material/index.html Material design guidelines}.
+     * Restores the {@link ActionBar} contents when the navigation window closes, per <a
+     * href="http://developer.android.com/design/material/index.html">Material design
+     * guidelines</a>.
      */
     protected void restoreActionBar() {
         ActionBar actionBar = getSupportActionBar();

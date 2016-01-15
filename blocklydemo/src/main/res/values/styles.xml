@@ -16,11 +16,26 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="BlocklyTheme">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="StylesTheme" parent="BlocklyTheme">
+        <item name="blockViewStyle">@style/BlockStyle1</item>
+        <item name="fieldLabelStyle">@style/FieldLabelStyle1</item>
+    </style>
+
+    <style name="BlockStyle1" parent="DefaultBlockStyle">
+        <item name="fieldHorizontalPadding">12dp</item>
+        <item name="fieldVerticalPadding">32dp</item>
+    </style>
+
+    <style name="FieldLabelStyle1" parent="DefaultFieldLabelStyle">
+        <item name="textAppearance">@style/TextAppearance.AppCompat.Large.Inverse</item>
+        <item name="fieldMinHeight">128dip</item>
     </style>
 
 </resources>

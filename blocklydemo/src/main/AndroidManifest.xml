@@ -14,8 +14,10 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.google.blockly.demo">
+          package="com.google.blockly.demo"
+          xmlns:tools="http://schemas.android.com/tools">
     <application
+        tools:replace="android:theme"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -59,6 +61,18 @@
             android:name=".TurtleActivity"
             android:label="@string/turtle_activity_name"
             android:taskAffinity="com.google.blockly.demo.TurtleActivity"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".StylesActivity"
+            android:label="@string/style_activity_name"
+            android:taskAffinity="com.google.blockly.demo.StylesActivity"
+            android:theme="@style/StylesTheme"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
