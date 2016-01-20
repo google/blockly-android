@@ -23,7 +23,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="StylesTheme" parent="BlocklyTheme">
+    <style name="StylesDemoTheme" parent="BlocklyTheme">
         <item name="blockViewStyle">@style/BlockStyle1</item>
         <item name="fieldLabelStyle">@style/FieldLabelStyle1</item>
     </style>

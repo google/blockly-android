@@ -19,7 +19,9 @@ import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 /**
- * Basic implementation of AbstractBlocklyActivity that demonstrates applying styles.
+ * Basic implementation of AbstractBlocklyActivity that demonstrates applying styles. This demo
+ * uses an Activity style defined in the manifest XML. Alternatively, Activities can override
+ * {@link #getStyleResId()} to change the style used in {@link #onCreateController()}.
  */
 public class StylesActivity extends AbstractBlocklyActivity {
     private static final String TAG = "StylesActivity";

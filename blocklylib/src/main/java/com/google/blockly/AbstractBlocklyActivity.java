@@ -224,8 +224,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
 
     /**
      * Returns a style to override the application's theme with when rendering Blockly. If 0 is
-     * returned the application's theme will be used, with attributes defaulting to those in
-     * {@link R.style#BlocklyTheme}.
+     * returned the activity or application's theme will be used, with attributes defaulting to
+     * those in {@link R.style#BlocklyTheme}.
      *
      * @return A style that inherits from {@link R.style#BlocklyTheme} or 0.
      */

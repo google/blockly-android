@@ -72,7 +72,7 @@
             android:name=".StylesActivity"
             android:label="@string/style_activity_name"
             android:taskAffinity="com.google.blockly.demo.StylesActivity"
-            android:theme="@style/StylesTheme"
+            android:theme="@style/StylesDemoTheme"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
