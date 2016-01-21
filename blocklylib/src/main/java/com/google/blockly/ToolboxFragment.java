@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -135,7 +135,7 @@ public class ToolboxFragment extends Fragment {
         for (int i = 0; i < blocks.size(); i++) {
             Block copiedModel = blocks.get(i).deepCopy();
             copiedModel.setPosition(0, 0);
-            mController.addBlockWithView(copiedModel);
+            mController.addRootBlock(copiedModel);
         }
     }
 
@@ -150,7 +150,7 @@ public class ToolboxFragment extends Fragment {
             Block copiedModel = blocks.get(i).deepCopy();
             copiedModel.setPosition((int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2,
                     (int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2);
-            mController.addBlockWithView(copiedModel);
+            mController.addRootBlock(copiedModel);
         }
     }
 

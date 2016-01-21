@@ -17,9 +17,7 @@ package com.google.blockly.ui;
 
 import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.R;
-import com.google.blockly.TestUtils;
 import com.google.blockly.control.ConnectionManager;
-import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 
 import org.mockito.Mock;
@@ -43,57 +41,5 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
         super.setUp();
         mWorkspaceHelper = new WorkspaceHelper(getContext());
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-    }
-
-    public void testGetLastInputConnectionSimples() {
-        // Two simple input blocks
-        ArrayList<Block> blocks = new ArrayList<>();
-        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
-        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
-        first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
-        blocks.add(first);
-
-        TestUtils.createViews(blocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
-
-        BlockGroup rootBlockGroup = (BlockGroup) first.getView().getParent();
-        assertSame(second.getInputByName("value").getConnection(),
-                rootBlockGroup.getLastInputConnection());
-    }
-
-    public void testGetLastInputConnectionEmpty() {
-        // Empty block group.
-        BlockGroup bg = new BlockGroup(getContext(), mWorkspaceHelper);
-        assertNull(bg.getLastInputConnection());
-    }
-
-    public void testGetLastInputConnectionBranch() {
-        // Branch at end.
-        ArrayList<Block> blocks = new ArrayList<>();
-        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
-        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
-        Block third = mBlockFactory.obtainBlock("multiple_input_output", "second block");
-        first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
-        second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
-        blocks.add(first);
-
-        TestUtils.createViews(blocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
-
-        BlockGroup rootBlockGroup = (BlockGroup) first.getView().getParent();
-        assertNull(rootBlockGroup.getLastInputConnection());
-    }
-
-    public void testGetLastInputConnectionNoInput() {
-        ArrayList<Block> blocks = new ArrayList<>();
-        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
-        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
-        Block third = mBlockFactory.obtainBlock("output_no_input", "second block");
-        first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
-        second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
-        blocks.add(first);
-
-        TestUtils.createViews(blocks, mWorkspaceHelper, mConnectionManager, mWorkspaceView);
-
-        BlockGroup rootBlockGroup = (BlockGroup) first.getView().getParent();
-        assertNull(rootBlockGroup.getLastInputConnection());
     }
 }

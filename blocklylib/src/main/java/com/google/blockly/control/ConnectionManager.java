@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -16,7 +16,9 @@
 package com.google.blockly.control;
 
 import android.support.annotation.VisibleForTesting;
+import android.util.Pair;
 
+import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -27,6 +29,8 @@ import java.util.List;
  * Controller for Connections.
  */
 public class ConnectionManager {
+    private static final String TAG = "ConnectionManager";
+
     private final YSortedList mPreviousConnections = new YSortedList();
     private final YSortedList mNextConnections = new YSortedList();
     private final YSortedList mInputConnections = new YSortedList();
@@ -193,6 +197,42 @@ public class ConnectionManager {
         return true;
     }
 
+    /**
+     * Iterate over all of the connections on the block and find the one that is closest to a valid
+     * connection on another block.
+     *
+     * @param block The {@link Block} whose connections to search.
+     * @param radiusConnectionWS The maximum distance between viable connections in workspace units.
+     * @return A pair of connections, where the first is a connection on {@code block} and the
+     *     second is the closest compatible connection.
+     */
+    public Pair<Connection, Connection> findBestConnection(Block block, int radiusConnectionWS) {
+        // Find the connection that is closest to any connection on the block.
+        Connection potentialBlockConnection = null;
+        Connection potentialCompatibleConnection = null;
+        List<Connection> blockConnections = block.getAllConnections();
+        Connection curBlockConnection;
+        Connection curCompatibleConnection;
+
+        double maxSearchRadius = radiusConnectionWS;
+
+        for (int i = 0; i < blockConnections.size(); i++) {
+            curBlockConnection = blockConnections.get(i);
+            curCompatibleConnection =
+                    closestConnection(curBlockConnection, maxSearchRadius);
+            if (curCompatibleConnection != null) {
+                potentialBlockConnection = curBlockConnection;
+                potentialCompatibleConnection = curCompatibleConnection;
+                maxSearchRadius =
+                        potentialBlockConnection.distanceFrom(potentialCompatibleConnection);
+            }
+        }
+        if (potentialBlockConnection == null) {
+            return null;
+        }
+        return new Pair<>(potentialBlockConnection, potentialCompatibleConnection);
+    }
+
     @VisibleForTesting
     YSortedList getConnections(int connectionType) {
         return matchingLists[connectionType];
@@ -214,7 +254,11 @@ public class ConnectionManager {
          * @param conn The connection to insert.
          */
         public void addConnection(Connection conn) {
-            mConnections.add(findPositionForConnection(conn), conn);
+            int position = findPositionForConnection(conn);
+            if (position < mConnections.size() && conn == mConnections.get(position)) {
+                throw new IllegalArgumentException("Already added.");
+            }
+            mConnections.add(position, conn);
         }
 
         /**
@@ -329,8 +373,11 @@ public class ConnectionManager {
 
             // Walk forward and back on the y axis looking for the closest x,y point.
             int pointerMin = closestIndex - 1;
-            while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
+            while (pointerMin >= 0) {
                 Connection temp = mConnections.get(pointerMin);
+                if (!isInYRange(pointerMin, baseY, maxRadius)) {
+                    break;
+                }
                 if (isConnectionAllowed(conn, temp, bestRadius)) {
                     bestConnection = temp;
                     bestRadius = temp.distanceFrom(conn);
@@ -347,6 +394,7 @@ public class ConnectionManager {
                 }
                 pointerMax++;
             }
+
             return bestConnection;
         }
 

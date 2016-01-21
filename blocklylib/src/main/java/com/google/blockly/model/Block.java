@@ -67,6 +67,8 @@ public class Block {
     private boolean mCanEdit;
     private boolean mCollapsed;
     private boolean mDisabled;
+
+    /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
 
     // These values are only used for drawing
@@ -171,7 +173,7 @@ public class Block {
     }
 
     /**
-     * Add all connections on the block and its descendents to the given list.
+     * Add all connections on the block and its descendants to the given list.
      *
      * @param addTo The list to update.
      */
@@ -179,10 +181,12 @@ public class Block {
         getAllConnections(addTo);
         for (int i = 0; i < mConnectionList.size(); i++) {
             Connection conn = mConnectionList.get(i);
-            if (conn.getType() != Connection.CONNECTION_TYPE_OUTPUT
-                    && conn.getType() != Connection.CONNECTION_TYPE_PREVIOUS
-                    && conn.getTargetBlock() != null) {
-                conn.getTargetBlock().getAllConnectionsRecursive(addTo);
+            int type = conn.getType();
+            Block target = conn.getTargetBlock();
+            if (type != Connection.CONNECTION_TYPE_OUTPUT
+                    && type != Connection.CONNECTION_TYPE_PREVIOUS
+                    && target != null) {
+                target.getAllConnectionsRecursive(addTo);
             }
         }
     }
@@ -414,6 +418,71 @@ public class Block {
             next = last.getNextBlock();
         }
         return last;
+    }
+
+    /**
+     * Walks the chain of blocks in this block, at each stage checking if there are multiple
+     * value inputs.  If there is only one value input at each block, follows that input to the
+     * next block.  If at any point there is more than one value input on a block, returns null.
+     *
+     * @return the {@link Connection} on the only input on the last block in the chain.
+     */
+    public Connection getLastUnconnectedInputConnection() {
+        Block block = this;
+
+        // Loop until there are no more singular, connected inputs.
+        while (true) {
+            Input onlyValueInput = block.getOnlyValueInput();
+            if (onlyValueInput == null) {
+                return null;
+            }
+            Connection conn = onlyValueInput.getConnection();
+            if (conn == null) {
+                return null;
+            }
+            if (!conn.isConnected()) {
+                return conn;
+            }
+            block = conn.getTargetBlock();
+        }
+    }
+
+    /**
+     * Find the highest block in the hierarchy that this {@link Block} descends from.
+     *
+     * @return The highest block found.
+     */
+    public Block getRootBlock() {
+        Block block = this;
+        // Go up and left as far as possible.
+        while (true) {
+            if (block.getOutputConnection() != null &&
+                    block.getOutputConnection().getTargetBlock() != null) {
+                block = block.getOutputConnection().getTargetBlock();
+            } else if (block.getPreviousBlock() != null) {
+                block = block.getPreviousBlock();
+            } else {
+                break;
+            }
+        }
+        return block;
+    }
+
+    /**
+     * If the block has a output, and the output is connected, retrieves the matching {@link Input}
+     * belonging to the parent.
+     *
+     * @return Input connected to this block's output, if present and connected.
+     */
+    public Input getParentInput() {
+        if (mOutputConnection == null) {
+            return null;
+        }
+        Connection connectedTo = mOutputConnection.getTargetConnection();
+        if (connectedTo == null) {
+            return null;
+        }
+        return connectedTo.getInput();
     }
 
     /**

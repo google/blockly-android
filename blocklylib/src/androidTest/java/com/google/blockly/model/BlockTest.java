@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -30,6 +30,7 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,13 +39,13 @@ import java.util.List;
  */
 public class BlockTest extends AndroidTestCase {
     private XmlPullParserFactory xmlPullParserFactory;
-    private BlockFactory blockFactory;
+    private BlockFactory mBlockFactory;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
-        blockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
     }
 
     public void testJson() {
@@ -346,24 +347,95 @@ public class BlockTest extends AndroidTestCase {
         }
     }
 
-    public void testGetLastBlockInSequence() {
-        // No next connection.
-        Block emptyBlock = blockFactory.obtainBlock("empty_block", "empty_block");
-        assertSame(emptyBlock, emptyBlock.getLastBlockInSequence());
+    public void testGetLastUnconnectedInputConnectionOneInputAtEnd() {
+        // Two simple input blocks
+        ArrayList<Block> blocks = new ArrayList<>();
+        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
+        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
+        first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
+        blocks.add(first);
 
-        // Next connection without next block.
-        Block block = blockFactory.obtainBlock("statement_no_input", "statement_no_input0");
-        assertSame(block, block.getLastBlockInSequence());
-
-        // One next block in sequence.
-        Block next = blockFactory.obtainBlock("statement_no_input", "statement_no_input1");
-        block.getNextConnection().connect(next.getPreviousConnection());
-        assertSame(next, block.getLastBlockInSequence());
-
-        // Two next blocks in sequence.
-        Block nextNext = blockFactory.obtainBlock("statement_no_input", "statement_no_input2");
-        next.getNextConnection().connect(nextNext.getPreviousConnection());
-        assertSame(nextNext, block.getLastBlockInSequence());
+        assertSame(second.getLastUnconnectedInputConnection(),
+                second.getOnlyValueInput().getConnection());
+        assertSame(first.getLastUnconnectedInputConnection(),
+                second.getOnlyValueInput().getConnection());
     }
 
+    public void testGetLastUnconnectedInputConnectionMultipleInputs() {
+        ArrayList<Block> blocks = new ArrayList<>();
+        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
+        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
+        Block third = mBlockFactory.obtainBlock("multiple_input_output", "third block");
+        first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
+        second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
+        blocks.add(first);
+
+        assertNull(third.getLastUnconnectedInputConnection());
+        assertNull(second.getLastUnconnectedInputConnection());
+        assertNull(first.getLastUnconnectedInputConnection());
+    }
+
+    public void testGetLastUnconnectedInputConnectionNoInput() {
+        ArrayList<Block> blocks = new ArrayList<>();
+        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
+        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
+        Block third = mBlockFactory.obtainBlock("output_no_input", "third block");
+        first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
+        second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
+        blocks.add(first);
+
+        assertNull(third.getLastUnconnectedInputConnection());
+        assertNull(second.getLastUnconnectedInputConnection());
+        assertNull(first.getLastUnconnectedInputConnection());
+    }
+
+    public void testLastBlockInSequence_blockLacksNext() {
+        Block block = mBlockFactory.obtainBlock("statement_input_no_next", "block");
+
+        // This value block should not returned; it is not connected to the next connection.
+        Block value = mBlockFactory.obtainBlock("output_no_input", "value");
+        block.getInputByName("value").getConnection().connect(value.getOutputConnection());
+
+        assertSame(block, block.getLastBlockInSequence());
+    }
+
+    public void testLastBlockInSequence_noBlockConnected() {
+        Block block = mBlockFactory.obtainBlock("statement_value_input", "block");
+
+        // This value block should not returned; it is not connected to the next connection.
+        Block value = mBlockFactory.obtainBlock("output_no_input", "value");
+        block.getInputByName("value").getConnection().connect(value.getOutputConnection());
+
+        assertSame(block, block.getLastBlockInSequence());
+    }
+
+    public void testLastBlockInSequence_lastBlockUnconnected() {
+        Block first = mBlockFactory.obtainBlock("statement_no_input", "first block");
+        Block second = mBlockFactory.obtainBlock("statement_no_input", "second block");
+        Block third = mBlockFactory.obtainBlock("statement_value_input", "third block");
+
+        // This value block should not returned; it is not connected to the next connection.
+        Block value = mBlockFactory.obtainBlock("output_no_input", "value");
+
+        first.getNextConnection().connect(second.getPreviousConnection());
+        second.getNextConnection().connect(third.getPreviousConnection());
+        third.getInputByName("value").getConnection().connect(value.getOutputConnection());
+
+        assertSame(third, first.getLastBlockInSequence());
+    }
+
+    public void testLastBlockInSequence_lastBlockNoNext() {
+        Block first = mBlockFactory.obtainBlock("statement_no_input", "first block");
+        Block second = mBlockFactory.obtainBlock("statement_no_input", "second block");
+        Block third = mBlockFactory.obtainBlock("statement_input_no_next", "third block");
+
+        // This value block should not returned; it is not connected to the next connection.
+        Block value = mBlockFactory.obtainBlock("output_no_input", "value");
+
+        first.getNextConnection().connect(second.getPreviousConnection());
+        second.getNextConnection().connect(third.getPreviousConnection());
+        third.getInputByName("value").getConnection().connect(value.getOutputConnection());
+
+        assertSame(third, first.getLastBlockInSequence());
+    }
 }

@@ -33,10 +33,13 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.Connection;
+import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockTouchHandler;
 import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.InputView;
 import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
@@ -73,10 +76,22 @@ public class BlocklyController {
     private ToolboxFragment mToolboxFragment = null;
     private DrawerLayout mToolboxDrawer = null;
     private Dragger mDragger;
-    private BlockTouchHandler mTouchHandler;
 
     private boolean mCanCloseToolbox;
     private boolean mCanShowAndHideTrash;
+
+    /** Pass block touch interaction through the Dragger. */
+    private BlockTouchHandler mTouchHandler = new BlockTouchHandler() {
+        @Override
+        public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+            return mDragger.onTouchBlock(blockView, motionEvent);
+        }
+
+        @Override
+        public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
+            return mDragger.onInterceptTouchEvent(blockView, motionEvent);
+        }
+    };
 
     /**
      * Creates a new Controller with Workspace and WorkspaceHelper.
@@ -102,8 +117,7 @@ public class BlocklyController {
         mHelper = new WorkspaceHelper(mContext, style);
         mWorkspace = new Workspace(mContext, this, mBlockFactory);
 
-        mDragger = new Dragger(mHelper, mWorkspace.getConnectionManager(),
-                mWorkspace.getRootBlocks(), this);
+        mDragger = new Dragger(this);
     }
 
     /**
@@ -372,14 +386,67 @@ public class BlocklyController {
     }
 
     /**
-     * Takes in a block model, creates corresponding views and adds it to the workspace.
+     * Adds the provided block to the list of root blocks.  If the controller has an initialized
+     * {@link WorkspaceView}, it will also create corresponding views.
      *
      * @param block The {@link Block} to add to the workspace.
      */
-    public void addBlockWithView(Block block) {
-        mWorkspaceView.addView(mHelper.buildBlockGroupTree(
-                block, mWorkspace.getConnectionManager(), mTouchHandler));
-        mWorkspace.addRootBlock(block);
+    public void addRootBlock(Block block) {
+        if (block.getPreviousBlock() != null || block.getParentInput() != null) {
+            throw new IllegalArgumentException("New root block must not be connected.");
+        }
+        addRootBlock(block, mHelper.getParentBlockGroup(block), true);
+    }
+
+    /**
+     * Takes a block, and adds it to the root blocks, disconnecting previous or output connections,
+     * if previously connected.  No action if the block was already a root block.
+     *
+     * @param block {@link Block} to extract as a root block in the workspace.
+     */
+    public void extractBlockAsRoot(Block block) {
+        if (!mWorkspace.isRootBlock(block)) {
+            BlockView bv = block.getView();
+            BlockGroup bg = (bv == null) ? null : (BlockGroup) bv.getParent();
+            BlockGroup rootBlockGroup = (mWorkspaceView == null) ? null
+                    : mHelper.getRootBlockGroup(block);
+
+            // Child block
+            if (block.getPreviousConnection() != null
+                    && block.getPreviousConnection().isConnected()) {
+                Input in = block.getPreviousConnection().getTargetConnection().getInput();
+                if (in == null) {
+                    if (bg != null) {
+                        // Next block
+                        bg = bg.extractBlocksAsNewGroup(block);
+                    }
+                } else {
+                    // Statement input
+                    // Disconnect view.
+                    InputView inView = in.getView();
+                    if (inView != null) {
+                        inView.unsetChildView();
+                    }
+                }
+                block.getPreviousConnection().disconnect();
+            } else if (block.getOutputConnection() != null
+                    && block.getOutputConnection().isConnected()) {
+                // Value input
+                Input in = block.getOutputConnection().getTargetConnection().getInput();
+                block.getOutputConnection().disconnect();
+
+                // Disconnect view.
+                InputView inView = in.getView();
+                if (inView != null) {
+                    inView.unsetChildView();
+                }
+            }
+
+            if (rootBlockGroup != null) {
+                rootBlockGroup.requestLayout();
+            }
+            addRootBlock(block, bg, false);
+        }
     }
 
     /**
@@ -395,18 +462,6 @@ public class BlocklyController {
         mWorkspaceView.setController(this);
 
         mHelper.setWorkspaceView(wv);
-        // Tell the workspace helper to pass onTouchBlock events straight through to the Dragger.
-        mTouchHandler = new BlockTouchHandler() {
-            @Override
-            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                return mDragger.onTouchBlock(blockView, motionEvent);
-            }
-
-            @Override
-            public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
-                return mDragger.onInterceptTouchEvent(blockView, motionEvent);
-            }
-        };
         mDragger.setWorkspaceView(mWorkspaceView);
         mWorkspaceView.setDragger(mDragger);
         initBlockViews();
@@ -436,7 +491,7 @@ public class BlocklyController {
      * @param fragment The {@link ToolboxFragment} where the event originated.
      */
     public void addBlockFromToolbox(Block block, MotionEvent event, ToolboxFragment fragment) {
-        addBlockWithView(block);
+        addRootBlock(block, null, true);
         // let the workspace view know that this is the block we want to drag
         mDragger.setTouchedBlock(block.getView(), event);
         // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
@@ -448,11 +503,264 @@ public class BlocklyController {
         maybeCloseToolboxFragment(fragment);
     }
 
+    /**
+     * Connects a block to a specific connection of another block.  The block must not have a
+     * connected previous or output; usually a root block. If another block is in the way
+     * of making the connection (occupies the required workspace location), that block will be
+     * bumped out of the way.
+     *
+     * @param block The {@link Block} that is the root of the group of blocks being connected.
+     * @param blockConnection The {@link Connection} of the block being moved to connect.
+     * @param otherConnection The target {@link Connection} to connect to.
+     */
+    public void connect(Block block, Connection blockConnection, Connection otherConnection) {
+        if (block.getPreviousBlock() != null) {
+            throw new IllegalArgumentException("Connecting block must not be connected.");
+        }
+        Connection output = block.getOutputConnection();
+        if (output != null && output.isConnected()) {
+            throw new IllegalArgumentException("Connecting block must not be connected.");
+        }
+
+        switch (blockConnection.getType()) {
+            case Connection.CONNECTION_TYPE_OUTPUT:
+                removeFromRoot(block);
+                connectAsInput(otherConnection, blockConnection);
+                break;
+            case Connection.CONNECTION_TYPE_PREVIOUS:
+                removeFromRoot(block);
+                if (otherConnection.isStatementInput()) {
+                    connectToStatement(otherConnection, blockConnection.getBlock());
+                } else {
+                    connectAfter(otherConnection.getBlock(), blockConnection.getBlock());
+                }
+                break;
+            case Connection.CONNECTION_TYPE_NEXT:
+                if (!otherConnection.isConnected()) {
+                    removeFromRoot(otherConnection.getBlock());
+                }
+                if (blockConnection.isStatementInput()) {
+                    connectToStatement(blockConnection, otherConnection.getBlock());
+                } else {
+                    connectAfter(blockConnection.getBlock(), otherConnection.getBlock());
+                }
+                break;
+            case Connection.CONNECTION_TYPE_INPUT:
+                if (!otherConnection.isConnected()) {
+                    removeFromRoot(otherConnection.getBlock());
+                }
+                connectAsInput(blockConnection, otherConnection);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void bumpBlock(Connection staticConnection, Connection impingingConnection) {
+        Block rootBlock = impingingConnection.getBlock().getRootBlock();
+        BlockGroup impingingBlockGroup = mHelper.getRootBlockGroup(rootBlock);
+
+        int maxSnapDistance = mHelper.getMaxSnapDistance();
+        // TODO (rohlfingt): Adapt to RTL
+        int dx = (staticConnection.getPosition().x + maxSnapDistance)
+                - impingingConnection.getPosition().x;
+        int dy = (staticConnection.getPosition().y + maxSnapDistance)
+                - impingingConnection.getPosition().y;
+        rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
+
+        if (mWorkspaceView != null && impingingBlockGroup != null) {
+            // Update UI
+            impingingBlockGroup.bringToFront();
+            impingingBlockGroup.updateAllConnectorLocations();
+            mWorkspaceView.requestLayout();
+        }
+    }
+
+    /**
+     * Removes the given block and its view from the root view.  If it didn't live at the root level
+     * do nothing.
+     *
+     * @param block The {@link Block} to look up and remove.
+     */
+    public boolean removeFromRoot(Block block) {
+        BlockGroup group = mHelper.getParentBlockGroup(block);
+        boolean rootFoundAndRemoved = mWorkspace.removeRootBlock(block);
+        if (rootFoundAndRemoved && group != null) {
+            // Update UI
+            mWorkspaceView.removeView(group);
+        }
+        return rootFoundAndRemoved;
+    }
+
+    /**
+     * Clears the workspace of all blocks and the respective views from the {@link WorkspaceView},
+     * if connected.
+     */
     public void resetWorkspace() {
         mWorkspace.resetWorkspace();
         if (mWorkspaceView != null) {
             mWorkspaceView.removeAllViews();
             initBlockViews();
+        }
+    }
+
+    /**
+     * Adds the provided block as a root block.  If a {@link WorkspaceView} is attached, it will
+     * also update the view, creating a new {@link BlockGroup} if not provided.
+     *
+     * @param block The {@link Block} to add to the workspace.
+     * @param bg The {@link BlockGroup} with block as the first {@link BlockView}.
+     * @param isNewBlock
+     */
+    private void addRootBlock(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
+        mWorkspace.addRootBlock(block, isNewBlock);
+        if (mWorkspaceView != null) {
+            if (bg == null) {
+                bg = mHelper.buildBlockGroupTree(block, mWorkspace.getConnectionManager(),
+                        mTouchHandler);
+            }
+            mWorkspaceView.addView(bg);
+        }
+    }
+
+    /**
+     * Connect a block to a statement input of another block and update views as necessary.  If the
+     * statement input already is connected to another block, splice the inferior block between
+     * them.
+     *
+     * @param parentStatementConnection The {@link Connection} on the superior block to be connected
+     * to.  Must be on a statement input.
+     * @param toConnect The {@link Block} to connect to the statement input.
+     */
+    private void connectToStatement(Connection parentStatementConnection, Block toConnect) {
+
+        // If there was already a block connected there.
+        if (parentStatementConnection.isConnected()) {
+            Block remainderBlock = parentStatementConnection.getTargetBlock();
+            parentStatementConnection.disconnect();
+            InputView parentInputView = parentStatementConnection.getInputView();
+            if (parentInputView != null) {
+                parentInputView.unsetChildView();
+            }
+
+            // Try to reconnect the remainder to the end of the new sequence.
+            Block lastBlock = toConnect.getLastBlockInSequence();
+            if (lastBlock.getNextConnection() != null) {
+                connectAfter(lastBlock, remainderBlock);
+            } else {
+                // Nothing to connect to.  Bump and add to root.
+                addRootBlock(remainderBlock, mHelper.getParentBlockGroup(remainderBlock), false);
+                bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
+            }
+        }
+        connectAsInput(parentStatementConnection, toConnect.getPreviousConnection());
+    }
+
+    /**
+     * Connect a block after another block in the same block group.  Updates views as necessary.  If
+     * the superior block already has a "next" block, splices the inferior block between the
+     * superior block and its "next" block.
+     * <p/>
+     * Assumes that the inferior's previous connection is disconnected. Assumes that inferior's
+     * blockGroup doesn't currently live at the root level.
+     *
+     * @param superior The {@link Block} after which the inferior block is connecting.
+     * @param inferior The {@link Block} to be connected as the superior block's "next" block.
+     */
+    private void connectAfter(Block superior, Block inferior) {
+        // Get the relevant BlockGroups.  Either may be null if view is not initialized.
+        BlockGroup superiorBlockGroup = mHelper.getParentBlockGroup(superior);
+        BlockGroup inferiorBlockGroup = mHelper.getParentBlockGroup(inferior);
+
+        // To splice between two blocks, just need another call to connectAfter.
+        if (superior.getNextConnection().isConnected()) {
+            Block remainderBlock = superior.getNextBlock();
+            BlockGroup remainderGroup = (superiorBlockGroup == null) ? null :
+                    superiorBlockGroup.extractBlocksAsNewGroup(remainderBlock);
+            superior.getNextConnection().disconnect();
+
+            // Try to reconnect the remainder to the end of the new sequence.
+            Block lastBlock = inferior.getLastBlockInSequence();
+            if (lastBlock.getNextConnection() != null) {
+                connectAfter(lastBlock, inferiorBlockGroup, remainderBlock, remainderGroup);
+            } else {
+                // Nothing to connect to.  Bump and add to root.
+                addRootBlock(remainderBlock, remainderGroup, false);
+                bumpBlock(inferior.getPreviousConnection(), remainderBlock.getPreviousConnection());
+            }
+        }
+
+        connectAfter(superior, superiorBlockGroup, inferior, inferiorBlockGroup);
+    }
+
+    /**
+     * Connects two blocks together in a previous-next relationship and merges the {@link
+     * BlockGroup} of the inferior block into the {@link BlockGroup} of the superior block.
+     *
+     * @param superior The {@link Block} that the inferior block is moving to attach to.
+     * @param superiorBlockGroup The {@link BlockGroup} belonging to the superior block.
+     * @param inferior The {@link Block} that will follow immediately after the superior block.
+     * @param inferiorBlockGroup The {@link BlockGroup} belonging to the inferior block.
+     */
+    private void connectAfter(Block superior, BlockGroup superiorBlockGroup, Block inferior,
+            BlockGroup inferiorBlockGroup) {
+        // The superior's next connection and the inferior's previous connections must already be
+        // disconnected.
+        superior.getNextConnection().connect(inferior.getPreviousConnection());
+        if (superiorBlockGroup != null) {
+            if (inferiorBlockGroup == null) {
+                inferiorBlockGroup = mHelper.buildBlockGroupTree(
+                        inferior, mWorkspace.getConnectionManager(), mTouchHandler);
+            }
+            superiorBlockGroup.moveBlocksFrom(inferiorBlockGroup, inferior);
+        }
+    }
+
+    /**
+     * Connect a block or block group to an input on another block and update views as necessary. If
+     * the input was already connected, splice the child block or group in.
+     *
+     * @param parentConn The {@link Connection} on the superior block to connect to.  Must be an
+     *                   input.
+     * @param childConn The {@link Connection} on the inferior block.  Must be an output or previous
+     *                  connection.
+     */
+    private void connectAsInput(Connection parentConn, Connection childConn) {
+        InputView parentInputView = parentConn.getInputView();
+        Block child = childConn.getBlock();
+        BlockGroup childBlockGroup = mHelper.getParentBlockGroup(child);
+
+        Connection previousTargetConnection = null;
+        if (parentConn.isConnected()) {
+            previousTargetConnection = parentConn.getTargetConnection();
+            parentConn.disconnect();
+            if (parentInputView != null) {
+                parentInputView.unsetChildView();
+            }
+        }
+        parentConn.connect(childConn);
+        if (previousTargetConnection != null) {
+            Block previousTargetBlock = previousTargetConnection.getBlock();
+
+            // Traverse the tree to ensure it doesn't branch. We only reconnect if there's a single
+            // place it could be rebased to.
+            Connection lastInputConnection = child.getLastUnconnectedInputConnection();
+            if (lastInputConnection != null) {
+                connectAsInput(lastInputConnection, previousTargetConnection);
+            } else {
+                // Bump and add back to root.
+                BlockGroup previousTargetGroup = mHelper.getParentBlockGroup(previousTargetBlock);
+                addRootBlock(previousTargetBlock, previousTargetGroup, false);
+                bumpBlock(parentConn, previousTargetConnection);
+            }
+        }
+
+        if (mWorkspaceView != null && parentInputView != null) {
+            if (childBlockGroup == null) {
+                childBlockGroup = mHelper.buildBlockGroupTree(
+                        child, mWorkspace.getConnectionManager(), mTouchHandler);
+            }
+            parentInputView.setChildView(childBlockGroup);
         }
     }
 

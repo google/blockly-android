@@ -72,8 +72,10 @@ public class Workspace {
      * Adds a new block to the workspace as a root block.
      *
      * @param block The block to add to the root of the workspace.
+     * @param isNewBlock Set when the block is new to the workspace (compared to moving it from some
+     *                   previous connection).
      */
-    public void addRootBlock(Block block) {
+    public void addRootBlock(Block block, boolean isNewBlock) {
         if (block == null) {
             throw new IllegalArgumentException("Cannot add a null block as a root block");
         }
@@ -84,7 +86,9 @@ public class Workspace {
             throw new IllegalArgumentException("Block is already a root block.");
         }
         mRootBlocks.add(block);
-        mStats.collectStats(block, true);
+        if (isNewBlock) {
+            mStats.collectStats(block, true);
+        }
     }
 
     /**
@@ -217,4 +221,9 @@ public class Workspace {
     public ArrayList<Block> getRootBlocks() {
         return mRootBlocks;
     }
+
+    public boolean isRootBlock(Block block) {
+        return mRootBlocks.contains(block);
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -217,14 +217,14 @@ public final class MockBlocksProvider {
             int randomY = (int) (Math.random() * 5000);
             dummyBlock.setPosition(randomX, randomY);
 
-            workspace.addRootBlock(dummyBlock);
+            workspace.addRootBlock(dummyBlock, true);
         }
     }
 
     public static void makeComplexModel(Workspace workspace) {
         List<Block> testRootBlocks = makeTestModel();
         for (int i = 0; i < testRootBlocks.size(); i++) {
-            workspace.addRootBlock(testRootBlocks.get(i));
+            workspace.addRootBlock(testRootBlocks.get(i), true);
         }
     }
 
@@ -244,6 +244,6 @@ public final class MockBlocksProvider {
             next.getPreviousConnection().connect(prev.getInputByName("input6").getConnection());
             prev = next;
         }
-        workspace.addRootBlock(rootBlock);
+        workspace.addRootBlock(rootBlock, true);
     }
 }

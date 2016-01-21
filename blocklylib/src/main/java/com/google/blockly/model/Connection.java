@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -70,7 +70,13 @@ public class Connection implements Cloneable {
     @ConnectionType
     private final int mConnectionType;
     private final String[] mConnectionChecks;
+    /**
+     * Position of the connection in the workspace, used by the connection manager. The position is
+     * not a part of the serialized model, and is only updated when connected to a view.
+     */
+    // TODO(Anm): Make this a {@link WorkspacePoint}.
     private final Point mPosition = new Point();
+
     private Block mBlock;
     private Input mInput;
     private Connection mTargetConnection;

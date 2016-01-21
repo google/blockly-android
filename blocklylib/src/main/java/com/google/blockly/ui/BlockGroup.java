@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,8 +20,6 @@ import android.view.View;
 
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.Connection;
-import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
 /**
@@ -162,37 +160,6 @@ public class BlockGroup extends NonPropagatingViewGroup {
     }
 
     /**
-     * Walks the chain of blocks in this block group, at each stage checking if there are multiple
-     * value inputs.  If there is only one value input at each block, follows that input to the
-     * next block.
-     *
-     * @return the {@link Connection} on the only input on the last block in the chain.
-     */
-    // TODO(Anm): This is a model query. Move to Block.java.
-    public Connection getLastInputConnection() {
-        if (getChildCount() == 0) {
-            return null;
-        }
-        Block block = ((BlockView) getChildAt(0)).getBlock();
-        // Loop until we run out of inputs (in which case there's nothing to connect to) or we run
-        // out of blocks (in which case the last
-        while (true) {
-            Input onlyValueInput = block.getOnlyValueInput();
-            if (onlyValueInput == null) {
-                return null;
-            }
-            Connection conn = onlyValueInput.getConnection();
-            if (conn == null) {
-                return null;
-            }
-            if (!conn.isConnected()) {
-                return conn;
-            }
-            block = conn.getTargetBlock();
-        }
-    }
-
-    /**
      * Force every {@link BlockView} in this group to recalculate the locations of its
      * connections; used to return the views and models to a consistent state after a drag.
      */
@@ -203,17 +170,6 @@ public class BlockGroup extends NonPropagatingViewGroup {
             child.updateConnectorLocations();
             child.invalidate();
         }
-    }
-
-    /**
-     * Move the block group by the specified amount.
-     *
-     * @param dx How much to move in the x direction, in view coordinates.
-     * @param dy How much to move in the y direction, in view coordinates.
-     */
-    public void moveBy(int dx, int dy) {
-        setLeft(getLeft() + dx);
-        setTop(getTop() + dy);
     }
 
     /**

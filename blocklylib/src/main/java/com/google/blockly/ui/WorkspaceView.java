@@ -32,7 +32,6 @@ import com.google.blockly.control.Dragger;
  */
 public class WorkspaceView extends NonPropagatingViewGroup {
     private static final String TAG = "WorkspaceView";
-    private static final boolean DEBUG = true;
 
     public static final String BLOCK_GROUP_CLIP_DATA_LABEL = "BlockGroupClipData";
 

@@ -6,12 +6,6 @@ import com.google.blockly.R;
 
 import java.util.List;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNotSame;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-
 /**
  * Tests for {@link BlockFactory}.
  */
@@ -23,7 +17,7 @@ public class BlockFactoryTest extends AndroidTestCase {
     public void testLoadBlocks() {
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
         List<Block> blocks = bf.getAllBlocks();
-        assertEquals("BlockFactory failed to load all blocks.", 17, blocks.size());
+        assertEquals("BlockFactory failed to load all blocks.", 18, blocks.size());
     }
 
     public void testObtainBlock() {

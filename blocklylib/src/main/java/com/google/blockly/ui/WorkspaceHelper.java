@@ -22,7 +22,6 @@ import android.graphics.Point;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
@@ -72,6 +71,9 @@ import java.util.List;
 public class WorkspaceHelper {
     private static final String TAG = "WorkspaceHelper";
     private static final boolean DEBUG = false;
+    // Blocks "snap" toward each other at the end of drags if they have compatible connections
+    // near each other.  This is the farthest they can snap at 1.0 zoom, in workspace units.
+    private static final int DEFAULT_MAX_SNAP_DISTANCE = 24;
 
     private final ViewPoint mVirtualWorkspaceViewOffset = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
@@ -150,6 +152,15 @@ public class WorkspaceHelper {
     public void setVirtualWorkspaceViewOffset(int x, int y) {
         mVirtualWorkspaceViewOffset.set(x, y);
     }
+
+    /**
+     * @return The maximum distance a block can snap to match a connection, in workspace units.
+     */
+    public int getMaxSnapDistance() {
+        // TODO(#330): Adapt to WorkspaceView zoom, if connected.
+        return DEFAULT_MAX_SNAP_DISTANCE;
+    }
+
 
     /**
      * Scales a value in workspace coordinate units to virtual view pixel units.
@@ -354,20 +365,8 @@ public class WorkspaceHelper {
      * @return The highest {@link BlockGroup} found.
      */
     public BlockGroup getRootBlockGroup(Block block) {
-        // Go up and left as far as possible.
-        while (true) {
-            if (block.getOutputConnection() != null &&
-                    block.getOutputConnection().getTargetBlock() != null) {
-                block = block.getOutputConnection().getTargetBlock();
-            } else if (block.getPreviousBlock() != null) {
-                block = block.getPreviousBlock();
-            } else {
-                break;
-            }
-        }
-
-        BlockView bv = block.getView();
-        return (BlockGroup) bv.getParent();
+        BlockView bv = block.getRootBlock().getView();
+        return (bv == null) ? null : (BlockGroup) bv.getParent();
     }
 
     /**

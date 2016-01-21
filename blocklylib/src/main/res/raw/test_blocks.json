@@ -284,6 +284,20 @@
     "helpUrl": "http://www.example.com/"
   },
   {
+    "id": "statement_input_no_next",
+    "message0": "test block %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "value"
+      }
+    ],
+    "previousStatement": null,
+    "tooltip": "",
+    "colour": 60,
+    "helpUrl": "http://www.example.com/"
+  },
+  {
     "id": "statement_multiple_inputs",
     "message0": "test block %1 then test %2 with %3 and %4",
     "args0": [
