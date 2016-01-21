@@ -16,6 +16,7 @@
 package com.google.blockly.demo;
 
 import android.support.annotation.NonNull;
+import android.view.MenuItem;
 
 import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
@@ -37,11 +38,28 @@ public class DevTestsActivity extends BlocklySectionsActivity
             new LoggingCodeGeneratorCallback(this, TAG);
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_airstrike) {
+            mToolboxFragment.airstrike();
+            return true;
+        } else if (id == R.id.action_carpet_bomb) {
+            mToolboxFragment.carpetBomb();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @NonNull
+    @Override
     protected String getToolboxContentsXmlPath() {
         // Expose a different set of blocks to the user at each level.
         return WORKSPACE_FOLDER_PREFIX + (getCurrentSection() + 1) + "/toolbox.xml";
     }
 
+    @NonNull
     @Override
     protected String getBlockDefinitionsJsonPath() {
         return "default/toolbox_blocks.json";
@@ -57,10 +75,17 @@ public class DevTestsActivity extends BlocklySectionsActivity
         return "sample_sections/generators.js";
     }
 
+    @NonNull
     @Override
     protected void onLoadInitialWorkspace() {
         MockBlocksProvider.makeComplexModel(getController().getWorkspace());
     }
+
+    @Override
+    protected int getActionBarMenuResId() {
+        return R.menu.dev_actionbar;
+    }
+
 
     @NonNull
     @Override

@@ -14,6 +14,8 @@
  */
 package com.google.blockly;
 
+import android.support.annotation.NonNull;
+
 import com.google.blockly.utils.CodeGenerationRequest;
 
 /**
@@ -25,21 +27,25 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
     CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
 
+    @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
         return "default/toolbox.xml";
     }
 
+    @NonNull
     @Override
     protected String getBlockDefinitionsJsonPath() {
         return "default/toolbox_blocks.json";
     }
 
+    @NonNull
     @Override
     protected String getGeneratorJsFilename() {
         return "sample_sections/generators.js";
     }
 
+    @NonNull
     @Override
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.

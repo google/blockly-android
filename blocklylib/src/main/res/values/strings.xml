@@ -15,4 +15,8 @@
     <string name="action_airstrike">Airstrike</string>
     <string name="action_carpet_bomb">Carpet Bomb</string>
     <string name="action_run">Run</string>
+
+    <string name="toast_workspace_saved">Saved workspace contents.</string>
+    <string name="toast_workspace_not_saved">Couldn\'t save workspace.</string>
+    <string name="toast_workspace_file_not_found">Couldn\'t find saved workspace.</string>
 </resources>

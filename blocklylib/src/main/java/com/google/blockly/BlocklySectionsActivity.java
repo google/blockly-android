@@ -15,16 +15,12 @@
 
 package com.google.blockly;
 
-import android.content.res.AssetManager;
 import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 
-import com.google.blockly.control.BlocklyController;
-import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Workspace;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -48,15 +44,9 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
     }
 
     /**
-     * @return The section that is currently displayed.
-     */
-    public final int getCurrentSection() {
-        return mCurrentSection;
-    }
-
-    /**
      * @return The title of the current workspace / section.
      */
+    @NonNull
     protected CharSequence getWorkspaceTitle() {
         int section = getCurrentSection();
         if (section < getSectionCount()) {
@@ -65,6 +55,33 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
             // Use the Activity name.
             return getTitle();
         }
+    }
+
+    /**
+     * Populate the navigation menu with the list of available sections.
+     *
+     * @return An adapter of sections for the navigation menu.
+     */
+    @NonNull
+    @Override
+    protected ListAdapter onCreateNavigationMenuAdapter() {
+        mLevelsAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                new String[]{
+                        getString(R.string.title_section1),
+                        getString(R.string.title_section2),
+                        getString(R.string.title_section3),
+                });
+        return mLevelsAdapter;
+    }
+
+    /**
+     * @return The section that is currently displayed.
+     */
+    public final int getCurrentSection() {
+        return mCurrentSection;
     }
 
     /**
@@ -82,25 +99,6 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
      */
     protected int getSectionCount() {
         return mLevelsAdapter.getCount();
-    }
-
-    /**
-     * Populate the navigation menu with the list of available sections.
-     *
-     * @return An adapter of sections for the navigation menu.
-     */
-    @Override
-    protected ListAdapter onCreateNavigationMenuAdapter() {
-        mLevelsAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_section1),
-                        getString(R.string.title_section2),
-                        getString(R.string.title_section3),
-                });
-        return mLevelsAdapter;
     }
 
     private void changeLevel(int level) {

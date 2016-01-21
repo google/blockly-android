@@ -17,6 +17,7 @@ package com.google.blockly.demo;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
@@ -69,21 +70,25 @@ public class SplitActivity extends AbstractBlocklyActivity {
         container.addView(mGeneratedTextView);
     }
 
+    @NonNull
     @Override
     protected String getBlockDefinitionsJsonPath() {
         return "turtle/definitions.json";
     }
 
+    @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
         return "turtle/level_1/toolbox.xml";
     }
 
+    @NonNull
     @Override
     protected String getGeneratorJsFilename() {
         return "turtle/generators.js";
     }
 
+    @NonNull
     @Override
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.

@@ -18,6 +18,7 @@ package com.google.blockly.demo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -62,6 +63,7 @@ public class TurtleActivity extends BlocklySectionsActivity
                 }
             };
 
+    @NonNull
     @Override
     protected String getBlockDefinitionsJsonPath() {
         // Use the same blocks for all the levels. This lets the user's block code carry over from
@@ -70,11 +72,13 @@ public class TurtleActivity extends BlocklySectionsActivity
         return "turtle/definitions.json";
     }
 
+    @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
         return "turtle/level_1/toolbox.xml";
     }
 
+    @NonNull
     @Override
     protected ListAdapter onCreateNavigationMenuAdapter() {
         // Create three sections with the labels "Turtle 1", "Turtle 2", and "Turtle 3" displaying
@@ -106,11 +110,13 @@ public class TurtleActivity extends BlocklySectionsActivity
         frLayout.addView(mTurtleWebview);
     }
 
+    @NonNull
     @Override
     protected String getGeneratorJsFilename() {
         return "turtle/generators.js";
     }
 
+    @NonNull
     @Override
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         return mCodeGeneratorCallback;

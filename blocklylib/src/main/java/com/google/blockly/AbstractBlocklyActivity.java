@@ -46,12 +46,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
- * Simple base class for a full-screen Blockly Activities class, that uses pull-out navigation
- * drawers for the toolbox.
+ * Simple base class for a full-screen Blockly Activities class, that uses a pull-out navigation
+ * drawer for the toolbox.
  */
 public abstract class AbstractBlocklyActivity extends AppCompatActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     private static final String TAG = "AbstractBlocklyActivity";
+
+    public static final String DEFAULT_WORKSPACE_FILENAME = "workspace.xml";
 
     protected ActionBar mActionBar;
     protected NavigationDrawerFragment mNavigationDrawerFragment;
@@ -65,6 +67,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     // TODO(#282): Wrap service binding into a self-contained, reusable class.
     protected CodeGeneratorService mCodeGeneratorService;
     protected boolean mBound = false;
+
     /** Defines service binding callbacks. Passed to bindService(). */
     private final ServiceConnection mCodeGenerationConnection = new ServiceConnection() {
         @Override
@@ -81,6 +84,111 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
             mCodeGeneratorService = null;
         }
     };
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (!mNavigationDrawerFragment.isDrawerOpen()) {
+            // Only show items in the action bar relevant to this screen
+            // if the drawer is not showing. Otherwise, let the drawer
+            // decide what to show in the action bar.
+            getMenuInflater().inflate(getActionBarMenuResId(), menu);
+            restoreActionBar();
+            return true;
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_save) {
+            onSaveWorkspace();
+            return true;
+        } else if (id == R.id.action_load) {
+            onLoadWorkspace();
+            return true;
+        } else if (id == R.id.action_clear) {
+            onClearWorkspace();
+            return true;
+        } else if (id == R.id.action_run) {
+            onRunCode();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Called when the user clicks the save action.  Default implementation delegates handling to
+     * {@link #saveWorkspaceToAppDir(String)} using {@link #DEFAULT_WORKSPACE_FILENAME}.
+     */
+    public void onSaveWorkspace() {
+        saveWorkspaceToAppDir(DEFAULT_WORKSPACE_FILENAME);
+    }
+
+    /**
+     * Save the workspace to the given file in the application's private data directory.
+     */
+    public void saveWorkspaceToAppDir(String filename) {
+        Workspace workspace = mWorkspaceFragment.getWorkspace();
+        try {
+            workspace.serializeToXml(openFileOutput(filename, Context.MODE_PRIVATE));
+            Toast.makeText(getApplicationContext(), R.string.toast_workspace_saved,
+                    Toast.LENGTH_LONG).show();
+        } catch (FileNotFoundException | BlocklySerializerException e) {
+            Toast.makeText(getApplicationContext(), R.string.toast_workspace_not_saved,
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Called when the user clicks the load action.  Default implementation delegates handling to
+     * {@link #loadWorkspaceToAppDir(String)}.
+     */
+    public void onLoadWorkspace() {
+        loadWorkspaceToAppDir(DEFAULT_WORKSPACE_FILENAME);
+    }
+
+    /**
+     * Loads the workspace from the given file in the application's private data directory.
+     */
+    public void loadWorkspaceToAppDir(String filename) {
+        Workspace workspace = mWorkspaceFragment.getWorkspace();
+        try {
+            workspace.loadWorkspaceContents(openFileInput(filename));
+            getController().initBlockViews();
+        } catch (FileNotFoundException e) {
+            Toast.makeText(getApplicationContext(), R.string.toast_workspace_file_not_found,
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Called when the user clicks the clear action.  Default implementation resets the
+     * workspace, removing all blocks from the workspace.
+     */
+    public void onClearWorkspace() {
+        mWorkspaceFragment.getWorkspace().resetWorkspace();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        onSaveWorkspaceSnapshot(outState);
+    }
+
+    public void onNavigationDrawerItemSelected(int position) {
+        // Override to handle.
+    }
+
+    public final BlocklyController getController() {
+        return mController;
+    }
 
     /**
      * Creates the Activity Views, Fragments, and Blocklycontroller via a sequence of calls to
@@ -150,65 +258,11 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         // Nothing loaded by default.
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
-            // Only show items in the action bar relevant to this screen
-            // if the drawer is not showing. Otherwise, let the drawer
-            // decide what to show in the action bar.
-            getMenuInflater().inflate(R.menu.main, menu);
-            restoreActionBar();
-            return true;
-        }
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.action_save) {
-            Workspace workspace = mWorkspaceFragment.getWorkspace();
-            try {
-                workspace.serializeToXml(openFileOutput("workspace.xml", Context.MODE_PRIVATE));
-                Toast.makeText(getApplicationContext(), "Saved workspace contents",
-                        Toast.LENGTH_LONG).show();
-            } catch (FileNotFoundException | BlocklySerializerException e) {
-                Toast.makeText(getApplicationContext(), "Couldn't save workspace.",
-                        Toast.LENGTH_LONG).show();
-            }
-            return true;
-        } else if (id == R.id.action_load) {
-            Workspace workspace = mWorkspaceFragment.getWorkspace();
-            try {
-                workspace.loadWorkspaceContents(openFileInput("workspace.xml"));
-                getController().initBlockViews();
-            } catch (FileNotFoundException e) {
-                Toast.makeText(getApplicationContext(), "Couldn't find saved workspace.",
-                        Toast.LENGTH_LONG).show();
-            }
-            return true;
-        } else if (id == R.id.action_clear) {
-            mWorkspaceFragment.getWorkspace().resetWorkspace();
-            return true;
-        } else if (id == R.id.action_airstrike) {  // TODO(#283): Move to DevTestsActivity
-            mToolboxFragment.airstrike();
-            return true;
-        } else if (id == R.id.action_carpet_bomb) {  // TODO(#283): Move to DevTestsActivity
-            mToolboxFragment.carpetBomb();
-            return true;
-        } else if (id == R.id.action_run) {
-            onRunCode();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    /**
+     * @return The id of the menu resource used to populate the {@link ActionBar}.
+     */
+    protected int getActionBarMenuResId() {
+        return R.menu.blockly_default_actionbar;
     }
 
     @Override
@@ -216,12 +270,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         super.onResume();
         Intent intent = new Intent(this, CodeGeneratorService.class);
         bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        onSaveWorkspaceSnapshot(outState);
     }
 
     /**
@@ -243,14 +291,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         unbindService(mCodeGenerationConnection);
     }
 
-    public void onNavigationDrawerItemSelected(int position) {
-        // Override to handle.
-    }
-
-    public final BlocklyController getController() {
-        return mController;
-    }
-
     /**
      * @return The name to show in the {@link ActionBar}.  Defaults to the activity name.
      */
@@ -262,7 +302,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     /**
      * @return The content view layout resource id.
      */
-    @NonNull
     protected int getContentViewResId() {
         return R.layout.activity_blockly;
     }
@@ -416,7 +455,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(getTitle());
+        actionBar.setTitle(getWorkspaceTitle());
     }
 
     /**
