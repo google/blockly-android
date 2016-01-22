@@ -37,7 +37,15 @@ import java.util.List;
  * Tests for {@link Block}.
  */
 public class BlockTest extends AndroidTestCase {
-    private XmlPullParserFactory factory = null;
+    private XmlPullParserFactory xmlPullParserFactory;
+    private BlockFactory blockFactory;
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        blockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+    }
 
     public void testJson() {
         JSONObject blockJson;
@@ -300,11 +308,8 @@ public class BlockTest extends AndroidTestCase {
     private XmlPullParser getXmlPullParser(String input, String returnFirstInstanceOf) {
         XmlPullParser parser = null;
         try {
-            if (factory == null) {
-                factory = XmlPullParserFactory.newInstance();
-            }
-            factory.setNamespaceAware(true);
-            parser = factory.newPullParser();
+            xmlPullParserFactory.setNamespaceAware(true);
+            parser = xmlPullParserFactory.newPullParser();
 
             parser.setInput(new ByteArrayInputStream(input.getBytes()), null);
 
@@ -325,11 +330,8 @@ public class BlockTest extends AndroidTestCase {
     private XmlSerializer getXmlSerializer(ByteArrayOutputStream os) throws BlocklySerializerException {
         XmlSerializer serializer;
         try {
-            if (factory == null) {
-                factory = XmlPullParserFactory.newInstance();
-            }
-            factory.setNamespaceAware(true);
-            serializer = factory.newSerializer();
+            xmlPullParserFactory.setNamespaceAware(true);
+            serializer = xmlPullParserFactory.newSerializer();
             serializer.setOutput(os, null);
             return serializer;
         } catch (XmlPullParserException | IOException e) {
@@ -343,4 +345,25 @@ public class BlockTest extends AndroidTestCase {
             assertEquals("Item " + i + " does not match.", expected.get(i), actual.get(i));
         }
     }
+
+    public void testGetLastBlockInSequence() {
+        // No next connection.
+        Block emptyBlock = blockFactory.obtainBlock("empty_block", "empty_block");
+        assertSame(emptyBlock, emptyBlock.getLastBlockInSequence());
+
+        // Next connection without next block.
+        Block block = blockFactory.obtainBlock("statement_no_input", "statement_no_input0");
+        assertSame(block, block.getLastBlockInSequence());
+
+        // One next block in sequence.
+        Block next = blockFactory.obtainBlock("statement_no_input", "statement_no_input1");
+        block.getNextConnection().connect(next.getPreviousConnection());
+        assertSame(next, block.getLastBlockInSequence());
+
+        // Two next blocks in sequence.
+        Block nextNext = blockFactory.obtainBlock("statement_no_input", "statement_no_input2");
+        next.getNextConnection().connect(nextNext.getPreviousConnection());
+        assertSame(nextNext, block.getLastBlockInSequence());
+    }
+
 }

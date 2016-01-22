@@ -47,7 +47,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         mWorkspaceHelper = new WorkspaceHelper(getContext());
     }
 
-    // test getNearestParentBlockGroup
+    // test getParentBlockGroup
     public void testGetNearestParentBlockGroup() throws InterruptedException {
         final List<Block> blocks = new ArrayList<>();
         Block root = MockBlocksProvider.makeStatementBlock();
@@ -74,14 +74,14 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
 
         TestUtils.createViews(blocks, mWorkspaceHelper, mockConnectionManager, mWorkspaceView);
 
-        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(root),
-                mWorkspaceHelper.getNearestParentBlockGroup(cur));
+        assertSame(mWorkspaceHelper.getParentBlockGroup(root),
+                mWorkspaceHelper.getParentBlockGroup(cur));
 
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(blocks.get(0)),
-                mWorkspaceHelper.getNearestParentBlockGroup(blocks.get(1)));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(blocks.get(0)),
+                mWorkspaceHelper.getParentBlockGroup(blocks.get(1)));
 
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(root),
-                mWorkspaceHelper.getNearestParentBlockGroup(hasOutput));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(root),
+                mWorkspaceHelper.getParentBlockGroup(hasOutput));
     }
 
 

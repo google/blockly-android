@@ -45,23 +45,6 @@ public class BlockGroupTest extends MockitoAndroidTestCase {
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
     }
 
-    public void testLastChildBlock() {
-        // Empty block group
-        BlockGroup bg = new BlockGroup(getContext(), mWorkspaceHelper);
-        assertNull(bg.lastChildBlock());
-
-        // One child block
-        Block childBlock = mBlockFactory.obtainBlock("simple_input_output", "child block");
-        // Add the block's view to bg.
-        mWorkspaceHelper.buildBlockViewTree(childBlock, bg, mConnectionManager, null);
-        assertSame(childBlock, bg.lastChildBlock());
-
-        // Two child blocks.  The blocks don't have to be connected in the model.
-        childBlock = mBlockFactory.obtainBlock("multiple_input_output", "child block");
-        mWorkspaceHelper.buildBlockViewTree(childBlock, bg, mConnectionManager, null);
-        assertSame(childBlock, bg.lastChildBlock());
-    }
-
     public void testGetLastInputConnectionSimples() {
         // Two simple input blocks
         ArrayList<Block> blocks = new ArrayList<>();

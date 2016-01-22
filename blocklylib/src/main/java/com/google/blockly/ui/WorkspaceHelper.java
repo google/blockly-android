@@ -20,6 +20,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -374,15 +375,21 @@ public class WorkspaceHelper {
      *
      * @param block The block to start searching from.
      *
-     * @return The closest {@link BlockGroup} found.
+     * @return The {@link BlockGroup} parent of the block's view, otherwise null.
+     * @throws IllegalStateException when a BlockView is found without a parent BlockGroup.
      */
-    public BlockGroup getNearestParentBlockGroup(Block block) {
-        ViewParent viewParent = block.getView().getParent();
-        while (viewParent != null) {
-            if (viewParent instanceof BlockGroup)
+    @Nullable
+    public BlockGroup getParentBlockGroup(Block block) {
+        BlockView blockView = block.getView();
+        if (blockView != null) {
+            ViewParent viewParent = blockView.getParent();
+            if (viewParent instanceof BlockGroup) {
                 return (BlockGroup) viewParent;
+            } else {
+                throw new IllegalStateException("Block has a BlockView, but no parent BlockGroup.");
+            }
         }
-        throw new IllegalStateException("No BlockGroup found among view's parents.");
+        return null; // Block does not have a view, and thus no parent BlockGroup.
     }
 
     /**

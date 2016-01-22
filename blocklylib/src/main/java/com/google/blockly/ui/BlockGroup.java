@@ -162,23 +162,13 @@ public class BlockGroup extends NonPropagatingViewGroup {
     }
 
     /**
-     * @return The {@link Block} for the last child in this group or null if there are no children.
-     */
-    public Block lastChildBlock() {
-        if (getChildCount() == 0) {
-            return null;
-        }
-        BlockView lastChild = (BlockView) getChildAt(getChildCount() - 1);
-        return lastChild.getBlock();
-    }
-
-    /**
      * Walks the chain of blocks in this block group, at each stage checking if there are multiple
      * value inputs.  If there is only one value input at each block, follows that input to the
      * next block.
      *
-     * @return the {@link Connection} on the only input on the last blockin the chain.
+     * @return the {@link Connection} on the only input on the last block in the chain.
      */
+    // TODO(Anm): This is a model query. Move to Block.java.
     public Connection getLastInputConnection() {
         if (getChildCount() == 0) {
             return null;

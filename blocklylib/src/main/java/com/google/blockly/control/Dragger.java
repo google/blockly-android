@@ -590,16 +590,14 @@ public class Dragger {
             Block remainderBlock = parentStatementConnection.getTargetBlock();
             parentStatementConnection.getInputView().unsetChildView();
             parentStatementConnection.disconnect();
-            // We may be dragging multiple blocks.  Try to connect after the end of the group we are
-            // dragging.
-            Block lastBlockInGroup = mWorkspaceHelper.getNearestParentBlockGroup(toConnect)
-                    .lastChildBlock();
+
+            // Try to reconnect the remainder to the end of the new sequence.
+            Block lastBlockInGroup = toConnect.getLastBlockInSequence();
             if (lastBlockInGroup.getNextConnection() != null) {
                 connectAfter(lastBlockInGroup, remainderBlock);
             } else {
                 // Nothing to connect to.  Bump and add to root.
-                addToRoot(remainderBlock,
-                        mWorkspaceHelper.getNearestParentBlockGroup(remainderBlock));
+                addToRoot(remainderBlock, mWorkspaceHelper.getParentBlockGroup(remainderBlock));
                 bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
             }
         }
@@ -618,18 +616,19 @@ public class Dragger {
      * @param inferior The {@link Block} to be connected as the superior block's "next" block.
      */
     private void connectAfter(Block superior, Block inferior) {
-        BlockGroup superiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(superior);
-        BlockGroup inferiorBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(inferior);
+        // Get the relevant BlockGroups.  Either may be null if view is not initialized.
+        BlockGroup superiorBlockGroup = mWorkspaceHelper.getParentBlockGroup(superior);
+        BlockGroup inferiorBlockGroup = mWorkspaceHelper.getParentBlockGroup(inferior);
 
         // To splice between two blocks, just need another call to connectAfter.
         if (superior.getNextConnection().isConnected()) {
             Block remainderBlock = superior.getNextBlock();
-            BlockGroup remainderGroup = superiorBlockGroup.extractBlocksAsNewGroup(
-                    remainderBlock);
+            BlockGroup remainderGroup = (superiorBlockGroup == null) ? null :
+                    superiorBlockGroup.extractBlocksAsNewGroup(remainderBlock);
             superior.getNextConnection().disconnect();
-            // We may be dragging multiple blocks.  Try to connect after the end of the group we are
-            // dragging.
-            Block lastBlockInGroup = inferiorBlockGroup.lastChildBlock();
+
+            // Try to reconnect the remainder to the end of the new sequence.
+            Block lastBlockInGroup = inferior.getLastBlockInSequence();
             if (lastBlockInGroup.getNextConnection() != null) {
                 connectAfter(lastBlockInGroup, inferiorBlockGroup, remainderBlock, remainderGroup);
             } else {
@@ -674,7 +673,7 @@ public class Dragger {
                     + "have an input view.");
         }
 
-        BlockGroup childBlockGroup = mWorkspaceHelper.getNearestParentBlockGroup(child.getBlock());
+        BlockGroup childBlockGroup = mWorkspaceHelper.getParentBlockGroup(child.getBlock());
 
         if (parent.isConnected()) {
             Connection remainderConnection = parent.getTargetConnection();
@@ -704,7 +703,7 @@ public class Dragger {
      * @param block The {@link Block} to look up and remove.
      */
     private void removeFromRoot(Block block) {
-        BlockGroup group = mWorkspaceHelper.getNearestParentBlockGroup(block);
+        BlockGroup group = mWorkspaceHelper.getParentBlockGroup(block);
         if (group.getParent() instanceof WorkspaceView) {
             // The block we are connecting to is a root block.
             removeFromRoot(block, group);

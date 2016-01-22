@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -400,6 +400,20 @@ public class Block {
         }
 
         serializer.endTag(null, "block");
+    }
+
+    /**
+     * @return The {@link Block} for the last child in this sequence, possibly itself.
+     */
+    public Block getLastBlockInSequence() {
+        Block last = this;
+        Block next = this.getNextBlock();
+        // Protect against loops by checking for dupes?
+        while (next != null) {
+            last = next;
+            next = last.getNextBlock();
+        }
+        return last;
     }
 
     /**

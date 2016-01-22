@@ -81,8 +81,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         // Second is now a child of first.
         assertSame(first, second.getOutputConnection().getTargetBlock());
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
-                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(first),
+                mWorkspaceHelper.getParentBlockGroup(second));
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(second));
     }
@@ -106,8 +106,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         // Third is now a child of first.
         assertSame(first, third.getOutputConnection().getTargetBlock());
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
-                mWorkspaceHelper.getNearestParentBlockGroup(third));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(first),
+                mWorkspaceHelper.getParentBlockGroup(third));
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(third));
 
@@ -137,8 +137,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         // Third is now a child of first
         assertSame(first, third.getOutputConnection().getTargetBlock());
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
-                mWorkspaceHelper.getNearestParentBlockGroup(third));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(first),
+                mWorkspaceHelper.getParentBlockGroup(third));
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(third));
 
@@ -170,10 +170,10 @@ public class DraggerTest extends MockitoAndroidTestCase {
         assertSame(first, third.getOutputConnection().getTargetBlock());
         assertSame(third, second.getOutputConnection().getTargetBlock());
 
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
-                mWorkspaceHelper.getNearestParentBlockGroup(third));
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(second),
-                mWorkspaceHelper.getNearestParentBlockGroup(third));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(first),
+                mWorkspaceHelper.getParentBlockGroup(third));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(second),
+                mWorkspaceHelper.getParentBlockGroup(third));
 
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(third));
@@ -194,8 +194,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 first.getNextConnection(), second, null);
 
         assertSame(first, second.getPreviousBlock());
-        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
-                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertSame(mWorkspaceHelper.getParentBlockGroup(first),
+                mWorkspaceHelper.getParentBlockGroup(second));
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(second));
     }
@@ -219,10 +219,10 @@ public class DraggerTest extends MockitoAndroidTestCase {
         assertSame(first, third.getPreviousBlock());
         assertSame(third, second.getPreviousBlock());
 
-        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
-                mWorkspaceHelper.getNearestParentBlockGroup(second));
-        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(third),
-                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertSame(mWorkspaceHelper.getParentBlockGroup(first),
+                mWorkspaceHelper.getParentBlockGroup(second));
+        assertSame(mWorkspaceHelper.getParentBlockGroup(third),
+                mWorkspaceHelper.getParentBlockGroup(second));
 
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(second));
@@ -277,8 +277,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 first.getInputByName("statement input").getConnection(), second, null);
 
         assertSame(first, second.getPreviousBlock());
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
-                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(first),
+                mWorkspaceHelper.getParentBlockGroup(second));
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(second));
     }
@@ -304,10 +304,10 @@ public class DraggerTest extends MockitoAndroidTestCase {
         assertSame(first, third.getPreviousBlock());
         assertSame(third, second.getPreviousBlock());
 
-        assertNotSame(mWorkspaceHelper.getNearestParentBlockGroup(first),
-                mWorkspaceHelper.getNearestParentBlockGroup(second));
-        assertSame(mWorkspaceHelper.getNearestParentBlockGroup(third),
-                mWorkspaceHelper.getNearestParentBlockGroup(second));
+        assertNotSame(mWorkspaceHelper.getParentBlockGroup(first),
+                mWorkspaceHelper.getParentBlockGroup(second));
+        assertSame(mWorkspaceHelper.getParentBlockGroup(third),
+                mWorkspaceHelper.getParentBlockGroup(second));
 
         assertSame(mWorkspaceHelper.getRootBlockGroup(first),
                 mWorkspaceHelper.getRootBlockGroup(second));
