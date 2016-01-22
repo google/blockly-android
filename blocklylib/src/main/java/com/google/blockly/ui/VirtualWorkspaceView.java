@@ -489,6 +489,22 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
             } else if (mViewScale > ZOOM_SCALES[ZOOM_SCALES.length - 1]) {
                 mCurrentZoomScaleIndex = ZOOM_SCALES.length - 1;
                 mViewScale = ZOOM_SCALES[mCurrentZoomScaleIndex];
+            } else {
+                // find nearest zoom scale
+                float minDist = Float.MAX_VALUE;
+                // If we reach the end the last one was the closest
+                int index = ZOOM_SCALES.length - 1;
+                for (int i = 0; i < ZOOM_SCALES.length; i++) {
+                    float dist = Math.abs(mViewScale - ZOOM_SCALES[i]);
+                    if (dist < minDist) {
+                        minDist = dist;
+                    } else {
+                        // When it starts increasing again we've found the closest
+                        index = i - 1;
+                        break;
+                    }
+                }
+                mCurrentZoomScaleIndex = index;
             }
 
             if (shouldDrawGrid()) {
