@@ -104,6 +104,8 @@ public class BlockView extends NonPropagatingViewGroup {
     // Flag is set to true if this block has at least one "Value" input.
     private boolean mHasValueInput = false;
     private int mInputCount;
+    // Keeps track of if the current set of touch events had started on this block
+    private boolean mHasHit = false;
 
     private final Rect tempRect = new Rect(); // Only use in main thread functions.
 
@@ -370,6 +372,16 @@ public class BlockView extends NonPropagatingViewGroup {
      * this view; false otherwise.
      */
     private boolean hitTest(MotionEvent event) {
+        int action = event.getAction();
+        if (mHasHit && action == MotionEvent.ACTION_MOVE) {
+            // Events that started in this block continue to count as being in this block
+            return true;
+        }
+        if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+            boolean wasHit = mHasHit;
+            mHasHit = false;
+            return wasHit;
+        }
         final int eventX = (int) event.getX();
         final int eventY = (int) event.getY();
 
@@ -393,6 +405,7 @@ public class BlockView extends NonPropagatingViewGroup {
                 if (inputView.isOnFields(
                         eventX - (inputView.getRight() - inputView.getFieldLayoutWidth()),
                         eventY - inputView.getTop())) {
+                    mHasHit = true;
                     return true;
                 }
             }
@@ -407,6 +420,7 @@ public class BlockView extends NonPropagatingViewGroup {
                 final InputView inputView = mInputViews.get(i);
                 if (inputView.isOnFields(
                         eventX - inputView.getLeft(), eventY - inputView.getTop())) {
+                    mHasHit = true;
                     return true;
                 }
             }
