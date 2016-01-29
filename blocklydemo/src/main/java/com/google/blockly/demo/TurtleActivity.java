@@ -83,7 +83,7 @@ public class TurtleActivity extends BlocklySectionsActivity
     protected ListAdapter onCreateNavigationMenuAdapter() {
         // Create three sections with the labels "Turtle 1", "Turtle 2", and "Turtle 3" displaying
         // them as simple text items in the sections drawer.
-        return new ArrayAdapter<>(
+        return mLevelsAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
