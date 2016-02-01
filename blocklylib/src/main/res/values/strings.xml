@@ -14,6 +14,7 @@
     <string name="action_clear">Clear</string>
     <string name="action_airstrike">Airstrike</string>
     <string name="action_carpet_bomb">Carpet Bomb</string>
+    <string name="action_spaghetti">Spaghetti</string>
     <string name="action_run">Run</string>
 
     <string name="toast_workspace_saved">Saved workspace contents.</string>

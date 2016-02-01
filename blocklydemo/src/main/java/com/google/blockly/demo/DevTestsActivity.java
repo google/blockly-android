@@ -17,12 +17,16 @@ package com.google.blockly.demo;
 
 import android.support.annotation.NonNull;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.NavigationDrawerFragment;
+import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.CodeGenerationRequest;
+
+import java.io.IOException;
 
 
 /**
@@ -46,6 +50,18 @@ public class DevTestsActivity extends BlocklySectionsActivity
             return true;
         } else if (id == R.id.action_carpet_bomb) {
             mToolboxFragment.carpetBomb();
+            return true;
+        } else if (id == R.id.action_spaghetti) {
+            Workspace workspace = mWorkspaceFragment.getWorkspace();
+            try {
+                workspace.loadWorkspaceContents(getAssets().open(
+                        "sample_sections/workspace_spaghetti.xml"));
+                getController().initBlockViews();
+            } catch (IOException e) {
+                Toast.makeText(getApplicationContext(),
+                        com.google.blockly.R.string.toast_workspace_file_not_found,
+                        Toast.LENGTH_LONG).show();
+            }
             return true;
         }
 
