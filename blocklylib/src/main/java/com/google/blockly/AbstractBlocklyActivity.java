@@ -148,16 +148,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
 
     /**
      * Called when the user clicks the load action.  Default implementation delegates handling to
-     * {@link #loadWorkspaceToAppDir(String)}.
+     * {@link #loadWorkspaceFromAppDir(String)}.
      */
     public void onLoadWorkspace() {
-        loadWorkspaceToAppDir(DEFAULT_WORKSPACE_FILENAME);
+        loadWorkspaceFromAppDir(DEFAULT_WORKSPACE_FILENAME);
     }
 
     /**
      * Loads the workspace from the given file in the application's private data directory.
      */
-    public void loadWorkspaceToAppDir(String filename) {
+    public void loadWorkspaceFromAppDir(String filename) {
         Workspace workspace = mWorkspaceFragment.getWorkspace();
         try {
             workspace.loadWorkspaceContents(openFileInput(filename));
