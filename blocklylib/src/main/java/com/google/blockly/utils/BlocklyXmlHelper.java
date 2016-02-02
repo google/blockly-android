@@ -127,6 +127,7 @@ public final class BlocklyXmlHelper {
             XmlSerializer serializer = mParserFactory.newSerializer();
             serializer.setOutput(os, null);
             serializer.setPrefix("", XML_NAMESPACE);
+            serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
 
             serializer.startTag(XML_NAMESPACE, "xml");
             for (int i = 0; i < toSerialize.size(); i++) {
