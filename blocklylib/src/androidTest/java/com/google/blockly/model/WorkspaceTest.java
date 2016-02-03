@@ -21,7 +21,7 @@ public class WorkspaceTest extends AndroidTestCase {
     public static final String BAD_XML = "<type=\"xml_no_name\">";
 
     public static final String EMPTY_WORKSPACE =
-            "<xml xmlns=\"http://www.w3.org/1999/xhtml\" />";
+            "\r\n<xml xmlns=\"http://www.w3.org/1999/xhtml\" />";
     private Workspace mWorkspace;
 
     @Override
