@@ -61,7 +61,7 @@ public class InputViewTest extends MockitoAndroidTestCase {
     public void testSetChildViewNull() {
         final InputView inputView = makeDefaultInputView();
 
-        // TODO(rohlfingt): find a way to do this using @Rule and ExpectedException (not working
+        // TODO(353): find a way to do this using @Rule and ExpectedException (not working
         // with current test runner(s).
         try {
             inputView.setChildView(null);

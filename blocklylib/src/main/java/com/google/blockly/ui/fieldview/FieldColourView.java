@@ -172,7 +172,7 @@ public class FieldColourView extends View implements FieldView {
         private final Paint mGridPaint = new Paint();
 
         // From https://github.com/google/closure-library/blob/master/closure/goog/ui/colorpicker.js
-        // TODO(rohlfingt): move this table into resources.
+        // TODO(356): move this table into resources.
         private final int[] mColourArray = new int[]{
                 // grays
                 0xffffffff, 0xffcccccc, 0xffc0c0c0, 0xff999999, 0xff666666, 0xff333333, 0xff000000,

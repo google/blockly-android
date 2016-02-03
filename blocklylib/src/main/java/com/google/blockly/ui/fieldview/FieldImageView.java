@@ -97,7 +97,7 @@ public class FieldImageView extends ImageView implements FieldView {
                 if (bitmap != null) {
                     setImageBitmap(bitmap);
                 } else {
-                    // TODO(rohlfingt): identify and bundle as a resource a suitable default
+                    // TODO(357): identify and bundle as a resource a suitable default
                     // "cannot load" bitmap.
                 }
                 requestLayout();
