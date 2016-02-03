@@ -373,11 +373,8 @@ public class ConnectionManager {
 
             // Walk forward and back on the y axis looking for the closest x,y point.
             int pointerMin = closestIndex - 1;
-            while (pointerMin >= 0) {
+            while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMin);
-                if (!isInYRange(pointerMin, baseY, maxRadius)) {
-                    break;
-                }
                 if (isConnectionAllowed(conn, temp, bestRadius)) {
                     bestConnection = temp;
                     bestRadius = temp.distanceFrom(conn);
