@@ -561,7 +561,6 @@ public class BlocklyController {
         BlockGroup impingingBlockGroup = mHelper.getRootBlockGroup(rootBlock);
 
         int maxSnapDistance = mHelper.getMaxSnapDistance();
-        // TODO (rohlfingt): Adapt to RTL
         int dx = (staticConnection.getPosition().x + maxSnapDistance)
                 - impingingConnection.getPosition().x;
         int dy = (staticConnection.getPosition().y + maxSnapDistance)
@@ -610,7 +609,8 @@ public class BlocklyController {
      *
      * @param block The {@link Block} to add to the workspace.
      * @param bg The {@link BlockGroup} with block as the first {@link BlockView}.
-     * @param isNewBlock
+     * @param isNewBlock Whether the block is new to the {@link Workspace} and the workspace should
+     *                   collect stats for this tree.
      */
     private void addRootBlock(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
         mWorkspace.addRootBlock(block, isNewBlock);

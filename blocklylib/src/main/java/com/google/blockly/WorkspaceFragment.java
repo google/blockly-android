@@ -51,7 +51,7 @@ public class WorkspaceFragment extends Fragment {
                     "A controller must be set before this fragment's view is created.");
         }
         final ViewGroup rootView =
-                (ViewGroup) inflater.inflate(R.layout.fragment_main, container, false);
+                (ViewGroup) inflater.inflate(R.layout.fragment_workspace, container, false);
 
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
 
