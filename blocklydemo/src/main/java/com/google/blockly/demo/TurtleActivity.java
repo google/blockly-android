@@ -16,31 +16,25 @@
 package com.google.blockly.demo;
 
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.view.ViewGroup;
+import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListAdapter;
 import android.widget.Toast;
 
 import com.google.blockly.BlocklySectionsActivity;
-import com.google.blockly.NavigationDrawerFragment;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 
 /**
  * Demo app with the Blockly Games turtle game in a webview.
  */
-public class TurtleActivity extends BlocklySectionsActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class TurtleActivity extends BlocklySectionsActivity {
     private static final String TAG = "TurtleActivity";
 
-    public static final String WORKSPACE_FOLDER_PREFIX = "turtle/level_";
     private final Handler mHandler = new Handler();
     private WebView mTurtleWebview;
     private final CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
@@ -80,10 +74,10 @@ public class TurtleActivity extends BlocklySectionsActivity
 
     @NonNull
     @Override
-    protected ListAdapter onCreateNavigationMenuAdapter() {
+    protected ListAdapter onCreateSectionsListAdapter() {
         // Create three sections with the labels "Turtle 1", "Turtle 2", and "Turtle 3" displaying
         // them as simple text items in the sections drawer.
-        return mLevelsAdapter = new ArrayAdapter<>(
+        return new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
@@ -91,23 +85,24 @@ public class TurtleActivity extends BlocklySectionsActivity
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected boolean onSectionChanged(int oldSection, int newSection) {
+        // TODO(#363): Load different levels.
+        return false;
+    }
 
-        FrameLayout frLayout = (FrameLayout) findViewById(R.id.container);
-        // Find the container we'll put our webview in and make it take up half the screen width.
-        LayoutParams frlp = new LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
-        frlp.weight = 1;
-        frLayout.setLayoutParams(frlp);
+    @Override
+    protected View onCreateContentView(int parentId) {
+        View root = getLayoutInflater().inflate(R.layout.turtle_content, null);
 
-        mTurtleWebview = new WebView(this);
+        mTurtleWebview = (WebView) root.findViewById(R.id.turtle_runtime);
         mTurtleWebview.getSettings().setJavaScriptEnabled(true);
         mTurtleWebview.setWebChromeClient(new WebChromeClient());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         mTurtleWebview.loadUrl("file:///android_asset/turtle/turtle.html");
-        frLayout.addView(mTurtleWebview);
+
+        return root;
     }
 
     @NonNull

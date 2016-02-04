@@ -15,6 +15,7 @@
 
 package com.google.blockly;
 
+import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
@@ -221,10 +222,10 @@ public final class MockBlocksProvider {
         }
     }
 
-    public static void makeComplexModel(Workspace workspace) {
+    public static void makeComplexModel(BlocklyController controller) {
         List<Block> testRootBlocks = makeTestModel();
         for (int i = 0; i < testRootBlocks.size(); i++) {
-            workspace.addRootBlock(testRootBlocks.get(i), true);
+            controller.addRootBlock(testRootBlocks.get(i));
         }
     }
 

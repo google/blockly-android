@@ -18,8 +18,7 @@ package com.google.blockly.demo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout.LayoutParams;
+import android.view.View;
 import android.widget.TextView;
 
 import com.google.blockly.AbstractBlocklyActivity;
@@ -56,18 +55,11 @@ public class SplitActivity extends AbstractBlocklyActivity {
         mHandler = new Handler();
     }
 
-    // TODO(#280): Demonstrate using a different layout XML
     @Override
-    protected void onCreateContentView() {
-        super.onCreateContentView();
-        FrameLayout container = (FrameLayout) findViewById(R.id.container);
-
-        mGeneratedTextView = new TextView(this);
-        mGeneratedTextView.setText("Run the block code\nto see it in javascript!");
-
-        mGeneratedTextView.setLayoutParams(
-                new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-        container.addView(mGeneratedTextView);
+    protected View onCreateContentView(int parentId) {
+        View root = getLayoutInflater().inflate(R.layout.split_content, null);
+        mGeneratedTextView = (TextView) root.findViewById(R.id.generated_code);
+        return root;
     }
 
     @NonNull

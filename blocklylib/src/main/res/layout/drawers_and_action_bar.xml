@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A DrawerLayout is intended to be used as the top-level content view using match_parent for both width and height to consume the full space available. -->
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/drawer_layout"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!-- The central view of the activity will be inserted here. -->
+    <FrameLayout android:id="@+id/content_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <!-- Activity drawers listed below. -->
+    <fragment android:name="com.google.blockly.TrashFragment"
+              android:id="@+id/blockly_trash"
+              android:layout_width="match_parent" android:layout_height="wrap_content"
+              tools:layout="@layout/fragment_trash" />
+
+    <fragment android:name="com.google.blockly.ToolboxFragment"
+              android:id="@+id/blockly_toolbox"
+              android:layout_width="match_parent" android:layout_height="match_parent"
+              android:layout_gravity="end"
+              tools:layout="@layout/fragment_toolbox" />
+
+</android.support.v4.widget.DrawerLayout>

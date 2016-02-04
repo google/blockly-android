@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Demonstrates an alternative content area in SplitActivity. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <fragment android:id="@+id/blockly_workspace"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:name="com.google.blockly.WorkspaceFragment"
+        tools:layout="@layout/fragment_workspace"
+        />
+    <TextView android:id="@+id/generated_code"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:text="Run the block code\nto see it in javascript!"
+        />
+</LinearLayout>

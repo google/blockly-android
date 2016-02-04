@@ -17,12 +17,13 @@ package com.google.blockly.demo;
 
 import android.support.annotation.NonNull;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import android.widget.Toast;
 
 import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.MockBlocksProvider;
-import com.google.blockly.NavigationDrawerFragment;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.CodeGenerationRequest;
 
@@ -32,8 +33,7 @@ import java.io.IOException;
 /**
  * Activity with Developer oriented tests.
  */
-public class DevTestsActivity extends BlocklySectionsActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class DevTestsActivity extends BlocklySectionsActivity {
     private static final String TAG = "DevTestsActivity";
 
     public static final String WORKSPACE_FOLDER_PREFIX = "sample_sections/level_";
@@ -72,7 +72,7 @@ public class DevTestsActivity extends BlocklySectionsActivity
     @Override
     protected String getToolboxContentsXmlPath() {
         // Expose a different set of blocks to the user at each level.
-        return WORKSPACE_FOLDER_PREFIX + (getCurrentSection() + 1) + "/toolbox.xml";
+        return WORKSPACE_FOLDER_PREFIX + (getCurrentSectionIndex() + 1) + "/toolbox.xml";
     }
 
     @NonNull
@@ -94,7 +94,7 @@ public class DevTestsActivity extends BlocklySectionsActivity
     @NonNull
     @Override
     protected void onLoadInitialWorkspace() {
-        MockBlocksProvider.makeComplexModel(getController().getWorkspace());
+        MockBlocksProvider.makeComplexModel(getController());
     }
 
     @Override
@@ -108,5 +108,25 @@ public class DevTestsActivity extends BlocklySectionsActivity
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
+    }
+
+    @NonNull
+    @Override
+    protected ListAdapter onCreateSectionsListAdapter() {
+        return new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                new String[]{
+                        getString(R.string.title_section1),
+                        getString(R.string.title_section2),
+                        getString(R.string.title_section3),
+                });
+    }
+
+    @Override
+    protected boolean onSectionChanged(int oldSection, int newSection) {
+        reloadToolbar();
+        return true;
     }
 }

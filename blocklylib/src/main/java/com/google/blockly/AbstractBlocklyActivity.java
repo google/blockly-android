@@ -19,20 +19,27 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.google.blockly.control.BlocklyController;
@@ -46,23 +53,43 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
- * Simple base class for a full-screen Blockly Activities class, that uses a pull-out navigation
- * drawer for the toolbox.
+ * Base class for a Blockly activities that use a material design style tool bar, and optionally a
+ * navigation menu.
+ * <p/>
+ * Configure Block by providing defintions for {@link #getBlockDefinitionsJsonPath()},
+ * {@link #getToolboxContentsXmlPath()}, and {@link #getGeneratorJsFilename()}.  An initial
+ * workspace can be defined by overriding {@link #getStartingWorkspacePath()}.
+ * <p/>
+ * The central app views can be replaced by overloading {@link #onCreateContentView} and the
+ * navigation menu will automatically be configured if {@link #onCreateAppNavigationDrawer} returns
+ * a view.  By default, {@link #onCreateFragments()} looks for the {@link WorkspaceFragment}, the
+ * {@link ToolboxFragment}, and the {@link TrashFragment} via ids {@link R.id#blockly_workspace},
+ * {@link R.id#blockly_toolbox}, and {@link R.id#blockly_trash}, respectively.  If this is not the
+ * same in your layout, make sure you override {@link #onCreateFragments()}, too.
  */
-public abstract class AbstractBlocklyActivity extends AppCompatActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public abstract class AbstractBlocklyActivity extends AppCompatActivity {
+    /**
+     * Per the design guidelines, you should show the drawer on launch until the user manually
+     * expands it. This shared preference tracks this.
+     */
+    private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
+
     private static final String TAG = "AbstractBlocklyActivity";
 
     public static final String DEFAULT_WORKSPACE_FILENAME = "workspace.xml";
 
     protected ActionBar mActionBar;
-    protected NavigationDrawerFragment mNavigationDrawerFragment;
     protected DrawerLayout mDrawerLayout;
     protected WorkspaceFragment mWorkspaceFragment;
     protected ToolboxFragment mToolboxFragment;
     protected TrashFragment mTrashFragment;
 
-    private BlocklyController mController;
+    // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
+    protected View mNavigationDrawer;
+    protected ActionBarDrawerToggle mDrawerToggle;
+    private boolean mUserLearnedDrawer;
+
+    protected BlocklyController mController;
 
     // TODO(#282): Wrap service binding into a self-contained, reusable class.
     protected CodeGeneratorService mCodeGeneratorService;
@@ -87,7 +114,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
+        if (mNavigationDrawer == null || !mDrawerLayout.isDrawerOpen(mNavigationDrawer)) {
             // Only show items in the action bar relevant to this screen
             // if the drawer is not showing. Otherwise, let the drawer
             // decide what to show in the action bar.
@@ -105,7 +132,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_save) {
             onSaveWorkspace();
             return true;
@@ -118,9 +144,34 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         } else if (id == R.id.action_run) {
             onRunCode();
             return true;
+        } else if (id == android.R.id.home && mNavigationDrawer != null) {
+            setNavDrawerOpened(!isNavDrawerOpen());
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * @return Whether the navigation drawer is currently open.
+     */
+    public boolean isNavDrawerOpen() {
+        return mNavigationDrawer != null && mDrawerLayout.isDrawerOpen(mNavigationDrawer);
+    }
+
+    /**
+     * Opens or closes the navigation drawer.
+     * @param open Opens the navigation drawer if true and closes it if false.
+     */
+    public void setNavDrawerOpened(boolean open) {
+        boolean alreadyOpen = mDrawerLayout.isDrawerOpen(mNavigationDrawer);
+        if (open != alreadyOpen) {
+            if (open) {
+                mDrawerLayout.openDrawer(mNavigationDrawer);
+            } else {
+                mDrawerLayout.closeDrawer(mNavigationDrawer);
+            }
+            restoreActionBar();
+        }
     }
 
     /**
@@ -182,25 +233,27 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         onSaveWorkspaceSnapshot(outState);
     }
 
-    public void onNavigationDrawerItemSelected(int position) {
-        // Override to handle.
-    }
-
+    /**
+     * @return The {@link BlocklyController} controlling the workspace in this activity.
+     */
     public final BlocklyController getController() {
         return mController;
     }
 
     /**
      * Creates the Activity Views, Fragments, and Blocklycontroller via a sequence of calls to
-     * {@link #onCreateContentView()}, {@link #onCreateFragments()}, and
+     * {@link #onCreateActivityRootView()}, {@link #onCreateFragments()}, and
      * {@link #onCreateController}.  Subclasses should prefer to override those classes.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        onCreateContentView();
+        onCreateActivityRootView();
         onCreateFragments();
+        if (mWorkspaceFragment == null) {
+            throw new IllegalStateException("mWorkspaceFragment is null");
+        }
         mController = onCreateController();
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
@@ -208,10 +261,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         if (!loadedPriorInstance) {
             onLoadInitialWorkspace();
         }
-
-        // TODO(#281): Factor out the navigation menu contents.
-        mNavigationDrawerFragment.setUp(R.id.navigation_drawer, mDrawerLayout,
-                onCreateNavigationMenuAdapter());
     }
 
     /**
@@ -270,6 +319,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
         super.onResume();
         Intent intent = new Intent(this, CodeGeneratorService.class);
         bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+
+        if (mNavigationDrawer != null) {
+            // Read in the flag indicating whether or not the user has demonstrated awareness of the
+            // drawer. See PREF_USER_LEARNED_DRAWER for details.
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+            mUserLearnedDrawer = sp.getBoolean(PREF_USER_LEARNED_DRAWER, false);
+            if (!mUserLearnedDrawer) {
+                mDrawerLayout.openDrawer(mNavigationDrawer);
+            }
+        }
     }
 
     /**
@@ -297,13 +356,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     @NonNull
     protected CharSequence getWorkspaceTitle() {
         return getTitle();
-    }
-
-    /**
-     * @return The content view layout resource id.
-     */
-    protected int getContentViewResId() {
-        return R.layout.activity_blockly;
     }
 
     /**
@@ -359,33 +411,112 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
     abstract protected String getGeneratorJsFilename();
 
     /**
-     * Creates or loads the root content view for the Activity.  By default, this is
-     * {@code R.layout.activity_blockly}. It is also responsible for extracting and assigning
-     * {@link #mActionBar}, {@link #mNavigationDrawerFragment}, and {@link #mDrawerLayout}.
+     * Creates or loads the root content view (by default, {@link R.layout#drawers_and_action_bar})
+     * for the Activity.  It is also responsible for assigning {@link #mActionBar} and
+     * {@link #mDrawerLayout}, and adding the view returned by {@link #onCreateContentView}.
      */
-    protected void onCreateContentView() {
-        setContentView(getContentViewResId());
+    protected void onCreateActivityRootView() {
+        setContentView(R.layout.drawers_and_action_bar);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         mActionBar = getSupportActionBar();
-        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         mActionBar.setDisplayShowTitleEnabled(true);
+
+        // Create and attach content view into content container.  If content is a fragment, content
+        // will be null here and the container will be populated during the FragmentTransaction.
+        View content = onCreateContentView(R.id.content_container);
+        if (content != null) {
+            FrameLayout contentContainer = (FrameLayout) findViewById(R.id.content_container);
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            if (content.getParent() != contentContainer) {
+                contentContainer.addView(content, lp);
+            } else {
+                content.setLayoutParams(lp);
+            }
+        }
+
+        mNavigationDrawer = onCreateAppNavigationDrawer();
+        if (mNavigationDrawer != null) {
+            setupAppNaviagtionDrawer();
+        }
     }
 
     /**
-     * Creates and returns a {@link ListAdapter} used to populate the navigation menu.  By default,
-     * the menu is empty.
+     * Constructs (or inflates) the primary content view of the Activity.
      *
-     * @return The adapter that populates the navigation menu.
+     * @param containerId The container id to target if using a {@link Fragment}
+     * @return The {@link View} constructed. If using a {@link Fragment}, return null.
      */
-    // TODO(#281): Factor out the navigation menu contents from the AbstractBlocklyActivity.
-    @NonNull
-    protected ListAdapter onCreateNavigationMenuAdapter() {
-        // No menu items.
-        return new ArrayAdapter<>(this, 0, 0, new String[]{});
+    protected View onCreateContentView(int containerId) {
+        return getLayoutInflater().inflate(R.layout.blockly_workspace, null);
+    }
+
+    /**
+     * @return The {@link View} to be used for the navigation menu. Otherwise null.
+     */
+    protected View onCreateAppNavigationDrawer() {
+        return null;
+    }
+
+    /**
+     * Configures the activity to support a navigation menu and drawer provided by
+     * {@link #onCreateAppNavigationDrawer}.
+     */
+    protected void setupAppNaviagtionDrawer() {
+        DrawerLayout.LayoutParams lp = new DrawerLayout.LayoutParams(
+                R.dimen.navigation_drawer_width,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                Gravity.START);
+        // Add navigation drawer above the content view, as the first drawer.
+        mDrawerLayout.addView(mNavigationDrawer, 1, lp);
+        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+
+        // set a custom shadow that overlays the main content when the drawer opens
+        mDrawerLayout.setDrawerShadow(com.google.blockly.R.drawable.drawer_shadow,
+                GravityCompat.START);
+
+        mActionBar.setDisplayHomeAsUpEnabled(true);
+        mActionBar.setHomeButtonEnabled(true);
+
+        // ActionBarDrawerToggle ties together the the proper interactions
+        // between the navigation drawer and the action bar app icon.
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                R.string.navigation_drawer_open,  /* "open drawer" description for accessibility */
+                R.string.navigation_drawer_close  /* "close drawer" description for accessibility */
+        ) {
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+
+                supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                if (!mUserLearnedDrawer) {
+                    // The user manually opened the drawer; store this flag to prevent auto-showing
+                    // the navigation drawer automatically in the future.
+                    mUserLearnedDrawer = true;
+                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(
+                            AbstractBlocklyActivity.this);
+                    sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
+                }
+
+                supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
+            }
+        };
+
+        // Defer code dependent on restoration of previous instance state.
+        mDrawerLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mDrawerToggle.syncState();
+            }
+        });
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
     }
 
     /**
@@ -394,32 +525,21 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
      * {@link #mWorkspaceFragment}, and optionally, {@link #mToolboxFragment} and
      * {@link #mTrashFragment}. This base implementation attempts to acquire references to the
      * {@link #mToolboxFragment} and {@link #mTrashFragment} using the layout ids
-     * {@link R.id#toolbox} and {@link R.id#trash}, respectively. Subclasses may leave these
+     * {@link R.id#} and {@link R.id#blockly_trash}, respectively. Subclasses may leave these
      * {@code null} if the views are not present in the UI.
      * <p>
      * Always called once from {@link #onCreate} and before {@link #onCreateController}.
      */
     protected void onCreateFragments() {
         FragmentManager fragmentManager = getSupportFragmentManager();
-
-        // Find the workspace.  The workspace container will be empty on the first pass (no fragment
-        // will be found), but if the Activity is recreated (such as from an orientation change),
-        // the fragment will already exist.
-        mWorkspaceFragment = (WorkspaceFragment) fragmentManager
-                .findFragmentById(R.id.blockly_workspace_container);
-        if (mWorkspaceFragment == null) {
-            mWorkspaceFragment = new WorkspaceFragment();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.blockly_workspace_container, mWorkspaceFragment)
-                    .commit();
-        }
-
+        mWorkspaceFragment = (WorkspaceFragment)
+                fragmentManager.findFragmentById(R.id.blockly_workspace);
         mToolboxFragment =
-                (ToolboxFragment) getSupportFragmentManager().findFragmentById(R.id.toolbox);
-        mTrashFragment = (TrashFragment) getSupportFragmentManager().findFragmentById(R.id.trash);
+                (ToolboxFragment) fragmentManager.findFragmentById(R.id.blockly_toolbox);
+        mTrashFragment = (TrashFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
 
         // Trash should begin in a closed state.
-        getSupportFragmentManager().beginTransaction().hide(mTrashFragment).commit();
+        fragmentManager.beginTransaction().hide(mTrashFragment).commit();
     }
 
     /**
@@ -478,7 +598,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity
      * Reloads the block definitions.
      * @see #getBlockDefinitionsJsonPath()
      */
-    protected void reloadBlockDefintiions() {
+    protected void reloadBlockDefinitions() {
         AssetManager assetManager = getAssets();
         String blockDefsPath = getBlockDefinitionsJsonPath();
 

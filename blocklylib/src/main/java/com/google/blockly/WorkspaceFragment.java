@@ -46,10 +46,6 @@ public class WorkspaceFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if (mController == null) {
-            throw new IllegalStateException(
-                    "A controller must be set before this fragment's view is created.");
-        }
         final ViewGroup rootView =
                 (ViewGroup) inflater.inflate(R.layout.fragment_workspace, container, false);
 
@@ -86,9 +82,6 @@ public class WorkspaceFragment extends Fragment {
                         virtualWorkspaceView.zoomIn();
                     }
                 });
-
-        // Let the controller create the views.
-        mController.initWorkspaceView(mWorkspaceView);
         return rootView;
     }
 
@@ -108,6 +101,7 @@ public class WorkspaceFragment extends Fragment {
 
         mController = controller;
         mWorkspace = (controller == null) ? null : mController.getWorkspace();
+        mController.initWorkspaceView(mWorkspaceView);
     }
 
     /**

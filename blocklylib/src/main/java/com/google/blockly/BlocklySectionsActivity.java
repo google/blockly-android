@@ -15,9 +15,12 @@
 
 package com.google.blockly;
 
+import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.widget.ArrayAdapter;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 
 import com.google.blockly.model.Workspace;
 
@@ -26,21 +29,62 @@ import java.io.InputStream;
 /**
  * Activity holding a full-screen Blockly workspace with multiple sections in the navigation menu.
  */
-public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
-    private static final String TAG = BlocklySectionsActivity.class.getSimpleName();
+public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity
+        implements AdapterView.OnItemClickListener {
+    private static final String TAG = "BlocklySectionsActivity";
 
     protected int mCurrentSection = 0;
-    protected ListAdapter mLevelsAdapter;
-
+    protected ListView mSectionsListView;
+    protected ListAdapter mListAdapter;
 
     @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        if (position == mCurrentSection) {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    /**
+     * Creates {@link #mSectionsListView} and configures it with
+     * {@link #onCreateSectionsListAdapter()} to use as the activity's navigation menu.
+     *
+     * @return {@link #mSectionsListView} for the navigation menu.
+     */
+    @Override
+    protected View onCreateAppNavigationDrawer() {
+        mSectionsListView = (ListView) getLayoutInflater().inflate(R.layout.sections_list, null);
+        mListAdapter = onCreateSectionsListAdapter();
+        mSectionsListView.setAdapter(mListAdapter);
+        mSectionsListView.setOnItemClickListener(this);
+
+        return mSectionsListView;
+    }
+
+    /**
+     * Handles clicks to {@link #mSectionsListView} by calling {@link #onSectionItemClicked} with
+     * the selected position.
+     *
+     * @param parent The {@link ListView}.
+     * @param view The selected item view.
+     * @param position The position in the list.
+     * @param id The id of the list item.
+     */
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        onSectionItemClicked(position);
+    }
+
+    /**
+     * Handles the selection of a section, including closing the navigation drawer.
+     * @param sectionIndex
+     */
+    public void onSectionItemClicked(int sectionIndex) {
+        mSectionsListView.setItemChecked(sectionIndex, true);
+        setNavDrawerOpened(false);
+        if (mCurrentSection == sectionIndex) {
             return;
         }
 
-        changeLevel(position);
-        mCurrentSection = position;
+        changeSection(sectionIndex);
+        mCurrentSection = sectionIndex;
     }
 
     /**
@@ -48,9 +92,9 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
      */
     @NonNull
     protected CharSequence getWorkspaceTitle() {
-        int section = getCurrentSection();
+        int section = getCurrentSectionIndex();
         if (section < getSectionCount()) {
-            return (String) mLevelsAdapter.getItem(section);
+            return (String) mListAdapter.getItem(section);
         } else {
             // Use the Activity name.
             return getTitle();
@@ -63,49 +107,40 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity {
      * @return An adapter of sections for the navigation menu.
      */
     @NonNull
-    @Override
-    protected ListAdapter onCreateNavigationMenuAdapter() {
-        mLevelsAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_section1),
-                        getString(R.string.title_section2),
-                        getString(R.string.title_section3),
-                });
-        return mLevelsAdapter;
-    }
+    abstract protected ListAdapter onCreateSectionsListAdapter();
 
     /**
      * @return The section that is currently displayed.
      */
-    public final int getCurrentSection() {
+    public final int getCurrentSectionIndex() {
         return mCurrentSection;
     }
 
     /**
-     * Called after a section has been loaded. If you don't want to re-use the previous section's
+     * Called to load a new Section. If you don't want to re-use the previous section's
      * code {@link Workspace#loadWorkspaceContents(InputStream)} should be called here.
      *
      * @param oldSection The previous level.
      * @param newSection The level that was just configured.
+     * @return True if the new section was successfully loaded. Otherwise false.
      */
-    protected void onSectionChanged(int oldSection, int newSection) {
-    }
+    abstract protected boolean onSectionChanged(int oldSection, int newSection);
 
     /**
      * @return The number of sections in this activity.
      */
     protected int getSectionCount() {
-        return mLevelsAdapter.getCount();
+        return mListAdapter.getCount();
     }
 
-    private void changeLevel(int level) {
+    private void changeSection(int level) {
         int oldLevel = mCurrentSection;
         mCurrentSection = level;
-        reloadBlockDefintiions();
-        reloadToolbar();
-        onSectionChanged(oldLevel, level);
+        if (onSectionChanged(oldLevel, level)) {
+            reloadBlockDefinitions();
+            reloadToolbar();
+        } else {
+            mCurrentSection = oldLevel;
+        }
     }
 }

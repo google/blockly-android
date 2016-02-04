@@ -129,6 +129,7 @@ public class ToolboxFragment extends Fragment {
     /**
      * Drop one instance of each block in the toolbox, all in the same place.
      */
+    // TODO(#364): Move to DevTestsActivity
     public void airstrike() {
         List<Block> blocks = new ArrayList<>();
         mTopLevelCategory.getAllBlocksRecursive(blocks);
@@ -143,6 +144,7 @@ public class ToolboxFragment extends Fragment {
      * Drop one instance of each block in the toolbox, randomly placed across a section of the
      * workspace.
      */
+    // TODO(#364): Move to DevTestsActivity
     public void carpetBomb() {
         List<Block> blocks = new ArrayList<>();
         mTopLevelCategory.getAllBlocksRecursive(blocks);
