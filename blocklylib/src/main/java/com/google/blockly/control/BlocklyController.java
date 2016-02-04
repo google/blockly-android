@@ -244,6 +244,7 @@ public class BlocklyController {
      */
     public void loadWorkspaceContents(String workspaceXmlString) throws BlocklyParserException {
         mWorkspace.loadWorkspaceContents(workspaceXmlString);
+        initBlockViews();
     }
 
     /**
@@ -256,6 +257,7 @@ public class BlocklyController {
     public void loadWorkspaceContents(InputStream workspaceXmlStream)
             throws BlocklyParserException {
         mWorkspace.loadWorkspaceContents(workspaceXmlStream);
+        initBlockViews();
     }
 
     /**
@@ -471,13 +473,15 @@ public class BlocklyController {
      * Recursively initialize views for all the blocks in the model and add them to the view.
      */
     public void initBlockViews() {
-        List<Block> rootBlocks = mWorkspace.getRootBlocks();
-        ConnectionManager connManager = mWorkspace.getConnectionManager();
-        for (int i = 0; i < rootBlocks.size(); i++) {
-            BlockGroup bg = new BlockGroup(mContext, mHelper);
-            mHelper.buildBlockViewTree(rootBlocks.get(i), bg, connManager,
-                    mTouchHandler);
-            mWorkspaceView.addView(bg);
+        if (mWorkspaceView != null) {
+            List<Block> rootBlocks = mWorkspace.getRootBlocks();
+            ConnectionManager connManager = mWorkspace.getConnectionManager();
+            for (int i = 0; i < rootBlocks.size(); i++) {
+                BlockGroup bg = new BlockGroup(mContext, mHelper);
+                mHelper.buildBlockViewTree(rootBlocks.get(i), bg, connManager,
+                        mTouchHandler);
+                mWorkspaceView.addView(bg);
+            }
         }
     }
 

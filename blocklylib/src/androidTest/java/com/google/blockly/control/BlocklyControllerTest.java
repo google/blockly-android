@@ -4,6 +4,7 @@ import com.google.blockly.MockitoAndroidTestCase;
 import com.google.blockly.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTestStrings;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockView;
@@ -624,5 +625,21 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             assertNotNull(secondGroup);
             assertNotSame(secondGroup, firstGroup);
         }
+    }
+
+    public void testLoadWorkspaceContents_andReset() {
+        mController.initWorkspaceView(mWorkspaceView);
+        assertEquals(0, mWorkspace.getRootBlocks().size());
+        assertEquals(0, mWorkspaceView.getChildCount());
+
+        mController.loadWorkspaceContents(
+                BlockTestStrings.EMPTY_BLOCK_WITH_POSITION +
+                BlockTestStrings.EMPTY_BLOCK_WITH_POSITION.replace("id=\"364\"", "id=\"365\""));
+        assertEquals(2, mWorkspace.getRootBlocks().size());
+        assertEquals(2, mWorkspaceView.getChildCount());
+
+        mController.resetWorkspace();
+        assertEquals(0, mWorkspace.getRootBlocks().size());
+        assertEquals(0, mWorkspaceView.getChildCount());
     }
 }

@@ -224,7 +224,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * workspace, removing all blocks from the workspace.
      */
     public void onClearWorkspace() {
-        mWorkspaceFragment.getWorkspace().resetWorkspace();
+        mController.resetWorkspace();
     }
 
     @Override

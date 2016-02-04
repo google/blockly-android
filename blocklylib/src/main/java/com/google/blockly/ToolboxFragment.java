@@ -58,7 +58,6 @@ public class ToolboxFragment extends Fragment {
     // TODO (fenichel): Load from resources
     // Minimum pixel distance between blocks in the toolbox.
     private int mBlockMargin = 10;
-    private int CARPET_SIZE = 1000;
     private ToolboxCategory mTopLevelCategory;
 
     @Override
@@ -127,33 +126,10 @@ public class ToolboxFragment extends Fragment {
     }
 
     /**
-     * Drop one instance of each block in the toolbox, all in the same place.
+     * @return The contents displayed in the toolbox.
      */
-    // TODO(#364): Move to DevTestsActivity
-    public void airstrike() {
-        List<Block> blocks = new ArrayList<>();
-        mTopLevelCategory.getAllBlocksRecursive(blocks);
-        for (int i = 0; i < blocks.size(); i++) {
-            Block copiedModel = blocks.get(i).deepCopy();
-            copiedModel.setPosition(0, 0);
-            mController.addRootBlock(copiedModel);
-        }
-    }
-
-    /**
-     * Drop one instance of each block in the toolbox, randomly placed across a section of the
-     * workspace.
-     */
-    // TODO(#364): Move to DevTestsActivity
-    public void carpetBomb() {
-        List<Block> blocks = new ArrayList<>();
-        mTopLevelCategory.getAllBlocksRecursive(blocks);
-        for (int i = 0; i < blocks.size(); i++) {
-            Block copiedModel = blocks.get(i).deepCopy();
-            copiedModel.setPosition((int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2,
-                    (int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2);
-            mController.addRootBlock(copiedModel);
-        }
+    public ToolboxCategory getContents() {
+        return mTopLevelCategory;
     }
 
     public RecyclerView.Adapter getAdapter() {
