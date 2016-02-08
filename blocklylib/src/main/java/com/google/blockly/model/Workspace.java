@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -46,10 +47,12 @@ public class Workspace {
     private final WorkspaceStats mStats =
             new WorkspaceStats(mVariableNameManager, mProcedureManager,
                     mConnectionManager);
-    private final ToolboxCategory mDeletedBlocks = new ToolboxCategory();
+    private final List<Block> mDeletedBlocks = new LinkedList<>();
     private final Context mContext;
     private ToolboxCategory mToolboxCategory;
     private BlockFactory mBlockFactory;
+
+    private List<Connection> mTempConnections = new ArrayList<>();
 
     /**
      * Create a workspace.
@@ -97,8 +100,16 @@ public class Workspace {
      * @param block The block block to remove, possibly with descendants attached.
      * @return True if the block was removed, false otherwise.
      */
-    public boolean removeRootBlock(Block block) {
-        return mRootBlocks.remove(block);
+    public boolean removeRootBlock(Block block, boolean removeConnections) {
+        boolean foundAndRemoved = mRootBlocks.remove(block);
+        if (foundAndRemoved && removeConnections) {
+            block.getAllConnectionsRecursive(mTempConnections);
+            for (int i = 0; i < mTempConnections.size(); ++i) {
+                mConnectionManager.removeConnection(mTempConnections.get(i));
+            }
+            mTempConnections.clear();
+        }
+        return foundAndRemoved;
     }
 
     /**
@@ -108,7 +119,7 @@ public class Workspace {
      * @param block The block to put in the trash, possibly with descendants attached.
      */
     public void addBlockToTrash(Block block) {
-        mDeletedBlocks.addBlock(block);
+        mDeletedBlocks.add(0, block);
     }
 
     public ConnectionManager getConnectionManager() {
@@ -213,7 +224,7 @@ public class Workspace {
         return mToolboxCategory;
     }
 
-    public ToolboxCategory getTrashContents() {
+    public List<Block> getTrashContents() {
         return mDeletedBlocks;
     }
 
