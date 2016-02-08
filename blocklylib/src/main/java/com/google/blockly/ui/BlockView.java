@@ -29,6 +29,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
+import android.view.ViewParent;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
@@ -51,7 +52,6 @@ public class BlockView extends NonPropagatingViewGroup {
     private static final int MIN_BLOCK_WIDTH = 40;
 
     private final WorkspaceHelper mHelper;
-    private final BlockTouchHandler mTouchHandler;
     private final Block mBlock;
     private final ConnectionManager mConnectionManager;
 
@@ -74,6 +74,9 @@ public class BlockView extends NonPropagatingViewGroup {
     // List of widths of multi-field rows when rendering inline inputs.
     private final ArrayList<Integer> mInlineRowWidth = new ArrayList<>();
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
+
+    private BlockTouchHandler mTouchHandler;
+
     // Currently highlighted connection.
     @Nullable private Connection mHighlightConnection = null;
     // Offset of the block origin inside the view's measured area.
@@ -120,19 +123,20 @@ public class BlockView extends NonPropagatingViewGroup {
      * @param block The {@link Block} represented by this view.
      * @param helper The helper for loading workspace configs and doing calculations.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
-     * @param touchHandler The handler for forwarding touch events on this block to the
-     * {@link WorkspaceHelper}.
+     * @param touchHandler The optional handler for forwarding touch events on this block to the
+     *                     {@link com.google.blockly.control.Dragger}.
      */
     public BlockView(Context context, Block block, WorkspaceHelper helper,
                      ConnectionManager connectionManager,
-                     BlockTouchHandler touchHandler) {
+                     @Nullable BlockTouchHandler touchHandler) {
         super(context, null, 0);
 
         mBlock = block;
         mConnectionManager = connectionManager;
         mHelper = helper;
-        mTouchHandler = touchHandler;
         mPatchManager = mHelper.getPatchManager();  // Shortcut.
+
+        mTouchHandler = touchHandler;
 
         setClickable(true);
         setFocusable(true);
@@ -142,6 +146,16 @@ public class BlockView extends NonPropagatingViewGroup {
 
         setWillNotDraw(false);
         initDrawingObjects();
+    }
+
+    public void setTouchHandler(BlockTouchHandler touchHandler) {
+        mTouchHandler = touchHandler;
+        for (int i = 0; i < mInputViews.size(); i++) {
+            BlockGroup bg = mInputViews.get(i).getChildView();
+            if (bg != null) {
+                bg.setTouchHandler(touchHandler);
+            }
+        }
     }
 
     /**
@@ -301,7 +315,7 @@ public class BlockView extends NonPropagatingViewGroup {
                 mConnectionManager.moveConnectionTo(
                         connection, blockWorkspacePosition, mTempWorkspacePoint);
                 if (connection.isConnected()) {
-                    ((BlockGroup) inputView.getChildView()).updateAllConnectorLocations();
+                    inputView.getChildView().updateAllConnectorLocations();
                 }
             }
         }
@@ -316,6 +330,7 @@ public class BlockView extends NonPropagatingViewGroup {
             InputView inputView = mInputViews.get(i);
             inputView.unlinkModelAndSubViews();
         }
+        mTouchHandler = null;  // Recursive via the calls InputView calls.
         removeAllViews();
         mBlock.setView(null);
         // TODO(#381): Remove model from view. Set mBlock to null, and handle all null cases.
@@ -1382,5 +1397,15 @@ public class BlockView extends NonPropagatingViewGroup {
         NinePatchDrawable drawable = mPatchManager.getPatchDrawable(id);
         drawable.setColorFilter(mBlockColorFilter);
         return drawable;
+    }
+
+    @Nullable
+    public BlockGroup getParentBlockGroup() {
+        ViewParent viewParent = getParent();
+        if (viewParent instanceof BlockGroup) {
+            return (BlockGroup) viewParent;
+        } else {
+            return null;  // Not connected to a BlockGroup
+        }
     }
 }

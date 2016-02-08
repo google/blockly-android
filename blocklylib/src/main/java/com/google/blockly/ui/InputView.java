@@ -100,7 +100,7 @@ public class InputView extends NonPropagatingViewGroup {
     /**
      * @return The child view connected to this input port.
      */
-    public View getChildView() {
+    public BlockGroup getChildView() {
         return mChildView;
     }
 

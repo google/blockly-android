@@ -24,7 +24,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
+import android.view.ViewGroup;
 
 import com.google.blockly.ToolboxFragment;
 import com.google.blockly.TrashFragment;
@@ -78,7 +78,6 @@ public class BlocklyController {
     private Dragger mDragger;
 
     private boolean mCanCloseToolbox;
-    private boolean mCanShowAndHideTrash;
 
     /** Pass block touch interaction through the Dragger. */
     private BlockTouchHandler mTouchHandler = new BlockTouchHandler() {
@@ -135,12 +134,10 @@ public class BlocklyController {
         }
         if (mWorkspaceFragment != null) {
             mWorkspaceFragment.setController(null);
-            mWorkspaceFragment.setTrashClickListener(null);
         }
         mWorkspaceFragment = workspaceFragment;
         if (mWorkspaceFragment != null) {
             mWorkspaceFragment.setController(this);
-            updateTrashClickListener();
         }
     }
 
@@ -199,7 +196,6 @@ public class BlocklyController {
         if (mTrashFragment != null) {
             mTrashFragment.setController(this);
             mTrashFragment.setContents(mWorkspace.getTrashContents());
-            updateTrashClickListener();
         }
     }
 
@@ -349,22 +345,6 @@ public class BlocklyController {
     }
 
     /**
-     * Remove a block from the workspace and put it in the trash.
-     * TODO(#301) Make this handle any block, not just root blocks.
-     * @param block The block block to remove, possibly with descendants attached.
-     * @return True if the block was removed, false otherwise.
-     */
-    public boolean trashRootBlock(Block block) {
-        boolean rootBlockDeleted = mWorkspace.removeRootBlock(block);
-        if (rootBlockDeleted) {
-            mWorkspace.addBlockToTrash(block);
-            mWorkspaceView.removeView((BlockGroup)block.getView().getParent());
-            mTrashFragment.getAdapter().notifyDataSetChanged();
-        }
-        return rootBlockDeleted;
-    }
-
-    /**
      * Closes the provided {@link ToolboxFragment}, if allowed by the current configuration.
      *
      * @param fragmentToClose {@link ToolboxFragment} to close, , which will either be the toolbox
@@ -380,10 +360,6 @@ public class BlocklyController {
                 mToolboxDrawer.closeDrawers();
             }
             return;
-        }
-
-        if (fragmentToClose == mTrashFragment && mCanShowAndHideTrash) {
-            mFragmentManager.beginTransaction().hide(mTrashFragment).commit();
         }
     }
 
@@ -407,46 +383,54 @@ public class BlocklyController {
      * @param block {@link Block} to extract as a root block in the workspace.
      */
     public void extractBlockAsRoot(Block block) {
-        if (!mWorkspace.isRootBlock(block)) {
-            BlockView bv = block.getView();
-            BlockGroup bg = (bv == null) ? null : (BlockGroup) bv.getParent();
-            BlockGroup rootBlockGroup = (mWorkspaceView == null) ? null
-                    : mHelper.getRootBlockGroup(block);
+        Block rootBlock = block.getRootBlock();
 
-            // Child block
-            if (block.getPreviousConnection() != null
-                    && block.getPreviousConnection().isConnected()) {
-                Input in = block.getPreviousConnection().getTargetConnection().getInput();
-                if (in == null) {
-                    if (bg != null) {
-                        // Next block
-                        bg = bg.extractBlocksAsNewGroup(block);
-                    }
-                } else {
-                    // Statement input
-                    // Disconnect view.
-                    InputView inView = in.getView();
-                    if (inView != null) {
-                        inView.unsetChildView();
-                    }
+        if (block == rootBlock) {
+            return;
+        }
+        boolean isPartOfWorkspace = mWorkspace.isRootBlock(rootBlock);
+
+        BlockView bv = block.getView();
+        BlockGroup bg = (bv == null) ? null : (BlockGroup) bv.getParent();
+        BlockGroup rootBlockGroup = (mWorkspaceView == null) ? null
+                : mHelper.getRootBlockGroup(block);
+
+        // Child block
+        if (block.getPreviousConnection() != null
+                && block.getPreviousConnection().isConnected()) {
+            Input in = block.getPreviousConnection().getTargetConnection().getInput();
+            if (in == null) {
+                if (bg != null) {
+                    // Next block
+                    bg = bg.extractBlocksAsNewGroup(block);
                 }
-                block.getPreviousConnection().disconnect();
-            } else if (block.getOutputConnection() != null
-                    && block.getOutputConnection().isConnected()) {
-                // Value input
-                Input in = block.getOutputConnection().getTargetConnection().getInput();
-                block.getOutputConnection().disconnect();
-
+            } else {
+                // Statement input
                 // Disconnect view.
                 InputView inView = in.getView();
                 if (inView != null) {
                     inView.unsetChildView();
                 }
             }
+            block.getPreviousConnection().disconnect();
+        } else if (block.getOutputConnection() != null
+                && block.getOutputConnection().isConnected()) {
+            // Value input
+            Input in = block.getOutputConnection().getTargetConnection().getInput();
+            block.getOutputConnection().disconnect();
 
-            if (rootBlockGroup != null) {
-                rootBlockGroup.requestLayout();
+            // Disconnect view.
+            InputView inView = in.getView();
+            if (inView != null) {
+                inView.unsetChildView();
             }
+        }
+
+        if (rootBlockGroup != null) {
+            rootBlockGroup.requestLayout();
+        }
+        if (isPartOfWorkspace) {
+            // Only add back to the workspace if the original tree is part of the workspace model.
             addRootBlock(block, bg, false);
         }
     }
@@ -492,9 +476,8 @@ public class BlocklyController {
      * @param block The root block to be added to the workspace.
      * @param event The {@link MotionEvent} that caused the block to be added to the workspace. This
      * is used to find the correct position to start the drag event.
-     * @param fragment The {@link ToolboxFragment} where the event originated.
      */
-    public void addBlockFromToolbox(Block block, MotionEvent event, ToolboxFragment fragment) {
+    public void addBlockFromToolbox(Block block, MotionEvent event) {
         addRootBlock(block, null, true);
         // let the workspace view know that this is the block we want to drag
         mDragger.setTouchedBlock(block.getView(), event);
@@ -504,7 +487,6 @@ public class BlocklyController {
         mDragger.setDragStartPos((int) event.getX(), (int) event.getY(), mTempViewPoint.x,
                 mTempViewPoint.y);
         mDragger.startDragging();
-        maybeCloseToolboxFragment(fragment);
     }
 
     /**
@@ -528,11 +510,11 @@ public class BlocklyController {
 
         switch (blockConnection.getType()) {
             case Connection.CONNECTION_TYPE_OUTPUT:
-                removeFromRoot(block);
+                removeRootBlock(block, false);
                 connectAsInput(otherConnection, blockConnection);
                 break;
             case Connection.CONNECTION_TYPE_PREVIOUS:
-                removeFromRoot(block);
+                removeRootBlock(block, false);
                 if (otherConnection.isStatementInput()) {
                     connectToStatement(otherConnection, blockConnection.getBlock());
                 } else {
@@ -541,7 +523,7 @@ public class BlocklyController {
                 break;
             case Connection.CONNECTION_TYPE_NEXT:
                 if (!otherConnection.isConnected()) {
-                    removeFromRoot(otherConnection.getBlock());
+                    removeRootBlock(otherConnection.getBlock(), false);
                 }
                 if (blockConnection.isStatementInput()) {
                     connectToStatement(blockConnection, otherConnection.getBlock());
@@ -551,7 +533,7 @@ public class BlocklyController {
                 break;
             case Connection.CONNECTION_TYPE_INPUT:
                 if (!otherConnection.isConnected()) {
-                    removeFromRoot(otherConnection.getBlock());
+                    removeRootBlock(otherConnection.getBlock(), false);
                 }
                 connectAsInput(blockConnection, otherConnection);
                 break;
@@ -580,37 +562,64 @@ public class BlocklyController {
     }
 
     /**
-     * Removes the given block and its view from the root view.  If it didn't live at the root level
-     * do nothing.
+     * Removes the given block from its parent, removes the block from the model, and then unlinks
+     * all views.  All descendant of this block remain attached, and are thus also removed from the
+     * workspace.
      *
      * @param block The {@link Block} to look up and remove.
      */
-    public boolean removeFromRoot(Block block) {
-        BlockGroup group = mHelper.getParentBlockGroup(block);
-        boolean rootFoundAndRemoved = mWorkspace.removeRootBlock(block);
-        if (rootFoundAndRemoved && group != null) {
-            // Update UI
-            mWorkspaceView.removeView(group);
+    public void removeBlockTree(Block block) {
+        extractBlockAsRoot(block);
+        removeRootBlock(block, true);
+        unlinkViews(block);
+    }
+
+    /**
+     * Remove a block and its descendants from the workspace and put it in the trash.  If the block
+     * was not a root block of the workspace, do nothing and returns false.
+     *
+     * @param block The block to remove, possibly with descendants attached.
+     * @return True if the block was removed, false otherwise.
+     */
+    // TODO(#301) Make this handle any block, not just root blocks.
+    public boolean trashRootBlock(Block block) {
+        boolean rootFoundAndRemoved = removeRootBlock(block, true);
+        if (rootFoundAndRemoved) {
+            mWorkspace.addBlockToTrash(block);
+            unlinkViews(block);  // TODO(#376): Remove once TrashFragment can reuse views.
+
+            mTrashFragment.onBlockTrashed(block);
         }
+
         return rootFoundAndRemoved;
     }
 
     /**
-     * Recursively unlinks the model from its view.
+     * Recursively unlinks models from the views, and disconnects the view tree including clearing
+     * the parent {@link BlockGroup}.
      *
-     * @param block
+     * @param block The root block of the tree to unlink.
      */
-    private void unlinkViews(Block block) {
+    public void unlinkViews(Block block) {
+        BlockView view = block.getView();
+        if (view == null) {
+            return;  // No view to unlink.
+        }
+
+        // Verify the block has no parent.  Only unlink complete block sequences.
         if (block.getParentBlock() != null) {
-            throw new IllegalStateException(
+            throw new IllegalArgumentException(
                     "Expected unconnected/root block; only allowed to unlink complete block trees");
         }
 
         BlockGroup parentGroup = mHelper.getParentBlockGroup(block);
         if (parentGroup != null) {
+            if (parentGroup.getChildAt(0) != block.getView()) {
+                // If it doesn't have a parent, this Block view should have been first.
+                throw new IllegalStateException("BlockGroup does not match model");
+            }
             parentGroup.unlinkModelAndSubViews();
         } else {
-            BlockView view = block.getView();
             if (view != null) {
                 view.unlinkModelAndSubViews();
             }
@@ -638,6 +647,11 @@ public class BlocklyController {
     /**
      * Adds the provided block as a root block.  If a {@link WorkspaceView} is attached, it will
      * also update the view, creating a new {@link BlockGroup} if not provided.
+     * <p/>
+     * If {@code isNewBlock} is {@code true}, the system will collect stats about the connections,
+     * functions and variables. This should only be {@code  false} if re-adding a moodel previously
+     * removed via {@link #removeRootBlock(Block, boolean)} where {@code cleanupStats} was also
+     * {@code false}.
      *
      * @param block The {@link Block} to add to the workspace.
      * @param bg The {@link BlockGroup} with block as the first {@link BlockView}.
@@ -650,9 +664,39 @@ public class BlocklyController {
             if (bg == null) {
                 bg = mHelper.buildBlockGroupTree(block, mWorkspace.getConnectionManager(),
                         mTouchHandler);
+            } else {
+                bg.setTouchHandler(mTouchHandler);
             }
             mWorkspaceView.addView(bg);
         }
+    }
+
+    /**
+     * Removes the given block from the {@link Workspace} and removes its view from the
+     * {@link WorkspaceView}.  If the block is not a root block of the workspace, the method does
+     * nothing and returns false.
+     * <p/>
+     * If {@code cleanupStats} is {@code false}, the system will retain stats about the available
+     * connections, function definition, function and variable references. This should only be used
+     * if the block will be immediately re-added to the model view {@link #addRootBlock} with
+     * {@code isNewBlock} also {@code false}.
+     *
+     * @param block The {@link Block} to look up and remove.
+     * @param cleanupStats Removes connection info and other stats.
+     */
+    private boolean removeRootBlock(Block block, boolean cleanupStats) {
+        boolean rootFoundAndRemoved = mWorkspace.removeRootBlock(block, cleanupStats);
+        if (rootFoundAndRemoved) {
+            BlockView bv = block.getView();
+            if (bv != null) {
+                BlockGroup group = bv.getParentBlockGroup();
+                if (group != null) {
+                    // Update UI
+                    mWorkspaceView.removeView(group);
+                }
+            }
+        }
+        return rootFoundAndRemoved;
     }
 
     /**
@@ -802,28 +846,6 @@ public class BlocklyController {
     private void updateToolbox() {
         if (mToolboxFragment != null) {
             mToolboxFragment.setContents(mWorkspace.getToolboxContents());
-        }
-    }
-
-    /**
-     * Sets the TrashClickListener if both the WorkspaceFragments and the TrashFragments are
-     * connected.
-     */
-    private void updateTrashClickListener() {
-        // TODO: Set mCanShowAndHideTrash by configuration
-        mCanShowAndHideTrash = mWorkspaceFragment != null && mTrashFragment != null;
-
-        if (mCanShowAndHideTrash) {
-            mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mCanShowAndHideTrash && mWorkspace.hasDeletedBlocks()) {
-                        // Don't open the trash if it's empty.
-                        mFragmentManager.beginTransaction().show(mTrashFragment).commit();
-                    }
-
-                }
-            });
         }
     }
 

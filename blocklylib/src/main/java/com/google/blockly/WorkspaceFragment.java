@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -31,11 +31,6 @@ import com.google.blockly.ui.WorkspaceView;
  */
 public class WorkspaceFragment extends Fragment {
     private static final String TAG = "WorkspaceFragment";
-    /**
-     * The fragment argument representing the section number for this
-     * fragment.
-     */
-    private static final String ARG_BUILD_DEBUG_MODEL = "debug_model";
 
     private BlocklyController mController;
     private Workspace mWorkspace;
@@ -109,6 +104,9 @@ public class WorkspaceFragment extends Fragment {
         return mWorkspace;
     }
 
+    /**
+     * @return The {@link WorkspaceView} inside this fragment.
+     */
     public WorkspaceView getWorkspaceView() {
         return mWorkspaceView;
     }

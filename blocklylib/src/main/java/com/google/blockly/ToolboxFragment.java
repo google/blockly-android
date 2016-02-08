@@ -16,7 +16,6 @@
 package com.google.blockly;
 
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -31,13 +30,11 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.ToolboxCategory;
 import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockGroup;
+import com.google.blockly.ui.ItemSpacingDecoration;
 import com.google.blockly.ui.BlockTouchHandler;
 import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.ToolboxAdapter;
 import com.google.blockly.ui.WorkspaceHelper;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Fragment to hold views of all of the available blocks in the toolbox. No name will be shown for
@@ -55,9 +52,6 @@ public class ToolboxFragment extends Fragment {
     protected WorkspaceHelper mWorkspaceHelper;
     protected BlockTouchHandler mBlockTouchHandler;
 
-    // TODO (fenichel): Load from resources
-    // Minimum pixel distance between blocks in the toolbox.
-    private int mBlockMargin = 10;
     private ToolboxCategory mTopLevelCategory;
 
     @Override
@@ -68,7 +62,6 @@ public class ToolboxFragment extends Fragment {
         // use a linear layout manager
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.addItemDecoration(new ItemDecoration());
         return mRecyclerView;
     }
 
@@ -88,8 +81,7 @@ public class ToolboxFragment extends Fragment {
                     return false;
                 }
 
-                BlockGroup bg = mWorkspaceHelper.getRootBlockGroup(blockView.getBlock());
-                Block copiedModel = ((BlockView) bg.getChildAt(0)).getBlock().deepCopy();
+                Block copiedModel = blockView.getBlock().getRootBlock().deepCopy();
 
                 // Make the pointer be in the same relative position on the block as it was in the
                 // toolbox.
@@ -98,7 +90,9 @@ public class ToolboxFragment extends Fragment {
                 mWorkspaceHelper.screenToWorkspaceCoordinates(
                         mTempScreenPosition, mTempWorkspacePosition);
                 copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                mController.addBlockFromToolbox(copiedModel, motionEvent, ToolboxFragment.this);
+                mController.addBlockFromToolbox(copiedModel, motionEvent);
+
+                mController.maybeCloseToolboxFragment(ToolboxFragment.this);
                 return true;
             }
 
@@ -118,10 +112,11 @@ public class ToolboxFragment extends Fragment {
         mTopLevelCategory = category;
         mAdapter = new ToolboxAdapter(category, mWorkspaceHelper, mBlockTouchHandler, getContext());
         mAdapter.setHasStableIds(true);
-        // TODO(rachel-fenichel): fix lifecycle such that setContents() is never called before
-        // onCreateView().
+
+        // Allow setContents(..) to be called before onCreateView(..).
         if (mRecyclerView != null) {
             mRecyclerView.setAdapter(mAdapter);
+            mRecyclerView.addItemDecoration(new ItemSpacingDecoration(mAdapter));
         }
     }
 
@@ -136,13 +131,4 @@ public class ToolboxFragment extends Fragment {
         return mAdapter;
     }
 
-    private class ItemDecoration extends RecyclerView.ItemDecoration {
-        @Override
-        public void getItemOffsets(
-                Rect outRect, View child, RecyclerView parent, RecyclerView.State state) {
-            int itemPosition = parent.getChildPosition(child);
-            int bottomMargin = (itemPosition == (mAdapter.getItemCount() - 1)) ? mBlockMargin : 0;
-            outRect.set(mBlockMargin, mBlockMargin, mBlockMargin, bottomMargin);
-        }
-    }
 }

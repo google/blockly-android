@@ -45,6 +45,18 @@ public class BlockGroup extends NonPropagatingViewGroup {
         mWorkspaceHelper = helper;
     }
 
+    /**
+     * Recursively sets the {@link BlockTouchHandler} for this view tree.
+     *
+     * @param touchHandler The new touch handler.
+     */
+    public void setTouchHandler(BlockTouchHandler touchHandler) {
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; ++i) {
+            ((BlockView) getChildAt(i)).setTouchHandler(touchHandler);
+        }
+    }
+
     @Override
     public void onMeasure(int widthSpec, int heightSpec) {
         mNextBlockVerticalOffset = 0;
