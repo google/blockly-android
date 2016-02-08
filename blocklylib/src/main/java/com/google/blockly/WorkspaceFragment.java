@@ -20,7 +20,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 
 import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.Workspace;
@@ -42,6 +41,7 @@ public class WorkspaceFragment extends Fragment {
     private Workspace mWorkspace;
     private WorkspaceView mWorkspaceView;
     private View.OnClickListener mTrashClickListener;
+    private View mTrashIcon;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -53,11 +53,9 @@ public class WorkspaceFragment extends Fragment {
 
         final VirtualWorkspaceView virtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
-        ImageButton trashButton = (ImageButton) rootView.findViewById(R.id.trash_button);
-        mWorkspaceView.setTrashView(trashButton);
-        if (mTrashClickListener != null) {
-            trashButton.setOnClickListener(mTrashClickListener);
-        }
+        mTrashIcon =  rootView.findViewById(R.id.trash_button);
+        mWorkspaceView.setTrashView(mTrashIcon);
+        mTrashIcon.setOnClickListener(mTrashClickListener);
 
         rootView.findViewById(R.id.reset_view_button).setOnClickListener(
                 new View.OnClickListener() {
@@ -123,5 +121,6 @@ public class WorkspaceFragment extends Fragment {
      */
     public void setTrashClickListener(View.OnClickListener listener) {
         mTrashClickListener = listener;
+        mTrashIcon.setOnClickListener(mTrashClickListener);
     }
 }
