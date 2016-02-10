@@ -36,7 +36,7 @@ public class InputViewTest extends MockitoAndroidTestCase {
         final InputView inputView = makeDefaultInputView();
         assertEquals(0, inputView.getChildCount());
 
-        final View mockView = Mockito.mock(View.class);
+        final BlockGroup mockView = Mockito.mock(BlockGroup.class);
         inputView.setChildView(mockView);
         assertSame(mockView, inputView.getChildView());
         assertEquals(1, inputView.getChildCount());
@@ -46,7 +46,7 @@ public class InputViewTest extends MockitoAndroidTestCase {
     public void testUnsetChildView() {
         final InputView inputView = makeDefaultInputView();
 
-        final View mockView = Mockito.mock(View.class);
+        final BlockGroup mockView = Mockito.mock(BlockGroup.class);
         inputView.setChildView(mockView);
         inputView.unsetChildView();
         assertNull(inputView.getChildView());
@@ -76,7 +76,7 @@ public class InputViewTest extends MockitoAndroidTestCase {
     public void testSetChildViewMustUnset() {
         final InputView inputView = makeDefaultInputView();
 
-        final View mockView = Mockito.mock(View.class);
+        final BlockGroup mockView = Mockito.mock(BlockGroup.class);
         inputView.setChildView(mockView);
 
         try {

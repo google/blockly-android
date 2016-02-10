@@ -454,16 +454,11 @@ public class Block {
      */
     public Block getRootBlock() {
         Block block = this;
+        Block parent = block.getParentBlock();
         // Go up and left as far as possible.
-        while (true) {
-            if (block.getOutputConnection() != null &&
-                    block.getOutputConnection().getTargetBlock() != null) {
-                block = block.getOutputConnection().getTargetBlock();
-            } else if (block.getPreviousBlock() != null) {
-                block = block.getPreviousBlock();
-            } else {
-                break;
-            }
+        while (parent != null) {
+            block = parent;
+            parent = block.getParentBlock();
         }
         return block;
     }
@@ -474,7 +469,7 @@ public class Block {
      *
      * @return Input connected to this block's output, if present and connected.
      */
-    public Input getParentInput() {
+    public Input getConnectedInput() {
         if (mOutputConnection == null) {
             return null;
         }
@@ -483,6 +478,22 @@ public class Block {
             return null;
         }
         return connectedTo.getInput();
+    }
+
+    /**
+     * @return The block connected to the output or previous {@link Connection}, if present.
+     *         Otherwise null.
+     */
+    public Block getParentBlock() {
+        Connection prev = mPreviousConnection;
+        if (prev != null) {
+            return prev.getTargetBlock();
+        }
+        Connection output = mOutputConnection;
+        if (output != null) {
+            return output.getTargetBlock();
+        }
+        return null;
     }
 
     /**

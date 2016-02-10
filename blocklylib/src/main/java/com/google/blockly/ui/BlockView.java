@@ -308,6 +308,20 @@ public class BlockView extends NonPropagatingViewGroup {
     }
 
     /**
+     * Recursively disconnects the view from the model, and removes all views.
+     */
+    public void unlinkModelAndSubViews() {
+        int max = mInputViews.size();
+        for (int i = 0; i < max; ++i) {
+            InputView inputView = mInputViews.get(i);
+            inputView.unlinkModelAndSubViews();
+        }
+        removeAllViews();
+        mBlock.setView(null);
+        // TODO(#381): Remove model from view. Set mBlock to null, and handle all null cases.
+    }
+
+    /**
      * Check if border highlight is rendered.
      */
     protected boolean isEntireBlockHighlighted() {

@@ -394,7 +394,7 @@ public class BlocklyController {
      * @param block The {@link Block} to add to the workspace.
      */
     public void addRootBlock(Block block) {
-        if (block.getPreviousBlock() != null || block.getParentInput() != null) {
+        if (block.getParentBlock() != null) {
             throw new IllegalArgumentException("New root block must not be connected.");
         }
         addRootBlock(block, mHelper.getParentBlockGroup(block), true);
@@ -596,10 +596,38 @@ public class BlocklyController {
     }
 
     /**
+     * Recursively unlinks the model from its view.
+     *
+     * @param block
+     */
+    private void unlinkViews(Block block) {
+        if (block.getParentBlock() != null) {
+            throw new IllegalStateException(
+                    "Expected unconnected/root block; only allowed to unlink complete block trees");
+        }
+
+        BlockGroup parentGroup = mHelper.getParentBlockGroup(block);
+        if (parentGroup != null) {
+            parentGroup.unlinkModelAndSubViews();
+        } else {
+            BlockView view = block.getView();
+            if (view != null) {
+                view.unlinkModelAndSubViews();
+            }
+        }
+    }
+
+    /**
      * Clears the workspace of all blocks and the respective views from the {@link WorkspaceView},
      * if connected.
      */
     public void resetWorkspace() {
+        // Unlink the Views before wiping out the model's root list.
+        ArrayList<Block> rootBlocks = mWorkspace.getRootBlocks();
+        for (int i = 0; i < rootBlocks.size(); ++i) {
+            unlinkViews(rootBlocks.get(i));
+        }
+
         mWorkspace.resetWorkspace();
         if (mWorkspaceView != null) {
             mWorkspaceView.removeAllViews();

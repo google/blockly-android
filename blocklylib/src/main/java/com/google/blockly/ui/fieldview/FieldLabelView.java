@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -96,5 +96,11 @@ public class FieldLabelView extends TextView implements FieldView {
         if (textStyle != 0) {
             setTextAppearance(context, textStyle);
         }
+    }
+
+    @Override
+    public void unlinkModel() {
+        mLabelField.setView(null);
+        // TODO(#381): Remove model from view. Set mLabelField to null, and handle null cases above.
     }
 }
