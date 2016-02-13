@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -20,7 +20,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 
 import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.Workspace;
@@ -32,16 +31,12 @@ import com.google.blockly.ui.WorkspaceView;
  */
 public class WorkspaceFragment extends Fragment {
     private static final String TAG = "WorkspaceFragment";
-    /**
-     * The fragment argument representing the section number for this
-     * fragment.
-     */
-    private static final String ARG_BUILD_DEBUG_MODEL = "debug_model";
 
     private BlocklyController mController;
     private Workspace mWorkspace;
     private WorkspaceView mWorkspaceView;
     private View.OnClickListener mTrashClickListener;
+    private View mTrashIcon;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -53,11 +48,9 @@ public class WorkspaceFragment extends Fragment {
 
         final VirtualWorkspaceView virtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
-        ImageButton trashButton = (ImageButton) rootView.findViewById(R.id.trash_button);
-        mWorkspaceView.setTrashView(trashButton);
-        if (mTrashClickListener != null) {
-            trashButton.setOnClickListener(mTrashClickListener);
-        }
+        mTrashIcon =  rootView.findViewById(R.id.trash_button);
+        mWorkspaceView.setTrashView(mTrashIcon);
+        mTrashIcon.setOnClickListener(mTrashClickListener);
 
         rootView.findViewById(R.id.reset_view_button).setOnClickListener(
                 new View.OnClickListener() {
@@ -111,6 +104,9 @@ public class WorkspaceFragment extends Fragment {
         return mWorkspace;
     }
 
+    /**
+     * @return The {@link WorkspaceView} inside this fragment.
+     */
     public WorkspaceView getWorkspaceView() {
         return mWorkspaceView;
     }
@@ -123,5 +119,6 @@ public class WorkspaceFragment extends Fragment {
      */
     public void setTrashClickListener(View.OnClickListener listener) {
         mTrashClickListener = listener;
+        mTrashIcon.setOnClickListener(mTrashClickListener);
     }
 }

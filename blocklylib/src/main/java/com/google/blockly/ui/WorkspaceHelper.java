@@ -381,12 +381,11 @@ public class WorkspaceHelper {
     public BlockGroup getParentBlockGroup(Block block) {
         BlockView blockView = block.getView();
         if (blockView != null) {
-            ViewParent viewParent = blockView.getParent();
-            if (viewParent instanceof BlockGroup) {
-                return (BlockGroup) viewParent;
-            } else {
+            BlockGroup bg = blockView.getParentBlockGroup();
+            if (bg == null) {
                 throw new IllegalStateException("Block has a BlockView, but no parent BlockGroup.");
             }
+            return bg;
         }
         return null; // Block does not have a view, and thus no parent BlockGroup.
     }

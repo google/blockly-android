@@ -241,6 +241,22 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
+     * Handles the back button.  Default implementation attempts to close the navigation menu, then
+     * the toolbox, then the trash, before allowing the system to back out of the activity.
+     *
+     * @see #onBackToCloseNavMenu()
+     * @see #onBackToCloseToolbox()
+     * @see #onBackToCloseTrash()
+     */
+    @Override
+    public void onBackPressed() {
+        // Try to close any open drawer / toolbox before backing out of the Activity.
+        if (!onBackToCloseNavMenu() && !onBackToCloseToolbox() && !onBackToCloseTrash()) {
+            super.onBackPressed();
+        }
+    }
+
+    /**
      * Creates the Activity Views, Fragments, and Blocklycontroller via a sequence of calls to
      * {@link #onCreateActivityRootView()}, {@link #onCreateFragments()}, and
      * {@link #onCreateController}.  Subclasses should prefer to override those classes.
@@ -466,7 +482,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void setupAppNaviagtionDrawer() {
         DrawerLayout.LayoutParams lp = new DrawerLayout.LayoutParams(
-                R.dimen.navigation_drawer_width,
+                getResources().getDimensionPixelSize(R.dimen.navigation_drawer_width),
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 Gravity.START);
         // Add navigation drawer above the content view, as the first drawer.
@@ -474,7 +490,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
         // set a custom shadow that overlays the main content when the drawer opens
-        mDrawerLayout.setDrawerShadow(com.google.blockly.R.drawable.drawer_shadow,
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow,
                 GravityCompat.START);
 
         mActionBar.setDisplayHomeAsUpEnabled(true);
@@ -540,6 +556,14 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
         // Trash should begin in a closed state.
         fragmentManager.beginTransaction().hide(mTrashFragment).commit();
+        mTrashFragment.setAutoHideEnabled(true);
+
+        mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTrashFragment.show();
+            }
+        });
     }
 
     /**
@@ -610,5 +634,42 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         } catch (IOException e) {
             throw new IllegalArgumentException("Error opening block defs at " + blockDefsPath, e);
         }
+    }
+
+
+    /**
+     * @return True if the action consumed to close a previously open navigation menu. Otherwise
+     *         false.
+     */
+    protected boolean onBackToCloseNavMenu() {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return True if the action was handled to close a previously open (and closable) toolbox.
+     *         Otherwise false.
+     */
+    protected boolean onBackToCloseToolbox() {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
+            mDrawerLayout.closeDrawer(GravityCompat.END);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return True if the action was handled to close a previously open (and closable) trash.
+     *         Otherwise false.
+     */
+    protected boolean onBackToCloseTrash() {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
+            mDrawerLayout.closeDrawer(GravityCompat.END);
+            return true;
+        }
+        return false;
     }
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import com.google.blockly.ui.WorkspaceHelper;
  * Renders a checkbox as part of a BlockView.
  */
 public class FieldCheckboxView extends CheckBox implements FieldView {
+
     private final Field.FieldCheckbox mCheckboxField;
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mWorkspaceParams;
@@ -67,5 +68,12 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
         return mWorkspaceParams;
+    }
+
+    @Override
+    public void unlinkModel() {
+        mCheckboxField.setView(null);
+        // TODO(#381): Remove model from view. Set mCheckboxField to null,
+        //             and handle null cases above.
     }
 }

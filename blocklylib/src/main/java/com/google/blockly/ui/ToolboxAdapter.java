@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -38,9 +38,9 @@ import com.google.blockly.model.ToolboxCategory;
 public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String TAG = "ToolboxAdapter";
 
-    private static final int BLOCK_GROUP_VIEW_TYPE = 0;
-    private static final int CATEGORY_VIEW_TYPE = 1;
-    private static final int UNKNOWN_VIEW_TYPE = 2;
+    private static final int UNKNOWN_VIEW_TYPE = 0;
+    private static final int BLOCK_GROUP_VIEW_TYPE = 1;
+    private static final int CATEGORY_VIEW_TYPE = 2;
 
     private final ToolboxCategory mTopLevelCategory;
     private final WorkspaceHelper mWorkspaceHelper;
@@ -108,6 +108,15 @@ public class ToolboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 break;
             default:
                 // Shouldn't get here.  Now what?
+        }
+    }
+
+    @Override
+    public void onViewRecycled(RecyclerView.ViewHolder holder) {
+        if (holder.getItemViewType() == BLOCK_GROUP_VIEW_TYPE) {
+            BlockGroup bg = ((BlockViewHolder) holder).mBlockGroup;
+            // TODO(#376): Reuse views to save memory and allocation time.  E.g., a view pool.
+            bg.unlinkModelAndSubViews();
         }
     }
 

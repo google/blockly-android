@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -277,5 +277,12 @@ public class FieldColourView extends View implements FieldView {
     @VisibleForTesting
     PopupWindow getColorPopupWindow() {
         return mColourPopupWindow;
+    }
+
+    @Override
+    public void unlinkModel() {
+        mColourField.setView(null);
+        // TODO(#381): Remove model from view. Set mColourField to null,
+        //             and handle null cases above.
     }
 }

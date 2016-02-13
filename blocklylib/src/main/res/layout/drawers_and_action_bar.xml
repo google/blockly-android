@@ -11,11 +11,6 @@
         android:layout_height="match_parent"/>
 
     <!-- Activity drawers listed below. -->
-    <fragment android:name="com.google.blockly.TrashFragment"
-              android:id="@+id/blockly_trash"
-              android:layout_width="match_parent" android:layout_height="wrap_content"
-              tools:layout="@layout/fragment_trash" />
-
     <fragment android:name="com.google.blockly.ToolboxFragment"
               android:id="@+id/blockly_toolbox"
               android:layout_width="match_parent" android:layout_height="match_parent"

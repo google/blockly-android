@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -78,4 +78,9 @@ public class FieldAngleView extends TextView implements FieldView {
         return mWorkspaceParams;
     }
 
+    @Override
+    public void unlinkModel() {
+        mAngleField.setView(null);
+        // TODO(#381): Remove model from view. Set mAngleField to null, and handle null cases above.
+    }
 }

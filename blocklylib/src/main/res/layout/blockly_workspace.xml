@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/blockly_workspace"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:name="com.google.blockly.WorkspaceFragment"
-    />
+    android:layout_height="match_parent">
+    <fragment android:name="com.google.blockly.WorkspaceFragment"
+        android:id="@+id/blockly_workspace"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+    <fragment android:name="com.google.blockly.TrashFragment"
+        android:id="@+id/blockly_trash"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+</FrameLayout>

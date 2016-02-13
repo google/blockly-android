@@ -71,8 +71,8 @@ public class InputView extends NonPropagatingViewGroup {
     // Measured height of the child, or empty-connector height for unconnected inline value inputs.
     private int mChildHeight;
 
-    // The view of the block connected to this input.
-    private View mChildView = null;
+    // The view of the blocks connected to this input.
+    private BlockGroup mChildView = null;
 
     // Flag to enforce that measureFieldsAndInputs() is called before each call to measure().
     private boolean mHasMeasuredFieldsAndInput = false;
@@ -100,25 +100,22 @@ public class InputView extends NonPropagatingViewGroup {
     /**
      * @return The child view connected to this input port.
      */
-    public View getChildView() {
+    public BlockGroup getChildView() {
         return mChildView;
     }
 
     /**
-     * Set the view of the block whose Output port is connected to this input.
-     * <p/>
-     * This class is agnostic to the view type of the connected child, i.e., this could be a
-     * {@link BlockView}, a {@link BlockGroup}, or any other type of view.
+     * Set the view of the blocks whose Output port is connected to this input.
      *
-     * @param childView The {@link BlockView} or {@link BlockGroup} to attach to this input. The
-     * {@code childView} will be added to the layout hierarchy for the current view
-     * via a call to {@link ViewGroup#addView(View)}.
+     * @param childView The {@link BlockGroup} to attach to this input. The {@code childView} will
+     *                  be added to the layout hierarchy for the current view via a call to
+     *                  {@link ViewGroup#addView(View)}.
      *
      * @throws IllegalStateException if a child view is already set. The Blockly model requires
      * disconnecting a block from an input before a new one can be connected.
      * @throws IllegalArgumentException if the method argument is {@code null}.
      */
-    public void setChildView(View childView) {
+    public void setChildView(BlockGroup childView) {
         if (mChildView != null) {
             throw new IllegalStateException("Input is already connected; must disconnect first.");
         }
@@ -138,13 +135,18 @@ public class InputView extends NonPropagatingViewGroup {
      * <p/>
      * This method also removes the child view from the view hierarchy by calling
      * {@link ViewGroup#removeView(View)}.
+     *
+     * @return The removed child view, if any. Otherwise, null.
      */
-    public void unsetChildView() {
+    public BlockGroup unsetChildView() {
+        BlockGroup result = mChildView;
         if (mChildView != null) {
             removeView(mChildView);
             mChildView = null;
             requestLayout();
         }
+
+        return result;
     }
 
     @Override
@@ -205,6 +207,24 @@ public class InputView extends NonPropagatingViewGroup {
     public boolean isOnFields(int eventX, int eventY) {
         return (eventX >= 0 && eventX < (mFieldLayoutWidth + mPatchManager.mBlockTotalPaddingX)) &&
                 eventY >= 0 && eventY < mRowHeight;
+    }
+
+    /**
+     * Recursively disconnects the view from the model, and removes all views.
+     */
+    void unlinkModelAndSubViews() {
+        int max = mFieldViews.size();
+        for (int i = 0; i < max; ++i) {
+            FieldView fieldView = mFieldViews.get(i);
+            fieldView.unlinkModel();
+        }
+        if (mChildView != null) {
+            mChildView.unlinkModelAndSubViews();
+            unsetChildView();
+        }
+        removeAllViews();
+        mInput.setView(null);
+        // TODO(#381): Remove model from view. Set mInput to null, and handle all null cases.
     }
 
     /**
