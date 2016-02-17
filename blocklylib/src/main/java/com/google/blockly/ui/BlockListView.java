@@ -19,10 +19,8 @@ import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 
-import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 
 import java.util.ArrayList;
@@ -37,7 +35,6 @@ public class BlockListView extends RecyclerView {
     private final Adapter mAdapter = new Adapter();
 
     private WorkspaceHelper mHelper;
-    private ConnectionManager mConnectionManager;
     private BlockTouchHandler mTouchHandler;
 
     public BlockListView(Context context) {
@@ -56,7 +53,6 @@ public class BlockListView extends RecyclerView {
     }
 
     public void init(WorkspaceHelper helper,
-                     ConnectionManager connectionManager,
                      BlockTouchHandler touchHandler) {
         mHelper = helper;
         mTouchHandler = touchHandler;
@@ -110,6 +106,11 @@ public class BlockListView extends RecyclerView {
 
     protected class Adapter extends RecyclerView.Adapter<BlockListView.ViewHolder> {
         @Override
+        public int getItemCount() {
+            return mBlocks.size();
+        }
+
+        @Override
         public BlockListView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             return new BlockListView.ViewHolder(getContext());
         }
@@ -134,11 +135,8 @@ public class BlockListView extends RecyclerView {
             holder.bg.unlinkModelAndSubViews();
             holder.bg = null;
             holder.mContainer.removeAllViews();
-        }
 
-        @Override
-        public int getItemCount() {
-            return mBlocks.size();
+            super.onViewRecycled(holder);
         }
     }
 }

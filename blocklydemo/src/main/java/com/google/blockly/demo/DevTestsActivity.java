@@ -64,11 +64,11 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     }
 
     /**
-     * Drop one instance of each block in the toolbox, all in the same place.
+     * Place one instance of each of the toolbox's blocks, on the workspace, all in the same place.
      */
     private void airstrike() {
         List<Block> blocks = new ArrayList<>();
-        mToolboxFragment.getContents().getAllBlocksRecursive(blocks);
+        mController.getWorkspace().getToolboxContents().getAllBlocksRecursive(blocks);
         for (int i = 0; i < blocks.size(); i++) {
             Block copiedModel = blocks.get(i).deepCopy();
             copiedModel.setPosition(0, 0);
@@ -77,12 +77,12 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     }
 
     /**
-     * Drop one instance of each block in the toolbox, randomly placed across a section of the
+     * Place one instance of each of the toolbox's blocks, randomly across a section of the
      * workspace.
      */
     private void carpetBomb() {
         List<Block> blocks = new ArrayList<>();
-        mToolboxFragment.getContents().getAllBlocksRecursive(blocks);
+        getController().getWorkspace().getToolboxContents().getAllBlocksRecursive(blocks);
         for (int i = 0; i < blocks.size(); i++) {
             Block copiedModel = blocks.get(i).deepCopy();
             copiedModel.setPosition((int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2,
