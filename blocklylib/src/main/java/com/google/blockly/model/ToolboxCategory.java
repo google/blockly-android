@@ -1,5 +1,5 @@
 /*
- *  Copyright  2015 Google Inc. All Rights Reserved.
+ *  Copyright 2015 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -15,6 +15,8 @@
 
 package com.google.blockly.model;
 
+import com.google.blockly.ToolboxFragment;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -24,13 +26,13 @@ import java.util.List;
 
 /**
  * A category of a toolbox, which holds zero or more blocks and zero or more subcategories.
- * {@link com.google.blockly.ui.ToolboxAdapter} is responsible for displaying this.
+ * {@link ToolboxFragment} is responsible for displaying this.
  */
 public class ToolboxCategory {
     private final List<ToolboxCategory> mSubcategories = new ArrayList<>();
     private final List<Block> mBlocks = new ArrayList<>();
     // As displayed in the toolbox.
-    private String mCategoryName;
+    public String mCategoryName;  // RETURN TO RPIVATE BEFORE COMMIT
 
     // For use in calculating positions in the toolbox.
     private boolean mIsExpanded = false;
@@ -57,18 +59,6 @@ public class ToolboxCategory {
     }
 
     /**
-     * @return True if this category should display all of its contents in the
-     * {@link com.google.blockly.ui.ToolboxAdapter}; false if only its name should be shown.
-     */
-    public boolean isExpanded() {
-        return mIsExpanded;
-    }
-
-    public void setExpanded(boolean expanded) {
-        mIsExpanded = expanded;
-    }
-
-    /**
      * Clear the contents of this category and all subcategories; remove subcategories.
      */
     public void clear() {
@@ -81,18 +71,6 @@ public class ToolboxCategory {
 
     public boolean isEmpty() {
         return mSubcategories.isEmpty() && mBlocks.isEmpty();
-    }
-
-    public int getCurrentSize() {
-        int size = 0;
-        size += mSubcategories.size();
-        size += mBlocks.size();
-        for (int i = 0; i < mSubcategories.size(); i++) {
-            if (mSubcategories.get(i).isExpanded()) {
-                size += mSubcategories.get(i).getCurrentSize();
-            }
-        }
-        return size;
     }
 
     /**
@@ -108,7 +86,8 @@ public class ToolboxCategory {
         }
     }
 
-    private void addSubcategory(ToolboxCategory subcategory) {
+    // RETURN TO RPIVATE BEFORE COMMIT
+    public void addSubcategory(ToolboxCategory subcategory) {
         mSubcategories.add(subcategory);
     }
 

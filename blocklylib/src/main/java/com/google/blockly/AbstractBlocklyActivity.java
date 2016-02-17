@@ -466,7 +466,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @return The {@link View} constructed. If using a {@link Fragment}, return null.
      */
     protected View onCreateContentView(int containerId) {
-        return getLayoutInflater().inflate(R.layout.blockly_workspace, null);
+        return getLayoutInflater().inflate(R.layout.blockly_unified_workspace, null);
     }
 
     /**
@@ -555,16 +555,18 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mTrashFragment = (TrashFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
 
         if (mTrashFragment != null) {
-            // Trash should begin in a closed state.
-            fragmentManager.beginTransaction().hide(mTrashFragment).commit();
-            mTrashFragment.setAutoHideEnabled(true);
+            if (mTrashFragment.isCloseable()) {
+                mTrashFragment.setOpened(false);
 
-            mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mTrashFragment.show();
-                }
-            });
+                mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mTrashFragment.setOpened(true);
+                    }
+                });
+            } else {
+                // TODO: Don't show trashcan
+            }
         }
     }
 
@@ -656,11 +658,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      *         Otherwise false.
      */
     protected boolean onBackToCloseToolbox() {
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
-            mDrawerLayout.closeDrawer(GravityCompat.END);
-            return true;
-        }
-        return false;
+        return mToolboxFragment.closeBlocksDrawer();
     }
 
     /**
@@ -668,10 +666,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      *         Otherwise false.
      */
     protected boolean onBackToCloseTrash() {
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
-            mDrawerLayout.closeDrawer(GravityCompat.END);
-            return true;
-        }
-        return false;
+        return mTrashFragment.isCloseable() && mTrashFragment.setOpened(false);
     }
 }
