@@ -25,6 +25,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        useJack = true
     }
     buildTypes {
         release {
