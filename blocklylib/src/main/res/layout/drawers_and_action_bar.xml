@@ -11,10 +11,8 @@
         android:layout_height="match_parent"/>
 
     <!-- Activity drawers listed below. -->
-    <fragment android:name="com.google.blockly.ToolboxFragment"
-              android:id="@+id/blockly_toolbox"
-              android:layout_width="match_parent" android:layout_height="match_parent"
-              android:layout_gravity="end"
-              tools:layout="@layout/fragment_toolbox" />
+    <!-- Drawers are added programmatically in
+      -  AbstractBlocklyActivity.onCreateAppNavigationDrawer()
+      -->
 
 </android.support.v4.widget.DrawerLayout>

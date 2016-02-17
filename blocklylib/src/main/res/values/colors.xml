@@ -2,4 +2,7 @@
 <resources>
     <color name="translucent">#00000000</color>
     <color name="white">#fff</color>
+
+    <color name="blockly_toolbox_bg">#80FFFFFF</color>
+    <color name="blockly_trash_bg">#80808080</color>
 </resources>

@@ -24,7 +24,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.ViewGroup;
 
 import com.google.blockly.ToolboxFragment;
 import com.google.blockly.TrashFragment;
@@ -74,7 +73,6 @@ public class BlocklyController {
     private WorkspaceFragment mWorkspaceFragment = null;
     private TrashFragment mTrashFragment = null;
     private ToolboxFragment mToolboxFragment = null;
-    private DrawerLayout mToolboxDrawer = null;
     private Dragger mDragger;
 
     private boolean mCanCloseToolbox;
@@ -141,22 +139,8 @@ public class BlocklyController {
         }
     }
 
-    public void setToolbox(@Nullable ToolboxFragment toolboxFragment,
-            @Nullable DrawerLayout toolboxDrawer) {
-        if (toolboxFragment == null && toolboxDrawer != null) {
-            throw new IllegalArgumentException(
-                    "Cannot set toolbox drawer without a toolbox fragment");
-        }
-        if (toolboxFragment != null && mFragmentManager == null) {
-            throw new IllegalStateException("Cannot set fragments without a FragmentManager.");
-        }
-
+    public void setToolbox(@Nullable ToolboxFragment toolboxFragment) {
         if (toolboxFragment == mToolboxFragment) {
-            if (toolboxDrawer != mToolboxDrawer) {
-                // Only the DrawerLayout changed (unusual).
-                mToolboxDrawer = toolboxDrawer;
-                mCanCloseToolbox = (mToolboxDrawer != null); // TODO: Check config
-            }
             return;
         }
 
@@ -166,8 +150,6 @@ public class BlocklyController {
         }
 
         mToolboxFragment = toolboxFragment;
-        mToolboxDrawer = toolboxDrawer;
-        mCanCloseToolbox = (mToolboxDrawer != null); // TODO: Check config
 
         if (mToolboxFragment != null) {
             mToolboxFragment.setController(this);
@@ -342,25 +324,6 @@ public class BlocklyController {
 
     public WorkspaceHelper getWorkspaceHelper() {
         return mHelper;
-    }
-
-    /**
-     * Closes the provided {@link ToolboxFragment}, if allowed by the current configuration.
-     *
-     * @param fragmentToClose {@link ToolboxFragment} to close, , which will either be the toolbox
-     * or the trash.
-     */
-    public void maybeCloseToolboxFragment(ToolboxFragment fragmentToClose) {
-        // Close the appropriate toolbox
-        if (fragmentToClose == mToolboxFragment) {
-            // TODO: Remove if we don't see any issues closing the toolbox.
-            Log.d(TAG, "Can close toolbox " + mCanCloseToolbox + " toolbox " + mToolboxFragment +
-                    " fragment " + fragmentToClose);
-            if (mCanCloseToolbox) {
-                mToolboxDrawer.closeDrawers();
-            }
-            return;
-        }
     }
 
     /**
@@ -1036,7 +999,6 @@ public class BlocklyController {
          * @return A new {@link BlocklyController}.
          */
         public BlocklyController build() {
-
             if (mFragmentManager == null && (mWorkspaceFragment != null || mTrashFragment != null
                     || mToolboxFragment != null || mToolboxDrawer != null)) {
                 throw new IllegalStateException(
@@ -1076,7 +1038,7 @@ public class BlocklyController {
             // Any of the following may be null and result in a no-op.
             controller.setWorkspaceFragment(mWorkspaceFragment);
             controller.setTrashFragment(mTrashFragment);
-            controller.setToolbox(mToolboxFragment, mToolboxDrawer);
+            controller.setToolbox(mToolboxFragment);
 
             return controller;
         }

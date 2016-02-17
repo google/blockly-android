@@ -52,4 +52,42 @@
     <declare-styleable name="BlocklyFieldLabelView">
         <!-- Empty style for adding label specific attributes -->
     </declare-styleable>
+
+    <!-- Base class of ToolboxFragment and TrashFragment. -->
+    <declare-styleable name="BlockDrawerFragment">
+        <attr name="closeable" format="boolean"/> <!-- Default false -->
+
+        <attr name="scrollOrientation">
+            <!-- Same values as LinearLayoutManager constants. -->
+            <flag name="horizontal" value="0"/> <!-- SCROLL_HORIZONTAL. Default. -->
+            <flag name="vertical" value="1"/> <!-- SCROLL_VERTICAL. -->
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="ToolboxFragment" parent="BlockDrawerFragment">
+        <attr name="tabEdge">
+            <!-- Values match Gravity constants. -->
+            <flag name="top" value="0x00000030"/>
+            <flag name="bottom" value="0x00000050"/>
+            <flag name="start" value="0x00800003"/> <!-- Default -->
+            <flag name="end" value="0x00800005"/>
+        </attr>
+
+        <attr name="rotateTabs" format="boolean"/>
+    </declare-styleable>
+
+    <declare-styleable name="TrashFragment" parent="BlockDrawerFragment" />
+
+    <declare-styleable name="CategoryEdgeTabs">
+        <attr name="labelRotation">
+            <!-- Values match com.google.blockly.ui.Rotation, used by RotationContainer. -->
+            <flag name="none" value="0x00000000"/> <!-- No rotation. Default. -->
+            <flag name="cw" value="0x00000001"/> <!-- Clockwise -->
+            <flag name="ccw" value="0x00000002"/> <!-- Counter-clockwise -->
+            <flag name="left" value="0x00000002"/> <!-- Counter-clockwise synonym. Top of view moves left. -->
+            <flag name="right" value="0x00000001"/> <!-- Clockwise synonym. Top of view moves right. -->
+            <flag name="start" value="0x00000012"/> <!-- RTL adaptive counter-clockwise -->
+            <flag name="end" value="0x00000011"/> <!-- RTL adaptive counter-clockwise -->
+        </attr>
+    </declare-styleable>
 </resources>
