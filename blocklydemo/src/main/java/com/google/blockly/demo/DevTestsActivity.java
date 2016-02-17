@@ -124,7 +124,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     }
 
     @NonNull
-    protected String getGeneratorJsFilename() {
+    protected String getGeneratorJsPath() {
         return "sample_sections/generators.js";
     }
 
