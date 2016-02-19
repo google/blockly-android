@@ -554,16 +554,18 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 (ToolboxFragment) fragmentManager.findFragmentById(R.id.blockly_toolbox);
         mTrashFragment = (TrashFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
 
-        // Trash should begin in a closed state.
-        fragmentManager.beginTransaction().hide(mTrashFragment).commit();
-        mTrashFragment.setAutoHideEnabled(true);
+        if (mTrashFragment != null) {
+            // Trash should begin in a closed state.
+            fragmentManager.beginTransaction().hide(mTrashFragment).commit();
+            mTrashFragment.setAutoHideEnabled(true);
 
-        mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mTrashFragment.show();
-            }
-        });
+            mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mTrashFragment.show();
+                }
+            });
+        }
     }
 
     /**
