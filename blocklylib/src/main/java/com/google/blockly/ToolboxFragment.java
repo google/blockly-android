@@ -18,9 +18,12 @@ package com.google.blockly;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -59,7 +62,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
     protected final Point mTempScreenPosition = new Point();
     protected final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
 
-    protected FrameLayout mRootView;
+    protected ToolboxRoot mRootView;
     protected CategoryEdgeTabs mCategoryTabs;
 
     protected BlocklyController mController;
@@ -98,6 +101,12 @@ public class ToolboxFragment extends BlockDrawerFragment {
         // Read configure
         readArgumentsFromBundle(getArguments());
         readArgumentsFromBundle(savedInstanceState);  // Overwrite initial state with stored state.
+
+        mBlockListView = new BlockListView(getContext());
+        mBlockListView.setBackgroundColor(
+                getResources().getColor(R.color.blockly_toolbox_bg, null));
+        mCategoryTabs = new CategoryEdgeTabs(getContext());
+        mRootView = new ToolboxRoot(getContext());
 
         mRootView = (FrameLayout) inflater.inflate(R.layout.fragment_toolbox, container, false);
         mBlockListView = (BlockListView) mRootView.findViewById(R.id.blockly_toolbox_blocks);
@@ -268,6 +277,43 @@ public class ToolboxFragment extends BlockDrawerFragment {
                 return Rotation.ADAPTIVE_CLOCKWISE;
             default:
                 throw new IllegalArgumentException("Invalid tabEdge: " + mTabEdge);
+        }
+    }
+
+    protected class ToolboxRoot extends ViewGroup {
+        ToolboxRoot(Context context) {
+            super(context);
+
+            // Always add the BlockListView before the tabs
+            addView(mBlockListView);
+            addView(mCategoryTabs);
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+            measureChild(mCategoryTabs, widthMeasureSpec, heightMeasureSpec);
+            mBlocksItemDecorator.
+            measureChild(mBlockListView, widthMeasureSpec, heightMeasureSpec);
+        }
+
+        @Override
+        protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+            boolean isRtl = ViewCompat.getLayoutDirection(this) == ViewCompat.LAYOUT_DIRECTION_RTL;
+            int width = right - left;
+            int height = bottom - top;
+        }
+    }
+
+    protected class BlocksItemDecoration extends RecyclerView.ItemDecoration {
+        @Override
+        public void getItemOffsets(
+                Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            mBlockListView.get
+            int itemPosition = parent.getChildPosition(child);
+            int bottomMargin = (itemPosition == (state.getItemCount() - 1)) ? cardMargin : 0;
+            outRect.set(cardMargin, cardMargin, cardMargin, bottomMargin);
         }
     }
 }
