@@ -57,7 +57,7 @@ import java.io.IOException;
  * navigation menu.
  * <p/>
  * Configure Block by providing defintions for {@link #getBlockDefinitionsJsonPath()},
- * {@link #getToolboxContentsXmlPath()}, and {@link #getGeneratorJsFilename()}.  An initial
+ * {@link #getToolboxContentsXmlPath()}, and {@link #getGeneratorJsPath()}.  An initial
  * workspace can be defined by overriding {@link #getStartingWorkspacePath()}.
  * <p/>
  * The central app views can be replaced by overloading {@link #onCreateContentView} and the
@@ -424,7 +424,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @return The asset file path and name to the generator Javascript.
      */
     @NonNull
-    abstract protected String getGeneratorJsFilename();
+    abstract protected String getGeneratorJsPath();
 
     /**
      * Creates or loads the root content view (by default, {@link R.layout#drawers_and_action_bar})
@@ -582,7 +582,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                         new CodeGenerationRequest(serialized.toString(),
                                 getCodeGenerationCallback(),
                                 getBlockDefinitionsJsonPath(),
-                                getGeneratorJsFilename()));
+                                getGeneratorJsPath()));
             }
         } catch (BlocklySerializerException e) {
             Log.wtf(TAG, e);

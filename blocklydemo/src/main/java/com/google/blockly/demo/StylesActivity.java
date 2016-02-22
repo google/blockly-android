@@ -45,7 +45,7 @@ public class StylesActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getGeneratorJsFilename() {
+    protected String getGeneratorJsPath() {
         return "turtle/generators.js";
     }
 

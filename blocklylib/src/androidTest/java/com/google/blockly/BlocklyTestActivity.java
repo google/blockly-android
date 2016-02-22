@@ -41,7 +41,7 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getGeneratorJsFilename() {
+    protected String getGeneratorJsPath() {
         return "sample_sections/generators.js";
     }
 
