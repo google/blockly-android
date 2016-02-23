@@ -106,9 +106,11 @@ public class CategoryEdgeTabs extends RecyclerView {
             }
         }
         mCurrentCategory = category;
-        int position = getTabPosition(category);
-        if (position != -1) {
-            mAdapter.notifyItemChanged(position);
+        if (mCurrentCategory != null) {
+            TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
+            if (vh != null) {  // Tab might not be rendered or visible yet.
+                markSelection(vh.mLabel, vh.mCategory, vh.getAdapterPosition(), true);
+            }
         }
     }
 
