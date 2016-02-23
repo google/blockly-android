@@ -48,10 +48,63 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tabbed drawer style UI to show available {@link Block}s to drag into the user interface.
+ * A tabbed drawer UI to show the available {@link Block}s one can drag into the workspace. The
+ * available blocks are divided into drawers by {@link ToolboxCategory}s. Assign the categories
+ * using {@link #setContents(ToolboxCategory)}. Each subcategory is represented as a tab, possibly
+ * followed by another tab for the top level category. If the only category is the top level
+ * category, and the drawer is not closeable, no tab will be shown.
+ * <p/>
+ * The look of the {@code ToolboxFragment} is highly configurable. It inherits from
+ * {@link BlockDrawerFragment}, including the {@code closeable} and {@code scrollOrientation}
+ * attributes.  Additionally, it supports configuration for which edge the tab
+ * is bound to, and whether to rotate the tab labels when attached to vertical edges.
+ * <p/>
+ * For example:
+ * <blockquote><pre>
+ * &lt;fragment
+ *     xmlns:android="http://schemas.android.com/apk/res/android"
+ *     xmlns:blockly="http://schemas.android.com/apk/res-auto"
+ *     android:name="com.google.blockly.ToolboxFragment"
+ *     android:id="@+id/blockly_toolbox"
+ *     android:layout_width="wrap_content"
+ *     android:layout_height="match_parent"
+ *     <b>blockly:closeable</b>="true"
+ *     <b>blockly:scrollOrientation</b>="vertical"
+ *     <b>blockly:tabEdge</b>="start"
+ *     <b>blockly:rotateTabs</b>="true"
+ *     tools:ignore="MissingPrefix"
+ *     /&gt;
+ * </pre></blockquote>
+ * <p/>
+ * When {@code blockly:closeable} is true, the drawer of blocks will hide.  The tabs will always be
+ * visible when the fragment is visible, providing the user a way to open the drawers.
+ * <p/>
+ * {@code blockly:scrollOrientation} can be either {@code horizontal} or {@code vertical}, and affects
+ * <p/>
+ * {@code blockly:rotateTabs} is a boolean.  If true, the tab labels (text and background) will rotate to
+ * counter-clockwise on the left edge, and clockwise on the right edge.  Top and bottom labels will
+ * never rotate.
+ * <p/>
+ * {@code blockly:tabEdge} takes the following values:
+ * <table>
+ *     <tr><th>XML attribute {@code blockly:tabEdge}</th><th>Fragment argument {@link #ARG_TAB_EDGE}</th></tr>
+ *     <tr><td>{@code top}</td><td>{@link Gravity#TOP}</td><td>The top edge, with tabs justified to the start.  The default.</td></tr>
+ *     <tr><td>{@code bottom}</td><td>{@link Gravity#BOTTOM}</td><td>The bottom edge, justified to the start.</td></tr>
+ *     <tr><td>{@code left}</td><td>{@link Gravity#LEFT}</td><td>Left edge, justified to the top.</td></tr>
+ *     <tr><td>{@code right}</td><td>{@link Gravity#RIGHT}</td><td>Right edge, justified to the top.</td></tr>
+ *     <tr><td>{@code start}</td><td>{@link GravityCompat#START}</td><td>Starting edge (left in left-to-right), justified to the top.</td></tr>
+ *     <tr><td>{@code end}</td><td>{@link GravityCompat#END}</td><td>Ending edge (right in left-to-right), justified to the top.</td></tr>
+ * </table>
+ * If there are more tabs than space allows, the tabs will be scrollable by dragging along the edge.
+ * If this behavior is required, make sure the space is not draggable by other views, such as a
+ * DrawerLayout.
  *
- * TODO(Anm): detail configuration options.
+ * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_closeable
+ * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
+ * @attr ref com.google.blockly.R.styleable#ToolboxFragment_tabEdge
+ * @attr ref com.google.blockly.R.styleable#ToolboxFragment_rotateTabs
  */
+// TODO(#9): Attribute and arguments to set the tab background.
 public class ToolboxFragment extends BlockDrawerFragment {
     private static final String TAG = "ToolboxFragment";
 
@@ -120,7 +173,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
                 setCurrentCategory(category);
             }
         });
-        updateViews(true);
+        updateViews();
 
         return mRootView;
     }
@@ -172,7 +225,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
      */
     public void setContents(final ToolboxCategory topLevelCategory) {
         mCategoryTabs.setTopLevelCategory(topLevelCategory);
-        updateViews(false);
+        updateViews();
 
         if (mBlockListView.getVisibility() == View.VISIBLE) {
             List<ToolboxCategory> subcats = topLevelCategory.getSubcategories();
@@ -205,6 +258,13 @@ public class ToolboxFragment extends BlockDrawerFragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ARG_TAB_EDGE, mTabEdge);
+        outState.putBoolean(ARG_ROTATE_TABS, mRotateTabs);
+    }
+
+    @Override
     protected void readArgumentsFromBundle(Bundle bundle) {
         super.readArgumentsFromBundle(bundle);
         if (bundle != null) {
@@ -217,8 +277,9 @@ public class ToolboxFragment extends BlockDrawerFragment {
      * Update the fragment's views based on the current values of {@link #mCloseable},
      * {@link #mTabEdge}, and {@link #mRotateTabs}.
      */
-    protected void updateViews(boolean layoutChanged) {
-        if (!mCloseable && mCategoryTabs.getTabCount() < 1) {
+    protected void updateViews() {
+        // If there is only one the drawer is not closeable, we don't need the tab.
+        if (!mCloseable && mCategoryTabs.getTabCount() <= 1) {
             mCategoryTabs.setVisibility(View.GONE);
         } else {
             mCategoryTabs.setVisibility(View.VISIBLE);
@@ -231,10 +292,6 @@ public class ToolboxFragment extends BlockDrawerFragment {
         if (!mCloseable) {
             mBlockListView.setVisibility(View.VISIBLE);
         }  // Otherwise leave it in the current state.
-
-        if (layoutChanged) {
-            mRootView.requestLayout();
-        }
     }
 
     /**

@@ -67,7 +67,9 @@
     <declare-styleable name="ToolboxFragment" parent="BlockDrawerFragment">
         <attr name="tabEdge">
             <!-- Values match Gravity constants. -->
+            <flag name="left" value="0x00000003"/>
             <flag name="top" value="0x00000030"/>
+            <flag name="right" value="0x00000005"/>
             <flag name="bottom" value="0x00000050"/>
             <flag name="start" value="0x00800003"/> <!-- Default -->
             <flag name="end" value="0x00800005"/>

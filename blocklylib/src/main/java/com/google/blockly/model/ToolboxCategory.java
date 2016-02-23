@@ -32,7 +32,7 @@ public class ToolboxCategory {
     private final List<ToolboxCategory> mSubcategories = new ArrayList<>();
     private final List<Block> mBlocks = new ArrayList<>();
     // As displayed in the toolbox.
-    public String mCategoryName;  // RETURN TO RPIVATE BEFORE COMMIT
+    private String mCategoryName;
 
     // For use in calculating positions in the toolbox.
     private boolean mIsExpanded = false;
@@ -86,8 +86,7 @@ public class ToolboxCategory {
         }
     }
 
-    // RETURN TO RPIVATE BEFORE COMMIT
-    public void addSubcategory(ToolboxCategory subcategory) {
+    private void addSubcategory(ToolboxCategory subcategory) {
         mSubcategories.add(subcategory);
     }
 

@@ -13,6 +13,7 @@ import com.google.blockly.R;
  * Base class for ToolboxFragment and TrashFragment.  Manages the closeable and scroll direction
  * configuration arguments.
  */
+// TODO(#10): Attribute and argument to set the drawer background.
 public abstract class BlockDrawerFragment extends Fragment {
     public static final String ARG_CLOSEABLE = "closeable";
     public static final String ARG_SCROLL_ORIENTATION = "scrollOrientation";
@@ -85,6 +86,13 @@ public abstract class BlockDrawerFragment extends Fragment {
                 layout.setOrientation(mScrollOrientation);
             }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(ARG_CLOSEABLE, mCloseable);
+        outState.putInt(ARG_SCROLL_ORIENTATION, mScrollOrientation);
     }
 
     protected void readArgumentsFromBundle(Bundle bundle) {

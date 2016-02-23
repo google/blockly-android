@@ -139,7 +139,13 @@ public class BlocklyController {
         }
     }
 
-    public void setToolbox(@Nullable ToolboxFragment toolboxFragment) {
+    /**
+     * Connects a {@link ToolboxFragment} to this controller, so the user can drag new blocks into
+     * the attached WorkspaceFragment.
+     *
+     * @param toolboxFragment The toolbox to connect to.
+     */
+    public void setToolboxFragment(@Nullable ToolboxFragment toolboxFragment) {
         if (toolboxFragment == mToolboxFragment) {
             return;
         }
@@ -158,7 +164,7 @@ public class BlocklyController {
     }
 
     /**
-     * Connects a TrashFragment to this controller.
+     * Connects a {@link }TrashFragment} to this controller.
      *
      * @param trashFragment
      */
@@ -1038,7 +1044,7 @@ public class BlocklyController {
             // Any of the following may be null and result in a no-op.
             controller.setWorkspaceFragment(mWorkspaceFragment);
             controller.setTrashFragment(mTrashFragment);
-            controller.setToolbox(mToolboxFragment);
+            controller.setToolboxFragment(mToolboxFragment);
 
             return controller;
         }
