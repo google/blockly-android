@@ -31,8 +31,6 @@ import java.util.List;
  * define a {@link RecyclerView.LayoutManager}.
  */
 public class BlockListView extends RecyclerView {
-    private static final String TAG = "BlockListView";
-
     private final ArrayList<Block> mBlocks = new ArrayList<>();
     private final Adapter mAdapter = new Adapter();
 

@@ -59,8 +59,10 @@ public class TrashFragment extends BlockDrawerFragment {
         readArgumentsFromBundle(getArguments());
         readArgumentsFromBundle(savedInstanceState);  // Overwrite initial state with stored state.
 
-        mBlockListView = (BlockListView) inflater.inflate(R.layout.fragment_trash, null);
+        mBlockListView = new BlockListView(getContext());
         mBlockListView.setLayoutManager(createLinearLayoutManager());
+        mBlockListView.setBackgroundColor(
+                getResources().getColor(R.color.blockly_trash_bg, null));  // Replace with attribute
 
         maybeUpdateTouchHandler();
 

@@ -207,7 +207,7 @@ public class CategoryEdgeTabs extends RecyclerView {
         }
     }
 
-    protected static class TabLabelHolder extends RecyclerView.ViewHolder {
+    private static class TabLabelHolder extends RecyclerView.ViewHolder {
         public final RotatedViewGroup mRotator;
         public final TextView mLabel;
 
@@ -221,7 +221,7 @@ public class CategoryEdgeTabs extends RecyclerView {
         }
     }
 
-    protected class CategoryAdapter extends RecyclerView.Adapter<TabLabelHolder> {
+    private class CategoryAdapter extends RecyclerView.Adapter<TabLabelHolder> {
         @Override
         public int getItemCount() {
             return getTabCount();
