@@ -25,12 +25,16 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
+import com.google.blockly.model.NameManager;
 import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.ui.fieldview.FieldVariableView;
 
 import java.util.List;
 
@@ -70,7 +74,7 @@ import java.util.List;
  */
 public class WorkspaceHelper {
     private static final String TAG = "WorkspaceHelper";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     // Blocks "snap" toward each other at the end of drags if they have compatible connections
     // near each other.  This is the farthest they can snap at 1.0 zoom, in workspace units.
     private static final int DEFAULT_MAX_SNAP_DISTANCE = 24;
@@ -84,7 +88,10 @@ public class WorkspaceHelper {
     private float mDensity;
     private boolean mRtl;
     private int mBlockStyle;
-    private int mFieldLabelStyle;
+    private int mFieldStyle;
+    private int mSpinnerLayout;
+    private int mSpinnerDropDownLayout;
+    private BaseAdapter mVariableAdapter;
 
     /**
      * Create a helper for creating and doing calculations for views in the workspace using the
@@ -138,6 +145,22 @@ public class WorkspaceHelper {
      */
     public PatchManager getPatchManager() {
         return mPatchManager;
+    }
+
+    /**
+     * @return An adapter for displaying the workspace's variables in a spinner or list.
+     */
+    public BaseAdapter getVariablesAdapter() {
+        return mVariableAdapter;
+    }
+
+    /**
+     * Set the {@link NameManager} being used to track variables in the workspace.
+     *
+     * @param variableNameManager The name manager that 
+     */
+    public void setVariableNameManager(NameManager variableNameManager) {
+        mVariableAdapter = onCreateNameAdapter(variableNameManager);
     }
 
     /**
@@ -293,8 +316,22 @@ public class WorkspaceHelper {
     /**
      * @return The style resource id to use for drawing field labels.
      */
-    public int getFieldLabelStyle() {
-        return mFieldLabelStyle;
+    public int getFieldStyle() {
+        return mFieldStyle;
+    }
+
+    /**
+     * @return The layout to use for spinner items.
+     */
+    public int getSpinnerLayout() {
+        return mSpinnerLayout;
+    }
+
+    /**
+     * @return The layout to use for spinner item drop downs.
+     */
+    public int getSpinnerDropDownLayout() {
+        return mSpinnerDropDownLayout;
     }
 
     /**
@@ -460,6 +497,19 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Creates an adapter for use by Spinners or ListViews from a {@link NameManager}.
+     *
+     * @param nameManager The name manager to get the list of names from.
+     * @return An adapter that can be used by a Spinner or a ListView.
+     */
+    protected BaseAdapter onCreateNameAdapter(NameManager nameManager) {
+        ArrayAdapter adapter = new FieldVariableView.VariableAdapter(nameManager,
+                mContext, mSpinnerLayout);
+        adapter.setDropDownViewResource(mSpinnerDropDownLayout);
+        return adapter;
+    }
+
+    /**
      * Converts a point in virtual view coordinates to workspace coordinates, storing the result in
      * the second parameter. The view position should be in the {@link WorkspaceView} coordinates in
      * pixels.
@@ -492,10 +542,23 @@ public class WorkspaceHelper {
         }
         try {
             mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
-            mFieldLabelStyle = styles.getResourceId(
-                    R.styleable.BlocklyWorkspaceTheme_fieldLabelStyle, 0);
+            mFieldStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_fieldStyle, 0);
+
+            if (mFieldStyle !=0) {
+                styles = context.obtainStyledAttributes(mFieldStyle,
+                        R.styleable.BlocklyFieldView);
+            } else {
+                styles = context.obtainStyledAttributes(R.styleable.BlocklyFieldView);
+            }
+            mSpinnerLayout = styles.getResourceId(R.styleable.BlocklyFieldView_spinnerItem,
+                    android.R.layout.simple_spinner_item);
+            mSpinnerDropDownLayout = styles.getResourceId(
+                    R.styleable.BlocklyFieldView_spinnerItemDropDown,
+                    android.R.layout.simple_spinner_dropdown_item);
             if (DEBUG) {
-                Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldLabelStyle=" + mFieldLabelStyle);
+                Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldStyle=" + mFieldStyle
+                        + ", SpinnerLayout=" + mSpinnerLayout + ", SpinnerDropdown="
+                        + mSpinnerDropDownLayout);
             }
         } finally {
             styles.recycle();

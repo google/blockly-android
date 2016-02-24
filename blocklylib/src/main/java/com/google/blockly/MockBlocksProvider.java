@@ -229,6 +229,13 @@ public final class MockBlocksProvider {
         }
     }
 
+    public static void addDefaultVariables(BlocklyController controller) {
+        controller.addVariable("item");
+        controller.addVariable("zim");
+        controller.addVariable("gir");
+        controller.addVariable("tak");
+    }
+
     /**
      * Add many complex blocks to the workspace, with each connected to a statement input of the
      * one above, to test our ability to render large blocks and to drag block groups with many

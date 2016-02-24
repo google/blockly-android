@@ -15,6 +15,7 @@
 
 package com.google.blockly.model;
 
+import android.database.Observable;
 import android.graphics.Color;
 import android.support.annotation.IntDef;
 import android.support.v4.util.SimpleArrayMap;
@@ -26,6 +27,7 @@ import com.google.blockly.ui.fieldview.FieldCheckboxView;
 import com.google.blockly.ui.fieldview.FieldColourView;
 import com.google.blockly.ui.fieldview.FieldDropdownView;
 import com.google.blockly.ui.fieldview.FieldInputView;
+import com.google.blockly.ui.fieldview.FieldVariableView;
 import com.google.blockly.ui.fieldview.FieldView;
 
 import org.json.JSONArray;
@@ -42,6 +44,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Observer;
 
 /**
  * The base class for Fields in Blockly. A field is the smallest piece of a {@link Block} and is
@@ -659,6 +662,7 @@ public abstract class Field implements Cloneable {
      */
     public static final class FieldVariable extends Field {
         private String mVariable;
+        private VariableObservable mObservable = new VariableObservable();
 
         public FieldVariable(String name, String variable) {
             super(name, TYPE_VARIABLE);
@@ -695,12 +699,61 @@ public abstract class Field implements Cloneable {
          * Two variables with the same name will be considered the same variable at generation.
          */
         public void setVariable(String variable) {
-            mVariable = variable;
+            if ((mVariable == null && variable != null)
+                    || (mVariable != null && !mVariable.equalsIgnoreCase(variable))) {
+                String oldVar = mVariable;
+                mVariable = variable;
+                mObservable.onVariableChanged(this, oldVar, variable);
+                if (mView != null) {
+                    ((FieldVariableView)mView).setSelection(mVariable);
+                }
+            }
+        }
+
+        /**
+         * Registers an observer to be notified when this field changes its variable.
+         *
+         * @param observer The observer to register.
+         */
+        public void registerObserver(VariableObserver observer) {
+            mObservable.registerObserver(observer);
+        }
+
+        /**
+         * Unregisters an observer so it no longer receives updates.
+         *
+         * @param observer The observer to unregister.
+         */
+        public void unregisterObserver(VariableObserver observer) {
+            mObservable.unregisterObserver(observer);
+        }
+
+        /**
+         * Unregisters all {@link FieldVariable.VariableObserver}s on this field.
+         */
+        public void unregisterAll() {
+            mObservable.unregisterAll();
         }
 
         @Override
         protected void serializeInner(XmlSerializer serializer) throws IOException {
             serializer.text(mVariable);
+        }
+
+        /**
+         * Observer for listening to changes to a variable field.
+         */
+        public abstract static class VariableObserver {
+            public abstract void onVariableChanged(FieldVariable field, String oldVar,
+                    String newVar);
+        }
+
+        private static class VariableObservable extends Observable<VariableObserver> {
+            public void onVariableChanged(FieldVariable field, String oldVar, String newVar) {
+                for (int i = 0; i < mObservers.size(); i++) {
+                    mObservers.get(i).onVariableChanged(field, oldVar, newVar);
+                }
+            }
         }
     }
 

@@ -25,7 +25,7 @@
 
     <style name="StylesDemoTheme" parent="BlocklyTheme">
         <item name="blockViewStyle">@style/BlockStyle1</item>
-        <item name="fieldLabelStyle">@style/FieldLabelStyle1</item>
+        <item name="fieldStyle">@style/FieldStyle1</item>
     </style>
 
     <style name="BlockStyle1" parent="DefaultBlockStyle">
@@ -33,7 +33,7 @@
         <item name="fieldVerticalPadding">32dp</item>
     </style>
 
-    <style name="FieldLabelStyle1" parent="DefaultFieldLabelStyle">
+    <style name="FieldStyle1" parent="DefaultFieldStyle">
         <item name="textAppearance">@style/TextAppearance.AppCompat.Large.Inverse</item>
         <item name="fieldMinHeight">128dip</item>
     </style>

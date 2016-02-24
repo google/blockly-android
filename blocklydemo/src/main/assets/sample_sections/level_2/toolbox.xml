@@ -28,4 +28,8 @@
         <block type="statement_statement_input"></block>
         <block type="statement_value_input"></block>
     </category>
+    <category name="Variables">
+        <block type="set_var"></block>
+        <block type="get_var"></block>
+    </category>
 </xml>

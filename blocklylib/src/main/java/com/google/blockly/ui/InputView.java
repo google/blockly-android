@@ -32,6 +32,7 @@ import com.google.blockly.ui.fieldview.FieldDropdownView;
 import com.google.blockly.ui.fieldview.FieldImageView;
 import com.google.blockly.ui.fieldview.FieldInputView;
 import com.google.blockly.ui.fieldview.FieldLabelView;
+import com.google.blockly.ui.fieldview.FieldVariableView;
 import com.google.blockly.ui.fieldview.FieldView;
 
 import java.util.ArrayList;
@@ -425,8 +426,10 @@ public class InputView extends NonPropagatingViewGroup {
                 case Field.TYPE_IMAGE:
                     view = new FieldImageView(context, fields.get(j), mHelper);
                     break;
+                case Field.TYPE_VARIABLE:
+                    view = new FieldVariableView(context, fields.get(j), mHelper);
+                    break;
                 default:
-                    // TODO (fenichel): Add variable field type.
                     Log.w(TAG, "Unknown field type.");
                     break;
             }

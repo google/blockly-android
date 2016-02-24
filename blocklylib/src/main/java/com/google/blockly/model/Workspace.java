@@ -196,6 +196,27 @@ public class Workspace {
     }
 
     /**
+     * Return the number of times a variable is referenced in this workspace.
+     *
+     * @param variable The variable to get a ref count for.
+     * @return The number of times that variable appears in this workspace.
+     */
+    public int getVariableRefCount(String variable) {
+        List<Field.FieldVariable> refs = mStats.getVariableReferences().get(variable);
+        return refs == null ? 0 : refs.size();
+    }
+
+    /**
+     * Gets the {@link NameManager.VariableNameManager} being used by this workspace. This can be
+     * used to get a list of variables in the workspace.
+     *
+     * @return The name manager for variables in this workspace.
+     */
+    public NameManager getVariableNameManager() {
+        return mVariableNameManager;
+    }
+
+    /**
      * Outputs the workspace as an XML string.
      *
      * @param os The output stream to write to.

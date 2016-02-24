@@ -113,8 +113,11 @@ public class BlocklyController {
         mContext = context;
         mFragmentManager = fragmentManager;
         mBlockFactory = blockFactory;
-        mHelper = new WorkspaceHelper(mContext, style);
         mWorkspace = new Workspace(mContext, this, mBlockFactory);
+        mHelper = new WorkspaceHelper(mContext, style);
+
+        // TODO: Check if variables are enabled/disabled
+        mHelper.setVariableNameManager(mWorkspace.getVariableNameManager());
 
         mDragger = new Dragger(this);
     }
@@ -467,6 +470,44 @@ public class BlocklyController {
                 mWorkspaceView.addView(bg);
             }
         }
+    }
+
+    /**
+     * Create a new variable. If a variable with the same name already exists the name will be
+     * modified to be unique.
+     *
+     * @param variable The desired name of the variable to create.
+     * @return The actual variable name that was created.
+     */
+    public String addVariable(String variable) {
+        return mWorkspace.getVariableNameManager().generateUniqueName(variable, true);
+    }
+
+    /**
+     * Returns true if the specified variable is being used in a workspace.
+     *
+     * @param variable The variable the check.
+     * @return True if the variable exists in a workspace, false otherwise.
+     */
+    public boolean isVariableInUse(String variable) {
+        return mWorkspace.getVariableRefCount(variable) > 0;
+    }
+
+    /**
+     * Remove a variable from the workspace. A variable may only be removed if it is not being used
+     * in the workspace. {@link #isVariableInUse(String)} should be called to check if a variable
+     * may be removed.
+     *
+     * @param variable The variable to remove.
+     * @return True if the variable existed and was removed, false otherwise.
+     * @throws IllegalStateException If there are still instances of that variable in the workspace.
+     */
+    public boolean removeVariable(String variable) {
+        if (isVariableInUse(variable)) {
+            throw new IllegalStateException(
+                    "Cannot remove a variable that exists in the workspace.");
+        }
+        return mWorkspace.getVariableNameManager().remove(variable);
     }
 
     /**
