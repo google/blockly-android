@@ -80,7 +80,7 @@
 
     <declare-styleable name="TrashFragment" parent="BlockDrawerFragment" />
 
-    <declare-styleable name="CategoryEdgeTabs">
+    <declare-styleable name="CategoryTabs">
         <attr name="labelRotation">
             <!-- Values match com.google.blockly.ui.Rotation, used by RotationContainer. -->
             <flag name="none" value="0x00000000"/> <!-- No rotation. Default. -->

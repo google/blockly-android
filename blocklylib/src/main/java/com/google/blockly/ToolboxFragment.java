@@ -20,6 +20,7 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
@@ -39,11 +40,13 @@ import com.google.blockly.model.WorkspacePoint;
 import com.google.blockly.ui.BlockListView;
 import com.google.blockly.ui.BlockTouchHandler;
 import com.google.blockly.ui.BlockView;
-import com.google.blockly.ui.CategoryEdgeTabs;
+import com.google.blockly.ui.CategoryTabs;
 import com.google.blockly.ui.Rotation;
 import com.google.blockly.ui.BlockDrawerFragment;
 import com.google.blockly.ui.WorkspaceHelper;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,20 +114,32 @@ public class ToolboxFragment extends BlockDrawerFragment {
     public static final String ARG_TAB_EDGE = "tabEdge";
     public static final String ARG_ROTATE_TABS = "rotateTabs";
 
-    private static final int DEFAULT_TAB_EDGE = Gravity.TOP;
-    private static final boolean DEFAULT_ROTATE_TABS = true;
+    public static final int DEFAULT_TAB_EDGE = Gravity.TOP;
+    public static final boolean DEFAULT_ROTATE_TABS = true;
+
+    /** Subset of Gravity to identify the edge the category tabs should be bound to. */
+    @IntDef(flag=true, value={
+            Gravity.TOP,
+            Gravity.LEFT,
+            Gravity.BOTTOM,
+            Gravity.RIGHT,
+            GravityCompat.START,
+            GravityCompat.END
+    })
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface EdgeEnum {}
 
     protected final Point mTempScreenPosition = new Point();
     protected final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
     protected final Rect mScrollablePadding = new Rect();
 
     protected ToolboxRoot mRootView;
-    protected CategoryEdgeTabs mCategoryTabs;
+    protected CategoryTabs mCategoryTabs;
 
     protected BlocklyController mController;
     protected WorkspaceHelper mHelper;
 
-    private int mTabEdge = DEFAULT_TAB_EDGE;
+    private @EdgeEnum int mTabEdge = DEFAULT_TAB_EDGE;
     private boolean mRotateTabs = DEFAULT_ROTATE_TABS;
 
     @Override
@@ -136,6 +151,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
                 R.styleable.ToolboxFragment,
                 0, 0);
         try {
+            //noinspection ResourceType
             mTabEdge = a.getInt(R.styleable.ToolboxFragment_tabEdge, DEFAULT_TAB_EDGE);
             mRotateTabs = a.getBoolean(R.styleable.ToolboxFragment_rotateTabs, DEFAULT_ROTATE_TABS);
         } finally {
@@ -164,10 +180,10 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mBlockListView.setBackgroundColor(
                 getResources().getColor(R.color.blockly_toolbox_bg, null));  // Replace with attrib
         mBlockListView.setVisibility(View.GONE);  // Start closed.
-        mCategoryTabs = new CategoryEdgeTabs(getContext());
+        mCategoryTabs = new CategoryTabs(getContext());
         mRootView = new ToolboxRoot(getContext());
 
-        mCategoryTabs.setListener(new CategoryEdgeTabs.Listener() {
+        mCategoryTabs.setListener(new CategoryTabs.Listener() {
             @Override
             public void onCategorySelected(ToolboxCategory category) {
                 setCurrentCategory(category);
@@ -305,6 +321,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
     protected void readArgumentsFromBundle(Bundle bundle) {
         super.readArgumentsFromBundle(bundle);
         if (bundle != null) {
+            //noinspection ResourceType
             mTabEdge = bundle.getInt(ARG_TAB_EDGE, mTabEdge);
             mRotateTabs = bundle.getBoolean(ARG_ROTATE_TABS, mRotateTabs);
         }
@@ -320,8 +337,8 @@ public class ToolboxFragment extends BlockDrawerFragment {
             mCategoryTabs.setVisibility(View.GONE);
         } else {
             mCategoryTabs.setVisibility(View.VISIBLE);
-            mCategoryTabs.setOrientation(isTabsHorizontal() ? CategoryEdgeTabs.HORIZONTAL
-                    : CategoryEdgeTabs.VERTICAL);
+            mCategoryTabs.setOrientation(isTabsHorizontal() ? CategoryTabs.HORIZONTAL
+                    : CategoryTabs.VERTICAL);
             mCategoryTabs.setLabelRotation(getLabelRotation());
             mCategoryTabs.setTapSelectedDeselects(mCloseable);
         }

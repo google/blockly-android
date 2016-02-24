@@ -28,7 +28,7 @@ import java.util.List;
  * <p/>
  * Additionaly, the individual tab labels can be rotated using the {@link Rotation} constants.
  */
-public class CategoryEdgeTabs extends RecyclerView {
+public class CategoryTabs extends RecyclerView {
     public static final String TAG = "CategoryEdgeTabs";
 
     public static final int HORIZONTAL = LinearLayoutManager.HORIZONTAL;
@@ -48,15 +48,15 @@ public class CategoryEdgeTabs extends RecyclerView {
     protected Listener mListener;
     protected ToolboxCategory mCurrentCategory;
 
-    public CategoryEdgeTabs(Context context) {
+    public CategoryTabs(Context context) {
         this(context, null, 0);
     }
 
-    public CategoryEdgeTabs(Context context, AttributeSet attrs) {
+    public CategoryTabs(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public CategoryEdgeTabs(Context context, AttributeSet attrs, int style) {
+    public CategoryTabs(Context context, AttributeSet attrs, int style) {
         super(context, attrs, style);
 
         mLayoutManager = new LinearLayoutManager(context);
@@ -70,7 +70,7 @@ public class CategoryEdgeTabs extends RecyclerView {
                 0, 0);
         try {
             //noinspection ResourceType
-            mLabelRotation = a.getInt(R.styleable.CategoryEdgeTabs_labelRotation, mLabelRotation);
+            mLabelRotation = a.getInt(R.styleable.CategoryTabs_labelRotation, mLabelRotation);
         } finally {
             a.recycle();
         }
