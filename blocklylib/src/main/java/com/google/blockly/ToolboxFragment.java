@@ -26,12 +26,14 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.Block;
@@ -111,8 +113,8 @@ import java.util.List;
 public class ToolboxFragment extends BlockDrawerFragment {
     private static final String TAG = "ToolboxFragment";
 
-    public static final String ARG_TAB_EDGE = "tabEdge";
-    public static final String ARG_ROTATE_TABS = "rotateTabs";
+    public static final String ARG_TAB_EDGE = "ToolboxFragment_tabEdge";
+    public static final String ARG_ROTATE_TABS = "ToolboxFragment_rotateTabs";
 
     public static final int DEFAULT_TAB_EDGE = Gravity.TOP;
     public static final boolean DEFAULT_ROTATE_TABS = true;
@@ -181,14 +183,14 @@ public class ToolboxFragment extends BlockDrawerFragment {
                 getResources().getColor(R.color.blockly_toolbox_bg, null));  // Replace with attrib
         mBlockListView.setVisibility(View.GONE);  // Start closed.
         mCategoryTabs = new CategoryTabs(getContext());
-        mRootView = new ToolboxRoot(getContext());
-
-        mCategoryTabs.setListener(new CategoryTabs.Listener() {
+        mCategoryTabs.setLabelAdapter(onCreateLabelAdapter());
+        mCategoryTabs.setCallback(new CategoryTabs.Callback() {
             @Override
             public void onCategorySelected(ToolboxCategory category) {
                 setCurrentCategory(category);
             }
         });
+        mRootView = new ToolboxRoot(getContext());
         updateViews();
 
         return mRootView;
@@ -317,6 +319,10 @@ public class ToolboxFragment extends BlockDrawerFragment {
         outState.putBoolean(ARG_ROTATE_TABS, mRotateTabs);
     }
 
+    protected CategoryTabs.LabelAdapter onCreateLabelAdapter() {
+        return new DefaultTabsAdapter();
+    }
+
     @Override
     protected void readArgumentsFromBundle(Bundle bundle) {
         super.readArgumentsFromBundle(bundle);
@@ -401,6 +407,33 @@ public class ToolboxFragment extends BlockDrawerFragment {
             default:
                 throw new IllegalArgumentException("Invalid tabEdge: " + mTabEdge);
         }
+    }
+
+    /** Manages TextView labels derived from {@link R.layout#default_toolbox_tab}. */
+    protected class DefaultTabsAdapter extends CategoryTabs.LabelAdapter {
+        @Override
+        public View onCreateLabel() {
+            return (TextView) LayoutInflater.from(getContext())
+                    .inflate(R.layout.default_toolbox_tab, null);
+        }
+
+        @Override
+        /**
+         * Assigns the category name to the {@link TextView}.  Tabs without labels will be assigned
+         * the text {@link R.string#blockly_toolbox_default_category_name} ("Blocks" in English).
+         *
+         * @param labelView The view used as the label.
+         * @param category The {@link ToolboxCategory}.
+         * @param position The ordering position of the tab.
+         */
+        public void onBindLabel(View labelView, ToolboxCategory category, int position) {
+            String labelText = category.getCategoryName();
+            if (TextUtils.isEmpty(labelText)) {
+                labelText = getContext().getString(R.string.blockly_toolbox_default_category_name);
+            }
+            ((TextView) labelView).setText(labelText);
+        }
+
     }
 
     /**

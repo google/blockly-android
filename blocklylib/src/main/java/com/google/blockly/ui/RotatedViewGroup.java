@@ -1,3 +1,18 @@
+/*
+ *  Copyright 2016 Google Inc. All Rights Reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.google.blockly.ui;
 
 import android.content.Context;
@@ -12,7 +27,7 @@ import android.view.ViewParent;
 
 /**
  * ViewGroup that can rotate a child view by 90&ordm; either clockwise or counter-clockwise.
- * The view can store multiple child, but all are rendered with the same rotation, just within
+ * The view can store multiple children, but all are rendered with the same rotation, just within
  * the {@code RotatedViewGroup's} padding.
  * <p/>
  * Multiple children are not supported, though they may work.
@@ -82,13 +97,13 @@ public class RotatedViewGroup extends ViewGroup {
         int horzPadding = getPaddingLeft() + getPaddingRight();
         int vertPadding = getPaddingTop() + getPaddingBottom();
 
-        int childWidthMSpec, childHeigtMSpec;
+        int childWidthMSpec, childHeightMSpec;
         if (isChildRotated()) {
             // Swap both measure specs, and subtracted paddings.
             childWidthMSpec = MeasureSpec.makeMeasureSpec(
                     Math.max(MeasureSpec.getSize(heightMeasureSpec) - vertPadding, 0),
                     MeasureSpec.getMode(heightMeasureSpec));
-            childHeigtMSpec = MeasureSpec.makeMeasureSpec(
+            childHeightMSpec = MeasureSpec.makeMeasureSpec(
                     Math.max(MeasureSpec.getSize(widthMeasureSpec) - horzPadding, 0),
                     MeasureSpec.getMode(widthMeasureSpec));
         } else {
@@ -96,7 +111,7 @@ public class RotatedViewGroup extends ViewGroup {
             childWidthMSpec = MeasureSpec.makeMeasureSpec(
                     Math.max(MeasureSpec.getSize(widthMeasureSpec) - horzPadding, 0),
                     MeasureSpec.getMode(widthMeasureSpec));
-            childHeigtMSpec = MeasureSpec.makeMeasureSpec(
+            childHeightMSpec = MeasureSpec.makeMeasureSpec(
                     Math.max(MeasureSpec.getSize(heightMeasureSpec) - vertPadding, 0),
                     MeasureSpec.getMode(heightMeasureSpec));
         }
@@ -105,7 +120,7 @@ public class RotatedViewGroup extends ViewGroup {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; ++i) {
             View child = getChildAt(i);
-            child.measure(childWidthMSpec, childHeigtMSpec);
+            child.measure(childWidthMSpec, childHeightMSpec);
             maxChildWidth = Math.max(maxChildWidth, child.getMeasuredWidth());
             maxChildHeight = Math.max(maxChildHeight, child.getMeasuredHeight());
         }
@@ -143,7 +158,7 @@ public class RotatedViewGroup extends ViewGroup {
                 case Rotation.COUNTER_CLOCKWISE:
                     mChildLayoutRect.set(getPaddingBottom(), getPaddingLeft(),
                             height - getPaddingTop(), width - getPaddingRight());
-                    mEventTransformMatrix.setRotate(90);  // View 2,2 ==> child 176.0,2.0
+                    mEventTransformMatrix.setRotate(90);
                     mEventTransformMatrix.postTranslate(height, 0);
                     mEventTransformMatrix.invert(mDrawTransformMatrix);
                     break;

@@ -1,3 +1,18 @@
+/*
+ *  Copyright 2016 Google Inc. All Rights Reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.google.blockly.ui;
 
 import android.content.Context;
@@ -27,8 +42,8 @@ import com.google.blockly.R;
  */
 // TODO(#10): Attribute and argument to set the drawer background.
 public abstract class BlockDrawerFragment extends Fragment {
-    public static final String ARG_CLOSEABLE = "closeable";
-    public static final String ARG_SCROLL_ORIENTATION = "scrollOrientation";
+    public static final String ARG_CLOSEABLE = "BlockDrawerFragment_closeable";
+    public static final String ARG_SCROLL_ORIENTATION = "BlockDrawerFragment_scrollOrientation";
 
     // Scroll direction argument values.  Same values as {@link LinearLayoutManager}.
     public static final int SCROLL_HORIZONTAL = 0;
@@ -69,18 +84,34 @@ public abstract class BlockDrawerFragment extends Fragment {
         args.putInt(ARG_SCROLL_ORIENTATION, mScrollOrientation);
     }
 
+    /**
+     * @return True if the fragment is configured to be able to close.
+     */
     public boolean isCloseable() {
         return mCloseable;
     }
 
+    /**
+     * Sets whether the fragment is closeable.
+     */
     public void setCloseable(boolean closeable) {
         mCloseable = closeable;
     }
 
+    /**
+     * @return The scrolling direction. Either {@link #SCROLL_HORIZONTAL} or
+     *         {@link #SCROLL_VERTICAL}.
+     */
     public int getScrollOrientation() {
         return mScrollOrientation;
     }
 
+    /**
+     * Sets the orientation of the scrollable blocks.
+     *
+     * @param scrollOrientation The scrolling direction. Either {@link #SCROLL_HORIZONTAL} or
+     *         {@link #SCROLL_VERTICAL}.
+     */
     public void setScrollOrientation(int scrollOrientation) {
         if (scrollOrientation != SCROLL_HORIZONTAL && scrollOrientation != SCROLL_VERTICAL) {
             throw new IllegalArgumentException("Invalid orientation: " + scrollOrientation);
@@ -107,6 +138,11 @@ public abstract class BlockDrawerFragment extends Fragment {
         outState.putInt(ARG_SCROLL_ORIENTATION, mScrollOrientation);
     }
 
+    /**
+     * Reads {@link #ARG_CLOSEABLE} and {@link #ARG_SCROLL_ORIENTATION} from the bundle.
+     *
+     * @param bundle The {@link Bundle} to read from.
+     */
     protected void readArgumentsFromBundle(Bundle bundle) {
         if (bundle != null) {
             setCloseable(bundle.getBoolean(ARG_CLOSEABLE, mCloseable));
