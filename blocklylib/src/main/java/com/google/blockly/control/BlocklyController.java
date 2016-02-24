@@ -171,7 +171,7 @@ public class BlocklyController {
     }
 
     /**
-     * Connects a {@link }TrashFragment} to this controller.
+     * Connects a {@link TrashFragment} to this controller.
      *
      * @param trashFragment
      */

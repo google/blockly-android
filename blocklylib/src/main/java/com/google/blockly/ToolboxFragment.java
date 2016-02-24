@@ -55,9 +55,11 @@ import java.util.List;
 /**
  * A tabbed drawer UI to show the available {@link Block}s one can drag into the workspace. The
  * available blocks are divided into drawers by {@link ToolboxCategory}s. Assign the categories
- * using {@link #setContents(ToolboxCategory)}. Each subcategory is represented as a tab, possibly
- * followed by another tab for the top level category. If the only category is the top level
- * category, and the drawer is not closeable, no tab will be shown.
+ * using {@link #setContents(ToolboxCategory)}. This top level category can contain either a list of
+ * blocks or a list of subcategories, but not both. If it has blocks, the {@code ToolboxFragment}
+ * renders as a single tab/group.  If it has subcategories, it will render each subcategory as a
+ * tab.  If there is only one category (top level or subcategory) and the fragment is not closeable,
+ * no tab will render with the list of blocks.
  * <p/>
  * The look of the {@code ToolboxFragment} is highly configurable. It inherits from
  * {@link BlockDrawerFragment}, including the {@code closeable} and {@code scrollOrientation}
@@ -80,15 +82,15 @@ import java.util.List;
  *     /&gt;
  * </pre></blockquote>
  * <p/>
- * When {@code blockly:closeable} is true, the drawer of blocks will hide.  The tabs will always be
- * visible when the fragment is visible, providing the user a way to open the drawers.
+ * When {@code blockly:closeable} is true, the drawer of blocks will hide in the closed state.  The
+ * tabs will remain visible, providing the user a way to open the drawers.
  * <p/>
  * {@code blockly:scrollOrientation} can be either {@code horizontal} or {@code vertical}, and
- * affects only the block list. Not the tabs.
+ * affects only the block list. The tab scroll orientation is determined by the {@code tabEdge}.
  * <p/>
  * {@code blockly:rotateTabs} is a boolean.  If true, the tab labels (text and background) will
- * rotate to counter-clockwise on the left edge, and clockwise on the right edge.  Top and bottom
- * labels will never rotate.
+ * rotate counter-clockwise on the left edge, and clockwise on the right edge.  Top and bottom
+ * edge tabs will never rotate.
  * <p/>
  * {@code blockly:tabEdge} takes the following values:
  * <table>
@@ -103,6 +105,9 @@ import java.util.List;
  * If there are more tabs than space allows, the tabs will be scrollable by dragging along the edge.
  * If this behavior is required, make sure the space is not draggable by other views, such as a
  * DrawerLayout.
+ * <p/>
+ * Developers can further customize the tab look by overriding {@link #onCreateLabelAdapter()} and
+ * providing their own {@link CategoryTabs.LabelAdapter}.
  *
  * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_closeable
  * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
