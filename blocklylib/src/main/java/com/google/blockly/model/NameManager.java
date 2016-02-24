@@ -15,6 +15,9 @@
 
 package com.google.blockly.model;
 
+import android.database.DataSetObservable;
+import android.database.DataSetObserver;
+import android.database.Observable;
 import android.support.v4.util.SimpleArrayMap;
 
 import java.util.Set;
@@ -24,7 +27,7 @@ import java.util.regex.Pattern;
 /**
  * Utility functions for handling variable and procedure names.
  */
-public abstract class NameManager {
+public abstract class NameManager extends DataSetObservable {
     // Regular expression with two groups.  The first lazily looks for any sequence of characters
     // and the second looks for one or more numbers.  So foo2 -> (foo, 2).  f222 -> (f, 222).
     private static final Pattern mRegEx = Pattern.compile("^(.*?)(\\d+)$");
@@ -54,6 +57,7 @@ public abstract class NameManager {
         }
         if (addName) {
             mUsedNames.put(name.toLowerCase(), "UNUSED");
+            notifyChanged();
         }
         return name.toLowerCase();
     }
@@ -65,6 +69,20 @@ public abstract class NameManager {
      */
     public boolean contains(String name) {
         return mUsedNames.containsKey(name.toLowerCase());
+    }
+
+    /**
+     * @return The number of names that have been used.
+     */
+    public int size() {
+        return mUsedNames.size();
+    }
+
+    /**
+     * @return The variable name at the index.
+     */
+    public String get(int index) {
+        return mUsedNames.keyAt(index);
     }
 
     /**
@@ -88,7 +106,9 @@ public abstract class NameManager {
      * @param name The name to add.
      */
     public void addName(String name) {
-        mUsedNames.put(name.toLowerCase(), "UNUSED");
+        if (mUsedNames.put(name.toLowerCase(), "UNUSED") == null) {
+            notifyChanged();
+        }
     }
 
     /**
@@ -102,7 +122,10 @@ public abstract class NameManager {
      * Clear the list of used names.
      */
     public void clearUsedNames() {
-        mUsedNames.clear();
+        if (mUsedNames.size() != 0) {
+            mUsedNames.clear();
+            notifyChanged();
+        }
     }
 
     /**
@@ -110,8 +133,13 @@ public abstract class NameManager {
      *
      * @param toRemove The name to remove.
      */
-    public void remove(String toRemove) {
-        mUsedNames.remove(toRemove.toLowerCase());
+    public boolean remove(String toRemove) {
+        String result = mUsedNames.remove(toRemove.toLowerCase());
+        if (result != null) {
+            notifyChanged();
+            return true;
+        }
+        return false;
     }
 
     public static final class ProcedureNameManager extends NameManager {
@@ -165,6 +193,7 @@ public abstract class NameManager {
                     if (!mUsedNames.containsKey(newName)) {
                         if (addName) {
                             mUsedNames.put(newName, "UNUSED");
+                            notifyChanged();
                         }
                         return newName;
                     }

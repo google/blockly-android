@@ -38,6 +38,27 @@ public class WorkspaceStats {
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
 
+    private final Field.FieldVariable.VariableObserver mVariableObserver =
+            new Field.FieldVariable.VariableObserver() {
+        @Override
+        public void onVariableChanged(Field.FieldVariable field, String oldVar, String newVar) {
+            List<Field.FieldVariable> list = mVariableReferences.get(oldVar);
+            if (list != null) {
+                list.remove(field);
+            }
+
+            if (newVar == null) {
+                return;
+            }
+            list = mVariableReferences.get(newVar);
+            if (list == null) {
+                list = new ArrayList<>();
+                mVariableReferences.put(newVar, list);
+            }
+            list.add(field);
+        }
+    };
+
     public WorkspaceStats(NameManager variableManager, ProcedureManager procedureManager,
                           ConnectionManager connectionManager) {
         mVariableNameManager = variableManager;
@@ -71,6 +92,7 @@ public class WorkspaceStats {
                 Field field = in.getFields().get(j);
                 if (field.getType() == Field.TYPE_VARIABLE) {
                     Field.FieldVariable var = (Field.FieldVariable) field;
+                    var.registerObserver(mVariableObserver);
                     if (mVariableReferences.containsKey(var.getVariable())) {
                         mVariableReferences.get(var.getVariable()).add(var);
                     } else {
