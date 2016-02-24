@@ -164,6 +164,13 @@ public class BlocklyController {
     }
 
     /**
+     * @return The currently attached {@link ToolboxFragment}.
+     */
+    public ToolboxFragment getToolboxFragment() {
+        return mToolboxFragment;
+    }
+
+    /**
      * Connects a {@link }TrashFragment} to this controller.
      *
      * @param trashFragment
@@ -185,6 +192,13 @@ public class BlocklyController {
             mTrashFragment.setController(this);
             mTrashFragment.setContents(mWorkspace.getTrashContents());
         }
+    }
+
+    /**
+     * @return The currently attached {@link TrashFragment}.
+     */
+    public TrashFragment getTrashFragment() {
+        return mTrashFragment;
     }
 
     /**

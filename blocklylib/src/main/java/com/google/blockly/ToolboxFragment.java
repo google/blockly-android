@@ -72,18 +72,18 @@ import java.util.List;
  *     <b>blockly:scrollOrientation</b>="vertical"
  *     <b>blockly:tabEdge</b>="start"
  *     <b>blockly:rotateTabs</b>="true"
- *     tools:ignore="MissingPrefix"
  *     /&gt;
  * </pre></blockquote>
  * <p/>
  * When {@code blockly:closeable} is true, the drawer of blocks will hide.  The tabs will always be
  * visible when the fragment is visible, providing the user a way to open the drawers.
  * <p/>
- * {@code blockly:scrollOrientation} can be either {@code horizontal} or {@code vertical}, and affects
+ * {@code blockly:scrollOrientation} can be either {@code horizontal} or {@code vertical}, and
+ * affects only the block list. Not the tabs.
  * <p/>
- * {@code blockly:rotateTabs} is a boolean.  If true, the tab labels (text and background) will rotate to
- * counter-clockwise on the left edge, and clockwise on the right edge.  Top and bottom labels will
- * never rotate.
+ * {@code blockly:rotateTabs} is a boolean.  If true, the tab labels (text and background) will
+ * rotate to counter-clockwise on the left edge, and clockwise on the right edge.  Top and bottom
+ * labels will never rotate.
  * <p/>
  * {@code blockly:tabEdge} takes the following values:
  * <table>
@@ -178,7 +178,19 @@ public class ToolboxFragment extends BlockDrawerFragment {
         return mRootView;
     }
 
+    /**
+     * Connects the {@link ToolboxFragment} to the application's {@link BlocklyController}.  It is
+     * called by {@link BlocklyController#setToolboxFragment(ToolboxFragment)} and should not be
+     * called by the application developer.
+     *
+     * @param controller The application's {@link BlocklyController}.
+     */
     public void setController(BlocklyController controller) {
+        if (mController != null && mController.getToolboxFragment() != this) {
+            throw new IllegalStateException("Call BlockController.setToolboxFragment(..) instead of"
+                    + " ToolboxFragment.setController(..).");
+        }
+
         mController = controller;
         if (mController == null) {
             mHelper = null;
@@ -235,6 +247,13 @@ public class ToolboxFragment extends BlockDrawerFragment {
         }
     }
 
+    /**
+     * Sets the Toolbox's current {@link ToolboxCategory}, including opening or closing the drawer.
+     * In closeable toolboxes, {@code null} {@code category} is equivalent to closing the drawer.
+     * Otherwise, the drawer will be rendered empty.
+     *
+     * @param category The {@link ToolboxCategory} with blocks to display.
+     */
     // TODO(#384): Add mBlockList animation hooks for subclasses.
     public void setCurrentCategory(@Nullable ToolboxCategory category) {
         if (category == null) {
@@ -247,6 +266,11 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mBlockListView.setContents(category.getBlocks());
     }
 
+    /**
+     * Attempts to close the blocks drawer.
+     *
+     * @return True an action was taken (the drawer is closeable and was previously open).
+     */
     // TODO(#384): Add mBlockList animation hooks for subclasses.
     public boolean closeBlocksDrawer() {
         if (mCloseable && mBlockListView.getVisibility() == View.VISIBLE) {
@@ -301,6 +325,10 @@ public class ToolboxFragment extends BlockDrawerFragment {
         return (mTabEdge == Gravity.TOP || mTabEdge == Gravity.BOTTOM);
     }
 
+    /**
+     * Updates the padding used to calculate the margins of the scrollable blocks, based on the size
+     * and placement of the tabs.
+     */
     private void updateScrollablePadding() {
         int layoutDir = ViewCompat.getLayoutDirection(mRootView);
         switch (GravityCompat.getAbsoluteGravity(mTabEdge, layoutDir)) {
@@ -345,6 +373,9 @@ public class ToolboxFragment extends BlockDrawerFragment {
         }
     }
 
+    /**
+     * A custom view to manage the measure and draw order of the tabs and blocks drawer.
+     */
     private class ToolboxRoot extends ViewGroup {
         ToolboxRoot(Context context) {
             super(context);
@@ -394,6 +425,10 @@ public class ToolboxFragment extends BlockDrawerFragment {
         }
     }
 
+    /**
+     * {@link RecyclerView.ItemDecoration} to assign padding to block items, to avoid initial
+     * overlap with the tabs.
+     */
     private class BlocksItemDecoration extends RecyclerView.ItemDecoration {
         @Override
         public void getItemOffsets(

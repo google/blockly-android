@@ -36,9 +36,33 @@ import com.google.blockly.ui.WorkspaceHelper;
 import java.util.List;
 
 /**
- * Fragment for viewing the {@link Block} contents of the trash can.
+ * Fragment for viewing the {@link Block} contents of the trash can. {@code TrashFragment} inheirts
+ * the configurability of {@link BlockDrawerFragment}, via the {@code closeable} and
+ * {@code scrollOrientation} attributes.
+ * <p/>
+ * For example:
+ * <blockquote><pre>
+ * &lt;fragment
+ *     xmlns:android="http://schemas.android.com/apk/res/android"
+ *     xmlns:blockly="http://schemas.android.com/apk/res-auto"
+ *     android:name="com.google.blockly.TrashFragment"
+ *     android:id="@+id/blockly_toolbox"
+ *     android:layout_width="wrap_content"
+ *     android:layout_height="match_parent"
+ *     <b>blockly:closeable</b>="true"
+ *     <b>blockly:scrollOrientation</b>="vertical"
+ *     /&gt;
+ * </pre></blockquote>
+ * <p/>
+ * When {@code blockly:closeable} is true, the drawer will hide (visibility {@link View#GONE}).  The
+ * tabs will always be visible as long as either there are multiple tabs or the drawer is closeable.
+ * This provides the user a way to swtich categories or open and close the drawers.
+ * <p/>
+ * {@code blockly:scrollOrientation} controls the block list, and can be either {@code horizontal}
+ * or {@code vertical}.
  *
- * TODO(Anm): Detail configuration options.
+ * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_closeable
+ * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
  */
 public class TrashFragment extends BlockDrawerFragment {
     private static final boolean DEFAULT_CLOSEABLE = false;
@@ -69,9 +93,23 @@ public class TrashFragment extends BlockDrawerFragment {
         return mBlockListView;
     }
 
+    /**
+     * Connects the {@link TrashFragment} to the application's {@link BlocklyController}.  It is
+     * called by {@link BlocklyController#setTrashFragment(TrashFragment)} and should not be called
+     * by the application developer.
+     *
+     * @param controller The application's {@link BlocklyController}.
+     */
     public void setController(BlocklyController controller) {
+        if (mController != null && mController.getTrashFragment() != this) {
+            throw new IllegalStateException("Call BlockController.setTrashFragment(..) instead of"
+                    + " TrashFragment.setController(..).");
+        }
+
         mController = controller;
-        mHelper = controller.getWorkspaceHelper();
+        if (controller != null) {
+            mHelper = controller.getWorkspaceHelper();
+        }
 
         maybeUpdateTouchHandler();
     }
@@ -86,12 +124,9 @@ public class TrashFragment extends BlockDrawerFragment {
     public boolean setOpened(boolean open) {
         FragmentTransaction transaction =
                 getActivity().getSupportFragmentManager().beginTransaction();
-        if (setOpened(open, transaction)) {
-            transaction.commit();
-            return true;
-        } else {
-            return false;
-        }
+        boolean result = setOpened(open, transaction);
+        transaction.commit();  // Posisble no-op if result is false.
+        return result;
     }
 
     /**
@@ -106,7 +141,7 @@ public class TrashFragment extends BlockDrawerFragment {
     // TODO(#384): Add animation hooks for subclasses.
     public boolean setOpened(boolean open, FragmentTransaction transaction) {
         if (!mCloseable && !open) {
-            throw new IllegalStateException("Not configured to close.");
+            throw new IllegalStateException("Not configured as closeable.");
         }
         if (open) {
             if (isHidden()) {

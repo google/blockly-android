@@ -11,7 +11,19 @@ import com.google.blockly.R;
 
 /**
  * Base class for ToolboxFragment and TrashFragment.  Manages the closeable and scroll direction
- * configuration arguments.
+ * configuration arguments through the {@code closeable} and {@code scrollOrientation} attributes.
+ * <p/>
+ * {@code blockly:closeable} is a simple boolean.  It can also be set via the fragment argument
+ * {@link #ARG_CLOSEABLE}. By default, {@code BlockDrawerFragment}s are not closeable. The precise
+ * behavior of {@code blockly:closeable} is left to the subclass.
+ * <p/>
+ * {@code blockly:scrollOrientation} controls the block list, and can be either {@code horizontal}
+ * or {@code vertical}. By default it is horizontal.  Alternatively, the app developer can configure
+ * thier app's fragment instance via the {@link #ARG_SCROLL_ORIENTATION} fragment argument with
+ * either {@link #SCROLL_HORIZONTAL} or {@link #SCROLL_VERTICAL}.
+ *
+ * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_closeable
+ * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
  */
 // TODO(#10): Attribute and argument to set the drawer background.
 public abstract class BlockDrawerFragment extends Fragment {

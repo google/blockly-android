@@ -20,7 +20,8 @@ import org.solovyev.android.views.llm.LinearLayoutManager;
 import java.util.List;
 
 /**
- * A view of category tabs, that are assumed to aligned to one of the edges of a container.
+ * A {@code CategoryEdgeTabs} view shows the list of available {@link ToolboxCategory}s as tabs
+ * aligned to one edge of its container.  It 
  */
 public class CategoryEdgeTabs extends RecyclerView {
     public static final String TAG = "CategoryEdgeTabs";
