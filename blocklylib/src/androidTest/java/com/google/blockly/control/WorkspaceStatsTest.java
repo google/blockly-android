@@ -113,7 +113,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         blockBuilder = new Block.Builder("third block", "testid");
 
         Input in = new Input.InputDummy("name input", Input.ALIGN_LEFT);
-        Field field = new Field.FieldVariable("third block field name", "nameid");
+        Field field = new Field.FieldVariable( "nameid", "third block field name");
         field.setFromString("third block variable name");
         in.add(field);
         blockBuilder.addInput(in);

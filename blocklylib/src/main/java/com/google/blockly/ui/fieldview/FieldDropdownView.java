@@ -38,9 +38,11 @@ public class FieldDropdownView extends Spinner implements FieldView {
         mDropdownField = (Field.FieldDropdown) dropdownField;
         mWorkspaceParams = new FieldWorkspaceParams(mDropdownField, mWorkspaceHelper);
 
-        setBackground(null);
-        setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_item,
-                mDropdownField.getDisplayNames()));
+        ArrayAdapter adapter = new ArrayAdapter<>(context, helper.getSpinnerLayout(),
+                mDropdownField.getDisplayNames());
+        adapter.setDropDownViewResource(helper.getSpinnerDropDownLayout());
+        setAdapter(adapter);
+
         super.setSelection(mDropdownField.getSelectedIndex());
         mDropdownField.setView(this);
     }

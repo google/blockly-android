@@ -32,4 +32,6 @@
     <block type="statement_statement_input"></block>
     <block type="output_no_input"></block>
     <block type="statement_no_next"></block>
+    <block type="set_var"></block>
+    <block type="get_var"></block>
 </xml>

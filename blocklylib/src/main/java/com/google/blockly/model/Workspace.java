@@ -196,6 +196,16 @@ public class Workspace {
     }
 
     /**
+     * Gets the {@link NameManager.VariableNameManager} being used by this workspace. This can be
+     * used to get a list of variables in the workspace.
+     *
+     * @return The name manager for variables in this workspace.
+     */
+    public NameManager getVariableNameManager() {
+        return mVariableNameManager;
+    }
+
+    /**
      * Outputs the workspace as an XML string.
      *
      * @param os The output stream to write to.

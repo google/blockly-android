@@ -113,8 +113,11 @@ public class BlocklyController {
         mContext = context;
         mFragmentManager = fragmentManager;
         mBlockFactory = blockFactory;
-        mHelper = new WorkspaceHelper(mContext, style);
         mWorkspace = new Workspace(mContext, this, mBlockFactory);
+        mHelper = new WorkspaceHelper(mContext, style);
+
+        // TODO: Check if variables are enabled/disabled
+        mHelper.setVariableNameManager(mWorkspace.getVariableNameManager());
 
         mDragger = new Dragger(this);
     }
@@ -467,6 +470,28 @@ public class BlocklyController {
                 mWorkspaceView.addView(bg);
             }
         }
+    }
+
+    /**
+     * Create a new variable. If a variable with the same name already exists the name will be
+     * modified to be unique.
+     *
+     * @param variable The desired name of the variable to create.
+     * @return The actual variable name that was created.
+     */
+    public String addVariable(String variable) {
+        return mWorkspace.getVariableNameManager().generateUniqueName(variable, true);
+    }
+
+    /**
+     * Remove a variable from the workspace.
+     *
+     * @param variable The variable to remove.
+     * @return True if the variable existed and was removed, false otherwise.
+     */
+    public boolean removeVariable(String variable) {
+        return mWorkspace.getVariableNameManager().remove(variable);
+        // TODO: (#11) clean up variable fields when a variable is removed.
     }
 
     /**

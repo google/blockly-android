@@ -45,14 +45,14 @@ public class FieldLabelView extends TextView implements FieldView {
 
     /**
      * Create a view for the given field using the specified style. The style must be a resource id
-     * for a style that extends {@link R.style#DefaultFieldLabelStyle}.
+     * for a style that extends {@link R.style#DefaultFieldStyle}.
      *
      * @param context The context for creating the view and loading resources.
-     * @param fieldLabelStyle The resource id for the style to use on this view.
+     * @param fieldStyle The resource id for the style to use on this view.
      * @param labelField The label this view is rendering.
      * @param helper The helper for loading workspace configs and doing calculations.
      */
-    public FieldLabelView(Context context, int fieldLabelStyle, Field labelField,
+    public FieldLabelView(Context context, int fieldStyle, Field labelField,
                           WorkspaceHelper helper) {
         super(context, null, 0);
 
@@ -60,7 +60,7 @@ public class FieldLabelView extends TextView implements FieldView {
         mWorkspaceHelper = helper;
         mWorkspaceParams = new FieldWorkspaceParams(mLabelField, mWorkspaceHelper);
 
-        configureStyle(context, fieldLabelStyle);
+        configureStyle(context, fieldStyle);
 
         setBackground(null);
         setText(mLabelField.getText());
@@ -88,7 +88,7 @@ public class FieldLabelView extends TextView implements FieldView {
 
     private void configureStyle(Context context, int style) {
         if (style == 0) {
-            style = mWorkspaceHelper.getFieldLabelStyle();
+            style = mWorkspaceHelper.getFieldStyle();
         }
         TypedArray a = context.obtainStyledAttributes(style, R.styleable.BlocklyFieldView);
         int textStyle = a.getResourceId(R.styleable.BlocklyFieldView_textAppearance, 0);

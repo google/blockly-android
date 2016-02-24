@@ -26,6 +26,7 @@ import com.google.blockly.ui.fieldview.FieldCheckboxView;
 import com.google.blockly.ui.fieldview.FieldColourView;
 import com.google.blockly.ui.fieldview.FieldDropdownView;
 import com.google.blockly.ui.fieldview.FieldInputView;
+import com.google.blockly.ui.fieldview.FieldVariableView;
 import com.google.blockly.ui.fieldview.FieldView;
 
 import org.json.JSONArray;
@@ -695,7 +696,14 @@ public abstract class Field implements Cloneable {
          * Two variables with the same name will be considered the same variable at generation.
          */
         public void setVariable(String variable) {
-            mVariable = variable;
+            if ((mVariable == null && variable != null)
+                    || (mVariable != null && !mVariable.equalsIgnoreCase(variable))) {
+                mVariable = variable;
+                // TODO: (#11) Create listener to send updates to.
+                if (mView != null) {
+                    ((FieldVariableView)mView).setSelection(mVariable);
+                }
+            }
         }
 
         @Override
