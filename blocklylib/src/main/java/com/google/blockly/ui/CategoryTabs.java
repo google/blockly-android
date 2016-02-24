@@ -22,7 +22,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.google.blockly.R;
 import com.google.blockly.model.ToolboxCategory;
@@ -39,7 +38,8 @@ import java.util.List;
  * The view can be configured in either {@link #HORIZONTAL} (default) or {@link #VERTICAL}
  * orientation.  If there is not enough space, the tabs will scroll in the same direction.
  * <p/>
- * Additionaly, the individual tab labels can be rotated using the {@link Rotation} constants.
+ * Additionally, the tab labels can be rotated using the {@link Rotation} constants.  All tabs will
+ * be rotated in the same direction.
  */
 public class CategoryTabs extends RecyclerView {
     public static final String TAG = "CategoryTabs";
@@ -53,12 +53,13 @@ public class CategoryTabs extends RecyclerView {
 
     public abstract static class LabelAdapter {
         /**
-         * Create a label view for a tab.
+         * Create a label view for a tab.  This view will later be assigned an
+         * {@link View.OnClickListener} to handle tab selection and deselection.
          */
         public abstract View onCreateLabel();
 
         /**
-         * Bind and a {@link ToolboxCategory} to a label view.
+         * Bind a {@link ToolboxCategory} to a label view, with any appropriate styling..
          *
          * @param labelView The tab's label view.
          * @param category The category to bind to.
@@ -67,8 +68,8 @@ public class CategoryTabs extends RecyclerView {
         public abstract void onBindLabel(View labelView, ToolboxCategory category, int position);
 
         /**
-         * Called when a label click results in a selection change.  Responsible for updating the
-         * view to reflect the new state, including applying the category name.
+         * Called when a label is bound or when clicking results in a selection change.  Responsible
+         * for updating the view to reflect the new state, including applying the category name.
          * <p/>
          * By default, it calls {@link View#setSelected(boolean)}.  Many views and/or styles will
          * handle this appropriately.
@@ -163,7 +164,7 @@ public class CategoryTabs extends RecyclerView {
     /**
      * Sets whether the selected tab will deselect when clicked again.
      *
-     * @param tapSelectedDeselects IF {@code true}, selected tab will deselect when clicked again.
+     * @param tapSelectedDeselects If {@code true}, selected tab will deselect when clicked again.
      */
     public void setTapSelectedDeselects(boolean tapSelectedDeselects) {
         mTapSelectedDeselects = tapSelectedDeselects;
@@ -191,16 +192,20 @@ public class CategoryTabs extends RecyclerView {
             return;
         }
         if (mCurrentCategory != null) {
+            // Deselect the old tab.
             TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
             if (vh != null && mLabelAdapter != null) {  // Tab might not be rendered or visible yet.
+                // Update style. Don't use notifyItemChanged(..), due to a resulting UI flash.
                 mLabelAdapter.onSelectionChanged(
                         vh.mLabel, vh.mCategory, vh.getAdapterPosition(), false);
             }
         }
         mCurrentCategory = category;
         if (mCurrentCategory != null && mLabelAdapter != null) {
+            // Select the new tab.
             TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
             if (vh != null) {  // Tab might not be rendered or visible yet.
+                // Update style. Don't use notifyItemChanged(..), due to a resulting UI flash.
                 mLabelAdapter.onSelectionChanged(
                         vh.mLabel, vh.mCategory, vh.getAdapterPosition(), true);
             }
@@ -211,7 +216,7 @@ public class CategoryTabs extends RecyclerView {
         return mCategories.size();
     }
 
-    protected TabLabelHolder getTabLabelHolder(ToolboxCategory category) {
+    private TabLabelHolder getTabLabelHolder(ToolboxCategory category) {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; ++i) {
             View child = getChildAt(i);
@@ -221,32 +226,6 @@ public class CategoryTabs extends RecyclerView {
             }
         }
         return null;
-    }
-
-    private void onCategoryLabelClicked(
-            TextView label, @Nullable ToolboxCategory category, int tabPosition) {
-
-        if (category == mCurrentCategory) {
-            if (mTapSelectedDeselects) {
-                setSelectedCategory(null);
-                if (mLabelAdapter != null) {
-                    mLabelAdapter.onSelectionChanged(label, category, tabPosition, false);
-                }
-                fireOnCategorySelection(null);
-            }
-        } else {
-            setSelectedCategory(category);
-            if (mLabelAdapter != null) {
-                mLabelAdapter.onSelectionChanged(label, category, tabPosition, true);
-            }
-            fireOnCategorySelection(category);
-        }
-    }
-
-    private void fireOnCategorySelection(@Nullable ToolboxCategory category) {
-        if (mCallback != null) {
-            mCallback.onCategorySelected(category);
-        }
     }
 
     /**
@@ -281,7 +260,7 @@ public class CategoryTabs extends RecyclerView {
         }
 
         @Override
-        public void onBindViewHolder(TabLabelHolder holder, final int tabPosition) {
+        public void onBindViewHolder(TabLabelHolder holder, int tabPosition) {
             final ToolboxCategory category = mCategories.get(tabPosition);
             boolean isSelected = (category == mCurrentCategory);
             // These may throw a NPE, but that is an illegal state checked above.
@@ -293,7 +272,11 @@ public class CategoryTabs extends RecyclerView {
             holder.mLabel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View label) {
-                    onCategoryLabelClicked((TextView) label, category, tabPosition);
+                    ToolboxCategory oldCategory = mCurrentCategory;
+                    setSelectedCategory(category);
+                    if (mCurrentCategory != oldCategory && mCallback != null) {
+                        mCallback.onCategorySelected(category);
+                    }
                 }
             });
         }
@@ -302,7 +285,10 @@ public class CategoryTabs extends RecyclerView {
         public void onViewDetachedFromWindow(TabLabelHolder holder) {
             holder.mRotator.setTag(null);  // Remove reference to holder.
             holder.mCategory = null;
+            holder.mLabel.setOnClickListener(null);
             super.onViewDetachedFromWindow(holder);
         }
+
+
     }
 }

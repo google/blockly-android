@@ -36,7 +36,7 @@ import com.google.blockly.ui.WorkspaceHelper;
 import java.util.List;
 
 /**
- * Fragment for viewing the {@link Block} contents of the trash can. {@code TrashFragment} inheirts
+ * Fragment for viewing the {@link Block} contents of the trash can. {@code TrashFragment} inherits
  * the configurability of {@link BlockDrawerFragment}, via the {@code closeable} and
  * {@code scrollOrientation} attributes.
  * <p/>
@@ -54,9 +54,10 @@ import java.util.List;
  *     /&gt;
  * </pre></blockquote>
  * <p/>
- * When {@code blockly:closeable} is true, the drawer will hide (visibility {@link View#GONE}).  The
+ * When {@code blockly:closeable} is true, the drawer will hide (visibility {@link View#GONE}) hide
+ * until clicked to open. When false, the block list will always fill the fragment container. The
  * tabs will always be visible as long as either there are multiple tabs or the drawer is closeable.
- * This provides the user a way to swtich categories or open and close the drawers.
+ * This provides the user a way to switch categories or open and close the drawers.
  * <p/>
  * {@code blockly:scrollOrientation} controls the block list, and can be either {@code horizontal}
  * or {@code vertical}.

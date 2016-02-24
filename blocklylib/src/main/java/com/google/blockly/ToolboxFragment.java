@@ -57,9 +57,9 @@ import java.util.List;
  * available blocks are divided into drawers by {@link ToolboxCategory}s. Assign the categories
  * using {@link #setContents(ToolboxCategory)}. This top level category can contain either a list of
  * blocks or a list of subcategories, but not both. If it has blocks, the {@code ToolboxFragment}
- * renders as a single tab/group.  If it has subcategories, it will render each subcategory as a
- * tab.  If there is only one category (top level or subcategory) and the fragment is not closeable,
- * no tab will render with the list of blocks.
+ * renders as a single tab/group.  If it has subcategories, it will render each subcategory with its
+ * own tab.  If there is only one category (top level or subcategory) and the fragment is not
+ * closeable, no tab will render with the list of blocks.
  * <p/>
  * The look of the {@code ToolboxFragment} is highly configurable. It inherits from
  * {@link BlockDrawerFragment}, including the {@code closeable} and {@code scrollOrientation}
@@ -254,7 +254,10 @@ public class ToolboxFragment extends BlockDrawerFragment {
     }
 
     /**
-     * Sets the contents that should be displayed in the toolbox.
+     * Sets the top level category used to populate the toolbox. This top level category can contain
+     * either a list of blocks or a list of subcategories, but not both. If it has blocks, the
+     * {@code ToolboxFragment} renders as a single tab/group.  If it has subcategories, it will
+     * render each subcategory with its own tab.
      *
      * @param topLevelCategory The top-level category in the toolbox.
      */
@@ -305,7 +308,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
     /**
      * Attempts to close the blocks drawer.
      *
-     * @return True an action was taken (the drawer is closeable and was previously open).
+     * @return True if an action was taken (the drawer is closeable and was previously open).
      */
     // TODO(#384): Add mBlockList animation hooks for subclasses.
     public boolean closeBlocksDrawer() {
@@ -343,7 +346,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
      * {@link #mTabEdge}, and {@link #mRotateTabs}.
      */
     protected void updateViews() {
-        // If there is only one the drawer is not closeable, we don't need the tab.
+        // If there is only one drawer and the drawer is not closeable, we don't need the tab.
         if (!mCloseable && mCategoryTabs.getTabCount() <= 1) {
             mCategoryTabs.setVisibility(View.GONE);
         } else {
@@ -422,7 +425,6 @@ public class ToolboxFragment extends BlockDrawerFragment {
                     .inflate(R.layout.default_toolbox_tab, null);
         }
 
-        @Override
         /**
          * Assigns the category name to the {@link TextView}.  Tabs without labels will be assigned
          * the text {@link R.string#blockly_toolbox_default_category_name} ("Blocks" in English).
@@ -431,6 +433,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
          * @param category The {@link ToolboxCategory}.
          * @param position The ordering position of the tab.
          */
+        @Override
         public void onBindLabel(View labelView, ToolboxCategory category, int position) {
             String labelText = category.getCategoryName();
             if (TextUtils.isEmpty(labelText)) {
@@ -479,12 +482,10 @@ public class ToolboxFragment extends BlockDrawerFragment {
                     mCategoryTabs.layout(0, 0,
                             Math.min(width, tabMeasuredwidth), Math.min(height, tabMeasuredHeight));
                     break;
-
                 case Gravity.RIGHT:
                     mCategoryTabs.layout(Math.max(0, width - tabMeasuredwidth), 0, width,
                             Math.min(height, tabMeasuredHeight));
                     break;
-
                 case Gravity.BOTTOM:
                     mCategoryTabs.layout(0, Math.max(0, height - tabMeasuredHeight),
                             Math.min(width, tabMeasuredwidth), bottom);

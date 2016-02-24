@@ -27,10 +27,8 @@ import android.view.ViewParent;
 
 /**
  * ViewGroup that can rotate a child view by 90&ordm; either clockwise or counter-clockwise.
- * The view can store multiple children, but all are rendered with the same rotation, just within
- * the {@code RotatedViewGroup's} padding.
- * <p/>
- * Multiple children are not supported, though they may work.
+ * While not fully supported, if the view has multiple children, they will all be rotated in the
+ * same direction, just within the {@code RotatedViewGroup's} padding.
  */
 public class RotatedViewGroup extends ViewGroup {
     private @Rotation.Enum int mRotation = Rotation.NONE;
