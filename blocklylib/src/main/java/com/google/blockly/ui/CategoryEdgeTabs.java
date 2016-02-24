@@ -17,11 +17,16 @@ import com.google.blockly.model.ToolboxCategory;
 // Solves https://code.google.com/p/android/issues/detail?id=74772 until the fix is released.
 import org.solovyev.android.views.llm.LinearLayoutManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@code CategoryEdgeTabs} view shows the list of available {@link ToolboxCategory}s as tabs
- * aligned to one edge of its container.  It 
+ * A {@code CategoryEdgeTabs} view shows the list of available {@link ToolboxCategory}s as tabs.
+ * <p/>
+ * The view can be configured in either {@link #HORIZONTAL} (default) or {@link #VERTICAL}
+ * orientation.  If there is not enough space, the tabs will scroll in the same direction.
+ * <p/>
+ * Additionaly, the individual tab labels can be rotated using the {@link Rotation} constants.
  */
 public class CategoryEdgeTabs extends RecyclerView {
     public static final String TAG = "CategoryEdgeTabs";
@@ -35,12 +40,12 @@ public class CategoryEdgeTabs extends RecyclerView {
 
     private final LinearLayoutManager mLayoutManager;
     private final CategoryAdapter mAdapter;
+    protected final List<ToolboxCategory> mCategories = new ArrayList<>();
 
     protected @Rotation.Enum int mLabelRotation = Rotation.NONE;
     protected boolean mTapSelectedDeselects = false;
 
     protected Listener mListener;
-    protected ToolboxCategory mTopLevelCategory;
     protected ToolboxCategory mCurrentCategory;
 
     public CategoryEdgeTabs(Context context) {
@@ -91,8 +96,9 @@ public class CategoryEdgeTabs extends RecyclerView {
         mTapSelectedDeselects = tapSelectedDeselects;
     }
 
-    public void setTopLevelCategory(ToolboxCategory category) {
-        mTopLevelCategory = category;
+    public void setCategories(List<ToolboxCategory> categories) {
+        mCategories.clear();
+        mCategories.addAll(categories);
         mAdapter.notifyDataSetChanged();
     }
 
@@ -103,39 +109,20 @@ public class CategoryEdgeTabs extends RecyclerView {
         if (mCurrentCategory != null) {
             TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
             if (vh != null) {  // Tab might not be rendered or visible yet.
-                markSelection(vh.mLabel, vh.mCategory, vh.getAdapterPosition(), false);
+                onSelectionChanged(vh.mLabel, vh.mCategory, vh.getAdapterPosition(), false);
             }
         }
         mCurrentCategory = category;
         if (mCurrentCategory != null) {
             TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
             if (vh != null) {  // Tab might not be rendered or visible yet.
-                markSelection(vh.mLabel, vh.mCategory, vh.getAdapterPosition(), true);
+                onSelectionChanged(vh.mLabel, vh.mCategory, vh.getAdapterPosition(), true);
             }
         }
     }
 
     public int getTabCount() {
-        if (mTopLevelCategory == null) {
-            return 0;
-        }
-
-        int subcategoryCount = mTopLevelCategory.getSubcategories().size();
-        boolean showTopLevelTab =
-                (subcategoryCount == 0) || !mTopLevelCategory.getBlocks().isEmpty();
-        return (showTopLevelTab ? subcategoryCount + 1 : subcategoryCount);
-    }
-
-    protected int getTabPosition(ToolboxCategory category) {
-        if (category == null || mTopLevelCategory == null) {
-            return -1;  // Not found.
-        }
-        List<ToolboxCategory> subcats = mTopLevelCategory.getSubcategories();
-        if (!mTopLevelCategory.isEmpty() && category == mTopLevelCategory) {
-            // Top Level Category is always listed last.
-            return subcats.size();
-        }
-        return subcats.indexOf(category);
+        return mCategories.size();
     }
 
     protected TabLabelHolder getTabLabelHolder(ToolboxCategory category) {
@@ -151,11 +138,12 @@ public class CategoryEdgeTabs extends RecyclerView {
     }
 
     /**
-     * Hook for subclasses to construct or inflate a {@link TextView} to use as a category tab label.
+     * Hook for subclasses to construct or inflate a {@link TextView} to use as a category tab
+     * label.
      */
     protected TextView onCreateLabel() {
         return (TextView) LayoutInflater.from(
-                getContext()).inflate(R.layout.default_toolbox_tab,null);
+                getContext()).inflate(R.layout.default_toolbox_tab, null);
     }
 
     /**
@@ -176,14 +164,14 @@ public class CategoryEdgeTabs extends RecyclerView {
     }
 
     /**
-     * Hook for subclasses to update the style of a category labels based on selected status.
+     * Hook for subclasses to update the style of a category label based on selected status.
      *
-     * @param labelView The viw used as the label.
+     * @param labelView The view used as the label.
      * @param category The {@link ToolboxCategory}.
      * @param position The ordering position of the tab.
      * @param isSelected True if the tab represents the currently open tab.
      */
-    protected void markSelection(
+    protected void onSelectionChanged(
             TextView labelView, ToolboxCategory category, int position, boolean isSelected) {
         labelView.setSelected(isSelected);
     }
@@ -194,12 +182,12 @@ public class CategoryEdgeTabs extends RecyclerView {
         if (category == mCurrentCategory) {
             if (mTapSelectedDeselects) {
                 setSelectedCategory(null);
-                markSelection(label, category, tabPosition, false);
+                onSelectionChanged(label, category, tabPosition, false);
                 fireOnCategorySelection(null);
             }
         } else {
             setSelectedCategory(category);
-            markSelection(label, category, tabPosition, true);
+            onSelectionChanged(label, category, tabPosition, true);
             fireOnCategorySelection(category);
         }
     }
@@ -210,6 +198,9 @@ public class CategoryEdgeTabs extends RecyclerView {
         }
     }
 
+    /**
+     * ViewHolder for the display name of a category in the toolbox.
+     */
     private static class TabLabelHolder extends RecyclerView.ViewHolder {
         public final RotatedViewGroup mRotator;
         public final TextView mLabel;
@@ -237,12 +228,10 @@ public class CategoryEdgeTabs extends RecyclerView {
 
         @Override
         public void onBindViewHolder(TabLabelHolder holder, final int tabPosition) {
-            boolean isTopLevel = (tabPosition == mTopLevelCategory.getSubcategories().size());
-            final ToolboxCategory category = isTopLevel ? mTopLevelCategory
-                    : mTopLevelCategory.getSubcategories().get(tabPosition);
+            final ToolboxCategory category = mCategories.get(tabPosition);
             boolean isSelected = (category == mCurrentCategory);
             bindAndStyleLabel(holder.mLabel, category, tabPosition);
-            markSelection(holder.mLabel, category, tabPosition, isSelected);
+            onSelectionChanged(holder.mLabel, category, tabPosition, isSelected);
             holder.mCategory = category;
             holder.mRotator.setChildRotation(mLabelRotation);
             holder.mRotator.setTag(holder);  // For getTabLabelHolder() and deselection

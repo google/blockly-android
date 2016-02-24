@@ -236,11 +236,24 @@ public class ToolboxFragment extends BlockDrawerFragment {
      * @param topLevelCategory The top-level category in the toolbox.
      */
     public void setContents(final ToolboxCategory topLevelCategory) {
-        mCategoryTabs.setTopLevelCategory(topLevelCategory);
+        List<Block> blocks = topLevelCategory.getBlocks();
+        List<ToolboxCategory> subcats = topLevelCategory.getSubcategories();
+
+        if (!blocks.isEmpty() && !subcats.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Toolbox cannot have both blocks and categories in the root level.");
+        }
+
+        if (blocks.isEmpty()) {
+            mCategoryTabs.setCategories(subcats);
+        } else {
+            List<ToolboxCategory> singleCategory = new ArrayList<>(1);
+            singleCategory.add(topLevelCategory);
+            mCategoryTabs.setCategories(singleCategory);
+        }
         updateViews();
 
         if (mBlockListView.getVisibility() == View.VISIBLE) {
-            List<ToolboxCategory> subcats = topLevelCategory.getSubcategories();
             ToolboxCategory curCategory = subcats.isEmpty() ? topLevelCategory : subcats.get(0);
             mCategoryTabs.setSelectedCategory(curCategory);
             mBlockListView.setContents(curCategory.getBlocks());
