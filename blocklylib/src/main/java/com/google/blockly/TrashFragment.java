@@ -17,10 +17,7 @@ package com.google.blockly;
 
 import android.graphics.Point;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,6 +27,7 @@ import com.google.blockly.control.BlocklyController;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.ui.BlockDrawerFragment;
 import com.google.blockly.ui.BlockListView;
 import com.google.blockly.ui.BlockTouchHandler;
 import com.google.blockly.ui.BlockView;
@@ -38,16 +36,41 @@ import com.google.blockly.ui.WorkspaceHelper;
 import java.util.List;
 
 /**
- * Fragment for viewing the contents of the trash can.
+ * Fragment for viewing the {@link Block} contents of the trash can. {@code TrashFragment} inherits
+ * the configurability of {@link BlockDrawerFragment}, via the {@code closeable} and
+ * {@code scrollOrientation} attributes.
+ * <p/>
+ * For example:
+ * <blockquote><pre>
+ * &lt;fragment
+ *     xmlns:android="http://schemas.android.com/apk/res/android"
+ *     xmlns:blockly="http://schemas.android.com/apk/res-auto"
+ *     android:name="com.google.blockly.TrashFragment"
+ *     android:id="@+id/blockly_toolbox"
+ *     android:layout_width="wrap_content"
+ *     android:layout_height="match_parent"
+ *     <b>blockly:closeable</b>="true"
+ *     <b>blockly:scrollOrientation</b>="vertical"
+ *     /&gt;
+ * </pre></blockquote>
+ * <p/>
+ * When {@code blockly:closeable} is true, the drawer will hide (visibility {@link View#GONE}) hide
+ * until clicked to open. When false, the block list will always fill the fragment container. The
+ * tabs will always be visible as long as either there are multiple tabs or the drawer is closeable.
+ * This provides the user a way to switch categories or open and close the drawers.
+ * <p/>
+ * {@code blockly:scrollOrientation} controls the block list, and can be either {@code horizontal}
+ * or {@code vertical}.
+ *
+ * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_closeable
+ * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
  */
-public class TrashFragment extends Fragment {
-    private static final String TAG = "TrashFragment";
+public class TrashFragment extends BlockDrawerFragment {
+    private static final boolean DEFAULT_CLOSEABLE = false;
 
     private BlocklyController mController;
     private WorkspaceHelper mHelper;
     private BlockListView mBlockListView;
-
-    private boolean mAutohideEnabled = false;
 
     protected final Point mTempScreenPosition = new Point();
     protected final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
@@ -57,38 +80,98 @@ public class TrashFragment extends Fragment {
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
-        mBlockListView = (BlockListView) inflater.inflate(R.layout.fragment_trash, null);
-        LinearLayoutManager layout = new LinearLayoutManager(getContext());
-        layout.setOrientation(LinearLayoutManager.VERTICAL);
-        mBlockListView.setLayoutManager(layout);
+        // Read configure
+        readArgumentsFromBundle(getArguments());
+        readArgumentsFromBundle(savedInstanceState);  // Overwrite initial state with stored state.
+
+        mBlockListView = new BlockListView(getContext());
+        mBlockListView.setLayoutManager(createLinearLayoutManager());
+        mBlockListView.setBackgroundColor(
+                getResources().getColor(R.color.blockly_trash_bg, null));  // Replace with attribute
 
         maybeUpdateTouchHandler();
+
         return mBlockListView;
     }
 
+    /**
+     * Connects the {@link TrashFragment} to the application's {@link BlocklyController}. It is
+     * called by {@link BlocklyController#setTrashFragment(TrashFragment)} and should not be called
+     * by the application developer.
+     *
+     * @param controller The application's {@link BlocklyController}.
+     */
     public void setController(BlocklyController controller) {
+        if (mController != null && mController.getTrashFragment() != this) {
+            throw new IllegalStateException("Call BlockController.setTrashFragment(..) instead of"
+                    + " TrashFragment.setController(..).");
+        }
+
         mController = controller;
-        mHelper = controller.getWorkspaceHelper();
+        if (controller != null) {
+            mHelper = controller.getWorkspaceHelper();
+        }
 
         maybeUpdateTouchHandler();
     }
 
-    public void setAutoHideEnabled(boolean autoHideEnabled) {
-        mAutohideEnabled = autoHideEnabled;
+    /**
+     * Immediately executes a transaction that will open or close the {@code TrashFragment}.
+     *
+     * @param open Opens the trash if {@code true} and trash is closed. Closes it if {@code false}
+     *             and previously opened.
+     * @return Whether there was be a state change.
+     */
+    public boolean setOpened(boolean open) {
+        FragmentTransaction transaction =
+                getActivity().getSupportFragmentManager().beginTransaction();
+        boolean result = setOpened(open, transaction);
+        transaction.commit();  // Posisble no-op if result is false.
+        return result;
     }
 
+    /**
+     * Appends to {@code transaction} the necessary step (if any) to show or hide the
+     * {@code TrashFragment}.
+     *
+     * @param open Opens the trash if {@code true} and trash is closed. Closes it if {@code false}
+     *             and previously opened.
+     * @param transaction {@link FragmentTransaction} in which the action will occur.
+     * @return Whether there will be a state change.
+     */
+    // TODO(#384): Add animation hooks for subclasses.
+    public boolean setOpened(boolean open, FragmentTransaction transaction) {
+        if (!mCloseable && !open) {
+            throw new IllegalStateException("Not configured as closeable.");
+        }
+        if (open) {
+            if (isHidden()) {
+                transaction.show(this);
+                return true;
+            }
+        } else {
+            if (!isHidden()) {
+                transaction.hide(this);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Called by the {@link BlocklyController}, setting the list of blocks in the trash.
+     *
+     * @param blocks The trashed blocks.
+     */
     public void setContents(List<Block> blocks) {
         mBlockListView.setContents(blocks);
     }
 
-    public void show() {
-        getActivity().getSupportFragmentManager().beginTransaction().show(this).commit();
-    }
-
-    public void hide() {
-        getActivity().getSupportFragmentManager().beginTransaction().hide(this).commit();
-    }
-
+    /**
+     * Called by the {@link BlocklyController}, notifying when a block was removed from the trash.
+     *
+     * @param block The block to remove from the trash view.
+     */
     public void onBlockTrashed(Block block) {
         mBlockListView.addBlock(0, block);
     }
@@ -96,7 +179,7 @@ public class TrashFragment extends Fragment {
     private void maybeUpdateTouchHandler() {
         if (mBlockListView != null && mController != null) {
             ConnectionManager connectionMan = mController.getWorkspace().getConnectionManager();
-            mBlockListView.init(mHelper, connectionMan, new BlockTouchHandler() {
+            mBlockListView.init(mHelper, new BlockTouchHandler() {
                 @Override
                 public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
                     if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
@@ -117,8 +200,8 @@ public class TrashFragment extends Fragment {
                     mController.addBlockFromToolbox(copiedModel, motionEvent);
                     mBlockListView.removeBlock(rootBlock);
 
-                    if (mAutohideEnabled) {
-                        hide();
+                    if (mCloseable) {
+                        setOpened(false);
                     }
                     return true;
                 }
