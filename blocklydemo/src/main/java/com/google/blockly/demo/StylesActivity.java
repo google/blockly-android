@@ -40,7 +40,7 @@ public class StylesActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "turtle/level_1/toolbox.xml";
+        return "turtle/toolbox_all.xml";
     }
 
     @NonNull
