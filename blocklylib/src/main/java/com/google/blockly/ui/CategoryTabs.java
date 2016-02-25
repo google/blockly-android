@@ -216,6 +216,24 @@ public class CategoryTabs extends RecyclerView {
         return mCategories.size();
     }
 
+    private void onCategoryClicked(ToolboxCategory category) {
+        if (category == mCurrentCategory == mTapSelectedDeselects) {
+            if (mTapSelectedDeselects) {
+                setSelectedCategory(null);
+                mCallback.onCategorySelected(null);
+            } // else don't update or call callback
+        } else {
+            setSelectedCategory(category);
+            mCallback.onCategorySelected(category);
+        }
+    }
+
+    private void fireOnCategorySelected(ToolboxCategory category) {
+        if (mCallback != null) {
+            mCallback.onCategorySelected(category);
+        }
+    }
+
     private TabLabelHolder getTabLabelHolder(ToolboxCategory category) {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; ++i) {
@@ -272,11 +290,7 @@ public class CategoryTabs extends RecyclerView {
             holder.mLabel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View label) {
-                    ToolboxCategory oldCategory = mCurrentCategory;
-                    setSelectedCategory(category);
-                    if (mCurrentCategory != oldCategory && mCallback != null) {
-                        mCallback.onCategorySelected(category);
-                    }
+                    onCategoryClicked(category);
                 }
             });
         }
