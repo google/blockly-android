@@ -1,6 +1,6 @@
 [
   {
-    "id": "draw_move",
+    "id": "turtle_move_internal",
     "message0": "move %1 %2",
     "args0": [
       {
@@ -46,7 +46,7 @@
     "tooltip": "Moves the turtle forward or backward by the specified amount."
   },
   {
-    "id": "draw_turn",
+    "id": "turtle_turn_internal",
     "message0": "turn %1 %2",
     "args0": [
       {
@@ -101,7 +101,7 @@
     "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#m62qt5"
   },
   {
-    "id": "draw_pen",
+    "id": "turtle_pen",
     "message0": "pen %1",
     "args0": [
       {
@@ -125,7 +125,7 @@
     "tooltip": "Lifts or lowers the pen, to stop or start drawing."
   },
   {
-    "id": "draw_colour",
+    "id": "turtle_colour_internal",
     "message0": "set colour to %1",
     "args0": [
       {
