@@ -38,6 +38,21 @@ import com.google.blockly.utils.CodeGenerationRequest;
 public class TurtleActivity extends BlocklySectionsActivity {
     private static final String TAG = "TurtleActivity";
 
+    private static final int MAX_LEVELS = 10;
+    private static final String[] LEVEL_TOOLBOX = new String[MAX_LEVELS];
+    static {
+        LEVEL_TOOLBOX[0] = "toolbox_basic.xml";
+        LEVEL_TOOLBOX[1] = "toolbox_basic.xml";
+        LEVEL_TOOLBOX[2] = "toolbox_colour.xml";
+        LEVEL_TOOLBOX[3] = "toolbox_colour_pen.xml";
+        LEVEL_TOOLBOX[4] = "toolbox_colour_pen.xml";
+        LEVEL_TOOLBOX[5] = "toolbox_colour_pen.xml";
+        LEVEL_TOOLBOX[6] = "toolbox_colour_pen.xml";
+        LEVEL_TOOLBOX[7] = "toolbox_colour_pen.xml";
+        LEVEL_TOOLBOX[8] = "toolbox_colour_pen.xml";
+        LEVEL_TOOLBOX[9] = "toolbox_all.xml";
+    }
+
     private final Handler mHandler = new Handler();
     private WebView mTurtleWebview;
     private final CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
@@ -72,19 +87,22 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @Override
     protected String getToolboxContentsXmlPath() {
         // Expose a different set of blocks to the user at each level.
-        return "turtle/level_" + (getCurrentSectionIndex() + 1) + "/toolbox.xml";
+        return "turtle/" + LEVEL_TOOLBOX[getCurrentSectionIndex()];
     }
 
     @NonNull
     @Override
     protected ListAdapter onCreateSectionsListAdapter() {
-        // Create the game levels with the labels "Turtle 1", "Turtle 2", etc., displaying
+        // Create the game levels with the labels "Level 1", "Level 2", etc., displaying
         // them as simple text items in the sections drawer.
-        return new ArrayAdapter<>(
-                this,
+        String[] levelNames = new String[MAX_LEVELS];
+        for (int i = 0; i < MAX_LEVELS; ++i) {
+            levelNames[i] = "Level " + (i +1);
+        }
+        return new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
-                new String[]{"Turtle 1", "Turtle 2", "Turtle 3", "Turtle 4"});
+                levelNames);
     }
 
     @Override

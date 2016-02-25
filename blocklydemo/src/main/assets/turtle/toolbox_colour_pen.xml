@@ -22,6 +22,14 @@
         <block type="draw_turn">
             <field name="VALUE">90</field>
         </block>
+        <block type="draw_pen">
+            <field name="PEN">penUp</field>
+        </block>
+    </category>
+    <category name="Colour">
+        <block type="draw_colour">
+            <field name="COLOUR">#ff0000</field>
+        </block>
     </category>
     <category name="Loops">
         <block type="controls_repeat_ext">
