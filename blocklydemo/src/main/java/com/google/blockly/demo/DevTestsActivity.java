@@ -132,6 +132,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     @Override
     protected void onLoadInitialWorkspace() {
         MockBlocksProvider.makeComplexModel(getController());
+        MockBlocksProvider.addDefaultVariables(getController());
     }
 
     @Override

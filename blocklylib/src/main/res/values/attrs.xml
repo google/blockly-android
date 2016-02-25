@@ -20,7 +20,7 @@
         <attr name="blockViewStyle" format="reference" />
         <!-- The style to use for FieldLabelViews in this workspace. Should define attributes
             from BlocklyFieldView and BlocklyFieldLabelView -->
-        <attr name="fieldLabelStyle" format="reference"/>
+        <attr name="fieldStyle" format="reference"/>
         <!-- The minimum scaling supported by the workspace -->
         <attr name="minScale" format="float|reference" />
         <!-- The maximum scaling supported by the workspace -->
@@ -47,6 +47,10 @@
         <attr name="fieldMinHeight" format="dimension|reference"/>
         <!-- The minimum width for any FieldView -->
         <attr name="fieldMinWidth" format="dimension|reference"/>
+        <!-- The layout to use for spinner items like variables -->
+        <attr name="spinnerItem" format="reference" />
+        <!-- The drop down layout to use for spinner items like variables -->
+        <attr name="spinnerItemDropDown" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="BlocklyFieldLabelView">

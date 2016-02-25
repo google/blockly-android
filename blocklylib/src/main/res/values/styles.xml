@@ -14,11 +14,11 @@
   ~  limitations under the License.
   -->
 
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <style name="BlocklyTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="blockViewStyle">@style/DefaultBlockStyle</item>
-        <item name="fieldLabelStyle">@style/DefaultFieldLabelStyle</item>
+        <item name="fieldStyle">@style/DefaultFieldStyle</item>
         <item name="minScale">0.5</item>
         <item name="maxScale">2.5</item>
         <item name="defaultScale">1.0</item>
@@ -31,14 +31,13 @@
         <item name="innerPadding">8dp</item>
     </style>
 
-
     <style name="DefaultFieldStyle">
         <item name="textAppearance">@style/TextAppearance.AppCompat.Large</item>
         <item name="fieldMinHeight">24dip</item>
         <item name="fieldMinWidth">24dip</item>
+        <item name="spinnerItem">@android:layout/simple_spinner_item</item>
+        <item name="spinnerItemDropDown">@android:layout/simple_spinner_dropdown_item</item>
     </style>
-
-    <style name="DefaultFieldLabelStyle" parent="DefaultFieldStyle"/>
 
     <style name="DefaultCategoryLabelStyle">
         <item name="android:fontFamily">sans-serif</item>
