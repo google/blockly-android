@@ -18,6 +18,7 @@ package com.google.blockly.demo;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -42,6 +43,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
                 @Override
                 public void onFinishCodeGeneration(final String generatedCode) {
                     // Sample callback.
+                    Log.i(TAG, "generatedCode:\n" + generatedCode);
                     Toast.makeText(getApplicationContext(), generatedCode,
                             Toast.LENGTH_LONG).show();
                     mHandler.post(new Runnable() {
@@ -69,7 +71,8 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "turtle/level_1/toolbox.xml";
+        // Expose a different set of blocks to the user at each level.
+        return "turtle/level_" + (getCurrentSectionIndex() + 1) + "/toolbox.xml";
     }
 
     @NonNull
@@ -86,8 +89,8 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     protected boolean onSectionChanged(int oldSection, int newSection) {
-        // TODO(#363): Load different levels.
-        return false;
+        reloadToolbar();
+        return true;
     }
 
     @Override
