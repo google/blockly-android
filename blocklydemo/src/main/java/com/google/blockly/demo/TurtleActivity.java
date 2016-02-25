@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
+import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.ArrayAdapter;
@@ -27,6 +28,7 @@ import android.widget.ListAdapter;
 import android.widget.Toast;
 
 import com.google.blockly.BlocklySectionsActivity;
+import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 
@@ -49,10 +51,8 @@ public class TurtleActivity extends BlocklySectionsActivity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            // TODO(fenichel): Correctly escape all relevant characters, not just
-                            // newlines.
-                            String encoded =
-                                    "Turtle.execute('" + generatedCode.replace("\n", "\\n") + "')";
+                            String encoded = "Turtle.execute("
+                                    + JavascriptUtil.makeJsString(generatedCode) + ")";
                             mTurtleWebview.loadUrl("javascript:" + encoded);
                         }
                     });

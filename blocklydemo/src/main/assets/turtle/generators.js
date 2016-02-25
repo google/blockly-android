@@ -24,14 +24,14 @@ Blockly.JavaScript['draw_move'] = function(block) {
   // Generate JavaScript for moving forward or backwards.
   var value = block.getFieldValue('VALUE');
   return 'Turtle.' + block.getFieldValue('DIR') +
-      '(' + value + ');\n';
+      '(' + value + ', \'block_id_' + block.id + '\');\n'
 };
 
 Blockly.JavaScript['draw_turn'] = function(block) {
   // Generate JavaScript for turning left or right.
   var value = block.getFieldValue('VALUE');
   return 'Turtle.' + block.getFieldValue('DIR') +
-      '(' + value + ');\n';
+      '(' + value + ', \'block_id_' + block.id + '\');\n'
 };
 
 Blockly.JavaScript['draw_width'] = function(block) {
