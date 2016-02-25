@@ -78,13 +78,13 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @NonNull
     @Override
     protected ListAdapter onCreateSectionsListAdapter() {
-        // Create three sections with the labels "Turtle 1", "Turtle 2", and "Turtle 3" displaying
+        // Create the game levels with the labels "Turtle 1", "Turtle 2", etc., displaying
         // them as simple text items in the sections drawer.
         return new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
-                new String[]{"Turtle 1", "Turtle 2", "Turtle 3"});
+                new String[]{"Turtle 1", "Turtle 2", "Turtle 3", "Turtle 4"});
     }
 
     @Override
