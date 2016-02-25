@@ -1,6 +1,6 @@
 [
   {
-    "id": "draw_move",
+    "id": "turtle_move_internal",
     "message0": "move %1 %2",
     "args0": [
       {
@@ -42,51 +42,11 @@
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "tooltip": "",
-    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#f95n7i"
+    "colour": 160,
+    "tooltip": "Moves the turtle forward or backward by the specified amount."
   },
   {
-    "id": "controls_repeat_ext",
-    "message0": "repeat %1 times %2 %3",
-    "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "TIMES",
-        "options": [
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "360",
-            "360"
-          ]
-        ]
-      },
-      {
-        "type": "input_dummy"
-      },
-      {
-        "type": "input_statement",
-        "name": "DO"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 120,
-    "tooltip": "",
-    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#kqncx5"
-  },
-  {
-    "id": "draw_turn",
+    "id": "turtle_turn_internal",
     "message0": "turn %1 %2",
     "args0": [
       {
@@ -136,7 +96,85 @@
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "tooltip": "",
-    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#m62qt5"
+    "colour": 160,
+    "tooltip": "Turns the turtle left or right by the specified number of degrees."
+  },
+  {
+    "id": "turtle_pen",
+    "message0": "pen %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "PEN",
+        "options": [
+          [
+            "up",
+            "penUp"
+          ],
+          [
+            "down",
+            "penDown"
+          ]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Lifts or lowers the pen, to stop or start drawing."
+  },
+  {
+    "id": "turtle_colour_internal",
+    "message0": "set colour to %1",
+    "args0": [
+      {
+        "type": "field_colour",
+        "name": "COLOUR",
+        "colour": "#ff0000"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 20,
+    "tooltip": "Changes the colour of the pen."
+  },
+  {
+    "id": "controls_repeat_ext",
+    "message0": "repeat %1 times %2 %3",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "TIMES",
+        "options": [
+          [
+            "3",
+            "3"
+          ],
+          [
+            "4",
+            "4"
+          ],
+          [
+            "5",
+            "5"
+          ],
+          [
+            "360",
+            "360"
+          ]
+        ]
+      },
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "input_statement",
+        "name": "DO"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 120,
+    "tooltip": "Do some statements several times."
   }
 ]
