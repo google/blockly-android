@@ -28,13 +28,16 @@ import java.util.List;
 public class BlocklyTestActivity extends AbstractBlocklyActivity {
     private static final String TAG = "BlocklyTestActivity";
 
-    private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
-            Arrays.asList(new String[]{
-                    "default/loop_blocks.json",
-                    "default/math_blocks.json",
-                    "default/variable_blocks.json",
-                    "default/test_blocks.json"
-            }));
+    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(new String[]{
+            "default/loop_blocks.json",
+            "default/math_blocks.json",
+            "default/variable_blocks.json",
+            "default/test_blocks.json"
+    });
+
+    private static final List<String> BLOCK_GENERATORS = Arrays.asList(new String[] {
+            "fake/generator.js"
+    });
 
     CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
@@ -53,8 +56,8 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getGeneratorJsPath() {
-        return "fake/generator.js";  // Never executed in tests.
+    protected List<String> getGeneratorsJsPaths() {
+        return BLOCK_GENERATORS; // Never executed in tests.
     }
 
     @NonNull

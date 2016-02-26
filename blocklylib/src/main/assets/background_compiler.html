@@ -11,10 +11,13 @@
     <script>
         function import_generators(filename) {
             if (!!filename) {
-                var script = document.createElement('script');
-                script.setAttribute('type', 'text/javascript');
-                script.setAttribute('src', filename);
-                document.head.appendChild(script);
+                var files = filename.split(';');
+                for (var i = 0; i < files.length; i++) {
+                    var script = document.createElement('script');
+                    script.setAttribute('type', 'text/javascript');
+                    script.setAttribute('src', files[i]);
+                    document.head.appendChild(script);
+                }
             }
         }
 
@@ -36,7 +39,7 @@
             }
         }
 
-        import_generators(BlocklyController.getBlockGeneratorsFilename());
+        import_generators(BlocklyController.getBlockGeneratorsFilenames());
         import_definitions(BlocklyController.getBlockDefinitions());
 
     </script>
@@ -45,25 +48,25 @@
 
 <script>
     function generate(blocklyxml) {
-      // Parse the XML into a tree.
-      var xmlText = blocklyxml;
-      var dom;
-      try {
-        dom = Blockly.Xml.textToDom(xmlText)
-      } catch (e) {
-        alert(e);
-        return;
-      }
-      // Create a headless workspace.
-      var workspace = new Blockly.Workspace();
-      try {
-        Blockly.Xml.domToWorkspace(workspace, dom);
-        var code = Blockly.JavaScript.workspaceToCode(workspace);
-        BlocklyController.execute(code);
-      } catch (e) {
-        console.log(e.message);
-        BlocklyController.execute("");
-      }
+        // Parse the XML into a tree.
+        var xmlText = blocklyxml;
+        var dom;
+        try {
+            dom = Blockly.Xml.textToDom(xmlText)
+        } catch (e) {
+            alert(e);
+            return;
+        }
+        // Create a headless workspace.
+        var workspace = new Blockly.Workspace();
+        try {
+            Blockly.Xml.domToWorkspace(workspace, dom);
+            var code = Blockly.JavaScript.workspaceToCode(workspace);
+            BlocklyController.execute(code);
+        } catch (e) {
+            console.log(e.message);
+            BlocklyController.execute("");
+        }
     }
   </script>
 </body>

@@ -58,7 +58,8 @@ public class CodeGeneratorService extends Service {
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private Handler mHandler;
     private List<String> mDefinitions = new ArrayList<>();
-    private String mGenerators = "";
+    private List<String> mGenerators = new ArrayList<>();
+    private String mAllBlocks;
 
     @Override
     public void onCreate() {
@@ -116,12 +117,14 @@ public class CodeGeneratorService extends Service {
                     @Override
                     public void run() {
                         mCallback = request.getCallback();
-                        if (!equalsPriorDefintions(mDefinitions)
-                                || !request.getBlockGeneratorsFilename().equals(mGenerators)) {
+                        if (!equivalentLists(request.getBlockDefinitionsFilenames(), mDefinitions)
+                                || !equivalentLists(request.getBlockGeneratorsFilenames(),
+                                mGenerators)) {
                              //Reload the page with the new block definitions.  Push the request
                              //back onto the queue until the page is loaded.
                             mDefinitions = request.getBlockDefinitionsFilenames();
-                            mGenerators = request.getBlockGeneratorsFilename();
+                            mGenerators = request.getBlockGeneratorsFilenames();
+                            mAllBlocks = null;
                             mRequestQueue.addFirst(request);
                             mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
                         } else {
@@ -149,12 +152,23 @@ public class CodeGeneratorService extends Service {
         }
 
         @JavascriptInterface
-        public String getBlockGeneratorsFilename() {
-            return mGenerators;
+        public String getBlockGeneratorsFilenames() {
+            if (mGenerators == null || mGenerators.size() == 0) {
+                return "";
+            }
+            StringBuilder combined = new StringBuilder(mGenerators.get(0));
+            for (int i = 1; i < mGenerators.size(); i++) {
+                combined.append(";");
+                combined.append(mGenerators.get(i));
+            }
+            return combined.toString();
         }
 
         @JavascriptInterface
         public String getBlockDefinitions() {
+            if (mAllBlocks != null) {
+                return mAllBlocks;
+            }
             if (mDefinitions.isEmpty()) {
                 return "";
             }
@@ -187,7 +201,8 @@ public class CodeGeneratorService extends Service {
                     Log.e(TAG, "Error reading block definitions file \"" + filename + "\"");
                     return "";
                 }
-                return allBlocks.toString();
+                mAllBlocks = allBlocks.toString();
+                return mAllBlocks;
             }
         }
     }
@@ -198,14 +213,14 @@ public class CodeGeneratorService extends Service {
         }
     }
 
-    private boolean equalsPriorDefintions(List<String> newDefinitions) {
-        LinkedList<String> oldDefinitions = new LinkedList<>(mDefinitions);
+    private boolean equivalentLists(List<String> newDefinitions, List<String> oldDefinitions) {
+        LinkedList<String> checkList = new LinkedList<>(oldDefinitions);
         for (String filename : newDefinitions) {
-            if (!oldDefinitions.remove(filename)) {
+            if (!checkList.remove(filename)) {
                 return false;
             }
         }
-        return oldDefinitions.isEmpty(); // If it is empty, all filenames were found / matched.
+        return checkList.isEmpty(); // If it is empty, all filenames were found / matched.
     }
 
     private String loadAssetAsUtf8(String filename) throws IOException {

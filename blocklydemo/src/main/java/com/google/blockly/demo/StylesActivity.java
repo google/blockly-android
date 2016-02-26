@@ -20,6 +20,7 @@ import com.google.blockly.AbstractBlocklyActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,8 +48,10 @@ public class StylesActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getGeneratorJsPath() {
-        return "turtle/generators.js";
+    protected List<String> getGeneratorsJsPaths() {
+        List<String> paths = new ArrayList<String>(1);
+        paths.add("turtle/generators.js");
+        return paths;
     }
 
     @NonNull

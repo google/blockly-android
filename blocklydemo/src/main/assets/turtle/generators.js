@@ -76,5 +76,4 @@ Blockly.JavaScript['turtle_font'] = function(block) {
       block.id + '\');\n';
 };
 
-Blockly.JavaScript['turtle_repeat_internal'] =
-    Blockly.JavaScript['controls_repeat'];
+Blockly.JavaScript['turtle_repeat_internal'] = Blockly.JavaScript['controls_repeat'];

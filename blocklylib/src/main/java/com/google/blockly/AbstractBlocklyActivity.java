@@ -59,7 +59,7 @@ import java.util.List;
  * navigation menu.
  * <p/>
  * Configure Block by providing defintions for {@link #getBlockDefinitionsJsonPaths()},
- * {@link #getToolboxContentsXmlPath()}, and {@link #getGeneratorJsPath()}.  An initial
+ * {@link #getToolboxContentsXmlPath()}, and {@link #getGeneratorsJsPaths()}.  An initial
  * workspace can be defined by overriding {@link #getStartingWorkspacePath()}.
  * <p/>
  * The central app views can be replaced by overloading {@link #onCreateContentView} and the
@@ -402,6 +402,25 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     abstract protected List<String> getBlockDefinitionsJsonPaths();
 
     /**
+     * Returns the asset file paths to the generators (JS files) to use for the most
+     * recently requested "Run" action. Called from {@link #onRunCode()}.This is expected to be a
+     * list of JavaScript files that contain the block generators.
+     *
+     * @return The list of file paths to the block generators.
+     */
+    @NonNull
+    abstract protected List<String> getGeneratorsJsPaths();
+
+    /**
+     * Returns a generation callback to use for the most recently requested "Run" action.
+     * Called from {@link #onRunCode()}.
+     *
+     * @return The generation callback.
+     */
+    @NonNull
+    abstract protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback();
+
+    /**
      * Returns the asset path to the initial workspace to load.  If null, no workspace file will be
      * loaded.
      *
@@ -422,24 +441,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected int getStyleResId() {
         return 0;
     }
-
-    /**
-     * Returns a generation callback to use for the most recently requested "Run" action.
-     * Called from {@link #onRunCode()}.
-     *
-     * @return The generation callback.
-     */
-    @NonNull
-    abstract protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback();
-
-    /**
-     * Returns the asset file path and name to the generator Javascript to use for the most
-     * recently requested "Run" action. Called from {@link #onRunCode()}.
-     *
-     * @return The asset file path and name to the generator Javascript.
-     */
-    @NonNull
-    abstract protected String getGeneratorJsPath();
 
     /**
      * Creates or loads the root content view (by default, {@link R.layout#drawers_and_action_bar})
@@ -599,7 +600,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                         new CodeGenerationRequest(serialized.toString(),
                                 getCodeGenerationCallback(),
                                 getBlockDefinitionsJsonPaths(),
-                                getGeneratorJsPath()));
+                                getGeneratorsJsPaths()));
             }
         } catch (BlocklySerializerException e) {
             Log.wtf(TAG, e);

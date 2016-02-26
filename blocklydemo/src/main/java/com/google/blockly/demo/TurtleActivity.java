@@ -30,6 +30,7 @@ import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,13 +42,16 @@ import java.util.List;
 public class TurtleActivity extends BlocklySectionsActivity {
     private static final String TAG = "TurtleActivity";
 
-    static final List<String> TURTLE_BLOCK_DEFINITIONS = Collections.unmodifiableList(
-            Arrays.asList(new String[]{
-                    "default/loop_blocks.json",
-                    "default/math_blocks.json",
-                    "default/variable_blocks.json",
-                    "turtle/turtle_blocks.json"
-            }));
+    static final List<String> TURTLE_BLOCK_DEFINITIONS = Arrays.asList(new String[]{
+            "default/loop_blocks.json",
+            "default/math_blocks.json",
+            "default/variable_blocks.json",
+            "turtle/turtle_blocks.json"
+    });
+
+    static final List<String> TURTLE_BLOCK_GENERATORS = Arrays.asList(new String[]{
+            "turtle/generators.js"
+    });
 
     private static final int MAX_LEVELS = 10;
     private static final String[] LEVEL_TOOLBOX = new String[MAX_LEVELS];
@@ -96,6 +100,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @NonNull
     @Override
+    protected List<String> getGeneratorsJsPaths() {
+        return TURTLE_BLOCK_GENERATORS;
+    }
+
+    @NonNull
+    @Override
     protected String getToolboxContentsXmlPath() {
         // Expose a different set of blocks to the user at each level.
         return "turtle/" + LEVEL_TOOLBOX[getCurrentSectionIndex()];
@@ -140,12 +150,6 @@ public class TurtleActivity extends BlocklySectionsActivity {
         mTurtleWebview.loadUrl("file:///android_asset/turtle/turtle.html");
 
         return root;
-    }
-
-    @NonNull
-    @Override
-    protected String getGeneratorJsPath() {
-        return "turtle/generators.js";
     }
 
     @NonNull

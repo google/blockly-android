@@ -26,7 +26,7 @@ public class CodeGenerationRequest {
     private final CodeGeneratorCallback mCallback;
     private final String mBlocklyXml;
     private final List<String> mBlockDefinitionsFilenames;
-    private final String mBlockGeneratorsFilename;
+    private final List<String> mBlockGeneratorsFilenames;
 
     /**
      * Constructor for a code generation request.
@@ -35,11 +35,11 @@ public class CodeGenerationRequest {
      * @param callback A callback specifying what to do with the generated code.
      * @param blockDefinitionsFilenames The paths of the js files containing block definitions,
      * relative to file:///android_assets/background_compiler.html.
-     * @param blockGeneratorsFilename The path of the js file containing block generators, relative
+     * @param blockGeneratorsFilenames The path of the js file containing block generators, relative
      * to file:///android_assets/background_compiler.html.
      */
     public CodeGenerationRequest(String xml, CodeGeneratorCallback callback,
-            List<String> blockDefinitionsFilenames, String blockGeneratorsFilename) {
+            List<String> blockDefinitionsFilenames, List<String> blockGeneratorsFilenames) {
         if (xml == null || xml.isEmpty()) {
             throw new IllegalArgumentException("The blockly workspace string must not be empty " +
                     "or null.");
@@ -47,7 +47,7 @@ public class CodeGenerationRequest {
         mCallback = callback;
         mBlocklyXml = xml;
         mBlockDefinitionsFilenames = blockDefinitionsFilenames;
-        mBlockGeneratorsFilename = blockGeneratorsFilename;
+        mBlockGeneratorsFilenames = blockGeneratorsFilenames;
     }
 
     public CodeGeneratorCallback getCallback() {
@@ -62,8 +62,8 @@ public class CodeGenerationRequest {
         return mBlockDefinitionsFilenames;
     }
 
-    public String getBlockGeneratorsFilename() {
-        return mBlockGeneratorsFilename;
+    public List<String> getBlockGeneratorsFilenames() {
+        return mBlockGeneratorsFilenames;
     }
 
     public interface CodeGeneratorCallback {

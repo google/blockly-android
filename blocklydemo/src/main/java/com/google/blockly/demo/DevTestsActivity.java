@@ -134,8 +134,11 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     }
 
     @NonNull
-    protected String getGeneratorJsPath() {
-        return "sample_sections/generators.js";
+    @Override
+    protected List<String> getGeneratorsJsPaths() {
+        List<String> paths = new ArrayList<String>(1);
+        paths.add("sample_sections/generators.js");
+        return paths;
     }
 
     @NonNull
