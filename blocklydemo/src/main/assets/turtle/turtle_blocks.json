@@ -176,5 +176,153 @@
     "nextStatement": null,
     "colour": 120,
     "tooltip": "Do some statements several times."
+  },
+  {
+    "id": "math_number",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "NUM",
+        "text": "5"
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "A number output."
+  },
+  {
+    "id": "variables_get",
+    "message0": "get %1",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      }
+    ],
+    "output": null,
+    "colour": 160,
+    "tooltip": "Get the value stored in a variable."
+  },
+  {
+    "id": "variables_set",
+    "message0": "set %1 %2",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      },
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Set a variable to a new value."
+  },
+  {
+    "id": "colour_picker",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_colour",
+        "name": "COLOUR",
+        "colour": "#ff0000"
+      }
+    ],
+    "output": "Colour",
+    "colour": 20
+  },
+  {
+    "id": "turtle_move",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIR",
+        "options": [
+          [
+            "move forward",
+            "moveForward"
+          ],
+          [
+            "move backward",
+            "moveBackward"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Move the turtle forward or backward",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#metkk9"
+  },
+  {
+    "id": "turtle_turn",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIR",
+        "options": [
+          [
+            "turn right ↻",
+            "turnRight"
+          ],
+          [
+            "turn left ↺",
+            "turnLeft"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#nwzsuj"
+  },
+  {
+    "id": "turtle_width",
+    "message0": "set width to %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "WIDTH"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
+  },
+  {
+    "id": "turtle_colour",
+    "message0": "set colour to %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "COLOUR"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 20,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
   }
 ]
