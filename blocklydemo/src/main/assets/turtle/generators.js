@@ -75,3 +75,62 @@ Blockly.JavaScript['turtle_font'] = function(block) {
       block.getFieldValue('FONTSTYLE') + '\', \'block_id_' +
       block.id + '\');\n';
 };
+
+Blockly.JavaScript['math_number'] = function(block) {
+  // Numeric value.
+  var code = parseFloat(block.getFieldValue('NUM'));
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript['colour_picker'] = function(block) {
+  // Colour picker.
+  var code = '\'' + block.getFieldValue('COLOUR') + '\'';
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript['turtle_move'] = function(block) {
+  // Generate JavaScript for moving forward or backwards.
+  var value = Blockly.JavaScript.valueToCode(block, 'VALUE',
+      Blockly.JavaScript.ORDER_NONE) || '0';
+  return 'Turtle.' + block.getFieldValue('DIR') +
+      '(' + value + ', \'block_id_' + block.id + '\');\n';
+};
+
+Blockly.JavaScript['turtle_turn'] = function(block) {
+  // Generate JavaScript for turning left or right.
+  var value = Blockly.JavaScript.valueToCode(block, 'VALUE',
+      Blockly.JavaScript.ORDER_NONE) || '0';
+  return 'Turtle.' + block.getFieldValue('DIR') +
+      '(' + value + ', \'block_id_' + block.id + '\');\n';
+};
+
+Blockly.JavaScript['turtle_width'] = function(block) {
+  // Generate JavaScript for setting the width.
+  var width = Blockly.JavaScript.valueToCode(block, 'WIDTH',
+      Blockly.JavaScript.ORDER_NONE) || '1';
+  return 'Turtle.penWidth(' + width + ', \'block_id_' + block.id + '\');\n';
+};
+
+Blockly.JavaScript['turtle_colour'] = function(block) {
+  // Generate JavaScript for setting the colour.
+  var colour = Blockly.JavaScript.valueToCode(block, 'COLOUR',
+      Blockly.JavaScript.ORDER_NONE) || '\'#000000\'';
+  return 'Turtle.penColour(' + colour + ', \'block_id_' +
+      block.id + '\');\n';
+};
+
+Blockly.JavaScript['variables_get'] = function(block) {
+  // Variable getter.
+  var code = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VAR'),
+      Blockly.Variables.NAME_TYPE);
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript['variables_set'] = function(block) {
+  // Variable setter.
+  var argument0 = Blockly.JavaScript.valueToCode(block, 'VALUE',
+      Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
+  var varName = Blockly.JavaScript.variableDB_.getName(
+      block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+  return varName + ' = ' + argument0 + ';\n';
+};
