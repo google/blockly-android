@@ -1,0 +1,17 @@
+[
+  {
+    "id": "math_number",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "NUM",
+        "text": "0"
+      }
+    ],
+    "colour": 230,
+    "output": "Number",
+    "tooltip": "A number.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Number"
+  }
+]

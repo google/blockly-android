@@ -139,7 +139,7 @@
     "tooltip": "Changes the colour of the pen."
   },
   {
-    "id": "controls_repeat_ext",
+    "id": "turtle_repeat_internal",
     "message0": "repeat %1 times %2 %3",
     "args0": [
       {

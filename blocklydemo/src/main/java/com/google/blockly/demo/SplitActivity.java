@@ -24,6 +24,8 @@ import android.widget.TextView;
 import com.google.blockly.AbstractBlocklyActivity;
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import java.util.List;
+
 
 /**
  * Demo activity that programmatically adds a view to split the screen between the Blockly workspace
@@ -64,8 +66,8 @@ public class SplitActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getBlockDefinitionsJsonPath() {
-        return "turtle/definitions.json";
+    protected List<String> getBlockDefinitionsJsonPaths() {
+        return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
     }
 
     @NonNull

@@ -18,11 +18,23 @@ import android.support.annotation.NonNull;
 
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Simplest implementation of AbstractBlocklyActivity. Does not load a workspace at start.
  */
 public class BlocklyTestActivity extends AbstractBlocklyActivity {
-    private static final String TAG = "SimpleActivity";
+    private static final String TAG = "BlocklyTestActivity";
+
+    private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
+            Arrays.asList(new String[]{
+                    "default/loop_blocks.json",
+                    "default/math_blocks.json",
+                    "default/variable_blocks.json",
+                    "default/test_blocks.json"
+            }));
 
     CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
@@ -35,14 +47,14 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getBlockDefinitionsJsonPath() {
-        return "default/toolbox_blocks.json";
+    protected List<String> getBlockDefinitionsJsonPaths() {
+        return BLOCK_DEFINITIONS;
     }
 
     @NonNull
     @Override
     protected String getGeneratorJsPath() {
-        return "sample_sections/generators.js";
+        return "fake/generator.js";  // Never executed in tests.
     }
 
     @NonNull
