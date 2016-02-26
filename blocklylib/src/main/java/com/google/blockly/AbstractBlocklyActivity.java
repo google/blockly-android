@@ -51,12 +51,14 @@ import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Base class for a Blockly activities that use a material design style tool bar, and optionally a
  * navigation menu.
  * <p/>
- * Configure Block by providing defintions for {@link #getBlockDefinitionsJsonPath()},
+ * Configure Block by providing defintions for {@link #getBlockDefinitionsJsonPaths()},
  * {@link #getToolboxContentsXmlPath()}, and {@link #getGeneratorJsPath()}.  An initial
  * workspace can be defined by overriding {@link #getStartingWorkspacePath()}.
  * <p/>
@@ -221,12 +223,19 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Called when the user clicks the clear action.  Default implementation resets the
-     * workspace, removing all blocks from the workspace.
+     * workspace, removing all blocks from the workspace, and then calls
+     * {@link #onInitBlankWorkspace()}.
      */
     public void onClearWorkspace() {
         mController.resetWorkspace();
+        onInitBlankWorkspace();
     }
 
+    /**
+     * Saves a snapshot of the workspace to {@code outState}.
+     *
+     * @param outState The {@link Bundle} to save to.
+     */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -287,12 +296,12 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @NonNull
     protected BlocklyController onCreateController() {
         String toolboxPath = getToolboxContentsXmlPath();
-        String blockDefsPath = getBlockDefinitionsJsonPath();
+        List<String> blockDefsPaths = getBlockDefinitionsJsonPaths();
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
                 .setBlocklyStyle(getStyleResId())
                 .setAssetManager(getAssets())
-                .addBlockDefinitionsFromAsset(blockDefsPath)
+                .addBlockDefinitionsFromAssets(blockDefsPaths)
                 .setToolboxConfigurationAsset(toolboxPath)
                 .setWorkspaceFragment(mWorkspaceFragment)
                 .setTrashFragment(mTrashFragment)
@@ -317,11 +326,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Hook for subclasses to load an initial workspace.
+     * Hook for subclasses to load an initial workspace. Default implementation just calls
+     * {@link #onInitBlankWorkspace()}.
      */
     protected void onLoadInitialWorkspace() {
-        // Nothing loaded by default.
+        onInitBlankWorkspace();
     }
+
+    /**
+     * Hook for subclasses to initialize a new blank workspace, such as default variables.
+     */
+    protected void onInitBlankWorkspace() {}
 
     /**
      * @return The id of the menu resource used to populate the {@link ActionBar}.
@@ -384,7 +399,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @return The asset path for the json block definitions.
      */
     @NonNull
-    abstract protected String getBlockDefinitionsJsonPath();
+    abstract protected List<String> getBlockDefinitionsJsonPaths();
 
     /**
      * Returns the asset path to the initial workspace to load.  If null, no workspace file will be
@@ -583,7 +598,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 mCodeGeneratorService.requestCodeGeneration(
                         new CodeGenerationRequest(serialized.toString(),
                                 getCodeGenerationCallback(),
-                                getBlockDefinitionsJsonPath(),
+                                getBlockDefinitionsJsonPaths(),
                                 getGeneratorJsPath()));
             }
         } catch (BlocklySerializerException e) {
@@ -624,18 +639,24 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Reloads the block definitions.
-     * @see #getBlockDefinitionsJsonPath()
+     * @see #getBlockDefinitionsJsonPaths()
      */
     protected void reloadBlockDefinitions() {
         AssetManager assetManager = getAssets();
-        String blockDefsPath = getBlockDefinitionsJsonPath();
+        List<String> blockDefsPaths = getBlockDefinitionsJsonPaths();
 
         BlockFactory factory = getController().getBlockFactory();
         factory.clear();
 
+        String blockDefsPath = null;
         try {
-            factory.addBlocks(assetManager.open(blockDefsPath));
+            Iterator<String> iter = blockDefsPaths.iterator();
+            while (iter.hasNext()) {
+                blockDefsPath = iter.next();
+                factory.addBlocks(assetManager.open(blockDefsPath));
+            }
         } catch (IOException e) {
+            factory.clear();  // Clear any partial loaded block sets.
             throw new IllegalArgumentException("Error opening block defs at " + blockDefsPath, e);
         }
     }

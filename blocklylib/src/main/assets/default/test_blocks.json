@@ -1,25 +1,5 @@
 [
   {
-    "id": "controls_repeat_ext",
-    "message0": "repeat %1 times %2 %3",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "TIMES"
-      },
-      {
-        "type": "input_dummy"
-      },
-      {
-        "type": "input_statement",
-        "name": "DO"
-      }
-    ],
-    "inputsInline": true,
-    "tooltip": "",
-    "helpUrl": "http://www.example.com/"
-  },
-  {
     "id": "controls_whileUntil",
     "message0": "repeat %1 %2 %3",
     "args0": [
@@ -47,21 +27,6 @@
       }
     ],
     "tooltip": "",
-    "helpUrl": "http://www.example.com/"
-  },
-  {
-    "id": "math_number",
-    "message0": "%1",
-    "args0": [
-      {
-        "type": "field_input",
-        "name": "NUM",
-        "text": "0"
-      }
-    ],
-    "output": "Number",
-    "tooltip": "",
-    "colour": 120,
     "helpUrl": "http://www.example.com/"
   },
   {
@@ -162,41 +127,6 @@
     "message0": "test block",
     "args0": [],
     "previousStatement": null,
-    "tooltip": "",
-    "helpUrl": "http://www.example.com/"
-  },
-  {
-    "id": "get_var",
-    "message0": "get %1",
-    "args0": [
-      {
-        "type": "field_variable",
-        "name": "VARIABLE",
-        "variable": "item"
-      }
-    ],
-    "output": null,
-    "colour": 160,
-    "tooltip": "",
-    "helpUrl": "http://www.example.com/"
-  },
-  {
-    "id": "set_var",
-    "message0": "set %1 %2",
-    "args0": [
-      {
-        "type": "field_variable",
-        "name": "VARIABLE",
-        "variable": "item"
-      },
-      {
-        "type": "input_value",
-        "name": "VALUE"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 160,
     "tooltip": "",
     "helpUrl": "http://www.example.com/"
   }

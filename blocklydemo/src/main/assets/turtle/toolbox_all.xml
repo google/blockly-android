@@ -33,7 +33,18 @@
     </category>
     <category name="Loops">
         <block type="controls_repeat_ext">
-            <field name="TIMES">4</field>
+            <value name="TIMES">
+                <block type="math_number">
+                    <field name="NUM">10</field>
+                </block>
+            </value>
         </block>
+    </category>
+    <category name="Math">
+        <block type="math_number" />
+    </category>
+    <category name="Variables">
+        <block type="variables_set" />
+        <block type="variables_get" />
     </category>
 </xml>
