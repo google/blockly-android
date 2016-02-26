@@ -20,6 +20,9 @@ import com.google.blockly.AbstractBlocklyActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Basic implementation of AbstractBlocklyActivity that demonstrates applying styles. This demo
  * uses an Activity style defined in the manifest XML. Alternatively, Activities can override
@@ -33,8 +36,8 @@ public class StylesActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getBlockDefinitionsJsonPath() {
-        return "turtle/definitions.json";
+    protected List<String> getBlockDefinitionsJsonPaths() {
+        return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
     }
 
     @NonNull
@@ -45,8 +48,10 @@ public class StylesActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getGeneratorJsPath() {
-        return "turtle/generators.js";
+    protected List<String> getGeneratorsJsPaths() {
+        List<String> paths = new ArrayList<String>(1);
+        paths.add("turtle/generators.js");
+        return paths;
     }
 
     @NonNull

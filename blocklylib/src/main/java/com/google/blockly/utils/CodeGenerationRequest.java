@@ -17,35 +17,37 @@ package com.google.blockly.utils;
 
 import com.google.blockly.CodeGeneratorService;
 
+import java.util.List;
+
 /**
  * Container for the information needed to generate code through the {@link CodeGeneratorService}.
  */
 public class CodeGenerationRequest {
     private final CodeGeneratorCallback mCallback;
     private final String mBlocklyXml;
-    private final String mBlockDefinitionsFilename;
-    private final String mBlockGeneratorsFilename;
+    private final List<String> mBlockDefinitionsFilenames;
+    private final List<String> mBlockGeneratorsFilenames;
 
     /**
      * Constructor for a code generation request.
      *
      * @param xml The xml of a full workspace for which code should be generated.
      * @param callback A callback specifying what to do with the generated code.
-     * @param blockDefinitionsFilename The path of the js file containing block definitions,
+     * @param blockDefinitionsFilenames The paths of the js files containing block definitions,
      * relative to file:///android_assets/background_compiler.html.
-     * @param blockGeneratorsFilename The path of the js file containing block generators, relative
+     * @param blockGeneratorsFilenames The path of the js file containing block generators, relative
      * to file:///android_assets/background_compiler.html.
      */
     public CodeGenerationRequest(String xml, CodeGeneratorCallback callback,
-            String blockDefinitionsFilename, String blockGeneratorsFilename) {
+            List<String> blockDefinitionsFilenames, List<String> blockGeneratorsFilenames) {
         if (xml == null || xml.isEmpty()) {
             throw new IllegalArgumentException("The blockly workspace string must not be empty " +
                     "or null.");
         }
         mCallback = callback;
         mBlocklyXml = xml;
-        mBlockDefinitionsFilename = blockDefinitionsFilename;
-        mBlockGeneratorsFilename = blockGeneratorsFilename;
+        mBlockDefinitionsFilenames = blockDefinitionsFilenames;
+        mBlockGeneratorsFilenames = blockGeneratorsFilenames;
     }
 
     public CodeGeneratorCallback getCallback() {
@@ -56,12 +58,12 @@ public class CodeGenerationRequest {
         return mBlocklyXml;
     }
 
-    public String getBlockDefinitionsFilename() {
-        return mBlockDefinitionsFilename;
+    public List<String> getBlockDefinitionsFilenames() {
+        return mBlockDefinitionsFilenames;
     }
 
-    public String getBlockGeneratorsFilename() {
-        return mBlockGeneratorsFilename;
+    public List<String> getBlockGeneratorsFilenames() {
+        return mBlockGeneratorsFilenames;
     }
 
     public interface CodeGeneratorCallback {

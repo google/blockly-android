@@ -75,3 +75,36 @@ Blockly.JavaScript['turtle_font'] = function(block) {
       block.getFieldValue('FONTSTYLE') + '\', \'block_id_' +
       block.id + '\');\n';
 };
+
+Blockly.JavaScript['turtle_move'] = function(block) {
+  // Generate JavaScript for moving forward or backwards.
+  var value = Blockly.JavaScript.valueToCode(block, 'VALUE',
+      Blockly.JavaScript.ORDER_NONE) || '0';
+  return 'Turtle.' + block.getFieldValue('DIR') +
+      '(' + value + ', \'block_id_' + block.id + '\');\n';
+};
+
+Blockly.JavaScript['turtle_turn'] = function(block) {
+  // Generate JavaScript for turning left or right.
+  var value = Blockly.JavaScript.valueToCode(block, 'VALUE',
+      Blockly.JavaScript.ORDER_NONE) || '0';
+  return 'Turtle.' + block.getFieldValue('DIR') +
+      '(' + value + ', \'block_id_' + block.id + '\');\n';
+};
+
+Blockly.JavaScript['turtle_width'] = function(block) {
+  // Generate JavaScript for setting the width.
+  var width = Blockly.JavaScript.valueToCode(block, 'WIDTH',
+      Blockly.JavaScript.ORDER_NONE) || '1';
+  return 'Turtle.penWidth(' + width + ', \'block_id_' + block.id + '\');\n';
+};
+
+Blockly.JavaScript['turtle_colour'] = function(block) {
+  // Generate JavaScript for setting the colour.
+  var colour = Blockly.JavaScript.valueToCode(block, 'COLOUR',
+      Blockly.JavaScript.ORDER_NONE) || '\'#000000\'';
+  return 'Turtle.penColour(' + colour + ', \'block_id_' +
+      block.id + '\');\n';
+};
+
+Blockly.JavaScript['turtle_repeat_internal'] = Blockly.JavaScript['controls_repeat'];

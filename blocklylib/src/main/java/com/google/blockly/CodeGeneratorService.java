@@ -30,9 +30,16 @@ import android.webkit.WebViewClient;
 
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Background service that uses a WebView to statically load the Web Blockly libraries and use them
@@ -50,8 +57,9 @@ public class CodeGeneratorService extends Service {
     private WebView mWebview;
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private Handler mHandler;
-    private String mDefinitions = "";
-    private String mGenerators = "";
+    private List<String> mDefinitions = new ArrayList<>();
+    private List<String> mGenerators = new ArrayList<>();
+    private String mAllBlocks;
 
     @Override
     public void onCreate() {
@@ -109,12 +117,14 @@ public class CodeGeneratorService extends Service {
                     @Override
                     public void run() {
                         mCallback = request.getCallback();
-                        if (!request.getBlockDefinitionsFilename().equals(mDefinitions)
-                                || !request.getBlockGeneratorsFilename().equals(mGenerators)) {
+                        if (!equivalentLists(request.getBlockDefinitionsFilenames(), mDefinitions)
+                                || !equivalentLists(request.getBlockGeneratorsFilenames(),
+                                mGenerators)) {
                              //Reload the page with the new block definitions.  Push the request
                              //back onto the queue until the page is loaded.
-                            mDefinitions = request.getBlockDefinitionsFilename();
-                            mGenerators = request.getBlockGeneratorsFilename();
+                            mDefinitions = request.getBlockDefinitionsFilenames();
+                            mGenerators = request.getBlockGeneratorsFilenames();
+                            mAllBlocks = null;
                             mRequestQueue.addFirst(request);
                             mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
                         } else {
@@ -142,29 +152,97 @@ public class CodeGeneratorService extends Service {
         }
 
         @JavascriptInterface
-        public String getBlockGeneratorsFilename() {
-            return mGenerators;
+        public String getBlockGeneratorsFilenames() {
+            if (mGenerators == null || mGenerators.size() == 0) {
+                return "";
+            }
+            StringBuilder combined = new StringBuilder(mGenerators.get(0));
+            for (int i = 1; i < mGenerators.size(); i++) {
+                combined.append(";");
+                combined.append(mGenerators.get(i));
+            }
+            return combined.toString();
         }
 
         @JavascriptInterface
         public String getBlockDefinitions() {
-            try {
-                InputStream blockIs = getAssets().open(mDefinitions);
-                int size = blockIs.available();
-                byte[] buffer = new byte[size];
-                blockIs.read(buffer);
-
-                return new String(buffer, "UTF-8");
-            } catch (IOException e) {
-                Log.e(TAG, "Couldn't find block definitions file " + mDefinitions);
+            if (mAllBlocks != null) {
+                return mAllBlocks;
             }
-            return "";
+            if (mDefinitions.isEmpty()) {
+                return "";
+            }
+            if (mDefinitions.size() == 1) {
+                // Pass in contents without parsing.
+                String filename = mDefinitions.get(0);
+                try {
+                    return loadAssetAsUtf8(filename);
+                } catch (IOException e) {
+                    Log.e(TAG, "Couldn't find block definitions file \"" + filename + "\"");
+                    return "";
+                }
+            } else {
+                // Concatenate all definitions into a single stream.
+                JSONArray allBlocks = new JSONArray();
+                String filename = null;
+                try {
+                    if (mDefinitions != null) {
+                        Iterator<String> iter = mDefinitions.iterator();
+                        while (iter.hasNext()) {
+                            filename = iter.next();
+                            String contents = loadAssetAsUtf8(filename);
+                            JSONArray fileBlocks = new JSONArray(contents);
+                            for (int i = 0; i < fileBlocks.length(); ++i) {
+                                allBlocks.put(fileBlocks.getJSONObject(i));
+                            }
+                        }
+                    }
+                } catch (IOException|JSONException e) {
+                    Log.e(TAG, "Error reading block definitions file \"" + filename + "\"");
+                    return "";
+                }
+                mAllBlocks = allBlocks.toString();
+                return mAllBlocks;
+            }
         }
     }
 
     public class CodeGeneratorBinder extends Binder {
         CodeGeneratorService getService() {
             return CodeGeneratorService.this;
+        }
+    }
+
+    private boolean equivalentLists(List<String> newDefinitions, List<String> oldDefinitions) {
+        LinkedList<String> checkList = new LinkedList<>(oldDefinitions);
+        for (String filename : newDefinitions) {
+            if (!checkList.remove(filename)) {
+                return false;
+            }
+        }
+        return checkList.isEmpty(); // If it is empty, all filenames were found / matched.
+    }
+
+    private String loadAssetAsUtf8(String filename) throws IOException {
+        InputStream input = null;
+        try {
+            input = getAssets().open(filename);
+
+            int size = input.available();
+            byte[] buffer = new byte[size];
+            input.read(buffer);
+
+            return new String(buffer, "UTF-8");
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Couldn't find asset file \"" + mDefinitions + "\"");
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    Log.w(TAG, "Unable to close asset file \"" + filename + "\"", e);
+                }
+            }
         }
     }
 }

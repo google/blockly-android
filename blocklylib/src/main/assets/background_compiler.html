@@ -11,10 +11,13 @@
     <script>
         function import_generators(filename) {
             if (!!filename) {
-                var script = document.createElement('script');
-                script.setAttribute('type', 'text/javascript');
-                script.setAttribute('src', filename);
-                document.head.appendChild(script);
+                var files = filename.split(';');
+                for (var i = 0; i < files.length; i++) {
+                    var script = document.createElement('script');
+                    script.setAttribute('type', 'text/javascript');
+                    script.setAttribute('src', files[i]);
+                    document.head.appendChild(script);
+                }
             }
         }
 
@@ -36,7 +39,7 @@
             }
         }
 
-        import_generators(BlocklyController.getBlockGeneratorsFilename());
+        import_generators(BlocklyController.getBlockGeneratorsFilenames());
         import_definitions(BlocklyController.getBlockDefinitions());
 
     </script>
@@ -45,6 +48,17 @@
 
 <script>
     function generate(blocklyxml) {
+      // TODO: (blockly/#265) Remove variables hack once variable fields are handled correctly.
+      if (Blockly.Blocks['variables_set']) {
+        Blockly.Blocks['variables_set'].getVars = function() {
+          return [this.getFieldValue('VAR')];
+        };
+      }
+      if (Blockly.Blocks['variables_get']) {
+        Blockly.Blocks['variables_get'].getVars = function() {
+          return [this.getFieldValue('VAR')];
+        };
+      }
       // Parse the XML into a tree.
       var xmlText = blocklyxml;
       var dom;

@@ -32,7 +32,7 @@
         </block>
     </category>
     <category name="Loops">
-        <block type="controls_repeat_ext">
+        <block type="turtle_repeat_internal">
             <field name="TIMES">4</field>
         </block>
     </category>

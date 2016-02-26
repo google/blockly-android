@@ -1,0 +1,337 @@
+[
+  {
+    "id": "turtle_move_internal",
+    "message0": "move %1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIR",
+        "options": [
+          [
+            "forward by",
+            "moveForward"
+          ],
+          [
+            "backward by",
+            "moveBackward"
+          ]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "VALUE",
+        "options": [
+          [
+            "20",
+            "20"
+          ],
+          [
+            "50",
+            "50"
+          ],
+          [
+            "100",
+            "100"
+          ],
+          [
+            "150",
+            "150"
+          ]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Moves the turtle forward or backward by the specified amount."
+  },
+  {
+    "id": "turtle_turn_internal",
+    "message0": "turn %1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIR",
+        "options": [
+          [
+            "right by \u21BB",
+            "turnRight"
+          ],
+          [
+            "left by \u21BA'",
+            "turnLeft"
+          ]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "VALUE",
+        "options": [
+          [
+            "1\u00B0",
+            "1"
+          ],
+          [
+            "45\u00B0",
+            "45"
+          ],
+          [
+            "72\u00B0",
+            "72"
+          ],
+          [
+            "90\u00B0",
+            "90"
+          ],
+          [
+            "120\u00B0",
+            "120"
+          ],
+          [
+            "144\u00B0",
+            "144"
+          ]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Turns the turtle left or right by the specified number of degrees."
+  },
+  {
+    "id": "turtle_pen",
+    "message0": "pen %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "PEN",
+        "options": [
+          [
+            "up",
+            "penUp"
+          ],
+          [
+            "down",
+            "penDown"
+          ]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Lifts or lowers the pen, to stop or start drawing."
+  },
+  {
+    "id": "turtle_colour_internal",
+    "message0": "set colour to %1",
+    "args0": [
+      {
+        "type": "field_colour",
+        "name": "COLOUR",
+        "colour": "#ff0000"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 20,
+    "tooltip": "Changes the colour of the pen."
+  },
+  {
+    "id": "turtle_repeat_internal",
+    "message0": "repeat %1 times %2 %3",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "TIMES",
+        "options": [
+          [
+            "3",
+            "3"
+          ],
+          [
+            "4",
+            "4"
+          ],
+          [
+            "5",
+            "5"
+          ],
+          [
+            "360",
+            "360"
+          ]
+        ]
+      },
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "input_statement",
+        "name": "DO"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 120,
+    "tooltip": "Do some statements several times."
+  },
+  {
+    "id": "math_number",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "NUM",
+        "text": "5"
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "A number output."
+  },
+  {
+    "id": "variables_get",
+    "message0": "get %1",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      }
+    ],
+    "output": null,
+    "colour": 160,
+    "tooltip": "Get the value stored in a variable."
+  },
+  {
+    "id": "variables_set",
+    "message0": "set %1 %2",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      },
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Set a variable to a new value."
+  },
+  {
+    "id": "colour_picker",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_colour",
+        "name": "COLOUR",
+        "colour": "#ff0000"
+      }
+    ],
+    "output": "Colour",
+    "colour": 20
+  },
+  {
+    "id": "turtle_move",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIR",
+        "options": [
+          [
+            "move forward",
+            "moveForward"
+          ],
+          [
+            "move backward",
+            "moveBackward"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Move the turtle forward or backward",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#metkk9"
+  },
+  {
+    "id": "turtle_turn",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIR",
+        "options": [
+          [
+            "turn right ↻",
+            "turnRight"
+          ],
+          [
+            "turn left ↺",
+            "turnLeft"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#nwzsuj"
+  },
+  {
+    "id": "turtle_width",
+    "message0": "set width to %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "WIDTH"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
+  },
+  {
+    "id": "turtle_colour",
+    "message0": "set colour to %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "COLOUR"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 20,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
+  },
+  {
+    "id": "colour_random",
+    "message0": "random colour",
+    "args0": [],
+    "output": null,
+    "colour": 160,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#63n46f"
+  }
+]
