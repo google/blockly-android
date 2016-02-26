@@ -661,8 +661,8 @@ public abstract class Field implements Cloneable {
      * Adds a variable to an Input.
      */
     public static final class FieldVariable extends Field {
+        private final VariableObservable mObservable = new VariableObservable();
         private String mVariable;
-        private VariableObservable mObservable = new VariableObservable();
 
         public FieldVariable(String name, String variable) {
             super(name, TYPE_VARIABLE);
@@ -675,7 +675,7 @@ public abstract class Field implements Cloneable {
 
         @Override
         public FieldVariable clone() throws CloneNotSupportedException {
-            return (FieldVariable) super.clone();
+            return new FieldVariable(getName(), mVariable);
         }
 
         @Override
