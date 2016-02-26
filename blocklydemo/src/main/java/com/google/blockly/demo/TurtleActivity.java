@@ -20,7 +20,6 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
-import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.ArrayAdapter;
@@ -31,12 +30,24 @@ import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 
 /**
  * Demo app with the Blockly Games turtle game in a webview.
  */
 public class TurtleActivity extends BlocklySectionsActivity {
     private static final String TAG = "TurtleActivity";
+
+    static final List<String> TURTLE_BLOCK_DEFINITIONS = Collections.unmodifiableList(
+            Arrays.asList(new String[]{
+                    "default/loop_blocks.json",
+                    "default/math_blocks.json",
+                    "default/variable_blocks.json",
+                    "turtle/turtle_blocks.json"
+            }));
 
     private static final int MAX_LEVELS = 10;
     private static final String[] LEVEL_TOOLBOX = new String[MAX_LEVELS];
@@ -76,11 +87,11 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @NonNull
     @Override
-    protected String getBlockDefinitionsJsonPath() {
+    protected List<String> getBlockDefinitionsJsonPaths() {
         // Use the same blocks for all the levels. This lets the user's block code carry over from
         // level to level. The set of blocks shown in the toolbox for each level is defined by the
         // toolbox path below.
-        return "turtle/definitions.json";
+        return TURTLE_BLOCK_DEFINITIONS;
     }
 
     @NonNull
@@ -88,6 +99,11 @@ public class TurtleActivity extends BlocklySectionsActivity {
     protected String getToolboxContentsXmlPath() {
         // Expose a different set of blocks to the user at each level.
         return "turtle/" + LEVEL_TOOLBOX[getCurrentSectionIndex()];
+    }
+
+    @Override
+    protected void onInitBlankWorkspace() {
+        mController.addVariable("item");
     }
 
     @NonNull

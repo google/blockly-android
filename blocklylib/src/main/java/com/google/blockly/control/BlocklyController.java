@@ -48,6 +48,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -964,14 +965,13 @@ public class BlocklyController {
         }
 
         /**
-         * Add a set of block definitions to load from an asset file. These will be added to the set
-         * of all known blocks, but will not appear in the user's toolbox unless they are also
+         * Add a set of block definitions to load from a JSON asset file. These will be added to the
+         * set of all known blocks, but will not appear in the user's toolbox unless they are also
          * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
          * <p/>
          * The asset name must be a path to a file in the assets directory. If the file contains
-         * blocks that were previously defined they will be overridden.
-         * <p/>
-         * A duplicate block is any block with the same {@link Block#getName() name}.
+         * blocks that were previously defined, they will be overridden. A duplicate block is any
+         * block with the same {@link Block#getName() name}.
          *
          * @param assetName the path of the asset to load from.
          * @return this
@@ -981,6 +981,24 @@ public class BlocklyController {
             return this;
         }
 
+        /**
+         * Add sets of block definitions to load from multiple JSON asset file. These will be added
+         * to the set of all known blocks, but will not appear in the user's toolbox unless they are
+         * also defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
+         * <p/>
+         * The asset names must be a path to files in the assets directory. If the files contain
+         * blocks that were previously defined, they will be overridden. A duplicate block is any
+         * block with the same {@link Block#getName() name}.
+         *
+         * @param assetNames The paths of the assets to load.
+         * @return this
+         */
+        public Builder addBlockDefinitionsFromAssets(List<String> assetNames) {
+            for (String assetName : assetNames) {
+                mBlockDefAssets.add(assetName);
+            }
+            return this;
+        }
         /**
          * Adds a list of blocks to the set of all known blocks. These will be added to the set of
          * all known blocks, but will not appear in the user's toolbox unless they are also defined
@@ -1072,6 +1090,7 @@ public class BlocklyController {
             }
             for (int i = 0; i < mBlockDefAssets.size(); i++) {
                 try {
+                    Log.d(TAG, "mBlockDefAssets #" + i + ": " + mBlockDefAssets.get(i));
                     factory.addBlocks(mAssetManager.open(mBlockDefAssets.get(i)));
                 } catch (IOException e) {
                     throw new IllegalArgumentException("Failed to load block definitions "

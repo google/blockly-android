@@ -75,3 +75,6 @@ Blockly.JavaScript['turtle_font'] = function(block) {
       block.getFieldValue('FONTSTYLE') + '\', \'block_id_' +
       block.id + '\');\n';
 };
+
+Blockly.JavaScript['turtle_repeat_internal'] =
+    Blockly.JavaScript['controls_repeat'];

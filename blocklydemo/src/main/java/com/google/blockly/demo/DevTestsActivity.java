@@ -29,6 +29,8 @@ import com.google.blockly.utils.CodeGenerationRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -37,6 +39,14 @@ import java.util.List;
  */
 public class DevTestsActivity extends BlocklySectionsActivity {
     private static final String TAG = "DevTestsActivity";
+
+    private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
+            Arrays.asList(new String[]{
+                    "default/loop_blocks.json",
+                    "default/math_blocks.json",
+                    "default/variable_blocks.json",
+                    "default/test_blocks.json"
+            }));
 
     private static int CARPET_SIZE = 1000;
 
@@ -114,8 +124,8 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     @NonNull
     @Override
-    protected String getBlockDefinitionsJsonPath() {
-        return "default/toolbox_blocks.json";
+    protected List<String> getBlockDefinitionsJsonPaths() {
+        return BLOCK_DEFINITIONS;
     }
 
     @Override

@@ -20,6 +20,8 @@ import com.google.blockly.AbstractBlocklyActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.utils.CodeGenerationRequest;
 
+import java.util.List;
+
 /**
  * Simplest implementation of AbstractBlocklyActivity.
  */
@@ -31,8 +33,8 @@ public class SimpleActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected String getBlockDefinitionsJsonPath() {
-        return "turtle/definitions.json";
+    protected List<String> getBlockDefinitionsJsonPaths() {
+        return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
     }
 
     @NonNull
