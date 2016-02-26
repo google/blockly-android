@@ -334,7 +334,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Hook for subclasses to initialize a new blank workspace, such as default variables.
+     * Hook for subclasses to initialize a new blank workspace. Initialization may include
+     * configuring default variables or other setup.
      */
     protected void onInitBlankWorkspace() {}
 

@@ -16,6 +16,7 @@
 package com.google.blockly.demo;
 
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -113,7 +114,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     protected void onInitBlankWorkspace() {
-        mController.addVariable("item");
+        // TODO: (#22) Remove this override when variables are supported properly
+        getController().addVariable("item");
+        getController().addVariable("leo");
+        getController().addVariable("don");
+        getController().addVariable("mike");
+        getController().addVariable("raf");
     }
 
     @NonNull

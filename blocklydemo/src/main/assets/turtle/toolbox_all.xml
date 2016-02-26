@@ -22,14 +22,44 @@
         <block type="turtle_turn_internal">
             <field name="VALUE">90</field>
         </block>
+        <block type="turtle_move">
+            <value name="VALUE">
+                <block type="math_number">
+                    <field name="NUM">50</field>
+                </block>
+            </value>
+        </block>
+        <block type="turtle_turn">
+            <value name="VALUE">
+                <block type="math_number">
+                    <field name="NUM">90</field>
+                </block>
+            </value>
+        </block>
+    </category>
+    <category name="Pen">
         <block type="turtle_pen">
             <field name="PEN">penUp</field>
         </block>
-    </category>
-    <category name="Colour">
         <block type="turtle_colour_internal">
             <field name="COLOUR">#ff0000</field>
         </block>
+        <block type="turtle_colour">
+            <value name="COLOUR">
+                <block type="colour_picker">
+                    <field name="COLOUR">#ff0000</field>
+                </block>
+            </value>
+        </block>
+        <block type="turtle_width">
+            <value name="WIDTH">
+                <block type="math_number">
+                    <field name="NUM">4</field>
+                </block>
+            </value>
+        </block>
+        <block type="colour_picker"></block>
+        <block type="colour_random"></block>
     </category>
     <category name="Loops">
         <block type="controls_repeat_ext">
@@ -44,7 +74,7 @@
         <block type="math_number" />
     </category>
     <category name="Variables">
-        <block type="variables_set" />
-        <block type="variables_get" />
+        <block type="variables_get"></block>
+        <block type="variables_set"></block>
     </category>
 </xml>
