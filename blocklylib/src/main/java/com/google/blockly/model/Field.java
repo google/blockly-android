@@ -363,6 +363,9 @@ public abstract class Field implements Cloneable {
          * @param text The text to replace the field content with.
          */
         public void setText(String text) {
+            if (TextUtils.equals(text, mText)) {
+                return;
+            }
             mText = text;
             if (mView != null) {
                 ((FieldInputView) mView).setText(mText);

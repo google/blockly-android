@@ -5,4 +5,6 @@
 
     <color name="blockly_toolbox_bg">#80FFFFFF</color>
     <color name="blockly_trash_bg">#80808080</color>
+    <color name="blockly_edit_text_bg">#80ffffff</color>
+    <color name="blockly_spinner_dropdown_bg">#ffeeeeee</color>
 </resources>

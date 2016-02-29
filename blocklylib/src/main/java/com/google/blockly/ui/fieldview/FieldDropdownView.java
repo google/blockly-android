@@ -16,9 +16,11 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import com.google.blockly.R;
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
