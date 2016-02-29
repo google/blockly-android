@@ -178,53 +178,6 @@
     "tooltip": "Do some statements several times."
   },
   {
-    "id": "math_number",
-    "message0": "%1",
-    "args0": [
-      {
-        "type": "field_input",
-        "name": "NUM",
-        "text": "5"
-      }
-    ],
-    "output": "Number",
-    "colour": 230,
-    "tooltip": "A number output."
-  },
-  {
-    "id": "variables_get",
-    "message0": "get %1",
-    "args0": [
-      {
-        "type": "field_variable",
-        "name": "VAR",
-        "variable": "item"
-      }
-    ],
-    "output": null,
-    "colour": 160,
-    "tooltip": "Get the value stored in a variable."
-  },
-  {
-    "id": "variables_set",
-    "message0": "set %1 %2",
-    "args0": [
-      {
-        "type": "field_variable",
-        "name": "VAR",
-        "variable": "item"
-      },
-      {
-        "type": "input_value",
-        "name": "VALUE"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 160,
-    "tooltip": "Set a variable to a new value."
-  },
-  {
     "id": "colour_picker",
     "message0": "%1",
     "args0": [
