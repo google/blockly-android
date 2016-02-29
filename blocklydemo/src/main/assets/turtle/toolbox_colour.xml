@@ -13,8 +13,8 @@
   ~  limitations under the License.
   -->
 
-<xml>
-    <category name="Turtle">
+<toolbox>
+    <category name="Turtle" background="#99FFDD">
         <block type="turtle_move_internal">
             <field name="VALUE">100</field>
             <field name="DIR">moveForward</field>
@@ -23,14 +23,14 @@
             <field name="VALUE">90</field>
         </block>
     </category>
-    <category name="Colour">
+    <category name="Colour" background="#FFBB99">
         <block type="turtle_colour_internal">
             <field name="COLOUR">#ff0000</field>
         </block>
     </category>
-    <category name="Loops">
+    <category name="Loops" background="#99FF99">
         <block type="turtle_repeat_internal">
             <field name="TIMES">4</field>
         </block>
     </category>
-</xml>
+</toolbox>

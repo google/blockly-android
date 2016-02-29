@@ -13,8 +13,8 @@
   ~  limitations under the License.
   -->
 
-<xml>
-    <category name="Turtle">
+<toolbox>
+    <category name="Turtle" background="#99FFDD">
         <block type="turtle_move_internal">
             <field name="VALUE">100</field>
             <field name="DIR">moveForward</field>
@@ -36,20 +36,8 @@
                 </block>
             </value>
         </block>
-    </category>
-    <category name="Pen">
         <block type="turtle_pen">
             <field name="PEN">penUp</field>
-        </block>
-        <block type="turtle_colour_internal">
-            <field name="COLOUR">#ff0000</field>
-        </block>
-        <block type="turtle_colour">
-            <value name="COLOUR">
-                <block type="colour_picker">
-                    <field name="COLOUR">#ff0000</field>
-                </block>
-            </value>
         </block>
         <block type="turtle_width">
             <value name="WIDTH">
@@ -58,10 +46,19 @@
                 </block>
             </value>
         </block>
+    </category>
+    <category name="Colour" background="#FFBB99">
+        <block type="turtle_colour">
+            <value name="COLOUR">
+                <block type="colour_picker">
+                    <field name="COLOUR">#ff0000</field>
+                </block>
+            </value>
+        </block>
         <block type="colour_picker"></block>
         <block type="colour_random"></block>
     </category>
-    <category name="Loops">
+    <category name="Loops" background="#99FF99">
         <block type="controls_repeat_ext">
             <value name="TIMES">
                 <block type="math_number">
@@ -70,11 +67,11 @@
             </value>
         </block>
     </category>
-    <category name="Math">
+    <category name="Math" background="#99AAFF">
         <block type="math_number" />
     </category>
-    <category name="Variables">
+    <category name="Variables" background="#FF99CC">
         <block type="variables_get"></block>
         <block type="variables_set"></block>
     </category>
-</xml>
+</toolbox>
