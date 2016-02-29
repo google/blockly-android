@@ -17,8 +17,11 @@ package com.google.blockly;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -28,6 +31,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -46,6 +50,7 @@ import com.google.blockly.ui.CategoryTabs;
 import com.google.blockly.ui.Rotation;
 import com.google.blockly.ui.BlockDrawerFragment;
 import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.utils.Colors;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -123,6 +128,9 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
     public static final int DEFAULT_TAB_EDGE = Gravity.TOP;
     public static final boolean DEFAULT_ROTATE_TABS = true;
+
+    protected static final int DEFAULT_BLOCKS_BACKGROUND_ALPHA = 0xAA;
+    protected static final Drawable DEFAULT_BLOCKS_BACKGROUND = new ColorDrawable(Color.WHITE);
 
     /** Subset of Gravity to identify the edge the category tabs should be bound to. */
     @IntDef(flag=true, value={
@@ -283,6 +291,8 @@ public class ToolboxFragment extends BlockDrawerFragment {
             ToolboxCategory curCategory = subcats.isEmpty() ? topLevelCategory : subcats.get(0);
             mCategoryTabs.setSelectedCategory(curCategory);
             mBlockListView.setContents(curCategory.getBlocks());
+
+            updateBlockBackground(curCategory);
         }
     }
 
@@ -301,6 +311,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
         }
 
         mCategoryTabs.setSelectedCategory(category);
+        updateBlockBackground(category);
         mBlockListView.setVisibility(View.VISIBLE);
         mBlockListView.setContents(category.getBlocks());
     }
@@ -360,6 +371,22 @@ public class ToolboxFragment extends BlockDrawerFragment {
         if (!mCloseable) {
             mBlockListView.setVisibility(View.VISIBLE);
         }  // Otherwise leave it in the current state.
+    }
+
+    protected void updateBlockBackground(ToolboxCategory curCategory) {
+        Drawable background = curCategory.getBackground();
+        if (background == null) {
+            background = DEFAULT_BLOCKS_BACKGROUND;
+        }
+        if (background instanceof ColorDrawable) {
+            int color = ((ColorDrawable) background).getColor();
+            int alphaColor = Color.argb(mCloseable ? DEFAULT_BLOCKS_BACKGROUND_ALPHA: 255,
+                    Color.red(color), Color.green(color), Color.blue(color));
+            // Assigning the ColorDrawable to the RecyclerView did not work, but this does.
+            mBlockListView.setBackgroundColor(alphaColor);
+        } else {
+            mBlockListView.setBackground(background);
+        }
     }
 
     /**
@@ -473,22 +500,22 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
             mBlockListView.layout(0, 0, width, height);
 
-            int tabMeasuredwidth = mCategoryTabs.getMeasuredWidth();
+            int tabMeasuredWidth = mCategoryTabs.getMeasuredWidth();
             int tabMeasuredHeight = mCategoryTabs.getMeasuredHeight();
             int layoutDir = ViewCompat.getLayoutDirection(mRootView);
             switch (GravityCompat.getAbsoluteGravity(mTabEdge, layoutDir)) {
                 case Gravity.LEFT:
                 case Gravity.TOP:
                     mCategoryTabs.layout(0, 0,
-                            Math.min(width, tabMeasuredwidth), Math.min(height, tabMeasuredHeight));
+                            Math.min(width, tabMeasuredWidth), Math.min(height, tabMeasuredHeight));
                     break;
                 case Gravity.RIGHT:
-                    mCategoryTabs.layout(Math.max(0, width - tabMeasuredwidth), 0, width,
+                    mCategoryTabs.layout(Math.max(0, width - tabMeasuredWidth), 0, width,
                             Math.min(height, tabMeasuredHeight));
                     break;
                 case Gravity.BOTTOM:
                     mCategoryTabs.layout(0, Math.max(0, height - tabMeasuredHeight),
-                            Math.min(width, tabMeasuredwidth), bottom);
+                            Math.min(width, tabMeasuredWidth), bottom);
                     break;
             }
         }
