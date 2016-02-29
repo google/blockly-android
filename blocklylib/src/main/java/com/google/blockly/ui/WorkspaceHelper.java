@@ -23,6 +23,7 @@ import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -32,11 +33,20 @@ import android.widget.BaseAdapter;
 import com.google.blockly.R;
 import com.google.blockly.control.ConnectionManager;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.NameManager;
 import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.ui.fieldview.FieldAngleView;
+import com.google.blockly.ui.fieldview.FieldCheckboxView;
 import com.google.blockly.ui.fieldview.FieldColourView;
+import com.google.blockly.ui.fieldview.FieldDateView;
+import com.google.blockly.ui.fieldview.FieldDropdownView;
+import com.google.blockly.ui.fieldview.FieldImageView;
+import com.google.blockly.ui.fieldview.FieldInputView;
+import com.google.blockly.ui.fieldview.FieldLabelView;
 import com.google.blockly.ui.fieldview.FieldVariableView;
+import com.google.blockly.ui.fieldview.FieldView;
 
 import java.util.List;
 
@@ -85,6 +95,7 @@ public class WorkspaceHelper {
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final int[] mTempIntArray2 = new int[2];
     private final Context mContext;
+    private final LayoutInflater mLayoutInflater;
     private final PatchManager mPatchManager;
     private WorkspaceView mWorkspaceView;
     private float mDensity;
@@ -93,6 +104,7 @@ public class WorkspaceHelper {
     private int mFieldStyle;
     private int mSpinnerLayout;
     private int mSpinnerDropDownLayout;
+    private int mFieldInputLayout;
     private BaseAdapter mVariableAdapter;
 
     /**
@@ -115,6 +127,7 @@ public class WorkspaceHelper {
      */
     public WorkspaceHelper(Context context, int workspaceStyle) {
         mContext = context;
+        mLayoutInflater = LayoutInflater.from(context);
         final Resources res = mContext.getResources();
         mDensity = res.getDisplayMetrics().density;
         if (mDensity == 0) {
@@ -306,6 +319,52 @@ public class WorkspaceHelper {
         }
 
         return blockView;
+    }
+
+    /**
+     * Builds a view for the specified field using this helper's configuration.
+     *
+     * @param field The field to build a view for.
+     * @return A FieldView for the field or null if the field type is not known.
+     */
+    public FieldView buildFieldView(Field field) {
+        FieldView view = null;
+        switch (field.getType()) {
+            case Field.TYPE_LABEL:
+                view = new FieldLabelView(mContext, field, this);
+                break;
+            case Field.TYPE_CHECKBOX:
+                view = new FieldCheckboxView(mContext, field, this);
+                break;
+            case Field.TYPE_DATE:
+                view = new FieldDateView(mContext, field, this);
+                break;
+            case Field.TYPE_DROPDOWN:
+                view = new FieldDropdownView(mContext, field, this);
+                break;
+            case Field.TYPE_ANGLE:
+                view = new FieldAngleView(mContext, field, this);
+                break;
+            case Field.TYPE_COLOUR:
+                view = new FieldColourView(mContext, field, this);
+                break;
+            case Field.TYPE_INPUT:
+                FieldInputView fiv = (FieldInputView) mLayoutInflater
+                        .inflate(mFieldInputLayout, null);
+                fiv.setField(field);
+                view = fiv;
+                break;
+            case Field.TYPE_IMAGE:
+                view = new FieldImageView(mContext, field, this);
+                break;
+            case Field.TYPE_VARIABLE:
+                view = new FieldVariableView(mContext, field, this);;
+                break;
+            default:
+                Log.w(TAG, "Unknown field type.");
+                break;
+        }
+        return view;
     }
 
     /**
@@ -572,10 +631,13 @@ public class WorkspaceHelper {
                 styles = context.obtainStyledAttributes(R.styleable.BlocklyFieldView);
             }
             mSpinnerLayout = styles.getResourceId(R.styleable.BlocklyFieldView_spinnerItem,
-                    android.R.layout.simple_spinner_item);
+                    R.layout.default_spinner_item);
             mSpinnerDropDownLayout = styles.getResourceId(
                     R.styleable.BlocklyFieldView_spinnerItemDropDown,
-                    android.R.layout.simple_spinner_dropdown_item);
+                    R.layout.default_spinner_drop_down);
+            mFieldInputLayout = styles.getResourceId(
+                    R.styleable.BlocklyFieldView_fieldInputLayout,
+                    R.layout.default_field_input);
             if (DEBUG) {
                 Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldStyle=" + mFieldStyle
                         + ", SpinnerLayout=" + mSpinnerLayout + ", SpinnerDropdown="

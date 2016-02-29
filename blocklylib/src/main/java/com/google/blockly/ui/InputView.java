@@ -398,41 +398,7 @@ public class InputView extends NonPropagatingViewGroup {
     private void initViews(Context context) {
         List<Field> fields = mInput.getFields();
         for (int j = 0; j < fields.size(); j++) {
-            // TODO: create the appropriate field type
-            // TODO: add a way to pass the field styles through
-            FieldView view = null;
-            switch (fields.get(j).getType()) {
-                case Field.TYPE_LABEL:
-                    view = new FieldLabelView(context, fields.get(j), mHelper);
-                    break;
-                case Field.TYPE_CHECKBOX:
-                    view = new FieldCheckboxView(context, fields.get(j), mHelper);
-                    break;
-                case Field.TYPE_DATE:
-                    view = new FieldDateView(context, fields.get(j), mHelper);
-                    break;
-                case Field.TYPE_DROPDOWN:
-                    view = new FieldDropdownView(context, fields.get(j), mHelper);
-                    break;
-                case Field.TYPE_ANGLE:
-                    view = new FieldAngleView(context, fields.get(j), mHelper);
-                    break;
-                case Field.TYPE_COLOUR:
-                    view = new FieldColourView(context, fields.get(j), mHelper);
-                    break;
-                case Field.TYPE_INPUT:
-                    view = new FieldInputView(context, fields.get(j), mHelper);
-                    break;
-                case Field.TYPE_IMAGE:
-                    view = new FieldImageView(context, fields.get(j), mHelper);
-                    break;
-                case Field.TYPE_VARIABLE:
-                    view = new FieldVariableView(context, fields.get(j), mHelper);
-                    break;
-                default:
-                    Log.w(TAG, "Unknown field type.");
-                    break;
-            }
+            FieldView view = mHelper.buildFieldView(fields.get(j));
             if (view != null) {
                 addView((View) view);
                 mFieldViews.add(view);

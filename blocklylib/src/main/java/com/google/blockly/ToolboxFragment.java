@@ -185,7 +185,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mBlockListView.setLayoutManager(createLinearLayoutManager());
         mBlockListView.addItemDecoration(new BlocksItemDecoration());
         mBlockListView.setBackgroundColor(
-                getResources().getColor(R.color.blockly_toolbox_bg, null));  // Replace with attrib
+                getResources().getColor(R.color.blockly_toolbox_bg));  // Replace with attrib
         mBlockListView.setVisibility(View.GONE);  // Start closed.
         mCategoryTabs = new CategoryTabs(getContext());
         mCategoryTabs.setLabelAdapter(onCreateLabelAdapter());
