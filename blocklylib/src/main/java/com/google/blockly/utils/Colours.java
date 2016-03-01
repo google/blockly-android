@@ -79,7 +79,7 @@ public class Colours {
             return result;
         } else if (Character.isDigit(firstChar) && value.length() <= 3) {
             try {
-                int hue = Integer.parseInt(value.substring(1,7));
+                int hue = Integer.parseInt(value);
                 result = getBlockColorForHue(hue, tempHsvArray);
             } catch (NumberFormatException e) {
                 StringBuilder sb = new StringBuilder("Invalid ");

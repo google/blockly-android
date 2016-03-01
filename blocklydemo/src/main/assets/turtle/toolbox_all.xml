@@ -14,7 +14,7 @@
   -->
 
 <toolbox>
-    <category name="Turtle" colour="#99FFDD">
+    <category name="Turtle" colour="160">
         <block type="turtle_move">
             <value name="VALUE">
                 <block type="math_number">
@@ -40,7 +40,7 @@
             </value>
         </block>
     </category>
-    <category name="Colour" colour="#FFBB99">
+    <category name="Colour" colour="20">
         <block type="turtle_colour">
             <value name="COLOUR">
                 <block type="colour_picker">
@@ -51,7 +51,7 @@
         <block type="colour_picker"></block>
         <block type="colour_random"></block>
     </category>
-    <category name="Loops" colour="#99FF99">
+    <category name="Loops" colour="120">
         <block type="controls_repeat_ext">
             <value name="TIMES">
                 <block type="math_number">
@@ -60,10 +60,10 @@
             </value>
         </block>
     </category>
-    <category name="Math" colour="#99AAFF">
+    <category name="Math" colour="230">
         <block type="math_number" />
     </category>
-    <category name="Variables" colour="#FF99CC">
+    <category name="Variables" colour="330">
         <block type="variables_get"></block>
         <block type="variables_set"></block>
     </category>

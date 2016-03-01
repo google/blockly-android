@@ -120,16 +120,15 @@ import java.util.List;
 public class ToolboxFragment extends BlockDrawerFragment {
     private static final String TAG = "ToolboxFragment";
 
-    private static final float BACKGROUND_LIGHTNESS = 0.6f;
+    protected static final float BLOCKS_BACKGROUND_LIGHTNESS = 0.75f;
+    protected static final int DEFAULT_BLOCKS_BACKGROUND_ALPHA = 0xBB;
+    protected static final int DEFAULT_BLOCKS_BACKGROUND_COLOUR = Color.LTGRAY;
 
     public static final String ARG_TAB_EDGE = "ToolboxFragment_tabEdge";
     public static final String ARG_ROTATE_TABS = "ToolboxFragment_rotateTabs";
 
     public static final int DEFAULT_TAB_EDGE = Gravity.TOP;
     public static final boolean DEFAULT_ROTATE_TABS = true;
-
-    protected static final int DEFAULT_BLOCKS_BACKGROUND_ALPHA = 0xAA;
-    protected static final int DEFAULT_BLOCKS_BACKGROUND_COLOUR = Color.WHITE;
 
     /** Subset of Gravity to identify the edge the category tabs should be bound to. */
     @IntDef(flag=true, value={
@@ -383,25 +382,8 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mBlockListView.setBackgroundColor(alphaBgColor);
     }
 
-//        int colour = (maybeColour == null) ? DEFAULT_BLOCKS_BACKGROUND_COLOUR : maybeColour;
-//        if (colour == null) {
-//
-//            colour = DEFAULT_BLOCKS_BACKGROUND;
-//        }
-//        if (background instanceof ColorDrawable) {
-//            int color = ((ColorDrawable) background).getColor();
-//            int alphaColor = Color.argb(
-//                    mCloseable ? DEFAULT_BLOCKS_BACKGROUND_ALPHA : Colours.ALPHA_OPAQUE,
-//                    Color.red(color), Color.green(color), Color.blue(color));
-//            // Assigning the ColorDrawable to the RecyclerView did not work, but this does. WTH?
-//            mBlockListView.setBackgroundColor(alphaColor);
-//        } else {
-//            mBlockListView.setBackground(background);
-//        }
-//    }
-
     protected int getBackgroundColour(int categoryColour) {
-        return Colours.blendRGB(categoryColour, Color.WHITE, BACKGROUND_LIGHTNESS);
+        return Colours.blendRGB(categoryColour, Color.WHITE, BLOCKS_BACKGROUND_LIGHTNESS);
     }
 
     /**

@@ -855,7 +855,7 @@ public class Block {
         private String mUuid;
         private String mName;
         private int mCategory;
-        private int mColour;
+        private int mColour = Colours.DEFAULT_BLOCK_COLOUR;
         private Connection mOutputConnection;
         private Connection mNextConnection;
         private Connection mPreviousConnection;
