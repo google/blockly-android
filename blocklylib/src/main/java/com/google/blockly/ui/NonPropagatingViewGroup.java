@@ -27,12 +27,12 @@ public abstract class NonPropagatingViewGroup extends ViewGroup {
     }
 
     @Override
-    public void dispatchSetActivated(boolean selected) {
+    public void dispatchSetActivated(boolean activated) {
         // Do nothing.  Do not assign the activated state to children.
     }
 
     @Override
-    public void dispatchSetPressed(boolean selected) {
+    public void dispatchSetPressed(boolean pressed) {
         // Do nothing.  Do not assign the pressed state to children.
     }
 
