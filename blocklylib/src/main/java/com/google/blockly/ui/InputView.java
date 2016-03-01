@@ -225,7 +225,7 @@ public class InputView extends NonPropagatingViewGroup {
         }
         removeAllViews();
         mInput.setView(null);
-        // TODO(#381): Remove model from view. Set mInput to null, and handle all null cases.
+        // TODO(#45): Remove model from view. Set mInput to null, and handle all null cases.
     }
 
     /**

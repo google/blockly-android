@@ -81,6 +81,6 @@ public class FieldAngleView extends TextView implements FieldView {
     @Override
     public void unlinkModel() {
         mAngleField.setView(null);
-        // TODO(#381): Remove model from view. Set mAngleField to null, and handle null cases above.
+        // TODO(#45): Remove model from view. Set mAngleField to null, and handle null cases above.
     }
 }
