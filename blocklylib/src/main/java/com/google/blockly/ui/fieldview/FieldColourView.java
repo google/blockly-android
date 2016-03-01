@@ -20,13 +20,16 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.NinePatchDrawable;
 import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
 
+import com.google.blockly.R;
 import com.google.blockly.model.Field;
+import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
 
@@ -34,11 +37,17 @@ import com.google.blockly.ui.WorkspaceHelper;
  * Renders a color field and picker as part of a BlockView.
  */
 public class FieldColourView extends View implements FieldView {
-    private static final int MIN_SIZE = 40;
+    private static final int DEFAULT_MIN_WIDTH_DP = 40;
+    private static final int DEFAULT_MIN_HEIGHT_DP = 28;  // Base on styled FieldLabelView height?
 
     private final Field.FieldColour mColourField;
     private final WorkspaceHelper mWorkspaceHelper;
     private final FieldWorkspaceParams mWorkspaceParams;
+
+    private final Paint mSelectedColorPaint = new Paint();
+    private final NinePatchDrawable mInsetPatch;
+
+    private BlockView mBlockView = null;
 
     private AutoPositionPopupWindow mColourPopupWindow;
     private ColourPaletteView mColourPaletteView;
@@ -53,7 +62,14 @@ public class FieldColourView extends View implements FieldView {
         mWorkspaceHelper = helper;
         mWorkspaceParams = new FieldWorkspaceParams(mColourField, mWorkspaceHelper);
 
-        setBackgroundColor(ALPHA_OPAQUE + mColourField.getColour());
+        mInsetPatch = (NinePatchDrawable) getResources().getDrawable(
+                R.drawable.inset_field_border, null);
+
+        float density = context.getResources().getDisplayMetrics().density;
+        setMinimumWidth((int) (DEFAULT_MIN_WIDTH_DP * density));
+        setMinimumHeight((int) (DEFAULT_MIN_HEIGHT_DP * density));
+
+        setColour(mColourField.getColour());
         mColourField.setView(this);
 
         setOnClickListener(new OnClickListener() {
@@ -66,16 +82,25 @@ public class FieldColourView extends View implements FieldView {
 
     /** Set colour represented by this view. */
     public void setColour(int colour) {
-        setBackgroundColor(ALPHA_OPAQUE | colour);
-        mColourField.setColour(colour);
+        mSelectedColorPaint.setColor(ALPHA_OPAQUE | colour);
     }
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        setMeasuredDimension(Math.max(getMeasuredWidth(), MIN_SIZE),
-                Math.max(getMeasuredHeight(), MIN_SIZE));
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+        setMeasuredDimension(onMeasureDimension(getSuggestedMinimumWidth(), widthMeasureSpec),
+                onMeasureDimension(getSuggestedMinimumHeight(), heightMeasureSpec));
+    }
+
+    protected int onMeasureDimension(int min, int measureSpec) {
+        switch (MeasureSpec.getMode(measureSpec)) {
+            case MeasureSpec.EXACTLY:
+                return MeasureSpec.getSize(measureSpec);
+            case MeasureSpec.AT_MOST:
+                return Math.min(min, MeasureSpec.getSize(measureSpec));
+            case MeasureSpec.UNSPECIFIED:
+            default:
+                return min;
+        }
     }
 
     @Override
@@ -87,8 +112,27 @@ public class FieldColourView extends View implements FieldView {
     }
 
     @Override
+    protected void onDraw(Canvas canvas) {
+        int width = Math.max(getWidth(), mInsetPatch.getMinimumWidth());
+        int height = Math.max(getHeight(), mInsetPatch.getMinimumHeight());
+
+        canvas.drawRect(0, 0, width, height, mSelectedColorPaint);
+        if (mBlockView != null) {
+            mInsetPatch.setBounds(0, 0, width, height);
+            mInsetPatch.setColorFilter(mBlockView.getColorFilter());
+            mInsetPatch.draw(canvas);
+        }
+    }
+
+    @Override
     public FieldWorkspaceParams getWorkspaceParams() {
         return mWorkspaceParams;
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        mBlockView = mWorkspaceHelper.getParentBlockView(this);
     }
 
     /**

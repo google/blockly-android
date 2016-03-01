@@ -24,6 +24,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -34,6 +35,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.NameManager;
 import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.ui.fieldview.FieldColourView;
 import com.google.blockly.ui.fieldview.FieldVariableView;
 
 import java.util.List;
@@ -580,4 +582,14 @@ public class WorkspaceHelper {
         }
     }
 
+    public BlockView getParentBlockView(View descendentView) {
+        ViewParent parent = descendentView.getParent();
+        while (parent != null) {
+            if (parent instanceof BlockView) {
+                return (BlockView) parent;
+            }
+            parent = parent.getParent();
+        }
+        return null; // Not found.
+    }
 }
