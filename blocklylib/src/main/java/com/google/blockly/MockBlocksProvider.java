@@ -73,7 +73,7 @@ public final class MockBlocksProvider {
         input.add(new Field.FieldInput("DO", "another loop"));
         bob.addInput(input);
 
-        bob.setColour(42);
+        bob.setColourHue(42);
         return bob.build();
     }
 
@@ -129,7 +129,7 @@ public final class MockBlocksProvider {
         input.add(new Field.FieldLabel("label", "another value"));
         block.addInput(input);
 
-        block.setColour(120);
+        block.setColourHue(120);
         return block.build();
     }
 
@@ -141,7 +141,7 @@ public final class MockBlocksProvider {
         input.add(new Field.FieldLabel("label", "zero"));
         block.addInput(input);
 
-        block.setColour(210);
+        block.setColourHue(210);
         return block.build();
     }
 
@@ -153,7 +153,7 @@ public final class MockBlocksProvider {
         input.add(new Field.FieldLabel("label", "one input"));
         block.addInput(input);
 
-        block.setColour(110);
+        block.setColourHue(110);
         return block.build();
     }
 
@@ -166,7 +166,7 @@ public final class MockBlocksProvider {
         input.add(new Field.FieldLabel("label", "do something"));
         block.addInput(input);
 
-        block.setColour(240);
+        block.setColourHue(240);
         return block.build();
     }
 

@@ -15,13 +15,13 @@
 
 package com.google.blockly.model;
 
-import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.ui.BlockView;
 import com.google.blockly.ui.BlockWorkspaceParams;
+import com.google.blockly.utils.Colours;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,15 +41,13 @@ import java.util.UUID;
 public class Block {
     private static final String TAG = "Block";
 
-    private static final int DEFAULT_HSV_HUE = 0;
-    private static final float DEFAULT_HSV_SATURATION = 0.7f;
-    private static final float DEFAULT_HSV_VALUE = 0.8f;
+    /** Array used for by {@link Colours#parseColour(String, float[], int)} during I/O. **/
+    private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
 
     // These values are immutable once a block is created
     private final String mUuid;
     private final String mName;
     private final int mCategory;
-    private final int mColourHue;
     private final Connection mOutputConnection;
     private final Connection mNextConnection;
     private final Connection mPreviousConnection;
@@ -75,13 +73,12 @@ public class Block {
     private BlockView mView;
     private BlockWorkspaceParams mLayoutParams;
 
-    private Block(String uuid, String name, int category, int colourHue, Connection outputConnection,
+    private Block(String uuid, String name, int category, int colour, Connection outputConnection,
                   Connection nextConnection, Connection previousConnection,
                   ArrayList<Input> inputList, boolean inputsInline) {
         mUuid = uuid;
         mName = name;
         mCategory = category;
-        mColourHue = colourHue;
 
         // This constructor reuses Connections and Inputs instead of copying them.  Consider using
         // a BlockFactory and Builders instead of creating Blocks directly.
@@ -93,7 +90,7 @@ public class Block {
         mInputsInline = inputsInline;
         mPosition = new WorkspacePoint(0, 0);
 
-        mColour = Color.HSVToColor(new float[]{mColourHue, DEFAULT_HSV_SATURATION, DEFAULT_HSV_VALUE});
+        mColour = colour;
 
         mConnectionList = new ArrayList<>();
 
@@ -125,16 +122,6 @@ public class Block {
      */
     public String getName() {
         return mName;
-    }
-
-    /**
-     * Gets the hue for this block. The hue is combined with the configured saturation and value to
-     * create the final colour used for this block.
-     *
-     * @return The hue for this block.
-     */
-    public int getColourHue() {
-        return mColourHue;
     }
 
     /**
@@ -613,8 +600,17 @@ public class Block {
             }
         }
 
-        int colour = json.optInt("colour", DEFAULT_HSV_HUE);
-        bob.setColour(colour);
+        int blockColour = Colours.DEFAULT_BLOCK_COLOUR;
+        if (json.has("colour")) {
+            try {
+                String colourString = json.getString("colour");
+                blockColour = Colours.parseColour(colourString, TEMP_IO_THREAD_FLOAT_ARRAY,
+                        Colours.DEFAULT_BLOCK_COLOUR);
+            } catch (JSONException e) {
+                // Won't get here. Checked above.
+            }
+        }
+        bob.setColour(blockColour);
 
         ArrayList<Input> inputs = new ArrayList<>();
         ArrayList<Field> fields = new ArrayList<>();
@@ -859,7 +855,7 @@ public class Block {
         private String mUuid;
         private String mName;
         private int mCategory;
-        private int mColourHue;
+        private int mColour;
         private Connection mOutputConnection;
         private Connection mNextConnection;
         private Connection mPreviousConnection;
@@ -888,7 +884,7 @@ public class Block {
 
         private Builder(Block block, boolean recursive) {
             this(block.mName);
-            mColourHue = block.mColourHue;
+            mColour = block.mColour;
             mCategory = block.mCategory;
 
             mOutputConnection = Connection.cloneConnection(block.mOutputConnection);
@@ -952,9 +948,13 @@ public class Block {
             return this;
         }
 
-        public Builder setColour(int hsvColor) {
-            hsvColor = Math.min(360, Math.max(0, hsvColor));
-            mColourHue = hsvColor;
+        public Builder setColourHue(int hue) {
+            mColour = Colours.getBlockColorForHue(hue, TEMP_IO_THREAD_FLOAT_ARRAY);
+            return this;
+        }
+
+        public Builder setColour(int colour) {
+            mColour = colour;
             return this;
         }
 
@@ -1052,7 +1052,7 @@ public class Block {
         }
 
         public Block build() {
-            Block b = new Block(mUuid, mName, mCategory, mColourHue, mOutputConnection, mNextConnection,
+            Block b = new Block(mUuid, mName, mCategory, mColour, mOutputConnection, mNextConnection,
                     mPreviousConnection, mInputs, mInputsInline);
             b.mTooltip = mTooltip;
             b.mComment = mComment;

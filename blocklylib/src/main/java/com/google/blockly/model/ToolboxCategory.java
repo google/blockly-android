@@ -15,14 +15,8 @@
 
 package com.google.blockly.model;
 
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
-import android.util.Log;
-
 import com.google.blockly.ToolboxFragment;
-import com.google.blockly.utils.Colors;
+import com.google.blockly.utils.Colours;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -30,7 +24,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 
 /**
  * A category of a toolbox, which holds zero or more blocks and zero or more subcategories.
@@ -39,11 +32,14 @@ import java.util.regex.Matcher;
 public class ToolboxCategory {
     private static final String TAG = "ToolboxCategory";
 
+    /** Array used for by {@link Colours#parseColour(String, float[], int)} during I/O. **/
+    private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
+
     private final List<ToolboxCategory> mSubcategories = new ArrayList<>();
     private final List<Block> mBlocks = new ArrayList<>();
     // As displayed in the toolbox.
     private String mCategoryName;
-    private @Nullable Drawable mBackground = null;
+    private Integer mColour = null;
 
     public String getCategoryName() {
         return mCategoryName;
@@ -55,6 +51,10 @@ public class ToolboxCategory {
 
     public List<ToolboxCategory> getSubcategories() {
         return mSubcategories;
+    }
+
+    public Integer getColour() {
+        return mColour;
     }
 
     /**
@@ -94,10 +94,6 @@ public class ToolboxCategory {
         }
     }
 
-    public Drawable getBackground() {
-        return mBackground;
-    }
-
     private void addSubcategory(ToolboxCategory subcategory) {
         mSubcategories.add(subcategory);
     }
@@ -116,7 +112,9 @@ public class ToolboxCategory {
             throws IOException, XmlPullParserException {
         ToolboxCategory result = new ToolboxCategory();
         result.mCategoryName = parser.getAttributeValue("", "name");
-        result.mBackground = parseBackground(parser.getAttributeValue("", "background"));
+        String colourAttr = parser.getAttributeValue("", "colour");
+        result.mColour = Colours.maybeParseColour(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY,
+                "toolbox category");
         int eventType = parser.next();
         while (eventType != XmlPullParser.END_DOCUMENT) {
             String tagname = parser.getName();
@@ -140,20 +138,4 @@ public class ToolboxCategory {
         }
         return result;
     }
-
-    private static Drawable parseBackground(String value) {
-        if (TextUtils.isEmpty(value) || TextUtils.isEmpty(value = value.trim())) {
-            return null;
-        }
-        Matcher sixHexMatcher = Colors.SIX_DIGIT_HEX.matcher(value);
-        if (sixHexMatcher.matches()) {
-            int intValue = Integer.parseInt(sixHexMatcher.group(1), 16);
-            return new ColorDrawable(intValue);
-        }
-
-        // else...
-        Log.w(TAG, "Unrecognized background format \"" + value + "\"");
-        return null;
-    }
-
 }

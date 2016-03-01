@@ -14,14 +14,7 @@
   -->
 
 <toolbox>
-    <category name="Turtle" background="#99FFDD">
-        <block type="turtle_move_internal">
-            <field name="VALUE">100</field>
-            <field name="DIR">moveForward</field>
-        </block>
-        <block type="turtle_turn_internal">
-            <field name="VALUE">90</field>
-        </block>
+    <category name="Turtle" colour="#99FFDD">
         <block type="turtle_move">
             <value name="VALUE">
                 <block type="math_number">
@@ -47,7 +40,7 @@
             </value>
         </block>
     </category>
-    <category name="Colour" background="#FFBB99">
+    <category name="Colour" colour="#FFBB99">
         <block type="turtle_colour">
             <value name="COLOUR">
                 <block type="colour_picker">
@@ -58,7 +51,7 @@
         <block type="colour_picker"></block>
         <block type="colour_random"></block>
     </category>
-    <category name="Loops" background="#99FF99">
+    <category name="Loops" colour="#99FF99">
         <block type="controls_repeat_ext">
             <value name="TIMES">
                 <block type="math_number">
@@ -67,10 +60,10 @@
             </value>
         </block>
     </category>
-    <category name="Math" background="#99AAFF">
+    <category name="Math" colour="#99AAFF">
         <block type="math_number" />
     </category>
-    <category name="Variables" background="#FF99CC">
+    <category name="Variables" colour="#FF99CC">
         <block type="variables_get"></block>
         <block type="variables_set"></block>
     </category>

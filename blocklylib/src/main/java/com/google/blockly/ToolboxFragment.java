@@ -20,8 +20,6 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -31,7 +29,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -50,7 +47,7 @@ import com.google.blockly.ui.CategoryTabs;
 import com.google.blockly.ui.Rotation;
 import com.google.blockly.ui.BlockDrawerFragment;
 import com.google.blockly.ui.WorkspaceHelper;
-import com.google.blockly.utils.Colors;
+import com.google.blockly.utils.Colours;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -123,6 +120,8 @@ import java.util.List;
 public class ToolboxFragment extends BlockDrawerFragment {
     private static final String TAG = "ToolboxFragment";
 
+    private static final float BACKGROUND_LIGHTNESS = 0.6f;
+
     public static final String ARG_TAB_EDGE = "ToolboxFragment_tabEdge";
     public static final String ARG_ROTATE_TABS = "ToolboxFragment_rotateTabs";
 
@@ -130,7 +129,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
     public static final boolean DEFAULT_ROTATE_TABS = true;
 
     protected static final int DEFAULT_BLOCKS_BACKGROUND_ALPHA = 0xAA;
-    protected static final Drawable DEFAULT_BLOCKS_BACKGROUND = new ColorDrawable(Color.WHITE);
+    protected static final int DEFAULT_BLOCKS_BACKGROUND_COLOUR = Color.WHITE;
 
     /** Subset of Gravity to identify the edge the category tabs should be bound to. */
     @IntDef(flag=true, value={
@@ -194,7 +193,6 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mBlockListView.addItemDecoration(new BlocksItemDecoration());
         mBlockListView.setBackgroundColor(
                 getResources().getColor(R.color.blockly_toolbox_bg, null));  // Replace with attrib
-        mBlockListView.setVisibility(View.GONE);  // Start closed.
         mCategoryTabs = new CategoryTabs(getContext());
         mCategoryTabs.setLabelAdapter(onCreateLabelAdapter());
         mCategoryTabs.setCallback(new CategoryTabs.Callback() {
@@ -292,7 +290,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
             mCategoryTabs.setSelectedCategory(curCategory);
             mBlockListView.setContents(curCategory.getBlocks());
 
-            updateBlockBackground(curCategory);
+            updateCategoryColours(curCategory);
         }
     }
 
@@ -311,7 +309,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
         }
 
         mCategoryTabs.setSelectedCategory(category);
-        updateBlockBackground(category);
+        updateCategoryColours(category);
         mBlockListView.setVisibility(View.VISIBLE);
         mBlockListView.setContents(category.getBlocks());
     }
@@ -373,20 +371,37 @@ public class ToolboxFragment extends BlockDrawerFragment {
         }  // Otherwise leave it in the current state.
     }
 
-    protected void updateBlockBackground(ToolboxCategory curCategory) {
-        Drawable background = curCategory.getBackground();
-        if (background == null) {
-            background = DEFAULT_BLOCKS_BACKGROUND;
+    protected void updateCategoryColours(ToolboxCategory curCategory) {
+        Integer maybeColour = curCategory.getColour();
+        int bgColour = DEFAULT_BLOCKS_BACKGROUND_COLOUR;
+        if (maybeColour != null) {
+            bgColour = getBackgroundColour(maybeColour);
         }
-        if (background instanceof ColorDrawable) {
-            int color = ((ColorDrawable) background).getColor();
-            int alphaColor = Color.argb(mCloseable ? DEFAULT_BLOCKS_BACKGROUND_ALPHA: 255,
-                    Color.red(color), Color.green(color), Color.blue(color));
-            // Assigning the ColorDrawable to the RecyclerView did not work, but this does.
-            mBlockListView.setBackgroundColor(alphaColor);
-        } else {
-            mBlockListView.setBackground(background);
-        }
+        int alphaBgColor = Color.argb(
+                mCloseable ? DEFAULT_BLOCKS_BACKGROUND_ALPHA : Colours.ALPHA_OPAQUE,
+                Color.red(bgColour), Color.green(bgColour), Color.blue(bgColour));
+        mBlockListView.setBackgroundColor(alphaBgColor);
+    }
+
+//        int colour = (maybeColour == null) ? DEFAULT_BLOCKS_BACKGROUND_COLOUR : maybeColour;
+//        if (colour == null) {
+//
+//            colour = DEFAULT_BLOCKS_BACKGROUND;
+//        }
+//        if (background instanceof ColorDrawable) {
+//            int color = ((ColorDrawable) background).getColor();
+//            int alphaColor = Color.argb(
+//                    mCloseable ? DEFAULT_BLOCKS_BACKGROUND_ALPHA : Colours.ALPHA_OPAQUE,
+//                    Color.red(color), Color.green(color), Color.blue(color));
+//            // Assigning the ColorDrawable to the RecyclerView did not work, but this does. WTH?
+//            mBlockListView.setBackgroundColor(alphaColor);
+//        } else {
+//            mBlockListView.setBackground(background);
+//        }
+//    }
+
+    protected int getBackgroundColour(int categoryColour) {
+        return Colours.blendRGB(categoryColour, Color.WHITE, BACKGROUND_LIGHTNESS);
     }
 
     /**
