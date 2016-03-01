@@ -73,7 +73,7 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
     @Override
     public void unlinkModel() {
         mCheckboxField.setView(null);
-        // TODO(#381): Remove model from view. Set mCheckboxField to null,
+        // TODO(#45): Remove model from view. Set mCheckboxField to null,
         //             and handle null cases above.
     }
 }

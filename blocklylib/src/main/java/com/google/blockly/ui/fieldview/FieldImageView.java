@@ -97,7 +97,7 @@ public class FieldImageView extends ImageView implements FieldView {
                 if (bitmap != null) {
                     setImageBitmap(bitmap);
                 } else {
-                    // TODO(357): identify and bundle as a resource a suitable default
+                    // TODO(#44): identify and bundle as a resource a suitable default
                     // "cannot load" bitmap.
                 }
                 requestLayout();
@@ -108,6 +108,6 @@ public class FieldImageView extends ImageView implements FieldView {
     @Override
     public void unlinkModel() {
         mImage.setView(null);
-        // TODO(#381): Remove model from view. Set mImage to null, and handle null cases above.
+        // TODO(#45): Remove model from view. Set mImage to null, and handle null cases above.
     }
 }

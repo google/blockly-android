@@ -101,6 +101,6 @@ public class FieldLabelView extends TextView implements FieldView {
     @Override
     public void unlinkModel() {
         mLabelField.setView(null);
-        // TODO(#381): Remove model from view. Set mLabelField to null, and handle null cases above.
+        // TODO(#45): Remove model from view. Set mLabelField to null, and handle null cases above.
     }
 }

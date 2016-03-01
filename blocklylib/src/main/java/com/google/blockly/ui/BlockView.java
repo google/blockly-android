@@ -333,7 +333,7 @@ public class BlockView extends NonPropagatingViewGroup {
         mTouchHandler = null;  // Recursive via the calls InputView calls.
         removeAllViews();
         mBlock.setView(null);
-        // TODO(#381): Remove model from view. Set mBlock to null, and handle all null cases.
+        // TODO(#45): Remove model from view. Set mBlock to null, and handle all null cases.
     }
 
     /**

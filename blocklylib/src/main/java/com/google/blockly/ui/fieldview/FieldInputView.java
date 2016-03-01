@@ -106,6 +106,6 @@ public class FieldInputView extends EditText implements FieldView {
     @Override
     public void unlinkModel() {
         mInput.setView(null);
-        // TODO(#381): Remove model from view. Set mInput to null, and handle null cases above.
+        // TODO(#45): Remove model from view. Set mInput to null, and handle null cases above.
     }
 }
