@@ -15,6 +15,9 @@
 
 package com.google.blockly.model;
 
+import android.text.TextUtils;
+import android.util.Log;
+
 import com.google.blockly.ToolboxFragment;
 import com.google.blockly.utils.Colours;
 
@@ -22,6 +25,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,8 +117,13 @@ public class ToolboxCategory {
         ToolboxCategory result = new ToolboxCategory();
         result.mCategoryName = parser.getAttributeValue("", "name");
         String colourAttr = parser.getAttributeValue("", "colour");
-        result.mColour = Colours.maybeParseColour(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY,
-                "toolbox category");
+        if (!TextUtils.isEmpty(colourAttr)) {
+            try {
+                result.mColour = Colours.parseColour(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY);
+            } catch (ParseException e) {
+                Log.w(TAG, "Invalid toolbox category colour \"" + colourAttr + "\"");
+            }
+        }
         int eventType = parser.next();
         while (eventType != XmlPullParser.END_DOCUMENT) {
             String tagname = parser.getName();
