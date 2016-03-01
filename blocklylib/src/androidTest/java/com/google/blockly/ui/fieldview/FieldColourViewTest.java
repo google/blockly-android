@@ -92,23 +92,22 @@ public class FieldColourViewTest extends ActivityInstrumentationTestCase2<Blockl
     // Verify that changing colour in the field updates the UI.
     public void testFieldUpdatesView() {
         mFieldColour.setColour(0);
-        assertEquals(FieldColourView.ALPHA_OPAQUE,
-                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+        assertEquals(FieldColourView.ALPHA_OPAQUE, mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.RED);
         assertEquals(FieldColourView.ALPHA_OPAQUE | Color.RED,
-                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+                mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.GREEN);
         assertEquals(FieldColourView.ALPHA_OPAQUE | Color.GREEN,
-                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+                mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.BLUE);
         assertEquals(FieldColourView.ALPHA_OPAQUE | Color.BLUE,
-                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+                mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.WHITE);
         assertEquals(FieldColourView.ALPHA_OPAQUE | Color.WHITE,
-                ((ColorDrawable) mFieldColorView.getBackground()).getColor());
+                mFieldColorView.mSelectedColourPaint.getColor());
     }
 }
