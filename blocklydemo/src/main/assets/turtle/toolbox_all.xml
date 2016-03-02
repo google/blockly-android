@@ -65,6 +65,10 @@
     </category>
     <category name="Variables" colour="330">
         <block type="variables_get"></block>
-        <block type="variables_set"></block>
+        <block type="variables_set">
+            <value name="VALUE">
+                <block type="math_number"></block>
+            </value>
+        </block>
     </category>
 </toolbox>
