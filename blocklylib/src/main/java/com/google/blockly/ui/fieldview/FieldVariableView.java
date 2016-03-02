@@ -81,8 +81,7 @@ public class FieldVariableView extends Spinner implements FieldView {
     @Override
     public void unlinkModel() {
         mVariableField.setView(null);
-        // TODO(#381): Remove model from view. Set mDropdownField to null,
-        //             and handle null cases above.
+        // TODO(#45): Remove model from view. Set mDropdownField to null. Handle null cases above.
     }
 
     /**

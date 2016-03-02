@@ -18,7 +18,7 @@
         blockly:scrollOrientation="vertical"
         tools:ignore="MissingPrefix"
         />
-    <!-- TODO: Place trash icon here, above the TrashFragment, for closing. -->
+    <!-- TODO(#43): Place trash icon here, above the TrashFragment, for closing. -->
 
     <fragment android:name="com.google.blockly.ToolboxFragment"
         android:id="@+id/blockly_toolbox"

@@ -332,7 +332,7 @@ public class FieldColourView extends View implements FieldView {
     @Override
     public void unlinkModel() {
         mColourField.setView(null);
-        // TODO(#381): Remove model from view. Set mColourField to null,
+        // TODO(#45): Remove model from view. Set mColourField to null,
         //             and handle null cases above.
     }
 }

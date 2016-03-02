@@ -16,7 +16,7 @@
             android:name=".CodeGeneratorService"
             android:exported="false"/>
 
-        <!-- Used for testing. (TODO: Move to testing specific manifest.) -->
+        <!-- Used for testing. TODO(#42): Move to testing specific manifest. -->
         <activity
             android:name=".BlocklyTestActivity"
             android:label="@string/app_name" />

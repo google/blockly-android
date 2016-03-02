@@ -81,6 +81,6 @@ public class FieldDateView extends TextView implements FieldView {
     @Override
     public void unlinkModel() {
         mDateField.setView(null);
-        // TODO(#381): Remove model from view. Set mDateField to null, and handle null cases above.
+        // TODO(#45): Remove model from view. Set mDateField to null, and handle null cases above.
     }
 }

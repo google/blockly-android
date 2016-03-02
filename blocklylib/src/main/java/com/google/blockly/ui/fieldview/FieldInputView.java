@@ -106,5 +106,6 @@ public class FieldInputView extends EditText implements FieldView {
             mInput.setView(null);
             mInput = null;
         }
+        // TODO(#45): Remove model from view. Set mInput to null, and handle null cases above.
     }
 }
