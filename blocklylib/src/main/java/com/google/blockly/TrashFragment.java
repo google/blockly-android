@@ -87,7 +87,7 @@ public class TrashFragment extends BlockDrawerFragment {
         mBlockListView = new BlockListView(getContext());
         mBlockListView.setLayoutManager(createLinearLayoutManager());
         mBlockListView.setBackgroundColor(
-                getResources().getColor(R.color.blockly_trash_bg, null));  // Replace with attribute
+                getResources().getColor(R.color.blockly_trash_bg));  // Replace with attribute
 
         maybeUpdateTouchHandler();
 

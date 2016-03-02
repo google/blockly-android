@@ -47,10 +47,15 @@
         <attr name="fieldMinHeight" format="dimension|reference"/>
         <!-- The minimum width for any FieldView -->
         <attr name="fieldMinWidth" format="dimension|reference"/>
-        <!-- The layout to use for spinner items like variables -->
+        <!-- The layout to use for spinner items like variables. Must contain a TextView
+                as the only element. -->
         <attr name="spinnerItem" format="reference" />
-        <!-- The drop down layout to use for spinner items like variables -->
+        <!-- The drop down layout to use for spinner items like variables. Must contain a TextView
+                as the only element. -->
         <attr name="spinnerItemDropDown" format="reference" />
+        <!-- The layout to use for field inputs text entry. Must contain a FieldInputView as the
+                only element -->
+        <attr name="fieldInputLayout" format="reference"/>
     </declare-styleable>
 
     <declare-styleable name="BlocklyFieldLabelView">

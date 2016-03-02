@@ -18,7 +18,9 @@ package com.google.blockly.ui.fieldview;
 import android.content.ClipDescription;
 import android.content.Context;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.AttributeSet;
 import android.view.DragEvent;
 import android.widget.EditText;
 
@@ -31,54 +33,49 @@ import com.google.blockly.ui.WorkspaceView;
  * Renders editable text as part of a {@link com.google.blockly.ui.InputView}.
  */
 public class FieldInputView extends EditText implements FieldView {
-    private final Field.FieldInput mInput;
-    private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
+    private Field.FieldInput mInput;
 
-    public FieldInputView(Context context, Field input, WorkspaceHelper helper) {
-        super(context);
+    public FieldInputView(Context context) {
+        super(context, null);
+    }
 
-        mInput = (Field.FieldInput) input;
-        mWorkspaceHelper = helper;
-        mWorkspaceParams = new FieldWorkspaceParams(mInput, mWorkspaceHelper);
+    public FieldInputView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-        setBackground(null);
-        setText(mInput.getText());
-        mInput.setView(this);
+    public FieldInputView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr, 0);
+    }
 
-        addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                mInput.updateTextFromView(s.toString());
-            }
-        });
+    public FieldInputView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
     @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
+    public void setText(CharSequence text, BufferType type) {
+        super.setText(text, type);
+        if (mInput != null) {
+            mInput.setText(text.toString());
+        }
     }
 
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
+    public void setField(Field input) {
+        if (mInput != null) {
+            mInput.setView(null);
+        }
+        if (input != null) {
+            mInput = (Field.FieldInput) input;
+            setText(mInput.getText());
+            mInput.setView(this);
+        } else {
+            mInput = null;
+            setText("");
         }
     }
 
     @Override
     public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
+        return null;
     }
 
     /**
@@ -105,7 +102,9 @@ public class FieldInputView extends EditText implements FieldView {
 
     @Override
     public void unlinkModel() {
-        mInput.setView(null);
-        // TODO(#381): Remove model from view. Set mInput to null, and handle null cases above.
+        if (mInput != null) {
+            mInput.setView(null);
+            mInput = null;
+        }
     }
 }

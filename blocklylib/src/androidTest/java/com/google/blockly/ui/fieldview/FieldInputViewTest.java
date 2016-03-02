@@ -40,7 +40,6 @@ public class FieldInputViewTest extends MockitoAndroidTestCase {
     // Verify setting text in the view propagates to the field.
     public void testViewUpdatesField() {
         final FieldInputView view = makeFieldInputView();
-
         view.setText(SET_TEXT_VALUE);
         assertEquals(SET_TEXT_VALUE, mFieldInput.getText());
     }
@@ -55,6 +54,8 @@ public class FieldInputViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     private FieldInputView makeFieldInputView() {
-        return new FieldInputView(getContext(), mFieldInput, mMockWorkspaceHelper);
+        FieldInputView view = new FieldInputView(getContext());
+        view.setField(mFieldInput);
+        return view;
     }
 }
