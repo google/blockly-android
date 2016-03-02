@@ -270,6 +270,13 @@ public class BlockView extends NonPropagatingViewGroup {
     }
 
     /**
+     * @return The {@link ColorFilter} that applies the block's color to grayscale resources.
+     */
+    public ColorFilter getColorFilter() {
+        return mBlockColorFilter;
+    }
+
+    /**
      * Correctly set the locations of the connections based on their offsets within the
      * {@link BlockView} and the position of the {@link BlockView} itself.  Can be used when the
      * block has moved but not changed shape (e.g. during a drag).

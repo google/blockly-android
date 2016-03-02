@@ -24,6 +24,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -34,6 +35,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.NameManager;
 import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.ui.fieldview.FieldColourView;
 import com.google.blockly.ui.fieldview.FieldVariableView;
 
 import java.util.List;
@@ -428,6 +430,25 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Finds the closest BlockView that contains the {@code descendantView} as a child or further
+     * descendant.
+     *
+     * @param descendantView The contained {@code view}.
+     * @return The closest BlockView that contains the {@code descendantView}.
+     */
+    @Nullable
+    public BlockView getClosestAncestorBlockView(View descendantView) {
+        ViewParent parent = descendantView.getParent();
+        while (parent != null) {
+            if (parent instanceof BlockView) {
+                return (BlockView) parent;
+            }
+            parent = parent.getParent();
+        }
+        return null; // Not found.
+    }
+
+    /**
      * Converts a point in virtual view coordinates to screen coordinates.
      *
      * @param viewPositionIn Input coordinates of a location in {@link WorkspaceView}, expressed
@@ -579,5 +600,4 @@ public class WorkspaceHelper {
             mRtl = false;
         }
     }
-
 }
