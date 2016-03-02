@@ -15,12 +15,17 @@
 
 package com.google.blockly.model;
 
+import android.text.TextUtils;
+import android.util.Log;
+
 import com.google.blockly.ToolboxFragment;
+import com.google.blockly.utils.Colours;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,13 +34,16 @@ import java.util.List;
  * {@link ToolboxFragment} is responsible for displaying this.
  */
 public class ToolboxCategory {
+    private static final String TAG = "ToolboxCategory";
+
+    /** Array used for by {@link Colours#parseColour(String, float[], int)} during I/O. **/
+    private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
+
     private final List<ToolboxCategory> mSubcategories = new ArrayList<>();
     private final List<Block> mBlocks = new ArrayList<>();
     // As displayed in the toolbox.
     private String mCategoryName;
-
-    // For use in calculating positions in the toolbox.
-    private boolean mIsExpanded = false;
+    private Integer mColour = null;
 
     public String getCategoryName() {
         return mCategoryName;
@@ -47,6 +55,10 @@ public class ToolboxCategory {
 
     public List<ToolboxCategory> getSubcategories() {
         return mSubcategories;
+    }
+
+    public Integer getColour() {
+        return mColour;
     }
 
     /**
@@ -104,6 +116,14 @@ public class ToolboxCategory {
             throws IOException, XmlPullParserException {
         ToolboxCategory result = new ToolboxCategory();
         result.mCategoryName = parser.getAttributeValue("", "name");
+        String colourAttr = parser.getAttributeValue("", "colour");
+        if (!TextUtils.isEmpty(colourAttr)) {
+            try {
+                result.mColour = Colours.parseColour(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY);
+            } catch (ParseException e) {
+                Log.w(TAG, "Invalid toolbox category colour \"" + colourAttr + "\"");
+            }
+        }
         int eventType = parser.next();
         while (eventType != XmlPullParser.END_DOCUMENT) {
             String tagname = parser.getName();
