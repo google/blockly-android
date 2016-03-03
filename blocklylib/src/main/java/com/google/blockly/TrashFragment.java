@@ -139,7 +139,7 @@ public class TrashFragment extends BlockDrawerFragment {
      * @param transaction {@link FragmentTransaction} in which the action will occur.
      * @return Whether there will be a state change.
      */
-    // TODO(#384): Add animation hooks for subclasses.
+    // TODO(#80): Add animation hooks for subclasses.
     public boolean setOpened(boolean open, FragmentTransaction transaction) {
         if (!mCloseable && !open) {
             throw new IllegalStateException("Not configured as closeable.");
@@ -187,7 +187,7 @@ public class TrashFragment extends BlockDrawerFragment {
                     }
 
                     Block rootBlock = blockView.getBlock().getRootBlock();
-                    // TODO(#376): Optimize to avoid copying the model and view trees.
+                    // TODO(#77): Optimize to avoid copying the model and view trees.
                     Block copiedModel = rootBlock.deepCopy();
 
                     // Make the pointer be in the same relative position on the block as it was in

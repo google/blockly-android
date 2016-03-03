@@ -11,8 +11,7 @@ import java.util.List;
  */
 public class BlockFactoryTest extends AndroidTestCase {
 
-    // TODO: Move rest_blocks.json to the testapp's resources once
-    // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
+    // TODO(#84): Move test_blocks.json to the testapp's resources.
 
     public void testLoadBlocks() {
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});

@@ -300,7 +300,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
      *
      * @param category The {@link ToolboxCategory} with blocks to display.
      */
-    // TODO(#384): Add mBlockList animation hooks for subclasses.
+    // TODO(#80): Add mBlockList animation hooks for subclasses.
     public void setCurrentCategory(@Nullable ToolboxCategory category) {
         if (category == null) {
             closeBlocksDrawer();
@@ -318,7 +318,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
      *
      * @return True if an action was taken (the drawer is closeable and was previously open).
      */
-    // TODO(#384): Add mBlockList animation hooks for subclasses.
+    // TODO(#80): Add mBlockList animation hooks for subclasses.
     public boolean closeBlocksDrawer() {
         if (mCloseable && mBlockListView.getVisibility() == View.VISIBLE) {
             mBlockListView.setVisibility(View.GONE);

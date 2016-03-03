@@ -20,7 +20,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private static final String TAG = "VirtualWorkspaceView";
     private static final boolean DEBUG = true;
 
-    // TODO: Replace with more intelligent defaults
+    // TODO(#87): Replace with configuration. Use dp.
     // Default desired width of the view in pixels.
     private static final int DESIRED_WIDTH = 2048;
     // Default desired height of the view in pixels.

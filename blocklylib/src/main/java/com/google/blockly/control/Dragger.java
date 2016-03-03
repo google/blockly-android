@@ -487,7 +487,7 @@ public class Dragger {
      *
      * @param currentBlock The {@link Block} to bump others away from.
      */
-    // TODO: Move to BlocklyController as part of the connect(..) method.
+    // TODO(#82): Move to BlocklyController as part of the connect(..) method.
     private void bumpNeighbours(Block currentBlock, BlockGroup rootBlockGroup) {
         List<Connection> connectionsOnBlock = new ArrayList<>();
         rootBlockGroup.updateAllConnectorLocations();

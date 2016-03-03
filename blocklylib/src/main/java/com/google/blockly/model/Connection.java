@@ -74,7 +74,7 @@ public class Connection implements Cloneable {
      * Position of the connection in the workspace, used by the connection manager. The position is
      * not a part of the serialized model, and is only updated when connected to a view.
      */
-    // TODO(Anm): Make this a {@link WorkspacePoint}.
+    // TODO(#85): Make this a {@link WorkspacePoint}.
     private final Point mPosition = new Point();
 
     private Block mBlock;
