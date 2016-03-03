@@ -23,7 +23,7 @@ import android.view.View;
  * Item decoration that adds spacing around RecyclerView items.
  */
 public class ItemSpacingDecoration extends RecyclerView.ItemDecoration {
-    // TODO (#379): Load from resources, adapt to dpi.
+    // TODO (#46): Load from resources, adapt to dpi.
     // Minimum pixel distance between blocks in the toolbox.
     private int mBlockMargin = 10;
 

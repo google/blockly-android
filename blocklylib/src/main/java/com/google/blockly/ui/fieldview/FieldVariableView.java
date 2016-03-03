@@ -16,7 +16,6 @@
 package com.google.blockly.ui.fieldview;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.text.TextUtils;
 import android.widget.Adapter;
@@ -24,7 +23,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.google.blockly.R;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.NameManager;
 import com.google.blockly.ui.FieldWorkspaceParams;
@@ -81,7 +79,7 @@ public class FieldVariableView extends Spinner implements FieldView {
     @Override
     public void unlinkModel() {
         mVariableField.setView(null);
-        // TODO(#45): Remove model from view. Set mDropdownField to null. Handle null cases above.
+        // TODO(#45): Remove model from view. Set mVariableField to null. Handle null cases above.
     }
 
     /**

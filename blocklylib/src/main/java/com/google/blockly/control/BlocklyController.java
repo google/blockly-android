@@ -115,7 +115,7 @@ public class BlocklyController {
         mWorkspace = new Workspace(mContext, this, mBlockFactory);
         mHelper = new WorkspaceHelper(mContext, style);
 
-        // TODO: Check if variables are enabled/disabled
+        // TODO(#81): Check if variables are enabled/disabled
         mHelper.setVariableNameManager(mWorkspace.getVariableNameManager());
 
         mDragger = new Dragger(this);
@@ -287,7 +287,7 @@ public class BlocklyController {
             }
         }
 
-        // TODO(#302): Save the rest of the state.
+        // TODO(#58): Save the rest of the state.
 
         // Success!
         mSavedInstanceState.putBundle(SNAPSHOT_BUNDLE_KEY, blocklyState);
@@ -327,7 +327,7 @@ public class BlocklyController {
                 }
             }
 
-            // TODO(#302): Restore the rest of the state.
+            // TODO(#58): Restore the rest of the state.
 
             return true;
         }
@@ -606,12 +606,12 @@ public class BlocklyController {
      * @param block The block to remove, possibly with descendants attached.
      * @return True if the block was removed, false otherwise.
      */
-    // TODO(#301) Make this handle any block, not just root blocks.
+    // TODO(#56) Make this handle any block, not just root blocks.
     public boolean trashRootBlock(Block block) {
         boolean rootFoundAndRemoved = removeRootBlock(block, true);
         if (rootFoundAndRemoved) {
             mWorkspace.addBlockToTrash(block);
-            unlinkViews(block);  // TODO(#376): Remove once TrashFragment can reuse views.
+            unlinkViews(block);  // TODO(#77): Remove once TrashFragment can reuse views.
 
             mTrashFragment.onBlockTrashed(block);
         }

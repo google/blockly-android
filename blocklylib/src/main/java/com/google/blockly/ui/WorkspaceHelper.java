@@ -21,6 +21,7 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -195,7 +196,7 @@ public class WorkspaceHelper {
      * @return The maximum distance a block can snap to match a connection, in workspace units.
      */
     public int getMaxSnapDistance() {
-        // TODO(#330): Adapt to WorkspaceView zoom, if connected.
+        // TODO(#62): Adapt to WorkspaceView zoom, if connected.
         return DEFAULT_MAX_SNAP_DISTANCE;
     }
 
@@ -295,7 +296,7 @@ public class WorkspaceHelper {
     public BlockView buildBlockViewTree(Block block, BlockGroup parentGroup,
                                         ConnectionManager connectionManager,
                                         BlockTouchHandler touchHandler) {
-        // TODO: Refactor to use a BlockViewFactory to instantiate and combine all the views.
+        // TODO(#88): Refactor to use a BlockViewFactory to instantiate and combine all the views.
         BlockView blockView = new BlockView(mContext, block, this, connectionManager, touchHandler);
         List<Input> inputs = block.getInputs();
         for (int i = 0; i < inputs.size(); i++) {
@@ -658,8 +659,7 @@ public class WorkspaceHelper {
             mRtl = resources.getConfiguration().getLayoutDirection()
                     == View.LAYOUT_DIRECTION_RTL;
         } else {
-            // TODO: Handle pre 17 versions.
-            mRtl = false;
+            mRtl = false;  // RTL not supported.
         }
     }
 }

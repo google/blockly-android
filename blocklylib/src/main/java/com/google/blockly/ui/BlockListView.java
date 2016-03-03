@@ -131,7 +131,7 @@ public class BlockListView extends RecyclerView {
 
         @Override
         public void onViewRecycled(BlockListView.ViewHolder holder) {
-            // TODO(#376): Reuse views to save memory and allocation time.  E.g., a view pool.
+            // TODO(#77): Reuse views to save memory and allocation time.  E.g., a view pool.
             holder.bg.unlinkModelAndSubViews();
             holder.bg = null;
             holder.mContainer.removeAllViews();

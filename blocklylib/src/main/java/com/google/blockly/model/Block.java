@@ -628,8 +628,8 @@ public class Block {
                 args = new JSONArray();
             }
 
-            if (message.matches("^%[a-zA-Z_][a-zA-Z_0-9]*$")) {
-                // TODO: load the message from resources.
+            if (message.matches("^%[a-zA-Z][a-zA-Z_0-9]*$")) {
+                // TODO(#83): load the message from resources.
             }
             // Split on all argument indices of the form "%N" where N is a number from 1 to
             // the number of args without removing them.
