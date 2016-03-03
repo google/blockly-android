@@ -115,9 +115,9 @@ public class Workspace {
     /**
      * Add a root block to the trash.
      *
-     * TODO(#306): Make sure the block doesn't have a parent.
      * @param block The block to put in the trash, possibly with descendants attached.
      */
+    // TODO(#56): Make sure the block doesn't have a parent.
     public void addBlockToTrash(Block block) {
         mDeletedBlocks.add(0, block);
     }
@@ -234,7 +234,6 @@ public class Workspace {
         mRootBlocks.clear();
         mStats.clear();
         mDeletedBlocks.clear();
-        // TODO(fenichel): notify adapters when contents change.
     }
 
     public boolean hasDeletedBlocks() {

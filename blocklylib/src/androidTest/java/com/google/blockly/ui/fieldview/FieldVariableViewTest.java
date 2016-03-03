@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 /**
- * Tests for {@link FieldDropdownView}.
+ * Tests for {@link FieldVariableView}.
  */
 public class FieldVariableViewTest extends MockitoAndroidTestCase {
 
@@ -39,8 +39,8 @@ public class FieldVariableViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify update of field when an item is selected from the dropdown.
-    // TODO(355): need tests (using Espresso?) to confirm that user interaction has the same
-    // effect as calling FieldDropdownView.setSelection().
+    // TODO(#69): need tests (using Espresso?) to confirm that user interaction has the same
+    //            effect as calling FieldVariableView.setSelection().
     public void testUpdateFieldFromView() {
         final FieldVariableView view = makeFieldVariableView();
 
@@ -57,7 +57,7 @@ public class FieldVariableViewTest extends MockitoAndroidTestCase {
         assertEquals(view.getSelectedItem().toString(), mFieldVariable.getVariable());
     }
 
-    // Test update of view if field selection changes.
+    // Test update of view if variable selection changes.
     public void testUpdateViewFromField() {
         final FieldVariableView view = makeFieldVariableView();
 

@@ -45,8 +45,8 @@ public class FieldDropdownViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify update of field when an item is selected from the dropdown.
-    // TODO(355): need tests (using Espresso?) to confirm that user interaction has the same
-    // effect as calling FieldDropdownView.setSelection().
+    // TODO(#69): Make tests (using Espresso?) to confirm that user interaction has the same
+    //            effect as calling FieldDropdownView.setSelection().
     public void testUpdateFieldFromView() {
         final FieldDropdownView view = makeFieldDropdownView();
 

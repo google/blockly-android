@@ -97,8 +97,7 @@ public class BlockTest extends AndroidTestCase {
     }
 
     public void testLoadFromXml() throws IOException, XmlPullParserException {
-        // TODO: Move rest_blocks.json to the testapp's resources once
-        // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
+        // TODO(#84): Move test_blocks.json to the test app's resources
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
 
         Block loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK, bf);

@@ -48,7 +48,7 @@
 
 <script>
     function generate(blocklyxml) {
-      // TODO: (blockly/#265) Remove variables hack once variable fields are handled correctly.
+      // TODO: (#52) Remove variables hack
       if (Blockly.Blocks['variables_set']) {
         Blockly.Blocks['variables_set'].getVars = function() {
           return [this.getFieldValue('VAR')];

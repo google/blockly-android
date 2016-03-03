@@ -47,8 +47,7 @@ import java.util.List;
 @SuppressLint("ViewConstructor")
 public class BlockView extends NonPropagatingViewGroup {
     private static final boolean DEBUG = false;
-    // TODO: Replace with dimens so it gets scaled correctly, or better yet, somehow derive from
-    // ninepatch measurements.
+    // TODO(#86): Determine from 9-patch measurements.
     private static final int MIN_BLOCK_WIDTH = 40;
 
     private final WorkspaceHelper mHelper;

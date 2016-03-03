@@ -26,8 +26,7 @@ public class WorkspaceTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        // TODO: Move test_blocks.json to the testapp's resources once
-        // https://code.google.com/p/android/issues/detail?id=64887 is fixed.
+        // TODO(#84): Move test_blocks.json to the test app's resources.
         BlocklyController.Builder builder = new BlocklyController.Builder(getContext());
         builder.addBlockDefinitions(R.raw.test_blocks);
         BlocklyController controller = builder.build();

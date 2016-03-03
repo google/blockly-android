@@ -371,8 +371,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @param outState
      */
     protected void onSaveWorkspaceSnapshot(Bundle outState) {
-        // TODO(#316): Support optionally saving workspace state to persistence state.
-        //     Requires checking API Level >=21.
         mController.onSaveSnapshot(outState);
     }
 

@@ -45,7 +45,6 @@ Turtle.init = function() {
   // Add to reserved word list: API, local variables in execution evironment
   // (execute) and the infinite loop detection function.
   //Blockly.JavaScript.addReservedWords('Turtle,code');
-  // TODO (fenichel): Make this possible in android blockly.
 
   Turtle.ctxDisplay = document.getElementById('display').getContext('2d');
   Turtle.ctxScratch = document.getElementById('scratch').getContext('2d');
