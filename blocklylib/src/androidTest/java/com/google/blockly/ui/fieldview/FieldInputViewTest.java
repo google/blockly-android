@@ -55,6 +55,7 @@ public class FieldInputViewTest extends MockitoAndroidTestCase {
     @NonNull
     private FieldInputView makeFieldInputView() {
         FieldInputView view = new FieldInputView(getContext());
+        view.onFinishInflate(); // This must be called to register the text change watcher.
         view.setField(mFieldInput);
         return view;
     }
