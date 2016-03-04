@@ -87,7 +87,7 @@ import java.util.List;
  */
 public class WorkspaceHelper {
     private static final String TAG = "WorkspaceHelper";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     // Blocks "snap" toward each other at the end of drags if they have compatible connections
     // near each other.  This is the farthest they can snap at 1.0 zoom, in workspace units.
     private static final int DEFAULT_MAX_SNAP_DISTANCE = 24;
