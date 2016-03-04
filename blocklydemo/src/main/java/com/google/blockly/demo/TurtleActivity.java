@@ -47,6 +47,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
             "default/loop_blocks.json",
             "default/math_blocks.json",
             "default/variable_blocks.json",
+            "default/colour_blocks.json",
             "turtle/turtle_blocks.json"
     });
 

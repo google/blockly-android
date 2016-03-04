@@ -1,0 +1,26 @@
+[
+  {
+    "id": "colour_picker",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_colour",
+        "name": "COLOUR",
+        "colour": "#ff0000"
+      }
+    ],
+    "output": "Colour",
+    "colour": 20,
+    "tooltip": "Choose a colour from the palette.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Color"
+  },
+  {
+    "id": "colour_random",
+    "message0": "random colour",
+    "args0": [],
+    "output": null,
+    "colour": 20,
+    "tooltip": "Choose a colour at random.",
+    "helpUrl": "http://randomcolour.com"
+  }
+]
