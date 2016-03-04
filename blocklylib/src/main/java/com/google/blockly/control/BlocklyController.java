@@ -315,8 +315,9 @@ public class BlocklyController {
             ByteArrayInputStream in = new ByteArrayInputStream(bytes);
             try {
                 mWorkspace.loadWorkspaceContents(in);
+                initBlockViews();
             } catch(BlocklyParserException e) {
-                // Ignore all other workspace variables.
+                // Ignore all other workspace state variables.
                 Log.w(TAG, "Unable to restore Blockly state.", e);
                 return false;
             } finally {

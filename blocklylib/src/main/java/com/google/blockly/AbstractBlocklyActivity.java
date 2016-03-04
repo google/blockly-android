@@ -211,10 +211,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * Loads the workspace from the given file in the application's private data directory.
      */
     public void loadWorkspaceFromAppDir(String filename) {
-        Workspace workspace = mWorkspaceFragment.getWorkspace();
         try {
-            workspace.loadWorkspaceContents(openFileInput(filename));
-            getController().initBlockViews();
+            mController.loadWorkspaceContents(openFileInput(filename));
         } catch (FileNotFoundException e) {
             Toast.makeText(getApplicationContext(), R.string.toast_workspace_file_not_found,
                     Toast.LENGTH_LONG).show();
