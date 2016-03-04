@@ -238,6 +238,12 @@ public class ConnectionManager {
         return matchingLists[connectionType];
     }
 
+    ////////// Delete me
+    public String getConnectionSummary() {
+        return mInputConnections.size() + " inputs; " + mNextConnections.size() + " nexts; "
+                + mOutputConnections.size() + "outputs; " + mPreviousConnections.size() + " prevs";
+    }
+
     /**
      * List of connections ordered by y position.  This is optimized
      * for quickly finding the nearest connection when dragging a block around.

@@ -258,8 +258,15 @@ public class BlocklyController {
      */
     public void loadWorkspaceContents(InputStream workspaceXmlStream)
             throws BlocklyParserException {
-        mWorkspace.loadWorkspaceContents(workspaceXmlStream);
-        initBlockViews();
+        Log.d(TAG, "loadWorkspaceContents(): Before load...:\n\troot blocks size = " + mWorkspace.getRootBlocks().size() + "\n\tconnections: " + mWorkspace.getConnectionManager().getConnectionSummary());
+        try {
+            mWorkspace.loadWorkspaceContents(workspaceXmlStream);
+            initBlockViews();
+            Log.d(TAG, "After load:\n\troot blocks size = " + mWorkspace.getRootBlocks().size() + "\n\tconnections: " + mWorkspace.getConnectionManager().getConnectionSummary());
+        } catch (Throwable e) {
+            Log.e(TAG, "Loading failed");
+            throw e;
+        }
     }
 
     /**
@@ -306,6 +313,7 @@ public class BlocklyController {
     public boolean onRestoreSnapshot(@Nullable Bundle savedInstanceState) {
         Bundle blocklyState = (savedInstanceState == null) ? null :
                 savedInstanceState.getBundle(SNAPSHOT_BUNDLE_KEY);
+        Log.d(TAG, "onRestoreSnapshot(..): blocklyState found? " + (blocklyState != null));
         if (blocklyState != null) {
             byte[] bytes = blocklyState.getByteArray(SERIALIZED_WORKSPACE_KEY);
             if (bytes == null) {
@@ -314,12 +322,15 @@ public class BlocklyController {
             }
             ByteArrayInputStream in = new ByteArrayInputStream(bytes);
             try {
+                Log.d(TAG, "onRestoreSnapshot: Before load:\n\troot blocks size = " + mWorkspace.getRootBlocks().size() + "\n\tconnections: " + mWorkspace.getConnectionManager().getConnectionSummary());
                 mWorkspace.loadWorkspaceContents(in);
+                initBlockViews();
             } catch(BlocklyParserException e) {
                 // Ignore all other workspace variables.
                 Log.w(TAG, "Unable to restore Blockly state.", e);
                 return false;
             } finally {
+                Log.d(TAG, "After load:\n\troot blocks size = " + mWorkspace.getRootBlocks().size() + "\n\tconnections: " + mWorkspace.getConnectionManager().getConnectionSummary());
                 try {
                     in.close();
                 } catch (IOException e) {
@@ -656,10 +667,12 @@ public class BlocklyController {
      * if connected.
      */
     public void resetWorkspace() {
+        Log.d(TAG, "resetWrokspace()...");
         // Unlink the Views before wiping out the model's root list.
         ArrayList<Block> rootBlocks = mWorkspace.getRootBlocks();
         for (int i = 0; i < rootBlocks.size(); ++i) {
             unlinkViews(rootBlocks.get(i));
+            Log.d(TAG, "After unlink #" + i + ": " + getWorkspace().getConnectionManager().getConnectionSummary());
         }
 
         mWorkspace.resetWorkspace();
@@ -667,6 +680,7 @@ public class BlocklyController {
             mWorkspaceView.removeAllViews();
             initBlockViews();
         }
+        Log.d(TAG, "After reset:\n\troot blocks size = " + mWorkspace.getRootBlocks().size() + "\n\tconnections: " + mWorkspace.getConnectionManager().getConnectionSummary());
     }
 
     /**

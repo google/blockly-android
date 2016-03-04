@@ -211,10 +211,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * Loads the workspace from the given file in the application's private data directory.
      */
     public void loadWorkspaceFromAppDir(String filename) {
-        Workspace workspace = mWorkspaceFragment.getWorkspace();
         try {
-            workspace.loadWorkspaceContents(openFileInput(filename));
-            getController().initBlockViews();
+            mController.loadWorkspaceContents(openFileInput(filename));
         } catch (FileNotFoundException e) {
             Toast.makeText(getApplicationContext(), R.string.toast_workspace_file_not_found,
                     Toast.LENGTH_LONG).show();
@@ -272,6 +270,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate(..)");
+
         super.onCreate(savedInstanceState);
 
         onCreateActivityRootView();
@@ -283,6 +283,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
                 && mController.onRestoreSnapshot(savedInstanceState);
+        Log.d(TAG, "loadedPriorInstance = " + loadedPriorInstance);
         if (!loadedPriorInstance) {
             onLoadInitialWorkspace();
         }
@@ -348,6 +349,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume()");
         super.onResume();
         Intent intent = new Intent(this, CodeGeneratorService.class);
         bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
@@ -376,6 +378,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "onPause()");
         super.onPause();
         unbindService(mCodeGenerationConnection);
     }
