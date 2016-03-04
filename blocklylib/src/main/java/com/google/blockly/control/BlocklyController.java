@@ -277,7 +277,7 @@ public class BlocklyController {
             mWorkspace.serializeToXml(out);
             blocklyState.putByteArray(SERIALIZED_WORKSPACE_KEY, out.toByteArray());
         } catch (BlocklySerializerException e) {
-            Log.w(TAG, e);
+            Log.w(TAG, "Error serializing workspace.", e);
             return false;
         } finally {
             try {
@@ -1091,7 +1091,6 @@ public class BlocklyController {
             }
             for (int i = 0; i < mBlockDefAssets.size(); i++) {
                 try {
-                    Log.d(TAG, "mBlockDefAssets #" + i + ": " + mBlockDefAssets.get(i));
                     factory.addBlocks(mAssetManager.open(mBlockDefAssets.get(i)));
                 } catch (IOException e) {
                     throw new IllegalArgumentException("Failed to load block definitions "

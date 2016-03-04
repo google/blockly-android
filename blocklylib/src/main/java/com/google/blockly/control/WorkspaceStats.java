@@ -38,8 +38,8 @@ public class WorkspaceStats {
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
 
-    private final Field.FieldVariable.VariableObserver mVariableObserver =
-            new Field.FieldVariable.VariableObserver() {
+    private final Field.FieldVariable.Observer mVariableObserver =
+            new Field.FieldVariable.Observer() {
         @Override
         public void onVariableChanged(Field.FieldVariable field, String oldVar, String newVar) {
             List<Field.FieldVariable> list = mVariableReferences.get(oldVar);
