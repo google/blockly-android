@@ -16,7 +16,6 @@
 package com.google.blockly.model;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.google.blockly.control.BlocklyController;
 import com.google.blockly.control.ConnectionManager;
@@ -235,7 +234,6 @@ public class Workspace {
         mRootBlocks.clear();
         mStats.clear();
         mDeletedBlocks.clear();
-        Log.d(TAG, "After Workspace.resetWorkspace(): " + mConnectionManager.getConnectionSummary());
     }
 
     public boolean hasDeletedBlocks() {

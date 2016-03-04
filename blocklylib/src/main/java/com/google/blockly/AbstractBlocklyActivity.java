@@ -270,8 +270,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate(..)");
-
         super.onCreate(savedInstanceState);
 
         onCreateActivityRootView();
@@ -283,7 +281,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
                 && mController.onRestoreSnapshot(savedInstanceState);
-        Log.d(TAG, "loadedPriorInstance = " + loadedPriorInstance);
         if (!loadedPriorInstance) {
             onLoadInitialWorkspace();
         }
@@ -349,7 +346,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        Log.d(TAG, "onResume()");
         super.onResume();
         Intent intent = new Intent(this, CodeGeneratorService.class);
         bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
@@ -378,7 +374,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        Log.d(TAG, "onPause()");
         super.onPause();
         unbindService(mCodeGenerationConnection);
     }
