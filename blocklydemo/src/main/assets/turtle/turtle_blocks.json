@@ -178,19 +178,6 @@
     "tooltip": "Do some statements several times."
   },
   {
-    "id": "colour_picker",
-    "message0": "%1",
-    "args0": [
-      {
-        "type": "field_colour",
-        "name": "COLOUR",
-        "colour": "#ff0000"
-      }
-    ],
-    "output": "Colour",
-    "colour": 20
-  },
-  {
     "id": "turtle_move",
     "message0": "%1 %2",
     "args0": [
@@ -277,14 +264,5 @@
     "colour": 20,
     "tooltip": "",
     "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
-  },
-  {
-    "id": "colour_random",
-    "message0": "random colour",
-    "args0": [],
-    "output": null,
-    "colour": 20,
-    "tooltip": "",
-    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#63n46f"
   }
 ]
