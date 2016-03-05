@@ -25,8 +25,11 @@ import android.util.Log;
 import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.fieldview.FieldCheckboxView;
 import com.google.blockly.ui.fieldview.FieldColourView;
+import com.google.blockly.ui.fieldview.FieldDateView;
 import com.google.blockly.ui.fieldview.FieldDropdownView;
+import com.google.blockly.ui.fieldview.FieldImageView;
 import com.google.blockly.ui.fieldview.FieldInputView;
+import com.google.blockly.ui.fieldview.FieldLabelView;
 import com.google.blockly.ui.fieldview.FieldVariableView;
 import com.google.blockly.ui.fieldview.FieldView;
 
@@ -44,13 +47,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Observer;
 
 /**
  * The base class for Fields in Blockly. A field is the smallest piece of a {@link Block} and is
  * wrapped by an {@link Input}.
  */
-public abstract class Field implements Cloneable {
+// TODO: (#97) Split fields out into their own files.
+// TODO: (#98) Remove references to views and have views observe their fields instead.
+public abstract class Field<T> extends Observable<T> implements Cloneable {
     private static final String TAG = "Field";
     public static final int TYPE_UNKNOWN = -1;
     public static final int TYPE_LABEL = 0;
@@ -287,8 +291,8 @@ public abstract class Field implements Cloneable {
      * Adds a text to an Input. This can be used to add text to the block or label
      * another field. The text is not modifiable by the user.
      */
-    public static final class FieldLabel extends Field {
-        private final String mText;
+    public static final class FieldLabel extends Field<FieldLabel.Observer> {
+        private String mText;
 
         public FieldLabel(String name, String text) {
             super(name, TYPE_LABEL);
@@ -311,6 +315,22 @@ public abstract class Field implements Cloneable {
             return mText;
         }
 
+        /**
+         * Sets the text for this label. Changes to the label will not be serialized by Blockly and
+         * should not be caused by user input. For user editable text fields use
+         * {@link com.google.blockly.model.Field.FieldInput} instead.
+         */
+        public void setText(String text) {
+            if (!TextUtils.equals(text, mText)) {
+                String oldText = mText;
+                mText = text;
+                if (mView != null) {
+                    ((FieldLabelView)mView).setText(text);
+                }
+                onTextChanged(oldText, text);
+            }
+        }
+
         @Override
         public boolean setFromString(String text) {
             throw new IllegalStateException("Label field text cannot be set after construction.");
@@ -321,12 +341,34 @@ public abstract class Field implements Cloneable {
             // Nothing to do.
         }
 
+        private void onTextChanged(String oldText, String newText) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onTextChanged(this, oldText, newText);
+            }
+        }
+
+        /**
+         * Observer for listening to changes to an input field.
+         */
+        public interface Observer {
+            /**
+             * Called when the field's text changed.
+             * <p>
+             * Note: Label fields are not expected to be user editable and are not serialized by
+             * Blockly's core library.
+             *
+             * @param field The field that changed.
+             * @param oldText The field's previous text.
+             * @param newText The field's new text.
+             */
+            void onTextChanged(FieldLabel field, String oldText, String newText);
+        }
     }
 
     /**
      * Adds an editable text input to an Input.
      */
-    public static final class FieldInput extends Field {
+    public static final class FieldInput extends Field<FieldInput.Observer> {
         private String mText;
 
         public FieldInput(String name, String text) {
@@ -363,37 +405,46 @@ public abstract class Field implements Cloneable {
          * @param text The text to replace the field content with.
          */
         public void setText(String text) {
-            if (TextUtils.equals(text, mText)) {
-                return;
+            if (!TextUtils.equals(text, mText)) {
+                String oldText = mText;
+                mText = text;
+                if (mView != null) {
+                    ((FieldInputView) mView).setText(mText);
+                }
+                onTextChanged(oldText, text);
             }
-            mText = text;
-            if (mView != null) {
-                ((FieldInputView) mView).setText(mText);
-            }
-        }
-
-        /**
-         * Set text from the field's connected {@link FieldInputView}.
-         * <p/>
-         * Unlike {@link #setText(String)}, this method will <em>not</em> update the view, in order
-         * to prevent a feedback loop and interference with text editing.
-         *
-         * @param text The text to replace field content with.
-         */
-        public void updateTextFromView(String text) {
-            mText = text;
         }
 
         @Override
         protected void serializeInner(XmlSerializer serializer) throws IOException {
             serializer.text(mText == null ? "" : mText);
         }
+
+        private void onTextChanged(String oldText, String newText) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onTextChanged(this, oldText, newText);
+            }
+        }
+
+        /**
+         * Observer for listening to changes to an input field.
+         */
+        public interface Observer {
+            /**
+             * Called when the field's text changed.
+             *
+             * @param field The field that changed.
+             * @param oldText The field's previous text.
+             * @param newText The field's new text.
+             */
+            void onTextChanged(FieldInput field, String oldText, String newText);
+        }
     }
 
     /**
      * Adds an angle (0-360) picker to an Input.
      */
-    public static final class FieldAngle extends Field {
+    public static final class FieldAngle extends Field<FieldAngle.Observer> {
         private int mAngle;
 
         public FieldAngle(String name, int angle) {
@@ -434,14 +485,21 @@ public abstract class Field implements Cloneable {
          * @param angle The angle to set this field to.
          */
         public void setAngle(int angle) {
+            int newAngle;
             if (angle == 360) {
-                mAngle = angle;
+                newAngle = angle;
             } else {
                 angle = angle % 360;
                 if (angle < 0) {
                     angle += 360;
                 }
-                mAngle = angle;
+                newAngle = angle;
+            }
+
+            if (newAngle != mAngle) {
+                int oldAngle = mAngle;
+                mAngle = newAngle;
+                onAngleChanged(oldAngle, newAngle);
             }
         }
 
@@ -449,12 +507,32 @@ public abstract class Field implements Cloneable {
         protected void serializeInner(XmlSerializer serializer) throws IOException {
             serializer.text(Integer.toString(mAngle));
         }
+
+        private void onAngleChanged(int oldAngle, int newAngle) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onAngleChanged(this, oldAngle, newAngle);
+            }
+        }
+
+        /**
+         * Observer for listening to changes to an angle field.
+         */
+        public interface Observer {
+            /**
+             * Called when the field's angle changed.
+             *
+             * @param field The field that changed.
+             * @param oldAngle The field's previous angle.
+             * @param newAngle The field's new angle.
+             */
+            void onAngleChanged(Field field, int oldAngle, int newAngle);
+        }
     }
 
     /**
      * Adds a toggleable checkbox to an Input.
      */
-    public static final class FieldCheckbox extends Field {
+    public static final class FieldCheckbox extends Field<FieldCheckbox.Observer> {
         private boolean mChecked;
 
         public FieldCheckbox(String name, boolean checked) {
@@ -493,6 +571,7 @@ public abstract class Field implements Cloneable {
                 if (mView != null) {
                     ((FieldCheckboxView) mView).setChecked(mChecked);
                 }
+                onCheckChanged(checked);
             }
         }
 
@@ -500,12 +579,31 @@ public abstract class Field implements Cloneable {
         protected void serializeInner(XmlSerializer serializer) throws IOException {
             serializer.text(mChecked ? "true" : "false");
         }
+
+        private void onCheckChanged(boolean newState) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onCheckChanged(this, newState);
+            }
+        }
+
+        /**
+         * Observer for listening to changes to a checkbox field.
+         */
+        public interface Observer {
+            /**
+             * Called when the field's checked value changed.
+             *
+             * @param field The field that changed.
+             * @param newState The new state of the checkbox.
+             */
+            void onCheckChanged(FieldCheckbox field, boolean newState);
+        }
     }
 
     /**
      * Adds a colour picker to an Input.
      */
-    public static final class FieldColour extends Field {
+    public static final class FieldColour extends Field<FieldColour.Observer> {
         /*package*/ static final int DEFAULT_COLOUR = 0xff0000;
 
         private int mColour;
@@ -555,12 +653,14 @@ public abstract class Field implements Cloneable {
          * @param colour A colour in the form 0xRRGGBB
          */
         public void setColour(int colour) {
-            final int newColor = 0xFFFFFF & colour;
-            if (mColour != newColor) {
-                mColour = newColor;
+            final int newColour = 0xFFFFFF & colour;
+            if (mColour != newColour) {
+                int oldColour = mColour;
+                mColour = newColour;
                 if (mView != null) {
                     ((FieldColourView) mView).setColour(mColour);
                 }
+                onColourChanged(oldColour, newColour);
             }
         }
 
@@ -569,12 +669,32 @@ public abstract class Field implements Cloneable {
             serializer.text(String.format("#%02x%02x%02x",
                     Color.red(mColour), Color.green(mColour), Color.blue(mColour)));
         }
+
+        private void onColourChanged(int oldColour, int newColour) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onColourChanged(this, oldColour, newColour);
+            }
+        }
+
+        /**
+         * Observer for listening to changes to a colour field.
+         */
+        public interface Observer {
+            /**
+             * Called when the field's colour changed.
+             *
+             * @param field The field that changed.
+             * @param oldColour The field's previous colour.
+             * @param newColour The field's new colour.
+             */
+            void onColourChanged(Field field, int oldColour, int newColour);
+        }
     }
 
     /**
      * Adds a date picker to an Input. Dates must be in the format "YYYY-MM-DD"
      */
-    public static final class FieldDate extends Field {
+    public static final class FieldDate extends Field<FieldDate.Observer> {
         private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
         private final Date mDate;
 
@@ -635,7 +755,7 @@ public abstract class Field implements Cloneable {
             if (date == null) {
                 throw new IllegalArgumentException("Date may not be null.");
             }
-            mDate.setTime(date.getTime());
+            setTime(date.getTime());
         }
 
         /**
@@ -651,20 +771,46 @@ public abstract class Field implements Cloneable {
          * @param millis The time in millis since UNIX Epoch.
          */
         public void setTime(long millis) {
-            mDate.setTime(millis);
+            long oldTime = mDate.getTime();
+            if (millis != oldTime) {
+                mDate.setTime(millis);
+                if (mView != null) {
+                    ((FieldDateView) mView).setText(getDateString());
+                }
+                onDateChanged(oldTime, millis);
+            }
         }
 
         @Override
         protected void serializeInner(XmlSerializer serializer) throws IOException {
             serializer.text(DATE_FORMAT.format(mDate));
         }
+
+        private void onDateChanged(long oldMillis, long newMillis) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onDateChanged(this, oldMillis, newMillis);
+            }
+        }
+
+        /**
+         * Observer for listening to changes to a date field.
+         */
+        public interface Observer {
+            /**
+             * Called when the field's date changed.
+             *
+             * @param field The field that changed.
+             * @param oldMillis The field's previous time in UTC millis since epoch.
+             * @param newMillis The field's new time in UTC millis since epoch.
+             */
+            void onDateChanged(Field field, long oldMillis, long newMillis);
+        }
     }
 
     /**
      * Adds a variable to an Input.
      */
-    public static final class FieldVariable extends Field {
-        private final VariableObservable mObservable = new VariableObservable();
+    public static final class FieldVariable extends Field<FieldVariable.Observer> {
         private String mVariable;
 
         public FieldVariable(String name, String variable) {
@@ -706,36 +852,11 @@ public abstract class Field implements Cloneable {
                     || (mVariable != null && !mVariable.equalsIgnoreCase(variable))) {
                 String oldVar = mVariable;
                 mVariable = variable;
-                mObservable.onVariableChanged(this, oldVar, variable);
+                onVariableChanged(this, oldVar, variable);
                 if (mView != null) {
                     ((FieldVariableView)mView).setSelection(mVariable);
                 }
             }
-        }
-
-        /**
-         * Registers an observer to be notified when this field changes its variable.
-         *
-         * @param observer The observer to register.
-         */
-        public void registerObserver(VariableObserver observer) {
-            mObservable.registerObserver(observer);
-        }
-
-        /**
-         * Unregisters an observer so it no longer receives updates.
-         *
-         * @param observer The observer to unregister.
-         */
-        public void unregisterObserver(VariableObserver observer) {
-            mObservable.unregisterObserver(observer);
-        }
-
-        /**
-         * Unregisters all {@link FieldVariable.VariableObserver}s on this field.
-         */
-        public void unregisterAll() {
-            mObservable.unregisterAll();
         }
 
         @Override
@@ -743,27 +864,31 @@ public abstract class Field implements Cloneable {
             serializer.text(mVariable);
         }
 
+        private void onVariableChanged(FieldVariable field, String oldVar, String newVar) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onVariableChanged(field, oldVar, newVar);
+            }
+        }
+
         /**
          * Observer for listening to changes to a variable field.
          */
-        public abstract static class VariableObserver {
-            public abstract void onVariableChanged(FieldVariable field, String oldVar,
-                    String newVar);
-        }
-
-        private static class VariableObservable extends Observable<VariableObserver> {
-            public void onVariableChanged(FieldVariable field, String oldVar, String newVar) {
-                for (int i = 0; i < mObservers.size(); i++) {
-                    mObservers.get(i).onVariableChanged(field, oldVar, newVar);
-                }
-            }
+        public interface Observer {
+            /**
+             * Called when the field's variable name changed.
+             *
+             * @param field The field that changed.
+             * @param oldVar The field's previous variable name.
+             * @param newVar The field's new variable name.
+             */
+            void onVariableChanged(FieldVariable field, String oldVar, String newVar);
         }
     }
 
     /**
      * Adds a dropdown list to an Input.
      */
-    public static final class FieldDropdown extends Field {
+    public static final class FieldDropdown extends Field<FieldDropdown.Observer> {
         // TODO: consider other data structures
         private SimpleArrayMap<String, String> mOptions = new SimpleArrayMap<>();
         private int mCurrentSelection = 0;
@@ -901,10 +1026,12 @@ public abstract class Field implements Cloneable {
             // If value selected index has changed, update current selection and (if it exists) let
             // the FieldDropdownView know.
             if (mCurrentSelection != index) {
+                int oldIndex = mCurrentSelection;
                 mCurrentSelection = index;
                 if (mView != null) {
                     ((FieldDropdownView) mView).setSelection(mCurrentSelection);
                 }
+                onSelectionChanged(this, oldIndex, index);
             }
         }
 
@@ -954,12 +1081,32 @@ public abstract class Field implements Cloneable {
         protected void serializeInner(XmlSerializer serializer) throws IOException {
             serializer.text(getSelectedValue());
         }
+
+        private void onSelectionChanged(FieldDropdown field, int oldIndex, int newIndex) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onSelectionChanged(field, oldIndex, newIndex);
+            }
+        }
+
+        /**
+         * Observer for listening to changes to a variable field.
+         */
+        public interface Observer {
+            /**
+             * Called when the field's selected index changed.
+             *
+             * @param field The field that changed.
+             * @param oldIndex The field's previously selected index.
+             * @param newIndex The field's new selected index.
+             */
+            void onSelectionChanged(FieldDropdown field, int oldIndex, int newIndex);
+        }
     }
 
     /**
      * Adds an image to an Input.
      */
-    public static final class FieldImage extends Field {
+    public static final class FieldImage extends Field<FieldImage.Observer> {
         private String mSrc;
         private int mWidth;
         private int mHeight;
@@ -1028,9 +1175,15 @@ public abstract class Field implements Cloneable {
          * @param height The display height of the image in dips.
          */
         public void setImage(String src, int width, int height) {
-            mSrc = src;
-            mWidth = width;
-            mHeight = height;
+            if (!TextUtils.equals(mSrc, src) || mWidth != width || mHeight != height) {
+                mSrc = src;
+                mWidth = width;
+                mHeight = height;
+                if (mView != null) {
+                    ((FieldImageView) mView).requestLayout();
+                }
+                onImageChanged(src, width, height);
+            }
         }
 
         @Override
@@ -1041,6 +1194,30 @@ public abstract class Field implements Cloneable {
         @Override
         protected void serializeInner(XmlSerializer xmlSerializer) {
             // Something to do here?
+        }
+
+        private void onImageChanged(String newSource, int newWidth, int newHeight) {
+            for (int i = 0; i < mObservers.size(); i++) {
+                mObservers.get(i).onImageChanged(this, newSource, newWidth, newHeight);
+            }
+        }
+
+        /**
+         * Observer for listening to changes to an image field.
+         */
+        public interface Observer {
+            /**
+             * Called when the field's image source, width, or height was changed.
+             * <p>
+             * Note: Image fields are not expected to be user editable and are not serialized by
+             * Blockly's core library.
+             *
+             * @param field The field that changed.
+             * @param newSource The new source for the image.
+             * @param newWidth The new width of the image.
+             * @param newHeight The new height of the image.
+             */
+            void onImageChanged(FieldImage field, String newSource, int newWidth, int newHeight);
         }
     }
 }
