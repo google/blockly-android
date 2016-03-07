@@ -1,21 +1,41 @@
-<xml xmlns="http://www.w3.org/1999/xhtml">
-    <block type="controls_repeat_ext" x="13" y="138">
-        <value name="TIMES">
-            <block type="math_number">
-                <field name="NUM">0</field>
-            </block>
-        </value>
-    </block>
-    <block type="controls_whileUntil" x="38" y="288">
-        <field name="MODE">UNTIL</field>
-    </block>
+<!--
+  ~  Copyright 2016 Google Inc. All Rights Reserved.
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
 
-    <block type="simple_input_output"></block>
-    <block type="multiple_input_output"></block>
-    <block type="statement_no_input"></block>
-    <block type="statement_value_input"></block>
-    <block type="statement_multiple_value_input"></block>
-    <block type="statement_statement_input"></block>
-    <block type="output_no_input"></block>
-    <block type="statement_no_next"></block>
-</xml>
+<toolbox>
+    <category name="Colour" colour="20">
+        <block type="colour_picker"></block>
+        <block type="colour_random"></block>
+    </category>
+    <category name="Loops" colour="120">
+        <block type="controls_repeat_ext">
+            <value name="TIMES">
+                <block type="math_number">
+                    <field name="NUM">10</field>
+                </block>
+            </value>
+        </block>
+    </category>
+    <category name="Math" colour="230">
+        <block type="math_number" />
+    </category>
+    <category name="Variables" colour="330">
+        <block type="variables_get"></block>
+        <block type="variables_set">
+            <value name="VALUE">
+                <block type="math_number"></block>
+            </value>
+        </block>
+    </category>
+</toolbox>

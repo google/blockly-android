@@ -21,6 +21,7 @@ import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -29,27 +30,36 @@ import java.util.List;
 public class SimpleActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SimpleActivity";
 
+    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(new String[]{
+            "default/loop_blocks.json",
+            "default/math_blocks.json",
+            "default/variable_blocks.json",
+            "default/colour_blocks.json"
+    });
+    private static final List<String> JAVASCRIPT_GENERATORS = Arrays.asList(new String[]{
+            // Generators for generating the javscript for default blocks are already included.
+            // At least until issue #99 is resolved.
+    });
+
     CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
 
     @NonNull
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
-        return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
+        return BLOCK_DEFINITIONS;
     }
 
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "turtle/toolbox_all.xml";
+        return "default/toolbox.xml";
     }
 
     @NonNull
     @Override
     protected List<String> getGeneratorsJsPaths() {
-        List<String> paths = new ArrayList<String>(1);
-        paths.add("turtle/generators.js");
-        return paths;
+        return JAVASCRIPT_GENERATORS;
     }
 
     @NonNull
@@ -57,5 +67,12 @@ public class SimpleActivity extends AbstractBlocklyActivity {
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
+    }
+
+    @Override
+    protected void onInitBlankWorkspace() {
+        // Initialize variable names.
+        // TODO: (#22) Remove this override when variables are supported properly
+        getController().addVariable("item");
     }
 }
