@@ -63,8 +63,7 @@ public class FieldColourView extends View implements FieldView {
         mWorkspaceHelper = helper;
         mWorkspaceParams = new FieldWorkspaceParams(mColourField, mWorkspaceHelper);
 
-        mInsetPatch = (NinePatchDrawable) getResources().getDrawable(
-                R.drawable.inset_field_border, null);
+        mInsetPatch = (NinePatchDrawable) getResources().getDrawable(R.drawable.inset_field_border);
 
         float density = context.getResources().getDisplayMetrics().density;
         setMinimumWidth((int) (DEFAULT_MIN_WIDTH_DP * density));
