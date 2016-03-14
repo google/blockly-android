@@ -623,7 +623,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * Reloads the block definitions and toolbox contents.
      * @see #getToolboxContentsXmlPath()
      */
-    protected void reloadToolbar() {
+    protected void reloadToolbox() {
         AssetManager assetManager = getAssets();
         String toolboxPath = getToolboxContentsXmlPath();
 

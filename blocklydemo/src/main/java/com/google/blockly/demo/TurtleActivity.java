@@ -16,7 +16,6 @@
 package com.google.blockly.demo;
 
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -31,9 +30,7 @@ import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.CodeGenerationRequest;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -140,7 +137,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     protected boolean onSectionChanged(int oldSection, int newSection) {
-        reloadToolbar();
+        reloadToolbox();
         return true;
     }
 

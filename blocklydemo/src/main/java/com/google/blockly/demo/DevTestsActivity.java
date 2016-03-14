@@ -177,7 +177,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     @Override
     protected boolean onSectionChanged(int oldSection, int newSection) {
-        reloadToolbar();
+        reloadToolbox();
         return true;
     }
 }
