@@ -33,6 +33,6 @@
     "inputsInline": true,
     "colour": 330,
     "tooltip": "Sets this variable to be equal to the input.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Variables#get"
+    "helpUrl": "https://github.com/google/blockly/wiki/Variables#set"
   }
 ]
