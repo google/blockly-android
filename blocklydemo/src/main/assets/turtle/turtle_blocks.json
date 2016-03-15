@@ -204,7 +204,7 @@
     "nextStatement": null,
     "colour": 160,
     "tooltip": "Move the turtle forward or backward",
-    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#metkk9"
+    "blockFactoryUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#metkk9"
   },
   {
     "id": "turtle_turn",
@@ -233,7 +233,7 @@
     "nextStatement": null,
     "colour": 160,
     "tooltip": "",
-    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#nwzsuj"
+    "blockFactoryUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#nwzsuj"
   },
   {
     "id": "turtle_width",
@@ -248,7 +248,7 @@
     "nextStatement": null,
     "colour": 160,
     "tooltip": "",
-    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
+    "blockFactoryUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
   },
   {
     "id": "turtle_colour",
@@ -263,6 +263,6 @@
     "nextStatement": null,
     "colour": 20,
     "tooltip": "",
-    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
+    "blockFactoryUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
   }
 ]
