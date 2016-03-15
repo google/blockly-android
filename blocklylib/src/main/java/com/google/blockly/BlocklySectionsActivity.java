@@ -138,7 +138,7 @@ public abstract class BlocklySectionsActivity extends AbstractBlocklyActivity
         mCurrentSection = level;
         if (onSectionChanged(oldLevel, level)) {
             reloadBlockDefinitions();
-            reloadToolbar();
+            reloadToolbox();
         } else {
             mCurrentSection = oldLevel;
         }
