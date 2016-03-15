@@ -36,8 +36,8 @@ public class SimpleActivity extends AbstractBlocklyActivity {
             "default/colour_blocks.json"
     });
     private static final List<String> JAVASCRIPT_GENERATORS = Arrays.asList(new String[]{
-            // Generators for generating the javscript for default blocks are already included.
-            // At least until issue #99 is resolved.
+        // Custom block generators go here. Default blocks are already included.
+        // TODO(#99): Include Javascript defaults when other languages are supported.
     });
 
     CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
