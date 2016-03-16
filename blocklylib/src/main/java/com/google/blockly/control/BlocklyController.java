@@ -48,7 +48,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 
@@ -75,8 +74,6 @@ public class BlocklyController {
     private TrashFragment mTrashFragment = null;
     private ToolboxFragment mToolboxFragment = null;
     private Dragger mDragger;
-
-    private boolean mCanCloseToolbox;
 
     /** Pass block touch interaction through the Dragger. */
     private BlockTouchHandler mTouchHandler = new BlockTouchHandler() {
