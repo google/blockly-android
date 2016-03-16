@@ -72,6 +72,6 @@ public class SimpleActivity extends AbstractBlocklyActivity {
     protected void onInitBlankWorkspace() {
         // Initialize variable names.
         // TODO: (#22) Remove this override when variables are supported properly
-        getController().addVariable("varname");
+        getController().addVariable("item");
     }
 }
