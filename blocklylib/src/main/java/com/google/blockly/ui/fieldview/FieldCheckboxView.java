@@ -20,7 +20,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
@@ -29,15 +28,11 @@ import com.google.blockly.ui.WorkspaceHelper;
 public class FieldCheckboxView extends CheckBox implements FieldView {
 
     private final Field.FieldCheckbox mCheckboxField;
-    private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
 
-    public FieldCheckboxView(Context context, Field checkboxField, WorkspaceHelper helper) {
+    public FieldCheckboxView(Context context, Field checkboxField) {
         super(context);
 
         mCheckboxField = (Field.FieldCheckbox) checkboxField;
-        mWorkspaceHelper = helper;
-        mWorkspaceParams = new FieldWorkspaceParams(mCheckboxField, mWorkspaceHelper);
 
         setBackground(null);
         setChecked(mCheckboxField.isChecked());
@@ -49,25 +44,6 @@ public class FieldCheckboxView extends CheckBox implements FieldView {
                 mCheckboxField.setChecked(isChecked);
             }
         });
-    }
-
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 
     @Override

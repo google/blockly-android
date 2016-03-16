@@ -20,7 +20,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.ui.BlockView;
-import com.google.blockly.ui.BlockWorkspaceParams;
 import com.google.blockly.utils.Colours;
 
 import org.json.JSONArray;
@@ -71,7 +70,6 @@ public class Block {
 
     // These values are only used for drawing
     private BlockView mView;
-    private BlockWorkspaceParams mLayoutParams;
 
     private Block(String uuid, String name, int category, int colour, Connection outputConnection,
                   Connection nextConnection, Connection previousConnection,
@@ -339,20 +337,6 @@ public class Block {
      */
     public void setView(BlockView view) {
         mView = view;
-    }
-
-    /**
-     * @return The layout parameters used for drawing this block.
-     */
-    public BlockWorkspaceParams getLayoutParameters() {
-        return mLayoutParams;
-    }
-
-    /**
-     * Sets the layout parameters used for drawing this block.
-     */
-    public void setLayoutParameters(BlockWorkspaceParams params) {
-        mLayoutParams = params;
     }
 
     public Block deepCopy() {

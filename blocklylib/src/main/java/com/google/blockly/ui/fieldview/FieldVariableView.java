@@ -25,7 +25,6 @@ import android.widget.TextView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.model.NameManager;
-import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
@@ -33,15 +32,11 @@ import com.google.blockly.ui.WorkspaceHelper;
  */
 public class FieldVariableView extends Spinner implements FieldView {
     private final Field.FieldVariable mVariableField;
-    private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
 
     public FieldVariableView(Context context, Field variableField, WorkspaceHelper helper) {
         super(context);
 
-        mWorkspaceHelper = helper;
         mVariableField = (Field.FieldVariable) variableField;
-        mWorkspaceParams = new FieldWorkspaceParams(mVariableField, mWorkspaceHelper);
 
         setAdapter(helper.getVariablesAdapter());
         setSelection(mVariableField.getVariable());
@@ -55,25 +50,6 @@ public class FieldVariableView extends Spinner implements FieldView {
         }
         super.setSelection(position);
         mVariableField.setVariable(getAdapter().getItem(position).toString());
-    }
-
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 
     @Override

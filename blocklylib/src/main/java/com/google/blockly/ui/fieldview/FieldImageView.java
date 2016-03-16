@@ -22,8 +22,6 @@ import android.os.AsyncTask;
 import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.WorkspaceHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,38 +32,15 @@ import java.net.URL;
  */
 public class FieldImageView extends ImageView implements FieldView {
     private final Field.FieldImage mImage;
-    private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
 
-    public FieldImageView(Context context, Field field, WorkspaceHelper helper) {
+    public FieldImageView(Context context, Field field) {
         super(context);
 
         mImage = (Field.FieldImage) field;
-        mWorkspaceHelper = helper;
-        mWorkspaceParams = new FieldWorkspaceParams(mImage, mWorkspaceHelper);
 
         setBackground(null);
         loadImageFromSource(mImage.getSource());
         mImage.setView(this);
-    }
-
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 
     /**
@@ -75,7 +50,6 @@ public class FieldImageView extends ImageView implements FieldView {
      *
      * @param source The source URI of the image to load.
      */
-
     private void loadImageFromSource(String source) {
         new AsyncTask<String, Void, Bitmap>() {
             @Override
