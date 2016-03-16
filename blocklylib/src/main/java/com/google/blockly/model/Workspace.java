@@ -231,6 +231,7 @@ public class Workspace {
      * necessary new views.
      */
     public void resetWorkspace() {
+        mBlockFactory.clearPriorBlockReferences();
         mRootBlocks.clear();
         mStats.clear();
         mDeletedBlocks.clear();
