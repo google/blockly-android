@@ -140,7 +140,6 @@ public class BlockView extends NonPropagatingViewGroup {
         setClickable(true);
         setFocusable(true);
 
-        block.setView(this);
         createInputViews();  // BlockView is responsible for creating InputViews.
 
         setWillNotDraw(false);
@@ -338,7 +337,7 @@ public class BlockView extends NonPropagatingViewGroup {
         }
         mTouchHandler = null;  // Recursive via the calls InputView calls.
         removeAllViews();
-        mBlock.setView(null);
+        mHelper.unlinkView(this);
         // TODO(#45): Remove model from view. Set mBlock to null, and handle all null cases.
     }
 

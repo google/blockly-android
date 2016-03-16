@@ -21,7 +21,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
     BlocklyController mController;
     BlockFactory mBlockFactory;
     Workspace mWorkspace;
-    WorkspaceHelper mWorkspaceHelper;
+    WorkspaceHelper mHelper;
     ConnectionManager mConnectionManager;
     WorkspaceView mWorkspaceView;
 
@@ -34,7 +34,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
                 .build();
         mBlockFactory = mController.getBlockFactory();
         mWorkspace = mController.getWorkspace();
-        mWorkspaceHelper = mController.getWorkspaceHelper();
+        mHelper = mController.getWorkspaceHelper();
         mConnectionManager = mController.getWorkspace().getConnectionManager();
 
         mWorkspaceView = new WorkspaceView(getContext());
@@ -59,12 +59,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             mController.initWorkspaceView(mWorkspaceView);
 
             // Validate initial view state.
-            BlockView targetView = target.getView();
-            BlockView sourceView = source.getView();
+            BlockView targetView = mHelper.getView(target);
+            BlockView sourceView = mHelper.getView(source);
             assertNotNull(targetView);
             assertNotNull(sourceView);
-            assertNotSame(mWorkspaceHelper.getRootBlockGroup(target),
-                    mWorkspaceHelper.getRootBlockGroup(source));
+            assertNotSame(mHelper.getRootBlockGroup(target),
+                    mHelper.getRootBlockGroup(source));
         }
 
         // Perform test: connection source's output to target's input.
@@ -78,9 +78,9 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
         if (withViews) {
             // Validate view changes
-            BlockGroup targetGroup = mWorkspaceHelper.getParentBlockGroup(target);
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(target));
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(source));
+            BlockGroup targetGroup = mHelper.getParentBlockGroup(target);
+            assertSame(targetGroup, mHelper.getRootBlockGroup(target));
+            assertSame(targetGroup, mHelper.getRootBlockGroup(source));
         }
     }
 
@@ -128,15 +128,15 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertNull(tail.getOutputConnection().getTargetBlock());
 
         if (withViews) {
-            BlockGroup targetGroup = mWorkspaceHelper.getParentBlockGroup(target);
-            BlockGroup tailGroup = mWorkspaceHelper.getParentBlockGroup(tail);
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(target));
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(source));
-            assertSame(tailGroup, mWorkspaceHelper.getRootBlockGroup(tail));
+            BlockGroup targetGroup = mHelper.getParentBlockGroup(target);
+            BlockGroup tailGroup = mHelper.getParentBlockGroup(tail);
+            assertSame(targetGroup, mHelper.getRootBlockGroup(target));
+            assertSame(targetGroup, mHelper.getRootBlockGroup(source));
+            assertSame(tailGroup, mHelper.getRootBlockGroup(tail));
             assertNotSame(targetGroup, tailGroup);
 
             // Check that tail has been bumped far enough away.
-            assertTrue(mWorkspaceHelper.getMaxSnapDistance() <=
+            assertTrue(mHelper.getMaxSnapDistance() <=
                     tail.getOutputConnection().distanceFrom(source.getOutputConnection()));
         }
     }
@@ -179,13 +179,13 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertTrue(mWorkspace.isRootBlock(tail));
 
         if (withViews) {
-            BlockGroup targetGroup = mWorkspaceHelper.getParentBlockGroup(target);
-            BlockGroup tailGroup = mWorkspaceHelper.getParentBlockGroup(tail);
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(target));
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(source));
-            assertSame(tailGroup, mWorkspaceHelper.getRootBlockGroup(tail));
+            BlockGroup targetGroup = mHelper.getParentBlockGroup(target);
+            BlockGroup tailGroup = mHelper.getParentBlockGroup(tail);
+            assertSame(targetGroup, mHelper.getRootBlockGroup(target));
+            assertSame(targetGroup, mHelper.getRootBlockGroup(source));
+            assertSame(tailGroup, mHelper.getRootBlockGroup(tail));
             assertNotSame(targetGroup, tailGroup);
-            assertTrue(mWorkspaceHelper.getMaxSnapDistance() <=
+            assertTrue(mHelper.getMaxSnapDistance() <=
                     source.getOutputConnection().distanceFrom(tail.getOutputConnection()));
         }
     }
@@ -225,10 +225,10 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertSame(source, tail.getOutputConnection().getTargetBlock());
 
         if (withViews) {
-            BlockGroup targetGroup = mWorkspaceHelper.getParentBlockGroup(target);
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(target));
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(tail));
-            assertSame(targetGroup, mWorkspaceHelper.getRootBlockGroup(source));
+            BlockGroup targetGroup = mHelper.getParentBlockGroup(target);
+            assertSame(targetGroup, mHelper.getRootBlockGroup(target));
+            assertSame(targetGroup, mHelper.getRootBlockGroup(tail));
+            assertSame(targetGroup, mHelper.getRootBlockGroup(source));
         }
     }
 
@@ -244,10 +244,16 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         // setup
         Block target = mBlockFactory.obtainBlock("statement_no_input", "target");
         Block source = mBlockFactory.obtainBlock("statement_no_input", "source");
+        BlockView targetView = null, sourceView = null;
         mController.addRootBlock(target);
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+            targetView = mHelper.getView(target);
+            sourceView = mHelper.getView(source);
+
+            assertNotNull(targetView);
+            assertNotNull(sourceView);
         }
 
         // Connect source after target. No prior connection to bump or splice.
@@ -260,11 +266,11 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertSame(target, source.getPreviousBlock());
 
         if (withViews) {
-            BlockGroup rootGroup = mWorkspaceHelper.getRootBlockGroup(target);
-            assertSame(rootGroup, mWorkspaceHelper.getParentBlockGroup(target));
-            assertSame(rootGroup, mWorkspaceHelper.getParentBlockGroup(source));
-            assertSame(target.getView(), rootGroup.getChildAt(0));
-            assertSame(source.getView(), rootGroup.getChildAt(1));
+            BlockGroup rootGroup = mHelper.getRootBlockGroup(target);
+            assertSame(rootGroup, mHelper.getParentBlockGroup(target));
+            assertSame(rootGroup, mHelper.getParentBlockGroup(source));
+            assertSame(targetView, rootGroup.getChildAt(0));
+            assertSame(sourceView, rootGroup.getChildAt(1));
         }
     }
 
@@ -281,6 +287,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         Block target = mBlockFactory.obtainBlock("statement_no_input", "target");
         Block tail = mBlockFactory.obtainBlock("statement_no_input", "tail");
         Block source = mBlockFactory.obtainBlock("statement_no_input", "source");
+        BlockView targetView = null, tailView = null, sourceView = null;
 
         tail.getPreviousConnection().connect(target.getNextConnection());
 
@@ -288,6 +295,13 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+            targetView = mHelper.getView(target);
+            tailView = mHelper.getView(tail);
+            sourceView = mHelper.getView(source);
+
+            assertNotNull(targetView);
+            assertNotNull(tailView);
+            assertNotNull(sourceView);
         }
 
         // Connect source after target, where tail is currently attached, causing a splice.
@@ -298,13 +312,13 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertSame(source, tail.getPreviousBlock());
 
         if (withViews) {
-            BlockGroup rootGroup = mWorkspaceHelper.getRootBlockGroup(target);
-            assertSame(rootGroup, mWorkspaceHelper.getParentBlockGroup(target));
-            assertSame(rootGroup, mWorkspaceHelper.getParentBlockGroup(tail));
-            assertSame(rootGroup, mWorkspaceHelper.getParentBlockGroup(source));
-            assertSame(target.getView(), rootGroup.getChildAt(0));
-            assertSame(source.getView(), rootGroup.getChildAt(1));  // Spliced in between.
-            assertSame(tail.getView(), rootGroup.getChildAt(2));
+            BlockGroup rootGroup = mHelper.getRootBlockGroup(target);
+            assertSame(rootGroup, mHelper.getParentBlockGroup(target));
+            assertSame(rootGroup, mHelper.getParentBlockGroup(tail));
+            assertSame(rootGroup, mHelper.getParentBlockGroup(source));
+            assertSame(targetView, rootGroup.getChildAt(0));
+            assertSame(sourceView, rootGroup.getChildAt(1));  // Spliced in between.
+            assertSame(tailView, rootGroup.getChildAt(2));
         }
     }
 
@@ -322,6 +336,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         Block tail1 = mBlockFactory.obtainBlock("statement_no_input", "tail1");
         Block tail2 = mBlockFactory.obtainBlock("statement_no_input", "tail2");
         Block source = mBlockFactory.obtainBlock("statement_no_next", "source");
+        BlockView targetView = null, tailView1 = null, tailView2 = null, sourceView = null;
 
         // Create a sequence of target, tail1, and tail2.
         tail1.getPreviousConnection().connect(target.getNextConnection());
@@ -331,6 +346,15 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+            targetView = mHelper.getView(target);
+            tailView1 = mHelper.getView(tail1);
+            tailView2 = mHelper.getView(tail2);
+            sourceView = mHelper.getView(source);
+
+            assertNotNull(targetView);
+            assertNotNull(tailView1);
+            assertNotNull(tailView2);
+            assertNotNull(sourceView);
         }
 
         // Run test: Connect source after target, where tail is currently attached.
@@ -351,19 +375,19 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertSame(tail1, tail2.getRootBlock());
 
         if (withViews) {
-            BlockGroup targetRootGroup = mWorkspaceHelper.getRootBlockGroup(target);
-            BlockGroup tailRootGroup = mWorkspaceHelper.getRootBlockGroup(tail1);
-            assertSame(targetRootGroup, mWorkspaceHelper.getParentBlockGroup(target));
-            assertSame(targetRootGroup, mWorkspaceHelper.getRootBlockGroup(source));
+            BlockGroup targetRootGroup = mHelper.getRootBlockGroup(target);
+            BlockGroup tailRootGroup = mHelper.getRootBlockGroup(tail1);
+            assertSame(targetRootGroup, mHelper.getParentBlockGroup(target));
+            assertSame(targetRootGroup, mHelper.getRootBlockGroup(source));
             assertNotSame(targetRootGroup, tailRootGroup);
-            assertSame(tailRootGroup, mWorkspaceHelper.getRootBlockGroup(tail2));
-            assertSame(target.getView(), targetRootGroup.getChildAt(0));
-            assertSame(source.getView(), targetRootGroup.getChildAt(1));
-            assertSame(tail1.getView(), tailRootGroup.getChildAt(0));
-            assertSame(tail2.getView(), tailRootGroup.getChildAt(1));
+            assertSame(tailRootGroup, mHelper.getRootBlockGroup(tail2));
+            assertSame(targetView, targetRootGroup.getChildAt(0));
+            assertSame(sourceView, targetRootGroup.getChildAt(1));
+            assertSame(tailView1, tailRootGroup.getChildAt(0));
+            assertSame(tailView2, tailRootGroup.getChildAt(1));
 
             // Check that tail has been bumped far enough away.
-            assertTrue(mWorkspaceHelper.getMaxSnapDistance() <=
+            assertTrue(mHelper.getMaxSnapDistance() <=
                     tail1.getPreviousConnection().distanceFrom(target.getNextConnection()));
         }
     }
@@ -395,9 +419,9 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertSame(target, source.getPreviousBlock());
 
         if (withViews) {
-            BlockGroup rootGroup = mWorkspaceHelper.getRootBlockGroup(target);
-            assertSame(rootGroup, mWorkspaceHelper.getParentBlockGroup(target));
-            assertSame(rootGroup, mWorkspaceHelper.getRootBlockGroup(source));
+            BlockGroup rootGroup = mHelper.getRootBlockGroup(target);
+            assertSame(rootGroup, mHelper.getParentBlockGroup(target));
+            assertSame(rootGroup, mHelper.getRootBlockGroup(source));
         }
     }
 
@@ -414,6 +438,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         Block target = mBlockFactory.obtainBlock("statement_statement_input", "target");
         Block tail = mBlockFactory.obtainBlock("statement_statement_input", "tail");
         Block source = mBlockFactory.obtainBlock("statement_statement_input", "source");
+        BlockView targetView = null, tailView = null, sourceView = null;
 
         // Connect the tail inside target.
         target.getInputByName("statement input").getConnection()
@@ -423,6 +448,13 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+            targetView = mHelper.getView(target);
+            tailView = mHelper.getView(tail);
+            sourceView = mHelper.getView(source);
+
+            assertNotNull(targetView);
+            assertNotNull(tailView);
+            assertNotNull(sourceView);
         }
 
         // Run test: Connect source inside target, where tail is attached, resulting in a splice.
@@ -437,13 +469,13 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertSame(source, tail.getPreviousBlock());
 
         if (withViews) {
-            BlockGroup rootGroup = mWorkspaceHelper.getRootBlockGroup(target);
-            BlockGroup secondGroup = mWorkspaceHelper.getParentBlockGroup(tail);
-            assertSame(rootGroup, mWorkspaceHelper.getRootBlockGroup(tail));
+            BlockGroup rootGroup = mHelper.getRootBlockGroup(target);
+            BlockGroup secondGroup = mHelper.getParentBlockGroup(tail);
+            assertSame(rootGroup, mHelper.getRootBlockGroup(tail));
             assertNotSame(rootGroup, secondGroup);
-            assertSame(secondGroup, mWorkspaceHelper.getParentBlockGroup(source));
-            assertSame(source.getView(), secondGroup.getChildAt(0));
-            assertSame(tail.getView(), secondGroup.getChildAt(1));
+            assertSame(secondGroup, mHelper.getParentBlockGroup(source));
+            assertSame(sourceView, secondGroup.getChildAt(0));
+            assertSame(tailView, secondGroup.getChildAt(1));
         }
     }
 
@@ -459,6 +491,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         Block target = mBlockFactory.obtainBlock("statement_statement_input", "target");
         Block tail = mBlockFactory.obtainBlock("statement_statement_input", "tail");
         Block source = mBlockFactory.obtainBlock("statement_no_next", "source");
+        BlockView sourceView = null;
 
         // Connect tail inside target.
         target.getInputByName("statement input").getConnection()
@@ -468,6 +501,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+            sourceView = mHelper.getView(source);
+            assertNotNull(sourceView);
         }
 
         // Connect source inside target, where tail is attached.  Source does not have a next, so
@@ -484,16 +519,16 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertNull(tail.getPreviousBlock());
 
         if (withViews) {
-            BlockGroup targetRootGroup = mWorkspaceHelper.getRootBlockGroup(target);
-            BlockGroup tailRootGroup = mWorkspaceHelper.getRootBlockGroup(tail);
-            BlockGroup sourceGroup = mWorkspaceHelper.getParentBlockGroup(source);
-            assertSame(targetRootGroup, mWorkspaceHelper.getParentBlockGroup(target));
+            BlockGroup targetRootGroup = mHelper.getRootBlockGroup(target);
+            BlockGroup tailRootGroup = mHelper.getRootBlockGroup(tail);
+            BlockGroup sourceGroup = mHelper.getParentBlockGroup(source);
+            assertSame(targetRootGroup, mHelper.getParentBlockGroup(target));
             assertNotSame(targetRootGroup, tailRootGroup);
-            assertSame(tailRootGroup, mWorkspaceHelper.getParentBlockGroup(tail));
-            assertSame(targetRootGroup, mWorkspaceHelper.getRootBlockGroup(source));
+            assertSame(tailRootGroup, mHelper.getParentBlockGroup(tail));
+            assertSame(targetRootGroup, mHelper.getRootBlockGroup(source));
             assertSame(sourceGroup.getParent(), target.getInputByName("statement input").getView());
-            assertSame(source.getView(), sourceGroup.getChildAt(0));
-            assertTrue(mWorkspaceHelper.getMaxSnapDistance() <=
+            assertSame(sourceView, sourceGroup.getChildAt(0));
+            assertTrue(mHelper.getMaxSnapDistance() <=
                     source.getPreviousConnection().distanceFrom(tail.getPreviousConnection()));
         }
     }
@@ -526,8 +561,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertTrue(mWorkspace.getRootBlocks().contains(block));
 
         if (withViews) {
-            BlockGroup firstGroup = mWorkspaceHelper.getParentBlockGroup(block);
-            assertSame(firstGroup, mWorkspaceHelper.getRootBlockGroup(block));
+            BlockGroup firstGroup = mHelper.getParentBlockGroup(block);
+            assertSame(firstGroup, mHelper.getRootBlockGroup(block));
         }
     }
 
@@ -547,16 +582,14 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(first);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+            assertNotNull(mHelper.getView(first));
+            assertNotNull(mHelper.getView(second));
         }
 
         // Check preconditions
         List<Block> rootBlocks = mWorkspace.getRootBlocks();
         assertEquals(rootBlocks.size(), 1);
         assertEquals(rootBlocks.get(0), first);
-        if (withViews) {
-            assertNotNull(first.getView());
-            assertNotNull(second.getView());
-        }
 
         // Run test: Extract second out from under first.
         mController.extractBlockAsRoot(second);
@@ -569,9 +602,9 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertFalse(second.getOutputConnection().isConnected());
 
         if (withViews) {
-            BlockGroup firstGroup = mWorkspaceHelper.getParentBlockGroup(first);
+            BlockGroup firstGroup = mHelper.getParentBlockGroup(first);
             assertNotNull(firstGroup);
-            BlockGroup secondGroup = mWorkspaceHelper.getParentBlockGroup(second);
+            BlockGroup secondGroup = mHelper.getParentBlockGroup(second);
             assertNotNull(secondGroup);
             assertNotSame(secondGroup, firstGroup);
         }
@@ -593,6 +626,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(first);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+            assertNotNull(mHelper.getView(first));
+            assertNotNull(mHelper.getView(second));
         }
 
         // Check preconditions
@@ -601,10 +636,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertEquals(rootBlocks.get(0), first);
         assertEquals(second, first.getNextConnection().getTargetBlock());
         if (withViews) {
-            assertNotNull(first.getView());
-            assertNotNull(second.getView());
-            assertSame(mWorkspaceHelper.getParentBlockGroup(first),
-                    mWorkspaceHelper.getParentBlockGroup(second));
+            assertSame(mHelper.getParentBlockGroup(first),
+                    mHelper.getParentBlockGroup(second));
         }
 
         // Run test: Extract second out from under first.
@@ -619,9 +652,9 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertFalse(second.getPreviousConnection().isConnected());
 
         if (withViews) {
-            BlockGroup firstGroup = mWorkspaceHelper.getParentBlockGroup(first);
+            BlockGroup firstGroup = mHelper.getParentBlockGroup(first);
             assertNotNull(firstGroup);
-            BlockGroup secondGroup = mWorkspaceHelper.getParentBlockGroup(second);
+            BlockGroup secondGroup = mHelper.getParentBlockGroup(second);
             assertNotNull(secondGroup);
             assertNotSame(secondGroup, firstGroup);
         }

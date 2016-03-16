@@ -242,7 +242,7 @@ public class Dragger {
         Pair<Connection, Connection> connectionCandidate =
                 findBestConnection(mTouchedBlockView.getBlock());
         if (connectionCandidate != null) {
-            mHighlightedBlockView = connectionCandidate.second.getBlock().getView();
+            mHighlightedBlockView = mWorkspaceHelper.getView(connectionCandidate.second.getBlock());
             mHighlightedBlockView.setHighlightedConnection(connectionCandidate.second);
         }
 
