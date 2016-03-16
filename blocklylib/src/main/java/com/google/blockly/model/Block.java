@@ -71,10 +71,10 @@ public class Block {
     // These values are only used for drawing
     private BlockView mView;
 
-    private Block(String uuid, String name, int category, int colour, Connection outputConnection,
-                  Connection nextConnection, Connection previousConnection,
-                  ArrayList<Input> inputList, boolean inputsInline) {
-        mUuid = uuid;
+    private Block(@Nullable String uuid, String name, int category, int colour,
+                  Connection outputConnection, Connection nextConnection,
+                  Connection previousConnection, ArrayList<Input> inputList, boolean inputsInline) {
+        mUuid = (uuid != null) ? uuid : UUID.randomUUID().toString();
         mName = name;
         mCategory = category;
 
@@ -120,6 +120,13 @@ public class Block {
      */
     public String getName() {
         return mName;
+    }
+
+    /**
+     * @return The unique identifier of the block. Not for display.
+     */
+    public String getId() {
+        return mUuid;
     }
 
     /**
@@ -856,12 +863,7 @@ public class Block {
         private boolean mDisabled;
 
         public Builder(String name) {
-            this(name, UUID.randomUUID().toString());
-        }
-
-        public Builder(String name, String uuid) {
             mName = name;
-            mUuid = uuid;
             mInputs = new ArrayList<>();
             mPosition = new WorkspacePoint(0, 0);
         }

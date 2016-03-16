@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
+import android.text.TextUtils;
 
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.R;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static android.test.MoreAsserts.assertNotEqual;
+
 /**
  * Tests for {@link Block}.
  */
@@ -49,19 +52,34 @@ public class BlockTest extends AndroidTestCase {
     }
 
     public void testJson() {
-        JSONObject blockJson;
+        JSONObject blockDefinitionJson;
         try {
-            blockJson = new JSONObject(BlockTestStrings.TEST_JSON_STRING);
+            blockDefinitionJson = new JSONObject(BlockTestStrings.TEST_JSON_STRING);
         } catch (JSONException e) {
             throw new RuntimeException("Failure parsing test JSON.", e);
         }
-        Block block = Block.fromJson(blockJson.optString("id"), blockJson);
+        Block block = Block.fromJson("test_block", blockDefinitionJson);
 
         assertNotNull("Block was null after initializing from JSON", block);
-        assertEquals("name not set correctly", "test_block", block.getName());
+        assertEquals("Name not set correctly", "test_block", block.getName());
+        assertStringNotEmpty("Block id cannot be empty.", block.getId());
         assertEquals("Wrong number of inputs", 2, block.getInputs().size());
         assertEquals("Wrong number of fields in first input",
                 9, block.getInputs().get(0).getFields().size());
+    }
+
+    public void testEmptyBlockHasId() {
+        Block block = new Block.Builder("test_block").build();
+        assertStringNotEmpty("Block id cannot be empty.", block.getId());
+    }
+
+    public void testCopyBlockDoesNotCopyId() {
+        Block original = new Block.Builder("test_block").build();
+        Block copy = original.deepCopy();
+
+        assertStringNotEmpty("Copies of blocks cannot be empty ids.", copy.getId());
+        assertNotEqual("Copies of blocks must have different ids than their originals.",
+                original.getId(), copy.getId());
     }
 
     public void testMessageTokenizer() {
@@ -436,5 +454,13 @@ public class BlockTest extends AndroidTestCase {
         third.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
         assertSame(third, first.getLastBlockInSequence());
+    }
+
+    private void assertStringNotEmpty(String mesg, String str) {
+        if (str == null) {
+            fail(mesg + " Found null string.");
+        } else if(str.length() == 0) {
+            fail(mesg + " Found empty string.");
+        }
     }
 }
