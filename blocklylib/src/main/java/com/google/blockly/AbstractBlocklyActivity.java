@@ -46,6 +46,8 @@ import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.ui.BlockViewFactory;
+import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.utils.CodeGenerationRequest;
 import com.google.blockly.utils.StringOutputStream;
 
@@ -82,6 +84,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     protected ActionBar mActionBar;
     protected DrawerLayout mDrawerLayout;
+
+    protected WorkspaceHelper mWorkspaceHelper;
+    protected BlockViewFactory mBlockViewFactory;
     protected WorkspaceFragment mWorkspaceFragment;
     protected ToolboxFragment mToolboxFragment;
     protected TrashFragment mTrashFragment;
@@ -264,9 +269,19 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Creates the Activity Views, Fragments, and Blocklycontroller via a sequence of calls to
-     * {@link #onCreateActivityRootView()}, {@link #onCreateFragments()}, and
-     * {@link #onCreateController}.  Subclasses should prefer to override those classes.
+     * Creates the Activity Views, Fragments, and BlocklyController via a sequence of calls to
+     * <ul>
+     *     <li>{@link #onCreateActivityRootView}</li>
+     *     <li>{@link #onCreateFragments}</li>
+     *     <li>{@link #onCreateBlockViewFactory}</li>
+     *     <li>{@link #getBlockDefinitionsJsonPaths}</li>
+     *     <li>{@link #getToolboxContentsXmlPath}</li>
+     * </ul>
+     * Subclasses should override those methods configure the Blockly environment.
+     * <p/>
+     * Once the controller and fragments are configured, if {@link #checkAllowRestoreBlocklyState}
+     * returns true, the activity will attempt to load a prior workspace from the instance state
+     * bundle.  If no workspace is loaded, it defer to {@link #onLoadInitialWorkspace}.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -277,7 +292,20 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         if (mWorkspaceFragment == null) {
             throw new IllegalStateException("mWorkspaceFragment is null");
         }
-        mController = onCreateController();
+        mWorkspaceHelper = new WorkspaceHelper(this);
+        mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
+
+        BlocklyController.Builder builder = new BlocklyController.Builder(this)
+                .setAssetManager(getAssets())  // TODO(#128) Remove
+                .setWorkspaceHelper(mWorkspaceHelper)
+                .setBlockViewFactory(mBlockViewFactory)
+                .setWorkspaceFragment(mWorkspaceFragment)
+                .addBlockDefinitionsFromAssets(getBlockDefinitionsJsonPaths())
+                .setToolboxConfigurationAsset(getToolboxContentsXmlPath())
+                .setTrashFragment(mTrashFragment)
+                .setToolboxFragment(mToolboxFragment, mDrawerLayout)
+                .setFragmentManager(getSupportFragmentManager());
+        mController = builder.build();
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
                 && mController.onRestoreSnapshot(savedInstanceState);
@@ -287,29 +315,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Creates the BlocklyController, if necessary, and configures it. This must be called during
-     * {@link #onCreate}. It may also be called while the activity is running to reconfigure the
-     * controller.
+     * Constructs the {@link BlockViewFactory} used by all fragments in this activity.  The Blockly
+     * core library does not include a factory implementation, and the app developer will need to
+     * include blockly vertical or another block rendering implementation.
+     *
+     * @param helper The Workspace helper for this activity.
+     * @return The {@link BlockViewFactory} used by all fragments in this activity.
      */
-    @NonNull
-    protected BlocklyController onCreateController() {
-        String toolboxPath = getToolboxContentsXmlPath();
-        List<String> blockDefsPaths = getBlockDefinitionsJsonPaths();
-
-        BlocklyController.Builder builder = new BlocklyController.Builder(this)
-                .setBlocklyStyle(getStyleResId())
-                .setAssetManager(getAssets())
-                .addBlockDefinitionsFromAssets(blockDefsPaths)
-                .setToolboxConfigurationAsset(toolboxPath)
-                .setWorkspaceFragment(mWorkspaceFragment)
-                .setTrashFragment(mTrashFragment)
-                .setToolboxFragment(mToolboxFragment, mDrawerLayout)
-                .setFragmentManager(getSupportFragmentManager());
-
-        return builder.build();
-    }
+    public abstract BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper);
 
     /**
+     *
      * Returns true if the app should proceed to restore the blockly state from the
      * {@code savedInstanceState} Bundle. By default, it always returns true, but Activity
      * developers can override this method to add conditional logic.
@@ -557,7 +573,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link R.id#} and {@link R.id#blockly_trash}, respectively. Subclasses may leave these
      * {@code null} if the views are not present in the UI.
      * <p>
-     * Always called once from {@link #onCreate} and before {@link #onCreateController}.
+     * Always called once from {@link #onCreate} and before {@link #mController} is instantiated.
      */
     protected void onCreateFragments() {
         FragmentManager fragmentManager = getSupportFragmentManager();

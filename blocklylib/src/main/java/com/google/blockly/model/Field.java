@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,13 +21,12 @@ import android.support.annotation.IntDef;
 import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 
 import com.google.blockly.ui.fieldview.FieldCheckboxView;
 import com.google.blockly.ui.fieldview.FieldColourView;
 import com.google.blockly.ui.fieldview.FieldDateView;
 import com.google.blockly.ui.fieldview.FieldDropdownView;
-import com.google.blockly.ui.fieldview.FieldImageView;
-import com.google.blockly.ui.fieldview.FieldInputView;
 import com.google.blockly.ui.fieldview.FieldLabelView;
 import com.google.blockly.ui.fieldview.FieldVariableView;
 import com.google.blockly.ui.fieldview.FieldView;
@@ -1161,7 +1160,7 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
                 mWidth = width;
                 mHeight = height;
                 if (mView != null) {
-                    ((FieldImageView) mView).requestLayout();
+                    ((View) mView).requestLayout();
                 }
                 onImageChanged(src, width, height);
             }

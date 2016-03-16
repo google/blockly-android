@@ -25,6 +25,9 @@ import com.google.blockly.BlocklySectionsActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.model.Block;
+import com.google.blockly.ui.BlockViewFactory;
+import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.ui.vertical.VerticalBlocksViewFactory;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 import java.io.IOException;
@@ -139,6 +142,11 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         List<String> paths = new ArrayList<String>(1);
         paths.add("sample_sections/generators.js");
         return paths;
+    }
+
+    @Override
+    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
+        return new VerticalBlocksViewFactory(this, helper);
     }
 
     @NonNull

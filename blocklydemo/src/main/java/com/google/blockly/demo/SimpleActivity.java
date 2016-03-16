@@ -18,6 +18,9 @@ import android.support.annotation.NonNull;
 
 import com.google.blockly.AbstractBlocklyActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
+import com.google.blockly.ui.BlockViewFactory;
+import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.ui.vertical.VerticalBlocksViewFactory;
 import com.google.blockly.utils.CodeGenerationRequest;
 
 import java.util.Arrays;
@@ -59,6 +62,11 @@ public class SimpleActivity extends AbstractBlocklyActivity {
     @Override
     protected List<String> getGeneratorsJsPaths() {
         return JAVASCRIPT_GENERATORS;
+    }
+
+    @Override
+    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
+        return new VerticalBlocksViewFactory(this, helper);
     }
 
     @NonNull

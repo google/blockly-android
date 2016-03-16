@@ -120,7 +120,7 @@ public class BlockListView extends RecyclerView {
             Block block = mBlocks.get(position);
             BlockGroup bg = mHelper.getParentBlockGroup(block);
             if (bg == null) {
-                bg = mHelper.buildBlockGroupTree(block, null, mTouchHandler);
+                bg = mHelper.getBlockViewFactory().buildBlockGroupTree(block, null, mTouchHandler);
             } else {
                 bg.setTouchHandler(mTouchHandler);
             }
