@@ -1,5 +1,5 @@
 /*
- * Copyright  2015 Google Inc. All Rights Reserved.
+ * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,8 @@
 package com.google.blockly.model;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,7 @@ public class BlockFactory {
 
     private Resources mResources;
     private final HashMap<String, Block> mBlockTemplates = new HashMap<>();
+    private final HashMap<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
     /**
      * Create a factory with an initial set of blocks from json resources.
@@ -103,16 +105,36 @@ public class BlockFactory {
      *
      * @return A new block of that type or null.
      */
-    public Block obtainBlock(String prototypeName, String uuid) {
+    public Block obtainBlock(String prototypeName, @Nullable String uuid) {
+        // First search for any existing instance
+        Block block;
+        if (uuid != null) {
+            WeakReference<Block> ref = mBlockRefs.get(uuid);
+            if (ref != null) {
+                block = ref.get();
+                if (block != null) {
+                    if (!block.getName().equals(prototypeName)) {
+                        throw new IllegalArgumentException("Block with given UUID \"" + uuid
+                                + "\" found. Prototype name \"" + prototypeName + "\" does not "
+                                + "match existing block type \"" + block.getName() + "\".");
+                    }
+                    return block;
+                }
+            }
+        }
+
+        // Existing instance not found.  Constructing a new one.
         if (!mBlockTemplates.containsKey(prototypeName)) {
             Log.w(TAG, "Block " + prototypeName + " not found.");
             return null;
         }
-        Block.Builder bob = new Block.Builder(mBlockTemplates.get(prototypeName));
+        Block.Builder builder = new Block.Builder(mBlockTemplates.get(prototypeName));
         if (uuid != null) {
-            bob.setUuid(uuid);
+            builder.setUuid(uuid);
         }
-        return bob.build();
+        block = builder.build();
+        mBlockRefs.put(block.getId(), new WeakReference<Block>(block));
+        return block;
     }
 
     /**
@@ -163,6 +185,14 @@ public class BlockFactory {
      */
     public void clear() {
         mBlockTemplates.clear();
+        mBlockRefs.clear();;
+    }
+
+    /**
+     * Removes references to previous blocks, ensuring future blocks will be new instances.
+     */
+    public void clearPriorBlockReferences() {
+        mBlockRefs.clear();;
     }
 
     /** @return Number of blocks added to the factory. */

@@ -634,7 +634,9 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
         mController.loadWorkspaceContents(
                 BlockTestStrings.EMPTY_BLOCK_WITH_POSITION +
-                BlockTestStrings.EMPTY_BLOCK_WITH_POSITION.replace("id=\"364\"", "id=\"365\""));
+                BlockTestStrings.EMPTY_BLOCK_WITH_POSITION.replace(
+                        BlockTestStrings.EMPTY_BLOCK_ID,
+                        BlockTestStrings.EMPTY_BLOCK_ID + '2'));
         assertEquals(2, mWorkspace.getRootBlocks().size());
         assertEquals(2, mWorkspaceView.getChildCount());
 

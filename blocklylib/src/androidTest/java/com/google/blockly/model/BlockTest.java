@@ -16,7 +16,6 @@
 package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
-import android.text.TextUtils;
 
 import com.google.blockly.MockBlocksProvider;
 import com.google.blockly.R;
@@ -130,59 +129,59 @@ public class BlockTest extends AndroidTestCase {
         parseBlockFromXml(BlockTestStrings.NO_BLOCK_POSITION, bf);
 
         // Values.
-        parseBlockFromXml(BlockTestStrings.assembleBlock(
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("1",
                 BlockTestStrings.VALUE_GOOD), bf);
         // TODO(fenichel): Value: no input connection
         // Value: no output connection on child
-        parseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("2",
                 BlockTestStrings.VALUE_NO_OUTPUT), bf);
         // value: null child block
-        parseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("3",
                 BlockTestStrings.VALUE_NO_CHILD), bf);
         // Value: no input with that name
-        parseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("4",
                 BlockTestStrings.VALUE_BAD_NAME), bf);
         // Value: multiple values for the same input
-        parseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("5",
                 BlockTestStrings.VALUE_REPEATED), bf);
 
         // Comment: with text
-        parseBlockFromXml(BlockTestStrings.assembleBlock(
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("6",
                 BlockTestStrings.COMMENT_GOOD), bf);
         // Comment: empty string
-        parseBlockFromXml(BlockTestStrings.assembleBlock(
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("7",
                 BlockTestStrings.COMMENT_NO_TEXT), bf);
 
         // Fields
-        loaded = parseBlockFromXml(BlockTestStrings.assembleBlock(
+        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("8",
                 BlockTestStrings.FIELD_HAS_NAME), bf);
         assertEquals("item", ((Field.FieldInput) loaded.getFieldByName("text_input")).getText());
         // A missing or unknown field name isn't an error, it's just ignored.
-        parseBlockFromXml(BlockTestStrings.assembleBlock(
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("9",
                 BlockTestStrings.FIELD_MISSING_NAME), bf);
-        parseBlockFromXml(BlockTestStrings.assembleBlock(
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("10",
                 BlockTestStrings.FIELD_UNKNOWN_NAME), bf);
-        parseBlockFromXml(BlockTestStrings.assembleBlock(
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("11",
                 BlockTestStrings.FIELD_MISSING_TEXT), bf);
 
         // Statement: null child block
-        parseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("12",
                 BlockTestStrings.STATEMENT_NO_CHILD), bf);
         // Statement: no previous connection on child block
-        parseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("13",
                 BlockTestStrings.STATEMENT_BAD_CHILD), bf);
         // Statement: no input with that name
-        parseBlockFromXmlFailure(BlockTestStrings.assembleBlock(
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("14",
                 BlockTestStrings.STATEMENT_BAD_NAME), bf);
 
         // Statement
-        parseBlockFromXml(BlockTestStrings.assembleBlock(
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("15",
                 BlockTestStrings.STATEMENT_GOOD), bf);
     }
 
     public void testSerializeBlock() throws BlocklySerializerException, IOException {
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        Block block = bf.obtainBlock("empty_block", "364");
+        Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
         block.setPosition(37, 13);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
@@ -198,13 +197,13 @@ public class BlockTest extends AndroidTestCase {
         serializer.flush();
         assertEquals(BlockTestStrings.EMPTY_BLOCK_NO_POSITION, os.toString());
 
-        block = bf.obtainBlock("frankenblock", "364");
+        block = bf.obtainBlock("frankenblock", "frankenblock1");
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
 
         block.serialize(serializer, false);
         serializer.flush();
-        assertEquals(BlockTestStrings.BLOCK_START_NO_POSITION
+        assertEquals(BlockTestStrings.blockStart("frankenblock", "frankenblock1", null)
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END, os.toString());
     }
@@ -215,7 +214,7 @@ public class BlockTest extends AndroidTestCase {
         block.setPosition(37, 13);
 
         Input input = block.getInputByName("value_input");
-        Block inputBlock = bf.obtainBlock("output_foo", "126");
+        Block inputBlock = bf.obtainBlock("output_foo", "VALUE_GOOD");
         input.getConnection().connect(inputBlock.getOutputConnection());
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -223,7 +222,7 @@ public class BlockTest extends AndroidTestCase {
         block.serialize(serializer, true);
         serializer.flush();
 
-        String expected = BlockTestStrings.BLOCK_START
+        String expected = BlockTestStrings.frankenBlockStart("364")
                 + BlockTestStrings.VALUE_GOOD
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END;
@@ -244,7 +243,7 @@ public class BlockTest extends AndroidTestCase {
         block.serialize(serializer, true);
         serializer.flush();
 
-        String expected = BlockTestStrings.BLOCK_START
+        String expected = BlockTestStrings.frankenBlockStart("364")
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES_START
                 + "<statement name=\"NAME\">"
                 + "<block type=\"frankenblock\" id=\"3\">"
@@ -282,21 +281,21 @@ public class BlockTest extends AndroidTestCase {
     public void testGetOnlyValueInput() {
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         // No inputs.
-        assertNull(bf.obtainBlock("statement_no_input", "block id").getOnlyValueInput());
+        assertNull(bf.obtainBlock("statement_no_input", null).getOnlyValueInput());
 
         // One value input.
-        Block underTest = bf.obtainBlock("statement_value_input", "block id");
+        Block underTest = bf.obtainBlock("statement_value_input", null);
         assertSame(underTest.getInputByName("value"), underTest.getOnlyValueInput());
 
         // Statement input, no value inputs.
-        assertNull(bf.obtainBlock("statement_statement_input", "block id").getOnlyValueInput());
+        assertNull(bf.obtainBlock("statement_statement_input", null).getOnlyValueInput());
 
         // Multiple value inputs.
-        assertNull(bf.obtainBlock("statement_multiple_value_input", "block id")
+        assertNull(bf.obtainBlock("statement_multiple_value_input", null)
                 .getOnlyValueInput());
 
         // Statement input, dummy input and value input.
-        underTest = bf.obtainBlock("controls_repeat_ext", "block id");
+        underTest = bf.obtainBlock("controls_repeat_ext", null);
         assertSame(underTest.getInputByName("TIMES"), underTest.getOnlyValueInput());
     }
 
@@ -454,6 +453,10 @@ public class BlockTest extends AndroidTestCase {
         third.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
         assertSame(third, first.getLastBlockInSequence());
+    }
+
+    public void testBlockIdSerializedDeserialized() {
+        Block block = mBlockFactory.obtainBlock("statement_no_input", "123");
     }
 
     private void assertStringNotEmpty(String mesg, String str) {
