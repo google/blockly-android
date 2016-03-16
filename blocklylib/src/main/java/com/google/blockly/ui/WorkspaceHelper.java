@@ -21,12 +21,10 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
 import android.support.annotation.Nullable;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -335,16 +333,16 @@ public class WorkspaceHelper {
                 view = new FieldLabelView(mContext, field, this);
                 break;
             case Field.TYPE_CHECKBOX:
-                view = new FieldCheckboxView(mContext, field, this);
+                view = new FieldCheckboxView(mContext, field);
                 break;
             case Field.TYPE_DATE:
-                view = new FieldDateView(mContext, field, this);
+                view = new FieldDateView(mContext, field);
                 break;
             case Field.TYPE_DROPDOWN:
                 view = new FieldDropdownView(mContext, field, this);
                 break;
             case Field.TYPE_ANGLE:
-                view = new FieldAngleView(mContext, field, this);
+                view = new FieldAngleView(mContext, field);
                 break;
             case Field.TYPE_COLOUR:
                 view = new FieldColourView(mContext, field, this);
@@ -356,7 +354,7 @@ public class WorkspaceHelper {
                 view = fiv;
                 break;
             case Field.TYPE_IMAGE:
-                view = new FieldImageView(mContext, field, this);
+                view = new FieldImageView(mContext, field);
                 break;
             case Field.TYPE_VARIABLE:
                 view = new FieldVariableView(mContext, field, this);;

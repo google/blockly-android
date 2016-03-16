@@ -21,7 +21,6 @@ import android.text.TextWatcher;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
@@ -29,15 +28,11 @@ import com.google.blockly.ui.WorkspaceHelper;
  */
 public class FieldAngleView extends TextView implements FieldView {
     private final Field.FieldAngle mAngleField;
-    private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
 
-    public FieldAngleView(Context context, Field angleField, WorkspaceHelper helper) {
+    public FieldAngleView(Context context, Field angleField) {
         super(context);
 
         mAngleField = (Field.FieldAngle) angleField;
-        mWorkspaceHelper = helper;
-        mWorkspaceParams = new FieldWorkspaceParams(mAngleField, mWorkspaceHelper);
 
         setBackground(null);
         setText(Integer.toString(mAngleField.getAngle()));
@@ -57,25 +52,6 @@ public class FieldAngleView extends TextView implements FieldView {
                 mAngleField.setFromString(s.toString());
             }
         });
-    }
-
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 
     @Override

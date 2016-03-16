@@ -30,7 +30,6 @@ import android.widget.PopupWindow;
 import com.google.blockly.R;
 import com.google.blockly.model.Field;
 import com.google.blockly.ui.BlockView;
-import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
@@ -42,7 +41,6 @@ public class FieldColourView extends View implements FieldView {
 
     private final Field.FieldColour mColourField;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
 
     @VisibleForTesting
     final Paint mSelectedColourPaint = new Paint();
@@ -61,7 +59,6 @@ public class FieldColourView extends View implements FieldView {
 
         mColourField = (Field.FieldColour) colourField;
         mWorkspaceHelper = helper;
-        mWorkspaceParams = new FieldWorkspaceParams(mColourField, mWorkspaceHelper);
 
         mInsetPatch = (NinePatchDrawable) getResources().getDrawable(R.drawable.inset_field_border);
 
@@ -109,14 +106,6 @@ public class FieldColourView extends View implements FieldView {
     }
 
     @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
     protected void onDraw(Canvas canvas) {
         int width = Math.max(getWidth(), mInsetPatch.getMinimumWidth());
         int height = Math.max(getHeight(), mInsetPatch.getMinimumHeight());
@@ -127,11 +116,6 @@ public class FieldColourView extends View implements FieldView {
             mInsetPatch.setColorFilter(mBlockView.getColorFilter());
             mInsetPatch.draw(canvas);
         }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 
     @Override

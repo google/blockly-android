@@ -21,7 +21,6 @@ import android.widget.TextView;
 
 import com.google.blockly.R;
 import com.google.blockly.model.Field;
-import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
@@ -30,7 +29,6 @@ import com.google.blockly.ui.WorkspaceHelper;
 public class FieldLabelView extends TextView implements FieldView {
     private final Field.FieldLabel mLabelField;
     private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
 
     /**
      * Create a view for the given field using the workspace's style.
@@ -58,32 +56,12 @@ public class FieldLabelView extends TextView implements FieldView {
 
         mLabelField = (Field.FieldLabel) labelField;
         mWorkspaceHelper = helper;
-        mWorkspaceParams = new FieldWorkspaceParams(mLabelField, mWorkspaceHelper);
 
         configureStyle(context, fieldStyle);
 
         setBackground(null);
         setText(mLabelField.getText());
         labelField.setView(this);
-    }
-
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 
     private void configureStyle(Context context, int style) {

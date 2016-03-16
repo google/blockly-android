@@ -62,6 +62,6 @@ public class FieldCheckboxViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     private FieldCheckboxView makeFieldCheckboxView() {
-        return new FieldCheckboxView(getContext(), mFieldCheckbox, mMockWorkspaceHelper);
+        return new FieldCheckboxView(getContext(), mFieldCheckbox);
     }
 }

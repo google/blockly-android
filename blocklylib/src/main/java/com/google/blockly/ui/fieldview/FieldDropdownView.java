@@ -20,7 +20,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.WorkspaceHelper;
 
 /**
@@ -28,15 +27,11 @@ import com.google.blockly.ui.WorkspaceHelper;
  */
 public class FieldDropdownView extends Spinner implements FieldView {
     private final Field.FieldDropdown mDropdownField;
-    private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
 
     public FieldDropdownView(Context context, Field dropdownField, WorkspaceHelper helper) {
         super(context);
 
-        mWorkspaceHelper = helper;
         mDropdownField = (Field.FieldDropdown) dropdownField;
-        mWorkspaceParams = new FieldWorkspaceParams(mDropdownField, mWorkspaceHelper);
 
         ArrayAdapter adapter = new ArrayAdapter<>(context, helper.getSpinnerLayout(),
                 mDropdownField.getDisplayNames());
@@ -54,25 +49,6 @@ public class FieldDropdownView extends Spinner implements FieldView {
         }
         super.setSelection(position);
         mDropdownField.setSelectedIndex(position);
-    }
-
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 
     @Override

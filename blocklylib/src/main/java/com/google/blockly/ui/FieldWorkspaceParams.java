@@ -32,9 +32,6 @@ public class FieldWorkspaceParams {
 
     private final WorkspacePoint mWorkspacePosition = new WorkspacePoint();
     private final Rect mBounds = new Rect();
-    // Helper object for setting mWorkspacePosition in updateFromView(); instantiated at class
-    // level to avoid repeated object creation.
-    private final ViewPoint mGlobalViewPosition = new ViewPoint();
     private int mWidth;
     private int mHeight;
 

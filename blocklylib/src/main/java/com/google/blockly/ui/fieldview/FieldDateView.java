@@ -21,23 +21,17 @@ import android.text.TextWatcher;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.WorkspaceHelper;
 
 /**
  * Renders a date and a date picker as part of a Block.
  */
 public class FieldDateView extends TextView implements FieldView {
     private final Field.FieldDate mDateField;
-    private final WorkspaceHelper mWorkspaceHelper;
-    private final FieldWorkspaceParams mWorkspaceParams;
 
-    public FieldDateView(Context context, Field dateField, WorkspaceHelper helper) {
+    public FieldDateView(Context context, Field dateField) {
         super(context);
 
-        mWorkspaceHelper = helper;
         mDateField = (Field.FieldDate) dateField;
-        mWorkspaceParams = new FieldWorkspaceParams(mDateField, mWorkspaceHelper);
 
         setBackground(null);
         setText(mDateField.getDateString());
@@ -57,25 +51,6 @@ public class FieldDateView extends TextView implements FieldView {
                 mDateField.setFromString(s.toString());
             }
         });
-    }
-
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWorkspaceParams.setMeasuredDimensions(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
-    public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (changed) {
-            mWorkspaceParams.updateFromView(this);
-        }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return mWorkspaceParams;
     }
 
     @Override

@@ -18,16 +18,12 @@ package com.google.blockly.ui.fieldview;
 import android.content.ClipDescription;
 import android.content.Context;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.DragEvent;
 import android.widget.EditText;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.ui.FieldWorkspaceParams;
-import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.ui.WorkspaceView;
 
 /**
@@ -88,11 +84,6 @@ public class FieldInputView extends EditText implements FieldView {
             mInput = null;
             setText("");
         }
-    }
-
-    @Override
-    public FieldWorkspaceParams getWorkspaceParams() {
-        return null;
     }
 
     /**

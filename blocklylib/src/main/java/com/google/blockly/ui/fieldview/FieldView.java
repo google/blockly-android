@@ -26,11 +26,6 @@ import com.google.blockly.ui.FieldWorkspaceParams;
  */
 public interface FieldView {
     /**
-     * @return The workspace params for this view.
-     */
-    public FieldWorkspaceParams getWorkspaceParams();
-
-    /**
      * Disconnect the model from this view.
      */
     void unlinkModel();
