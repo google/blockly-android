@@ -41,11 +41,11 @@ public class ProcedureManagerTest extends AndroidTestCase {
         Field nameField = new Field.FieldInput("name", PROCEDURE_NAME);
         nameInput.add(nameField);
         mProcedureDefinition = new Block.Builder(
-                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test", "testid")
+                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test")
                 .addInput(nameInput)
                 .build();
         mProcedureReference = new Block.Builder(
-                ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test", "testid")
+                ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test")
                 .addInput(nameInput)
                 .build();
     }
@@ -115,10 +115,10 @@ public class ProcedureManagerTest extends AndroidTestCase {
 
     public void testMissingNames() {
         mProcedureDefinition = new Block.Builder(
-                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test", "testid")
+                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test")
                 .build();
         mProcedureReference = new Block.Builder(
-                ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test", "testid")
+                ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test")
                 .build();
 
         try {

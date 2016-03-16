@@ -57,12 +57,12 @@ public class BlockViewInActivityTest
     }
 
     public void loadWhileUtilBlocksIntoWorkspaceView() {
-        mRootBlock = mBlockFactory.obtainBlock("controls_whileUntil", "TestBlock");
+        mRootBlock = mBlockFactory.obtainBlock("controls_whileUntil", "1");
         assertNotNull(mRootBlock);
-        mChildInputBlock = mBlockFactory.obtainBlock("output_no_input", "TextBlock");
+        mChildInputBlock = mBlockFactory.obtainBlock("output_no_input", "2");
         mRootBlock.getInputByName("TIMES").getConnection()
                 .connect(mChildInputBlock.getOutputConnection());
-        mChildStatementBlock = mBlockFactory.obtainBlock("statement_no_input", "TextBlock");
+        mChildStatementBlock = mBlockFactory.obtainBlock("statement_no_input", "3");
         mRootBlock.getInputByName("NAME").getConnection()
                 .connect(mChildStatementBlock.getPreviousConnection());
 

@@ -62,7 +62,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
 
     public void testCollectProcedureStats() {
         Block.Builder blockBuilder = new Block.Builder(
-                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test", "testid");
+                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test");
         blockBuilder.addInput(mFieldInput);
         Block blockUnderTest = blockBuilder.build();
 
@@ -70,8 +70,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         verify(mMockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
-        blockBuilder = new Block.Builder(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test",
-                "ref");
+        blockBuilder = new Block.Builder(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test");
         blockBuilder.addInput(mFieldInput);
         Block procedureReference = blockBuilder.build();
 
@@ -80,7 +79,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
     }
 
     public void testCollectVariableStats() {
-        Block.Builder blockBuilder = new Block.Builder("test", "testid");
+        Block.Builder blockBuilder = new Block.Builder("test");
 
         blockBuilder.addInput(mVariableFieldsInput);
         Block variableReference = blockBuilder.build();
@@ -97,12 +96,12 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
 
     public void testCollectConnectionStatsRecursive() {
         // Make sure we're only recursing on next and input connections, not output or previous.
-        Block.Builder blockBuilder = new Block.Builder("first block", "testid");
+        Block.Builder blockBuilder = new Block.Builder("first block");
         blockBuilder.addInput(mVariableFieldsInput);
         blockBuilder.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
         Block firstBlock = blockBuilder.build();
 
-        blockBuilder = new Block.Builder("second block", "testid");
+        blockBuilder = new Block.Builder("second block");
         blockBuilder.addInput(mFieldInput);
         blockBuilder.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
         blockBuilder.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
@@ -110,7 +109,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         Block secondBlock = blockBuilder.build();
         secondBlock.getPreviousConnection().connect(firstBlock.getNextConnection());
 
-        blockBuilder = new Block.Builder("third block", "testid");
+        blockBuilder = new Block.Builder("third block");
 
         Input in = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         Field field = new Field.FieldVariable( "nameid", "third block field name");

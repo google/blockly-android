@@ -40,13 +40,14 @@ public class BlockFactoryTest extends AndroidTestCase {
         assertNotNull(frankenblock.getFieldByName("angle"));
     }
 
-    public void testObtainRepeated() {
+    public void testObtainBlock_repeatedWithoutUuid() {
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
         Block frankenblock = bf.obtainBlock("frankenblock", null);
         assertNotNull("Failed to create the frankenblock.", frankenblock);
 
         Block frankencopy = bf.obtainBlock("frankenblock", null);
-        assertNotSame("Obtained blocks should be distinct objects.", frankenblock, frankencopy);
+        assertNotSame("Obtained blocks should be distinct objects when uuid is null.",
+                frankenblock, frankencopy);
 
         assertNotSame("Obtained blocks should not share connections.",
                 frankenblock.getNextConnection(), frankencopy.getNextConnection());
@@ -57,4 +58,28 @@ public class BlockFactoryTest extends AndroidTestCase {
                 frankenblock.getInputs().get(0), frankencopy.getInputs().get(0));
     }
 
+    public void testObtainBlock_repeatedWithUuid() {
+        BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
+        Block frankenblock = bf.obtainBlock("frankenblock", "123");
+        assertNotNull("Failed to create the frankenblock.", frankenblock);
+
+        Block frankencopy = bf.obtainBlock("frankenblock", "123");
+        assertSame("Obtained blocks should be the same object when uuid is provided.",
+                frankenblock, frankencopy);
+    }
+
+    public void testObtainBlock_repeatedWithUuidMismatchingPrototype() {
+        BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
+        Block frankenblock = bf.obtainBlock("frankenblock", "123");
+
+        try {
+            bf.obtainBlock("empty_block", "123");
+
+            // Should not get here.
+            fail("Expected error when requesting a block with matching UUID "
+                    + "but different prototype");
+        } catch(IllegalArgumentException e) {
+            // Expected.
+        }
+    }
 }
