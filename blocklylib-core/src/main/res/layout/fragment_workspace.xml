@@ -1,0 +1,69 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".WorkspaceFragment">
+
+    <com.google.blockly.android.ui.VirtualWorkspaceView
+        android:id="@+id/virtual_workspace"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="horizontal|vertical"
+        android:scrollbarStyle="insideOverlay"
+        style="@style/BlocklyTheme">
+
+        <com.google.blockly.android.ui.WorkspaceView
+            android:id="@+id/workspace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BlocklyTheme"/>
+
+    </com.google.blockly.android.ui.VirtualWorkspaceView>
+
+    <LinearLayout
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/zoom_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/zoom_in"/>
+
+        <ImageButton
+            android:id="@+id/zoom_out_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/zoom_out"/>
+
+        <ImageButton
+            android:id="@+id/reset_view_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/reset_view"/>
+
+        <ImageButton
+            android:id="@+id/trash_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/trash"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
