@@ -205,8 +205,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         // Layout never happens during this test, so we're forcing the connection locations
         // to be set from the block positions before we try to use them.
-        first.getView().updateConnectorLocations();
-        second.getView().updateConnectorLocations();
+        mWorkspaceHelper.getView(first).updateConnectorLocations();
+        mWorkspaceHelper.getView(second).updateConnectorLocations();
     }
 
     /**
@@ -221,7 +221,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
     }
 
     private void dragTouch(Block toDrag, Block stationary) {
-        BlockView bv = toDrag.getView();
+        BlockView bv = mWorkspaceHelper.getView(toDrag);
         // This is how far we need to move the block by
         int diffX = mWorkspaceHelper.workspaceToVirtualViewUnits(
                 stationary.getPosition().x - toDrag.getPosition().x);
@@ -240,7 +240,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
     }
 
     private void dragMove(Block toDrag, Block stationary) {
-        BlockView bv = toDrag.getView();
+        BlockView bv = mWorkspaceHelper.getView(toDrag);
         long time = dragStartTime + 10L;
         MotionEvent me = MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 30, -10, 0);
         mDragger.onTouchBlock(bv, me);
@@ -248,7 +248,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
     }
 
     private void dragRelease(Block toDrag, Block stationary) {
-        BlockView bv = toDrag.getView();
+        BlockView bv = mWorkspaceHelper.getView(toDrag);
         // Pretend to be the last DragEvent that registers, which should be right by the
         // stationary block.
         // getX() returns float, even though we'll cast back to int immediately.
@@ -259,7 +259,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         // Force the connector locations to update before the call to finishDragging().
         bv.updateConnectorLocations();
-        stationary.getView().updateConnectorLocations();
+        mWorkspaceHelper.getView(stationary).updateConnectorLocations();
 
         mDragger.finishDragging();
     }

@@ -19,7 +19,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.blockly.ui.BlockView;
 import com.google.blockly.utils.Colours;
 
 import org.json.JSONArray;
@@ -67,9 +66,6 @@ public class Block {
 
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
-
-    // These values are only used for drawing
-    private BlockView mView;
 
     private Block(@Nullable String uuid, String name, int category, int colour,
                   Connection outputConnection, Connection nextConnection,
@@ -330,20 +326,6 @@ public class Block {
     @Nullable
     public Connection getNextConnection() {
         return mNextConnection;
-    }
-
-    /**
-     * @return The view that renders this block.
-     */
-    public BlockView getView() {
-        return mView;
-    }
-
-    /**
-     * Sets the view that renders this block.
-     */
-    public void setView(BlockView view) {
-        mView = view;
     }
 
     public Block deepCopy() {

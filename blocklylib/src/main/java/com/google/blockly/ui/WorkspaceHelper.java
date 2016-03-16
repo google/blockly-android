@@ -47,7 +47,11 @@ import com.google.blockly.ui.fieldview.FieldLabelView;
 import com.google.blockly.ui.fieldview.FieldVariableView;
 import com.google.blockly.ui.fieldview.FieldView;
 
+import java.lang.ref.WeakReference;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides helper methods for views and coordinate conversions.
@@ -96,6 +100,10 @@ public class WorkspaceHelper {
     private final Context mContext;
     private final LayoutInflater mLayoutInflater;
     private final PatchManager mPatchManager;
+
+    private final Map<String,WeakReference<BlockView>> mBlockIdToView
+            = Collections.synchronizedMap(new HashMap<String,WeakReference<BlockView>>());
+
     private WorkspaceView mWorkspaceView;
     private float mDensity;
     private boolean mRtl;
@@ -155,6 +163,16 @@ public class WorkspaceHelper {
     }
 
     /**
+     * @param block The Block to view.
+     * @return The view that was constructed for a given Block object, if any.
+     */
+    @Nullable
+    public BlockView getView(Block block) {
+        WeakReference<BlockView> viewRef = mBlockIdToView.get(block.getId());
+        return viewRef == null ? null : viewRef.get();
+    }
+
+    /**
      * @return The {@link PatchManager} for drawing Blocks using 9-patches.
      */
     public PatchManager getPatchManager() {
@@ -197,7 +215,6 @@ public class WorkspaceHelper {
         // TODO(#62): Adapt to WorkspaceView zoom, if connected.
         return DEFAULT_MAX_SNAP_DISTANCE;
     }
-
 
     /**
      * Scales a value in workspace coordinate units to virtual view pixel units.
@@ -294,8 +311,13 @@ public class WorkspaceHelper {
     public BlockView buildBlockViewTree(Block block, BlockGroup parentGroup,
                                         ConnectionManager connectionManager,
                                         BlockTouchHandler touchHandler) {
+        BlockView blockView = getView(block);
+        if (blockView != null) {
+            throw new IllegalStateException("BlockView already created.");
+        }
+
         // TODO(#88): Refactor to use a BlockViewFactory to instantiate and combine all the views.
-        BlockView blockView = new BlockView(mContext, block, this, connectionManager, touchHandler);
+        blockView = new BlockView(mContext, block, this, connectionManager, touchHandler);
         List<Input> inputs = block.getInputs();
         for (int i = 0; i < inputs.size(); i++) {
             Input in = inputs.get(i);
@@ -317,6 +339,7 @@ public class WorkspaceHelper {
             // Recursively calls buildBlockViewTree(..) for the rest of the sequence.
         }
 
+        mBlockIdToView.put(block.getId(), new WeakReference<BlockView>(blockView));
         return blockView;
     }
 
@@ -461,8 +484,9 @@ public class WorkspaceHelper {
      *
      * @return The highest {@link BlockGroup} found.
      */
+    @Nullable
     public BlockGroup getRootBlockGroup(Block block) {
-        BlockView bv = block.getRootBlock().getView();
+        BlockView bv = getView(block.getRootBlock());
         return (bv == null) ? null : (BlockGroup) bv.getParent();
     }
 
@@ -476,7 +500,7 @@ public class WorkspaceHelper {
      */
     @Nullable
     public BlockGroup getParentBlockGroup(Block block) {
-        BlockView blockView = block.getView();
+        BlockView blockView = getView(block);
         if (blockView != null) {
             BlockGroup bg = blockView.getParentBlockGroup();
             if (bg == null) {
@@ -586,6 +610,21 @@ public class WorkspaceHelper {
                 mContext, mSpinnerLayout);
         adapter.setDropDownViewResource(mSpinnerDropDownLayout);
         return adapter;
+    }
+
+    /**
+     * Clears the view reference to this view from its block.
+     *
+     * @param view The BlockView to deassociate from its Block model.
+     */
+    void unlinkView(BlockView view) {
+        String id = view.getBlock().getId();
+        WeakReference<BlockView> viewRef = mBlockIdToView.get(id);
+        if (viewRef != null) {
+            if (viewRef.get() == view) {
+                mBlockIdToView.remove(id);
+            }
+        }
     }
 
     /**

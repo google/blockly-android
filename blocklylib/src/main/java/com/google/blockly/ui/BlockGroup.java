@@ -165,8 +165,8 @@ public class BlockGroup extends NonPropagatingViewGroup {
     public void moveBlocksFrom(BlockGroup from, Block firstBlock) {
         Block cur = firstBlock;
         while (cur != null) {
-            from.removeView(cur.getView());
-            this.addView(cur.getView());
+            from.removeView(mWorkspaceHelper.getView(cur));
+            this.addView(mWorkspaceHelper.getView(cur));
             cur = cur.getNextBlock();
         }
     }

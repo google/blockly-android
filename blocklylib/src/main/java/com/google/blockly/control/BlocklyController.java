@@ -67,6 +67,7 @@ public class BlocklyController {
     private final WorkspaceHelper mHelper;
 
     private final Workspace mWorkspace;
+
     private final ViewPoint mTempViewPoint = new ViewPoint();
 
     private WorkspaceView mWorkspaceView;
@@ -375,9 +376,9 @@ public class BlocklyController {
         }
         boolean isPartOfWorkspace = mWorkspace.isRootBlock(rootBlock);
 
-        BlockView bv = block.getView();
+        BlockView bv = mHelper.getView(block);
         BlockGroup bg = (bv == null) ? null : (BlockGroup) bv.getParent();
-        BlockGroup rootBlockGroup = (mWorkspaceView == null) ? null
+        BlockGroup originalRootBlockGroup = (mWorkspaceView == null) ? null
                 : mHelper.getRootBlockGroup(block);
 
         // Child block
@@ -411,8 +412,8 @@ public class BlocklyController {
             }
         }
 
-        if (rootBlockGroup != null) {
-            rootBlockGroup.requestLayout();
+        if (originalRootBlockGroup != null) {
+            originalRootBlockGroup.requestLayout();
         }
         if (isPartOfWorkspace) {
             // Only add back to the workspace if the original tree is part of the workspace model.
@@ -503,7 +504,7 @@ public class BlocklyController {
     public void addBlockFromToolbox(Block block, MotionEvent event) {
         addRootBlock(block, null, true);
         // let the workspace view know that this is the block we want to drag
-        mDragger.setTouchedBlock(block.getView(), event);
+        mDragger.setTouchedBlock(mHelper.getView(block), event);
         // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
         // {@link WorkspaceView} coordinates.
         mHelper.workspaceToVirtualViewCoordinates(block.getPosition(), mTempViewPoint);
@@ -624,7 +625,7 @@ public class BlocklyController {
      * @param block The root block of the tree to unlink.
      */
     public void unlinkViews(Block block) {
-        BlockView view = block.getView();
+        BlockView view = mHelper.getView(block);
         if (view == null) {
             return;  // No view to unlink.
         }
@@ -637,7 +638,7 @@ public class BlocklyController {
 
         BlockGroup parentGroup = mHelper.getParentBlockGroup(block);
         if (parentGroup != null) {
-            if (parentGroup.getChildAt(0) != block.getView()) {
+            if (parentGroup.getChildAt(0) != mHelper.getView(block)) {
                 // If it doesn't have a parent, this Block view should have been first.
                 throw new IllegalStateException("BlockGroup does not match model");
             }
@@ -710,7 +711,7 @@ public class BlocklyController {
     private boolean removeRootBlock(Block block, boolean cleanupStats) {
         boolean rootFoundAndRemoved = mWorkspace.removeRootBlock(block, cleanupStats);
         if (rootFoundAndRemoved) {
-            BlockView bv = block.getView();
+            BlockView bv = mHelper.getView(block);
             if (bv != null) {
                 BlockGroup group = bv.getParentBlockGroup();
                 if (group != null) {

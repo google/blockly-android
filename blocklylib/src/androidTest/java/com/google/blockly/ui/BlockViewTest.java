@@ -49,7 +49,6 @@ public class BlockViewTest extends MockitoAndroidTestCase {
 
         // Verify Block and BlockView are linked both ways.
         assertSame(mMockBlock, blockView.getBlock());
-        Mockito.verify(mMockBlock, Mockito.times(1)).setView(blockView);
     }
 
 
@@ -62,7 +61,6 @@ public class BlockViewTest extends MockitoAndroidTestCase {
 
         final BlockGroup bg = new BlockGroup(getContext(), mMockWorkspaceHelper);
         assertSame(block, blockView.getBlock());
-        assertSame(blockView, block.getView());
 
         // One InputView per Input?
         assertEquals(3, blockView.getInputViewCount());
