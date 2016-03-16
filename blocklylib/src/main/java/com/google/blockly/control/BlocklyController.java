@@ -38,6 +38,7 @@ import com.google.blockly.model.Workspace;
 import com.google.blockly.ui.BlockGroup;
 import com.google.blockly.ui.BlockTouchHandler;
 import com.google.blockly.ui.BlockView;
+import com.google.blockly.ui.BlockViewFactory;
 import com.google.blockly.ui.InputView;
 import com.google.blockly.ui.ViewPoint;
 import com.google.blockly.ui.WorkspaceHelper;
@@ -63,7 +64,8 @@ public class BlocklyController {
 
     private final Context mContext;
     private final FragmentManager mFragmentManager;
-    private final BlockFactory mBlockFactory;
+    private final BlockFactory mModelFactory;
+    private final BlockViewFactory mViewFactory;
     private final WorkspaceHelper mHelper;
 
     private final Workspace mWorkspace;
@@ -93,28 +95,38 @@ public class BlocklyController {
      * Creates a new Controller with Workspace and WorkspaceHelper.
      *
      * @param context Android context, such as an Activity.
-     * @param blockFactory Factory used to create new Blocks.
+     * @param blockModelFactory Factory used to create new Blocks.
+     * @param workspaceHelper Helper functions for adapting blockly view to the current device.
      * @param fragmentManager Support fragment manager, if controlling the Blockly fragment and view
      * classes.
-     * @param style Workspace view style id, or 0.
+     * @param blockViewFactory Factory used to construct block views for this app.
      */
-    private BlocklyController(Context context, BlockFactory blockFactory,
-            @Nullable FragmentManager fragmentManager, int style) {
+    private BlocklyController(Context context, BlockFactory blockModelFactory,
+                              WorkspaceHelper workspaceHelper,
+                              @Nullable FragmentManager fragmentManager,
+                              @Nullable BlockViewFactory blockViewFactory) {
 
         if (context == null) {
-            throw new IllegalArgumentException("context may not be null.");
+            throw new IllegalArgumentException("Context may not be null.");
         }
-        if (blockFactory == null) {
-            throw new IllegalArgumentException("blockFactory may not be null.");
+        if (blockModelFactory == null) {
+            throw new IllegalArgumentException("BlockFactory may not be null.");
+        }
+        if (workspaceHelper == null) {
+            throw new IllegalArgumentException("WorkspaceHelper may not be null.");
         }
         mContext = context;
+        mModelFactory = blockModelFactory;
+        mHelper = workspaceHelper;
         mFragmentManager = fragmentManager;
-        mBlockFactory = blockFactory;
-        mWorkspace = new Workspace(mContext, this, mBlockFactory);
-        mHelper = new WorkspaceHelper(mContext, style);
+        mViewFactory = blockViewFactory;
 
-        // TODO(#81): Check if variables are enabled/disabled
-        mHelper.setVariableNameManager(mWorkspace.getVariableNameManager());
+        mWorkspace = new Workspace(mContext, this, mModelFactory);
+
+        if (mViewFactory != null) {
+            // TODO(#81): Check if variables are enabled/disabled
+            mViewFactory.setVariableNameManager(mWorkspace.getVariableNameManager());
+        }
 
         mDragger = new Dragger(this);
     }
@@ -342,7 +354,7 @@ public class BlocklyController {
     }
 
     public BlockFactory getBlockFactory() {
-        return mBlockFactory;
+        return mModelFactory;
     }
 
     public WorkspaceHelper getWorkspaceHelper() {
@@ -395,7 +407,7 @@ public class BlocklyController {
                 // Disconnect view.
                 InputView inView = in.getView();
                 if (inView != null) {
-                    inView.unsetChildView();
+                    inView.disconnectBlockGroup();
                 }
             }
             block.getPreviousConnection().disconnect();
@@ -408,7 +420,7 @@ public class BlocklyController {
             // Disconnect view.
             InputView inView = in.getView();
             if (inView != null) {
-                inView.unsetChildView();
+                inView.disconnectBlockGroup();
             }
         }
 
@@ -448,8 +460,7 @@ public class BlocklyController {
             ConnectionManager connManager = mWorkspace.getConnectionManager();
             for (int i = 0; i < rootBlocks.size(); i++) {
                 BlockGroup bg = new BlockGroup(mContext, mHelper);
-                mHelper.buildBlockViewTree(rootBlocks.get(i), bg, connManager,
-                        mTouchHandler);
+                mViewFactory.buildBlockViewTree(rootBlocks.get(i), bg, connManager, mTouchHandler);
                 mWorkspaceView.addView(bg);
             }
         }
@@ -686,7 +697,7 @@ public class BlocklyController {
         mWorkspace.addRootBlock(block, isNewBlock);
         if (mWorkspaceView != null) {
             if (bg == null) {
-                bg = mHelper.buildBlockGroupTree(block, mWorkspace.getConnectionManager(),
+                bg = mViewFactory.buildBlockGroupTree(block, mWorkspace.getConnectionManager(),
                         mTouchHandler);
             } else {
                 bg.setTouchHandler(mTouchHandler);
@@ -740,7 +751,7 @@ public class BlocklyController {
             parentStatementConnection.disconnect();
             InputView parentInputView = parentStatementConnection.getInputView();
             if (parentInputView != null) {
-                parentInputView.unsetChildView();
+                parentInputView.disconnectBlockGroup();
             }
 
             // Try to reconnect the remainder to the end of the new sequence.
@@ -809,7 +820,7 @@ public class BlocklyController {
         superior.getNextConnection().connect(inferior.getPreviousConnection());
         if (superiorBlockGroup != null) {
             if (inferiorBlockGroup == null) {
-                inferiorBlockGroup = mHelper.buildBlockGroupTree(
+                inferiorBlockGroup = mViewFactory.buildBlockGroupTree(
                         inferior, mWorkspace.getConnectionManager(), mTouchHandler);
             }
             superiorBlockGroup.moveBlocksFrom(inferiorBlockGroup, inferior);
@@ -835,7 +846,7 @@ public class BlocklyController {
             previousTargetConnection = parentConn.getTargetConnection();
             parentConn.disconnect();
             if (parentInputView != null) {
-                parentInputView.unsetChildView();
+                parentInputView.disconnectBlockGroup();
             }
         }
         parentConn.connect(childConn);
@@ -857,10 +868,10 @@ public class BlocklyController {
 
         if (mWorkspaceView != null && parentInputView != null) {
             if (childBlockGroup == null) {
-                childBlockGroup = mHelper.buildBlockGroupTree(
+                childBlockGroup = mViewFactory.buildBlockGroupTree(
                         child, mWorkspace.getConnectionManager(), mTouchHandler);
             }
-            parentInputView.setChildView(childBlockGroup);
+            parentInputView.setConnectedBlockGroup(childBlockGroup);
         }
     }
 
@@ -878,13 +889,14 @@ public class BlocklyController {
      */
     public static class Builder {
         private Context mContext;
+        private WorkspaceHelper mWorkspaceHelper;
+        private BlockViewFactory mViewFactory;
         private WorkspaceFragment mWorkspaceFragment;
         private ToolboxFragment mToolboxFragment;
         private DrawerLayout mToolboxDrawer;
         private TrashFragment mTrashFragment;
         private FragmentManager mFragmentManager;
         private AssetManager mAssetManager;
-        private int mStyle;
 
         // TODO: Should these be part of the style?
         private int mToolboxResId;
@@ -897,6 +909,16 @@ public class BlocklyController {
 
         public Builder(Context context) {
             mContext = context;
+        }
+
+        public Builder setWorkspaceHelper(WorkspaceHelper workspaceHelper) {
+            mWorkspaceHelper = workspaceHelper;
+            return this;
+        }
+
+        public Builder setBlockViewFactory(BlockViewFactory blockViewFactory) {
+            mViewFactory = blockViewFactory;
+            return this;
         }
 
         public Builder setWorkspaceFragment(WorkspaceFragment workspace) {
@@ -915,6 +937,7 @@ public class BlocklyController {
             return this;
         }
 
+        // TODO(#128): Remove. Use mContext.getAssets()
         public Builder setAssetManager(AssetManager manager) {
             mAssetManager = manager;
             return this;
@@ -930,18 +953,6 @@ public class BlocklyController {
          */
         public Builder setFragmentManager(FragmentManager fragmentManager) {
             mFragmentManager = fragmentManager;
-            return this;
-        }
-
-        /**
-         * Set the resource id for the style to use when rendering blocks. The style must inherit
-         * from {@link com.google.blockly.R.style#BlocklyTheme}.
-         *
-         * @param styleResId The resource id for the style to use.
-         * @return this
-         */
-        public Builder setBlocklyStyle(int styleResId) {
-            mStyle = styleResId;
             return this;
         }
 
@@ -1083,6 +1094,9 @@ public class BlocklyController {
                         "FragmentManager cannot be null when using Fragments.");
             }
 
+            if (mWorkspaceHelper == null) {
+                mWorkspaceHelper = new WorkspaceHelper(mContext);
+            }
             BlockFactory factory = new BlockFactory(mContext, null);
             for (int i = 0; i < mBlockDefResources.size(); i++) {
                 factory.addBlocks(mBlockDefResources.get(i));
@@ -1098,8 +1112,8 @@ public class BlocklyController {
             for (int i = 0; i < mBlockDefs.size(); i++) {
                 factory.addBlockTemplate(mBlockDefs.get(i));
             }
-            BlocklyController controller =
-                    new BlocklyController(mContext, factory, mFragmentManager, mStyle);
+            BlocklyController controller = new BlocklyController(
+                    mContext, factory, mWorkspaceHelper, mFragmentManager, mViewFactory);
             if (mToolboxResId != 0) {
                 controller.loadToolboxContents(mToolboxResId);
             } else if (mToolboxXml != null) {

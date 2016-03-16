@@ -137,6 +137,7 @@ public class CodeGeneratorService extends Service {
         }
     }
 
+    // TODO(#129): Rename
     private class BlocklyController {
         @JavascriptInterface
         public void execute(String program) {

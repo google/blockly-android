@@ -34,8 +34,7 @@ public class BlockGroup extends NonPropagatingViewGroup {
 
     /**
      * Creates a BlockGroup to wrap one or more BlockViews. App developers should not call this
-     * constructor directly.  Instead, use
-     * {@link WorkspaceHelper#buildBlockGroupTree(Block, ConnectionManager, BlockTouchHandler)}.
+     * constructor directly.  Instead, use {@link BlockViewFactory#buildBlockGroupTree}.
      *
      * @param context The context for creating this view.
      * @param helper The helper for loading workspace configs and doing calculations.
@@ -69,14 +68,16 @@ public class BlockGroup extends NonPropagatingViewGroup {
         int margin = 0;
 
         for (int i = 0; i < childCount; i++) {
-            BlockView child = (BlockView) getChildAt(i);
+            View child = getChildAt(i);
+            BlockView childBlockView = (BlockView) child;
+
             child.measure(widthSpec, heightSpec);
             width = Math.max(margin + child.getMeasuredWidth(), width);
 
             // If the first child has a layout margin for an Output connector, then save the margin
             // to add it to all children that follow (but do not add to width of this child itself).
             if (i == 0) {
-                margin = child.getLayoutMarginLeft();
+                margin = childBlockView.getLayoutMarginLeft();
             }
 
             // Only for last child, add the entire measured height. For all other children, add
@@ -85,9 +86,9 @@ public class BlockGroup extends NonPropagatingViewGroup {
             if (i == childCount - 1) {
                 height += child.getMeasuredHeight();
             } else {
-                height += child.getNextBlockVerticalOffset();
+                height += childBlockView.getNextBlockVerticalOffset();
             }
-            mNextBlockVerticalOffset += child.getNextBlockVerticalOffset();
+            mNextBlockVerticalOffset += childBlockView.getNextBlockVerticalOffset();
         }
         setMeasuredDimension(width, height);
     }
@@ -113,17 +114,18 @@ public class BlockGroup extends NonPropagatingViewGroup {
         int margin = 0;
 
         for (int i = 0; i < childCount; i++) {
-            BlockView child = (BlockView) getChildAt(i);
+            View child = getChildAt(i);
+            BlockView childBlockView = (BlockView) child;
 
             int w = child.getMeasuredWidth();
             int cl = rtl ? x - margin - w : x + margin;
             child.layout(cl, y, cl + w, y + child.getMeasuredHeight());
-            y += child.getNextBlockVerticalOffset();
+            y += childBlockView.getNextBlockVerticalOffset();
 
             // If the first child has a layout margin for an Output connector, then save margin for
             // all children that follow.
             if (i == 0) {
-                margin = child.getLayoutMarginLeft();
+                margin = childBlockView.getLayoutMarginLeft();
             }
         }
         // After we finish laying out we need to update the locations of the connectors
@@ -165,7 +167,7 @@ public class BlockGroup extends NonPropagatingViewGroup {
     public void moveBlocksFrom(BlockGroup from, Block firstBlock) {
         Block cur = firstBlock;
         while (cur != null) {
-            BlockView blockView = mWorkspaceHelper.getView(cur);
+            View blockView = (View) mWorkspaceHelper.getView(cur);
             from.removeView(blockView);
             this.addView(blockView);
             cur = cur.getNextBlock();
@@ -179,8 +181,9 @@ public class BlockGroup extends NonPropagatingViewGroup {
     public void updateAllConnectorLocations() {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
-            BlockView child = (BlockView) getChildAt(i);
-            child.updateConnectorLocations();
+            View child = getChildAt(i);
+            BlockView childBlockView = (BlockView) child;
+            childBlockView.updateConnectorLocations();
             child.invalidate();
         }
     }

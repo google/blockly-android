@@ -26,6 +26,9 @@ import android.widget.Toast;
 
 import com.google.blockly.AbstractBlocklyActivity;
 import com.google.blockly.LoggingCodeGeneratorCallback;
+import com.google.blockly.ui.BlockViewFactory;
+import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.ui.vertical.VerticalBlocksViewFactory;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.CodeGenerationRequest;
 
@@ -83,6 +86,11 @@ public class WebComparisonActivity extends AbstractBlocklyActivity {
     @Override
     protected String getToolboxContentsXmlPath() {
         return "sample_sections/level_3/toolbox.xml";
+    }
+
+    @Override
+    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
+        return new VerticalBlocksViewFactory(this, helper);
     }
 
     @Override

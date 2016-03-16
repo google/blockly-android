@@ -27,6 +27,9 @@ import android.widget.ListAdapter;
 import android.widget.Toast;
 
 import com.google.blockly.BlocklySectionsActivity;
+import com.google.blockly.ui.BlockViewFactory;
+import com.google.blockly.ui.WorkspaceHelper;
+import com.google.blockly.ui.vertical.VerticalBlocksViewFactory;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.CodeGenerationRequest;
 
@@ -108,6 +111,11 @@ public class TurtleActivity extends BlocklySectionsActivity {
     protected String getToolboxContentsXmlPath() {
         // Expose a different set of blocks to the user at each level.
         return "turtle/" + LEVEL_TOOLBOX[getCurrentSectionIndex()];
+    }
+
+    @Override
+    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
+        return new VerticalBlocksViewFactory(this, helper);
     }
 
     @Override
