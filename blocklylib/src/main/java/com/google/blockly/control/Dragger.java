@@ -150,7 +150,7 @@ public class Dragger {
      * models or views.
      */
     public void startDragging() {
-        mTouchedBlockView.startDrag(
+        ((View) mTouchedBlockView).startDrag(
                 ClipData.newPlainText(WorkspaceView.BLOCK_GROUP_CLIP_DATA_LABEL, ""),
                 new View.DragShadowBuilder(), null, 0);
     }
@@ -206,17 +206,18 @@ public class Dragger {
      * @param pointerId The id of the pointer that touched the {@link BlockView}.
      */
     public void setTouchedBlock(BlockView blockView, int pointerId) {
+        View view = (View) blockView;
         if (mIsDragging) {
             return;
         }
-        if (mTouchedBlockView != null) {
-            mTouchedBlockView.setPressed(false);
+        if (blockView != null) {
+            view.setPressed(false);
         }
         mTouchedBlockView = blockView;
         if (mTouchedBlockView != null) {
             // Starting a new drag.
             mTouchState = TOUCH_STATE_DOWN;
-            mTouchedBlockView.setPressed(true);
+            view.setPressed(true);
         } else {
             // Just clearing old state.
             mTouchState = TOUCH_STATE_NONE;
@@ -246,7 +247,7 @@ public class Dragger {
             mHighlightedBlockView.setHighlightedConnection(connectionCandidate.second);
         }
 
-        mTouchedBlockView.requestLayout();
+        ((View) mTouchedBlockView).requestLayout();
     }
 
     /**
@@ -366,7 +367,7 @@ public class Dragger {
     private void handleActionDown(BlockView blockView, MotionEvent event) {
         final int pointerIdx = MotionEventCompat.findPointerIndex(event,
                 mDraggingPointerId);
-        mWorkspaceHelper.getVirtualViewCoordinates(blockView, mTempViewPoint);
+        mWorkspaceHelper.getVirtualViewCoordinates((View) blockView, mTempViewPoint);
         int startX = (int) MotionEventCompat.getX(event, pointerIdx);
         int startY = (int) MotionEventCompat.getY(event, pointerIdx);
         setDragStartPos(startX, startY, mTempViewPoint.x, mTempViewPoint.y);

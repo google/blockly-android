@@ -46,6 +46,8 @@ import com.google.blockly.control.BlocklyController;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.ui.BlockViewFactory;
+import com.google.blockly.ui.WorkspaceHelper;
 import com.google.blockly.utils.CodeGenerationRequest;
 import com.google.blockly.utils.StringOutputStream;
 
@@ -82,6 +84,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     protected ActionBar mActionBar;
     protected DrawerLayout mDrawerLayout;
+
+    protected WorkspaceHelper mWorkspaceHelper;
+    protected BlockViewFactory mBlockViewFactory;
     protected WorkspaceFragment mWorkspaceFragment;
     protected ToolboxFragment mToolboxFragment;
     protected TrashFragment mTrashFragment;
@@ -277,6 +282,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         if (mWorkspaceFragment == null) {
             throw new IllegalStateException("mWorkspaceFragment is null");
         }
+        mWorkspaceHelper = new WorkspaceHelper(this);
+        mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
         mController = onCreateController();
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
@@ -297,19 +304,27 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         List<String> blockDefsPaths = getBlockDefinitionsJsonPaths();
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
-                .setBlocklyStyle(getStyleResId())
-                .setAssetManager(getAssets())
+                .setAssetManager(getAssets())  // TODO(#128) Remove
                 .addBlockDefinitionsFromAssets(blockDefsPaths)
                 .setToolboxConfigurationAsset(toolboxPath)
+                .setWorkspaceHelper(mWorkspaceHelper)
+                .setBlockViewFactory(mBlockViewFactory)
                 .setWorkspaceFragment(mWorkspaceFragment)
                 .setTrashFragment(mTrashFragment)
                 .setToolboxFragment(mToolboxFragment, mDrawerLayout)
                 .setFragmentManager(getSupportFragmentManager());
-
         return builder.build();
     }
 
     /**
+     *
+     * @param helper The Workspace helper for the
+     * @return
+     */
+    public abstract BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper);
+
+    /**
+     *
      * Returns true if the app should proceed to restore the blockly state from the
      * {@code savedInstanceState} Bundle. By default, it always returns true, but Activity
      * developers can override this method to add conditional logic.

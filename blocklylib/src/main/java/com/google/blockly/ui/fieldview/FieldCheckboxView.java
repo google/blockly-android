@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2016 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -15,41 +15,14 @@
 
 package com.google.blockly.ui.fieldview;
 
-import android.content.Context;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
+import android.view.View;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.ui.WorkspaceHelper;
 
 /**
- * Renders a checkbox as part of a BlockView.
+ * Required methods for a {@link View} of a checkbox {@link Field}.
  */
-public class FieldCheckboxView extends CheckBox implements FieldView {
-
-    private final Field.FieldCheckbox mCheckboxField;
-
-    public FieldCheckboxView(Context context, Field checkboxField) {
-        super(context);
-
-        mCheckboxField = (Field.FieldCheckbox) checkboxField;
-
-        setBackground(null);
-        setChecked(mCheckboxField.isChecked());
-        mCheckboxField.setView(this);
-
-        setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mCheckboxField.setChecked(isChecked);
-            }
-        });
-    }
-
-    @Override
-    public void unlinkModel() {
-        mCheckboxField.setView(null);
-        // TODO(#45): Remove model from view. Set mCheckboxField to null,
-        //             and handle null cases above.
-    }
+// TODO(#98) Remove observer pattern is implemented.
+public interface FieldCheckboxView extends FieldView {
+    public void setChecked(boolean mChecked);
 }
