@@ -18,8 +18,10 @@ package com.google.blockly.ui.fieldview;
 import android.content.ClipDescription;
 import android.content.Context;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.DragEvent;
 import android.widget.EditText;
 
@@ -30,6 +32,7 @@ import com.google.blockly.ui.WorkspaceView;
  * Renders editable text as part of a {@link com.google.blockly.ui.InputView}.
  */
 public class FieldInputView extends EditText implements FieldView {
+    private static final String TAG = "FieldInputView";
     private Field.FieldInput mInput;
     private TextWatcher mWatcher = new TextWatcher() {
         @Override
@@ -46,6 +49,18 @@ public class FieldInputView extends EditText implements FieldView {
         public void afterTextChanged(Editable s) {
             if (mInput != null) {
                 mInput.setText(s.toString());
+            }
+        }
+    };
+    private Field.FieldInput.Observer mFieldObserver = new Field.FieldInput.Observer() {
+        @Override
+        public void onTextChanged(Field.FieldInput field, String oldText, String newText) {
+            if (field != mInput) {
+                Log.w(TAG, "Received text change from unexpected field.");
+                return;
+            }
+            if (!TextUtils.equals(newText, getText())) {
+                setText(newText);
             }
         }
     };
@@ -74,12 +89,14 @@ public class FieldInputView extends EditText implements FieldView {
 
     public void setField(Field input) {
         if (mInput != null) {
+            mInput.unregisterObserver(mFieldObserver);
             mInput.setView(null);
         }
         if (input != null) {
             mInput = (Field.FieldInput) input;
             setText(mInput.getText());
             mInput.setView(this);
+            mInput.registerObserver(mFieldObserver);
         } else {
             mInput = null;
             setText("");
@@ -112,6 +129,7 @@ public class FieldInputView extends EditText implements FieldView {
     public void unlinkModel() {
         if (mInput != null) {
             mInput.setView(null);
+            mInput.unregisterObserver(mFieldObserver);
             mInput = null;
         }
         // TODO(#45): Remove model from view. Set mInput to null, and handle null cases above.

@@ -408,9 +408,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
             if (!TextUtils.equals(text, mText)) {
                 String oldText = mText;
                 mText = text;
-                if (mView != null) {
-                    ((FieldInputView) mView).setText(mText);
-                }
                 onTextChanged(oldText, text);
             }
         }
