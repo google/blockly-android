@@ -917,7 +917,7 @@ public class Block {
         }
 
         public Builder setColourHue(int hue) {
-            mColour = Colours.getBlockColorForHue(hue, TEMP_IO_THREAD_FLOAT_ARRAY);
+            mColour = Colours.getBlockColourForHue(hue, TEMP_IO_THREAD_FLOAT_ARRAY);
             return this;
         }
 

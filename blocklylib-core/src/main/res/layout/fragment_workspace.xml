@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     tools:context=".WorkspaceFragment">
 
-    <com.google.blockly.ui.VirtualWorkspaceView
+    <com.google.blockly.android.ui.VirtualWorkspaceView
         android:id="@+id/virtual_workspace"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -13,13 +13,13 @@
         android:scrollbarStyle="insideOverlay"
         style="@style/BlocklyTheme">
 
-        <com.google.blockly.ui.WorkspaceView
+        <com.google.blockly.android.ui.WorkspaceView
             android:id="@+id/workspace"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/BlocklyTheme"/>
 
-    </com.google.blockly.ui.VirtualWorkspaceView>
+    </com.google.blockly.android.ui.VirtualWorkspaceView>
 
     <LinearLayout
         android:layout_alignParentRight="true"

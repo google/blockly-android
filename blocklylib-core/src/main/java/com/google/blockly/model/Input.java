@@ -18,7 +18,7 @@ package com.google.blockly.model;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 
-import com.google.blockly.ui.InputView;
+import com.google.blockly.android.ui.InputView;
 
 import org.json.JSONArray;
 import org.json.JSONException;

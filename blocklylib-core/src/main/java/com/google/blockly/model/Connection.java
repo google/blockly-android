@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
-import com.google.blockly.ui.InputView;
+import com.google.blockly.android.ui.InputView;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

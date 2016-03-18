@@ -18,7 +18,7 @@ package com.google.blockly.model;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.blockly.ToolboxFragment;
+import com.google.blockly.android.ToolboxFragment;
 import com.google.blockly.utils.Colours;
 
 import org.xmlpull.v1.XmlPullParser;

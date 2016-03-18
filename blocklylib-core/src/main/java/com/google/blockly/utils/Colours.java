@@ -36,7 +36,7 @@ public class Colours {
     public static final int DEFAULT_BLOCK_HUE = 0;
     public static final float DEFAULT_BLOCK_SATURATION = 0.7f;
     public static final float DEFAULT_BLOCK_VALUE = 0.8f;
-    public static final int DEFAULT_BLOCK_COLOUR = getBlockColorForHue(DEFAULT_BLOCK_HUE, null);
+    public static final int DEFAULT_BLOCK_COLOUR = getBlockColourForHue(DEFAULT_BLOCK_HUE, null);
 
     /**
      * Parses a string as an opaque colour, either as a decimal hue (example: {@code 330}) using a
@@ -91,7 +91,7 @@ public class Colours {
         } else if (Character.isDigit(firstChar) && str.length() <= 3) {
             try {
                 int hue = Integer.parseInt(str);
-                result = getBlockColorForHue(hue, tempHsvArray);
+                result = getBlockColourForHue(hue, tempHsvArray);
             } catch (NumberFormatException e) {
                 throw new ParseException("Invalid color hue: " + str, 0);
             }
@@ -108,7 +108,7 @@ public class Colours {
      * @param tempHsvArray An optional previously allocated array for HSV calculations.
      * @return The color as an ARGB {@code int}.
      */
-    public static int getBlockColorForHue(int hue, @Nullable float[] tempHsvArray) {
+    public static int getBlockColourForHue(int hue, @Nullable float[] tempHsvArray) {
         hue = ((hue % 360) + 360) % 360;  // Clamp to 0-359
 
         if (tempHsvArray == null) {

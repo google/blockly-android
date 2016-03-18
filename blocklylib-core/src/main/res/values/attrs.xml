@@ -91,14 +91,14 @@
 
     <declare-styleable name="CategoryTabs">
         <attr name="labelRotation">
-            <!-- Values match com.google.blockly.ui.Rotation, used by RotationContainer. -->
+            <!-- Values match com.google.blockly.android.ui.Rotation, used by RotatedViewGroup. -->
             <flag name="none" value="0x00000000"/> <!-- No rotation. Default. -->
             <flag name="cw" value="0x00000001"/> <!-- Clockwise -->
             <flag name="ccw" value="0x00000002"/> <!-- Counter-clockwise -->
             <flag name="left" value="0x00000002"/> <!-- Counter-clockwise synonym. Top of view moves left. -->
             <flag name="right" value="0x00000001"/> <!-- Clockwise synonym. Top of view moves right. -->
             <flag name="start" value="0x00000012"/> <!-- RTL adaptive counter-clockwise -->
-            <flag name="end" value="0x00000011"/> <!-- RTL adaptive counter-clockwise -->
+            <flag name="end" value="0x00000011"/> <!-- RTL adaptive clockwise -->
         </attr>
     </declare-styleable>
 </resources>

@@ -17,7 +17,7 @@ package com.google.blockly.utils;
 
 import android.support.annotation.Nullable;
 
-import com.google.blockly.control.WorkspaceStats;
+import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyParserException;
@@ -32,7 +32,6 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -23,13 +23,13 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
-import com.google.blockly.ui.fieldview.FieldCheckboxView;
-import com.google.blockly.ui.fieldview.FieldColourView;
-import com.google.blockly.ui.fieldview.FieldDateView;
-import com.google.blockly.ui.fieldview.FieldDropdownView;
-import com.google.blockly.ui.fieldview.FieldLabelView;
-import com.google.blockly.ui.fieldview.FieldVariableView;
-import com.google.blockly.ui.fieldview.FieldView;
+import com.google.blockly.android.ui.fieldview.FieldCheckboxView;
+import com.google.blockly.android.ui.fieldview.FieldColourView;
+import com.google.blockly.android.ui.fieldview.FieldDateView;
+import com.google.blockly.android.ui.fieldview.FieldDropdownView;
+import com.google.blockly.android.ui.fieldview.FieldLabelView;
+import com.google.blockly.android.ui.fieldview.FieldVariableView;
+import com.google.blockly.android.ui.fieldview.FieldView;
 
 import org.json.JSONArray;
 import org.json.JSONException;

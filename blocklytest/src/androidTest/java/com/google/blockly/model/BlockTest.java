@@ -17,8 +17,8 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
-import com.google.blockly.MockBlocksProvider;
-import com.google.blockly.R;
+import com.google.blockly.android.MockBlocksProvider;
+import com.google.blockly.android.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;

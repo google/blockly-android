@@ -17,10 +17,11 @@ package com.google.blockly.model;
 
 import android.content.Context;
 
-import com.google.blockly.control.BlocklyController;
-import com.google.blockly.control.ConnectionManager;
-import com.google.blockly.control.ProcedureManager;
-import com.google.blockly.control.WorkspaceStats;
+import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.control.ConnectionManager;
+import com.google.blockly.android.control.NameManager;
+import com.google.blockly.android.control.ProcedureManager;
+import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.ByteArrayInputStream;

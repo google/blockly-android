@@ -2,8 +2,8 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
-import com.google.blockly.R;
-import com.google.blockly.control.BlocklyController;
+import com.google.blockly.android.R;
+import com.google.blockly.android.control.BlocklyController;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

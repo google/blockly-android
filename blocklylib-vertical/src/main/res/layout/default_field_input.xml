@@ -13,7 +13,7 @@
   ~  See the License for the specific language governing permissions and
   ~  limitations under the License.
   -->
-<com.google.blockly.ui.vertical.FieldInputView
+<com.google.blockly.android.ui.vertical.FieldInputView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/field_input"
         style="@style/DefaultEditTextStyle"
