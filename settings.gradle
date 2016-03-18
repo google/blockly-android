@@ -1,1 +1,1 @@
-include ':blocklylib', ':blocklydemo', ':blocklylib-vertical', ':blocklytest'
+include ':blocklylib-core', ':blocklydemo', ':blocklylib-vertical', ':blocklytest'
