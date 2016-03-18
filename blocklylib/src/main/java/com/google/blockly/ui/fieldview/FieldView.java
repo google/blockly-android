@@ -17,8 +17,6 @@ package com.google.blockly.ui.fieldview;
 
 import android.view.View;
 
-import com.google.blockly.ui.FieldWorkspaceParams;
-
 /**
  * Describes methods that all views that are representing a Field must implement.
  * <p/>

@@ -22,7 +22,6 @@ import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.blockly.ui.FieldWorkspaceParams;
 import com.google.blockly.ui.fieldview.FieldCheckboxView;
 import com.google.blockly.ui.fieldview.FieldColourView;
 import com.google.blockly.ui.fieldview.FieldDateView;
@@ -78,7 +77,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     private final String mName;
     private final int mType;
     protected FieldView mView;
-    private FieldWorkspaceParams mLayoutParams;
 
     public Field(String name, @FieldType int type) {
         mName = name;
@@ -134,20 +132,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
      */
     public void setView(FieldView view) {
         mView = view;
-    }
-
-    /**
-     * Sets the layout params used for rendering this field.
-     */
-    public void setLayoutParameters(FieldWorkspaceParams params) {
-        mLayoutParams = params;
-    }
-
-    /**
-     * @return The layout params used for rendering this field.
-     */
-    public FieldWorkspaceParams getLayoutParams() {
-        return mLayoutParams;
     }
 
     /**
