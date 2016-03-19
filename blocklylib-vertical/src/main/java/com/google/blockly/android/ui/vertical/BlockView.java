@@ -363,29 +363,6 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     /**
-     * Instantiates new InputViews for this Block, using the block style from mHelper.
-     */
-    // TODO(#135): Move block tree traversal and view creation to factory class.
-    private void createInputViews() {
-        mInputViews.clear();
-
-        List<Input> inputs = mBlock.getInputs();
-        for (int i = 0; i < inputs.size(); ++i) {
-            Input in = inputs.get(i);
-            InputView inputView = mFactory.buildInputView(in);
-            addView(inputView);
-            if (in.getType() == Input.TYPE_VALUE) {
-                mHasValueInput = true;
-            }
-            mInputViews.add(inputView);
-        }
-
-        mInputCount = mInputViews.size();
-        resizeList(mInputConnectorOffsets);
-        resizeList(mInputLayoutOrigins);
-    }
-
-    /**
      * Draw highlights of block-level connections, or the entire block, if necessary.
      *
      * @param c The canvas to draw on.
@@ -686,27 +663,28 @@ public class BlockView extends AbstractBlockView<InputView> {
                 Math.max(maxValueInputTotalWidth, maxStatementInputTotalWidth));
     }
 
-//    /**
-//     * Instantiates new InputViews for this Block, using the block style from mHelper.
-//     */
-//    private void createInputViews() {
-//        mInputViews.clear();
-//
-//        List<Input> inputs = mBlock.getInputs();
-//        for (int i = 0; i < inputs.size(); ++i) {
-//            Input in = inputs.get(i);
-//            InputView inputView = new InputView(getContext(), mFactory.getBlockStyle(), in, mHelper);
-//            addView(inputView);
-//            if (in.getType() == Input.TYPE_VALUE) {
-//                mHasValueInput = true;
-//            }
-//            mInputViews.add(inputView);
-//        }
-//
-//        mInputCount = mInputViews.size();
-//        resizeList(mInputConnectorOffsets);
-//        resizeList(mInputLayoutOrigins);
-//    }
+    /**
+     * Instantiates the {@link InputView}s for {@link #mBlock}.
+     */
+    // TODO(#135): Move block tree traversal and view creation to factory class.
+    private void createInputViews() {
+        mInputViews.clear();
+
+        List<Input> inputs = mBlock.getInputs();
+        for (int i = 0; i < inputs.size(); ++i) {
+            Input in = inputs.get(i);
+            InputView inputView = mFactory.buildInputView(in);
+            addView(inputView);
+            if (in.getType() == Input.TYPE_VALUE) {
+                mHasValueInput = true;
+            }
+            mInputViews.add(inputView);
+        }
+
+        mInputCount = mInputViews.size();
+        resizeList(mInputConnectorOffsets);
+        resizeList(mInputLayoutOrigins);
+    }
 
     private void initDrawingObjects() {
         final int blockColor = mBlock.getColour();
@@ -1160,49 +1138,6 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         mBlockPatches.add(statementBottomDrawable);
         mBlockBorderPatches.add(statementBottomBorderDrawable);
-    }
-
-    /**
-     * Draw dots at the model's location of all connections on this block, for debugging.
-     *
-     * @param c The canvas to draw on.
-     */
-    private void drawConnectorCenters(Canvas c) {
-        List<Connection> connections = mBlock.getAllConnections();
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL);
-        for (int i = 0; i < connections.size(); i++) {
-            Connection conn = connections.get(i);
-            if (conn.inDragMode()) {
-                if (conn.isConnected()) {
-                    paint.setColor(Color.RED);
-                } else {
-                    paint.setColor(Color.MAGENTA);
-                }
-            } else {
-                if (conn.isConnected()) {
-                    paint.setColor(Color.GREEN);
-                } else {
-                    paint.setColor(Color.CYAN);
-                }
-            }
-
-            // Compute connector position relative to this view from its offset to block origin in
-            // Workspace coordinates.
-            mTempWorkspacePoint.set(
-                    conn.getPosition().x - mBlock.getPosition().x,
-                    conn.getPosition().y - mBlock.getPosition().y);
-            mHelper.workspaceToVirtualViewDelta(mTempWorkspacePoint, mTempConnectionPosition);
-            if (mHelper.useRtl()) {
-                // In RTL mode, add block view size to x coordinate. This is counter-intuitive, but
-                // equivalent to "x = size - (-x)", with the inner negation "-x" undoing the
-                // side-effect of workspaceToVirtualViewDelta reversing the x coordinate. This is,
-                // the addition mirrors the re-negated in-block x coordinate w.r.t. the right-hand
-                // side of the block view, which is the origin of the block in RTL mode.
-                mTempConnectionPosition.x += mBlockViewSize.x;
-            }
-            c.drawCircle(mTempConnectionPosition.x, mTempConnectionPosition.y, 10, paint);
-        }
     }
 
     /**

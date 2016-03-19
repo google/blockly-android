@@ -39,15 +39,12 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.FieldView;
 
 import java.lang.ref.WeakReference;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Constructs Blockly's default, vertical stacking blocks and related views.
  */
-public class VerticalBlocksViewFactory extends BlockViewFactory {
+public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView> {
     private static final String TAG = "VerticlBlocksViewFactry";
     private static final boolean DEBUG = false;
 
@@ -61,12 +58,10 @@ public class VerticalBlocksViewFactory extends BlockViewFactory {
     private int mFieldInputLayout;
     private BaseAdapter mVariableAdapter;
 
-    private final Map<String,WeakReference<BlockView>> mBlockIdToView
-            = Collections.synchronizedMap(new HashMap<String, WeakReference<BlockView>>());
-
     public VerticalBlocksViewFactory(Context context, WorkspaceHelper helper) {
         this(context, helper, 0);
     }
+
     public VerticalBlocksViewFactory(Context context, WorkspaceHelper helper, int workspaceTheme) {
         super(context, helper);
 
@@ -90,26 +85,6 @@ public class VerticalBlocksViewFactory extends BlockViewFactory {
      */
     public PatchManager getPatchManager() {
         return mPatchManager;
-    }
-
-
-    /**
-     * Creates a {@link BlockGroup} for the given block and its children using the workspace's
-     * default style.
-     *
-     * @param rootBlock The root block to generate a view for.
-     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
-     * @param touchHandler The {@link BlockTouchHandler} to manage all touches.
-     *
-     * @return A view for the block.
-     */
-    @Override
-    public BlockGroup buildBlockGroupTree(Block rootBlock,
-                                          ConnectionManager connectionManager,
-                                          BlockTouchHandler touchHandler) {
-        BlockGroup bg = new BlockGroup(mContext, mHelper);
-        buildBlockViewTree(rootBlock, bg, connectionManager, touchHandler);
-        return bg;
     }
 
     /**
@@ -155,25 +130,8 @@ public class VerticalBlocksViewFactory extends BlockViewFactory {
             // Recursively calls buildBlockViewTree(..) for the rest of the sequence.
         }
 
-        mBlockIdToView.put(block.getId(), new WeakReference<BlockView>(blockView));
+        registerView(block, blockView);
         return blockView;
-    }
-
-    /**
-     * This returns the view constructed to represent {@link Block}.  Each block is only allowed
-     * one view instance among the view managed by this helper (including {@link WorkspaceFragment},
-     * {@link ToolboxFragment}, and {@link TrashFragment}. Views are constructed in
-     * {@link #buildBlockViewTree}, either directly or via recursion.  If the block view has not
-     * been constructed, this method will return null.
-     *
-     * @param block The Block to view.
-     * @return The view that was constructed for a given Block object, if any.
-     */
-    @Override
-    @Nullable
-    public BlockView getView(Block block) {
-        WeakReference<BlockView> viewRef = mBlockIdToView.get(block.getId());
-        return viewRef == null ? null : viewRef.get();
     }
 
     /**

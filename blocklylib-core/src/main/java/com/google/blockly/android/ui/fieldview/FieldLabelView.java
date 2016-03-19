@@ -21,7 +21,7 @@ import com.google.blockly.model.Field;
 /**
  * Required methods for a {@link View} of a label {@link Field}.
  */
-// TODO(#98) Remove observer pattern is implemented.
+// TODO(#98) Remove once observer pattern is implemented.
 public interface FieldLabelView extends FieldView {
     public void setText(CharSequence text);
 }

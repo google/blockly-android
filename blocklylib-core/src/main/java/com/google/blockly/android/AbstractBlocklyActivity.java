@@ -62,9 +62,10 @@ import java.util.List;
  * Base class for a Blockly activities that use a material design style tool bar, and optionally a
  * navigation menu.
  * <p/>
- * Configure Block by providing defintions for {@link #getBlockDefinitionsJsonPaths()},
- * {@link #getToolboxContentsXmlPath()}, and {@link #getGeneratorsJsPaths()}.  An initial
- * workspace can be defined by overriding {@link #getStartingWorkspacePath()}.
+ * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
+ * {@link #getToolboxContentsXmlPath()}, {@link #getGeneratorsJsPaths()}, and
+ * {@link #onCreateBlockViewFactory}.  An initial workspace can be defined by overriding
+ * {@link #getStartingWorkspacePath()}.
  * <p/>
  * The central app views can be replaced by overloading {@link #onCreateContentView} and the
  * navigation menu will automatically be configured if {@link #onCreateAppNavigationDrawer} returns

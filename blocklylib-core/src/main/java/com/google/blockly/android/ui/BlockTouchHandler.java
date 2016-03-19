@@ -15,8 +15,8 @@
 
 package com.google.blockly.android.ui;
 
-import com.google.blockly.android.ui.fieldview.FieldView;
 import android.view.MotionEvent;
+import com.google.blockly.android.ui.fieldview.FieldView;
 
 /**
  * Callback handle for touches to BlockViews.

@@ -22,7 +22,7 @@ import com.google.blockly.model.Field;
 /**
  * Required methods for a {@link View} of a checkbox {@link Field}.
  */
-// TODO(#98) Remove observer pattern is implemented.
+// TODO(#98) Remove once observer pattern is implemented.
 public interface FieldCheckboxView extends FieldView {
     public void setChecked(boolean mChecked);
 }

@@ -26,17 +26,11 @@ import android.view.View;
 import android.view.ViewParent;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
 /**
- * Provides helper methods for views and coordinate conversions.
- * <p/>
- * Style attributes can be obtained for any views by calling the appropriate getXStyle method.
- * BlockView hierarchies can also be created with the configured styles by calling
- * {@link #buildBlockGroupTree(Block, ConnectionManager, BlockTouchHandler)} or
- * {@link #buildBlockViewTree(Block, BlockGroup, ConnectionManager, BlockTouchHandler)}.
+ * Provides helper methods for view traversal and coordinate conversions.
  * <p/>
  * There are two primary coordinate systems, workspace coordinates and virtual view coordinates.
  * <p/>

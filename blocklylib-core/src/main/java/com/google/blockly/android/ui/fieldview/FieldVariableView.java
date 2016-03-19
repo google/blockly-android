@@ -21,7 +21,7 @@ import com.google.blockly.model.Field;
 /**
  * Required methods for a {@link View} of a variable selector {@link Field}.
  */
-// TODO(#98) Remove observer pattern is implemented.
+// TODO(#98) Remove once observer pattern is implemented.
 public interface FieldVariableView extends FieldView {
     void setSelection(String mVariable);
 }

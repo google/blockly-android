@@ -26,7 +26,7 @@ import com.google.blockly.android.ui.fieldview.FieldView;
 import java.util.ArrayList;
 
 /**
- * View representation of an {@link Input} to a {@link com.google.blockly.model.Block}.
+ * Optional base {@ ViewGroup} representation of an {@link Input} to a {@link com.google.blockly.model.Block}.
  */
 public abstract class AbstractInputView extends NonPropagatingViewGroup implements InputView {
     protected final Input mInput;

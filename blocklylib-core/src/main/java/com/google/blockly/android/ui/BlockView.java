@@ -16,7 +16,7 @@
 package com.google.blockly.android.ui;
 
 import android.support.annotation.Nullable;
-import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 
 import com.google.blockly.model.Block;
@@ -24,6 +24,10 @@ import com.google.blockly.model.Connection;
 
 /**
  * Draws a block and handles laying out all its inputs/fields.
+ * <p/>
+ * Implementations of {@link BlockView} must extend {@link ViewGroup} or one of its subclasses. The
+ * class should also disable activated/focused/pressed/selected state propegation, as implemented in
+ * {@link NonPropagatingViewGroup}.
  */
 public interface BlockView {
     /**

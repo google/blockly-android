@@ -36,7 +36,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Base class for BlockView.
+ * An optional base class for {@link BlockView}. {@link AbstractBlockView} assumes
+ * {@link InputView}s are direct children, and handles the high level aspects of them. The
+ * measurement, placement and drawing are left to the subclass to implement.
+ * <p/>
+ * Additionally, {@link AbstractBlockView} provides the following helper methods:
+ * {@link #calculateRtlAwareBounds},{@link #setPointMaybeFlip(ViewPoint, int, int)}, and
+ * {@link #drawConnectorCenters(Canvas)}.
  */
 @SuppressLint("ViewConstructor")
 public abstract class AbstractBlockView<InputView extends com.google.blockly.android.ui.InputView>
@@ -66,11 +72,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     @Nullable protected Connection mHighlightedConnection = null;
 
     /**
-     * Create a new BlockView and associated InputViews for the given block using the
-     * WorkspaceHelper's provided style.
-     * <p>
-     * App developers should not call this constructor directly.  Instead, use
-     * {@link BlockViewFactory#buildBlockViewTree}.
+     * Creates an BlockView for the given block.
      *
      * @param context The context for creating this view.
      * @param block The {@link Block} represented by this view.
@@ -79,7 +81,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      * @param touchHandler The optional handler for forwarding touch events on this block to the
      *                     {@link Dragger}.
      */
-    public AbstractBlockView(Context context, WorkspaceHelper helper, Block block,
+    protected AbstractBlockView(Context context, WorkspaceHelper helper, Block block,
                              ConnectionManager connectionManager,
                              @Nullable BlockTouchHandler touchHandler) {
         super(context, null, 0);
@@ -278,7 +280,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      *
      * @param c The canvas to draw on.
      */
-    private void drawConnectorCenters(Canvas c) {
+    protected void drawConnectorCenters(Canvas c) {
         List<Connection> connections = mBlock.getAllConnections();
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
