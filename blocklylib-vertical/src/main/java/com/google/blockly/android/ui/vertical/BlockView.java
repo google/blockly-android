@@ -119,7 +119,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         setFocusable(true);
         setWillNotDraw(false);
 
-        // TODO(Anm): Factory should be responsible for adding views
+        // TODO(Anm): Factory should be responsible for traversing tree and adding views
         createInputViews();
         initDrawingObjects();  // TODO(Anm): Call from factory after all views are added.
     }

@@ -14,44 +14,31 @@ import org.mockito.Mock;
 
 
 /**
- * Tests for {@link BlockView}.
+ * Tests for {@link VerticalBlocksViewFactory}.
  */
 @SmallTest
-public class BlockViewTest extends MockitoAndroidTestCase {
+public class VerticalBlocksViewFactoryTest extends MockitoAndroidTestCase {
 
     private BlockFactory mBlockFactory;
-    private WorkspaceHelper mHelper;
     private VerticalBlocksViewFactory mViewFactory;
+
+    private BlockGroup mBlockGroup;
+
+    @Mock
+    private WorkspaceHelper mMockWorkspaceHelper;
 
     @Mock
     private ConnectionManager mMockConnectionManager;
-
-    @Mock
-    private WorkspaceView mMockWorkspaceView;
-
-    @Mock
-    private Block mMockBlock;
-
-    @Mock
-    private BlockGroup mMockBlockGroup;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        mHelper = new WorkspaceHelper(getContext());
+        mBlockGroup = new BlockGroup(getContext(), mMockWorkspaceHelper);
+
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        mViewFactory = new VerticalBlocksViewFactory(getContext(), mHelper);
+        mViewFactory = new VerticalBlocksViewFactory(getContext(), mMockWorkspaceHelper);
     }
-
-    // Verify correct object state after construction.
-    public void testConstructor() {
-        final com.google.blockly.android.ui.BlockView blockView = makeBlockView(mMockBlock);
-
-        // Verify Block and BlockView are linked both ways.
-        assertSame(mMockBlock, blockView.getBlock());
-    }
-
 
     // Verify construction of a BlockView for a Block with inputs.
     public void testBuildBlockViewWithInputs() {
@@ -60,7 +47,6 @@ public class BlockViewTest extends MockitoAndroidTestCase {
         final BlockView blockView = makeBlockView(block);
         assertNotNull(block);
 
-        final BlockGroup bg = new BlockGroup(getContext(), mHelper);
         assertSame(block, blockView.getBlock());
 
         // One InputView per Input?
@@ -80,6 +66,6 @@ public class BlockViewTest extends MockitoAndroidTestCase {
     // Make a BlockView for the given Block and default mock objects otherwise.
     @NonNull
     private BlockView makeBlockView(Block block) {
-        return new BlockView(getContext(), block, mViewFactory, mMockConnectionManager, null);
+        return mViewFactory.buildBlockViewTree(block, mBlockGroup, mMockConnectionManager, null);
     }
 }
