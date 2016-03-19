@@ -52,13 +52,13 @@ public interface BlockView {
      * @return Vertical offset for positioning the "Next" block (if one exists). This is relative to
      * the top of this view's area.
      */
-    // TODO(Anm): Adapt for horizontal layout.
+    // TODO(#133): Adapt for horizontal layout.
     int getNextBlockVerticalOffset();
 
     /**
      * @return Layout margin on the left-hand side of the block (for optional Output connector).
      */
-    // TODO(Anm): Generalize for other block shapes?
+    // TODO(#133): Generalize for other block shapes? Idea in issue #133 would cover this.
     int getLayoutMarginLeft();
 
     /**
@@ -69,7 +69,8 @@ public interface BlockView {
     void updateConnectorLocations();
 
     /**
-     * Recursively disconnects the view from the model.
+     * Recursively disconnects the view from the model.  After this call, this view should no
+     * longer be returned by {@link BlockViewFactory#getView(Block)}.
      */
     void unlinkModelAndSubViews();
 }

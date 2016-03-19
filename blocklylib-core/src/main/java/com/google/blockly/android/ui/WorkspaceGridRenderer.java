@@ -25,7 +25,7 @@ import android.graphics.Shader;
 /**
  * Renders the workspace coordinate grid.
  */
-// TODO(Anm): Make this a drawable. Assign as a background.
+// TODO(#134): Make this a drawable. Assign as a background.
 class WorkspaceGridRenderer {
     // Constants for drawing the coordinate grid.
     private static final int GRID_SPACING = 48;

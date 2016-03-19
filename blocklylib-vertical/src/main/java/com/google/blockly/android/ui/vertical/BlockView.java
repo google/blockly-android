@@ -100,7 +100,7 @@ public class BlockView extends AbstractBlockView<InputView> {
      *
      * @param context The context for creating this view.
      * @param block The {@link Block} represented by this view.
-     * @param factory TODO(Anm)
+     * @param factory The factory creating this view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param touchHandler The optional handler for forwarding touch events on this block to the
      *                     {@link Dragger}.
@@ -119,9 +119,9 @@ public class BlockView extends AbstractBlockView<InputView> {
         setFocusable(true);
         setWillNotDraw(false);
 
-        // TODO(Anm): Factory should be responsible for traversing tree and adding views
+        // TODO(#135): Factory should be responsible for traversing tree and adding views
         createInputViews();
-        initDrawingObjects();  // TODO(Anm): Call from factory after all views are added.
+        initDrawingObjects();
     }
 
     /**
@@ -365,7 +365,7 @@ public class BlockView extends AbstractBlockView<InputView> {
     /**
      * Instantiates new InputViews for this Block, using the block style from mHelper.
      */
-    // TODO(Anm): Move block tree traversal and view creation to factory class.
+    // TODO(#135): Move block tree traversal and view creation to factory class.
     private void createInputViews() {
         mInputViews.clear();
 

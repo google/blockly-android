@@ -295,7 +295,7 @@ public class InputView extends AbstractInputView {
      *
      * @param context Context of this view.
      */
-    // TODO(Anm): Move block tree traversal and view creation to factory class.
+    // TODO(#135): Move block tree traversal and view creation to factory class.
     private void initViews(Context context) {
         List<Field> fields = mInput.getFields();
         for (int j = 0; j < fields.size(); j++) {

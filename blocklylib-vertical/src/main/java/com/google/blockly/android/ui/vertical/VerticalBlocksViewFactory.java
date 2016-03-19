@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.View;
 import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -91,40 +92,6 @@ public class VerticalBlocksViewFactory extends BlockViewFactory {
         return mPatchManager;
     }
 
-    /**
-     * Loads the style configurations using the selected style (if not 0), or from context's theme.
-     */
-    private void loadingStyleData(int workspaceTheme) {
-        TypedArray styles;
-
-        if (workspaceTheme != 0) {
-            styles = mContext.obtainStyledAttributes(workspaceTheme, R.styleable.BlocklyWorkspaceTheme);
-        } else {
-            styles = mContext.obtainStyledAttributes(R.styleable.BlocklyWorkspaceTheme);
-        }
-        try {
-            mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
-            mFieldStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_fieldStyle, 0);
-            styles.recycle();  // Done with workspace theme
-
-            styles = obtainFieldStyledAttributes();
-            mSpinnerLayout = styles.getResourceId(R.styleable.BlocklyFieldView_spinnerItem,
-                    R.layout.default_spinner_item);
-            mSpinnerDropDownLayout = styles.getResourceId(
-                    R.styleable.BlocklyFieldView_spinnerItemDropDown,
-                    R.layout.default_spinner_drop_down);
-            mFieldInputLayout = styles.getResourceId(
-                    R.styleable.BlocklyFieldView_fieldInputLayout,
-                    R.layout.default_field_input);
-            if (DEBUG) {
-                Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldStyle=" + mFieldStyle
-                        + ", SpinnerLayout=" + mSpinnerLayout + ", SpinnerDropdown="
-                        + mSpinnerDropDownLayout);
-            }
-        } finally {
-            styles.recycle();
-        }
-    }
 
     /**
      * Creates a {@link BlockGroup} for the given block and its children using the workspace's
@@ -193,13 +160,40 @@ public class VerticalBlocksViewFactory extends BlockViewFactory {
     }
 
     /**
+     * This returns the view constructed to represent {@link Block}.  Each block is only allowed
+     * one view instance among the view managed by this helper (including {@link WorkspaceFragment},
+     * {@link ToolboxFragment}, and {@link TrashFragment}. Views are constructed in
+     * {@link #buildBlockViewTree}, either directly or via recursion.  If the block view has not
+     * been constructed, this method will return null.
+     *
+     * @param block The Block to view.
+     * @return The view that was constructed for a given Block object, if any.
+     */
+    @Override
+    @Nullable
+    public BlockView getView(Block block) {
+        WeakReference<BlockView> viewRef = mBlockIdToView.get(block.getId());
+        return viewRef == null ? null : viewRef.get();
+    }
+
+    /**
+     * Builds the view for {@code input}.
+     *
+     * @param in The {@link Input} to view.
+     * @return The {@link View} of {@code input}.
+     */
+    // TODO(#135): Construct necessary field views here.
+    InputView buildInputView(Input in) {
+        return new InputView(mContext, this, in);
+    }
+
+    /**
      * Builds a view for the specified field using this helper's configuration.
      *
      * @param field The field to build a view for.
      * @return A FieldView for the field or null if the field type is not known.
      */
-    @Override
-    public FieldView buildFieldView(Field field) {
+    FieldView buildFieldView(Field field) {
         FieldView view = null;
         switch (field.getType()) {
             case Field.TYPE_LABEL: {
@@ -246,35 +240,18 @@ public class VerticalBlocksViewFactory extends BlockViewFactory {
         return view;
     }
 
-    private TypedArray obtainFieldStyledAttributes() {
-        TypedArray styles;
-        if (mFieldStyle != 0) {
-            styles = mContext.obtainStyledAttributes(mFieldStyle, R.styleable.BlocklyFieldView);
-        } else {
-            styles = mContext.obtainStyledAttributes(R.styleable.BlocklyFieldView);
-        }
-        return styles;
-    }
-
-    InputView buildInputView(Input in) {
-        return new InputView(mContext, this, in);
+    /**
+     * @return The style resource id to use for drawing field labels.
+     */
+    int getBlockStyle() {
+        return mBlockStyle;
     }
 
     /**
-     * This returns the view constructed to represent {@link Block}.  Each block is only allowed
-     * one view instance among the view managed by this helper (including {@link WorkspaceFragment},
-     * {@link ToolboxFragment}, and {@link TrashFragment}. Views are constructed in
-     * {@link #buildBlockViewTree}, either directly or via recursion.  If the block view has not
-     * been constructed, this method will return null.
-     *
-     * @param block The Block to view.
-     * @return The view that was constructed for a given Block object, if any.
+     * @return The style resource id to use for drawing field labels.
      */
-    @Override
-    @Nullable
-    public BlockView getView(Block block) {
-        WeakReference<BlockView> viewRef = mBlockIdToView.get(block.getId());
-        return viewRef == null ? null : viewRef.get();
+    int getFieldStyle() {
+        return mFieldStyle;
     }
 
     /**
@@ -306,18 +283,47 @@ public class VerticalBlocksViewFactory extends BlockViewFactory {
     }
 
     /**
-     * @return The style resource id to use for drawing field labels.
+     * Loads the style configurations using the selected style (if not 0), or from context's theme.
      */
-    public int getBlockStyle() {
-        // TODO(Anm): Never return 0.
-        return mBlockStyle;
+    private void loadingStyleData(int workspaceTheme) {
+        TypedArray styles;
+
+        if (workspaceTheme != 0) {
+            styles = mContext.obtainStyledAttributes(workspaceTheme, R.styleable.BlocklyWorkspaceTheme);
+        } else {
+            styles = mContext.obtainStyledAttributes(R.styleable.BlocklyWorkspaceTheme);
+        }
+        try {
+            mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
+            mFieldStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_fieldStyle, 0);
+            styles.recycle();  // Done with workspace theme
+
+            styles = obtainFieldStyledAttributes();
+            mSpinnerLayout = styles.getResourceId(R.styleable.BlocklyFieldView_spinnerItem,
+                    R.layout.default_spinner_item);
+            mSpinnerDropDownLayout = styles.getResourceId(
+                    R.styleable.BlocklyFieldView_spinnerItemDropDown,
+                    R.layout.default_spinner_drop_down);
+            mFieldInputLayout = styles.getResourceId(
+                    R.styleable.BlocklyFieldView_fieldInputLayout,
+                    R.layout.default_field_input);
+            if (DEBUG) {
+                Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldStyle=" + mFieldStyle
+                        + ", SpinnerLayout=" + mSpinnerLayout + ", SpinnerDropdown="
+                        + mSpinnerDropDownLayout);
+            }
+        } finally {
+            styles.recycle();
+        }
     }
 
-    /**
-     * @return The style resource id to use for drawing field labels.
-     */
-    public int getFieldStyle() {
-        // TODO(Anm): Never return 0.
-        return mFieldStyle;
+    private TypedArray obtainFieldStyledAttributes() {
+        TypedArray styles;
+        if (mFieldStyle != 0) {
+            styles = mContext.obtainStyledAttributes(mFieldStyle, R.styleable.BlocklyFieldView);
+        } else {
+            styles = mContext.obtainStyledAttributes(R.styleable.BlocklyFieldView);
+        }
+        return styles;
     }
 }
