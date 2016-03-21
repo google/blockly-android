@@ -30,13 +30,13 @@ import org.mockito.Mock;
 
 
 /**
- * Tests for {@link VerticalBlocksViewFactory}.
+ * Tests for {@link VerticalBlockViewFactory}.
  */
 @SmallTest
-public class VerticalBlocksViewFactoryTest extends MockitoAndroidTestCase {
+public class VerticalBlockViewFactoryTest extends MockitoAndroidTestCase {
 
     private BlockFactory mBlockFactory;
-    private VerticalBlocksViewFactory mViewFactory;
+    private VerticalBlockViewFactory mViewFactory;
 
     private BlockGroup mBlockGroup;
 
@@ -53,7 +53,7 @@ public class VerticalBlocksViewFactoryTest extends MockitoAndroidTestCase {
         mBlockGroup = new BlockGroup(getContext(), mMockWorkspaceHelper);
 
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        mViewFactory = new VerticalBlocksViewFactory(getContext(), mMockWorkspaceHelper);
+        mViewFactory = new VerticalBlockViewFactory(getContext(), mMockWorkspaceHelper);
     }
 
     // Verify construction of a BlockView for a Block with inputs.

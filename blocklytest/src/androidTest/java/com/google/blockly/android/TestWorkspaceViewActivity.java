@@ -21,7 +21,7 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
-import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
+import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Workspace;
 
 /**
@@ -41,7 +41,7 @@ public class TestWorkspaceViewActivity extends Activity {
         mController = new BlocklyController.Builder(this).build();
         mWorkspace = mController.getWorkspace();
         mWorkspaceHelper = mController.getWorkspaceHelper();
-        mViewFactory = new VerticalBlocksViewFactory(this, mWorkspaceHelper);
+        mViewFactory = new VerticalBlockViewFactory(this, mWorkspaceHelper);
 
         mWorkspaceView = new WorkspaceView(this);
         mController.initWorkspaceView(mWorkspaceView);

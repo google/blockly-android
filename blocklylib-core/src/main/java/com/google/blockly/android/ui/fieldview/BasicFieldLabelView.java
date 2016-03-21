@@ -23,9 +23,7 @@ import com.google.blockly.model.Field;
 /**
  * Renders text as part of a BlockView.
  */
-public class BasicFieldLabelView extends TextView
-        implements com.google.blockly.android.ui.fieldview.FieldLabelView {
-
+public class BasicFieldLabelView extends TextView implements FieldLabelView {
     protected final Field.FieldLabel mLabelField;
 
     /**

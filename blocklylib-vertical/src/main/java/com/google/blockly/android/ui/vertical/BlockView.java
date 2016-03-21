@@ -38,7 +38,6 @@ import com.google.blockly.android.ui.ViewPoint;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 
 import java.util.ArrayList;
@@ -52,8 +51,6 @@ public class BlockView extends AbstractBlockView<InputView> {
     private static final boolean DEBUG = false;
     // TODO(#86): Determine from 9-patch measurements.
     private static final int MIN_BLOCK_WIDTH = 40;
-
-    private VerticalBlocksViewFactory mFactory;
 
     // Width  and height of the block "content", i.e., all its input fields. Unlike the view size,
     // this does not include extruding connectors (e.g., Output, Next) and connected input blocks.
@@ -92,51 +89,31 @@ public class BlockView extends AbstractBlockView<InputView> {
      * WorkspaceHelper's provided style.
      * <p>
      * App developers should not call this constructor directly.  Instead use
-     * {@link VerticalBlocksViewFactory#buildBlockViewTree}.
+     * {@link VerticalBlockViewFactory#buildBlockViewTree}.
      *
      * @param context The context for creating this view.
      * @param helper The {@link WorkspaceHelper} that manages the block sizes on in this Activity.
-     * @param factory The {@link VerticalBlocksViewFactory} that is building this view.
+     * @param factory The {@link VerticalBlockViewFactory} that is building this view.
      * @param block The {@link Block} represented by this view.
      * @param inputViews The {@link InputView} contained in this view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param touchHandler The optional handler for forwarding touch events on this block to the
      *                     {@link Dragger}.
      */
-    BlockView(Context context, WorkspaceHelper helper, VerticalBlocksViewFactory factory,
+    BlockView(Context context, WorkspaceHelper helper, VerticalBlockViewFactory factory,
               Block block, List<InputView> inputViews, ConnectionManager connectionManager,
               @Nullable BlockTouchHandler touchHandler) {
 
-        super(context, helper, block, inputViews, connectionManager, touchHandler);
+        super(context, helper, factory, block, inputViews, connectionManager, touchHandler);
 
         mTouchHandler = touchHandler;
-        mFactory = factory;
-        mPatchManager = mFactory.getPatchManager();  // Shortcut.
+        mPatchManager = factory.getPatchManager();  // Shortcut.
 
         setClickable(true);
         setFocusable(true);
         setWillNotDraw(false);
 
         initDrawingObjects();
-    }
-
-    /**
-     * Test whether event hits visible parts of this block and notify {@link WorkspaceView} if it
-     * does.
-     *
-     * @param event The {@link MotionEvent} to handle.
-     *
-     * @return False if the touch was on the view but not on a visible part of the block; otherwise
-     * returns whether the {@link WorkspaceView} says that the event is being handled properly.
-     */
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return hitTest(event) && mTouchHandler.onTouchBlock(this, event);
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent event) {
-        return hitTest(event) && mTouchHandler.onInterceptTouchEvent(this, event);
     }
 
     @Override
@@ -230,61 +207,10 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     /**
-     * Select a connection for highlighted drawing.
-     *
-     * @param connection The connection whose port to highlight. This must be a connection
-     * associated with the {@link Block} represented by this {@link BlockView}
-     * instance.  Disables all connection highlights if connection is null.
-     */
-    public void setHighlightedConnection(@Nullable Connection connection) {
-        mHighlightedConnection = connection;
-        invalidate();
-    }
-
-    /**
-     * @return The block for this view.
-     */
-    public Block getBlock() {
-        return mBlock;
-    }
-
-    /**
      * @return The {@link ColorFilter} that applies the block's color to grayscale resources.
      */
     public ColorFilter getColorFilter() {
         return mBlockColorFilter;
-    }
-
-    /**
-     * Recursively disconnects the view from the model, and removes all views.
-     */
-    public void unlinkModelAndSubViews() {
-        mFactory.unlinkView(this);
-        super.unlinkModelAndSubViews();
-
-        removeAllViews();
-    }
-
-    /**
-     * Check if border highlight is rendered.
-     */
-    protected boolean isEntireBlockHighlighted() {
-        return isPressed() || isFocused() || isSelected();
-    }
-
-    /**
-     * @return The number of {@link InputView} instances inside this view.
-     */
-    @VisibleForTesting
-    int getInputViewCount() {
-        return mInputViews.size();
-    }
-
-    /**
-     * @return The {@link InputView} for the {@link Input} at the given index.
-     */
-    public InputView getInputView(int index) {
-        return mInputViews.get(index);
     }
 
     /**

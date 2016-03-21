@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.test.suitebuilder.annotation.SmallTest;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.R;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -35,10 +36,7 @@ import java.util.ArrayList;
 @SmallTest
 public class AbstractInputViewTest extends MockitoAndroidTestCase {
 
-    private BlockFactory mBlockFactory;
     private Input mDummyInput;
-    //private Input mValueInput;
-    //private Input mStatementInput;
 
     @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
@@ -48,15 +46,10 @@ public class AbstractInputViewTest extends MockitoAndroidTestCase {
         super.setUp();
 
         // Use the BlockFactory to make sure we have real inputs.
-        BlockFactory factory =
-                new BlockFactory(getContext(), new int[]{com.google.blockly.android.R.raw.test_blocks});
+        BlockFactory factory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = factory.obtainBlock("test_block_one_input_each_type", "fake_id");
         mDummyInput = block.getInputs().get(0);
         assertEquals(Input.TYPE_DUMMY, mDummyInput.getType());
-        //mValueInput = block.getInputs().get(0);
-        //assertEquals(Input.TYPE_VALUE, mValueInput.getType());
-        //mStatementInput = block.getInputs().get(0);
-        //assertEquals(Input.TYPE_STATEMENT, mStatementInput.getType());
     }
 
     // Verify correct object state after construction.

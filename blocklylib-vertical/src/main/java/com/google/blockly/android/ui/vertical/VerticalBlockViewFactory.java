@@ -45,8 +45,8 @@ import java.util.List;
 /**
  * Constructs Blockly's default, vertical stacking blocks and related views.
  */
-public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView, InputView> {
-    private static final String TAG = "VerticlBlocksViewFactry";
+public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputView> {
+    private static final String TAG = "VertcalBlockViewFactory";
     private static final boolean DEBUG = false;
 
     private final LayoutInflater mLayoutInflater;
@@ -59,17 +59,17 @@ public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView, Input
     private int mFieldInputLayout;
     private BaseAdapter mVariableAdapter;
 
-    public VerticalBlocksViewFactory(Context context, WorkspaceHelper helper) {
+    public VerticalBlockViewFactory(Context context, WorkspaceHelper helper) {
         this(context, helper, 0);
     }
 
-    public VerticalBlocksViewFactory(Context context, WorkspaceHelper helper, int workspaceTheme) {
+    public VerticalBlockViewFactory(Context context, WorkspaceHelper helper, int workspaceTheme) {
         super(context, helper);
 
         mLayoutInflater = LayoutInflater.from(context);
         mPatchManager = new PatchManager(mContext.getResources(), helper.useRtl());
 
-        loadingStyleData(workspaceTheme);
+        loadStyleData(workspaceTheme);
     }
 
     /**
@@ -104,10 +104,11 @@ public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView, Input
 
     /** Implements {@link BlockViewFactory#buildFieldView}. */
     @Override
-    protected com.google.blockly.android.ui.fieldview.FieldView buildFieldView(Field field) {
+    protected FieldView buildFieldView(Field field) {
         FieldView view = null;
         switch (field.getType()) {
             case Field.TYPE_LABEL: {
+                // TODO(#141): Inflate BasicFieldLabelView from layout .xml
                 TypedArray styles = obtainFieldStyledAttributes();
                 try {
                     view = new FieldLabelView(mContext, field, styles);
@@ -196,11 +197,12 @@ public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView, Input
     /**
      * Loads the style configurations using the selected style (if not 0), or from context's theme.
      */
-    private void loadingStyleData(int workspaceTheme) {
+    private void loadStyleData(int workspaceTheme) {
         TypedArray styles;
 
         if (workspaceTheme != 0) {
-            styles = mContext.obtainStyledAttributes(workspaceTheme, R.styleable.BlocklyWorkspaceTheme);
+            styles = mContext.obtainStyledAttributes(
+                    workspaceTheme, R.styleable.BlocklyWorkspaceTheme);
         } else {
             styles = mContext.obtainStyledAttributes(R.styleable.BlocklyWorkspaceTheme);
         }

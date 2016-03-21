@@ -20,9 +20,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
@@ -40,15 +38,12 @@ import java.util.List;
  * An optional base class for {@link BlockView}. {@link AbstractBlockView} assumes
  * {@link InputView}s are direct children, and handles the high level aspects of them. The
  * measurement, placement and drawing are left to the subclass to implement.
- * <p/>
- * Additionally, {@link AbstractBlockView} provides the following helper methods:
- * {@link #calculateRtlAwareBounds},{@link #setPointMaybeFlip(ViewPoint, int, int)}, and
- * {@link #drawConnectorCenters(Canvas)}.
  */
 @SuppressLint("ViewConstructor")
 public abstract class AbstractBlockView<InputView extends com.google.blockly.android.ui.InputView>
         extends NonPropagatingViewGroup implements BlockView {
     protected final WorkspaceHelper mHelper;
+    protected final BlockViewFactory mFactory;
     protected final Block mBlock;
     protected final ConnectionManager mConnectionManager;
     protected BlockTouchHandler mTouchHandler;
@@ -83,18 +78,20 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      *
      * @param context The context for creating this view.
      * @param block The {@link Block} represented by this view.
-     * @param helper The helper for loading workspace configs and doing calculations.
+     * @param factory The helper for loading workspace configs and doing calculations.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param touchHandler The optional handler for forwarding touch events on this block to the
      *                     {@link Dragger}.
      */
-    protected AbstractBlockView(Context context, WorkspaceHelper helper,
+    // TODO(#137): Pass in ViewPool instead of BlockViewFactory
+    protected AbstractBlockView(Context context, WorkspaceHelper helper, BlockViewFactory factory,
                                 Block block, List<InputView> inputViews,
                                 ConnectionManager connectionManager,
                                 @Nullable BlockTouchHandler touchHandler) {
         super(context);
 
         mHelper = helper;
+        mFactory = factory;
         mBlock = block;
         mConnectionManager = connectionManager;
         mTouchHandler = touchHandler;
@@ -260,6 +257,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      * Recursively disconnects the view from the model, and removes all views.
      */
     public void unlinkModelAndSubViews() {
+        mFactory.unregisterView(this); // TODO(#137): factory -> ViewPool
+
         int max = mInputViews.size();
         for (int i = 0; i < max; ++i) {
             InputView inputView = mInputViews.get(i);
@@ -280,8 +279,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     /**
      * @return The number of {@link InputView} instances inside this view.
      */
-    @VisibleForTesting
-    int getInputViewCount() {
+    public int getInputViewCount() {
         return mInputViews.size();
     }
 

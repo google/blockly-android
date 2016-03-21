@@ -30,12 +30,11 @@ import com.google.blockly.android.control.NameManager;
 /**
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
-public class BasicFieldVariableView extends Spinner
-        implements com.google.blockly.android.ui.fieldview.FieldVariableView {
-
+public class BasicFieldVariableView extends Spinner implements FieldVariableView {
     private final Field.FieldVariable mVariableField;
 
-    public BasicFieldVariableView(Context context, Field variableField, SpinnerAdapter variablesAdapter) {
+    public BasicFieldVariableView(
+            Context context, Field variableField, SpinnerAdapter variablesAdapter) {
         super(context);
 
         mVariableField = (Field.FieldVariable) variableField;

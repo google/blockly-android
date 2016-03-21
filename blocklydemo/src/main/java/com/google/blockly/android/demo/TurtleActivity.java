@@ -30,7 +30,7 @@ import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
+import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.util.JavascriptUtil;
 
 import java.util.Arrays;
@@ -115,7 +115,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
-        return new VerticalBlocksViewFactory(this, helper);
+        return new VerticalBlockViewFactory(this, helper);
     }
 
     @Override

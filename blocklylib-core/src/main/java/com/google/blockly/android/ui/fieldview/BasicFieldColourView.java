@@ -31,9 +31,7 @@ import com.google.blockly.model.Field;
 /**
  * Renders a color field and picker as part of a BlockView.
  */
-public class BasicFieldColourView extends View
-        implements com.google.blockly.android.ui.fieldview.FieldColourView {
-
+public class BasicFieldColourView extends View implements FieldColourView {
     protected static final int DEFAULT_MIN_WIDTH_DP = 40;
     protected static final int DEFAULT_MIN_HEIGHT_DP = 28;  // Base on styled FieldLabelView height?
 

@@ -24,12 +24,11 @@ import com.google.blockly.model.Field;
 /**
  * Renders a dropdown field as part of a Block.
  */
-public class BasicFieldDropdownView extends Spinner
-        implements com.google.blockly.android.ui.fieldview.FieldDropdownView {
-    
+public class BasicFieldDropdownView extends Spinner implements FieldDropdownView {
     protected final Field.FieldDropdown mDropdownField;
 
-    public BasicFieldDropdownView(Context context, Field dropdownField, int spinnerItemLayout, int dropDownLayout) {
+    public BasicFieldDropdownView(
+            Context context, Field dropdownField, int spinnerItemLayout, int dropDownLayout) {
         super(context);
 
         mDropdownField = (Field.FieldDropdown) dropdownField;

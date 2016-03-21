@@ -28,7 +28,7 @@ import com.google.blockly.android.R;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
-import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
+import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Connection;
@@ -86,7 +86,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
-        mViewFactory = new VerticalBlocksViewFactory(getContext(), mWorkspaceHelper);
+        mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
 
         Mockito.stub(mMockWorkspace.getConnectionManager()).toReturn(mMockConnectionManager);
         Mockito.stub(mMockController.getBlockFactory()).toReturn(mBlockFactory);

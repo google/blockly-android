@@ -19,7 +19,7 @@ import com.google.blockly.android.MockBlocksProvider;
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.control.ConnectionManager;
-import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
+import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 
 import org.mockito.Mock;
@@ -47,7 +47,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
 
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
-        mViewFactory = new VerticalBlocksViewFactory(getContext(), mWorkspaceHelper);
+        mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
     }
 
     // test getParentBlockGroup

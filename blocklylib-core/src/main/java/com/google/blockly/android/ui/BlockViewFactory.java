@@ -50,6 +50,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected Context mContext;
     protected WorkspaceHelper mHelper;
 
+    // TODO(#137): Move to ViewPool class.
     protected final Map<String,WeakReference<BlockView>> mBlockIdToView
             = Collections.synchronizedMap(new HashMap<String, WeakReference<BlockView>>());
 
@@ -127,7 +128,10 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             inputViews.add(inputView);
         }
         blockView = buildBlockView(block, inputViews, connectionManager, touchHandler);
+
+        // TODO(#137): Move to ViewPool class.
         mBlockIdToView.put(block.getId(), new WeakReference<BlockView>(blockView));
+
         parentGroup.addView((View) blockView);
 
         Block next = block.getNextBlock();
@@ -186,7 +190,18 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      * Build and populate the {@link com.google.blockly.android.ui.InputView} for {@code field}.
      *
      * @param field The {@link Field} to view
-     * @return The new {@link com.google.blockly.android.ui.fieldview.FieldView}.
+     * @return The new {@link FieldView}.
      */
     protected abstract FieldView buildFieldView(Field field);
+
+    /**
+     * Removes the mapping to this view from its block.
+     *
+     *  @param view The BlockView to deassociate from its Block model.
+     */
+    // TODO(#137): Move to ViewPool class.
+    protected void unregisterView(BlockView blockView) {
+        Block block = blockView.getBlock();
+        mBlockIdToView.remove(block.getId());
+    }
 }

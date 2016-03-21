@@ -61,17 +61,24 @@ import java.util.List;
  * Base class for a Blockly activities that use a material design style tool bar, and optionally a
  * navigation menu.
  * <p/>
- * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
- * {@link #getToolboxContentsXmlPath()}, {@link #getGeneratorsJsPaths()}, and
- * {@link #onCreateBlockViewFactory}.  An initial workspace can be defined by overriding
- * {@link #getStartingWorkspacePath()}.
+ * The default layout is filled with a workspace and with the toolbox and trash configured as
+ * fly-out views (via the {@code unified_blockly_workspace.xml}.  Everything below the
+ * {@link ActionBar} can be replaced by overriding {@link #onCreateContentView}.  After
+ * {@link #onCreateContentView}, the base implementation of {@link #onCreateFragments()} looks for
+ * the {@link WorkspaceFragment}, the {@link ToolboxFragment}, and the {@link TrashFragment} via
+ * fragment ids {@link R.id#blockly_workspace}, {@link R.id#blockly_toolbox}, and
+ * {@link R.id#blockly_trash}, respectively. If overriding {@link #onCreateContentView} without
+ * {@code unified_blockly_workspace.xml} or those fragment ids, override
+ * {@link #onCreateFragments()}, appropriately.
  * <p/>
- * The central app views can be replaced by overloading {@link #onCreateContentView} and the
- * navigation menu will automatically be configured if {@link #onCreateAppNavigationDrawer} returns
- * a view.  By default, {@link #onCreateFragments()} looks for the {@link WorkspaceFragment}, the
- * {@link ToolboxFragment}, and the {@link TrashFragment} via ids {@link R.id#blockly_workspace},
- * {@link R.id#blockly_toolbox}, and {@link R.id#blockly_trash}, respectively.  If this is not the
- * same in your layout, make sure you override {@link #onCreateFragments()}, too.
+ * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
+ * {@link #getToolboxContentsXmlPath()}, and {@link #onCreateBlockViewFactory}.  An initial
+ * workspace can be defined by overriding {@link #getStartingWorkspacePath()}.
+ * <p/>
+ * The block definitions can be updated at any time by calling {@link #reloadBlockDefinitions()},
+ * which triggers another call to {@link #getBlockDefinitionsJsonPaths()}.  Similarly, The toolbox
+ * can be reloaded by calling  {@link #reloadToolbox()}, which triggers another call to
+ * {@link #getToolboxContentsXmlPath()}.
  */
 public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**

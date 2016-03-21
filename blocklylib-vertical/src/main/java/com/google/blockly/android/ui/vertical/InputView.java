@@ -33,7 +33,7 @@ public class InputView extends AbstractInputView {
     // The horizontal distance between fields, in dips.
     private static final int DEFAULT_FIELD_SPACING = 10;
 
-    private final VerticalBlocksViewFactory mFactory;
+    private final VerticalBlockViewFactory mFactory;
     private final PatchManager mPatchManager;
 
     private int mHorizontalFieldSpacing;
@@ -57,7 +57,7 @@ public class InputView extends AbstractInputView {
     // Flag to enforce that measureFieldsAndInputs() is called before each call to measure().
     private boolean mHasMeasuredFieldsAndInput = false;
 
-    InputView(Context context, VerticalBlocksViewFactory factory, Input input,
+    InputView(Context context, VerticalBlockViewFactory factory, Input input,
               List<FieldView> fieldViews) {
         super(context, factory.getWorkspaceHelper(), input, fieldViews);
 
@@ -76,12 +76,13 @@ public class InputView extends AbstractInputView {
         mHasMeasuredFieldsAndInput = false;
 
         // Width is the width of all fields, plus padding, plus width of child.
-        final int width = mFieldLayoutWidth + mPatchManager.mBlockTotalPaddingX + mConnectedGroupWidth;
+        final int width =
+                mFieldLayoutWidth + mPatchManager.mBlockTotalPaddingX + mConnectedGroupWidth;
 
         // Height is maximum of field height with padding or child height, and at least the minimum
         // height for an empty block.
-        final int height = Math.max(mPatchManager.mMinBlockHeight,
-                Math.max(mMaxFieldHeight + mPatchManager.mBlockTotalPaddingY, mConnectedGroupHeight));
+        final int height = Math.max(mPatchManager.mMinBlockHeight, Math.max(mMaxFieldHeight
+                + mPatchManager.mBlockTotalPaddingY, mConnectedGroupHeight));
 
         setMeasuredDimension(width, height);
 

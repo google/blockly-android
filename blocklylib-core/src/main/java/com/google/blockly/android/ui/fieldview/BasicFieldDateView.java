@@ -25,9 +25,7 @@ import com.google.blockly.model.Field;
 /**
  * Renders a date and a date picker as part of a Block.
  */
-public class BasicFieldDateView extends TextView
-        implements com.google.blockly.android.ui.fieldview.FieldDateView {
-
+public class BasicFieldDateView extends TextView implements FieldDateView {
     protected final Field.FieldDate mDateField;
 
     public BasicFieldDateView(Context context, Field dateField) {

@@ -24,9 +24,7 @@ import com.google.blockly.model.Field;
 /**
  * Renders a checkbox as part of a BlockView.
  */
-public class BasicFieldCheckboxView extends CheckBox
-        implements com.google.blockly.android.ui.fieldview.FieldCheckboxView {
-
+public class BasicFieldCheckboxView extends CheckBox implements FieldCheckboxView {
     protected final Field.FieldCheckbox mCheckboxField;
 
     public BasicFieldCheckboxView(Context context, Field checkboxField) {

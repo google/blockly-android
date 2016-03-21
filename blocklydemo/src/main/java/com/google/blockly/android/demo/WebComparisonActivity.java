@@ -26,7 +26,7 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
+import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -85,7 +85,7 @@ public class WebComparisonActivity extends AbstractBlocklyActivity {
 
     @Override
     public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
-        return new VerticalBlocksViewFactory(this, helper);
+        return new VerticalBlockViewFactory(this, helper);
     }
 
     @Override

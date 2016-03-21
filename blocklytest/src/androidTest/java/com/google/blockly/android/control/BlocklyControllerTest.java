@@ -7,7 +7,7 @@ import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
-import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
+import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTestStrings;
@@ -33,7 +33,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         super.setUp();
 
         mHelper = new WorkspaceHelper(getContext());
-        mViewFactory = new VerticalBlocksViewFactory(getContext(), mHelper);
+        mViewFactory = new VerticalBlockViewFactory(getContext(), mHelper);
         mController = new BlocklyController.Builder(getContext())
                 .setWorkspaceHelper(mHelper)
                 .setBlockViewFactory(mViewFactory)
