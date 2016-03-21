@@ -56,7 +56,10 @@ public class BlockViewInActivityTest
         mViewFactory = mActivity.mViewFactory;
     }
 
-    public void loadWhileUtilBlocksIntoWorkspaceView() {
+    /**
+     * Loads a {@code whileUntil} block instance with children into the workspace.
+     */
+    private void loadWhileUntilBlocksIntoWorkspaceView() {
         mRootBlock = mBlockFactory.obtainBlock("controls_whileUntil", "1");
         assertNotNull(mRootBlock);
         mChildInputBlock = mBlockFactory.obtainBlock("output_no_input", "2");
@@ -81,7 +84,7 @@ public class BlockViewInActivityTest
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                loadWhileUtilBlocksIntoWorkspaceView();
+                loadWhileUntilBlocksIntoWorkspaceView();
             }
         });
         mInstrumentation.waitForIdleSync();
@@ -116,7 +119,7 @@ public class BlockViewInActivityTest
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                loadWhileUtilBlocksIntoWorkspaceView();
+                loadWhileUntilBlocksIntoWorkspaceView();
             }
         });
         mInstrumentation.waitForIdleSync();
@@ -151,7 +154,7 @@ public class BlockViewInActivityTest
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                loadWhileUtilBlocksIntoWorkspaceView();
+                loadWhileUntilBlocksIntoWorkspaceView();
             }
         });
         mInstrumentation.waitForIdleSync();
@@ -186,7 +189,7 @@ public class BlockViewInActivityTest
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                loadWhileUtilBlocksIntoWorkspaceView();
+                loadWhileUntilBlocksIntoWorkspaceView();
             }
         });
         mInstrumentation.waitForIdleSync();
