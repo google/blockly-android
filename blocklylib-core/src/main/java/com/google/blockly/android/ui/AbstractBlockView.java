@@ -24,6 +24,7 @@ import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewParent;
 
 import com.google.blockly.android.control.ConnectionManager;
@@ -53,13 +54,19 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     protected BlockTouchHandler mTouchHandler;
 
     // Child views for the block inputs and their children.
-    protected final ArrayList<InputView> mInputViews = new ArrayList<>();
+    protected final ArrayList<InputView> mInputViews;
 
     // Reference points for connectors relative to this view (needed for selective highlighting).
     protected final ViewPoint mOutputConnectorOffset = new ViewPoint();
     protected final ViewPoint mPreviousConnectorOffset = new ViewPoint();
     protected final ViewPoint mNextConnectorOffset = new ViewPoint();
-    protected final ArrayList<ViewPoint> mInputConnectorOffsets = new ArrayList<>();
+
+    // Flag is set to true if this block has at least one "Value" input.
+    protected boolean mHasValueInput = false;
+    protected int mInputCount;
+    protected final ArrayList<ViewPoint> mInputConnectorOffsets;
+    // Layout coordinates for inputs in this Block, so they don't have to be computed repeatedly.
+    protected final ArrayList<ViewPoint> mInputLayoutOrigins;
 
     // Current measured size of this block view.
     protected final ViewPoint mBlockViewSize = new ViewPoint();
@@ -81,10 +88,11 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      * @param touchHandler The optional handler for forwarding touch events on this block to the
      *                     {@link Dragger}.
      */
-    protected AbstractBlockView(Context context, WorkspaceHelper helper, Block block,
-                             ConnectionManager connectionManager,
-                             @Nullable BlockTouchHandler touchHandler) {
-        super(context, null, 0);
+    protected AbstractBlockView(Context context, WorkspaceHelper helper,
+                                Block block, List<InputView> inputViews,
+                                ConnectionManager connectionManager,
+                                @Nullable BlockTouchHandler touchHandler) {
+        super(context);
 
         mHelper = helper;
         mBlock = block;
@@ -94,6 +102,31 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         setClickable(true);
         setFocusable(true);
         setWillNotDraw(false);
+
+        mInputCount = inputViews.size();
+        mInputViews = new ArrayList<>(inputViews);
+        mInputConnectorOffsets = new ArrayList<>(mInputCount);
+        mInputLayoutOrigins = new ArrayList<>(mInputCount);
+        for (int i = 0; i < mInputCount; ++i) {
+            mInputConnectorOffsets.add(new ViewPoint());
+            mInputLayoutOrigins.add(new ViewPoint());
+
+            Input in = mInputViews.get(i).getInput();
+            if (in.getType() == Input.TYPE_VALUE) {
+                mHasValueInput = true;
+            }
+        }
+        addInputViewsToViewHierarchy();
+    }
+
+    /**
+     * Adds the {@link InputView}s in {@link #mInputViews} to the view hierarchy. The default
+     * implementation adds the views directly to this view, in order.
+     */
+    protected void addInputViewsToViewHierarchy() {
+        for (int i = 0; i < mInputViews.size(); ++i) {
+            addView((View) mInputViews.get(i));
+        }
     }
 
     public void setTouchHandler(BlockTouchHandler touchHandler) {

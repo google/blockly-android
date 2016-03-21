@@ -12,6 +12,8 @@ import com.google.blockly.model.BlockFactory;
 
 import org.mockito.Mock;
 
+import java.util.ArrayList;
+
 
 /**
  * Tests for {@link AbstractBlockView}.
@@ -58,7 +60,7 @@ public class AbstractBlockViewTest extends MockitoAndroidTestCase {
     @NonNull
     private AbstractBlockView makeBlockView(Block block) {
         return new AbstractBlockView(
-                getContext(), mMockHelper, block, mMockConnectionManager, null) {
+                getContext(), mMockHelper, block, new ArrayList(), mMockConnectionManager, null) {
 
             @Override
             protected boolean hitTest(MotionEvent event) {

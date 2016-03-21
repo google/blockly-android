@@ -19,7 +19,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.view.View;
 
-import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.android.ui.AbstractInputView;
 import com.google.blockly.android.ui.BlockView;
@@ -58,14 +57,14 @@ public class InputView extends AbstractInputView {
     // Flag to enforce that measureFieldsAndInputs() is called before each call to measure().
     private boolean mHasMeasuredFieldsAndInput = false;
 
-    InputView(Context context, VerticalBlocksViewFactory factory, Input input) {
-        super(context, factory.getWorkspaceHelper(), input);
+    InputView(Context context, VerticalBlocksViewFactory factory, Input input,
+              List<FieldView> fieldViews) {
+        super(context, factory.getWorkspaceHelper(), input, fieldViews);
 
         mFactory = factory;
         mPatchManager = factory.getPatchManager();  // Shortcut.
 
         initAttrs(context, mFactory.getBlockStyle());
-        initViews(context);
     }
 
     @Override
@@ -288,26 +287,6 @@ public class InputView extends AbstractInputView {
         TypedArray a = context.obtainStyledAttributes(blockStyle, R.styleable.BlocklyBlockView);
         mHorizontalFieldSpacing = (int) a.getDimension(
                 R.styleable.BlocklyBlockView_fieldHorizontalPadding, DEFAULT_FIELD_SPACING);
-    }
-
-    /**
-     * Initialize child views for fields in the {@link Input} wrapped by this view.
-     *
-     * @param context Context of this view.
-     */
-    // TODO(#135): Move block tree traversal and view creation to factory class.
-    private void initViews(Context context) {
-        List<Field> fields = mInput.getFields();
-        for (int j = 0; j < fields.size(); j++) {
-            FieldView view = mFactory.buildFieldView(fields.get(j));
-            if (view != null) {
-                addView((View) view);
-                mFieldViews.add(view);
-            } else {
-                throw new IllegalStateException("Attempted to render a field of an unknown"
-                        + "type: " + fields.get(j).getType());
-            }
-        }
     }
 
     /**

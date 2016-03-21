@@ -17,22 +17,16 @@ package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.View;
 import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 
-import com.google.blockly.android.ToolboxFragment;
-import com.google.blockly.android.TrashFragment;
-import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.android.control.NameManager;
-import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
@@ -44,7 +38,7 @@ import java.util.List;
 /**
  * Constructs Blockly's default, vertical stacking blocks and related views.
  */
-public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView> {
+public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView, InputView> {
     private static final String TAG = "VerticlBlocksViewFactry";
     private static final boolean DEBUG = false;
 
@@ -87,71 +81,23 @@ public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView> {
         return mPatchManager;
     }
 
-    /**
-     * Creates a {@link BlockView} for the given block and its children using the workspace's
-     * default style.
-     *
-     * @param block The block to generate a view for.
-     * @param parentGroup The group to set as the parent for this block's view.
-     * @param connectionManager The {@link ConnectionManager} to update when moving connections.
-     * @param touchHandler The {@link BlockTouchHandler} to manage all touches.
-     *
-     * @return A view for the block.
-     */
+    /** Implements {@link BlockViewFactory#buildBlockView}. */
     @Override
-    public BlockView buildBlockViewTree(Block block, BlockGroup parentGroup,
-                                        ConnectionManager connectionManager,
-                                        BlockTouchHandler touchHandler) {
-        BlockView blockView = getView(block);
-        if (blockView != null) {
-            throw new IllegalStateException("BlockView already created.");
-        }
-
-        // TODO(#88): Refactor to use a BlockViewFactory to instantiate and combine all the views.
-        blockView = new BlockView(mContext, block, this, connectionManager, touchHandler);
-        List<Input> inputs = block.getInputs();
-        for (int i = 0; i < inputs.size(); i++) {
-            Input in = inputs.get(i);
-            InputView inputView = blockView.getInputView(i);
-            if (in.getType() != Input.TYPE_DUMMY && in.getConnection().getTargetBlock() != null) {
-                // Blocks connected to inputs live in their own BlockGroups.
-                BlockGroup subgroup = buildBlockGroupTree(
-                        in.getConnection().getTargetBlock(), connectionManager, touchHandler);
-                inputView.setConnectedBlockGroup(subgroup);
-            }
-        }
-        parentGroup.addView(blockView);
-
-        Block next = block.getNextBlock();
-        if (next != null) {
-            // Next blocks live in the same BlockGroup.
-            BlockView child = buildBlockViewTree(
-                    next, parentGroup, connectionManager, touchHandler);
-            // Recursively calls buildBlockViewTree(..) for the rest of the sequence.
-        }
-
-        registerView(block, blockView);
-        return blockView;
+    protected BlockView buildBlockView(Block block, List<InputView> inputViews,
+                                       ConnectionManager connectionManager,
+                                       BlockTouchHandler touchHandler) {
+        return new BlockView(mContext, mHelper, this, block, inputViews,
+                             connectionManager, touchHandler);
     }
 
-    /**
-     * Builds the view for {@code input}.
-     *
-     * @param in The {@link Input} to view.
-     * @return The {@link View} of {@code input}.
-     */
-    // TODO(#135): Construct necessary field views here.
-    InputView buildInputView(Input in) {
-        return new InputView(mContext, this, in);
+    /** Implements {@link BlockViewFactory#buildInputView}. */
+    protected InputView buildInputView(Input input, List<FieldView> fieldViews) {
+        return new InputView(mContext, this, input, fieldViews);
     }
 
-    /**
-     * Builds a view for the specified field using this helper's configuration.
-     *
-     * @param field The field to build a view for.
-     * @return A FieldView for the field or null if the field type is not known.
-     */
-    FieldView buildFieldView(Field field) {
+    /** Implements {@link BlockViewFactory#buildFieldView}. */
+    @Override
+    protected com.google.blockly.android.ui.fieldview.FieldView buildFieldView(Field field) {
         FieldView view = null;
         switch (field.getType()) {
             case Field.TYPE_LABEL: {

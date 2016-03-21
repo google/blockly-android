@@ -20,25 +20,40 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.android.ui.fieldview.FieldView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Optional base {@ ViewGroup} representation of an {@link Input} to a {@link com.google.blockly.model.Block}.
+ * Optional base {@ ViewGroup} representation of an {@link Input} to a {@link Block}.
+ * <p/>
+ * Default implementation assumes all {@link FieldView}s are added directly to this view as their
+ * parent, as the first children.  Subclasses can use an alternate behavior by overriding
+ * {@link #addFieldViewsToViewHierarchy}.
  */
 public abstract class AbstractInputView extends NonPropagatingViewGroup implements InputView {
     protected final Input mInput;
     protected final @Input.InputType int mInputType;
 
     protected final WorkspaceHelper mHelper;
-    protected final ArrayList<FieldView> mFieldViews = new ArrayList<>();
+    protected final ArrayList<FieldView> mFieldViews;
 
     // The view of the blocks connected to this input.
     protected BlockGroup mConnectedGroup = null;
 
-    protected AbstractInputView(Context context, WorkspaceHelper helper, Input input) {
+    /**
+     * Constructs a base implementation of an {@link InputView}.
+     *
+     * @param context The Android {@link Context} for the app.
+     * @param helper The {@link WorkspaceHelper} for the activity.
+     * @param input The {@link Input} the view represents.
+     * @param fieldViews The {@link FieldView}s instantiated by the {@link BlockViewFactory}.
+     */
+    protected AbstractInputView(Context context, WorkspaceHelper helper, Input input,
+                                List<FieldView> fieldViews) {
         super(context);
 
         mInput = input;
@@ -46,6 +61,18 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
         mHelper = helper;
 
         mInput.setView(this);
+        mFieldViews = new ArrayList<>(fieldViews);
+        addFieldViewsToViewHierarchy();
+    }
+
+    /**
+     * Adds the {@link FieldView}s in {@link #mFieldViews} to the view hierarchy. The default
+     * implementation adds the views directly to this view, in order.
+     */
+    protected void addFieldViewsToViewHierarchy() {
+        for (int i = 0; i < mFieldViews.size(); i++) {
+            addView((View) mFieldViews.get(i));
+        }
     }
 
     /**

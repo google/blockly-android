@@ -4,12 +4,15 @@ import android.support.annotation.NonNull;
 import android.test.suitebuilder.annotation.SmallTest;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Input;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
 
 /**
  * Tests for {@link AbstractInputView}.
@@ -108,7 +111,9 @@ public class AbstractInputViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     private AbstractInputView makeDefaultInputView() {
-        return new AbstractInputView(getContext(), mMockWorkspaceHelper, mDummyInput) {
+        return new AbstractInputView(
+                getContext(), mMockWorkspaceHelper, mDummyInput, new ArrayList<FieldView>()) {
+
             @Override
             protected void onLayout(boolean changed, int l, int t, int r, int b) {
                 // Fake. Do nothing.

@@ -35,6 +35,7 @@ import com.google.blockly.android.ui.Dragger;
 import com.google.blockly.android.ui.AbstractBlockView;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.ViewPoint;
+import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
@@ -63,8 +64,6 @@ public class BlockView extends AbstractBlockView<InputView> {
     private int mMaxStatementFieldsWidth;
     // Vertical offset for positioning the "Next" block (if one exists).
     private int mNextBlockVerticalOffset;
-    // Layout coordinates for inputs in this Block, so they don't have to be computed repeatedly.
-    private final ArrayList<ViewPoint> mInputLayoutOrigins = new ArrayList<>();
     // List of widths of multi-field rows when rendering inline inputs.
     private final ArrayList<Integer> mInlineRowWidth = new ArrayList<>();
 
@@ -83,9 +82,6 @@ public class BlockView extends AbstractBlockView<InputView> {
     private ColorFilter mBlockColorFilter;
     private final Paint mFillPaint = new Paint();
 
-    // Flag is set to true if this block has at least one "Value" input.
-    private boolean mHasValueInput = false;
-    private int mInputCount;
     // Keeps track of if the current set of touch events had started on this block
     private boolean mHasHit = false;
 
@@ -99,28 +95,28 @@ public class BlockView extends AbstractBlockView<InputView> {
      * {@link VerticalBlocksViewFactory#buildBlockViewTree}.
      *
      * @param context The context for creating this view.
+     * @param helper The {@link WorkspaceHelper} that manages the block sizes on in this Activity.
+     * @param factory The {@link VerticalBlocksViewFactory} that is building this view.
      * @param block The {@link Block} represented by this view.
-     * @param factory The factory creating this view.
+     * @param inputViews The {@link InputView} contained in this view.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param touchHandler The optional handler for forwarding touch events on this block to the
      *                     {@link Dragger}.
      */
-    BlockView(Context context, Block block, VerticalBlocksViewFactory factory,
-                     ConnectionManager connectionManager,
-                     @Nullable BlockTouchHandler touchHandler) {
-        super(context, factory.getWorkspaceHelper(), block, connectionManager, touchHandler);
+    BlockView(Context context, WorkspaceHelper helper, VerticalBlocksViewFactory factory,
+              Block block, List<InputView> inputViews, ConnectionManager connectionManager,
+              @Nullable BlockTouchHandler touchHandler) {
 
-        mFactory = factory;
-        mPatchManager = mFactory.getPatchManager();  // Shortcut.
+        super(context, helper, block, inputViews, connectionManager, touchHandler);
 
         mTouchHandler = touchHandler;
+        mFactory = factory;
+        mPatchManager = mFactory.getPatchManager();  // Shortcut.
 
         setClickable(true);
         setFocusable(true);
         setWillNotDraw(false);
 
-        // TODO(#135): Factory should be responsible for traversing tree and adding views
-        createInputViews();
         initDrawingObjects();
     }
 
@@ -304,6 +300,7 @@ public class BlockView extends AbstractBlockView<InputView> {
      * @return True if the coordinate of the motion event is on the visible, non-transparent part of
      * this view; false otherwise.
      */
+    // TODO(Anm): Move some of this to AbstractBlockView
     @Override
     protected boolean hitTest(MotionEvent event) {
         int action = event.getAction();
@@ -663,29 +660,6 @@ public class BlockView extends AbstractBlockView<InputView> {
                 Math.max(maxValueInputTotalWidth, maxStatementInputTotalWidth));
     }
 
-    /**
-     * Instantiates the {@link InputView}s for {@link #mBlock}.
-     */
-    // TODO(#135): Move block tree traversal and view creation to factory class.
-    private void createInputViews() {
-        mInputViews.clear();
-
-        List<Input> inputs = mBlock.getInputs();
-        for (int i = 0; i < inputs.size(); ++i) {
-            Input in = inputs.get(i);
-            InputView inputView = mFactory.buildInputView(in);
-            addView(inputView);
-            if (in.getType() == Input.TYPE_VALUE) {
-                mHasValueInput = true;
-            }
-            mInputViews.add(inputView);
-        }
-
-        mInputCount = mInputViews.size();
-        resizeList(mInputConnectorOffsets);
-        resizeList(mInputLayoutOrigins);
-    }
-
     private void initDrawingObjects() {
         final int blockColor = mBlock.getColour();
 
@@ -697,25 +671,6 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         mFillPaint.setColor(mBlock.getColour());
         mFillPaint.setStyle(Paint.Style.FILL);
-    }
-
-    /**
-     * Adjust size of an {@link ArrayList} of {@link ViewPoint} objects to match the size of
-     * {@link #mInputViews}.
-     */
-    private void resizeList(ArrayList<ViewPoint> list) {
-        if (list.size() != mInputCount) {
-            list.ensureCapacity(mInputCount);
-            if (list.size() < mInputCount) {
-                for (int i = list.size(); i < mInputCount; i++) {
-                    list.add(new ViewPoint());
-                }
-            } else {
-                while (list.size() > mInputCount) {
-                    list.remove(list.size() - 1);
-                }
-            }
-        }
     }
 
     /**

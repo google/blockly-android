@@ -17,6 +17,7 @@ package com.google.blockly.android.ui;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.view.View;
 
 import com.google.blockly.android.ToolboxFragment;
 import com.google.blockly.android.TrashFragment;
@@ -25,19 +26,27 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Field;
+import com.google.blockly.model.Input;
+import com.google.blockly.model.Workspace;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Base factory class responsible for creating all the
- * {@link com.google.blockly.android.ui.BlockView}s, {@link InputView}s, and {@link FieldView}s
- * for a given block representation.  All views are constructed during calls to
- * {@link #buildBlockViewTree}.
+ * Base factory class responsible for creating all the {@link BlockView}s, {@link InputView}s, and
+ * {@link FieldView}s for a given block representation.
+ * <p/>
+ * Subclasses must override {@link #buildBlockView}, {@link #buildInputView}, and
+ * {@link #buildFieldView}. These are called  views are constructed during calls to
+ * {@link #buildBlockViewTree} and {@link #buildBlockGroupTree}.
  */
-public abstract class BlockViewFactory<BlockView extends com.google.blockly.android.ui.BlockView> {
+public abstract class BlockViewFactory<BlockView extends com.google.blockly.android.ui.BlockView,
+                                       InputView extends com.google.blockly.android.ui.InputView> {
     protected Context mContext;
     protected WorkspaceHelper mHelper;
 
@@ -80,17 +89,56 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      * subcomponents.  All constructed block views must be registered into the
      * {@link #mBlockIdToView} map, for later lookup via {@link #getView(Block)}.
      *
-     * @param rootBlock The root block to generate a view for.
+     * @param block The root block to generate a view for.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param touchHandler The {@link BlockTouchHandler} to manage all touches.
      *
      * @return A view for the block.
      */
-    // TODO(#135): Implement tree traversal in this method and provide a build method for each view
-    //             type.
-    public abstract BlockView buildBlockViewTree(Block rootBlock, BlockGroup parentGroup,
-                                                 ConnectionManager connectionManager,
-                                                 BlockTouchHandler touchHandler);
+    public BlockView buildBlockViewTree(Block block, BlockGroup parentGroup,
+                                        ConnectionManager connectionManager,
+                                        BlockTouchHandler touchHandler) {
+        BlockView blockView = getView(block);
+        if (blockView != null) {
+            throw new IllegalStateException("BlockView already created.");
+        }
+
+        List<Input> inputs = block.getInputs();
+        final int inputCount = inputs.size();
+        List<InputView> inputViews = new ArrayList<>(inputCount);
+        for (int i = 0; i < inputCount; i++) {
+            Input input = inputs.get(i);
+            List<Field> fields = input.getFields();
+            List<FieldView> fieldViews = new ArrayList<>(fields.size());
+            for (int  j = 0; j < fields.size(); j++) {
+                fieldViews.add(buildFieldView(fields.get(j)));
+            }
+            InputView inputView = buildInputView(input, fieldViews);
+
+            if (input.getType() != Input.TYPE_DUMMY) {
+                Block targetBlock = input.getConnection().getTargetBlock();
+                if (targetBlock != null) {
+                    // Blocks connected to inputs live in their own BlockGroups.
+                    BlockGroup subgroup = buildBlockGroupTree(
+                            targetBlock, connectionManager, touchHandler);
+                    inputView.setConnectedBlockGroup(subgroup);
+                }
+            }
+            inputViews.add(inputView);
+        }
+        blockView = buildBlockView(block, inputViews, connectionManager, touchHandler);
+        registerView(block, blockView);
+        parentGroup.addView((View) blockView);
+
+        Block next = block.getNextBlock();
+        if (next != null) {
+            // Next blocks live in the same BlockGroup.
+            buildBlockViewTree(next, parentGroup, connectionManager, touchHandler);
+            // Recursively calls buildBlockViewTree(..) for the rest of the sequence.
+        }
+
+        return blockView;
+    }
 
     /**
      * This returns the view constructed to represent {@link Block}.  Each block is only allowed
@@ -112,7 +160,37 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         return viewRef == null ? null : viewRef.get();
     }
 
-    protected void registerView(Block block, BlockView blockView) {
+    /**
+     * Build and populate the {@link com.google.blockly.android.ui.BlockView} for {@code block}.
+     *
+     * @param block The {@link Block} to view.
+     * @param inputViews The list of {@link com.google.blockly.android.ui.InputView}s in this block.
+     * @param connectionManager The {@link ConnectionManager} for the {@link Workspace}.
+     * @param touchHandler The {@link BlockTouchHandler} this view should start with.
+     * @return The new {@link com.google.blockly.android.ui.BlockView}.
+     */
+    protected abstract BlockView buildBlockView(Block block, List<InputView> inputViews,
+                                                ConnectionManager connectionManager,
+                                                BlockTouchHandler touchHandler);
+
+    /**
+     * Build and populate the {@link com.google.blockly.android.ui.InputView} for {@code input}.
+     *
+     * @param input The {@link Input} to view
+     * @param fieldViews The list of {@link FieldView}s in the constructed view.
+     * @return The new {@link com.google.blockly.android.ui.InputView}.
+     */
+    protected abstract InputView buildInputView(Input input, List<FieldView> fieldViews);
+
+    /**
+     * Build and populate the {@link com.google.blockly.android.ui.InputView} for {@code field}.
+     *
+     * @param field The {@link Field} to view
+     * @return The new {@link com.google.blockly.android.ui.fieldview.FieldView}.
+     */
+    protected abstract FieldView buildFieldView(Field field);
+
+    private void registerView(Block block, BlockView blockView) {
         mBlockIdToView.put(block.getId(), new WeakReference<BlockView>(blockView));
     }
 }
