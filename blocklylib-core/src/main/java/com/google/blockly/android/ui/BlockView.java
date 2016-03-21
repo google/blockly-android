@@ -16,6 +16,7 @@
 package com.google.blockly.android.ui;
 
 import android.support.annotation.Nullable;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
@@ -50,6 +51,12 @@ public interface BlockView {
      */
     void setTouchHandler(BlockTouchHandler touchHandler);
 
+    /**
+     * Sets the connection of this block that should display with a pending connection (e.g., during
+     * a drag) highlight.
+     *
+     * @param connection The block connection to highlight.
+     */
     void setHighlightedConnection(@Nullable Connection connection);
 
     /**

@@ -24,7 +24,7 @@ import com.google.blockly.model.WorkspacePoint;
 /**
  * This wraps a set of sequential {@link BlockView} instances.
  */
-// TODO(##133): Generalize to support horizontal block groups.
+// TODO(#133): Generalize to support horizontal block groups.
 public class BlockGroup extends NonPropagatingViewGroup {
     private static final String TAG = "BlockGroup";
 

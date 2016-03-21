@@ -129,6 +129,11 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         }
     }
 
+    /**
+     * Sets the touch handler used on this block and all contained blocks.
+     *
+     * @param touchHandler The {@link BlockTouchHandler} to use.
+     */
     public void setTouchHandler(BlockTouchHandler touchHandler) {
         mTouchHandler = touchHandler;
         for (int i = 0; i < mInputViews.size(); i++) {
@@ -153,6 +158,14 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         return hitTest(event) && mTouchHandler.onTouchBlock(this, event);
     }
 
+    /**
+     * Processes intercepted touch events by calling {@link BlockTouchHandler#onInterceptTouchEvent}
+     * when {@link #hitTest} passes.
+     *
+     * @param event The touch event in progress.
+     * @return The results of {@link BlockTouchHandler#onInterceptTouchEvent}, if called. Otherwise,
+     *         false.
+     */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
         return hitTest(event) && mTouchHandler.onInterceptTouchEvent(this, event);
@@ -349,34 +362,5 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
             }
             c.drawCircle(mTempConnectionPosition.x, mTempConnectionPosition.y, 10, paint);
         }
-    }
-
-    /**
-     * Helper function to assign {@code rect} the given bounds, possibly flipping horizontal bounds
-     * in RTL mode.
-     *
-     * @param ltrStart The left coordinate in LTR mode.
-     * @param top The top coordinate.
-     * @param ltrEnd The right coordinate in LTR mode.
-     * @param bottom The bottom coordinate.
-     */
-    protected void calculateRtlAwareBounds(Rect rect, int ltrStart, int top, int ltrEnd,
-                                           int bottom) {
-        boolean isRtl = mHelper.useRtl();
-        rect.left = isRtl ? mBlockViewSize.x - ltrEnd : ltrStart;
-        rect.top = top;
-        rect.right = isRtl ? mBlockViewSize.x - ltrStart : ltrEnd;
-        rect.bottom = bottom;
-    }
-
-    /**
-     * Set a {@link ViewPoint} and flip x coordinate in RTL mode.
-     *
-     * @param viewPoint The point in view coordinates to set.
-     * @param x The new x coordinate in LTR mode.
-     * @param y The  new y coordinate.
-     */
-    protected void setPointMaybeFlip(ViewPoint viewPoint, int x, int y) {
-        viewPoint.set(mHelper.useRtl() ? -x : x, y);
     }
 }

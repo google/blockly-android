@@ -125,7 +125,7 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
      *
      * @return The removed child view, if any. Otherwise, null.
      */
-    // Why is this a separate method from above? setConnectedBlockGroup(null)?
+    // TODO(#136): setConnectedBlockGroup(null)?
     public BlockGroup disconnectBlockGroup() {
         BlockGroup result = mConnectedGroup;
         if (mConnectedGroup != null) {

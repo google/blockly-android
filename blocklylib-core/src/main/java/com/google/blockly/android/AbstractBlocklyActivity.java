@@ -280,11 +280,11 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      *     <li>{@link #getBlockDefinitionsJsonPaths}</li>
      *     <li>{@link #getToolboxContentsXmlPath}</li>
      * </ul>
-     * Subclasses should override those methods configure the Blockly environment.
+     * Subclasses should override those methods to configure the Blockly environment.
      * <p/>
      * Once the controller and fragments are configured, if {@link #checkAllowRestoreBlocklyState}
      * returns true, the activity will attempt to load a prior workspace from the instance state
-     * bundle.  If no workspace is loaded, it defer to {@link #onLoadInitialWorkspace}.
+     * bundle.  If no workspace is loaded, it defers to {@link #onLoadInitialWorkspace}.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

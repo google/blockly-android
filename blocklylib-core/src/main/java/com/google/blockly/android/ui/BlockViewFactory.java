@@ -127,7 +127,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             inputViews.add(inputView);
         }
         blockView = buildBlockView(block, inputViews, connectionManager, touchHandler);
-        registerView(block, blockView);
+        mBlockIdToView.put(block.getId(), new WeakReference<BlockView>(blockView));
         parentGroup.addView((View) blockView);
 
         Block next = block.getNextBlock();
@@ -189,8 +189,4 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      * @return The new {@link com.google.blockly.android.ui.fieldview.FieldView}.
      */
     protected abstract FieldView buildFieldView(Field field);
-
-    private void registerView(Block block, BlockView blockView) {
-        mBlockIdToView.put(block.getId(), new WeakReference<BlockView>(blockView));
-    }
 }

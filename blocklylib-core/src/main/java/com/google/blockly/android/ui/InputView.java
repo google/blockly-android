@@ -18,9 +18,10 @@ public interface InputView {
     Input getInput();
 
     /**
-     * Sets the {@link BlockGroup} sequence with an output connected to this input.
+     * Sets the {@link BlockGroup} containing the block connected to this input and updates the view
+     * hierarchy.
      *
-     * @param group The {@link BlockGroup} to connect to this input connection.
+     * @param group The {@link BlockGroup} to add to this input view.
      */
     void setConnectedBlockGroup(BlockGroup group);
 
@@ -30,9 +31,9 @@ public interface InputView {
     BlockGroup getConnectedBlockGroup();
 
     /**
-     * Unsets the {@link BlockGroup} sequence with an output connected to this input.
+     * Unsets the {@link BlockGroup} in this input view and updates the view hierarchy.
      *
-     * @return The previously connected {@link BlockGroup}.
+     * @return The previously set {@link BlockGroup}.
      */
     // TODO(#136): Replace with setConnectedBlockGroup(null).
     BlockGroup disconnectBlockGroup();

@@ -18,6 +18,7 @@ package com.google.blockly.android.ui;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -60,7 +61,7 @@ import com.google.blockly.model.WorkspacePoint;
  */
 public class WorkspaceHelper {
     private static final String TAG = "WorkspaceHelper";
-    private static final boolean DEBUG = false;
+
     // Blocks "snap" toward each other at the end of drags if they have compatible connections
     // near each other.  This is the farthest they can snap at 1.0 zoom, in workspace units.
     private static final int DEFAULT_MAX_SNAP_DISTANCE = 24;
@@ -403,6 +404,34 @@ public class WorkspaceHelper {
         viewPosition.x = workspaceToVirtualViewUnits(workspaceX) - mVirtualWorkspaceViewOffset.x;
         viewPosition.y = workspaceToVirtualViewUnits(workspacePosition.y) -
                 mVirtualWorkspaceViewOffset.y;
+    }
+
+    /**
+     * Assigns {@code rect} the given bounds, possibly flipping horizontal bounds in RTL mode.
+     *
+     * @param ltrStart The left coordinate in LTR mode.
+     * @param top The top coordinate.
+     * @param ltrEnd The right coordinate in LTR mode.
+     * @param bottom The bottom coordinate.
+     */
+    public void setRtlAwareBounds(Rect rect, int parentWidth,
+                                  int ltrStart, int top, int ltrEnd, int bottom) {
+        boolean isRtl = useRtl();
+        rect.left = isRtl ? parentWidth - ltrEnd : ltrStart;
+        rect.top = top;
+        rect.right = isRtl ? parentWidth - ltrStart : ltrEnd;
+        rect.bottom = bottom;
+    }
+
+    /**
+     * Set a {@link ViewPoint} and flip x coordinate in RTL mode.
+     *
+     * @param viewPoint The point in view coordinates to set.
+     * @param x The new x coordinate in LTR mode.
+     * @param y The  new y coordinate.
+     */
+    public void setPointMaybeFlip(ViewPoint viewPoint, int x, int y) {
+        viewPoint.set(useRtl() ? -x : x, y);
     }
 
     /**
