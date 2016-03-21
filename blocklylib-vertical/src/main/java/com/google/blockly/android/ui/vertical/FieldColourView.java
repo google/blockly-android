@@ -4,7 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.NinePatchDrawable;
 
-import com.google.blockly.android.ui.*;
+import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
 import com.google.blockly.model.Field;
 

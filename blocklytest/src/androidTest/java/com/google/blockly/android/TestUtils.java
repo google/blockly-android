@@ -16,9 +16,9 @@
 package com.google.blockly.android;
 
 import com.google.blockly.android.control.ConnectionManager;
-import com.google.blockly.model.Block;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceView;
+import com.google.blockly.model.Block;
 
 import java.util.List;
 

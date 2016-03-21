@@ -22,13 +22,13 @@ import android.widget.ListAdapter;
 import android.widget.Toast;
 
 import com.google.blockly.android.BlocklySectionsActivity;
+import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.MockBlocksProvider;
-import com.google.blockly.model.Block;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
-import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.model.Block;
 
 import java.io.IOException;
 import java.util.ArrayList;

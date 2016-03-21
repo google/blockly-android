@@ -20,9 +20,9 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
-import com.google.blockly.android.ui.fieldview.FieldView;
 
 import java.util.ArrayList;
 import java.util.List;

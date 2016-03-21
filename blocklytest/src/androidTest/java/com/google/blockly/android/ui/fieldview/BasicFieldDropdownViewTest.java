@@ -20,11 +20,8 @@ import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.R;
-import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
-import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
-
-import junit.framework.Assert;
+import com.google.blockly.model.Field;
 
 import org.mockito.Mock;
 

@@ -42,7 +42,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.google.blockly.android.R;
 import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;

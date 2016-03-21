@@ -21,7 +21,6 @@ import android.text.TextWatcher;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.android.ui.fieldview.FieldView;
 
 /**
  * Renders an angle as part of a Block.

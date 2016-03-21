@@ -25,9 +25,8 @@ import android.util.Log;
 import android.view.DragEvent;
 import android.widget.EditText;
 
-import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceView;
-import com.google.blockly.android.ui.fieldview.FieldView;
+import com.google.blockly.model.Field;
 
 /**
  * Renders editable text as part of a {@link com.google.blockly.android.ui.InputView}.

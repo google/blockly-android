@@ -23,7 +23,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.BlockDrawerFragment;
@@ -67,8 +66,6 @@ import java.util.List;
  * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
  */
 public class TrashFragment extends BlockDrawerFragment {
-    private static final boolean DEFAULT_CLOSEABLE = false;
-
     private BlocklyController mController;
     private WorkspaceHelper mHelper;
     private BlockListView mBlockListView;

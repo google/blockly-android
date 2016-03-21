@@ -22,15 +22,14 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
+import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
-import com.google.blockly.android.codegen.CodeGenerationRequest;
 
 import java.util.Arrays;
 import java.util.List;
-
 
 /**
  * Demo app with the Blockly Games turtle game in a webview.

@@ -24,11 +24,8 @@ import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 
 import com.google.blockly.android.BlocklyTestActivity;
-import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
 import com.google.blockly.model.Field;
-import com.google.blockly.android.ui.WorkspaceHelper;
 
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 /**

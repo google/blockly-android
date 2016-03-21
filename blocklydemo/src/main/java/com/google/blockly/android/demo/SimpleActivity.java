@@ -17,11 +17,11 @@ package com.google.blockly.android.demo;
 import android.support.annotation.NonNull;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
+import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlocksViewFactory;
-import com.google.blockly.android.codegen.CodeGenerationRequest;
 
 import java.util.Arrays;
 import java.util.List;

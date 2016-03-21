@@ -16,11 +16,8 @@
 package com.google.blockly.android.ui.fieldview;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
-import com.google.blockly.android.ui.fieldview.BasicFieldLabelView;
-import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
-
-import junit.framework.Assert;
+import com.google.blockly.model.Field;
 
 import org.mockito.Mock;
 

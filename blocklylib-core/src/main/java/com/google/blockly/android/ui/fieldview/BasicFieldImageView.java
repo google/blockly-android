@@ -22,7 +22,6 @@ import android.os.AsyncTask;
 import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.android.ui.fieldview.FieldView;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -20,11 +20,8 @@ import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
-import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
-import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
-
-import junit.framework.Assert;
+import com.google.blockly.model.Field;
 
 import org.mockito.Mock;
 

@@ -22,7 +22,6 @@ import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import com.google.blockly.android.R;
 import com.google.blockly.model.Workspace;
 
 import java.io.InputStream;
