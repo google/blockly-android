@@ -13,7 +13,7 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
 import android.text.Editable;
@@ -21,22 +21,23 @@ import android.text.TextWatcher;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.android.ui.fieldview.FieldView;
 
 /**
- * Renders an angle as part of a Block.
+ * Renders a date and a date picker as part of a Block.
  */
-public class FieldAngleView extends TextView implements FieldView {
-    private final Field.FieldAngle mAngleField;
+public class BasicFieldDateView extends TextView
+        implements com.google.blockly.android.ui.fieldview.FieldDateView {
 
-    public FieldAngleView(Context context, Field angleField) {
+    protected final Field.FieldDate mDateField;
+
+    public BasicFieldDateView(Context context, Field dateField) {
         super(context);
 
-        mAngleField = (Field.FieldAngle) angleField;
+        mDateField = (Field.FieldDate) dateField;
 
         setBackground(null);
-        setText(Integer.toString(mAngleField.getAngle()));
-        angleField.setView(this);
+        setText(mDateField.getDateString());
+        dateField.setView(this);
 
         addTextChangedListener(new TextWatcher() {
             @Override
@@ -49,14 +50,14 @@ public class FieldAngleView extends TextView implements FieldView {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mAngleField.setFromString(s.toString());
+                mDateField.setFromString(s.toString());
             }
         });
     }
 
     @Override
     public void unlinkModel() {
-        mAngleField.setView(null);
-        // TODO(#45): Remove model from view. Set mAngleField to null, and handle null cases above.
+        mDateField.setView(null);
+        // TODO(#45): Remove model from view. Set mDateField to null, and handle null cases above.
     }
 }

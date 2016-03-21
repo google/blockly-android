@@ -13,7 +13,7 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
 import android.widget.CheckBox;
@@ -24,12 +24,12 @@ import com.google.blockly.model.Field;
 /**
  * Renders a checkbox as part of a BlockView.
  */
-public class FieldCheckboxView extends CheckBox
+public class BasicFieldCheckboxView extends CheckBox
         implements com.google.blockly.android.ui.fieldview.FieldCheckboxView {
 
-    private final Field.FieldCheckbox mCheckboxField;
+    protected final Field.FieldCheckbox mCheckboxField;
 
-    public FieldCheckboxView(Context context, Field checkboxField) {
+    public BasicFieldCheckboxView(Context context, Field checkboxField) {
         super(context);
 
         mCheckboxField = (Field.FieldCheckbox) checkboxField;
@@ -50,6 +50,6 @@ public class FieldCheckboxView extends CheckBox
     public void unlinkModel() {
         mCheckboxField.setView(null);
         // TODO(#45): Remove model from view. Set mCheckboxField to null,
-        //             and handle null cases above.
+        //            and handle null cases above.
     }
 }

@@ -31,4 +31,14 @@
     <style name="CategoryLabelStyle" parent="DefaultCategoryLabelStyle">
     </style>
 
+    <style name="DefaultSpinnerStyle"
+        parent="@style/TextAppearance.AppCompat.Widget.TextView.SpinnerItem">
+        <item name="android:textSize">@dimen/abc_text_size_large_material</item>
+        <item name="android:background">@android:drawable/btn_dropdown</item>
+    </style>
+    <style name="DefaultSpinnerDropDownStyle">
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
+        <item name="android:background">@color/blockly_spinner_dropdown_bg</item>
+        <item name="android:padding">4dip</item>
+    </style>
 </resources>

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -31,10 +31,10 @@ import java.net.URL;
 /**
  * Renders an image bitmap.
  */
-public class FieldImageView extends ImageView implements FieldView {
-    private final Field.FieldImage mImage;
+public class BasicFieldImageView extends ImageView implements FieldView {
+    protected final Field.FieldImage mImage;
 
-    public FieldImageView(Context context, Field field) {
+    public BasicFieldImageView(Context context, Field field) {
         super(context);
 
         mImage = (Field.FieldImage) field;
@@ -44,6 +44,12 @@ public class FieldImageView extends ImageView implements FieldView {
         mImage.setView(this);
     }
 
+    @Override
+    public void unlinkModel() {
+        mImage.setView(null);
+        // TODO(#45): Remove model from view. Set mImage to null, and handle null cases above.
+    }
+
     /**
      * Asynchronously load and set image bitmap.
      * <p/>
@@ -51,7 +57,7 @@ public class FieldImageView extends ImageView implements FieldView {
      *
      * @param source The source URI of the image to load.
      */
-    private void loadImageFromSource(String source) {
+    protected void loadImageFromSource(String source) {
         new AsyncTask<String, Void, Bitmap>() {
             @Override
             protected Bitmap doInBackground(String... strings) {
@@ -78,11 +84,5 @@ public class FieldImageView extends ImageView implements FieldView {
                 requestLayout();
             }
         }.execute(source);
-    }
-
-    @Override
-    public void unlinkModel() {
-        mImage.setView(null);
-        // TODO(#45): Remove model from view. Set mImage to null, and handle null cases above.
     }
 }

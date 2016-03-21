@@ -13,20 +13,23 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.ui.fieldview.BasicFieldInputView;
 import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
+
+import junit.framework.Assert;
 
 import org.mockito.Mock;
 
 /**
- * Tests for {@link FieldInputView}.
+ * Tests for {@link BasicFieldInputView}.
  */
-public class FieldInputViewTest extends MockitoAndroidTestCase {
+public class BasicFieldInputViewTest extends MockitoAndroidTestCase {
 
     private static final String INIT_TEXT_VALUE = "someTextToInitializeInput";
     private static final String SET_TEXT_VALUE = "differentTextToSet";
@@ -47,29 +50,29 @@ public class FieldInputViewTest extends MockitoAndroidTestCase {
 
     // Verify object instantiation.
     public void testInstantiation() {
-        final FieldInputView view = makeFieldInputView();
+        final BasicFieldInputView view = makeFieldInputView();
         assertSame(view, mFieldInput.getView());
         assertEquals(INIT_TEXT_VALUE, view.getText().toString());  // Fails without .toString()
     }
 
     // Verify setting text in the view propagates to the field.
     public void testViewUpdatesField() {
-        final FieldInputView view = makeFieldInputView();
+        final BasicFieldInputView view = makeFieldInputView();
         view.setText(SET_TEXT_VALUE);
         assertEquals(SET_TEXT_VALUE, mFieldInput.getText());
     }
 
     // Verify setting text in the field propagates to the view.
     public void testFieldUpdatesView() {
-        final FieldInputView view = makeFieldInputView();
+        final BasicFieldInputView view = makeFieldInputView();
 
         mFieldInput.setText(SET_TEXT_VALUE);
         assertEquals(SET_TEXT_VALUE, view.getText().toString());  // Fails without .toString()
     }
 
     @NonNull
-    private FieldInputView makeFieldInputView() {
-        FieldInputView view = new FieldInputView(getContext());
+    private BasicFieldInputView makeFieldInputView() {
+        BasicFieldInputView view = new BasicFieldInputView(getContext());
         view.onFinishInflate(); // This must be called to register the text change watcher.
         view.setField(mFieldInput);
         return view;

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.content.ClipDescription;
 import android.content.Context;
@@ -32,10 +32,11 @@ import com.google.blockly.android.ui.fieldview.FieldView;
 /**
  * Renders editable text as part of a {@link com.google.blockly.android.ui.InputView}.
  */
-public class FieldInputView extends EditText implements FieldView {
-    private static final String TAG = "FieldInputView";
-    private Field.FieldInput mInput;
-    private TextWatcher mWatcher = new TextWatcher() {
+public class BasicFieldInputView extends EditText implements FieldView {
+    private static final String TAG = "BasicFieldInputView";
+    protected Field.FieldInput mInput;
+
+    protected TextWatcher mWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -53,6 +54,7 @@ public class FieldInputView extends EditText implements FieldView {
             }
         }
     };
+
     private Field.FieldInput.Observer mFieldObserver = new Field.FieldInput.Observer() {
         @Override
         public void onTextChanged(Field.FieldInput field, String oldText, String newText) {
@@ -66,19 +68,20 @@ public class FieldInputView extends EditText implements FieldView {
         }
     };
 
-    public FieldInputView(Context context) {
+    public BasicFieldInputView(Context context) {
         super(context, null);
     }
 
-    public FieldInputView(Context context, AttributeSet attrs) {
+    public BasicFieldInputView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public FieldInputView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public BasicFieldInputView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr, 0);
     }
 
-    public FieldInputView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public BasicFieldInputView(
+            Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 

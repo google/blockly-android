@@ -13,18 +13,21 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.ui.fieldview.BasicFieldLabelView;
 import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
+
+import junit.framework.Assert;
 
 import org.mockito.Mock;
 
 /**
- * Tests for {@link FieldLabelView}.
+ * Tests for {@link BasicFieldLabelView}.
  */
-public class FieldLabelViewTest extends MockitoAndroidTestCase {
+public class BasicFieldLabelViewTest extends MockitoAndroidTestCase {
 
     private static final String INIT_TEXT_VALUE = "someTextToInitializeLabel";
 
@@ -39,8 +42,8 @@ public class FieldLabelViewTest extends MockitoAndroidTestCase {
         mFieldLabel = new Field.FieldLabel("FieldLabel", INIT_TEXT_VALUE);
         assertNotNull(mFieldLabel);
 
-        final FieldLabelView view =
-                new FieldLabelView(getContext(), mFieldLabel, null);
+        final BasicFieldLabelView view =
+                new BasicFieldLabelView(getContext(), mFieldLabel, 0);
         assertSame(view, mFieldLabel.getView());
         assertEquals(INIT_TEXT_VALUE, view.getText().toString());  // Fails without .toString()
     }

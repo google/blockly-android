@@ -13,7 +13,7 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
 import android.database.DataSetObserver;
@@ -30,12 +30,12 @@ import com.google.blockly.android.control.NameManager;
 /**
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
-public class FieldVariableView extends Spinner
+public class BasicFieldVariableView extends Spinner
         implements com.google.blockly.android.ui.fieldview.FieldVariableView {
 
     private final Field.FieldVariable mVariableField;
 
-    public FieldVariableView(Context context, Field variableField, SpinnerAdapter variablesAdapter) {
+    public BasicFieldVariableView(Context context, Field variableField, SpinnerAdapter variablesAdapter) {
         super(context);
 
         mVariableField = (Field.FieldVariable) variableField;

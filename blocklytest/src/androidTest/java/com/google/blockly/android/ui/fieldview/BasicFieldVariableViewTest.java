@@ -13,22 +13,25 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
+
+import junit.framework.Assert;
 
 import org.mockito.Mock;
 
 /**
- * Tests for {@link FieldVariableView}.
+ * Tests for {@link BasicFieldVariableView}.
  */
-public class FieldVariableViewTest extends MockitoAndroidTestCase {
+public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
 
     @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
@@ -52,7 +55,7 @@ public class FieldVariableViewTest extends MockitoAndroidTestCase {
 
     // Verify object instantiation.
     public void testInstantiation() {
-        final FieldVariableView view = makeFieldVariableView();
+        final BasicFieldVariableView view = makeFieldVariableView();
         assertSame(view, mFieldVariable.getView());
         assertEquals(mVariables.length, view.getCount());
         assertEquals(mFieldVariable.getVariable().toLowerCase(), view.getSelectedItem().toString());
@@ -62,7 +65,7 @@ public class FieldVariableViewTest extends MockitoAndroidTestCase {
     // TODO(#69): need tests (using Espresso?) to confirm that user interaction has the same
     //            effect as calling FieldVariableView.setSelection().
     public void testUpdateFieldFromView() {
-        final FieldVariableView view = makeFieldVariableView();
+        final BasicFieldVariableView view = makeFieldVariableView();
 
         view.setSelection(2);
         assertEquals(mVariables[2], mFieldVariable.getVariable());
@@ -79,7 +82,7 @@ public class FieldVariableViewTest extends MockitoAndroidTestCase {
 
     // Test update of view if variable selection changes.
     public void testUpdateViewFromField() {
-        final FieldVariableView view = makeFieldVariableView();
+        final BasicFieldVariableView view = makeFieldVariableView();
 
         mFieldVariable.setVariable(mVariables[0]);
         assertEquals(mVariables[0], view.getSelectedItem().toString());
@@ -92,7 +95,7 @@ public class FieldVariableViewTest extends MockitoAndroidTestCase {
     }
 
     @NonNull
-    private FieldVariableView makeFieldVariableView() {
-        return new FieldVariableView(getContext(), mFieldVariable, mVariableAdapter);
+    private BasicFieldVariableView makeFieldVariableView() {
+        return new BasicFieldVariableView(getContext(), mFieldVariable, mVariableAdapter);
     }
 }

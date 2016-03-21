@@ -13,7 +13,7 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -24,6 +24,7 @@ import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 
 import com.google.blockly.android.BlocklyTestActivity;
+import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
 import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
 
@@ -31,24 +32,21 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 /**
- * Tests for {@link FieldColourView}.
+ * Tests for {@link BasicFieldColourView}.
  */
-public class FieldColourViewTest extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
+public class BasicFieldColourViewTest extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
 
     private static final int LAYOUT_HEIGHT = 1000;
     private static final int LAYOUT_WIDTH = 1000;
 
     private RelativeLayout mLayout;
-    private FieldColourView mFieldColorView;
+    private BasicFieldColourView mFieldColorView;
 
     // Cannot mock final classes.
     private Field.FieldColour mFieldColour;
     private BlocklyTestActivity mActivity;
 
-    @Mock
-    private WorkspaceHelper mMockWorkspaceHelper;
-
-    public FieldColourViewTest() {
+    public BasicFieldColourViewTest() {
         super(BlocklyTestActivity.class);
     }
 
@@ -63,7 +61,7 @@ public class FieldColourViewTest extends ActivityInstrumentationTestCase2<Blockl
         mLayout.layout(0, 0, LAYOUT_WIDTH, LAYOUT_HEIGHT);
 
         mFieldColour = new Field.FieldColour("FieldColour");
-        mFieldColorView = new FieldColourView(mActivity, mFieldColour, mMockWorkspaceHelper);
+        mFieldColorView = new BasicFieldColourView(mActivity, mFieldColour);
         mLayout.addView(mFieldColorView);
     }
 
@@ -97,7 +95,7 @@ public class FieldColourViewTest extends ActivityInstrumentationTestCase2<Blockl
         // Verify both field and field view background have been set to correct color.
         final int expectedColour = 0xffffff;
         assertEquals(expectedColour, mFieldColour.getColour());  // setColour() masks out alpha.
-        assertEquals(FieldColourView.ALPHA_OPAQUE | expectedColour,
+        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | expectedColour,
                 ((ColorDrawable) mFieldColorView.getBackground()).getColor());
 
         // Popup window should have disappeared.
@@ -107,22 +105,22 @@ public class FieldColourViewTest extends ActivityInstrumentationTestCase2<Blockl
     // Verify that changing colour in the field updates the UI.
     public void testFieldUpdatesView() {
         mFieldColour.setColour(0);
-        assertEquals(FieldColourView.ALPHA_OPAQUE, mFieldColorView.mSelectedColourPaint.getColor());
+        assertEquals(BasicFieldColourView.ALPHA_OPAQUE, mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.RED);
-        assertEquals(FieldColourView.ALPHA_OPAQUE | Color.RED,
+        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.RED,
                 mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.GREEN);
-        assertEquals(FieldColourView.ALPHA_OPAQUE | Color.GREEN,
+        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.GREEN,
                 mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.BLUE);
-        assertEquals(FieldColourView.ALPHA_OPAQUE | Color.BLUE,
+        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.BLUE,
                 mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.WHITE);
-        assertEquals(FieldColourView.ALPHA_OPAQUE | Color.WHITE,
+        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.WHITE,
                 mFieldColorView.mSelectedColourPaint.getColor());
     }
 }

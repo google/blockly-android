@@ -13,20 +13,23 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.ui.fieldview.BasicFieldCheckboxView;
 import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
+
+import junit.framework.Assert;
 
 import org.mockito.Mock;
 
 /**
- * Tests for {@link FieldCheckboxView}.
+ * Tests for {@link BasicFieldCheckboxView}.
  */
-public class FieldCheckboxViewTest extends MockitoAndroidTestCase {
+public class BasicFieldCheckboxViewTest extends MockitoAndroidTestCase {
 
     @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
@@ -43,13 +46,13 @@ public class FieldCheckboxViewTest extends MockitoAndroidTestCase {
 
     // Verify object instantiation.
     public void testInstantiation() {
-        final FieldCheckboxView view = makeFieldCheckboxView();
+        final BasicFieldCheckboxView view = makeFieldCheckboxView();
         assertSame(view, mFieldCheckbox.getView());
     }
 
     // Verify field object gets updated when view is checked/unchecked.
     public void testFieldUpdatesFromView() {
-        final FieldCheckboxView view = makeFieldCheckboxView();
+        final BasicFieldCheckboxView view = makeFieldCheckboxView();
         assertFalse(mFieldCheckbox.isChecked());
         assertEquals(mFieldCheckbox.isChecked(), view.isChecked());
 
@@ -62,7 +65,7 @@ public class FieldCheckboxViewTest extends MockitoAndroidTestCase {
 
     // Verify that view gets updated if field changes.
     public void testViewUpdatesFromField() {
-        final FieldCheckboxView view = makeFieldCheckboxView();
+        final BasicFieldCheckboxView view = makeFieldCheckboxView();
         assertEquals(mFieldCheckbox.isChecked(), view.isChecked());
 
         mFieldCheckbox.setChecked(true);
@@ -76,7 +79,7 @@ public class FieldCheckboxViewTest extends MockitoAndroidTestCase {
     }
 
     @NonNull
-    private FieldCheckboxView makeFieldCheckboxView() {
-        return new FieldCheckboxView(getContext(), mFieldCheckbox);
+    private BasicFieldCheckboxView makeFieldCheckboxView() {
+        return new BasicFieldCheckboxView(getContext(), mFieldCheckbox);
     }
 }

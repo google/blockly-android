@@ -13,7 +13,7 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
 import android.widget.ArrayAdapter;
@@ -24,12 +24,12 @@ import com.google.blockly.model.Field;
 /**
  * Renders a dropdown field as part of a Block.
  */
-public class FieldDropdownView extends Spinner
+public class BasicFieldDropdownView extends Spinner
         implements com.google.blockly.android.ui.fieldview.FieldDropdownView {
     
-    private final Field.FieldDropdown mDropdownField;
+    protected final Field.FieldDropdown mDropdownField;
 
-    public FieldDropdownView(Context context, Field dropdownField, int spinnerItemLayout, int dropDownLayout) {
+    public BasicFieldDropdownView(Context context, Field dropdownField, int spinnerItemLayout, int dropDownLayout) {
         super(context);
 
         mDropdownField = (Field.FieldDropdown) dropdownField;
@@ -56,6 +56,6 @@ public class FieldDropdownView extends Spinner
     public void unlinkModel() {
         mDropdownField.setView(null);
         // TODO(#45): Remove model from view. Set mDropdownField to null,
-        //             and handle null cases above.
+        //            and handle null cases above.
     }
 }

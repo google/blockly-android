@@ -23,6 +23,15 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 
 import com.google.blockly.android.control.ConnectionManager;
+import com.google.blockly.android.ui.fieldview.BasicFieldAngleView;
+import com.google.blockly.android.ui.fieldview.BasicFieldCheckboxView;
+import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
+import com.google.blockly.android.ui.fieldview.BasicFieldDateView;
+import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
+import com.google.blockly.android.ui.fieldview.BasicFieldImageView;
+import com.google.blockly.android.ui.fieldview.BasicFieldInputView;
+import com.google.blockly.android.ui.fieldview.BasicFieldLabelView;
+import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
@@ -110,32 +119,32 @@ public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView, Input
                 break;
             }
             case Field.TYPE_CHECKBOX:
-                view = new FieldCheckboxView(mContext, field);
+                view = new BasicFieldCheckboxView(mContext, field);
                 break;
             case Field.TYPE_DATE:
-                view = new FieldDateView(mContext, field);
+                view = new BasicFieldDateView(mContext, field);
                 break;
             case Field.TYPE_DROPDOWN:
-                view = new FieldDropdownView(mContext, field,
+                view = new BasicFieldDropdownView(mContext, field,
                         R.layout.default_spinner_item, R.layout.default_spinner_drop_down);
                 break;
             case Field.TYPE_ANGLE:
-                view = new FieldAngleView(mContext, field);
+                view = new BasicFieldAngleView(mContext, field);
                 break;
             case Field.TYPE_COLOUR:
                 view = new FieldColourView(mContext, field, mHelper);
                 break;
             case Field.TYPE_INPUT:
-                FieldInputView fiv = (FieldInputView) mLayoutInflater
+                BasicFieldInputView fiv = (BasicFieldInputView) mLayoutInflater
                         .inflate(mFieldInputLayout, null);
                 fiv.setField(field);
                 view = fiv;
                 break;
             case Field.TYPE_IMAGE:
-                view = new FieldImageView(mContext, field);
+                view = new BasicFieldImageView(mContext, field);
                 break;
             case Field.TYPE_VARIABLE:
-                view = new FieldVariableView(mContext, field, mVariableAdapter);;
+                view = new BasicFieldVariableView(mContext, field, mVariableAdapter);;
                 break;
             default:
                 Log.w(TAG, "Unknown field type.");
@@ -180,7 +189,7 @@ public class VerticalBlocksViewFactory extends BlockViewFactory<BlockView, Input
      * @return An adapter that can be used by a Spinner or a ListView.
      */
     protected BaseAdapter onCreateNameAdapter(NameManager nameManager) {
-        ArrayAdapter adapter = new FieldVariableView.VariableAdapter(nameManager,
+        ArrayAdapter adapter = new BasicFieldVariableView.VariableAdapter(nameManager,
                 mContext, mSpinnerLayout);
         adapter.setDropDownViewResource(mSpinnerDropDownLayout);
         return adapter;

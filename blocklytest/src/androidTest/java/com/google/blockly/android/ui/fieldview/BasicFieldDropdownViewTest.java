@@ -13,21 +13,25 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.ui.vertical;
+package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.R;
+import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
 import com.google.blockly.model.Field;
 import com.google.blockly.android.ui.WorkspaceHelper;
+
+import junit.framework.Assert;
 
 import org.mockito.Mock;
 
 /**
- * Tests for {@link FieldDropdownView}.
+ * Tests for {@link BasicFieldDropdownView}.
  */
-public class FieldDropdownViewTest extends MockitoAndroidTestCase {
+public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
 
     @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
@@ -52,7 +56,7 @@ public class FieldDropdownViewTest extends MockitoAndroidTestCase {
     // Verify object instantiation.
     public void testInstantiation() {
         mFieldDropdown.setSelectedIndex(2);
-        final FieldDropdownView view = makeFieldDropdownView();
+        final BasicFieldDropdownView view = makeFieldDropdownView();
         assertSame(view, mFieldDropdown.getView());
         assertEquals(mNameValueMap.size(), view.getCount());
         assertEquals(mFieldDropdown.getSelectedIndex(), view.getSelectedItemPosition());
@@ -63,7 +67,7 @@ public class FieldDropdownViewTest extends MockitoAndroidTestCase {
     // TODO(#69): Make tests (using Espresso?) to confirm that user interaction has the same
     //            effect as calling FieldDropdownView.setSelection().
     public void testUpdateFieldFromView() {
-        final FieldDropdownView view = makeFieldDropdownView();
+        final BasicFieldDropdownView view = makeFieldDropdownView();
 
         view.setSelection(2);
         assertEquals(view.getSelectedItemPosition(), mFieldDropdown.getSelectedIndex());
@@ -80,7 +84,7 @@ public class FieldDropdownViewTest extends MockitoAndroidTestCase {
 
     // Test update of view if field selection changes.
     public void testUpdateViewFromField() {
-        final FieldDropdownView view = makeFieldDropdownView();
+        final BasicFieldDropdownView view = makeFieldDropdownView();
 
         mFieldDropdown.setSelectedIndex(2);
         assertEquals(mFieldDropdown.getSelectedIndex(), view.getSelectedItemPosition());
@@ -96,8 +100,8 @@ public class FieldDropdownViewTest extends MockitoAndroidTestCase {
     }
 
     @NonNull
-    private FieldDropdownView makeFieldDropdownView() {
-        return new FieldDropdownView(getContext(), mFieldDropdown,
+    protected BasicFieldDropdownView makeFieldDropdownView() {
+        return new BasicFieldDropdownView(getContext(), mFieldDropdown,
                 R.layout.default_spinner_item, R.layout.default_spinner_drop_down);
     }
 }
