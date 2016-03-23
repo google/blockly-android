@@ -24,8 +24,11 @@
  */
 var Turtle = {};
 
-Turtle.HEIGHT = 400;
-Turtle.WIDTH = 400;
+/**
+ * Uninitialized defaults for the stage size.
+ */
+Turtle.STAGE_WIDTH = 400;
+Turtle.STAGE_HEIGHT = 400;
 
 /**
  * PID of animation task currently executing.
@@ -41,7 +44,34 @@ Turtle.visible = true;
  * Initialize Blockly and the turtle.  Called on page load.
  */
 Turtle.init = function() {
+  // Speed controls
+  Turtle.slider = document.getElementById('slider');
+  var slower = document.getElementById('slower');
+  if (slower) {
+    slower.onclick = function() {
+      var newValue = Number(Turtle.slider.value) - 10;
+      Turtle.slider.value = Math.max(newValue, Turtle.slider.min);
+    }
+  }
+  var faster = document.getElementById('faster');
+  if (faster) {
+    faster.onclick = function() {
+      var prev = Turtle.slider.value
+      var newValue = Number(Turtle.slider.value) + 10;
+      Turtle.slider.value = Math.min(newValue, Turtle.slider.max);
+      console.log("Faster: prev = " + prev + ", newValue = " + newValue);
+    }
+  }
+
+  // Stage initialization
+  Turtle.STAGE_WIDTH = window.innerWidth - 20;   // page margin fudge factor
+  Turtle.STAGE_HEIGHT = window.innerHeight - 20; // page margin fudge factor
+
   var visualization = document.getElementById('visualization');
+  visualization.innerHTML =
+    '<canvas id="display" width="'+ Turtle.STAGE_WIDTH + '" height="' + Turtle.STAGE_HEIGHT +'"></canvas>'
+    + '<canvas id="scratch" width="'+ Turtle.STAGE_WIDTH + '" height="' + Turtle.STAGE_HEIGHT + '" style="display: none"></canvas>';
+
   // Add to reserved word list: API, local variables in execution evironment
   // (execute) and the infinite loop detection function.
   //Blockly.JavaScript.addReservedWords('Turtle,code');
@@ -59,8 +89,8 @@ window.addEventListener('load', Turtle.init);
  */
 Turtle.reset = function() {
   // Starting location and heading of the turtle.
-  Turtle.x = Turtle.HEIGHT / 2;
-  Turtle.y = Turtle.WIDTH / 2;
+  Turtle.x = Turtle.STAGE_WIDTH / 2;
+  Turtle.y = Turtle.STAGE_HEIGHT / 2;
   Turtle.heading = 0;
   Turtle.penDownValue = true;
   Turtle.visible = true;
@@ -169,8 +199,9 @@ Turtle.animate = function() {
   Turtle.step(command, tuple);
   Turtle.display();
 
-  // Scale the speed non-linearly, to give better precision at the fast end.
-  var stepSpeed = 1000 * Math.pow(1 - 2, 2);
+  // Slider returns a value between 0 and 100. Scale the speed non-linearly,
+  // to give better precision at the fast end.
+  var stepSpeed = 1000 * Math.pow(1 - (Turtle.slider.value/100), 2);
   Turtle.pid = window.setTimeout(Turtle.animate, stepSpeed);
 };
 
