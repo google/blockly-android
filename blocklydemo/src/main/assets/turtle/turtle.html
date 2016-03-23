@@ -8,9 +8,12 @@
   <script type="text/javascript" src="turtle.js"></script>
 </head>
 <body>
-    <div id="visualization">
-        <canvas id="scratch" width="1000" height="1000" style="display: none"></canvas>
-        <canvas height="1000" id="display" width="1000"></canvas>
+    <div id="visualization"></div>
+    <div id="sliderContainer" style="position: absolute; bottom: 0; left: 0; right: 0; text-align: center;">
+    	<img id="slower" src="slow-turtle.png">
+    	<input type="range" id="slider" min="0" max="100" value="50"
+    	       style="width: 60%;"/>
+    	<img id="faster" src="fast-rabbit.png">
     </div>
 </body>
 </html>
