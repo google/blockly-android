@@ -312,8 +312,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .addBlockDefinitionsFromAssets(getBlockDefinitionsJsonPaths())
                 .setToolboxConfigurationAsset(getToolboxContentsXmlPath())
                 .setTrashFragment(mTrashFragment)
-                .setToolboxFragment(mToolboxFragment, mDrawerLayout)
-                .setFragmentManager(getSupportFragmentManager());
+                .setToolboxFragment(mToolboxFragment, mDrawerLayout);
         mController = builder.build();
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)

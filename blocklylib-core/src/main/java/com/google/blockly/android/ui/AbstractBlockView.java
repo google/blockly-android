@@ -74,11 +74,13 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     @Nullable protected Connection mHighlightedConnection = null;
 
     /**
-     * Creates an BlockView for the given block.
+     * Creates a BlockView for the given {@link Block}.
      *
      * @param context The context for creating this view.
-     * @param block The {@link Block} represented by this view.
+     * @param helper The {@link WorkspaceHelper} for this app.
      * @param factory The helper for loading workspace configs and doing calculations.
+     * @param block The {@link Block} represented by this view.
+     * @param inputViews The {@link InputView} children in the new {@link BlockView}.
      * @param connectionManager The {@link ConnectionManager} to update when moving connections.
      * @param touchHandler The optional handler for forwarding touch events on this block to the
      *                     {@link Dragger}.

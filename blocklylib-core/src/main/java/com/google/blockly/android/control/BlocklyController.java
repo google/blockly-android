@@ -64,7 +64,6 @@ public class BlocklyController {
     private static final String SERIALIZED_WORKSPACE_KEY = "SERIALIZED_WORKSPACE";
 
     private final Context mContext;
-    private final FragmentManager mFragmentManager;
     private final BlockFactory mModelFactory;
     private final BlockViewFactory mViewFactory;
     private final WorkspaceHelper mHelper;
@@ -93,18 +92,17 @@ public class BlocklyController {
     };
 
     /**
-     * Creates a new Controller with Workspace and WorkspaceHelper.
+     * Creates a new Controller with Workspace and WorkspaceHelper. Most controllers will require
+     * a {@link FragmentManager} and {@link BlockViewFactory}, but headless (i.e. viewless)
+     * controllers are allowed, where either could be null.
      *
      * @param context Android context, such as an Activity.
      * @param blockModelFactory Factory used to create new Blocks.
-     * @param workspaceHelper Helper functions for adapting blockly view to the current device.
-     * @param fragmentManager Support fragment manager, if controlling the Blockly fragment and view
-     * classes.
+     * @param workspaceHelper Helper functions for adapting Blockly views to the current device.
      * @param blockViewFactory Factory used to construct block views for this app.
      */
     private BlocklyController(Context context, BlockFactory blockModelFactory,
                               WorkspaceHelper workspaceHelper,
-                              @Nullable FragmentManager fragmentManager,
                               @Nullable BlockViewFactory blockViewFactory) {
 
         if (context == null) {
@@ -119,7 +117,6 @@ public class BlocklyController {
         mContext = context;
         mModelFactory = blockModelFactory;
         mHelper = workspaceHelper;
-        mFragmentManager = fragmentManager;
         mViewFactory = blockViewFactory;
 
         mWorkspace = new Workspace(mContext, this, mModelFactory);
@@ -138,8 +135,8 @@ public class BlocklyController {
      * @param workspaceFragment
      */
     public void setWorkspaceFragment(@Nullable WorkspaceFragment workspaceFragment) {
-        if (workspaceFragment != null && mFragmentManager == null) {
-            throw new IllegalStateException("Cannot set fragments without a FragmentManager.");
+        if (workspaceFragment != null && mViewFactory == null) {
+            throw new IllegalStateException("Cannot set fragments without a BlockViewFactory.");
         }
 
         if (workspaceFragment == mWorkspaceFragment) {
@@ -191,8 +188,8 @@ public class BlocklyController {
      * @param trashFragment
      */
     public void setTrashFragment(@Nullable TrashFragment trashFragment) {
-        if (trashFragment != null && mFragmentManager == null) {
-            throw new IllegalStateException("Cannot set fragments without a FragmentManager.");
+        if (trashFragment != null && mViewFactory == null) {
+            throw new IllegalStateException("Cannot set fragments without a BlockViewFactory.");
         }
 
         if (trashFragment == mTrashFragment) {
@@ -896,7 +893,6 @@ public class BlocklyController {
         private ToolboxFragment mToolboxFragment;
         private DrawerLayout mToolboxDrawer;
         private TrashFragment mTrashFragment;
-        private FragmentManager mFragmentManager;
         private AssetManager mAssetManager;
 
         // TODO: Should these be part of the style?
@@ -941,19 +937,6 @@ public class BlocklyController {
         // TODO(#128): Remove. Use mContext.getAssets()
         public Builder setAssetManager(AssetManager manager) {
             mAssetManager = manager;
-            return this;
-        }
-
-        /**
-         * A {@link FragmentManager} is used to show and hide the Toolbox or Trash. It is required
-         * if you have set a {@link TrashFragment} or a {@link ToolboxFragment} that is not always
-         * visible.
-         *
-         * @param fragmentManager The support manager to use for showing and hiding fragments.
-         * @return this
-         */
-        public Builder setFragmentManager(FragmentManager fragmentManager) {
-            mFragmentManager = fragmentManager;
             return this;
         }
 
@@ -1089,10 +1072,10 @@ public class BlocklyController {
          * @return A new {@link BlocklyController}.
          */
         public BlocklyController build() {
-            if (mFragmentManager == null && (mWorkspaceFragment != null || mTrashFragment != null
+            if (mViewFactory == null && (mWorkspaceFragment != null || mTrashFragment != null
                     || mToolboxFragment != null || mToolboxDrawer != null)) {
                 throw new IllegalStateException(
-                        "FragmentManager cannot be null when using Fragments.");
+                        "BlockViewFactory cannot be null when using Fragments.");
             }
 
             if (mWorkspaceHelper == null) {
@@ -1114,7 +1097,7 @@ public class BlocklyController {
                 factory.addBlockTemplate(mBlockDefs.get(i));
             }
             BlocklyController controller = new BlocklyController(
-                    mContext, factory, mWorkspaceHelper, mFragmentManager, mViewFactory);
+                    mContext, factory, mWorkspaceHelper, mViewFactory);
             if (mToolboxResId != 0) {
                 controller.loadToolboxContents(mToolboxResId);
             } else if (mToolboxXml != null) {
