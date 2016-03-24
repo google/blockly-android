@@ -36,8 +36,8 @@ import java.util.List;
 
 /**
  * An optional base class for {@link BlockView}. {@link AbstractBlockView} assumes
- * {@link InputView}s are direct children, and handles the high level aspects of them. The
- * measurement, placement and drawing are left to the subclass to implement.
+ * {@link InputView}s are direct children, and handles most UI events and view hierarchy
+ * coordination. The measurement, placement and drawing are left to the subclass to implement.
  */
 @SuppressLint("ViewConstructor")
 public abstract class AbstractBlockView<InputView extends com.google.blockly.android.ui.InputView>
@@ -258,24 +258,17 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     /**
      * Recursively disconnects the view from the model, and removes all views.
      */
-    public void unlinkModelAndSubViews() {
+    public void unlinkModel() {
         mFactory.unregisterView(this); // TODO(#137): factory -> ViewPool
 
         int max = mInputViews.size();
         for (int i = 0; i < max; ++i) {
             InputView inputView = mInputViews.get(i);
-            inputView.unlinkModelAndSubViews();
+            inputView.unlinkModel();
         }
         mTouchHandler = null;  // Recursive via the calls InputView calls.
         removeAllViews();
         // TODO(#45): Remove model from view. Set mBlock to null, and handle all null cases.
-    }
-
-    /**
-     * Check if border highlight is rendered.
-     */
-    protected boolean isEntireBlockHighlighted() {
-        return isPressed() || isFocused() || isSelected();
     }
 
     /**
@@ -293,16 +286,10 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     }
 
     /**
-     * Update the position of the block in workspace coordinates based on the view's location.
+     * Check if border highlight is rendered.
      */
-    private void updateBlockPosition() {
-        // Only update the block position if it isn't a top level block.
-        if (mBlock.getPreviousBlock() != null
-                || (mBlock.getOutputConnection() != null
-                && mBlock.getOutputConnection().getTargetBlock() != null)) {
-            mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
-            mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
-        }
+    protected boolean isEntireBlockHighlighted() {
+        return isPressed() || isFocused() || isSelected();
     }
 
     /**
@@ -363,4 +350,16 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
             c.drawCircle(mTempConnectionPosition.x, mTempConnectionPosition.y, 10, paint);
         }
     }
-}
+
+    /**
+     * Update the position of the block in workspace coordinates based on the view's location.
+     */
+    private void updateBlockPosition() {
+        // Only update the block position if it isn't a top level block.
+        if (mBlock.getPreviousBlock() != null
+                || (mBlock.getOutputConnection() != null
+                && mBlock.getOutputConnection().getTargetBlock() != null)) {
+            mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
+            mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
+        }
+    }}

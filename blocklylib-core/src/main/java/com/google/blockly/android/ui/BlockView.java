@@ -80,8 +80,9 @@ public interface BlockView {
     void updateConnectorLocations();
 
     /**
-     * Recursively disconnects the view from the model.  After this call, this view should no
-     * longer be returned by {@link BlockViewFactory#getView(Block)}.
+     * Recursively disconnects this view from the model and all subviews / model subcomponents.
+     * After this call, this view should no longer be returned by
+     * {@link BlockViewFactory#getView(Block)}.
      */
-    void unlinkModelAndSubViews();
+    void unlinkModel();
 }

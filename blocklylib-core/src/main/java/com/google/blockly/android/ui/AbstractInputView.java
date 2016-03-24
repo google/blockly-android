@@ -141,14 +141,14 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
      * Recursively disconnects the view from the model, and removes all views.
      */
     @Override
-    public void unlinkModelAndSubViews() {
+    public void unlinkModel() {
         int max = mFieldViews.size();
         for (int i = 0; i < max; ++i) {
             FieldView fieldView = mFieldViews.get(i);
             fieldView.unlinkModel();
         }
         if (mConnectedGroup != null) {
-            mConnectedGroup.unlinkModelAndSubViews();
+            mConnectedGroup.unlinkModel();
             disconnectBlockGroup();
         }
         removeAllViews();

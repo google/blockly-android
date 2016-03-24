@@ -136,6 +136,7 @@ public class BlockView extends AbstractBlockView<InputView> {
      * Measure all children (i.e., block inputs) and compute their sizes and relative positions
      * for use in {@link #onLayout}.
      */
+    // TODO(#144): Move to AbstractBlockView, using abstract methods for calls. After #133
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (getBlock().getInputsInline()) {
@@ -226,7 +227,7 @@ public class BlockView extends AbstractBlockView<InputView> {
      * @return True if the coordinate of the motion event is on the visible, non-transparent part of
      * this view; false otherwise.
      */
-    // TODO(Anm): Move some of this to AbstractBlockView
+    // TODO(#143): Move some of this to AbstractBlockView (state, subviews, etc.)
     @Override
     protected boolean hitTest(MotionEvent event) {
         int action = event.getAction();

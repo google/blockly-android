@@ -203,7 +203,6 @@ public class Dragger {
      * @param pointerId The id of the pointer that touched the {@link BlockView}.
      */
     public void setTouchedBlock(BlockView blockView, int pointerId) {
-        View view = (View) blockView;
         if (mIsDragging) {
             return;
         }
@@ -214,7 +213,7 @@ public class Dragger {
         if (mTouchedBlockView != null) {
             // Starting a new drag.
             mTouchState = TOUCH_STATE_DOWN;
-            view.setPressed(true);
+            ((View) blockView).setPressed(true);
         } else {
             // Just clearing old state.
             mTouchState = TOUCH_STATE_NONE;

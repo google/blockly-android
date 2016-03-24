@@ -8,6 +8,8 @@ import com.google.blockly.model.Field;
 
 /**
  * A {@link BasicFieldLabelView} that supports Blockly specific style attributes.
+ *
+ * @deprecated (#141) To be replaced by inflating styled layouts.
  */
 public class FieldLabelView extends BasicFieldLabelView {
     /**

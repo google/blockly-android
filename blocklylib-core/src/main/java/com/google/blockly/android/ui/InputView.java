@@ -39,7 +39,9 @@ public interface InputView {
     BlockGroup disconnectBlockGroup();
 
     /**
-     * Recursively disconnects the view from the model.
+     * Recursively disconnects the view from the model, including all subviews/model subcomponents.
+     * <p/>
+     * This method should only be called by {@link BlockView#unlinkModel()}.
      */
-    void unlinkModelAndSubViews();
+    void unlinkModel();
 }

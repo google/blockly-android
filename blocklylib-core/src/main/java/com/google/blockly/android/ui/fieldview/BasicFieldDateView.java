@@ -28,6 +28,12 @@ import com.google.blockly.model.Field;
 public class BasicFieldDateView extends TextView implements FieldDateView {
     protected final Field.FieldDate mDateField;
 
+    /**
+     * Constructs a new {@link BasicFieldDateView}.
+     *
+     * @param context The application's context.
+     * @param dateField The {@link Field} of type {@link Field#TYPE_DATE} represented.
+     */
     public BasicFieldDateView(Context context, Field dateField) {
         super(context);
 

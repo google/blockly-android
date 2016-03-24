@@ -87,7 +87,7 @@ public class AbstractInputViewTest extends MockitoAndroidTestCase {
         assertEquals(1, inputView.getChildCount());
     }
 
-    // Verify exception is thrown when calling setChildView with null (must use disconnectBlockGroup).
+    // Verify exception is thrown when calling setChildView with null. Use disconnectBlockGroup().
     public void testSetChildViewNull() {
         final AbstractInputView inputView = makeDefaultInputView();
 

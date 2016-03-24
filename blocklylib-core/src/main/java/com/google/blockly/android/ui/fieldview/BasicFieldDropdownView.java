@@ -27,6 +27,14 @@ import com.google.blockly.model.Field;
 public class BasicFieldDropdownView extends Spinner implements FieldDropdownView {
     protected final Field.FieldDropdown mDropdownField;
 
+    /**
+     * Constructs a new {@link BasicFieldDropdownView}.
+     *
+     * @param context The application's context.
+     * @param dropdownField The {@link Field} of type {@link Field#TYPE_DROPDOWN} represented.
+     * @param spinnerItemLayout The layout id for the items of the dropdown.
+     * @param dropDownLayout The layout id for the dropdown.
+     */
     public BasicFieldDropdownView(
             Context context, Field dropdownField, int spinnerItemLayout, int dropDownLayout) {
         super(context);

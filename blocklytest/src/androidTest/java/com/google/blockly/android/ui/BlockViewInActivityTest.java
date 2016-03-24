@@ -107,7 +107,8 @@ public class BlockViewInActivityTest
         // Preconditions
         assertTrue(isDescendentOf(mFieldView, (View) mViewFactory.getView(mRootBlock)));
         assertTrue(isDescendentOf((View) mChildInputBlockView, (View) mHelper.getView(mRootBlock)));
-        assertTrue(isDescendentOf((View) mChildStatementBlockView, (View) mHelper.getView(mRootBlock)));
+        assertTrue(isDescendentOf((View) mChildStatementBlockView,
+                (View) mHelper.getView(mRootBlock)));
 
         assertFalse(((View) mRootView).isActivated());
         assertFalse(((View) mFieldView).isActivated());
@@ -142,7 +143,8 @@ public class BlockViewInActivityTest
         // Preconditions
         assertTrue(isDescendentOf(mFieldView, (View) mHelper.getView(mRootBlock)));
         assertTrue(isDescendentOf((View) mChildInputBlockView, (View) mHelper.getView(mRootBlock)));
-        assertTrue(isDescendentOf((View) mChildStatementBlockView, (View) mHelper.getView(mRootBlock)));
+        assertTrue(isDescendentOf((View) mChildStatementBlockView,
+                (View) mHelper.getView(mRootBlock)));
 
         assertFalse(((View) mRootView).isPressed());
         assertFalse(((View) mFieldView).isPressed());
@@ -177,7 +179,8 @@ public class BlockViewInActivityTest
         // Preconditions
         assertTrue(isDescendentOf(mFieldView, (View) mHelper.getView(mRootBlock)));
         assertTrue(isDescendentOf((View) mChildInputBlockView, (View) mHelper.getView(mRootBlock)));
-        assertTrue(isDescendentOf((View) mChildStatementBlockView, (View) mHelper.getView(mRootBlock)));
+        assertTrue(isDescendentOf((View) mChildStatementBlockView,
+                (View) mHelper.getView(mRootBlock)));
 
         assertFalse(((View) mRootView).isFocused());
         assertFalse(mFieldView.isFocused());
@@ -212,7 +215,8 @@ public class BlockViewInActivityTest
         // Preconditions
         assertTrue(isDescendentOf(mFieldView, (View) mHelper.getView(mRootBlock)));
         assertTrue(isDescendentOf((View) mChildInputBlockView, (View) mHelper.getView(mRootBlock)));
-        assertTrue(isDescendentOf((View) mChildStatementBlockView, (View) mHelper.getView(mRootBlock)));
+        assertTrue(isDescendentOf((View) mChildStatementBlockView,
+                (View) mHelper.getView(mRootBlock)));
 
         assertFalse(((View) mRootView).isSelected());
         assertFalse(mFieldView.isSelected());

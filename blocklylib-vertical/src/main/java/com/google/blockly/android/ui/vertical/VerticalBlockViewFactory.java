@@ -46,7 +46,7 @@ import java.util.List;
  * Constructs Blockly's default, vertical stacking blocks and related views.
  */
 public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputView> {
-    private static final String TAG = "VertcalBlockViewFactory";
+    private static final String TAG = "VertcalBlockViewFactory";  // 23 char limit
     private static final boolean DEBUG = false;
 
     private final LayoutInflater mLayoutInflater;
@@ -63,6 +63,11 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
         this(context, helper, 0);
     }
 
+    /**
+     * @param context The application or activity's {@link Context}.
+     * @param helper The {@link WorkspaceHelper} associated with the workspace.
+     * @param workspaceTheme The theme resource id for the block styles.
+     */
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper, int workspaceTheme) {
         super(context, helper);
 
@@ -75,7 +80,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     /**
      * Set the {@link NameManager} being used to track variables in the workspace.
      *
-     * @param variableNameManager The name manager that
+     * @param variableNameManager The name manager for the variables in the associated workspace.
      */
     public void setVariableNameManager(NameManager variableNameManager) {
         mVariableAdapter = onCreateNameAdapter(variableNameManager);
@@ -164,21 +169,6 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
      */
     int getFieldStyle() {
         return mFieldStyle;
-    }
-
-    /**
-     * Clears the view reference to this view from its block.
-     *
-     * @param view The BlockView to deassociate from its Block model.
-     */
-    void unlinkView(BlockView view) {
-        String id = view.getBlock().getId();
-        WeakReference<BlockView> viewRef = mBlockIdToView.get(id);
-        if (viewRef != null) {
-            if (viewRef.get() == view) {
-                mBlockIdToView.remove(id);
-            }
-        }
     }
 
     /**

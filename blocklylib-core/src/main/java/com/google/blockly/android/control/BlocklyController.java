@@ -98,7 +98,7 @@ public class BlocklyController {
      *
      * @param context Android context, such as an Activity.
      * @param blockModelFactory Factory used to create new Blocks.
-     * @param workspaceHelper Helper functions for adapting Blockly views to the current device.
+     * @param workspaceHelper Helper functions for workspace views and device resolution.
      * @param blockViewFactory Factory used to construct block views for this app.
      */
     private BlocklyController(Context context, BlockFactory blockModelFactory,
@@ -651,10 +651,10 @@ public class BlocklyController {
                 // If it doesn't have a parent, this Block view should have been first.
                 throw new IllegalStateException("BlockGroup does not match model");
             }
-            parentGroup.unlinkModelAndSubViews();
+            parentGroup.unlinkModel();
         } else {
             if (view != null) {
-                view.unlinkModelAndSubViews();
+                view.unlinkModel();
             }
         }
     }

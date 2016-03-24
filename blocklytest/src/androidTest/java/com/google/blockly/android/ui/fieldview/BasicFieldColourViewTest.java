@@ -31,7 +31,8 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link BasicFieldColourView}.
  */
-public class BasicFieldColourViewTest extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
+public class BasicFieldColourViewTest
+        extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
 
     private static final int LAYOUT_HEIGHT = 1000;
     private static final int LAYOUT_WIDTH = 1000;
@@ -102,7 +103,8 @@ public class BasicFieldColourViewTest extends ActivityInstrumentationTestCase2<B
     // Verify that changing colour in the field updates the UI.
     public void testFieldUpdatesView() {
         mFieldColour.setColour(0);
-        assertEquals(BasicFieldColourView.ALPHA_OPAQUE, mFieldColorView.mSelectedColourPaint.getColor());
+        assertEquals(BasicFieldColourView.ALPHA_OPAQUE,
+                mFieldColorView.mSelectedColourPaint.getColor());
 
         mFieldColour.setColour(Color.RED);
         assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.RED,

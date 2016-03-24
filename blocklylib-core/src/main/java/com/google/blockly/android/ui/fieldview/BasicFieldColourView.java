@@ -82,6 +82,13 @@ public class BasicFieldColourView extends View implements FieldColourView {
                 onMeasureDimension(getSuggestedMinimumHeight(), heightMeasureSpec));
     }
 
+    /**
+     * Calculates the measured dimension in a single direction (width or height).
+     *
+     * @param min The minimum size.
+     * @param measureSpec The {@link View.MeasureSpec} provided by the parent.
+     * @return The calculated size.
+     */
     protected int onMeasureDimension(int min, int measureSpec) {
         switch (MeasureSpec.getMode(measureSpec)) {
             case MeasureSpec.EXACTLY:

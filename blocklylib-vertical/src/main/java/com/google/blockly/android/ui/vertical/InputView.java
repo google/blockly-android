@@ -57,6 +57,12 @@ public class InputView extends AbstractInputView {
     // Flag to enforce that measureFieldsAndInputs() is called before each call to measure().
     private boolean mHasMeasuredFieldsAndInput = false;
 
+    /**
+     * @param context The application's {@link Context}.
+     * @param factory The {@link VerticalBlockViewFactory} creating this view.
+     * @param input The {@link Input} this view represents.
+     * @param fieldViews The child {@link FieldView}s for the fields of {@code input}.
+     */
     InputView(Context context, VerticalBlockViewFactory factory, Input input,
               List<FieldView> fieldViews) {
         super(context, factory.getWorkspaceHelper(), input, fieldViews);
@@ -129,168 +135,6 @@ public class InputView extends AbstractInputView {
     }
 
     /**
-     * If there is a child connected to this Input, then layout the child in the correct place.
-     */
-    private void layoutChild() {
-        if (mConnectedGroup != null) {
-            // Compute offset of child relative to InputView. By default, align top of fields and
-            // input, and shift right by left padding plus field width.
-            int topOffset = 0;
-            int leftOffset = mFieldLayoutWidth + mPatchManager.mBlockStartPadding;
-            switch (mInputType) {
-                case Input.TYPE_VALUE: {
-                    if (mInput.getBlock().getInputsInline()) {
-                        topOffset += mPatchManager.mBlockTopPadding +
-                                mPatchManager.mInlineInputTopPadding;
-                        leftOffset += mPatchManager.mInlineInputStartPadding;
-                    } else {
-                        // The child block overlaps the parent block slightly at the connector, by
-                        // the width of the extruding output connector.
-                        leftOffset +=
-                                mPatchManager.mBlockEndPadding + mPatchManager.mValueInputWidth -
-                                mPatchManager.mOutputConnectorWidth;
-                    }
-                    break;
-                }
-                case Input.TYPE_STATEMENT: {
-                    topOffset += mPatchManager.mStatementTopThickness;
-                    leftOffset += mPatchManager.mStatementInputPadding;
-                    break;
-                }
-                default:
-                    // Nothing to do.
-            }
-
-            final int width = mConnectedGroup.getMeasuredWidth();
-            final int height = mConnectedGroup.getMeasuredHeight();
-
-            if (mHelper.useRtl()) {
-                leftOffset = getMeasuredWidth() - leftOffset - width;
-            }
-
-            mConnectedGroup.layout(leftOffset, topOffset, leftOffset + width, topOffset + height);
-        }
-    }
-
-    /**
-     * Get horizontal (x) coordinate for first field in the input.
-     *
-     * @return The x coordinate for the first field in this input.
-     */
-    private int getFirstFieldX() {
-        switch (mInput.getAlign()) {
-            default:
-            case Input.ALIGN_LEFT: {
-                return mPatchManager.mBlockStartPadding;
-            }
-            case Input.ALIGN_CENTER: {
-                return mPatchManager.mBlockStartPadding +
-                        (mFieldLayoutWidth - mTotalFieldWidth) / 2;
-            }
-            case Input.ALIGN_RIGHT: {
-                return mPatchManager.mBlockStartPadding + mFieldLayoutWidth - mTotalFieldWidth;
-            }
-        }
-    }
-
-    // Measure only the fields of this input view.
-    private void measureFields(int widthMeasureSpec, int heightMeasureSpec) {
-        mTotalFieldWidth = 0;
-        mMaxFieldHeight = 0;
-
-        if (mFieldViews.size() > 1) {
-            mTotalFieldWidth += (mFieldViews.size() - 1) * mHorizontalFieldSpacing;
-        }
-
-        for (int j = 0; j < mFieldViews.size(); j++) {
-            View field = (View) mFieldViews.get(j);
-            field.measure(widthMeasureSpec, heightMeasureSpec);
-            mTotalFieldWidth += field.getMeasuredWidth();
-            mMaxFieldHeight = Math.max(mMaxFieldHeight, field.getMeasuredHeight());
-        }
-
-        // The field layout width defaults to the total measured width of all fields, but may be
-        // overridden by the block that owns this input to force all of its rows to have identical
-        // widths when rendering with external inputs.
-        mFieldLayoutWidth = mTotalFieldWidth;
-    }
-
-    // Measure only blocks connected to this input.
-    private void measureChildView(int widthMeasureSpec, int heightMeasureSpec) {
-        final boolean inputsInline = mInput.getBlock().getInputsInline();
-
-        if (mConnectedGroup != null) {
-            // There is a block group connected to this input - measure it and add its size
-            // to this InputView's size.
-            mConnectedGroup.measure(widthMeasureSpec, heightMeasureSpec);
-            mConnectedGroupWidth = mConnectedGroup.getMeasuredWidth();
-            mConnectedGroupHeight = mConnectedGroup.getMeasuredHeight();
-
-            // Only add space for decorations around Statement and inline Value inputs.
-            switch (mInputType) {
-                case  Input.TYPE_VALUE: {
-                    if (inputsInline) {
-                        // Inline Value input - add space for connector that is enclosing connected
-                        // block(s).
-                        mConnectedGroupWidth += mPatchManager.mInlineInputTotalPaddingX;
-                        mConnectedGroupHeight += mPatchManager.mInlineInputTotalPaddingY;
-                    }
-                    break;
-                }
-                case Input.TYPE_STATEMENT: {
-                    // Statement input - add space for top and bottom of C-connector.
-                    mConnectedGroupHeight += mPatchManager.mStatementTopThickness +
-                            mPatchManager.mStatementBottomThickness;
-                    break;
-                }
-                default: {
-                    // Nothing to do for other types of inputs.
-                }
-            }
-        } else {
-            // There's nothing connected to this input - use the size of the empty connectors.
-            mConnectedGroupWidth = emptyConnectorWidth(inputsInline);
-            mConnectedGroupHeight = emptyConnectorHeight(inputsInline);
-        }
-    }
-
-    private int emptyConnectorWidth(boolean inputsInline) {
-        if (mInputType == Input.TYPE_STATEMENT) {
-            return mPatchManager.mBlockTotalPaddingX + mPatchManager.mStatementInputPadding;
-        }
-
-        if (inputsInline && mInputType == Input.TYPE_VALUE) {
-            return mPatchManager.mInlineInputMinimumWidth;
-        }
-
-        return 0;
-    }
-
-    private int emptyConnectorHeight(boolean inputsInline) {
-        if (mInputType == Input.TYPE_STATEMENT) {
-            return mPatchManager.mStatementMinHeight;
-        }
-
-        if (inputsInline && mInputType == Input.TYPE_VALUE) {
-            return mPatchManager.mInlineInputMinimumHeight;
-        }
-
-        return 0;
-    }
-
-    /**
-     * Initialize style attributes.
-     *
-     * @param context Context of this view.
-     * @param blockStyle The selected block style.
-     */
-    private void initAttrs(Context context, int blockStyle) {
-        TypedArray a = context.obtainStyledAttributes(blockStyle, R.styleable.BlocklyBlockView);
-        mHorizontalFieldSpacing = (int) a.getDimension(
-                R.styleable.BlocklyBlockView_fieldHorizontalPadding, DEFAULT_FIELD_SPACING);
-    }
-
-    /**
      * @return Total measured width of all fields in this input, including spacing between them.
      */
     int getTotalFieldWidth() {
@@ -356,7 +200,7 @@ public class InputView extends AbstractInputView {
     void measureFieldsAndInputs(int widthMeasureSpec, int heightMeasureSpec) {
         // Measure fields and connected inputs separately.
         measureFields(widthMeasureSpec, heightMeasureSpec);
-        measureChildView(widthMeasureSpec, heightMeasureSpec);
+        measureConnectedBlockGroup(widthMeasureSpec, heightMeasureSpec);
 
         // For inline Value inputs only, treat the connected input block(s) like a field for
         // measurement of input height.
@@ -372,5 +216,167 @@ public class InputView extends AbstractInputView {
      */
     int getInlineInputX() {
         return getMeasuredWidth() - mPatchManager.mBlockTotalPaddingX - getTotalChildWidth();
+    }
+
+    /**
+     * Initialize style attributes.
+     *
+     * @param context Context of this view.
+     * @param blockStyle The selected block style.
+     */
+    private void initAttrs(Context context, int blockStyle) {
+        TypedArray a = context.obtainStyledAttributes(blockStyle, R.styleable.BlocklyBlockView);
+        mHorizontalFieldSpacing = (int) a.getDimension(
+                R.styleable.BlocklyBlockView_fieldHorizontalPadding, DEFAULT_FIELD_SPACING);
+    }
+
+    /**
+     * Get horizontal (x) coordinate for first field in the input.
+     *
+     * @return The x coordinate for the first field in this input.
+     */
+    private int getFirstFieldX() {
+        switch (mInput.getAlign()) {
+            default:
+            case Input.ALIGN_LEFT: {
+                return mPatchManager.mBlockStartPadding;
+            }
+            case Input.ALIGN_CENTER: {
+                return mPatchManager.mBlockStartPadding +
+                        (mFieldLayoutWidth - mTotalFieldWidth) / 2;
+            }
+            case Input.ALIGN_RIGHT: {
+                return mPatchManager.mBlockStartPadding + mFieldLayoutWidth - mTotalFieldWidth;
+            }
+        }
+    }
+
+    // Measure only the fields of this input view.
+    private void measureFields(int widthMeasureSpec, int heightMeasureSpec) {
+        mTotalFieldWidth = 0;
+        mMaxFieldHeight = 0;
+
+        if (mFieldViews.size() > 1) {
+            mTotalFieldWidth += (mFieldViews.size() - 1) * mHorizontalFieldSpacing;
+        }
+
+        for (int j = 0; j < mFieldViews.size(); j++) {
+            View field = (View) mFieldViews.get(j);
+            field.measure(widthMeasureSpec, heightMeasureSpec);
+            mTotalFieldWidth += field.getMeasuredWidth();
+            mMaxFieldHeight = Math.max(mMaxFieldHeight, field.getMeasuredHeight());
+        }
+
+        // The field layout width defaults to the total measured width of all fields, but may be
+        // overridden by the block that owns this input to force all of its rows to have identical
+        // widths when rendering with external inputs.
+        mFieldLayoutWidth = mTotalFieldWidth;
+    }
+
+    // Measure only blocks connected to this input.
+    private void measureConnectedBlockGroup(int widthMeasureSpec, int heightMeasureSpec) {
+        final boolean inputsInline = mInput.getBlock().getInputsInline();
+
+        if (mConnectedGroup != null) {
+            // There is a block group connected to this input - measure it and add its size
+            // to this InputView's size.
+            mConnectedGroup.measure(widthMeasureSpec, heightMeasureSpec);
+            mConnectedGroupWidth = mConnectedGroup.getMeasuredWidth();
+            mConnectedGroupHeight = mConnectedGroup.getMeasuredHeight();
+
+            // Only add space for decorations around Statement and inline Value inputs.
+            switch (mInputType) {
+                case  Input.TYPE_VALUE: {
+                    if (inputsInline) {
+                        // Inline Value input - add space for connector that is enclosing connected
+                        // block(s).
+                        mConnectedGroupWidth += mPatchManager.mInlineInputTotalPaddingX;
+                        mConnectedGroupHeight += mPatchManager.mInlineInputTotalPaddingY;
+                    }
+                    break;
+                }
+                case Input.TYPE_STATEMENT: {
+                    // Statement input - add space for top and bottom of C-connector.
+                    mConnectedGroupHeight += mPatchManager.mStatementTopThickness +
+                            mPatchManager.mStatementBottomThickness;
+                    break;
+                }
+                default: {
+                    // Nothing to do for other types of inputs.
+                }
+            }
+        } else {
+            // There's nothing connected to this input - use the size of the empty connectors.
+            mConnectedGroupWidth = emptyConnectorWidth(inputsInline);
+            mConnectedGroupHeight = emptyConnectorHeight(inputsInline);
+        }
+    }
+
+    private int emptyConnectorWidth(boolean inputsInline) {
+        if (mInputType == Input.TYPE_STATEMENT) {
+            return mPatchManager.mBlockTotalPaddingX + mPatchManager.mStatementInputPadding;
+        }
+
+        if (inputsInline && mInputType == Input.TYPE_VALUE) {
+            return mPatchManager.mInlineInputMinimumWidth;
+        }
+
+        return 0;
+    }
+
+    private int emptyConnectorHeight(boolean inputsInline) {
+        if (mInputType == Input.TYPE_STATEMENT) {
+            return mPatchManager.mStatementMinHeight;
+        }
+
+        if (inputsInline && mInputType == Input.TYPE_VALUE) {
+            return mPatchManager.mInlineInputMinimumHeight;
+        }
+
+        return 0;
+    }
+
+    /**
+     * If there is a child connected to this Input, then layout the child in the correct place.
+     */
+    private void layoutChild() {
+        if (mConnectedGroup != null) {
+            // Compute offset of child relative to InputView. By default, align top of fields and
+            // input, and shift right by left padding plus field width.
+            int topOffset = 0;
+            int leftOffset = mFieldLayoutWidth + mPatchManager.mBlockStartPadding;
+            switch (mInputType) {
+                case Input.TYPE_VALUE: {
+                    if (mInput.getBlock().getInputsInline()) {
+                        topOffset += mPatchManager.mBlockTopPadding +
+                                mPatchManager.mInlineInputTopPadding;
+                        leftOffset += mPatchManager.mInlineInputStartPadding;
+                    } else {
+                        // The child block overlaps the parent block slightly at the connector, by
+                        // the width of the extruding output connector.
+                        leftOffset +=
+                                mPatchManager.mBlockEndPadding + mPatchManager.mValueInputWidth -
+                                        mPatchManager.mOutputConnectorWidth;
+                    }
+                    break;
+                }
+                case Input.TYPE_STATEMENT: {
+                    topOffset += mPatchManager.mStatementTopThickness;
+                    leftOffset += mPatchManager.mStatementInputPadding;
+                    break;
+                }
+                default:
+                    // Nothing to do.
+            }
+
+            final int width = mConnectedGroup.getMeasuredWidth();
+            final int height = mConnectedGroup.getMeasuredHeight();
+
+            if (mHelper.useRtl()) {
+                leftOffset = getMeasuredWidth() - leftOffset - width;
+            }
+
+            mConnectedGroup.layout(leftOffset, topOffset, leftOffset + width, topOffset + height);
+        }
     }
 }

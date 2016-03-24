@@ -33,6 +33,13 @@ import com.google.blockly.android.control.NameManager;
 public class BasicFieldVariableView extends Spinner implements FieldVariableView {
     private final Field.FieldVariable mVariableField;
 
+    /**
+     * Constructs a new {@link BasicFieldVariableView}.
+     *
+     * @param context The application's context.
+     * @param variableField The {@link Field} of type {@link Field#TYPE_VARIABLE} represented.
+     * @param variablesAdapter The adapter holding the current variable names.
+     */
     public BasicFieldVariableView(
             Context context, Field variableField, SpinnerAdapter variablesAdapter) {
         super(context);
