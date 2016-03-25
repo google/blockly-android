@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~  Copyright  2015 Google Inc. All Rights Reserved.
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="BlocklyTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="minScale">0.5</item>
+        <item name="maxScale">2.5</item>
+        <item name="defaultScale">1.0</item>
+    </style>
+
+    <style name="DefaultCategoryLabelStyle">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">#fff</item>
+    </style>
+
+    <style name="CategoryLabelStyle" parent="DefaultCategoryLabelStyle">
+    </style>
+
+    <style name="DefaultSpinnerStyle"
+        parent="@style/TextAppearance.AppCompat.Widget.TextView.SpinnerItem">
+        <item name="android:textSize">@dimen/abc_text_size_large_material</item>
+        <item name="android:background">@android:drawable/btn_dropdown</item>
+    </style>
+    <style name="DefaultSpinnerDropDownStyle">
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
+        <item name="android:background">@color/blockly_spinner_dropdown_bg</item>
+        <item name="android:padding">4dip</item>
+    </style>
+</resources>
