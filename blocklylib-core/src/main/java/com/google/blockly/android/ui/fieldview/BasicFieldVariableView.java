@@ -18,6 +18,7 @@ package com.google.blockly.android.ui.fieldview;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.text.TextUtils;
+import android.util.AttributeSet;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -27,28 +28,69 @@ import android.widget.TextView;
 import com.google.blockly.model.Field;
 import com.google.blockly.android.control.NameManager;
 
+import java.util.List;
+
 /**
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
-public class BasicFieldVariableView extends Spinner implements FieldVariableView {
-    private final Field.FieldVariable mVariableField;
+public class BasicFieldVariableView extends Spinner implements FieldView {
+    protected Field.FieldVariable.Observer mFieldObserver = new Field.FieldVariable.Observer() {
+        @Override
+        public void onVariableChanged(Field.FieldVariable field, String oldVar, String newVar) {
+            setSelection(mVariableField.getVariable());
+        }
+    };
+
+    protected Field.FieldVariable mVariableField;
 
     /**
      * Constructs a new {@link BasicFieldVariableView}.
      *
      * @param context The application's context.
-     * @param variableField The {@link Field} of type {@link Field#TYPE_VARIABLE} represented.
-     * @param variablesAdapter The adapter holding the current variable names.
      */
-    public BasicFieldVariableView(
-            Context context, Field variableField, SpinnerAdapter variablesAdapter) {
-        super(context);
+    public BasicFieldVariableView(Context context) {
+        this(context, null, 0);
+    }
 
-        mVariableField = (Field.FieldVariable) variableField;
+    public BasicFieldVariableView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
 
-        setAdapter(variablesAdapter);
-        setSelection(mVariableField.getVariable());
-        mVariableField.setView(this);
+    public BasicFieldVariableView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    /**
+     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
+     * field model.
+     *
+     * @param variableField The variable field to view.
+     */
+    public void setField(Field.FieldVariable variableField) {
+        Adapter adapter = getAdapter();
+        if (adapter == null) {
+            throw new IllegalStateException("Cannot set field before setting Adapter");
+        }
+
+        if (mVariableField == variableField) {
+            return;
+        }
+
+        if (mVariableField != null) {
+            mVariableField.unregisterObserver(mFieldObserver);
+        }
+        mVariableField = variableField;
+        if (mVariableField != null) {
+            setSelection(mVariableField.getVariable());
+            mVariableField.registerObserver(mFieldObserver);
+        } else {
+            setSelection(0);
+        }
+    }
+
+    @Override
+    public Field getField() {
+        return mVariableField;
     }
 
     @Override
@@ -57,13 +99,15 @@ public class BasicFieldVariableView extends Spinner implements FieldVariableView
             return;
         }
         super.setSelection(position);
-        mVariableField.setVariable(getAdapter().getItem(position).toString());
+        if (mVariableField != null) {
+            String varName = getAdapter().getItem(position).toString();
+            mVariableField.setVariable(varName);
+        }
     }
 
     @Override
-    public void unlinkModel() {
-        mVariableField.setView(null);
-        // TODO(#45): Remove model from view. Set mVariableField to null. Handle null cases above.
+    public void unlinkField() {
+        setField(null);
     }
 
     /**
@@ -72,15 +116,12 @@ public class BasicFieldVariableView extends Spinner implements FieldVariableView
      *
      * @param variableName The name of the variable, ignoring case.
      */
-    public void setSelection(String variableName) {
+    private void setSelection(String variableName) {
         if (TextUtils.isEmpty(variableName)) {
             throw new IllegalArgumentException("Cannot set an empty variable name.");
         }
         Adapter adapter = getAdapter();
         int size = adapter.getCount();
-        if (size == 0) {
-            throw new IllegalStateException("Attempted to set variable, but there are none.");
-        }
         for (int i = 0; i < size; i++) {
             if (variableName.equalsIgnoreCase(adapter.getItem(i).toString())) {
                 setSelection(i);
@@ -88,37 +129,5 @@ public class BasicFieldVariableView extends Spinner implements FieldVariableView
             }
         }
         throw new IllegalArgumentException("The variable " + variableName + " does not exist.");
-    }
-
-    /**
-     * An implementation of {@link ArrayAdapter} that wraps a name manager to create a list of
-     * items.
-     */
-    public static class VariableAdapter extends ArrayAdapter<String> {
-        private final NameManager mVariableNameManager;
-
-        /**
-         * @param variableNameManager The name manager containing the variables.
-         * @param context A context for inflating layouts.
-         * @param resource The {@link TextView} layout to use when inflating items.
-         */
-        public VariableAdapter(NameManager variableNameManager, Context context, int resource) {
-            super(context, resource);
-            mVariableNameManager = variableNameManager;
-            refreshVariables();
-            variableNameManager.registerObserver(new DataSetObserver() {
-                @Override
-                public void onChanged() {
-                    refreshVariables();
-                }
-            });
-        }
-
-        private void refreshVariables() {
-            clear();
-            for (int i = 0; i < mVariableNameManager.size(); i++) {
-                add(mVariableNameManager.get(i));
-            }
-        }
     }
 }

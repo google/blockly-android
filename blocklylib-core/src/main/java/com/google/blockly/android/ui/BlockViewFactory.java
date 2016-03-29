@@ -16,14 +16,27 @@
 package com.google.blockly.android.ui;
 
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.support.annotation.Nullable;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.SpinnerAdapter;
+import android.widget.TextView;
 
 import com.google.blockly.android.ToolboxFragment;
 import com.google.blockly.android.TrashFragment;
 import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.control.NameManager;
+import com.google.blockly.android.ui.fieldview.BasicFieldAngleView;
+import com.google.blockly.android.ui.fieldview.BasicFieldCheckboxView;
+import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
+import com.google.blockly.android.ui.fieldview.BasicFieldDateView;
+import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
+import com.google.blockly.android.ui.fieldview.BasicFieldImageView;
+import com.google.blockly.android.ui.fieldview.BasicFieldInputView;
+import com.google.blockly.android.ui.fieldview.BasicFieldLabelView;
+import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
@@ -50,6 +63,8 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                                        InputView extends com.google.blockly.android.ui.InputView> {
     protected Context mContext;
     protected WorkspaceHelper mHelper;
+    protected NameManager mVariableNameManager;
+    protected SpinnerAdapter mVariableAdapter;
 
     // TODO(#137): Move to ViewPool class.
     protected final Map<String,WeakReference<BlockView>> mBlockIdToView
@@ -66,7 +81,14 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         return mHelper;
     }
 
-    public abstract void setVariableNameManager(NameManager variableNameManager);
+    /**
+     * Set the {@link NameManager} being used to track variables in the workspace.
+     *
+     * @param variableNameManager The name manager for the variables in the associated workspace.
+     */
+    public void setVariableNameManager(NameManager variableNameManager) {
+        mVariableNameManager = variableNameManager;
+    }
 
     /**
      * Creates a {@link BlockGroup} for the given block and its children using the workspace's
@@ -208,7 +230,73 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      * @param field The {@link Field} to build a view for.
      * @return The new {@link FieldView}.
      */
-    protected abstract FieldView buildFieldView(Field field);
+    protected FieldView buildFieldView(Field field) {
+        @Field.FieldType int type = field.getType();
+        switch (type) {
+            case Field.TYPE_ANGLE: {
+                BasicFieldAngleView fieldAngleView = new BasicFieldAngleView(mContext);
+                fieldAngleView.setField((Field.FieldAngle) field);
+                return fieldAngleView;
+            }
+            case Field.TYPE_CHECKBOX: {
+                BasicFieldCheckboxView fieldCheckboxView = new BasicFieldCheckboxView(mContext);
+                fieldCheckboxView.setField((Field.FieldCheckbox) field);
+                return fieldCheckboxView;
+            }
+            case Field.TYPE_COLOUR: {
+                BasicFieldColourView fieldColourView = new BasicFieldColourView(mContext);
+                fieldColourView.setField((Field.FieldColour) field);
+                return fieldColourView;
+            }
+            case Field.TYPE_DATE: {
+                BasicFieldDateView fieldDateView = new BasicFieldDateView(mContext);
+                fieldDateView.setField((Field.FieldDate) field);
+                return fieldDateView;
+            }
+            case Field.TYPE_DROPDOWN: {
+                BasicFieldDropdownView fieldDropdownView = new BasicFieldDropdownView(mContext);
+                fieldDropdownView.setField((Field.FieldDropdown) field);
+                return fieldDropdownView;
+            }
+            case Field.TYPE_IMAGE: {
+                BasicFieldImageView fieldImageView = new BasicFieldImageView(mContext);
+                fieldImageView.setField((Field.FieldImage) field);
+                return fieldImageView;
+            }
+            case Field.TYPE_INPUT: {
+                BasicFieldInputView fieldInputView = new BasicFieldInputView(mContext);
+                fieldInputView.setField((Field.FieldInput) field);
+                return fieldInputView;
+            }
+            case Field.TYPE_LABEL: {
+                BasicFieldLabelView fieldLabelView = new BasicFieldLabelView(mContext);
+                fieldLabelView.setField((Field.FieldLabel) field);
+                return fieldLabelView;
+            }
+            case Field.TYPE_VARIABLE: {
+                BasicFieldVariableView fieldVariableView = new BasicFieldVariableView(mContext);
+                fieldVariableView.setAdapter(getVariableAdapter());
+                fieldVariableView.setField((Field.FieldVariable) field);
+                return fieldVariableView;
+            }
+
+            case Field.TYPE_UNKNOWN:
+            default:
+                throw new IllegalArgumentException("Unknown Field type: " + type);
+        }
+    }
+
+    protected SpinnerAdapter getVariableAdapter() {
+        if (mVariableNameManager == null) {
+            throw new IllegalStateException("NameManager must be set before variable field is "
+                    + "instantiated.");
+        }
+        if (mVariableAdapter == null) {
+            mVariableAdapter = new BasicVariableAdapter(mVariableNameManager, mContext,
+                    android.R.layout.simple_spinner_item);
+        }
+        return mVariableAdapter;
+    }
 
     /**
      * Removes the mapping to this view from its block.  This should only be called from
@@ -220,5 +308,40 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected final void unregisterView(BlockView blockView) {
         Block block = blockView.getBlock();
         mBlockIdToView.remove(block.getId());
+    }
+
+    /**
+     * An implementation of {@link ArrayAdapter} that wraps a name manager to create a list of
+     * items.
+     */
+    public static class BasicVariableAdapter extends ArrayAdapter<String> {
+        private final NameManager mVariableNameManager;
+
+        /**
+         * @param variableNameManager The name manager containing the variables.
+         * @param context A context for inflating layouts.
+         * @param resource The {@link TextView} layout to use when inflating items.
+         */
+        public BasicVariableAdapter(
+                NameManager variableNameManager, Context context, int resource) {
+
+            super(context, resource);
+            mVariableNameManager = variableNameManager;
+            refreshVariables();
+            variableNameManager.registerObserver(new DataSetObserver() {
+                @Override
+                public void onChanged() {
+                    refreshVariables();
+                }
+            });
+        }
+
+        private void refreshVariables() {
+            clear();
+            for (int i = 0; i < mVariableNameManager.size(); i++) {
+                add(mVariableNameManager.get(i));
+            }
+            notifyDataSetChanged();
+        }
     }
 }

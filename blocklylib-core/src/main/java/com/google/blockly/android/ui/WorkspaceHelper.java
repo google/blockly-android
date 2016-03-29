@@ -77,9 +77,7 @@ public class WorkspaceHelper {
     private boolean mRtl;
 
     /**
-     * Create a helper for creating and doing calculations for views in the workspace, with a
-     * specific style. The style must be a resource id for a style that extends
-     * {@link R.style#BlocklyTheme}.
+     * Create a helper for creating and doing calculations for views in the workspace.
      *
      * @param context The {@link Context} of the fragment or activity this lives in.
      */

@@ -48,7 +48,7 @@ public class BasicFieldInputViewTest extends MockitoAndroidTestCase {
     // Verify object instantiation.
     public void testInstantiation() {
         final BasicFieldInputView view = makeFieldInputView();
-        assertSame(view, mFieldInput.getView());
+        assertSame(mFieldInput, view.getField());
         assertEquals(INIT_TEXT_VALUE, view.getText().toString());  // Fails without .toString()
     }
 

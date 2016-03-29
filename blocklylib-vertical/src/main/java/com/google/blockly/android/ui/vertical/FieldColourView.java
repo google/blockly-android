@@ -6,7 +6,6 @@ import android.graphics.drawable.NinePatchDrawable;
 
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
-import com.google.blockly.model.Field;
 
 /**
  * {@link BasicFieldColourView} with a inset emboss that matches its containing BlockView.
@@ -14,20 +13,23 @@ import com.google.blockly.model.Field;
 public class FieldColourView extends BasicFieldColourView {
     private final NinePatchDrawable mInsetPatch;
 
-    protected final WorkspaceHelper mHelper;
+    protected WorkspaceHelper mHelper;
     private BlockView mBlockView = null;
 
-    public FieldColourView(Context context, Field colourField, WorkspaceHelper helper) {
-        super(context, colourField);
-
-        mHelper = helper;
+    public FieldColourView(Context context) {
+        super(context);
         mInsetPatch = (NinePatchDrawable) getResources().getDrawable(R.drawable.inset_field_border);
+    }
+
+    public void setWorkspaceHelper(WorkspaceHelper helper) {
+        mHelper = helper;
+        maybeAcquireParentBlockView();
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        mBlockView = (BlockView) mHelper.getClosestAncestorBlockView(this);
+        maybeAcquireParentBlockView();
     }
 
     @Override
@@ -40,6 +42,12 @@ public class FieldColourView extends BasicFieldColourView {
             mInsetPatch.setBounds(0, 0, width, height);
             mInsetPatch.setColorFilter(mBlockView.getColorFilter());
             mInsetPatch.draw(canvas);
+        }
+    }
+
+    private void maybeAcquireParentBlockView() {
+        if (mHelper != null && isAttachedToWindow()) {
+            mBlockView = (BlockView) mHelper.getClosestAncestorBlockView(this);
         }
     }
 }

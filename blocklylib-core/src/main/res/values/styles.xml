@@ -15,7 +15,6 @@
   -->
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
-
     <style name="BlocklyTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="minScale">0.5</item>
         <item name="maxScale">2.5</item>

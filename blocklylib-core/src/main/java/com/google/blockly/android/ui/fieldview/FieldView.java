@@ -17,6 +17,8 @@ package com.google.blockly.android.ui.fieldview;
 
 import android.view.View;
 
+import com.google.blockly.model.Field;
+
 /**
  * Describes methods that all views that are representing a Field must implement.
  * <p/>
@@ -24,7 +26,12 @@ import android.view.View;
  */
 public interface FieldView {
     /**
+     * @return The field represented by this view.
+     */
+    Field getField();
+
+    /**
      * Disconnect the model from this view.
      */
-    void unlinkModel();
+    void unlinkField();
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2016 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -26,16 +26,17 @@ import com.google.blockly.model.Field;
  * Renders an angle as part of a Block.
  */
 public class BasicFieldAngleView extends TextView implements FieldView {
-    protected final Field.FieldAngle mAngleField;
+    protected Field.FieldAngle.Observer mFieldObserver = new Field.FieldAngle.Observer() {
+        @Override
+        public void onAngleChanged(Field field, int oldAngle, int newAngle) {
+            setText(Integer.toString(newAngle));
+        }
+    };
 
-    public BasicFieldAngleView(Context context, Field angleField) {
+    protected Field.FieldAngle mAngleField = null;
+
+    public BasicFieldAngleView(Context context) {
         super(context);
-
-        mAngleField = (Field.FieldAngle) angleField;
-
-        setBackground(null);
-        setText(Integer.toString(mAngleField.getAngle()));
-        angleField.setView(this);
 
         addTextChangedListener(new TextWatcher() {
             @Override
@@ -53,9 +54,37 @@ public class BasicFieldAngleView extends TextView implements FieldView {
         });
     }
 
+    /**
+     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
+     * field model.
+     *
+     * @param angleField The angle field model to view.
+     */
+    public void setField(Field.FieldAngle angleField) {
+        if (mAngleField == angleField) {
+            return;
+        }
+
+        if (mAngleField != null) {
+            mAngleField.unregisterObserver(mFieldObserver);
+        }
+        mAngleField = angleField;
+        if (mAngleField != null) {
+            setText(Integer.toString(mAngleField.getAngle()));
+            mAngleField.registerObserver(mFieldObserver);
+        } else {
+            setText("");
+        }
+    }
+
     @Override
-    public void unlinkModel() {
-        mAngleField.setView(null);
+    public Field getField() {
+        return mAngleField;
+    }
+
+    @Override
+    public void unlinkField() {
+        setField(null);
         // TODO(#45): Remove model from view. Set mAngleField to null, and handle null cases above.
     }
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2016 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -18,6 +18,7 @@ package com.google.blockly.android.ui.fieldview;
 import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
@@ -25,23 +26,28 @@ import com.google.blockly.model.Field;
 /**
  * Renders a date and a date picker as part of a Block.
  */
-public class BasicFieldDateView extends TextView implements FieldDateView {
-    protected final Field.FieldDate mDateField;
+public class BasicFieldDateView extends TextView implements FieldView {
+    protected Field.FieldDate.Observer mFieldObserver = new Field.FieldDate.Observer() {
+        @Override
+        public void onDateChanged(Field field, long oldMillis, long newMillis) {
+            setText(mDateField.getDateString());
+        }
+    };
 
-    /**
-     * Constructs a new {@link BasicFieldDateView}.
-     *
-     * @param context The application's context.
-     * @param dateField The {@link Field} of type {@link Field#TYPE_DATE} represented.
-     */
-    public BasicFieldDateView(Context context, Field dateField) {
-        super(context);
+    protected Field.FieldDate mDateField;
 
-        mDateField = (Field.FieldDate) dateField;
+    public BasicFieldDateView(Context context) {
+        this(context, null, 0);
+    }
+
+    public BasicFieldDateView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public BasicFieldDateView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
 
         setBackground(null);
-        setText(mDateField.getDateString());
-        dateField.setView(this);
 
         addTextChangedListener(new TextWatcher() {
             @Override
@@ -54,14 +60,43 @@ public class BasicFieldDateView extends TextView implements FieldDateView {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mDateField.setFromString(s.toString());
+                if (mDateField != null) {
+                    mDateField.setFromString(s.toString());
+                }
             }
         });
     }
 
+    /**
+     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
+     * field model.
+     *
+     * @param dateField The date field to view.
+     */
+    public void setField(Field.FieldDate dateField) {
+        if (mDateField == dateField) {
+            return;
+        }
+
+        if (mDateField != null) {
+            mDateField.unregisterObserver(mFieldObserver);
+        }
+        mDateField = dateField;
+        if (mDateField != null) {
+            setText(mDateField.getDateString());
+            mDateField.registerObserver(mFieldObserver);
+        } else {
+            setText("");
+        }
+    }
+
     @Override
-    public void unlinkModel() {
-        mDateField.setView(null);
-        // TODO(#45): Remove model from view. Set mDateField to null, and handle null cases above.
+    public Field getField() {
+        return mDateField;
+    }
+
+    @Override
+    public void unlinkField() {
+        setField(null);
     }
 }

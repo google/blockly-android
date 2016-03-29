@@ -53,14 +53,15 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
     // Verify object instantiation.
     public void testInstantiation() {
         final BasicFieldVariableView view = makeFieldVariableView();
-        assertSame(view, mFieldVariable.getView());
+
+        assertSame(mFieldVariable, view.getField());
         assertEquals(mVariables.length, view.getCount());
         assertEquals(mFieldVariable.getVariable().toLowerCase(), view.getSelectedItem().toString());
     }
 
     // Verify update of field when an item is selected from the dropdown.
     // TODO(#69): need tests (using Espresso?) to confirm that user interaction has the same
-    //            effect as calling FieldVariableView.setSelection().
+    //            effect as calling BasicFieldVariableView.setSelection().
     public void testUpdateFieldFromView() {
         final BasicFieldVariableView view = makeFieldVariableView();
 
@@ -93,6 +94,9 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     private BasicFieldVariableView makeFieldVariableView() {
-        return new BasicFieldVariableView(getContext(), mFieldVariable, mVariableAdapter);
+        BasicFieldVariableView view = new BasicFieldVariableView(getContext());
+        view.setAdapter(mVariableAdapter);
+        view.setField(mFieldVariable);
+        return view;
     }
 }
