@@ -59,7 +59,8 @@ public class BasicFieldColourViewTest
         mLayout.layout(0, 0, LAYOUT_WIDTH, LAYOUT_HEIGHT);
 
         mFieldColour = new Field.FieldColour("FieldColour");
-        mFieldColorView = new BasicFieldColourView(mActivity, mFieldColour);
+        mFieldColorView = new BasicFieldColourView(mActivity);
+        mFieldColorView.setField(mFieldColour);
         mLayout.addView(mFieldColorView);
     }
 

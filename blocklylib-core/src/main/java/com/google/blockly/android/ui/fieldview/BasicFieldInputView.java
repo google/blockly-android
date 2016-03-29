@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google Inc. All Rights Reserved.
+ * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,31 +33,26 @@ import com.google.blockly.model.Field;
  */
 public class BasicFieldInputView extends EditText implements FieldView {
     private static final String TAG = "BasicFieldInputView";
-    protected Field.FieldInput mInput;
 
-    protected TextWatcher mWatcher = new TextWatcher() {
+    private final TextWatcher mWatcher = new TextWatcher() {
         @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-        }
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
         @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-        }
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
         @Override
         public void afterTextChanged(Editable s) {
-            if (mInput != null) {
-                mInput.setText(s.toString());
+            if (mInputField != null) {
+                mInputField.setText(s.toString());
             }
         }
     };
 
-    private Field.FieldInput.Observer mFieldObserver = new Field.FieldInput.Observer() {
+    private final Field.FieldInput.Observer mFieldObserver = new Field.FieldInput.Observer() {
         @Override
         public void onTextChanged(Field.FieldInput field, String oldText, String newText) {
-            if (field != mInput) {
+            if (field != mInputField) {
                 Log.w(TAG, "Received text change from unexpected field.");
                 return;
             }
@@ -67,8 +62,10 @@ public class BasicFieldInputView extends EditText implements FieldView {
         }
     };
 
+    protected Field.FieldInput mInputField;
+
     public BasicFieldInputView(Context context) {
-        super(context, null);
+        super(context);
     }
 
     public BasicFieldInputView(Context context, AttributeSet attrs) {
@@ -76,12 +73,7 @@ public class BasicFieldInputView extends EditText implements FieldView {
     }
 
     public BasicFieldInputView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr, 0);
-    }
-
-    public BasicFieldInputView(
-            Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
+        super(context, attrs, defStyleAttr);
     }
 
     @Override
@@ -90,20 +82,32 @@ public class BasicFieldInputView extends EditText implements FieldView {
         addTextChangedListener(mWatcher);
     }
 
-    public void setField(Field input) {
-        if (mInput != null) {
-            mInput.unregisterObserver(mFieldObserver);
-            mInput.setView(null);
+    /**
+     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
+     * field model.
+     *
+     * @param input The input field to view.
+     */
+    public void setField(Field.FieldInput input) {
+        if (mInputField == input) {
+            return;
         }
-        if (input != null) {
-            mInput = (Field.FieldInput) input;
-            setText(mInput.getText());
-            mInput.setView(this);
-            mInput.registerObserver(mFieldObserver);
+
+        if (mInputField != null) {
+            mInputField.unregisterObserver(mFieldObserver);
+        }
+        mInputField = input;
+        if (mInputField != null) {
+            setText(mInputField.getText());
+            mInputField.registerObserver(mFieldObserver);
         } else {
-            mInput = null;
             setText("");
         }
+    }
+
+    @Override
+    public Field getField() {
+        return mInputField;
     }
 
     /**
@@ -129,12 +133,7 @@ public class BasicFieldInputView extends EditText implements FieldView {
     }
 
     @Override
-    public void unlinkModel() {
-        if (mInput != null) {
-            mInput.setView(null);
-            mInput.unregisterObserver(mFieldObserver);
-            mInput = null;
-        }
-        // TODO(#45): Remove model from view. Set mInput to null, and handle null cases above.
+    public void unlinkField() {
+        setField(null);
     }
 }

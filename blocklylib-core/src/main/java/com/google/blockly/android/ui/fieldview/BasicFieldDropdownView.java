@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2016 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -16,38 +16,104 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import com.google.blockly.android.R;
 import com.google.blockly.model.Field;
+
+import java.util.List;
 
 /**
  * Renders a dropdown field as part of a Block.
  */
-public class BasicFieldDropdownView extends Spinner implements FieldDropdownView {
-    protected final Field.FieldDropdown mDropdownField;
+public class BasicFieldDropdownView extends Spinner implements FieldView {
+    private static final String TAG = "BasicFieldDropdownView";
+
+    private Field.FieldDropdown.Observer mFieldObserver = new Field.FieldDropdown.Observer() {
+        @Override
+        public void onSelectionChanged(Field.FieldDropdown field, int oldIndex, int newIndex) {
+            setSelection(newIndex);
+        }
+    };
+
+    protected Field.FieldDropdown mDropdownField;
+    protected int mItemLayout;
+    protected int mItemDropdownLayout;
 
     /**
      * Constructs a new {@link BasicFieldDropdownView}.
      *
      * @param context The application's context.
-     * @param dropdownField The {@link Field} of type {@link Field#TYPE_DROPDOWN} represented.
-     * @param spinnerItemLayout The layout id for the item in the spinner.
-     * @param dropDownLayout The layout id for the items in the dropdown.
      */
-    public BasicFieldDropdownView(
-            Context context, Field dropdownField, int spinnerItemLayout, int dropDownLayout) {
+    public BasicFieldDropdownView(Context context) {
         super(context);
+        loadAttributes(null, 0);
+    }
 
-        mDropdownField = (Field.FieldDropdown) dropdownField;
+    public BasicFieldDropdownView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        loadAttributes(attrs, 0);
+    }
 
-        ArrayAdapter adapter = new ArrayAdapter<>(context, spinnerItemLayout,
-                mDropdownField.getDisplayNames());
-        adapter.setDropDownViewResource(dropDownLayout);
-        setAdapter(adapter);
+    public BasicFieldDropdownView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        loadAttributes(attrs, defStyleAttr);
+    }
 
-        super.setSelection(mDropdownField.getSelectedIndex());
-        mDropdownField.setView(this);
+    private void loadAttributes(AttributeSet attrs, int defStyleAttr) {
+        TypedArray a = getContext().getTheme().obtainStyledAttributes(
+                attrs, R.styleable.BasicFieldDropdownView, defStyleAttr, 0);
+
+        try {
+            mItemLayout = a.getResourceId(R.styleable.BasicFieldDropdownView_itemLayout,
+                    android.R.layout.simple_spinner_item);
+            mItemDropdownLayout = a.getResourceId(
+                    R.styleable.BasicFieldDropdownView_dropdownItemLayout,
+                    android.R.layout.simple_spinner_dropdown_item);
+        } finally {
+            a.recycle();
+        }
+    }
+
+    /**
+     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
+     * field model.
+     *
+     * @param dropdownField The dropdown field to view.
+     */
+    public void setField(Field.FieldDropdown dropdownField) {
+        if (mDropdownField == dropdownField) {
+            return;
+        }
+
+        if (mDropdownField != null) {
+            mDropdownField.unregisterObserver(mFieldObserver);
+        }
+        mDropdownField = dropdownField;
+        if (mDropdownField != null) {
+            List<String> items = mDropdownField.getDisplayNames();
+            ArrayAdapter<String> adapter =
+                    new ArrayAdapter<>(getContext(), mItemLayout, items);
+            adapter.setDropDownViewResource(mItemDropdownLayout);
+            setAdapter(adapter);
+            if (items.size() > 0) {
+                setSelection(mDropdownField.getSelectedIndex());
+            }
+
+            mDropdownField.registerObserver(mFieldObserver);
+        } else {
+            setSelection(0);
+            setAdapter(null);
+        }
+    }
+
+    @Override
+    public Field getField() {
+        return mDropdownField;
     }
 
     @Override
@@ -56,13 +122,13 @@ public class BasicFieldDropdownView extends Spinner implements FieldDropdownView
             return;
         }
         super.setSelection(position);
-        mDropdownField.setSelectedIndex(position);
+        if (mDropdownField != null) {
+            mDropdownField.setSelectedIndex(position);
+        }
     }
 
     @Override
-    public void unlinkModel() {
-        mDropdownField.setView(null);
-        // TODO(#45): Remove model from view. Set mDropdownField to null,
-        //            and handle null cases above.
+    public void unlinkField() {
+        setField(null);
     }
 }

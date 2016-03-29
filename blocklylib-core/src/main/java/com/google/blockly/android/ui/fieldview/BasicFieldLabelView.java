@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google Inc. All Rights Reserved.
+ * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
+import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
@@ -23,28 +24,63 @@ import com.google.blockly.model.Field;
 /**
  * Renders text as part of a BlockView.
  */
-public class BasicFieldLabelView extends TextView implements FieldLabelView {
-    protected final Field.FieldLabel mLabelField;
+public class BasicFieldLabelView extends TextView implements FieldView {
+    protected final Field.FieldLabel.Observer mFieldObserver = new Field.FieldLabel.Observer() {
+        @Override
+        public void onTextChanged(Field.FieldLabel field, String oldText, String newText) {
+            setText(newText);
+        }
+    };
+
+    protected Field.FieldLabel mLabelField;
 
     /**
-     * Create a view for the given field using the specified style.
+     * Constructs a new {@link BasicFieldLabelView}.
      *
-     * @param context The context for creating the view and loading resources.
-     * @param labelField The label this view is rendering.
+     * @param context The application's context.
      */
-    public BasicFieldLabelView(Context context, Field labelField, int style) {
-        super(context, null, style);
+    public BasicFieldLabelView(Context context) {
+        super(context);
+    }
 
-        mLabelField = (Field.FieldLabel) labelField;
+    public BasicFieldLabelView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-        setBackground(null);
-        setText(mLabelField.getText());
-        labelField.setView(this);
+    public BasicFieldLabelView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    /**
+     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
+     * field model.
+     *
+     * @param labelField The label field to view.
+     */
+    public void setField(Field.FieldLabel labelField) {
+        if (mLabelField == labelField) {
+            return;
+        }
+
+        if (mLabelField != null) {
+            mLabelField.unregisterObserver(mFieldObserver);
+        }
+        mLabelField = labelField;
+        if (mLabelField != null) {
+            setText(mLabelField.getText());
+            mLabelField.registerObserver(mFieldObserver);
+        } else {
+            setText("");
+        }
     }
 
     @Override
-    public void unlinkModel() {
-        mLabelField.setView(null);
-        // TODO(#45): Remove model from view. Set mLabelField to null, and handle null cases above.
+    public Field getField() {
+        return mLabelField;
+    }
+
+    @Override
+    public void unlinkField() {
+        setField(null);
     }
 }

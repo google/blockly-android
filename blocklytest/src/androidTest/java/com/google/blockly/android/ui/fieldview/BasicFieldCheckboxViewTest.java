@@ -41,12 +41,6 @@ public class BasicFieldCheckboxViewTest extends MockitoAndroidTestCase {
         mFieldCheckbox = new Field.FieldCheckbox("FieldCheckbox", false);
     }
 
-    // Verify object instantiation.
-    public void testInstantiation() {
-        final BasicFieldCheckboxView view = makeFieldCheckboxView();
-        assertSame(view, mFieldCheckbox.getView());
-    }
-
     // Verify field object gets updated when view is checked/unchecked.
     public void testFieldUpdatesFromView() {
         final BasicFieldCheckboxView view = makeFieldCheckboxView();
@@ -77,6 +71,8 @@ public class BasicFieldCheckboxViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     private BasicFieldCheckboxView makeFieldCheckboxView() {
-        return new BasicFieldCheckboxView(getContext(), mFieldCheckbox);
+        BasicFieldCheckboxView view = new BasicFieldCheckboxView(getContext());
+        view.setField(mFieldCheckbox);
+        return view;
     }
 }

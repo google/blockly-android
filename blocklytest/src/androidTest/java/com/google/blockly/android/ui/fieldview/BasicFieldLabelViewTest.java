@@ -37,11 +37,10 @@ public class BasicFieldLabelViewTest extends MockitoAndroidTestCase {
     // Verify object instantiation.
     public void testInstantiation() {
         mFieldLabel = new Field.FieldLabel("FieldLabel", INIT_TEXT_VALUE);
-        assertNotNull(mFieldLabel);
 
-        final BasicFieldLabelView view =
-                new BasicFieldLabelView(getContext(), mFieldLabel, 0);
-        assertSame(view, mFieldLabel.getView());
+        final BasicFieldLabelView view = new BasicFieldLabelView(getContext());
+        view.setField(mFieldLabel);
+        assertSame(mFieldLabel, view.getField());
         assertEquals(INIT_TEXT_VALUE, view.getText().toString());  // Fails without .toString()
     }
 }

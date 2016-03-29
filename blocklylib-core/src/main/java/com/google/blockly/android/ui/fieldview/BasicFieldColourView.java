@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2016 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -21,6 +21,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.VisibleForTesting;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,32 +32,48 @@ import com.google.blockly.model.Field;
 /**
  * Renders a color field and picker as part of a BlockView.
  */
-public class BasicFieldColourView extends View implements FieldColourView {
+public class BasicFieldColourView extends View implements FieldView {
     protected static final int DEFAULT_MIN_WIDTH_DP = 40;
-    protected static final int DEFAULT_MIN_HEIGHT_DP = 28;  // Base on styled FieldLabelView height?
-
-    protected final Field.FieldColour mColourField;
-
-    @VisibleForTesting
-    protected final Paint mSelectedColourPaint = new Paint();
-
-    protected AutoPositionPopupWindow mColourPopupWindow;
-    protected ColourPaletteView mColourPaletteView;
+    protected static final int DEFAULT_MIN_HEIGHT_DP = 28;  // Base on styled label text height?
 
     @VisibleForTesting
     static final int ALPHA_OPAQUE = 0xFF000000;
 
-    public BasicFieldColourView(Context context, Field colourField) {
+    private Field.FieldColour.Observer mFieldObserver = new Field.FieldColour.Observer() {
+        @Override
+        public void onColourChanged(Field field, int oldColour, int newColour) {
+            mSelectedColourPaint.setColor(ALPHA_OPAQUE | newColour);
+            invalidate();
+        }
+    };
+
+    @VisibleForTesting
+    protected final Paint mSelectedColourPaint = new Paint();
+
+    protected Field.FieldColour mColourField = null;
+
+    protected AutoPositionPopupWindow mColourPopupWindow;
+    protected ColourPaletteView mColourPaletteView;
+
+    public BasicFieldColourView(Context context) {
         super(context);
+        initPostConstructor();
+    }
 
-        mColourField = (Field.FieldColour) colourField;
+    public BasicFieldColourView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        initPostConstructor();
+    }
 
-        float density = context.getResources().getDisplayMetrics().density;
+    public BasicFieldColourView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        initPostConstructor();
+    }
+
+    private void initPostConstructor() {
+        float density = getContext().getResources().getDisplayMetrics().density;
         setMinimumWidth((int) (DEFAULT_MIN_WIDTH_DP * density));
         setMinimumHeight((int) (DEFAULT_MIN_HEIGHT_DP * density));
-
-        setColour(mColourField.getColour());
-        mColourField.setView(this);
 
         setOnClickListener(new OnClickListener() {
             @Override
@@ -64,6 +81,37 @@ public class BasicFieldColourView extends View implements FieldColourView {
                 openColourPickerPopupWindow();
             }
         });
+    }
+
+    /**
+     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
+     * field model.
+     *
+     * @param colourField The colour field to view.
+     */
+    public void setField(Field.FieldColour colourField) {
+        if (mColourField == colourField) {
+            return;
+        }
+
+        if (mColourField != null) {
+            mColourField.unregisterObserver(mFieldObserver);
+        }
+        mColourField = colourField;
+        if (mColourField != null) {
+            mSelectedColourPaint.setColor(ALPHA_OPAQUE | mColourField.getColour());
+            mColourField.registerObserver(mFieldObserver);
+        }
+    }
+
+    @Override
+    public Field getField() {
+        return mColourField;
+    }
+
+    @Override
+    public void unlinkField() {
+        setField(null);
     }
 
     /**
@@ -99,12 +147,6 @@ public class BasicFieldColourView extends View implements FieldColourView {
             default:
                 return min;
         }
-    }
-
-    @Override
-    public void unlinkModel() {
-        mColourField.setView(null);
-        // TODO(#45): Remove model from view. Set mColourField to null, and handle null cases above.
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google Inc. All Rights Reserved.
+ * Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.AttributeSet;
 import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
@@ -31,22 +32,65 @@ import java.net.URL;
  * Renders an image bitmap.
  */
 public class BasicFieldImageView extends ImageView implements FieldView {
-    protected final Field.FieldImage mImage;
+    protected final Field.FieldImage.Observer mFieldObserver = new Field.FieldImage.Observer() {
+        @Override
+        public void onImageChanged(Field.FieldImage field, String newSource,
+                                   int newWidth, int newHeight) {
 
-    public BasicFieldImageView(Context context, Field field) {
+            loadImageFromSource(newSource);
+        }
+    };
+
+    protected Field.FieldImage mImageField;
+
+    /**
+     * Constructs a new {@link BasicFieldImageView}.
+     *
+     * @param context The application's context.
+     */
+    public BasicFieldImageView(Context context) {
         super(context);
+    }
 
-        mImage = (Field.FieldImage) field;
+    public BasicFieldImageView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-        setBackground(null);
-        loadImageFromSource(mImage.getSource());
-        mImage.setView(this);
+    public BasicFieldImageView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    /**
+     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
+     * field model.
+     *
+     * @param imageField The image field to view.
+     */
+    public void setField(Field.FieldImage imageField) {
+        if (mImageField == imageField) {
+            return;
+        }
+
+        if (mImageField != null) {
+            mImageField.unregisterObserver(mFieldObserver);
+        }
+        mImageField = imageField;
+        if (mImageField != null) {
+            loadImageFromSource(mImageField.getSource());
+            mImageField.registerObserver(mFieldObserver);
+        } else {
+            // TODO(#44): Set image to default 'no image' default
+        }
     }
 
     @Override
-    public void unlinkModel() {
-        mImage.setView(null);
-        // TODO(#45): Remove model from view. Set mImage to null, and handle null cases above.
+    public Field getField() {
+        return mImageField;
+    }
+
+    @Override
+    public void unlinkField() {
+        setField(null);
     }
 
     /**

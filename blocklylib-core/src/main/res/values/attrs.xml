@@ -101,4 +101,9 @@
             <flag name="end" value="0x00000011"/> <!-- RTL adaptive clockwise -->
         </attr>
     </declare-styleable>
+
+    <declare-styleable name="BasicFieldDropdownView">
+        <attr name="itemLayout" format="reference" />
+        <attr name="dropdownItemLayout" format="reference" />
+    </declare-styleable>
 </resources>

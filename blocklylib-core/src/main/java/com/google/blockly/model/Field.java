@@ -21,15 +21,6 @@ import android.support.annotation.IntDef;
 import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
-
-import com.google.blockly.android.ui.fieldview.FieldCheckboxView;
-import com.google.blockly.android.ui.fieldview.FieldColourView;
-import com.google.blockly.android.ui.fieldview.FieldDateView;
-import com.google.blockly.android.ui.fieldview.FieldDropdownView;
-import com.google.blockly.android.ui.fieldview.FieldLabelView;
-import com.google.blockly.android.ui.fieldview.FieldVariableView;
-import com.google.blockly.android.ui.fieldview.FieldView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,7 +66,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     private static final String TYPE_IMAGE_STRING = "field_image";
     private final String mName;
     private final int mType;
-    protected FieldView mView;
 
     public Field(String name, @FieldType int type) {
         mName = name;
@@ -117,20 +107,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     @FieldType
     public int getType() {
         return mType;
-    }
-
-    /**
-     * @return The view that renders this field.
-     */
-    public FieldView getView() {
-        return mView;
-    }
-
-    /**
-     * Sets the view that renders this field.
-     */
-    public void setView(FieldView view) {
-        mView = view;
     }
 
     /**
@@ -307,9 +283,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
             if (!TextUtils.equals(text, mText)) {
                 String oldText = mText;
                 mText = text;
-                if (mView != null) {
-                    ((FieldLabelView)mView).setText(text);
-                }
                 onTextChanged(oldText, text);
             }
         }
@@ -548,9 +521,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
         public void setChecked(boolean checked) {
             if (mChecked != checked) {
                 mChecked = checked;
-                if (mView != null) {
-                    ((FieldCheckboxView) mView).setChecked(mChecked);
-                }
                 onCheckChanged(checked);
             }
         }
@@ -637,9 +607,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
             if (mColour != newColour) {
                 int oldColour = mColour;
                 mColour = newColour;
-                if (mView != null) {
-                    ((FieldColourView) mView).setColour(mColour);
-                }
                 onColourChanged(oldColour, newColour);
             }
         }
@@ -754,9 +721,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
             long oldTime = mDate.getTime();
             if (millis != oldTime) {
                 mDate.setTime(millis);
-                if (mView != null) {
-                    ((FieldDateView) mView).setText(getDateString());
-                }
                 onDateChanged(oldTime, millis);
             }
         }
@@ -833,9 +797,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
                 String oldVar = mVariable;
                 mVariable = variable;
                 onVariableChanged(this, oldVar, variable);
-                if (mView != null) {
-                    ((FieldVariableView)mView).setSelection(mVariable);
-                }
             }
         }
 
@@ -1004,13 +965,10 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
             }
 
             // If value selected index has changed, update current selection and (if it exists) let
-            // the FieldDropdownView know.
+            // the observers know.
             if (mCurrentSelection != index) {
                 int oldIndex = mCurrentSelection;
                 mCurrentSelection = index;
-                if (mView != null) {
-                    ((FieldDropdownView) mView).setSelection(mCurrentSelection);
-                }
                 onSelectionChanged(this, oldIndex, index);
             }
         }
@@ -1159,9 +1117,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
                 mSrc = src;
                 mWidth = width;
                 mHeight = height;
-                if (mView != null) {
-                    ((View) mView).requestLayout();
-                }
                 onImageChanged(src, width, height);
             }
         }
