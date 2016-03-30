@@ -404,10 +404,21 @@ public abstract class Input implements Cloneable {
 
         @Override
         public void serialize(XmlSerializer serializer) throws IOException {
-            if (getConnection() != null && getConnection().isConnected()) {
+            if (getConnection() != null && (getConnection().isConnected()
+                    || getConnection().getTargetShadowBlock() != null)) {
                 serializer.startTag(null, "value")
                         .attribute(null, "name", getName());
-                getConnection().getTargetBlock().serialize(serializer, false);
+
+                // Serialize the connection's shadow if it has one
+                Block block = getConnection().getTargetShadowBlock();
+                if (block != null) {
+                    block.serialize(serializer, false);
+                }
+                // Then serialize its non-shadow target if it has one
+                block = getConnection().getTargetBlock();
+                if (block != null) {
+                    block.serialize(serializer, false);
+                }
                 serializer.endTag(null, "value");
             }
             super.serialize(serializer);
@@ -446,10 +457,22 @@ public abstract class Input implements Cloneable {
 
         @Override
         public void serialize(XmlSerializer serializer) throws IOException {
-            if (getConnection() != null && getConnection().isConnected()) {
+            if (getConnection() != null && (getConnection().isConnected()
+                    || getConnection().getTargetShadowBlock() != null)) {
                 serializer.startTag(null, "statement")
                         .attribute(null, "name", getName());
-                getConnection().getTargetBlock().serialize(serializer, false);
+
+                // Serialize the connection's shadow if it has one
+                Block block = getConnection().getTargetShadowBlock();
+                if (block != null) {
+                    block.serialize(serializer, false);
+                }
+                // Then serialize its non-shadow target if it has one
+                block = getConnection().getTargetBlock();
+                if (block != null) {
+                    block.serialize(serializer, false);
+                }
+
                 serializer.endTag(null, "statement");
             }
             super.serialize(serializer);

@@ -131,13 +131,13 @@ public class BlockTest extends AndroidTestCase {
         // Values.
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("1",
                 BlockTestStrings.VALUE_GOOD), bf);
+        // Value: null child block
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("3",
+                BlockTestStrings.VALUE_NO_CHILD), bf);
         // TODO(fenichel): Value: no input connection
         // Value: no output connection on child
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("2",
                 BlockTestStrings.VALUE_NO_OUTPUT), bf);
-        // value: null child block
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("3",
-                BlockTestStrings.VALUE_NO_CHILD), bf);
         // Value: no input with that name
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("4",
                 BlockTestStrings.VALUE_BAD_NAME), bf);
@@ -164,9 +164,6 @@ public class BlockTest extends AndroidTestCase {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("11",
                 BlockTestStrings.FIELD_MISSING_TEXT), bf);
 
-        // Statement: null child block
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("12",
-                BlockTestStrings.STATEMENT_NO_CHILD), bf);
         // Statement: no previous connection on child block
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("13",
                 BlockTestStrings.STATEMENT_BAD_CHILD), bf);
@@ -177,6 +174,9 @@ public class BlockTest extends AndroidTestCase {
         // Statement
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("15",
                 BlockTestStrings.STATEMENT_GOOD), bf);
+        // Statement: null child block
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("12",
+                BlockTestStrings.STATEMENT_NO_CHILD), bf);
     }
 
     public void testSerializeBlock() throws BlocklySerializerException, IOException {
