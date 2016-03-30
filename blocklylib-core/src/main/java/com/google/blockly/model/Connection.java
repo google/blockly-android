@@ -20,6 +20,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.blockly.android.ui.InputView;
 
@@ -31,6 +32,7 @@ import java.lang.annotation.RetentionPolicy;
  * the connection on an {@link Input}.
  */
 public class Connection implements Cloneable {
+    private static final String TAG = "Connection";
     /**
      * A previous connection on a block. May only be connected to a next connection. A block may
      * not have both a previous and an output connection. This is only used for the previous link
@@ -80,6 +82,7 @@ public class Connection implements Cloneable {
     private Block mBlock;
     private Input mInput;
     private Connection mTargetConnection;
+    private Connection mTargetShadowConnection;
     private boolean mInDragMode = false;
 
     public Connection(@ConnectionType int type, String[] checks) {
@@ -148,6 +151,13 @@ public class Connection implements Cloneable {
      */
     public Block getTargetBlock() {
         return mTargetConnection == null ? null : mTargetConnection.getBlock();
+    }
+
+    /**
+     * @return The shadow {@link Block} this is connected to or null if it has no shadow block.
+     */
+    public Block getTargetShadowBlock() {
+        return mTargetShadowConnection == null ? null : mTargetShadowConnection.getBlock();
     }
 
     /**
@@ -254,6 +264,13 @@ public class Connection implements Cloneable {
     }
 
     /**
+     * @return True if the connection has a shadow block connection, false otherwise.
+     */
+    public boolean isShadowConnected() {
+        return mTargetShadowConnection != null;
+    }
+
+    /**
      * @return Whether the connection has high priority in the context of bumping connections away.
      */
     public boolean isHighPriority() {
@@ -267,7 +284,7 @@ public class Connection implements Cloneable {
      */
     @CheckResultType
     public int canConnectWithReason(Connection target) {
-        if (target == null) {
+        if (target == null || target.getBlock() == null) {
             return REASON_TARGET_NULL;
         }
         if (getBlock() != null && target.getBlock() == getBlock()) {
@@ -276,7 +293,12 @@ public class Connection implements Cloneable {
         if (target.getType() != OPPOSITE_TYPES[mConnectionType]) {
             return REASON_WRONG_TYPE;
         }
-        if (mTargetConnection != null) {
+        if (target.getBlock().isShadow()) {
+            if (mTargetShadowConnection != null) {
+                Log.w(TAG, "Shadow blocks are not intended to change.");
+                return REASON_MUST_DISCONNECT;
+            }
+        } else if (mTargetConnection != null) {
             return REASON_MUST_DISCONNECT;
         }
         if (!checksMatch(target)) {
@@ -302,7 +324,11 @@ public class Connection implements Cloneable {
     }
 
     private void connectInternal(Connection target) {
-        mTargetConnection = target;
+        if (target.getBlock().isShadow()) {
+            mTargetShadowConnection = target;
+        } else {
+            mTargetConnection = target;
+        }
     }
 
     private void disconnectInternal() {
@@ -322,7 +348,7 @@ public class Connection implements Cloneable {
                 throw new IllegalStateException(
                         "Must disconnect from current block before connecting to a new one.");
             case REASON_TARGET_NULL:
-                throw new IllegalArgumentException("Cannot connect to a null connection");
+                throw new IllegalArgumentException("Cannot connect to a null connection/block");
             case REASON_CHECKS_FAILED:
                 throw new IllegalArgumentException("Cannot connect, checks do not match.");
             default:

@@ -77,9 +77,12 @@ public class BlockFactoryTest extends AndroidTestCase {
         Block frankenblock = bf.obtainBlock("frankenblock", "123");
         assertNotNull("Failed to create the frankenblock.", frankenblock);
 
-        Block frankencopy = bf.obtainBlock("frankenblock", "123");
-        assertSame("Obtained blocks should be the same object when uuid is provided.",
-                frankenblock, frankencopy);
+        try {
+            Block frankencopy = bf.obtainBlock("frankenblock", "123");
+            fail("Cannot create two blocks with the same id");
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
     }
 
     public void testObtainBlock_repeatedWithUuidMismatchingPrototype() {
