@@ -165,13 +165,47 @@ public abstract class Input implements Cloneable {
     }
 
     /**
-     * Writes the value of the Input and all of its Fields as a string.
+     * Writes the value of the Input and all of its Fields as a string. By default only fields are
+     * written. Subclasses should override this and call {@link #serialize(XmlSerializer, String)}
+     * with the correct tag to also serialize any connected blocks.
      *
      * @param serializer The XmlSerializer to write to.
      *
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer) throws IOException {
+        serialize(serializer, null);
+    }
+
+    /**
+     * Writes the value of the Input and all of its Fields as a string. If a tag is given, anything
+     * attached to the input's connection will also be serialized.
+     *
+     * @param serializer The XmlSerializer to write to.
+     * @param tag The xml tag to use for wrapping the block connected to the input or null.
+     *
+     * @throws IOException
+     */
+    public void serialize(XmlSerializer serializer, @Nullable String tag) throws IOException {
+        if (tag != null && getConnection() != null && (getConnection().isConnected()
+                || getConnection().getTargetShadowBlock() != null)) {
+            serializer.startTag(null, tag)
+                    .attribute(null, "name", getName());
+
+            // Serialize the connection's shadow if it has one
+            Block block = getConnection().getTargetShadowBlock();
+            if (block != null) {
+                block.serialize(serializer, false);
+            }
+            // Then serialize its non-shadow target if it has one
+            block = getConnection().getTargetBlock();
+            if (block != null) {
+                block.serialize(serializer, false);
+            }
+
+            serializer.endTag(null, tag);
+        }
+
         for (int i = 0; i < getFields().size(); i++) {
             getFields().get(i).serialize(serializer);
         }
@@ -404,13 +438,7 @@ public abstract class Input implements Cloneable {
 
         @Override
         public void serialize(XmlSerializer serializer) throws IOException {
-            if (getConnection() != null && getConnection().isConnected()) {
-                serializer.startTag(null, "value")
-                        .attribute(null, "name", getName());
-                getConnection().getTargetBlock().serialize(serializer, false);
-                serializer.endTag(null, "value");
-            }
-            super.serialize(serializer);
+            serialize(serializer, "value");
         }
     }
 
@@ -446,13 +474,7 @@ public abstract class Input implements Cloneable {
 
         @Override
         public void serialize(XmlSerializer serializer) throws IOException {
-            if (getConnection() != null && getConnection().isConnected()) {
-                serializer.startTag(null, "statement")
-                        .attribute(null, "name", getName());
-                getConnection().getTargetBlock().serialize(serializer, false);
-                serializer.endTag(null, "statement");
-            }
-            super.serialize(serializer);
+            serialize(serializer, "statement");
         }
     }
 

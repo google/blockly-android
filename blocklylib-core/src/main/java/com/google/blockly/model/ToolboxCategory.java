@@ -133,6 +133,9 @@ public class ToolboxCategory {
                         result.addSubcategory(ToolboxCategory.fromXml(parser, factory));
                     } else if (parser.getName().equalsIgnoreCase("block")) {
                         result.addBlock(Block.fromXml(parser, factory));
+                    } else if (parser.getName().equalsIgnoreCase("shadow")) {
+                        throw new IllegalArgumentException(
+                                "Shadow blocks may not be top level toolbox blocks.");
                     }
                     break;
                 case XmlPullParser.END_TAG:

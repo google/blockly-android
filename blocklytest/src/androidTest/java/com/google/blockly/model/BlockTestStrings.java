@@ -87,6 +87,10 @@ public class BlockTestStrings {
             "<block type=\"frankenblock\" id=\"SIMPLE_BLOCK\" x=\"37\" y=\"13\">"
             + "<field name=\"text_input\">item</field>"
             + "</block>";
+    public static final String SIMPLE_SHADOW =
+            "<shadow type=\"frankenblock\" id=\"SIMPLE_BLOCK\" x=\"37\" y=\"13\">"
+            + "<field name=\"text_input\">item</field>"
+            + "</shadow>";
 
     public static final String NO_BLOCK_TYPE =
             "<block id=\"364\" x=\"37\" y=\"13\">"
@@ -130,6 +134,33 @@ public class BlockTestStrings {
             "      </block>" +
             "    </value>";
 
+    public static final String VALUE_SHADOW = "<value name=\"value_input\">" +
+            "<shadow type=\"output_foo\" id=\"VALUE_GOOD\" />" +
+            "</value>";
+    public static final String VALUE_SHADOW_GOOD = "<value name=\"value_input\">" +
+            "      <shadow type=\"output_foo\" id=\"VALUE_SHADOW\">" +
+            "      </shadow>" +
+            "      <block type=\"output_foo\" id=\"VALUE_REAL\">" +
+            "      </block>" +
+            "    </value>";
+
+    public static final String VALUE_NESTED_SHADOW = "<value name=\"value_input\">" +
+            "      <shadow type=\"simple_input_output\" id=\"SHADOW1\">" +
+            "        <value name=\"value\">" +
+            "          <shadow type=\"simple_input_output\" id=\"SHADOW2\"/>"  +
+            "        </value>" +
+            "      </shadow>" +
+            "    </value>";
+
+    public static final String VALUE_NESTED_SHADOW_BLOCK = "<value name=\"value_input\">" +
+            "      <shadow type=\"simple_input_output\" id=\"SHADOW1\">" +
+            "        <value name=\"value\">" +
+            "          <shadow type=\"simple_input_output\" id=\"SHADOW2\"/>"  +
+            "          <block type=\"simple_input_output\" id=\"BLOCK_INNER\"/>"  +
+            "        </value>" +
+            "      </shadow>" +
+            "    </value>";
+
     public static final String STATEMENT_GOOD = "<statement name=\"NAME\">" +
             "<block type=\"frankenblock\" id=\"STATEMENT_GOOD\">" +
             "</block>" +
@@ -144,6 +175,16 @@ public class BlockTestStrings {
             "      <block type=\"no_output\" id=\"STATEMENT_BAD_CHILD\">" +
             "      </block>" +
             "    </statement>";
+    public static final String STATEMENT_SHADOW = "<statement name=\"NAME\">" +
+            "<shadow type=\"frankenblock\" id=\"STATEMENT_SHADOW\">" +
+            "</shadow>" +
+            "</statement>";
+    public static final String STATEMENT_SHADOW_GOOD = "<statement name=\"NAME\">" +
+            "<shadow type=\"frankenblock\" id=\"STATEMENT_SHADOW\">" +
+            "</shadow>" +
+            "<block type=\"frankenblock\" id=\"STATEMENT_REAL\">" +
+            "</block>" +
+            "</statement>";
 
     public static final String COMMENT_GOOD = "<comment pinned=\"true\" h=\"80\" w=\"160\">" +
             "    Calm</comment>";
@@ -161,8 +202,8 @@ public class BlockTestStrings {
     public static final String FRANKENBLOCK_DEFAULT_VALUES = FRANKENBLOCK_DEFAULT_VALUES_START
             + FRANKENBLOCK_DEFAULT_VALUES_END;
 
-    public static String blockStart(String type, String id, WorkspacePoint position) {
-        StringBuilder sb = new StringBuilder("<block type=\"" + type + '\"');
+    public static String blockStart(String tag, String type, String id, WorkspacePoint position) {
+        StringBuilder sb = new StringBuilder("<" + tag + " type=\"" + type + '"');
         if (id != null) {
             sb.append(" id=\"" + id + '\"');
         }
@@ -173,11 +214,11 @@ public class BlockTestStrings {
         return sb.toString();
     }
 
-    public static String frankenBlockStart(String id) {
-        return blockStart("frankenblock", id, DEFAULT_POSITION);
+    public static String frankenBlockStart(String tag, String id) {
+        return blockStart(tag, "frankenblock", id, DEFAULT_POSITION);
     }
 
-    public static String assembleFrankenblock(String id, String interior) {
-        return frankenBlockStart(id) + interior + BLOCK_END;
+    public static String assembleFrankenblock(String tag, String id, String interior) {
+        return frankenBlockStart(tag, id) + interior + "</" + tag + ">";
     }
 }

@@ -81,6 +81,22 @@ public class BlockTest extends AndroidTestCase {
                 original.getId(), copy.getId());
     }
 
+    public void testCopyBlockCopiesChildren() {
+        Block original = mBlockFactory.obtainBlock("simple_input_output", "1");
+        Block original2 = mBlockFactory.obtainBlock("simple_input_output", "2");
+        Block originalShadow = mBlockFactory.obtainBlock("simple_input_output", "3");
+        originalShadow.setShadow(true);
+        original.getOnlyValueInput().getConnection().connect(original2.getOutputConnection());
+        original.getOnlyValueInput().getConnection().connect(originalShadow.getOutputConnection());
+
+        Block copy = original.deepCopy();
+        assertNotSame(original, copy);
+        assertNotSame(original.getOnlyValueInput().getConnection().getTargetBlock(),
+                copy.getOnlyValueInput().getConnection().getTargetBlock());
+        assertNotSame(original.getOnlyValueInput().getConnection().getTargetShadowBlock(),
+                copy.getOnlyValueInput().getConnection().getTargetShadowBlock());
+    }
+
     public void testMessageTokenizer() {
         String testMessage = "%%5 should have %1 %12 6 tokens %999 in the end";
         List<String> tokens = Block.tokenizeMessage(testMessage);
@@ -129,54 +145,116 @@ public class BlockTest extends AndroidTestCase {
         parseBlockFromXml(BlockTestStrings.NO_BLOCK_POSITION, bf);
 
         // Values.
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("1",
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "1",
                 BlockTestStrings.VALUE_GOOD), bf);
+        // Value: null child block
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "3",
+                BlockTestStrings.VALUE_NO_CHILD), bf);
         // TODO(fenichel): Value: no input connection
         // Value: no output connection on child
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("2",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "2",
                 BlockTestStrings.VALUE_NO_OUTPUT), bf);
-        // value: null child block
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("3",
-                BlockTestStrings.VALUE_NO_CHILD), bf);
         // Value: no input with that name
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("4",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "4",
                 BlockTestStrings.VALUE_BAD_NAME), bf);
         // Value: multiple values for the same input
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("5",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "5",
                 BlockTestStrings.VALUE_REPEATED), bf);
 
         // Comment: with text
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("6",
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "6",
                 BlockTestStrings.COMMENT_GOOD), bf);
         // Comment: empty string
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("7",
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "7",
                 BlockTestStrings.COMMENT_NO_TEXT), bf);
 
         // Fields
-        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("8",
+        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "8",
                 BlockTestStrings.FIELD_HAS_NAME), bf);
         assertEquals("item", ((Field.FieldInput) loaded.getFieldByName("text_input")).getText());
         // A missing or unknown field name isn't an error, it's just ignored.
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("9",
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "9",
                 BlockTestStrings.FIELD_MISSING_NAME), bf);
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("10",
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "10",
                 BlockTestStrings.FIELD_UNKNOWN_NAME), bf);
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("11",
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "11",
                 BlockTestStrings.FIELD_MISSING_TEXT), bf);
 
-        // Statement: null child block
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("12",
-                BlockTestStrings.STATEMENT_NO_CHILD), bf);
         // Statement: no previous connection on child block
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("13",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "13",
                 BlockTestStrings.STATEMENT_BAD_CHILD), bf);
         // Statement: no input with that name
-        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("14",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "14",
                 BlockTestStrings.STATEMENT_BAD_NAME), bf);
 
         // Statement
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("15",
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "15",
                 BlockTestStrings.STATEMENT_GOOD), bf);
+        // Statement: null child block
+        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "12",
+                BlockTestStrings.STATEMENT_NO_CHILD), bf);
+    }
+
+    public void testLoadFromXml_shadows() throws IOException, XmlPullParserException {
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+
+        Block loaded = parseShadowFromXml(BlockTestStrings.SIMPLE_SHADOW, bf);
+        assertEquals("frankenblock", loaded.getName());
+        assertEquals(new WorkspacePoint(37, 13), loaded.getPosition());
+        assertTrue(loaded.isShadow());
+
+
+        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "1",
+                BlockTestStrings.VALUE_SHADOW), bf);
+        Connection conn = loaded.getInputByName("value_input").getConnection();
+        assertNull(conn.getTargetBlock());
+        assertTrue(conn.getTargetShadowBlock().isShadow());
+
+        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "2",
+                BlockTestStrings.VALUE_SHADOW_GOOD), bf);
+        conn = loaded.getInputByName("value_input").getConnection();
+        assertEquals("VALUE_REAL", conn.getTargetBlock().getId());
+        assertFalse(conn.getTargetBlock().isShadow());
+        assertEquals("VALUE_SHADOW", conn.getTargetShadowBlock().getId());
+        assertTrue(conn.getTargetShadowBlock().isShadow());
+
+        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "3",
+                BlockTestStrings.STATEMENT_SHADOW), bf);
+        conn = loaded.getInputByName("NAME").getConnection();
+        assertNull(conn.getTargetBlock());
+        assertTrue(conn.getTargetShadowBlock().isShadow());
+
+        // Clear refs so block names can be reused
+        bf.clearPriorBlockReferences();
+        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "4",
+                BlockTestStrings.STATEMENT_SHADOW_GOOD), bf);
+        conn = loaded.getInputByName("NAME").getConnection();
+        assertEquals("STATEMENT_REAL", conn.getTargetBlock().getId());
+        assertFalse(conn.getTargetBlock().isShadow());
+        assertEquals("STATEMENT_SHADOW", conn.getTargetShadowBlock().getId());
+        assertTrue(conn.getTargetShadowBlock().isShadow());
+
+        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "5",
+                BlockTestStrings.VALUE_NESTED_SHADOW), bf);
+        conn = loaded.getInputByName("value_input").getConnection();
+        assertNull(conn.getTargetBlock());
+        Block shadow1 = conn.getTargetShadowBlock();
+        assertEquals("SHADOW1", shadow1.getId());
+        conn = shadow1.getOnlyValueInput().getConnection();
+        assertNull(conn.getTargetBlock());
+        assertEquals("SHADOW2", conn.getTargetShadowBlock().getId());
+
+        // Clear refs so block names can be reused
+        bf.clearPriorBlockReferences();
+        loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "6",
+                BlockTestStrings.VALUE_NESTED_SHADOW_BLOCK), bf);
+        conn = loaded.getInputByName("value_input").getConnection();
+        assertNull(conn.getTargetBlock());
+        shadow1 = conn.getTargetShadowBlock();
+        assertEquals("SHADOW1", shadow1.getId());
+        conn = shadow1.getOnlyValueInput().getConnection();
+        assertEquals("BLOCK_INNER", conn.getTargetBlock().getId());
+        assertEquals("SHADOW2", conn.getTargetShadowBlock().getId());
     }
 
     public void testSerializeBlock() throws BlocklySerializerException, IOException {
@@ -203,7 +281,7 @@ public class BlockTest extends AndroidTestCase {
 
         block.serialize(serializer, false);
         serializer.flush();
-        assertEquals(BlockTestStrings.blockStart("frankenblock", "frankenblock1", null)
+        assertEquals(BlockTestStrings.blockStart("block", "frankenblock", "frankenblock1", null)
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END, os.toString());
     }
@@ -222,7 +300,7 @@ public class BlockTest extends AndroidTestCase {
         block.serialize(serializer, true);
         serializer.flush();
 
-        String expected = BlockTestStrings.frankenBlockStart("364")
+        String expected = BlockTestStrings.frankenBlockStart("block", "364")
                 + BlockTestStrings.VALUE_GOOD
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END;
@@ -243,7 +321,7 @@ public class BlockTest extends AndroidTestCase {
         block.serialize(serializer, true);
         serializer.flush();
 
-        String expected = BlockTestStrings.frankenBlockStart("364")
+        String expected = BlockTestStrings.frankenBlockStart("block", "364")
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES_START
                 + "<statement name=\"NAME\">"
                 + "<block type=\"frankenblock\" id=\"3\">"
@@ -302,6 +380,14 @@ public class BlockTest extends AndroidTestCase {
     private Block parseBlockFromXml(String testString, BlockFactory bf)
             throws IOException, XmlPullParserException {
         XmlPullParser parser = getXmlPullParser(testString, "block");
+        Block loaded = Block.fromXml(parser, bf);
+        assertNotNull(loaded);
+        return loaded;
+    }
+
+    private Block parseShadowFromXml(String testString, BlockFactory bf)
+            throws IOException, XmlPullParserException {
+        XmlPullParser parser = getXmlPullParser(testString, "shadow");
         Block loaded = Block.fromXml(parser, bf);
         assertNotNull(loaded);
         return loaded;

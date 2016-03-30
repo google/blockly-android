@@ -179,6 +179,9 @@ public final class BlocklyXmlHelper {
                         }
                         if (parser.getName().equalsIgnoreCase("block")) {
                             result.add(Block.fromXml(parser, blockFactory));
+                        } else if (parser.getName().equalsIgnoreCase("shadow")) {
+                            throw new IllegalArgumentException(
+                                    "Shadow blocks may not be top level blocks.");
                         }
                         break;
 
