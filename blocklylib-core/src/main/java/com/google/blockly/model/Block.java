@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -53,6 +54,7 @@ public class Block {
     private final ArrayList<Connection> mConnectionList;
     private final int mColour;
     private boolean mInputsInline;
+    private boolean mIsShadow;
 
     // These values can be changed after creating the block
     private String mTooltip;
@@ -328,8 +330,36 @@ public class Block {
         return mNextConnection;
     }
 
+    /**
+     * @return True if this is a shadow block, false otherwise.
+     */
+    public boolean isShadow() {
+        return mIsShadow;
+    }
+
+    /**
+     * Creates a copy of this block and all inferior blocks connected to it.
+     *
+     * @return A new block tree with a copy of this block as the root.
+     */
     public Block deepCopy() {
-        return new Block.Builder(this, true /* recursive */).build();
+        // Build a copy of this block
+        Block copy = new Block.Builder(this).build();
+
+        // Build and connect a copy of the blocks attached to next
+        if (mNextConnection != null) {
+            copyConnection(mNextConnection, copy.mNextConnection);
+        }
+        // Build and connect a copy of the blocks attached to the inputs
+        for (int i = 0; i < mInputList.size(); i++) {
+            Input sourceInput = mInputList.get(i);
+            if (sourceInput.getConnection() == null) {
+                continue;
+            }
+            Input destInput = copy.getInputByName(sourceInput.getName());
+            copyConnection(sourceInput.getConnection(), destInput.getConnection());
+        }
+        return copy;
     }
 
     /**
@@ -341,7 +371,7 @@ public class Block {
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
-        serializer.startTag(null, "block")
+        serializer.startTag(null, mIsShadow ? "shadow" : "block")
                 .attribute(null, "type", mName)
                 .attribute(null, "id", mUuid);
 
@@ -454,6 +484,45 @@ public class Block {
             return output.getTargetBlock();
         }
         return null;
+    }
+
+    @VisibleForTesting
+    void setShadow(boolean isShadow) {
+        mIsShadow = isShadow;
+    }
+
+    /**
+     * Makes a copy of any blocks connected to the source connection and adds the copies to the
+     * destination connection. The source and destination Connections must be of the same type and
+     * must be either a next or input connection.
+     *
+     * @param sourceConnection The connection to copy blocks from.
+     * @param destConnection The connection to add copied blocks to.
+     */
+    private void copyConnection(Connection sourceConnection, Connection destConnection) {
+        if (sourceConnection.getType() != destConnection.getType() ||
+                (sourceConnection.getType() != Connection.CONNECTION_TYPE_NEXT &&
+                        sourceConnection.getType() != Connection.CONNECTION_TYPE_INPUT)) {
+            throw new IllegalArgumentException(
+                    "Connection types must match and must be a superior connection.");
+        }
+
+        if (sourceConnection.getTargetBlock() != null) {
+            Block copy = sourceConnection.getTargetBlock().deepCopy();
+            if (destConnection.getType() == Connection.CONNECTION_TYPE_NEXT) {
+                destConnection.connect(copy.getPreviousConnection());
+            } else if (destConnection.getType() == Connection.CONNECTION_TYPE_INPUT) {
+                destConnection.connect(copy.getOutputConnection());
+            }
+        }
+        if (sourceConnection.getTargetShadowBlock() != null) {
+            Block shadowCopy = sourceConnection.getTargetShadowBlock().deepCopy();
+            if (destConnection.getType() == Connection.CONNECTION_TYPE_NEXT) {
+                destConnection.connect(shadowCopy.getPreviousConnection());
+            } else if (destConnection.getType() == Connection.CONNECTION_TYPE_INPUT) {
+                destConnection.connect(shadowCopy.getOutputConnection());
+            }
+        }
     }
 
     /**
@@ -694,7 +763,6 @@ public class Block {
      */
     public static Block fromXml(XmlPullParser parser, BlockFactory factory)
             throws XmlPullParserException, IOException, BlocklyParserException {
-        // TODO(fenichel): What if there are multiple blocks with the same id?
         String type = parser.getAttributeValue(null, "type");   // prototype name
         String id = parser.getAttributeValue(null, "id");
         if (type == null || type.isEmpty()) {
@@ -718,6 +786,7 @@ public class Block {
         String text = "";
         String fieldName = "";
         Block childBlock = null;
+        Block childShadow = null;
         Input valueInput = null;
         Input statementInput = null;
 
@@ -727,6 +796,8 @@ public class Block {
                 case XmlPullParser.START_TAG:
                     if (tagname.equalsIgnoreCase("block")) {
                         childBlock = fromXml(parser, factory);
+                    } else if (tagname.equalsIgnoreCase("shadow")) {
+                        childShadow = fromXml(parser, factory);
                     } else if (tagname.equalsIgnoreCase("field")) {
                         fieldName = parser.getAttributeValue(null, "name");
                     } else if (tagname.equalsIgnoreCase("value")) {
@@ -754,7 +825,14 @@ public class Block {
                                     "Created a null block. This should never happen.");
                         }
                         return resultBlock;
-                    } else if (tagname.equalsIgnoreCase("field")) {
+                    } else if (tagname.equalsIgnoreCase("shadow")) {
+                        if (resultBlock == null) {
+                            throw new BlocklyParserException(
+                                    "Created a null block. This should never happen.");
+                        }
+                        resultBlock.mIsShadow = true;
+                        return resultBlock;
+                    }else if (tagname.equalsIgnoreCase("field")) {
                         Field toSet = resultBlock.getFieldByName(fieldName);
                         if (toSet != null) {
                             if (!toSet.setFromString(text)) {
@@ -763,36 +841,77 @@ public class Block {
                             }
                         }
                     } else if (tagname.equalsIgnoreCase("value")) {
-                        if (valueInput != null && childBlock != null) {
-                            if (valueInput.getConnection() == null
-                                    || childBlock.getOutputConnection() == null) {
-                                throw new BlocklyParserException("A connection was null.");
+                        if (valueInput != null) {
+                            if (valueInput.getConnection() == null) {
+                                throw new BlocklyParserException("The input connection was null.");
                             }
-                            if (valueInput.getConnection().isConnected()) {
-                                throw new BlocklyParserException(
-                                        "Multiple values were provided for the same input.");
+                            if (childBlock != null) {
+                                if (childBlock.getOutputConnection() == null) {
+                                    throw new BlocklyParserException(
+                                            "The child connection was null.");
+                                }
+                                if (valueInput.getConnection().isConnected()) {
+                                    throw new BlocklyParserException(
+                                            "Multiple values were provided for the same input.");
+                                }
+                                valueInput.getConnection()
+                                        .connect(childBlock.getOutputConnection());
                             }
-                            valueInput.getConnection().connect(childBlock.getOutputConnection());
+                            if (childShadow != null) {
+                                if (childShadow.getOutputConnection() == null) {
+                                    throw new BlocklyParserException(
+                                            "The shadow block connection was null.");
+                                }
+                                if (valueInput.getConnection().isShadowConnected()) {
+                                    throw new BlocklyParserException(
+                                            "Multiple shadows were provided for the same "
+                                            + "input.");
+                                }
+                                valueInput.getConnection()
+                                        .connect(childShadow.getOutputConnection());
+                            }
                             valueInput = null;
                             childBlock = null;
+                            childShadow = null;
                         } else {
                             throw new BlocklyParserException(
                                     "A value input or child block was null.");
                         }
                     } else if (tagname.equalsIgnoreCase("statement")) {
-                        if (statementInput != null && childBlock != null) {
-                            if (statementInput.getConnection() == null
-                                    || childBlock.getPreviousConnection() == null) {
-                                throw new BlocklyParserException("A connection was null.");
-                            }
-                            if (statementInput.getConnection().isConnected()) {
+                        if (statementInput != null) {
+                            if (statementInput.getConnection() == null) {
                                 throw new BlocklyParserException(
-                                        "Multiple statements were provided for the same input.");
+                                        "The statement connection was null.");
                             }
-                            statementInput.getConnection().connect(
-                                    childBlock.getPreviousConnection());
+                            if (childBlock != null) {
+                                if (childBlock.getPreviousConnection() == null) {
+                                    throw new BlocklyParserException(
+                                            "The child connection was null.");
+                                }
+                                if (statementInput.getConnection().isConnected()) {
+                                    throw new BlocklyParserException(
+                                            "Multiple statements were provided for the same "
+                                            + "input.");
+                                }
+                                statementInput.getConnection().connect(
+                                        childBlock.getPreviousConnection());
+                            }
+                            if (childShadow != null) {
+                                if (childShadow.getPreviousConnection() == null) {
+                                    throw new BlocklyParserException(
+                                            "The shadow block connection was null.");
+                                }
+                                if (statementInput.getConnection().isShadowConnected()) {
+                                    throw new BlocklyParserException(
+                                            "Multiple shadows were provided for the same "
+                                                    + "input.");
+                                }
+                                statementInput.getConnection().connect(
+                                        childShadow.getPreviousConnection());
+                            }
                             valueInput = null;
                             childBlock = null;
+                            childShadow = null;
                         } else {
                             throw new BlocklyParserException(
                                     "A statement input or child block was null.");
@@ -834,6 +953,7 @@ public class Block {
         private Connection mPreviousConnection;
         private ArrayList<Input> mInputs;
         private boolean mInputsInline;
+        private boolean mIsShadow;
         // These values can be changed after creating the block
         private String mTooltip;
         private String mComment;
@@ -850,16 +970,13 @@ public class Block {
             mPosition = new WorkspacePoint(0, 0);
         }
 
-        private Builder(Block block, boolean recursive) {
+        public Builder(Block block) {
             this(block.mName);
             mColour = block.mColour;
             mCategory = block.mCategory;
 
             mOutputConnection = Connection.cloneConnection(block.mOutputConnection);
             mNextConnection = Connection.cloneConnection(block.mNextConnection);
-            if (recursive && block.getNextBlock() != null) {
-                mNextConnection.connect(block.getNextBlock().deepCopy().getPreviousConnection());
-            }
             mPreviousConnection = Connection.cloneConnection(block.mPreviousConnection);
 
             mInputs = new ArrayList<>();
@@ -869,21 +986,6 @@ public class Block {
                 newInput = oldInput.clone();
                 if (newInput != null) {
                     mInputs.add(newInput);
-                    if (recursive && oldInput.getConnection() != null) {
-                        Block target = oldInput.getConnection().getTargetBlock();
-                        if (target != null && newInput.getConnection() != null) {
-                            Block newTarget = target.deepCopy();
-                            if (newTarget != null) {
-                                if (newInput.getType() == Input.TYPE_VALUE) {
-                                    newInput.getConnection().connect(
-                                            newTarget.getOutputConnection());
-                                } else if (newInput.getType() == Input.TYPE_STATEMENT) {
-                                    newInput.getConnection().connect(
-                                            newTarget.getPreviousConnection());
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
@@ -893,6 +995,7 @@ public class Block {
             mTooltip = block.mTooltip;
             mComment = block.mComment;
             mHasContextMenu = block.mHasContextMenu;
+            mIsShadow = block.mIsShadow;
             mCanDelete = block.mCanDelete;
             mCanMove = block.mCanMove;
             mCanEdit = block.mCanEdit;
@@ -900,10 +1003,6 @@ public class Block {
             mDisabled = block.mDisabled;
             mPosition.x = block.mPosition.x;
             mPosition.y = block.mPosition.y;
-        }
-
-        public Builder(Block block) {
-            this(block, false);
         }
 
         public Builder setName(String name) {
@@ -988,6 +1087,11 @@ public class Block {
             return this;
         }
 
+        public Builder setShadow(boolean isShadow) {
+            mIsShadow = isShadow;
+            return this;
+        }
+
         public Builder setCanDelete(boolean canDelete) {
             mCanDelete = canDelete;
             return this;
@@ -1025,6 +1129,7 @@ public class Block {
             b.mTooltip = mTooltip;
             b.mComment = mComment;
             b.mHasContextMenu = mHasContextMenu;
+            b.mIsShadow = mIsShadow;
             b.mCanDelete = mCanDelete;
             b.mCanMove = mCanMove;
             b.mCanEdit = mCanEdit;

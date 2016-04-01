@@ -113,12 +113,8 @@ public class BlockFactory {
             if (ref != null) {
                 block = ref.get();
                 if (block != null) {
-                    if (!block.getName().equals(prototypeName)) {
-                        throw new IllegalArgumentException("Block with given UUID \"" + uuid
-                                + "\" found. Prototype name \"" + prototypeName + "\" does not "
-                                + "match existing block type \"" + block.getName() + "\".");
-                    }
-                    return block;
+                    throw new IllegalArgumentException("Block with given UUID \"" + uuid
+                            + "\" already exists. Duplicate UUIDs not allowed.");
                 }
             }
         }
@@ -189,7 +185,8 @@ public class BlockFactory {
     }
 
     /**
-     * Removes references to previous blocks, ensuring future blocks will be new instances.
+     * Removes references to previous blocks. This can be used when resetting a workspace to force
+     * a cleanup of known block instances.
      */
     public void clearPriorBlockReferences() {
         mBlockRefs.clear();
