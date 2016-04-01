@@ -286,6 +286,19 @@ public class BlockTest extends AndroidTestCase {
                 + BlockTestStrings.BLOCK_END, os.toString());
     }
 
+    public void testSerializeShadowBlock() throws BlocklySerializerException, IOException {
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
+        block.setPosition(37, 13);
+        block.setShadow(true);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        XmlSerializer serializer = getXmlSerializer(os);
+
+        block.serialize(serializer, true);
+        serializer.flush();
+        assertEquals(BlockTestStrings.EMPTY_SHADOW_WITH_POSITION, os.toString());
+    }
+
     public void testSerializeValue() throws BlocklySerializerException, IOException {
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("frankenblock", "364");
@@ -302,6 +315,51 @@ public class BlockTest extends AndroidTestCase {
 
         String expected = BlockTestStrings.frankenBlockStart("block", "364")
                 + BlockTestStrings.VALUE_GOOD
+                + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
+                + BlockTestStrings.BLOCK_END;
+        assertEquals(expected, os.toString());
+    }
+
+    public void testSerializeShadowValue() throws BlocklySerializerException, IOException {
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        Block block = bf.obtainBlock("frankenblock", "364");
+        block.setPosition(37, 13);
+
+        Input input = block.getInputByName("value_input");
+        Block inputBlock = bf.obtainBlock("output_foo", "VALUE_REAL");
+        input.getConnection().connect(inputBlock.getOutputConnection());
+        inputBlock = bf.obtainBlock("output_foo", "VALUE_SHADOW");
+        inputBlock.setShadow(true);
+        input.getConnection().connect(inputBlock.getOutputConnection());
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        XmlSerializer serializer = getXmlSerializer(os);
+        block.serialize(serializer, true);
+        serializer.flush();
+
+        String expected = BlockTestStrings.frankenBlockStart("block", "364")
+                + BlockTestStrings.VALUE_SHADOW_GOOD
+                + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
+                + BlockTestStrings.BLOCK_END;
+        assertEquals(expected, os.toString());
+
+        block = bf.obtainBlock("frankenblock", "777");
+        block.setPosition(37, 13);
+        input = block.getInputByName("value_input");
+        inputBlock = bf.obtainBlock("simple_input_output", "SHADOW1");
+        inputBlock.setShadow(true);
+        input.getConnection().connect(inputBlock.getOutputConnection());
+        input = inputBlock.getOnlyValueInput();
+        inputBlock = bf.obtainBlock("simple_input_output", "SHADOW2");
+        inputBlock.setShadow(true);
+        input.getConnection().connect(inputBlock.getOutputConnection());
+
+        os.reset();
+        block.serialize(serializer, true);
+        serializer.flush();
+
+        expected = BlockTestStrings.frankenBlockStart("block", "777")
+                + BlockTestStrings.VALUE_NESTED_SHADOW
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END;
         assertEquals(expected, os.toString());
