@@ -79,6 +79,8 @@ public class BlockTestStrings {
     public static final String EMPTY_BLOCK_ID = "EMPTY_BLOCK_ID";
     public static final String EMPTY_BLOCK_WITH_POSITION =
             "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" x=\"37\" y=\"13\" />";
+    public static final String EMPTY_SHADOW_WITH_POSITION =
+            "<shadow type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" x=\"37\" y=\"13\" />";
     public static final String EMPTY_BLOCK_NO_POSITION =
             "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" />";
 
@@ -138,19 +140,17 @@ public class BlockTestStrings {
             "<shadow type=\"output_foo\" id=\"VALUE_GOOD\" />" +
             "</value>";
     public static final String VALUE_SHADOW_GOOD = "<value name=\"value_input\">" +
-            "      <shadow type=\"output_foo\" id=\"VALUE_SHADOW\">" +
-            "      </shadow>" +
-            "      <block type=\"output_foo\" id=\"VALUE_REAL\">" +
-            "      </block>" +
-            "    </value>";
+            "<shadow type=\"output_foo\" id=\"VALUE_SHADOW\" />" +
+            "<block type=\"output_foo\" id=\"VALUE_REAL\" />" +
+            "</value>";
 
     public static final String VALUE_NESTED_SHADOW = "<value name=\"value_input\">" +
-            "      <shadow type=\"simple_input_output\" id=\"SHADOW1\">" +
-            "        <value name=\"value\">" +
-            "          <shadow type=\"simple_input_output\" id=\"SHADOW2\"/>"  +
-            "        </value>" +
-            "      </shadow>" +
-            "    </value>";
+            "<shadow type=\"simple_input_output\" id=\"SHADOW1\">" +
+            "<value name=\"value\">" +
+            "<shadow type=\"simple_input_output\" id=\"SHADOW2\" />"  +
+            "</value>" +
+            "</shadow>" +
+            "</value>";
 
     public static final String VALUE_NESTED_SHADOW_BLOCK = "<value name=\"value_input\">" +
             "      <shadow type=\"simple_input_output\" id=\"SHADOW1\">" +

@@ -393,7 +393,7 @@ public class Block {
             serializer.endTag(null, "next");
         }
 
-        serializer.endTag(null, "block");
+        serializer.endTag(null, mIsShadow ? "shadow" : "block");
     }
 
     /**
