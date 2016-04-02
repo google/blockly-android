@@ -18,6 +18,7 @@ package com.google.blockly.android.ui.fieldview;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
@@ -30,6 +31,8 @@ import java.util.List;
  * Renders a dropdown field as part of a Block.
  */
 public class BasicFieldDropdownView extends Spinner implements FieldView {
+    private static final String TAG = "BasicFieldDropdownView";
+
     private Field.FieldDropdown.Observer mFieldObserver = new Field.FieldDropdown.Observer() {
         @Override
         public void onSelectionChanged(Field.FieldDropdown field, int oldIndex, int newIndex) {
@@ -47,17 +50,22 @@ public class BasicFieldDropdownView extends Spinner implements FieldView {
      * @param context The application's context.
      */
     public BasicFieldDropdownView(Context context) {
-        this(context, null, 0);
+        super(context);
+        loadAttributes(null, 0);
     }
 
     public BasicFieldDropdownView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs);
+        loadAttributes(attrs, 0);
     }
 
     public BasicFieldDropdownView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        loadAttributes(attrs, defStyleAttr);
+    }
 
-        TypedArray a = context.getTheme().obtainStyledAttributes(
+    private void loadAttributes(AttributeSet attrs, int defStyleAttr) {
+        TypedArray a = getContext().getTheme().obtainStyledAttributes(
                 attrs, R.styleable.BasicFieldDropdownView, defStyleAttr, 0);
 
         try {
@@ -66,6 +74,8 @@ public class BasicFieldDropdownView extends Spinner implements FieldView {
             mItemDropdownLayout = a.getResourceId(
                     R.styleable.BasicFieldDropdownView_dropdownItemLayout,
                     android.R.layout.simple_spinner_dropdown_item);
+            Log.d(TAG, "mItemLayout = " + mItemLayout + ", " + getResources().getResourceEntryName(mItemLayout));
+            Log.d(TAG, "mItemDropdownLayout = " + mItemDropdownLayout + ", " + getResources().getResourceEntryName(mItemDropdownLayout));
         } finally {
             a.recycle();
         }

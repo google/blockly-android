@@ -18,6 +18,7 @@ package com.google.blockly.android.ui.fieldview;
 import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
@@ -37,7 +38,20 @@ public class BasicFieldAngleView extends TextView implements FieldView {
 
     public BasicFieldAngleView(Context context) {
         super(context);
+        initTextWatcher();
+    }
 
+    public BasicFieldAngleView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        initTextWatcher();
+    }
+
+    public BasicFieldAngleView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        initTextWatcher();
+    }
+
+    private void initTextWatcher() {
         addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

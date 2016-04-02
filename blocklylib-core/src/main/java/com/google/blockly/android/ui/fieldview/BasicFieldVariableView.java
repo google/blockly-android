@@ -49,11 +49,11 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
      * @param context The application's context.
      */
     public BasicFieldVariableView(Context context) {
-        this(context, null, 0);
+        super(context);
     }
 
     public BasicFieldVariableView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs);
     }
 
     public BasicFieldVariableView(Context context, AttributeSet attrs, int defStyleAttr) {

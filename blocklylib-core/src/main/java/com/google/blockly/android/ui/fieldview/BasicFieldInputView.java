@@ -65,11 +65,11 @@ public class BasicFieldInputView extends EditText implements FieldView {
     protected Field.FieldInput mInputField;
 
     public BasicFieldInputView(Context context) {
-        this(context, null, 0);
+        super(context);
     }
 
     public BasicFieldInputView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs);
     }
 
     public BasicFieldInputView(Context context, AttributeSet attrs, int defStyleAttr) {

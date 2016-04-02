@@ -56,17 +56,22 @@ public class BasicFieldColourView extends View implements FieldView {
     protected ColourPaletteView mColourPaletteView;
 
     public BasicFieldColourView(Context context) {
-        this(context, null, 0);
+        super(context);
+        initPostConstructor();
     }
 
     public BasicFieldColourView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs);
+        initPostConstructor();
     }
 
     public BasicFieldColourView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        initPostConstructor();
+    }
 
-        float density = context.getResources().getDisplayMetrics().density;
+    private void initPostConstructor() {
+        float density = getContext().getResources().getDisplayMetrics().density;
         setMinimumWidth((int) (DEFAULT_MIN_WIDTH_DP * density));
         setMinimumHeight((int) (DEFAULT_MIN_HEIGHT_DP * density));
 

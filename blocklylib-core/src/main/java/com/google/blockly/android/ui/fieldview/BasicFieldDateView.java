@@ -37,11 +37,11 @@ public class BasicFieldDateView extends TextView implements FieldView {
     protected Field.FieldDate mDateField;
 
     public BasicFieldDateView(Context context) {
-        this(context, null, 0);
+        super(context);
     }
 
     public BasicFieldDateView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs);
     }
 
     public BasicFieldDateView(Context context, AttributeSet attrs, int defStyleAttr) {

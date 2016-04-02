@@ -40,11 +40,11 @@ public class BasicFieldLabelView extends TextView implements FieldView {
      * @param context The application's context.
      */
     public BasicFieldLabelView(Context context) {
-        this(context, null, 0);
+        super(context);
     }
 
     public BasicFieldLabelView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs);
     }
 
     public BasicFieldLabelView(Context context, AttributeSet attrs, int defStyleAttr) {

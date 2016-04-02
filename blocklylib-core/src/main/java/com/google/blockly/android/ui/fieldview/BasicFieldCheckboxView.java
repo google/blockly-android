@@ -37,18 +37,21 @@ public class BasicFieldCheckboxView extends CheckBox implements FieldView {
     protected Field.FieldCheckbox mCheckboxField = null;
 
     public BasicFieldCheckboxView(Context context) {
-        this(context, null, 0);
+        super(context);
+        initOnCheckedChangeListener();
     }
 
     public BasicFieldCheckboxView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs);
+        initOnCheckedChangeListener();
     }
 
     public BasicFieldCheckboxView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        initOnCheckedChangeListener();
+    }
 
-        setBackground(null);
-
+    private void initOnCheckedChangeListener() {
         setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

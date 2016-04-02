@@ -48,16 +48,15 @@ public class BasicFieldImageView extends ImageView implements FieldView {
      * @param context The application's context.
      */
     public BasicFieldImageView(Context context) {
-        this(context, null, 0);
+        super(context);
     }
 
     public BasicFieldImageView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs);
     }
 
     public BasicFieldImageView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        setBackground(null);
     }
 
     /**
