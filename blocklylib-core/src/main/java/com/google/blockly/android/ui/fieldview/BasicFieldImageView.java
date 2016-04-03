@@ -36,6 +36,7 @@ public class BasicFieldImageView extends ImageView implements FieldView {
         @Override
         public void onImageChanged(Field.FieldImage field, String newSource,
                                    int newWidth, int newHeight) {
+
             loadImageFromSource(newSource);
         }
     };
@@ -78,7 +79,7 @@ public class BasicFieldImageView extends ImageView implements FieldView {
             loadImageFromSource(mImageField.getSource());
             mImageField.registerObserver(mFieldObserver);
         } else {
-            // TODO(#XXX): Set image to default 'no image' default  // Anm: GET ISSUE NUMBER BEFORE MERGE
+            // TODO(#44): Set image to default 'no image' default
         }
     }
 

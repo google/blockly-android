@@ -30,7 +30,9 @@ public class BasicFieldCheckboxView extends CheckBox implements FieldView {
             = new Field.FieldCheckbox.Observer() {
         @Override
         public void onCheckChanged(Field.FieldCheckbox field, boolean newState) {
-            setChecked(newState);
+            if (isChecked() != newState) {
+                setChecked(newState);
+            }
         }
     };
 

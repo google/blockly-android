@@ -74,8 +74,6 @@ public class BasicFieldDropdownView extends Spinner implements FieldView {
             mItemDropdownLayout = a.getResourceId(
                     R.styleable.BasicFieldDropdownView_dropdownItemLayout,
                     android.R.layout.simple_spinner_dropdown_item);
-            Log.d(TAG, "mItemLayout = " + mItemLayout + ", " + getResources().getResourceEntryName(mItemLayout));
-            Log.d(TAG, "mItemDropdownLayout = " + mItemDropdownLayout + ", " + getResources().getResourceEntryName(mItemDropdownLayout));
         } finally {
             a.recycle();
         }
@@ -109,6 +107,7 @@ public class BasicFieldDropdownView extends Spinner implements FieldView {
             mDropdownField.registerObserver(mFieldObserver);
         } else {
             setSelection(0);
+            setAdapter(null);
         }
     }
 

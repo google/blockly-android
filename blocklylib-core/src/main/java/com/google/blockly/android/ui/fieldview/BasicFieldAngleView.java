@@ -30,7 +30,10 @@ public class BasicFieldAngleView extends TextView implements FieldView {
     protected Field.FieldAngle.Observer mFieldObserver = new Field.FieldAngle.Observer() {
         @Override
         public void onAngleChanged(Field field, int oldAngle, int newAngle) {
-            setText(Integer.toString(newAngle));
+            String newAngleStr = Integer.toString(newAngle);
+            if (!newAngleStr.contentEquals(getText())) {
+                setText(Integer.toString(newAngle));
+            }
         }
     };
 
@@ -99,6 +102,5 @@ public class BasicFieldAngleView extends TextView implements FieldView {
     @Override
     public void unlinkField() {
         setField(null);
-        // TODO(#45): Remove model from view. Set mAngleField to null, and handle null cases above.
     }
 }

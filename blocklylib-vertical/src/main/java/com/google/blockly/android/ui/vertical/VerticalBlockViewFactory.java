@@ -17,8 +17,6 @@ package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.util.Log;
-import android.view.LayoutInflater;
 
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.BlockTouchHandler;
@@ -36,9 +34,7 @@ import java.util.List;
  */
 public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputView> {
     private static final String TAG = "VertcalBlockViewFactory";  // 23 char limit
-    private static final boolean DEBUG = false;
 
-    private final LayoutInflater mLayoutInflater;
     private final PatchManager mPatchManager;
 
     private int mBlockStyle;
@@ -55,7 +51,6 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper, int workspaceTheme) {
         super(context, helper);
 
-        mLayoutInflater = LayoutInflater.from(context);
         mPatchManager = new PatchManager(mContext.getResources(), helper.useRtl());
 
         loadStyleData(workspaceTheme);
@@ -119,35 +114,8 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
         }
         try {
             mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
-//            mFieldStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_fieldStyle, 0);
-//            styles.recycle();  // Done with workspace theme
-//
-//            styles = obtainFieldStyledAttributes();
-//            mSpinnerLayout = styles.getResourceId(R.styleable.BlocklyFieldView_spinnerItem,
-//                    R.layout.default_spinner_item);
-//            mSpinnerDropDownLayout = styles.getResourceId(
-//                    R.styleable.BlocklyFieldView_spinnerItemDropDown,
-//                    R.layout.default_spinner_drop_down);
-//            mFieldInputLayout = styles.getResourceId(
-//                    R.styleable.BlocklyFieldView_fieldInputLayout,
-//                    R.layout.default_field_input);
-//            if (DEBUG) {
-//                Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldStyle=" + mFieldStyle
-//                        + ", SpinnerLayout=" + mSpinnerLayout + ", SpinnerDropdown="
-//                        + mSpinnerDropDownLayout);
-//            }
         } finally {
             styles.recycle();
         }
     }
-//
-//    private TypedArray obtainFieldStyledAttributes() {
-//        TypedArray styles;
-//        if (mFieldStyle != 0) {
-//            styles = mContext.obtainStyledAttributes(mFieldStyle, R.styleable.BlocklyFieldView);
-//        } else {
-//            styles = mContext.obtainStyledAttributes(R.styleable.BlocklyFieldView);
-//        }
-//        return styles;
-//    }
 }

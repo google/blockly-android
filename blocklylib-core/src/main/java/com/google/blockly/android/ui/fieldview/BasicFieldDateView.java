@@ -30,7 +30,10 @@ public class BasicFieldDateView extends TextView implements FieldView {
     protected Field.FieldDate.Observer mFieldObserver = new Field.FieldDate.Observer() {
         @Override
         public void onDateChanged(Field field, long oldMillis, long newMillis) {
-            setText(mDateField.getDateString());
+            String dateStr = mDateField.getDateString();
+            if (!dateStr.contentEquals(getText())) {
+                setText(mDateField.getDateString());
+            }
         }
     };
 
