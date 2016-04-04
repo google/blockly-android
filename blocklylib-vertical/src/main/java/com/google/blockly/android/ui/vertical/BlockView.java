@@ -51,6 +51,8 @@ public class BlockView extends AbstractBlockView<InputView> {
     private static final boolean DEBUG = false;
     // TODO(#86): Determine from 9-patch measurements.
     private static final int MIN_BLOCK_WIDTH = 40;
+    private static final int SHADOW_ALPHA = 128;
+    private static final int NORMAL_ALPHA = 255;
 
     // Width  and height of the block "content", i.e., all its input fields. Unlike the view size,
     // this does not include extruding connectors (e.g., Output, Next) and connected input blocks.
@@ -598,6 +600,7 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         mFillPaint.setColor(mBlock.getColour());
         mFillPaint.setStyle(Paint.Style.FILL);
+        mFillPaint.setAlpha(mBlock.isShadow() ? SHADOW_ALPHA : NORMAL_ALPHA);
     }
 
     /**
@@ -1143,6 +1146,7 @@ public class BlockView extends AbstractBlockView<InputView> {
     private NinePatchDrawable getColoredPatchDrawable(int id) {
         NinePatchDrawable drawable = mPatchManager.getPatchDrawable(id);
         drawable.setColorFilter(mBlockColorFilter);
+        drawable.setAlpha(mBlock.isShadow() ? SHADOW_ALPHA : NORMAL_ALPHA);
         return drawable;
     }
 }

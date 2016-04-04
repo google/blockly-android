@@ -18,6 +18,7 @@ package com.google.blockly.android;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -66,6 +67,7 @@ import java.util.List;
  * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
  */
 public class TrashFragment extends BlockDrawerFragment {
+    private static final String TAG = "TrashFragment";
     private BlocklyController mController;
     private WorkspaceHelper mHelper;
     private BlockListView mBlockListView;
@@ -180,6 +182,11 @@ public class TrashFragment extends BlockDrawerFragment {
             mBlockListView.init(mHelper, new BlockTouchHandler() {
                 @Override
                 public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                    blockView = mHelper.getNearestActiveView(blockView);
+                    if (blockView == null) {
+                        Log.i(TAG, "User touched a stack of blocks that may not be dragged");
+                        return false;
+                    }
                     if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
                         return false;
                     }

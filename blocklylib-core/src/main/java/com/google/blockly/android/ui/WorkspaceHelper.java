@@ -139,6 +139,24 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Gets the first block up the hierarchy that can be dragged by the user. If the starting
+     * block can be manipulated it will be returned.
+     *
+     * @param startingView The original view that was touched.
+     * @return The nearest parent block that the user can manipulate.
+     */
+    public BlockView getNearestActiveView(BlockView startingView) {
+        Block block = startingView.getBlock();
+        while (block != null) {
+            if (!block.isShadow()) {
+                return getView(block);
+            }
+            block = block.getParentBlock();
+        }
+        return null;
+    }
+
+    /**
      * Set the offset of the virtual workspace view.
      * <p/>
      * This is the coordinate of the top-left corner of the area of the workspace shown by a

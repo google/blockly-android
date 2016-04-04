@@ -29,6 +29,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -231,6 +232,11 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mBlockListView.init(mHelper, new BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                blockView = mHelper.getNearestActiveView(blockView);
+                if (blockView == null) {
+                    Log.i(TAG, "User touched a stack of blocks that may not be dragged");
+                    return false;
+                }
                 if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
                     return false;
                 }

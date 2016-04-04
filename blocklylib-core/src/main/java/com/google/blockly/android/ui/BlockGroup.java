@@ -189,12 +189,14 @@ public class BlockGroup extends NonPropagatingViewGroup {
     }
 
     /**
-     * Recursively disconnects the model from view, and removes all views.
+     * Recursively disconnects the model from view and unregisters and removes all views.
      */
     public void unlinkModel() {
         int childCount = getChildCount();
         for (int i = childCount - 1; i >= 0; --i) {
-            ((BlockView) getChildAt(i)).unlinkModel();
+            BlockView bv = (BlockView) getChildAt(i);
+            mWorkspaceHelper.getBlockViewFactory().unregisterView(bv);
+            bv.unlinkModel();
         }
         removeAllViews();
     }

@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.view.View;
 
+import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.model.Input;
 import com.google.blockly.android.ui.AbstractInputView;
 import com.google.blockly.android.ui.BlockView;
@@ -277,12 +278,14 @@ public class InputView extends AbstractInputView {
     private void measureConnectedBlockGroup(int widthMeasureSpec, int heightMeasureSpec) {
         final boolean inputsInline = mInput.getBlock().getInputsInline();
 
-        if (mConnectedGroup != null) {
+        BlockGroup groupToMeasure = mConnectedGroup != null ? mConnectedGroup
+                : mConnectedShadowGroup;
+        if (groupToMeasure != null) {
             // There is a block group connected to this input - measure it and add its size
             // to this InputView's size.
-            mConnectedGroup.measure(widthMeasureSpec, heightMeasureSpec);
-            mConnectedGroupWidth = mConnectedGroup.getMeasuredWidth();
-            mConnectedGroupHeight = mConnectedGroup.getMeasuredHeight();
+            groupToMeasure.measure(widthMeasureSpec, heightMeasureSpec);
+            mConnectedGroupWidth = groupToMeasure.getMeasuredWidth();
+            mConnectedGroupHeight = groupToMeasure.getMeasuredHeight();
 
             // Only add space for decorations around Statement and inline Value inputs.
             switch (mInputType) {
@@ -340,7 +343,9 @@ public class InputView extends AbstractInputView {
      * If there is a child connected to this Input, then layout the child in the correct place.
      */
     private void layoutChild() {
-        if (mConnectedGroup != null) {
+        BlockGroup groupToLayout = mConnectedGroup != null ? mConnectedGroup
+                : mConnectedShadowGroup;
+        if (groupToLayout != null) {
             // Compute offset of child relative to InputView. By default, align top of fields and
             // input, and shift right by left padding plus field width.
             int topOffset = 0;
@@ -369,14 +374,14 @@ public class InputView extends AbstractInputView {
                     // Nothing to do.
             }
 
-            final int width = mConnectedGroup.getMeasuredWidth();
-            final int height = mConnectedGroup.getMeasuredHeight();
+            final int width = groupToLayout.getMeasuredWidth();
+            final int height = groupToLayout.getMeasuredHeight();
 
             if (mHelper.useRtl()) {
                 leftOffset = getMeasuredWidth() - leftOffset - width;
             }
 
-            mConnectedGroup.layout(leftOffset, topOffset, leftOffset + width, topOffset + height);
+            groupToLayout.layout(leftOffset, topOffset, leftOffset + width, topOffset + height);
         }
     }
 }

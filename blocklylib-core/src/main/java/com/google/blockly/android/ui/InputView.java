@@ -26,9 +26,23 @@ public interface InputView {
     void setConnectedBlockGroup(BlockGroup group);
 
     /**
+     * Sets the {@link BlockGroup} containing the shadow block connected to this input and updates
+     * the view hierarchy. This generally only needs to be done when the view hierarchy is first
+     * created.
+     *
+     * @param group The {@link BlockGroup} to add to this input view.
+     */
+    void setConnectedShadowGroup(BlockGroup group);
+
+    /**
      * @return The {@link BlockGroup} connected to this input connection.
      */
     BlockGroup getConnectedBlockGroup();
+
+    /**
+     * @return The {@link BlockGroup} shadow block connected to this input connection.
+     */
+    BlockGroup getConnectedShadowGroup();
 
     /**
      * Unsets the {@link BlockGroup} in this input view and updates the view hierarchy.
