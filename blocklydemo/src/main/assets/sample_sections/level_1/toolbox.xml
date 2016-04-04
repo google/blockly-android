@@ -12,7 +12,7 @@
   ~  See the License for the specific language governing permissions and
   ~  limitations under the License.
   -->
-<xml xmlns="http://www.w3.org/1999/xhtml">
+<toolbox xmlns="http://www.w3.org/1999/xhtml">
     <block type="controls_repeat_ext">
         <value name="TIMES">
             <block type="math_number">
@@ -32,6 +32,20 @@
     <block type="statement_statement_input"></block>
     <block type="output_no_input"></block>
     <block type="statement_no_next"></block>
+
+    <block type="test_number">
+        <field name="NUM">10</field>
+    </block>
+    <block type="test_integer">
+        <field name="NUM">10</field>
+    </block>
+    <block type="test_number_hundreths">
+        <field name="NUM">0.25</field>
+    </block>
+    <block type="test_integer_bounded">
+        <field name="NOTE">60</field>
+    </block>
+
     <block type="variables_set"></block>
     <block type="variables_get"></block>
-</xml>
+</toolbox>

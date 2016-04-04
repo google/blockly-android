@@ -43,6 +43,20 @@
         <block type="statement_statement_input"></block>
         <block type="statement_value_input"></block>
     </category>
+    <category name="Numbers">
+        <block type="test_number">
+            <field name="NUM">10</field>
+        </block>
+        <block type="test_integer">
+            <field name="NUM">10</field>
+        </block>
+        <block type="test_number_hundreths">
+            <field name="NUM">0.25</field>
+        </block>
+        <block type="test_integer_bounded">
+            <field name="NOTE">60</field>
+        </block>
+    </category>
     <category name="Variables">
         <block type="variables_set"></block>
         <block type="variables_get"></block>

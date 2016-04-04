@@ -1070,7 +1070,6 @@ public class Block {
             if (inputs == null) {
                 throw new IllegalArgumentException("Inputs may not be null.");
             }
-            Log.d(TAG, "Set " + inputs.size() + " inputs");
             this.mInputs = inputs;
             return this;
         }
