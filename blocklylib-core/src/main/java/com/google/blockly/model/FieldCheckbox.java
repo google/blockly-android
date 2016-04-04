@@ -15,6 +15,10 @@
 
 package com.google.blockly.model;
 
+import android.text.TextUtils;
+
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
@@ -31,10 +35,13 @@ public final class FieldCheckbox extends Field<FieldCheckbox.Observer> {
         mChecked = checked;
     }
 
-    public static FieldCheckbox fromJson(JSONObject json) {
-        return new FieldCheckbox(
-                json.optString("name", "NAME"),
-                json.optBoolean("checked", true));
+    public static FieldCheckbox fromJson(JSONObject json) throws BlockLoadingException {
+        String name = json.optString("name");
+        if (TextUtils.isEmpty(name)) {
+            throw new BlockLoadingException("field_checkbox \"name\" attribute must not be empty.");
+        }
+
+        return new FieldCheckbox(name, json.optBoolean("checked", true));
     }
 
     @Override

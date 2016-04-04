@@ -15,8 +15,11 @@
 
 package com.google.blockly.model;
 
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
@@ -26,6 +29,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Adds a date picker to an Input. Dates must be in the format "YYYY-MM-DD"
@@ -34,39 +38,41 @@ public final class FieldDate extends Field<FieldDate.Observer> {
     private static final String TAG = "FieldDate";
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-    private final Date mDate;
+    private final Date mDate = new Date();
 
-    public FieldDate(String name, String dateString) {
+    public FieldDate(String name) {
         super(name, TYPE_DATE);
-        Date date = null;
-        if (!TextUtils.isEmpty(dateString)) {
-            try {
-                date = DATE_FORMAT.parse(dateString);
-            } catch (ParseException e) {
-                Log.e(TAG, "Unable to parse date " + dateString, e);
-            }
-        }
-        if (date == null) {
-            date = new Date();
-        }
-        mDate = date;
     }
 
-    public FieldDate(FieldDate other) {
-        super(other.getName(), TYPE_DATE);
-        mDate = (Date) other.mDate.clone();
+    public FieldDate(String name, long milliseconds) {
+        this(name);
+        mDate.setTime(milliseconds);
     }
 
+    @VisibleForTesting
+    public FieldDate(String name, String dateString) {
+        this(name);
+        if (!setFromString(dateString)) {
+            throw new IllegalArgumentException("Invalid date: " + dateString);
+        }
+    }
 
-    public static FieldDate fromJson(JSONObject json) {
-        return new FieldDate(
-                json.optString("name", "NAME"),
-                json.optString("date"));
+    public static FieldDate fromJson(JSONObject json) throws BlockLoadingException {
+        String name = json.optString("name");
+        if (TextUtils.isEmpty(name)) {
+            throw new BlockLoadingException("field_date \"name\" attribute must not be empty.");
+        }
+        FieldDate field = new FieldDate(name);
+        String dateStr = json.optString("date");
+        if (!TextUtils.isEmpty(dateStr) && !field.setFromString(dateStr)) {
+            throw new BlockLoadingException("Unable to parse date: " + dateStr);
+        }
+        return field;
     }
 
     @Override
     public FieldDate clone() {
-        return new FieldDate(this);
+        return new FieldDate(getName(), mDate.getTime());
     }
 
     @Override

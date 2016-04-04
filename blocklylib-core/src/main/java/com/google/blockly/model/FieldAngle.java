@@ -15,6 +15,10 @@
 
 package com.google.blockly.model;
 
+import android.text.TextUtils;
+
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
@@ -31,10 +35,13 @@ public final class FieldAngle extends Field<FieldAngle.Observer> {
         setAngle(angle);
     }
 
-    public static FieldAngle fromJson(JSONObject json) {
-        return new FieldAngle(
-                json.optString("name", "NAME"),
-                json.optInt("angle", 90));
+    public static FieldAngle fromJson(JSONObject json) throws BlockLoadingException {
+        String name = json.optString("name");
+        if (TextUtils.isEmpty(name)) {
+            throw new BlockLoadingException("field_angle \"name\" attribute must not be empty.");
+        }
+
+        return new FieldAngle(name, json.optInt("angle", 90));
     }
 
     @Override

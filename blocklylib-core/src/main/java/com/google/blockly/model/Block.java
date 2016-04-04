@@ -20,6 +20,7 @@ import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.Colours;
 
 import org.json.JSONArray;
@@ -603,7 +604,7 @@ public class Block {
      *
      * @return The generated Block.
      */
-    public static Block fromJson(String name, JSONObject json) {
+    public static Block fromJson(String name, JSONObject json) throws BlockLoadingException {
         if (TextUtils.isEmpty(name)) {
             throw new IllegalArgumentException("Block name may not be null or empty.");
         }

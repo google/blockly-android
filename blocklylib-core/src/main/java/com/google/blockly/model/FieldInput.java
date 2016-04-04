@@ -17,6 +17,8 @@ package com.google.blockly.model;
 
 import android.text.TextUtils;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
@@ -33,11 +35,13 @@ public final class FieldInput extends Field<FieldInput.Observer> {
         mText = text;
     }
 
-    public static FieldInput fromJson(JSONObject json) {
+    public static FieldInput fromJson(JSONObject json) throws BlockLoadingException {
+        String name = json.optString("name");
+        if (TextUtils.isEmpty(name)) {
+            throw new BlockLoadingException("field_input \"name\" attribute must not be empty.");
+        }
         // TODO: consider replacing default text with string resource
-        return new FieldInput(
-                json.optString("name", "NAME"),
-                json.optString("text", "default"));
+        return new FieldInput(name, json.optString("text", "default"));
     }
 
     @Override

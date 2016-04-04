@@ -17,6 +17,8 @@ package com.google.blockly.model;
 
 import android.text.TextUtils;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
@@ -33,9 +35,12 @@ public final class FieldVariable extends Field<FieldVariable.Observer> {
         mVariable = variable;
     }
 
-    public static FieldVariable fromJson(JSONObject json) {
-        return new FieldVariable(
-                json.optString("name", "NAME"), json.optString("variable", "item"));
+    public static FieldVariable fromJson(JSONObject json) throws BlockLoadingException {
+        String name = json.optString("name");
+        if (TextUtils.isEmpty(name)) {
+            throw new BlockLoadingException("field_variable \"name\" attribute must not be empty.");
+        }
+        return new FieldVariable(name, json.optString("variable", "item"));
     }
 
     @Override

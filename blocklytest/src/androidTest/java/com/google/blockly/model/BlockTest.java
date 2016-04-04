@@ -19,6 +19,7 @@ import android.test.AndroidTestCase;
 
 import com.google.blockly.android.MockBlocksProvider;
 import com.google.blockly.android.R;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,13 +51,8 @@ public class BlockTest extends AndroidTestCase {
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
     }
 
-    public void testJson() {
-        JSONObject blockDefinitionJson;
-        try {
-            blockDefinitionJson = new JSONObject(BlockTestStrings.TEST_JSON_STRING);
-        } catch (JSONException e) {
-            throw new RuntimeException("Failure parsing test JSON.", e);
-        }
+    public void testJson() throws JSONException, BlockLoadingException {
+        JSONObject blockDefinitionJson = new JSONObject(BlockTestStrings.TEST_JSON_STRING);
         Block block = Block.fromJson("test_block", blockDefinitionJson);
 
         assertNotNull("Block was null after initializing from JSON", block);
