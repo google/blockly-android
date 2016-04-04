@@ -20,19 +20,20 @@ import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldLabel;
 
 /**
  * Renders text as part of a BlockView.
  */
 public class BasicFieldLabelView extends TextView implements FieldView {
-    protected final Field.FieldLabel.Observer mFieldObserver = new Field.FieldLabel.Observer() {
+    protected final FieldLabel.Observer mFieldObserver = new FieldLabel.Observer() {
         @Override
-        public void onTextChanged(Field.FieldLabel field, String oldText, String newText) {
+        public void onTextChanged(FieldLabel field, String oldText, String newText) {
             setText(newText);
         }
     };
 
-    protected Field.FieldLabel mLabelField;
+    protected FieldLabel mLabelField;
 
     /**
      * Constructs a new {@link BasicFieldLabelView}.
@@ -57,7 +58,7 @@ public class BasicFieldLabelView extends TextView implements FieldView {
      *
      * @param labelField The label field to view.
      */
-    public void setField(Field.FieldLabel labelField) {
+    public void setField(FieldLabel labelField) {
         if (mLabelField == labelField) {
             return;
         }

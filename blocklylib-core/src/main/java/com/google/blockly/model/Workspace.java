@@ -203,7 +203,7 @@ public class Workspace {
      * @return The number of times that variable appears in this workspace.
      */
     public int getVariableRefCount(String variable) {
-        List<Field.FieldVariable> refs = mStats.getVariableReferences().get(variable);
+        List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
         return refs == null ? 0 : refs.size();
     }
 

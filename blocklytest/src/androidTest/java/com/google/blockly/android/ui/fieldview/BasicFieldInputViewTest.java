@@ -19,7 +19,7 @@ import android.support.annotation.NonNull;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldInput;
 
 import org.mockito.Mock;
 
@@ -35,13 +35,13 @@ public class BasicFieldInputViewTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mMockWorkspaceHelper;
 
     // Cannot mock final classes.
-    private Field.FieldInput mFieldInput;
+    private FieldInput mFieldInput;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        mFieldInput = new Field.FieldInput("FieldInput", INIT_TEXT_VALUE);
+        mFieldInput = new FieldInput("FieldInput", INIT_TEXT_VALUE);
         assertNotNull(mFieldInput);
     }
 

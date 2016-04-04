@@ -724,7 +724,7 @@ public class Block {
                 } else {
                     token = token.replace("%%", "%").trim();
                     if (!TextUtils.isEmpty(token)) {
-                        fields.add(new Field.FieldLabel(null, token));
+                        fields.add(new FieldLabel(null, token));
                     }
                 }
             }

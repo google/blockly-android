@@ -21,7 +21,7 @@ import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldVariable;
 
 import org.mockito.Mock;
 
@@ -33,7 +33,7 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
     @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
 
-    private Field.FieldVariable mFieldVariable;
+    private FieldVariable mFieldVariable;
     private String[] mVariables = new String[] {"var1", "var2", "var3"};
     private SpinnerAdapter mVariableAdapter;
 
@@ -42,7 +42,7 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
-        mFieldVariable = new Field.FieldVariable("FieldVariable", "Var2");
+        mFieldVariable = new FieldVariable("FieldVariable", "Var2");
         assertNotNull(mFieldVariable);
         assertEquals("Var2", mFieldVariable.getVariable());
 

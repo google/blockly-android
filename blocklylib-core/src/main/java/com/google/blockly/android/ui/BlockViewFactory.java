@@ -40,6 +40,15 @@ import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldAngle;
+import com.google.blockly.model.FieldCheckbox;
+import com.google.blockly.model.FieldColour;
+import com.google.blockly.model.FieldDate;
+import com.google.blockly.model.FieldDropdown;
+import com.google.blockly.model.FieldImage;
+import com.google.blockly.model.FieldInput;
+import com.google.blockly.model.FieldLabel;
+import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
 
@@ -235,48 +244,48 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         switch (type) {
             case Field.TYPE_ANGLE: {
                 BasicFieldAngleView fieldAngleView = new BasicFieldAngleView(mContext);
-                fieldAngleView.setField((Field.FieldAngle) field);
+                fieldAngleView.setField((FieldAngle) field);
                 return fieldAngleView;
             }
             case Field.TYPE_CHECKBOX: {
                 BasicFieldCheckboxView fieldCheckboxView = new BasicFieldCheckboxView(mContext);
-                fieldCheckboxView.setField((Field.FieldCheckbox) field);
+                fieldCheckboxView.setField((FieldCheckbox) field);
                 return fieldCheckboxView;
             }
             case Field.TYPE_COLOUR: {
                 BasicFieldColourView fieldColourView = new BasicFieldColourView(mContext);
-                fieldColourView.setField((Field.FieldColour) field);
+                fieldColourView.setField((FieldColour) field);
                 return fieldColourView;
             }
             case Field.TYPE_DATE: {
                 BasicFieldDateView fieldDateView = new BasicFieldDateView(mContext);
-                fieldDateView.setField((Field.FieldDate) field);
+                fieldDateView.setField((FieldDate) field);
                 return fieldDateView;
             }
             case Field.TYPE_DROPDOWN: {
                 BasicFieldDropdownView fieldDropdownView = new BasicFieldDropdownView(mContext);
-                fieldDropdownView.setField((Field.FieldDropdown) field);
+                fieldDropdownView.setField((FieldDropdown) field);
                 return fieldDropdownView;
             }
             case Field.TYPE_IMAGE: {
                 BasicFieldImageView fieldImageView = new BasicFieldImageView(mContext);
-                fieldImageView.setField((Field.FieldImage) field);
+                fieldImageView.setField((FieldImage) field);
                 return fieldImageView;
             }
             case Field.TYPE_INPUT: {
                 BasicFieldInputView fieldInputView = new BasicFieldInputView(mContext);
-                fieldInputView.setField((Field.FieldInput) field);
+                fieldInputView.setField((FieldInput) field);
                 return fieldInputView;
             }
             case Field.TYPE_LABEL: {
                 BasicFieldLabelView fieldLabelView = new BasicFieldLabelView(mContext);
-                fieldLabelView.setField((Field.FieldLabel) field);
+                fieldLabelView.setField((FieldLabel) field);
                 return fieldLabelView;
             }
             case Field.TYPE_VARIABLE: {
                 BasicFieldVariableView fieldVariableView = new BasicFieldVariableView(mContext);
                 fieldVariableView.setAdapter(getVariableAdapter());
-                fieldVariableView.setField((Field.FieldVariable) field);
+                fieldVariableView.setField((FieldVariable) field);
                 return fieldVariableView;
             }
 

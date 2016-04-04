@@ -20,6 +20,8 @@ import android.test.InstrumentationTestCase;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldInput;
+import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 
 import static org.mockito.Mockito.mock;
@@ -42,15 +44,15 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
                 getInstrumentation().getTargetContext().getCacheDir().getPath());
         mMockProcedureManager = mock(ProcedureManager.class);
         mFieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
-        Field field = new Field.FieldInput("name", "nameid");
+        Field field = new FieldInput("name", "nameid");
         field.setFromString("new procedure");
         mFieldInput.add(field);
 
         mVariableFieldsInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
-        field = new Field.FieldVariable("field name", "nameid");
+        field = new FieldVariable("field name", "nameid");
         field.setFromString("variable name");
         mVariableFieldsInput.add(field);
-        field = new Field.FieldVariable("field name 2", "nameid2");
+        field = new FieldVariable("field name 2", "nameid2");
         field.setFromString("variable name");
         mVariableFieldsInput.add(field);
 
@@ -111,7 +113,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         blockBuilder = new Block.Builder("third block");
 
         Input in = new Input.InputDummy("name input", Input.ALIGN_LEFT);
-        Field field = new Field.FieldVariable( "nameid", "third block field name");
+        Field field = new FieldVariable( "nameid", "third block field name");
         field.setFromString("third block variable name");
         in.add(field);
         blockBuilder.addInput(in);

@@ -27,6 +27,7 @@ import android.widget.EditText;
 
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldInput;
 
 /**
  * Renders editable text as part of a {@link com.google.blockly.android.ui.InputView}.
@@ -49,9 +50,9 @@ public class BasicFieldInputView extends EditText implements FieldView {
         }
     };
 
-    private final Field.FieldInput.Observer mFieldObserver = new Field.FieldInput.Observer() {
+    private final FieldInput.Observer mFieldObserver = new FieldInput.Observer() {
         @Override
-        public void onTextChanged(Field.FieldInput field, String oldText, String newText) {
+        public void onTextChanged(FieldInput field, String oldText, String newText) {
             if (field != mInputField) {
                 Log.w(TAG, "Received text change from unexpected field.");
                 return;
@@ -62,7 +63,7 @@ public class BasicFieldInputView extends EditText implements FieldView {
         }
     };
 
-    protected Field.FieldInput mInputField;
+    protected FieldInput mInputField;
 
     public BasicFieldInputView(Context context) {
         super(context);
@@ -88,7 +89,7 @@ public class BasicFieldInputView extends EditText implements FieldView {
      *
      * @param input The input field to view.
      */
-    public void setField(Field.FieldInput input) {
+    public void setField(FieldInput input) {
         if (mInputField == input) {
             return;
         }

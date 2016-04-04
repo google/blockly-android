@@ -19,6 +19,7 @@ import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldInput;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,7 +148,7 @@ public class ProcedureManager {
     private static String getProcedureName(Block block) {
         Field nameField = block.getFieldByName("name");
         if (nameField != null) {
-            return ((Field.FieldInput) nameField).getText();
+            return ((FieldInput) nameField).getText();
         } else {
             throw new IllegalArgumentException(
                     "Procedure definition block with no procedure name.");
@@ -157,7 +158,7 @@ public class ProcedureManager {
     private static void setProcedureName(Block block, String newName) {
         Field nameField = block.getFieldByName("name");
         if (nameField != null) {
-            ((Field.FieldInput) nameField).setText(newName);
+            ((FieldInput) nameField).setText(newName);
         } else {
             throw new IllegalArgumentException(
                     "Procedure definition block with no procedure name.");

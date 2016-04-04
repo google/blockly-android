@@ -19,7 +19,7 @@ import android.support.annotation.NonNull;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldCheckbox;
 
 import org.mockito.Mock;
 
@@ -32,13 +32,13 @@ public class BasicFieldCheckboxViewTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mMockWorkspaceHelper;
 
     // Cannot mock final classes.
-    private Field.FieldCheckbox mFieldCheckbox;
+    private FieldCheckbox mFieldCheckbox;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        mFieldCheckbox = new Field.FieldCheckbox("FieldCheckbox", false);
+        mFieldCheckbox = new FieldCheckbox("FieldCheckbox", false);
     }
 
     // Verify field object gets updated when view is checked/unchecked.

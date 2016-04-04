@@ -28,6 +28,7 @@ import android.view.ViewGroup;
 import android.widget.PopupWindow;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldColour;
 
 /**
  * Renders a color field and picker as part of a BlockView.
@@ -39,7 +40,7 @@ public class BasicFieldColourView extends View implements FieldView {
     @VisibleForTesting
     static final int ALPHA_OPAQUE = 0xFF000000;
 
-    private Field.FieldColour.Observer mFieldObserver = new Field.FieldColour.Observer() {
+    private FieldColour.Observer mFieldObserver = new FieldColour.Observer() {
         @Override
         public void onColourChanged(Field field, int oldColour, int newColour) {
             mSelectedColourPaint.setColor(ALPHA_OPAQUE | newColour);
@@ -50,7 +51,7 @@ public class BasicFieldColourView extends View implements FieldView {
     @VisibleForTesting
     protected final Paint mSelectedColourPaint = new Paint();
 
-    protected Field.FieldColour mColourField = null;
+    protected FieldColour mColourField = null;
 
     protected AutoPositionPopupWindow mColourPopupWindow;
     protected ColourPaletteView mColourPaletteView;
@@ -89,7 +90,7 @@ public class BasicFieldColourView extends View implements FieldView {
      *
      * @param colourField The colour field to view.
      */
-    public void setField(Field.FieldColour colourField) {
+    public void setField(FieldColour colourField) {
         if (mColourField == colourField) {
             return;
         }

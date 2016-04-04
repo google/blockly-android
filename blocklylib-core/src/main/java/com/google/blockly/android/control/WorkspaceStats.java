@@ -20,6 +20,7 @@ import android.support.v4.util.SimpleArrayMap;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 
 import java.util.ArrayList;
@@ -31,17 +32,17 @@ import java.util.List;
 public class WorkspaceStats {
 
     // Maps from variable/procedure names to the blocks/fields where they are referenced.
-    private final SimpleArrayMap<String, List<Field.FieldVariable>> mVariableReferences =
+    private final SimpleArrayMap<String, List<FieldVariable>> mVariableReferences =
             new SimpleArrayMap<>();
     private final NameManager mVariableNameManager;
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
 
-    private final Field.FieldVariable.Observer mVariableObserver =
-            new Field.FieldVariable.Observer() {
+    private final FieldVariable.Observer mVariableObserver =
+            new FieldVariable.Observer() {
         @Override
-        public void onVariableChanged(Field.FieldVariable field, String oldVar, String newVar) {
-            List<Field.FieldVariable> list = mVariableReferences.get(oldVar);
+        public void onVariableChanged(FieldVariable field, String oldVar, String newVar) {
+            List<FieldVariable> list = mVariableReferences.get(oldVar);
             if (list != null) {
                 list.remove(field);
             }
@@ -70,7 +71,7 @@ public class WorkspaceStats {
         return mVariableNameManager;
     }
 
-    public SimpleArrayMap<String, List<Field.FieldVariable>> getVariableReferences() {
+    public SimpleArrayMap<String, List<FieldVariable>> getVariableReferences() {
         return mVariableReferences;
     }
 
@@ -91,12 +92,12 @@ public class WorkspaceStats {
             for (int j = 0; j < in.getFields().size(); j++) {
                 Field field = in.getFields().get(j);
                 if (field.getType() == Field.TYPE_VARIABLE) {
-                    Field.FieldVariable var = (Field.FieldVariable) field;
+                    FieldVariable var = (FieldVariable) field;
                     var.registerObserver(mVariableObserver);
                     if (mVariableReferences.containsKey(var.getVariable())) {
                         mVariableReferences.get(var.getVariable()).add(var);
                     } else {
-                        List<Field.FieldVariable> references = new ArrayList<>();
+                        List<FieldVariable> references = new ArrayList<>();
                         references.add(var);
                         mVariableReferences.put(var.getVariable(), references);
                     }
