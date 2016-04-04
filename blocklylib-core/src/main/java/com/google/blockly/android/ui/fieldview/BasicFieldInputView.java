@@ -67,6 +67,7 @@ public class BasicFieldInputView extends EditText implements FieldView {
 
     public BasicFieldInputView(Context context) {
         super(context);
+        onFinishInflate();
     }
 
     public BasicFieldInputView(Context context, AttributeSet attrs) {

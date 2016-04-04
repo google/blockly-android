@@ -45,12 +45,13 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     public static final int TYPE_VARIABLE = 6;
     public static final int TYPE_DROPDOWN = 7;
     public static final int TYPE_IMAGE = 8;
+    public static final int TYPE_NUMBER = 9;
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR,
-            TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE})
-    public @interface FieldType {
-    }
+            TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE, TYPE_NUMBER})
+    public @interface FieldType {}
+    // When adding fields, also update stringToFieldType() below.
 
     private static final String TYPE_LABEL_STRING = "field_label";
     private static final String TYPE_INPUT_STRING = "field_input";
@@ -61,6 +62,7 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     private static final String TYPE_VARIABLE_STRING = "field_variable";
     private static final String TYPE_DROPDOWN_STRING = "field_dropdown";
     private static final String TYPE_IMAGE_STRING = "field_image";
+    private static final String TYPE_NUMBER_STRING = "field_number";
 
     private final String mName;
     private final int mType;
@@ -182,6 +184,9 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
             case TYPE_IMAGE_STRING:
                 field = FieldImage.fromJson(json);
                 break;
+            case TYPE_NUMBER_STRING:
+                field = FieldNumber.fromJson(json);
+                break;
             default:
                 Log.w(TAG, "Unknown field type.");
                 break;
@@ -224,6 +229,8 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
                 return TYPE_DROPDOWN;
             case TYPE_IMAGE_STRING:
                 return TYPE_IMAGE;
+            case TYPE_NUMBER_STRING:
+                return TYPE_NUMBER;
             default:
                 return TYPE_UNKNOWN;
         }
