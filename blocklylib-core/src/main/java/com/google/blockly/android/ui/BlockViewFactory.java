@@ -36,6 +36,7 @@ import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
 import com.google.blockly.android.ui.fieldview.BasicFieldImageView;
 import com.google.blockly.android.ui.fieldview.BasicFieldInputView;
 import com.google.blockly.android.ui.fieldview.BasicFieldLabelView;
+import com.google.blockly.android.ui.fieldview.BasicFieldNumberView;
 import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
@@ -48,6 +49,7 @@ import com.google.blockly.model.FieldDropdown;
 import com.google.blockly.model.FieldImage;
 import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.FieldLabel;
+import com.google.blockly.model.FieldNumber;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
@@ -294,6 +296,11 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                 fieldVariableView.setAdapter(getVariableAdapter());
                 fieldVariableView.setField((FieldVariable) field);
                 return fieldVariableView;
+            }
+            case Field.TYPE_NUMBER: {
+                BasicFieldNumberView fieldNumberView = new BasicFieldNumberView(mContext);
+                fieldNumberView.setField((FieldNumber) field);
+                return fieldNumberView;
             }
 
             case Field.TYPE_UNKNOWN:
