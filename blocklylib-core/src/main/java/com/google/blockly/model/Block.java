@@ -338,6 +338,13 @@ public class Block {
     }
 
     /**
+     * @return True if this block can be dragged by the user, false otherwise.
+     */
+    public boolean isDraggable() {
+        return !mIsShadow && mCanMove;
+    }
+
+    /**
      * Creates a copy of this block and all inferior blocks connected to it.
      *
      * @return A new block tree with a copy of this block as the root.
@@ -952,17 +959,17 @@ public class Block {
         private Connection mNextConnection;
         private Connection mPreviousConnection;
         private ArrayList<Input> mInputs;
-        private boolean mInputsInline;
-        private boolean mIsShadow;
         // These values can be changed after creating the block
         private String mTooltip;
         private String mComment;
-        private boolean mHasContextMenu;
-        private boolean mCanDelete;
-        private boolean mCanMove;
-        private boolean mCanEdit;
-        private boolean mCollapsed;
-        private boolean mDisabled;
+        private boolean mHasContextMenu = false;
+        private boolean mInputsInline = false;
+        private boolean mIsShadow = false;
+        private boolean mCanDelete = true;
+        private boolean mCanMove = true;
+        private boolean mCanEdit = true;
+        private boolean mCollapsed = false;
+        private boolean mDisabled = false;
 
         public Builder(String name) {
             mName = name;

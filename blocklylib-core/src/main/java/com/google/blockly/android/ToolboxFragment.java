@@ -29,6 +29,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -235,7 +236,12 @@ public class ToolboxFragment extends BlockDrawerFragment {
                     return false;
                 }
 
-                Block copiedModel = blockView.getBlock().getRootBlock().deepCopy();
+                Block original = blockView.getBlock().getRootBlock();
+                if (!original.isDraggable()) {
+                    Log.w(TAG, "A block group in the Toolbox cannot be dragged!");
+                    return false;
+                }
+                Block copiedModel = original.deepCopy();
 
                 // Make the pointer be in the same relative position on the block as it was in the
                 // toolbox.

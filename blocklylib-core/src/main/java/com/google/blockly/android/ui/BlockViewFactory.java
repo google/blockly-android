@@ -147,6 +147,13 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                             targetBlock, connectionManager, touchHandler);
                     inputView.setConnectedBlockGroup(subgroup);
                 }
+                targetBlock = input.getConnection().getTargetShadowBlock();
+                if (targetBlock != null) {
+                    // Blocks connected to inputs live in their own BlockGroups.
+                    BlockGroup subgroup = buildBlockGroupTree(
+                            targetBlock, connectionManager, touchHandler);
+                    inputView.setConnectedShadowGroup(subgroup);
+                }
             }
             inputViews.add(inputView);
         }
