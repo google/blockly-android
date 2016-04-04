@@ -54,7 +54,7 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
     public void testInstantiation() {
         mFieldDropdown.setSelectedIndex(2);
         final BasicFieldDropdownView view = makeFieldDropdownView();
-        assertSame(view, mFieldDropdown.getView());
+        assertSame(mFieldDropdown, view.getField());
         assertEquals(mNameValueMap.size(), view.getCount());
         assertEquals(mFieldDropdown.getSelectedIndex(), view.getSelectedItemPosition());
         assertEquals(mFieldDropdown.getSelectedDisplayName(), view.getSelectedItem().toString());
@@ -62,7 +62,7 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
 
     // Verify update of field when an item is selected from the dropdown.
     // TODO(#69): Make tests (using Espresso?) to confirm that user interaction has the same
-    //            effect as calling FieldDropdownView.setSelection().
+    //            effect as calling FieldDropdown.setSelection().
     public void testUpdateFieldFromView() {
         final BasicFieldDropdownView view = makeFieldDropdownView();
 
@@ -98,7 +98,8 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     protected BasicFieldDropdownView makeFieldDropdownView() {
-        return new BasicFieldDropdownView(getContext(), mFieldDropdown,
-                R.layout.default_spinner_item, R.layout.default_spinner_drop_down);
+        BasicFieldDropdownView dropdown = new BasicFieldDropdownView(getContext());
+        dropdown.setField(mFieldDropdown);
+        return dropdown;
     }
 }

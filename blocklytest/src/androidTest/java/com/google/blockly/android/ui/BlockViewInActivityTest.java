@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewParent;
 
 import com.google.blockly.android.R;
+import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.TestWorkspaceViewActivity;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
@@ -86,7 +87,7 @@ public class BlockViewInActivityTest
 
         mViewFactory.buildBlockGroupTree(mRootBlock, mMockConnectionManager, null);
         mRootView = mHelper.getView(mRootBlock);
-        mFieldView = (View) mRootBlock.getFieldByName("MODE").getView();
+        mFieldView = TestUtils.getFieldView(mRootView, mRootBlock.getFieldByName("MODE"));
         mChildInputBlockView = mHelper.getView(mChildInputBlock);
         mChildStatementBlockView = mHelper.getView(mChildStatementBlock);
 

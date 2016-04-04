@@ -145,7 +145,7 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
         int max = mFieldViews.size();
         for (int i = 0; i < max; ++i) {
             FieldView fieldView = mFieldViews.get(i);
-            fieldView.unlinkModel();
+            fieldView.unlinkField();
         }
         if (mConnectedGroup != null) {
             mConnectedGroup.unlinkModel();
@@ -153,6 +153,6 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
         }
         removeAllViews();
         mInput.setView(null);
-        // TODO(#45): Remove model from view. Set mInput to null, and handle all null cases.
+        // TODO(#45): Remove model from view. Set mInputField to null, and handle all null cases.
     }
 }

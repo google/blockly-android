@@ -17,29 +17,16 @@ package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 
 import com.google.blockly.android.control.ConnectionManager;
-import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.fieldview.BasicFieldAngleView;
-import com.google.blockly.android.ui.fieldview.BasicFieldCheckboxView;
-import com.google.blockly.android.ui.fieldview.BasicFieldDateView;
-import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
-import com.google.blockly.android.ui.fieldview.BasicFieldImageView;
-import com.google.blockly.android.ui.fieldview.BasicFieldInputView;
-import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -47,17 +34,10 @@ import java.util.List;
  */
 public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputView> {
     private static final String TAG = "VertcalBlockViewFactory";  // 23 char limit
-    private static final boolean DEBUG = false;
 
-    private final LayoutInflater mLayoutInflater;
     private final PatchManager mPatchManager;
 
     private int mBlockStyle;
-    private int mFieldStyle;
-    private int mSpinnerLayout;
-    private int mSpinnerDropDownLayout;
-    private int mFieldInputLayout;
-    private BaseAdapter mVariableAdapter;
 
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper) {
         this(context, helper, 0);
@@ -71,19 +51,9 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper, int workspaceTheme) {
         super(context, helper);
 
-        mLayoutInflater = LayoutInflater.from(context);
         mPatchManager = new PatchManager(mContext.getResources(), helper.useRtl());
 
         loadStyleData(workspaceTheme);
-    }
-
-    /**
-     * Set the {@link NameManager} being used to track variables in the workspace.
-     *
-     * @param variableNameManager The name manager for the variables in the associated workspace.
-     */
-    public void setVariableNameManager(NameManager variableNameManager) {
-        mVariableAdapter = onCreateNameAdapter(variableNameManager);
     }
 
     /**
@@ -110,51 +80,17 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     /** Implements {@link BlockViewFactory#buildFieldView}. */
     @Override
     protected FieldView buildFieldView(Field field) {
-        FieldView view = null;
         switch (field.getType()) {
-            case Field.TYPE_LABEL: {
-                // TODO(#26): Inflate BasicFieldLabelView from layout .xml
-                TypedArray styles = obtainFieldStyledAttributes();
-                try {
-                    view = new FieldLabelView(mContext, field, styles);
-                } finally {
-                    styles.recycle();
-                }
-                break;
+            // TODO(Anm): Inflate custom / styled variants.
+            case Field.TYPE_COLOUR: {
+                FieldColourView colourView = new FieldColourView(mContext);
+                colourView.setWorkspaceHelper(mHelper);
+                colourView.setField((Field.FieldColour) field);
+                return colourView;
             }
-            case Field.TYPE_CHECKBOX:
-                view = new BasicFieldCheckboxView(mContext, field);
-                break;
-            case Field.TYPE_DATE:
-                view = new BasicFieldDateView(mContext, field);
-                break;
-            case Field.TYPE_DROPDOWN:
-                view = new BasicFieldDropdownView(mContext, field,
-                        R.layout.default_spinner_item, R.layout.default_spinner_drop_down);
-                break;
-            case Field.TYPE_ANGLE:
-                view = new BasicFieldAngleView(mContext, field);
-                break;
-            case Field.TYPE_COLOUR:
-                view = new FieldColourView(mContext, field, mHelper);
-                break;
-            case Field.TYPE_INPUT:
-                BasicFieldInputView fiv = (BasicFieldInputView) mLayoutInflater
-                        .inflate(mFieldInputLayout, null);
-                fiv.setField(field);
-                view = fiv;
-                break;
-            case Field.TYPE_IMAGE:
-                view = new BasicFieldImageView(mContext, field);
-                break;
-            case Field.TYPE_VARIABLE:
-                view = new BasicFieldVariableView(mContext, field, mVariableAdapter);;
-                break;
             default:
-                Log.w(TAG, "Unknown field type.");
-                break;
+                return super.buildFieldView(field);
         }
-        return view;
     }
 
     /**
@@ -162,26 +98,6 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
      */
     int getBlockStyle() {
         return mBlockStyle;
-    }
-
-    /**
-     * @return The style resource id to use for drawing field labels.
-     */
-    int getFieldStyle() {
-        return mFieldStyle;
-    }
-
-    /**
-     * Creates an adapter for use by Spinners or ListViews from a {@link NameManager}.
-     *
-     * @param nameManager The name manager to get the list of names from.
-     * @return An adapter that can be used by a Spinner or a ListView.
-     */
-    protected BaseAdapter onCreateNameAdapter(NameManager nameManager) {
-        ArrayAdapter adapter = new BasicFieldVariableView.VariableAdapter(nameManager,
-                mContext, mSpinnerLayout);
-        adapter.setDropDownViewResource(mSpinnerDropDownLayout);
-        return adapter;
     }
 
     /**
@@ -198,35 +114,8 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
         }
         try {
             mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
-            mFieldStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_fieldStyle, 0);
-            styles.recycle();  // Done with workspace theme
-
-            styles = obtainFieldStyledAttributes();
-            mSpinnerLayout = styles.getResourceId(R.styleable.BlocklyFieldView_spinnerItem,
-                    R.layout.default_spinner_item);
-            mSpinnerDropDownLayout = styles.getResourceId(
-                    R.styleable.BlocklyFieldView_spinnerItemDropDown,
-                    R.layout.default_spinner_drop_down);
-            mFieldInputLayout = styles.getResourceId(
-                    R.styleable.BlocklyFieldView_fieldInputLayout,
-                    R.layout.default_field_input);
-            if (DEBUG) {
-                Log.d(TAG, "BlockStyle=" + mBlockStyle + ", FieldStyle=" + mFieldStyle
-                        + ", SpinnerLayout=" + mSpinnerLayout + ", SpinnerDropdown="
-                        + mSpinnerDropDownLayout);
-            }
         } finally {
             styles.recycle();
         }
-    }
-
-    private TypedArray obtainFieldStyledAttributes() {
-        TypedArray styles;
-        if (mFieldStyle != 0) {
-            styles = mContext.obtainStyledAttributes(mFieldStyle, R.styleable.BlocklyFieldView);
-        } else {
-            styles = mContext.obtainStyledAttributes(R.styleable.BlocklyFieldView);
-        }
-        return styles;
     }
 }
