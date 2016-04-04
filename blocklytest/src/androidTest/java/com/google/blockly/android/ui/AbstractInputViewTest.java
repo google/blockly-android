@@ -78,27 +78,13 @@ public class AbstractInputViewTest extends MockitoAndroidTestCase {
 
         final BlockGroup mockGroup = Mockito.mock(BlockGroup.class);
         inputView.setConnectedBlockGroup(mockGroup);
-        inputView.disconnectBlockGroup();
+        inputView.setConnectedBlockGroup(null);
         assertNull(inputView.getConnectedBlockGroup());
         assertEquals(0, inputView.getChildCount());
 
         inputView.setConnectedBlockGroup(mockGroup);
         assertSame(mockGroup, inputView.getConnectedBlockGroup());
         assertEquals(1, inputView.getChildCount());
-    }
-
-    // Verify exception is thrown when calling setChildView with null. Use disconnectBlockGroup().
-    public void testSetChildViewNull() {
-        final AbstractInputView inputView = makeDefaultInputView();
-
-        // TODO(#68): Do this using @Rule and ExpectedException; not working with current runner(s).
-        try {
-            inputView.setConnectedBlockGroup(null);
-        } catch (IllegalArgumentException expected) {
-            return;
-        }
-
-        fail("Expected IllegalArgumentException not thrown.");
     }
 
     // Verify exception is thrown when calling setChildView repeatedly without disconnectBlockGroup.

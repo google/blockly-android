@@ -27,7 +27,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.view.MotionEvent;
 
 import com.google.blockly.android.control.ConnectionManager;
@@ -51,6 +50,8 @@ public class BlockView extends AbstractBlockView<InputView> {
     private static final boolean DEBUG = false;
     // TODO(#86): Determine from 9-patch measurements.
     private static final int MIN_BLOCK_WIDTH = 40;
+    private static final float SHADOW_SATURATION_MULTIPLIER = 0.4f;
+    private static final float SHADOW_VALUE_MULTIPLIER = 1.2f;
 
     // Width  and height of the block "content", i.e., all its input fields. Unlike the view size,
     // this does not include extruding connectors (e.g., Output, Next) and connected input blocks.
@@ -588,15 +589,25 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     private void initDrawingObjects() {
-        final int blockColor = mBlock.getColour();
+        int blockColour = mBlock.getColour();
+        if (mBlock.isShadow()) {
+            float hsv[] = new float[3];
+            Color.colorToHSV(blockColour, hsv);
+            hsv[1] *= SHADOW_SATURATION_MULTIPLIER;
+            hsv[2] *= SHADOW_VALUE_MULTIPLIER;
+            if (hsv[2] > 1) {
+                hsv[2] = 1;
+            }
+            blockColour = Color.HSVToColor(hsv);
+        }
 
         // Highlight color channels are added to each color-multiplied color channel, and since the
         // patches are 50% gray, the addition should be 50% of the base value.
-        final int highlight = Color.argb(255, Color.red(blockColor) / 2,
-                Color.green(blockColor) / 2, Color.blue(blockColor) / 2);
-        mBlockColorFilter = new LightingColorFilter(blockColor, highlight);
+        final int highlight = Color.argb(255, Color.red(blockColour) / 2,
+                Color.green(blockColour) / 2, Color.blue(blockColour) / 2);
+        mBlockColorFilter = new LightingColorFilter(blockColour, highlight);
 
-        mFillPaint.setColor(mBlock.getColour());
+        mFillPaint.setColor(blockColour);
         mFillPaint.setStyle(Paint.Style.FILL);
     }
 
@@ -1141,6 +1152,7 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     private NinePatchDrawable getColoredPatchDrawable(int id) {
+        // TODO: (#161) Use flat 9-patches for shadow blocks
         NinePatchDrawable drawable = mPatchManager.getPatchDrawable(id);
         drawable.setColorFilter(mBlockColorFilter);
         return drawable;

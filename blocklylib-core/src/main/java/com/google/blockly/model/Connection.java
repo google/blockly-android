@@ -295,7 +295,6 @@ public class Connection implements Cloneable {
         }
         if (target.getBlock().isShadow()) {
             if (mTargetShadowConnection != null) {
-                Log.w(TAG, "Shadow blocks are not intended to change.");
                 return REASON_MUST_DISCONNECT;
             }
         } else if (mTargetConnection != null) {
