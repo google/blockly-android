@@ -17,6 +17,8 @@ package com.google.blockly.model;
 
 import android.text.TextUtils;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,8 +47,11 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
         mOptions = (options != null) ? options : new ArrayList<Option>(0);
     }
 
-    public static FieldDropdown fromJson(JSONObject json) {
-        String name = json.optString("name", "NAME");
+    public static FieldDropdown fromJson(JSONObject json) throws BlockLoadingException {
+        String name = json.optString("name");
+        if (TextUtils.isEmpty(name)) {
+            throw new BlockLoadingException("field_dropdown \"name\" attribute must not be empty.");
+        }
 
         JSONArray jsonOptions = json.optJSONArray("options");
         ArrayList<Option> options = null;
@@ -59,18 +64,18 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
                 try {
                     option = jsonOptions.getJSONArray(i);
                 } catch (JSONException e) {
-                    throw new RuntimeException("Error reading dropdown options.", e);
+                    throw new BlockLoadingException("Error reading dropdown options.", e);
                 }
                 if (option != null && option.length() == 2) {
                     try {
                         String displayName = option.getString(0);
                         String value = option.getString(1);
                         if (TextUtils.isEmpty(value)) {
-                            throw new IllegalArgumentException("Option values may not be empty");
+                            throw new BlockLoadingException("Option values may not be empty");
                         }
                         options.add(new Option(value, displayName));
                     } catch (JSONException e) {
-                        throw new RuntimeException("Error reading option values.", e);
+                        throw new BlockLoadingException("Error reading option values.", e);
                     }
                 }
             }

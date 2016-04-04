@@ -18,6 +18,8 @@ package com.google.blockly.model;
 import android.graphics.Color;
 import android.text.TextUtils;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
@@ -40,8 +42,11 @@ public final class FieldColour extends Field<FieldColour.Observer> {
         setColour(colour);
     }
 
-    public static FieldColour fromJson(JSONObject json) {
-        String name = json.optString("name", "NAME");
+    public static FieldColour fromJson(JSONObject json) throws BlockLoadingException {
+        String name = json.optString("name");
+        if (TextUtils.isEmpty(name)) {
+            throw new BlockLoadingException("field_colour \"name\" attribute must not be empty.");
+        }
         int colour = DEFAULT_COLOUR;
 
         String colourString = json.optString("colour");

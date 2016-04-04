@@ -1082,14 +1082,17 @@ public class BlocklyController {
             }
             BlockFactory factory = new BlockFactory(mContext, null);
             for (int i = 0; i < mBlockDefResources.size(); i++) {
-                factory.addBlocks(mBlockDefResources.get(i));
+                int resId = mBlockDefResources.get(i);
+                factory.addBlocks(resId);
             }
             for (int i = 0; i < mBlockDefAssets.size(); i++) {
+                String assetPath = mBlockDefAssets.get(i);
                 try {
-                    factory.addBlocks(mAssetManager.open(mBlockDefAssets.get(i)));
+                    factory.addBlocks(mAssetManager.open(assetPath));
                 } catch (IOException e) {
-                    throw new IllegalArgumentException("Failed to load block definitions "
-                            + mBlockDefAssets.get(i), e);
+                    // Compile-time bundled assets are assumed to always be valid.
+                    throw new IllegalStateException("Failed to load block definitions from asset: "
+                            + assetPath, e);
                 }
             }
             for (int i = 0; i < mBlockDefs.size(); i++) {

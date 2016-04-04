@@ -19,6 +19,8 @@ import android.database.Observable;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
@@ -142,7 +144,7 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
      *
      * @throws RuntimeException
      */
-    public static Field fromJson(JSONObject json) {
+    public static Field fromJson(JSONObject json) throws BlockLoadingException {
         String type = null;
         try {
             type = json.getString("type");
