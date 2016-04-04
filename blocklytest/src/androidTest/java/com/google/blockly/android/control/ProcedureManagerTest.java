@@ -19,6 +19,7 @@ import android.test.AndroidTestCase;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.Input;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
         mProcedureManager = new ProcedureManager();
 
         Input nameInput = new Input.InputDummy("dummyName", Input.ALIGN_CENTER);
-        Field nameField = new Field.FieldInput("name", PROCEDURE_NAME);
+        Field nameField = new FieldInput("name", PROCEDURE_NAME);
         nameInput.add(nameField);
         mProcedureDefinition = new Block.Builder(
                 ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test")
@@ -73,7 +74,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
 
         mProcedureManager.addDefinition(secondProcedureDefinition);
         assertFalse(PROCEDURE_NAME.equalsIgnoreCase(
-                ((Field.FieldInput) secondProcedureDefinition.getFieldByName("name"))
+                ((FieldInput) secondProcedureDefinition.getFieldByName("name"))
                         .getText()));
     }
 

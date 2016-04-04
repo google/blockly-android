@@ -18,12 +18,12 @@ package com.google.blockly.android.ui.fieldview;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import com.google.blockly.android.R;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldDropdown;
 
 import java.util.List;
 
@@ -33,14 +33,14 @@ import java.util.List;
 public class BasicFieldDropdownView extends Spinner implements FieldView {
     private static final String TAG = "BasicFieldDropdownView";
 
-    private Field.FieldDropdown.Observer mFieldObserver = new Field.FieldDropdown.Observer() {
+    private FieldDropdown.Observer mFieldObserver = new FieldDropdown.Observer() {
         @Override
-        public void onSelectionChanged(Field.FieldDropdown field, int oldIndex, int newIndex) {
+        public void onSelectionChanged(FieldDropdown field, int oldIndex, int newIndex) {
             setSelection(newIndex);
         }
     };
 
-    protected Field.FieldDropdown mDropdownField;
+    protected FieldDropdown mDropdownField;
     protected int mItemLayout;
     protected int mItemDropdownLayout;
 
@@ -85,7 +85,7 @@ public class BasicFieldDropdownView extends Spinner implements FieldView {
      *
      * @param dropdownField The dropdown field to view.
      */
-    public void setField(Field.FieldDropdown dropdownField) {
+    public void setField(FieldDropdown dropdownField) {
         if (mDropdownField == dropdownField) {
             return;
         }

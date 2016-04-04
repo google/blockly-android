@@ -22,12 +22,13 @@ import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldDate;
 
 /**
  * Renders a date and a date picker as part of a Block.
  */
 public class BasicFieldDateView extends TextView implements FieldView {
-    protected Field.FieldDate.Observer mFieldObserver = new Field.FieldDate.Observer() {
+    protected FieldDate.Observer mFieldObserver = new FieldDate.Observer() {
         @Override
         public void onDateChanged(Field field, long oldMillis, long newMillis) {
             String dateStr = mDateField.getDateString();
@@ -37,7 +38,7 @@ public class BasicFieldDateView extends TextView implements FieldView {
         }
     };
 
-    protected Field.FieldDate mDateField;
+    protected FieldDate mDateField;
 
     public BasicFieldDateView(Context context) {
         super(context);
@@ -76,7 +77,7 @@ public class BasicFieldDateView extends TextView implements FieldView {
      *
      * @param dateField The date field to view.
      */
-    public void setField(Field.FieldDate dateField) {
+    public void setField(FieldDate dateField) {
         if (mDateField == dateField) {
             return;
         }

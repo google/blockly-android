@@ -23,6 +23,7 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldImage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,16 +33,16 @@ import java.net.URL;
  * Renders an image bitmap.
  */
 public class BasicFieldImageView extends ImageView implements FieldView {
-    protected final Field.FieldImage.Observer mFieldObserver = new Field.FieldImage.Observer() {
+    protected final FieldImage.Observer mFieldObserver = new FieldImage.Observer() {
         @Override
-        public void onImageChanged(Field.FieldImage field, String newSource,
+        public void onImageChanged(FieldImage field, String newSource,
                                    int newWidth, int newHeight) {
 
             loadImageFromSource(newSource);
         }
     };
 
-    protected Field.FieldImage mImageField;
+    protected FieldImage mImageField;
 
     /**
      * Constructs a new {@link BasicFieldImageView}.
@@ -66,7 +67,7 @@ public class BasicFieldImageView extends ImageView implements FieldView {
      *
      * @param imageField The image field to view.
      */
-    public void setField(Field.FieldImage imageField) {
+    public void setField(FieldImage imageField) {
         if (mImageField == imageField) {
             return;
         }

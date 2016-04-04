@@ -19,11 +19,13 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
-import com.google.blockly.android.R;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldDropdown;
 
 import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests for {@link BasicFieldDropdownView}.
@@ -34,20 +36,20 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mMockWorkspaceHelper;
 
     // Cannot mock final classes.
-    private Field.FieldDropdown mFieldDropdown;
-    private SimpleArrayMap<String, String> mNameValueMap = new SimpleArrayMap<>();
+    private FieldDropdown mFieldDropdown;
+    private List<FieldDropdown.Option> mOptions = new ArrayList<>(3);
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        mNameValueMap.put("Label1", "Value1");
-        mNameValueMap.put("Label2", "Value2");
-        mNameValueMap.put("Label3", "Value3");
+        mOptions.add(new FieldDropdown.Option("Value1", "Label1"));
+        mOptions.add(new FieldDropdown.Option("Value2", "Label2"));
+        mOptions.add(new FieldDropdown.Option("Value3", "Label3"));
 
-        mFieldDropdown = new Field.FieldDropdown("FieldCheckbox", mNameValueMap);
+        mFieldDropdown = new FieldDropdown("FieldCheckbox", mOptions);
         assertNotNull(mFieldDropdown);
-        assertEquals(mNameValueMap.size(), mFieldDropdown.getOptions().size());
+        assertEquals(mOptions.size(), mFieldDropdown.getOptionCount());
     }
 
     // Verify object instantiation.
@@ -55,7 +57,7 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
         mFieldDropdown.setSelectedIndex(2);
         final BasicFieldDropdownView view = makeFieldDropdownView();
         assertSame(mFieldDropdown, view.getField());
-        assertEquals(mNameValueMap.size(), view.getCount());
+        assertEquals(mOptions.size(), view.getCount());
         assertEquals(mFieldDropdown.getSelectedIndex(), view.getSelectedItemPosition());
         assertEquals(mFieldDropdown.getSelectedDisplayName(), view.getSelectedItem().toString());
     }
