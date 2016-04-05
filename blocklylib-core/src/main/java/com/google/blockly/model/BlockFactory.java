@@ -21,6 +21,8 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,6 +51,7 @@ public class BlockFactory {
      *
      * @param context The context for loading resources.
      * @param blockSourceIds A list of JSON resources containing blocks.
+     * @throws IllegalStateException if any block definitions fail to load.
      */
     public BlockFactory(Context context, int[] blockSourceIds) {
         this(context);
@@ -68,7 +71,7 @@ public class BlockFactory {
         mResources = context.getResources();
     }
 
-    public BlockFactory(final InputStream source) {
+    public BlockFactory(final InputStream source) throws IOException {
         loadBlocks(source);
     }
 
@@ -146,10 +149,17 @@ public class BlockFactory {
      * @param resId The id of the JSON resource to load blocks from.
      *
      * @return Number of blocks added to the factory.
+     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
      */
     public int addBlocks(int resId) {
         InputStream blockIs = mResources.openRawResource(resId);
-        return loadBlocks(blockIs);
+        try {
+            return loadBlocks(blockIs);
+        } catch (IOException e) {
+            // Compile time resources are expected to always be valid.
+            throw new IllegalStateException("Failed to load block defintions from resource: "
+                    + mResources.getResourceEntryName(resId));
+        }
     }
 
     /**
@@ -158,8 +168,9 @@ public class BlockFactory {
      * @param json_string The JSON string to load blocks from.
      *
      * @return Number of blocks added to the factory.
+     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
      */
-    public int addBlocks(String json_string) {
+    public int addBlocks(String json_string) throws IOException {
         final InputStream blockIs = new ByteArrayInputStream(json_string.getBytes());
         return loadBlocks(blockIs);
     }
@@ -171,8 +182,9 @@ public class BlockFactory {
      * @param is The json stream to read blocks from.
      *
      * @return Number of blocks added to the factory.
+     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
      */
-    public int addBlocks(InputStream is) {
+    public int addBlocks(InputStream is) throws IOException {
         return loadBlocks(is);
     }
 
@@ -193,7 +205,7 @@ public class BlockFactory {
     }
 
     /** @return Number of blocks added to the factory. */
-    private int loadBlocks(InputStream blockIs) {
+    private int loadBlocks(InputStream blockIs) throws IOException {
         int blockAddedCount = 0;
         try {
             int size = blockIs.available();
@@ -209,14 +221,12 @@ public class BlockFactory {
                     mBlockTemplates.put(id, Block.fromJson(id, block));
                     ++blockAddedCount;
                 } else {
-                    throw new IllegalArgumentException("Block " + i
-                            + " has no id and cannot be loaded.");
+                    throw new BlockLoadingException(
+                            "Block " + i + " has no id and cannot be loaded.");
                 }
             }
-        } catch (IOException e) {
-            Log.e(TAG, "Error reading stream.", e);
         } catch (JSONException e) {
-            Log.e(TAG, "Error parsing JSON.", e);
+            throw new BlockLoadingException(e);
         }
 
         return blockAddedCount;

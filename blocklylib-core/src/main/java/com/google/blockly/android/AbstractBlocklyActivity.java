@@ -50,6 +50,7 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
@@ -671,15 +672,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         factory.clear();
 
         String blockDefsPath = null;
-        try {
-            Iterator<String> iter = blockDefsPaths.iterator();
-            while (iter.hasNext()) {
-                blockDefsPath = iter.next();
+        Iterator<String> iter = blockDefsPaths.iterator();
+        while (iter.hasNext()) {
+            blockDefsPath = iter.next();
+            try {
                 factory.addBlocks(assetManager.open(blockDefsPath));
+            } catch (IOException e) {
+                factory.clear();  // Clear any partial loaded block sets.
+                // Compile-time bundled assets are assumed to be valid.
+                throw new IllegalStateException("Failed to load block definitions from asset: "
+                        + blockDefsPath, e);
             }
-        } catch (IOException e) {
-            factory.clear();  // Clear any partial loaded block sets.
-            throw new IllegalArgumentException("Error opening block defs at " + blockDefsPath, e);
         }
     }
 

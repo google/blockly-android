@@ -23,10 +23,10 @@ import java.util.Date;
  */
 public class FieldDateTest extends AndroidTestCase {
     public void testFieldDate() {
-        FieldDate field = new FieldDate("alphabet", "2015-09-10");
+        FieldDate field = new FieldDate("alphabet", "2015-09-14");
         assertEquals(Field.TYPE_DATE, field.getType());
         assertEquals("alphabet", field.getName());
-        assertEquals("2015-09-10", field.getDateString());
+        assertEquals("2015-09-14", field.getDateString());
 
         Date date = new Date();
         field.setDate(date);
@@ -35,8 +35,8 @@ public class FieldDateTest extends AndroidTestCase {
         field.setTime(date.getTime());
         assertEquals(date, field.getDate());
 
-        assertTrue(field.setFromString("2017-03-03"));
-        assertEquals("2017-03-03", field.getDateString());
+        assertTrue(field.setFromString("2017-03-23"));
+        assertEquals("2017-03-23", field.getDateString());
 
         // xml parsing
         assertFalse(field.setFromString("today"));
