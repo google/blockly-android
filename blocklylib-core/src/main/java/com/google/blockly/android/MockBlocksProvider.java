@@ -18,11 +18,19 @@ package com.google.blockly.android;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
-import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldAngle;
+import com.google.blockly.model.FieldCheckbox;
+import com.google.blockly.model.FieldColour;
+import com.google.blockly.model.FieldDate;
+import com.google.blockly.model.FieldDropdown;
+import com.google.blockly.model.FieldImage;
+import com.google.blockly.model.FieldInput;
+import com.google.blockly.model.FieldLabel;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -40,37 +48,40 @@ public final class MockBlocksProvider {
         bob.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
 
         Input input = new Input.InputValue("input2", null, null);
-        input.add(new Field.FieldLabel("checkbox?", "this is a checkbox:"));
-        input.add(new Field.FieldCheckbox("checkbox!", true));
+        input.add(new FieldLabel("checkbox?", "this is a checkbox:"));
+        input.add(new FieldCheckbox("checkbox!", true));
         bob.addInput(input);
 
         input = new Input.InputDummy("input1", null);
-        input.add(new Field.FieldLabel("label", "degrees"));
+        input.add(new FieldLabel("label", "degrees"));
         bob.addInput(input);
 
         input = new Input.InputValue("input3", Input.ALIGN_CENTER, null);
-        input.add(new Field.FieldAngle("label2", 180));
-        input.add(new Field.FieldDate("date!", "2015-03-19"));
-        input.add(new Field.FieldDropdown("dropdown", new String[]{"option1", "option2"},
-                new String[]{"value1", "value2"}));
+        input.add(new FieldAngle("label2", 180));
+        input.add(new FieldDate("date!", "2015-03-19"));
+        FieldDropdown dropdown = new FieldDropdown("dropdown");
+        dropdown.setOptions(
+                Arrays.asList(new String[]{"value1", "value2"}),
+                Arrays.asList(new String[]{"option1", "option2"}));
+        input.add(dropdown);
         bob.addInput(input);
 
         input = new Input.InputStatement("input6", null, null);
-        input.add(new Field.FieldInput("DO", "loop"));
+        input.add(new FieldInput("DO", "loop"));
         bob.addInput(input);
 
         input = new Input.InputValue("input7", Input.ALIGN_RIGHT, null);
-        input.add(new Field.FieldImage(
+        input.add(new FieldImage(
                 "image", "https://www.gstatic.com/codesite/ph/images/star_on.gif", 15, 15, "star"));
-        input.add(new Field.FieldColour("color", 0xFF0000));
+        input.add(new FieldColour("color", 0xFF0000));
         bob.addInput(input);
 
         input = new Input.InputValue("input8", null, null);
-        input.add(new Field.FieldInput("input text", "initial wide field of text"));
+        input.add(new FieldInput("input text", "initial wide field of text"));
         bob.addInput(input);
 
         input = new Input.InputStatement("input9", Input.ALIGN_RIGHT, null);
-        input.add(new Field.FieldInput("DO", "another loop"));
+        input.add(new FieldInput("DO", "another loop"));
         bob.addInput(input);
 
         bob.setColourHue(42);
@@ -84,19 +95,19 @@ public final class MockBlocksProvider {
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
 
         Input input = new Input.InputDummy("input1", null);
-        input.add(new Field.FieldLabel("label", "block"));
+        input.add(new FieldLabel("label", "block"));
         block.addInput(input);
 
         input = new Input.InputValue("input2", null, null);
-        input.add(new Field.FieldLabel("label", "value"));
+        input.add(new FieldLabel("label", "value"));
         block.addInput(input);
 
         input = new Input.InputStatement("input3", null, null);
-        input.add(new Field.FieldLabel("DO", "this is a loop"));
+        input.add(new FieldLabel("DO", "this is a loop"));
         block.addInput(input);
 
         input = new Input.InputValue("input4", null, null);
-        input.add(new Field.FieldLabel("label", "another value"));
+        input.add(new FieldLabel("label", "another value"));
         block.addInput(input);
 
         return block.build();
@@ -107,7 +118,7 @@ public final class MockBlocksProvider {
         block.setPosition(500, 370);
 
         Input input = new Input.InputStatement("input", null, null);
-        input.add(new Field.FieldLabel("DO", "this is a loop"));
+        input.add(new FieldLabel("DO", "this is a loop"));
         block.addInput(input);
 
         return block.build();
@@ -118,15 +129,15 @@ public final class MockBlocksProvider {
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
 
         Input input = new Input.InputDummy("input1", Input.ALIGN_RIGHT);
-        input.add(new Field.FieldLabel("label", "block"));
+        input.add(new FieldLabel("label", "block"));
         block.addInput(input);
 
         input = new Input.InputValue("input2", null, null);
-        input.add(new Field.FieldLabel("label", "value"));
+        input.add(new FieldLabel("label", "value"));
         block.addInput(input);
 
         input = new Input.InputValue("input3", null, null);
-        input.add(new Field.FieldLabel("label", "another value"));
+        input.add(new FieldLabel("label", "another value"));
         block.addInput(input);
 
         block.setColourHue(120);
@@ -138,7 +149,7 @@ public final class MockBlocksProvider {
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
 
         Input input = new Input.InputDummy("input", null);
-        input.add(new Field.FieldLabel("label", "zero"));
+        input.add(new FieldLabel("label", "zero"));
         block.addInput(input);
 
         block.setColourHue(210);
@@ -150,7 +161,7 @@ public final class MockBlocksProvider {
         block.setOutput(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null));
 
         Input input = new Input.InputValue("input", null, null);
-        input.add(new Field.FieldLabel("label", "one input"));
+        input.add(new FieldLabel("label", "one input"));
         block.addInput(input);
 
         block.setColourHue(110);
@@ -163,7 +174,7 @@ public final class MockBlocksProvider {
         block.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
 
         Input input = new Input.InputDummy("input", null);
-        input.add(new Field.FieldLabel("label", "do something"));
+        input.add(new FieldLabel("label", "do something"));
         block.addInput(input);
 
         block.setColourHue(240);
@@ -172,7 +183,7 @@ public final class MockBlocksProvider {
 
     /**
      * For use in unit tests.  If you want to make changes for live testing, make them in
-     * {@link #makeComplexModel(Workspace)}
+     * {@link #makeComplexModel}
      */
     public static List<Block> makeTestModel() {
         List<Block> rootBlocks = new ArrayList<>();

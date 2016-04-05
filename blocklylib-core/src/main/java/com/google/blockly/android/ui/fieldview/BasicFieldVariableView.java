@@ -16,32 +16,26 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
-import android.database.DataSetObserver;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.Adapter;
-import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
-import android.widget.TextView;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.android.control.NameManager;
-
-import java.util.List;
+import com.google.blockly.model.FieldVariable;
 
 /**
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
 public class BasicFieldVariableView extends Spinner implements FieldView {
-    protected Field.FieldVariable.Observer mFieldObserver = new Field.FieldVariable.Observer() {
+    protected FieldVariable.Observer mFieldObserver = new FieldVariable.Observer() {
         @Override
-        public void onVariableChanged(Field.FieldVariable field, String oldVar, String newVar) {
+        public void onVariableChanged(FieldVariable field, String oldVar, String newVar) {
             setSelection(mVariableField.getVariable());
         }
     };
 
-    protected Field.FieldVariable mVariableField;
+    protected FieldVariable mVariableField;
 
     /**
      * Constructs a new {@link BasicFieldVariableView}.
@@ -66,7 +60,7 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
      *
      * @param variableField The variable field to view.
      */
-    public void setField(Field.FieldVariable variableField) {
+    public void setField(FieldVariable variableField) {
         Adapter adapter = getAdapter();
         if (adapter == null) {
             throw new IllegalStateException("Cannot set field before setting Adapter");

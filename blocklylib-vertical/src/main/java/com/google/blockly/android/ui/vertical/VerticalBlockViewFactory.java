@@ -25,6 +25,7 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldColour;
 import com.google.blockly.model.Input;
 
 import java.util.List;
@@ -85,7 +86,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             case Field.TYPE_COLOUR: {
                 FieldColourView colourView = new FieldColourView(mContext);
                 colourView.setWorkspaceHelper(mHelper);
-                colourView.setField((Field.FieldColour) field);
+                colourView.setField((FieldColour) field);
                 return colourView;
             }
             default:

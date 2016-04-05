@@ -22,12 +22,13 @@ import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldAngle;
 
 /**
  * Renders an angle as part of a Block.
  */
 public class BasicFieldAngleView extends TextView implements FieldView {
-    protected Field.FieldAngle.Observer mFieldObserver = new Field.FieldAngle.Observer() {
+    protected FieldAngle.Observer mFieldObserver = new FieldAngle.Observer() {
         @Override
         public void onAngleChanged(Field field, int oldAngle, int newAngle) {
             String newAngleStr = Integer.toString(newAngle);
@@ -37,7 +38,7 @@ public class BasicFieldAngleView extends TextView implements FieldView {
         }
     };
 
-    protected Field.FieldAngle mAngleField = null;
+    protected FieldAngle mAngleField = null;
 
     public BasicFieldAngleView(Context context) {
         super(context);
@@ -77,7 +78,7 @@ public class BasicFieldAngleView extends TextView implements FieldView {
      *
      * @param angleField The angle field model to view.
      */
-    public void setField(Field.FieldAngle angleField) {
+    public void setField(FieldAngle angleField) {
         if (mAngleField == angleField) {
             return;
         }

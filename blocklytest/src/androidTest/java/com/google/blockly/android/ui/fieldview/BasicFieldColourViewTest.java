@@ -24,7 +24,7 @@ import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 
 import com.google.blockly.android.BlocklyTestActivity;
-import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldColour;
 
 import org.mockito.MockitoAnnotations;
 
@@ -41,7 +41,7 @@ public class BasicFieldColourViewTest
     private BasicFieldColourView mFieldColorView;
 
     // Cannot mock final classes.
-    private Field.FieldColour mFieldColour;
+    private FieldColour mFieldColour;
     private BlocklyTestActivity mActivity;
 
     public BasicFieldColourViewTest() {
@@ -58,7 +58,7 @@ public class BasicFieldColourViewTest
         mLayout = new RelativeLayout(mActivity);
         mLayout.layout(0, 0, LAYOUT_WIDTH, LAYOUT_HEIGHT);
 
-        mFieldColour = new Field.FieldColour("FieldColour");
+        mFieldColour = new FieldColour("FieldColour");
         mFieldColorView = new BasicFieldColourView(mActivity);
         mFieldColorView.setField(mFieldColour);
         mLayout.addView(mFieldColorView);

@@ -21,22 +21,23 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldCheckbox;
 
 /**
  * Renders a checkbox as part of a BlockView.
  */
 public class BasicFieldCheckboxView extends CheckBox implements FieldView {
-    protected final Field.FieldCheckbox.Observer mFieldObserver
-            = new Field.FieldCheckbox.Observer() {
+    protected final FieldCheckbox.Observer mFieldObserver
+            = new FieldCheckbox.Observer() {
         @Override
-        public void onCheckChanged(Field.FieldCheckbox field, boolean newState) {
+        public void onCheckChanged(FieldCheckbox field, boolean newState) {
             if (isChecked() != newState) {
                 setChecked(newState);
             }
         }
     };
 
-    protected Field.FieldCheckbox mCheckboxField = null;
+    protected FieldCheckbox mCheckboxField = null;
 
     public BasicFieldCheckboxView(Context context) {
         super(context);
@@ -70,7 +71,7 @@ public class BasicFieldCheckboxView extends CheckBox implements FieldView {
      *
      * @param checkboxField The checkbox field to view.
      */
-    public void setField(Field.FieldCheckbox checkboxField) {
+    public void setField(FieldCheckbox checkboxField) {
         if (mCheckboxField == checkboxField) {
             return;
         }

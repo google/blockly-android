@@ -17,7 +17,7 @@ package com.google.blockly.android.ui.fieldview;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldLabel;
 
 import org.mockito.Mock;
 
@@ -32,11 +32,11 @@ public class BasicFieldLabelViewTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mMockWorkspaceHelper;
 
     // Cannot mock final classes.
-    private Field.FieldLabel mFieldLabel;
+    private FieldLabel mFieldLabel;
 
     // Verify object instantiation.
     public void testInstantiation() {
-        mFieldLabel = new Field.FieldLabel("FieldLabel", INIT_TEXT_VALUE);
+        mFieldLabel = new FieldLabel("FieldLabel", INIT_TEXT_VALUE);
 
         final BasicFieldLabelView view = new BasicFieldLabelView(getContext());
         view.setField(mFieldLabel);
