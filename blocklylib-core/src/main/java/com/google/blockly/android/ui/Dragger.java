@@ -19,6 +19,7 @@ import android.content.ClipData;
 import android.graphics.Rect;
 import android.support.annotation.IntDef;
 import android.support.v4.view.MotionEventCompat;
+import android.util.Log;
 import android.util.Pair;
 import android.view.DragEvent;
 import android.view.MotionEvent;
@@ -277,6 +278,11 @@ public class Dragger {
      */
     public boolean onTouchBlock(BlockView blockView, MotionEvent event) {
         final int action = MotionEventCompat.getActionMasked(event);
+        blockView = mWorkspaceHelper.getNearestActiveView(blockView);
+        if (blockView == null) {
+            Log.i(TAG, "User touched a stack of blocks that may not be dragged");
+            return false;
+        }
         // Handle the case when the user releases before moving far enough to start a drag.
         if ((action == MotionEvent.ACTION_UP && !mIsDragging)
                 && mTouchedBlockView == blockView) {
@@ -306,6 +312,11 @@ public class Dragger {
      * @return true if a drag has been started, false otherwise.
      */
     public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
+        blockView = mWorkspaceHelper.getNearestActiveView(blockView);
+        if (blockView == null) {
+            Log.i(TAG, "User touched a stack of blocks that may not be dragged");
+            return false;
+        }
         final int action = MotionEventCompat.getActionMasked(motionEvent);
         if (action == MotionEvent.ACTION_DOWN) {
             setTouchedBlock(blockView, motionEvent); // regardless of the idle state

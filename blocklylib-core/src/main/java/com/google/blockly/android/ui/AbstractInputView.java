@@ -43,6 +43,8 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
 
     // The view of the blocks connected to this input.
     protected BlockGroup mConnectedGroup = null;
+    // The view of the shadow blocks connected to this input.
+    protected BlockGroup mConnectedShadowGroup = null;
 
     /**
      * Constructs a base implementation of an {@link InputView}.
@@ -92,7 +94,8 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
     }
 
     /**
-     * Set the view of the blocks whose output port is connected to this input.
+     * Sets the view of the blocks whose output/previous connector is connected to this input.
+     * Setting it to null will remove any set block group.
      *
      * @param blockGroup The {@link BlockGroup} to attach to this input. The {@code childView} will
      *                  be added to the layout hierarchy for the current view via a call to
@@ -103,38 +106,72 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
      * @throws IllegalArgumentException if the method argument is {@code null}.
      */
     public void setConnectedBlockGroup(BlockGroup blockGroup) {
+        if (blockGroup == null) {
+            if (mConnectedGroup != null) {
+                removeView(mConnectedGroup);
+                mConnectedGroup = null;
+                if (mConnectedShadowGroup != null) {
+                    mConnectedShadowGroup.setVisibility(View.VISIBLE);
+                }
+                requestLayout();
+            }
+            return;
+        }
         if (mConnectedGroup != null) {
             throw new IllegalStateException("Input is already connected; must disconnect first.");
         }
 
-        if (blockGroup == null) {
-            throw new IllegalArgumentException("Cannot use setChildView with a null child. " +
-                    "Use disconnectBlockGroup to remove a child view.");
-        }
         mConnectedGroup = blockGroup;
+        if (mConnectedShadowGroup != null) {
+            mConnectedShadowGroup.setVisibility(View.GONE);
+        }
 
         addView(blockGroup);
         requestLayout();
     }
 
     /**
-     * Disconnect the currently-connected child view from this input.
-     * <p/>
-     * This method also removes the child view from the view hierarchy by calling
-     * {@link ViewGroup#removeView(View)}.
-     *
-     * @return The removed child view, if any. Otherwise, null.
+     * @return The {@link BlockGroup} containing the shadow blocks connected to this input port,
+     * if any.
      */
-    // TODO(#136): setConnectedBlockGroup(null)?
-    public BlockGroup disconnectBlockGroup() {
-        BlockGroup result = mConnectedGroup;
-        if (mConnectedGroup != null) {
-            removeView(mConnectedGroup);
-            mConnectedGroup = null;
-            requestLayout();
+    @Override
+    @Nullable
+    public BlockGroup getConnectedShadowGroup() {
+        return mConnectedShadowGroup;
+    }
+
+    /**
+     * Sets the view of the shadow blocks whose output/previous connector is connected to this
+     * input. Setting it to null will remove the connected group instead.
+     *
+     * @param blockGroup The {@link BlockGroup} to attach to this input. The {@code childView} will
+     *                  be added to the layout hierarchy for the current view via a call to
+     *                  {@link ViewGroup#addView(View)}.
+     *
+     * @throws IllegalStateException if a child view is already set. The Blockly model requires
+     *         disconnecting a block from an input before a new one can be connected.
+     * @throws IllegalArgumentException if the method argument is {@code null}.
+     */
+    public void setConnectedShadowGroup(BlockGroup blockGroup) {
+        if (blockGroup == null) {
+            if (mConnectedShadowGroup != null) {
+                removeView(mConnectedShadowGroup);
+                mConnectedShadowGroup = null;
+                requestLayout();
+            }
+            return;
+        }
+        if (mConnectedShadowGroup != null) {
+            throw new IllegalStateException("Input is already connected; must disconnect first.");
         }
 
-        return result;
+        mConnectedShadowGroup = blockGroup;
+        if (mConnectedGroup != null) {
+            mConnectedShadowGroup.setVisibility(View.GONE);
+        }
+
+        addView(blockGroup);
+        requestLayout();
     }
 
     /**
@@ -149,7 +186,11 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
         }
         if (mConnectedGroup != null) {
             mConnectedGroup.unlinkModel();
-            disconnectBlockGroup();
+            mConnectedGroup = null;
+        }
+        if (mConnectedShadowGroup != null) {
+            mConnectedShadowGroup.unlinkModel();
+            mConnectedShadowGroup = null;
         }
         removeAllViews();
         mInput.setView(null);

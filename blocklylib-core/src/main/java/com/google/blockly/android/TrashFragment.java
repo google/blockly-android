@@ -18,6 +18,7 @@ package com.google.blockly.android;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -66,6 +67,7 @@ import java.util.List;
  * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
  */
 public class TrashFragment extends BlockDrawerFragment {
+    private static final String TAG = "TrashFragment";
     private BlocklyController mController;
     private WorkspaceHelper mHelper;
     private BlockListView mBlockListView;
@@ -185,7 +187,10 @@ public class TrashFragment extends BlockDrawerFragment {
                     }
 
                     Block rootBlock = blockView.getBlock().getRootBlock();
-                    // TODO(#77): Optimize to avoid copying the model and view trees.
+                    if (!rootBlock.isDraggable()) {
+                        Log.w(TAG, "A block group in the Trash cannot be dragged!");
+                        return false;
+                    }
                     Block copiedModel = rootBlock.deepCopy();
 
                     // Make the pointer be in the same relative position on the block as it was in

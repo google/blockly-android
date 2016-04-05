@@ -404,7 +404,7 @@ public class BlocklyController {
                 // Disconnect view.
                 InputView inView = in.getView();
                 if (inView != null) {
-                    inView.disconnectBlockGroup();
+                    inView.setConnectedBlockGroup(null);
                 }
             }
             block.getPreviousConnection().disconnect();
@@ -417,7 +417,7 @@ public class BlocklyController {
             // Disconnect view.
             InputView inView = in.getView();
             if (inView != null) {
-                inView.disconnectBlockGroup();
+                inView.setConnectedBlockGroup(null);
             }
         }
 
@@ -748,7 +748,7 @@ public class BlocklyController {
             parentStatementConnection.disconnect();
             InputView parentInputView = parentStatementConnection.getInputView();
             if (parentInputView != null) {
-                parentInputView.disconnectBlockGroup();
+                parentInputView.setConnectedBlockGroup(null);
             }
 
             // Try to reconnect the remainder to the end of the new sequence.
@@ -843,7 +843,7 @@ public class BlocklyController {
             previousTargetConnection = parentConn.getTargetConnection();
             parentConn.disconnect();
             if (parentInputView != null) {
-                parentInputView.disconnectBlockGroup();
+                parentInputView.setConnectedBlockGroup(null);
             }
         }
         parentConn.connect(childConn);
