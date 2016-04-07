@@ -97,7 +97,11 @@ public class Dragger {
                     startDragInternal();
                     return true;    // We want to keep listening for drag events
                 case DragEvent.ACTION_DRAG_LOCATION:
-                    continueDragging(event);
+                    if (mTouchState == TOUCH_STATE_DRAGGING) {
+                        // If we're still finishing up a previous drag we may have missed the
+                        // start of the drag, in which case we shouldn't do anything.
+                        continueDragging(event);
+                    }
                     break;
                 case DragEvent.ACTION_DRAG_ENDED:
                     if (event.getResult()) {
