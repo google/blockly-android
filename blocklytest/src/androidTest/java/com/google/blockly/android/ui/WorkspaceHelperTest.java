@@ -88,7 +88,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     }
 
 
-    // test getRootBlockGroup
+    // test getDraggableBlockGroup
     public void testGetRootBlockGroup() throws InterruptedException {
         final List<Block> blocks = new ArrayList<>();
         Block root = MockBlocksProvider.makeDummyBlock();

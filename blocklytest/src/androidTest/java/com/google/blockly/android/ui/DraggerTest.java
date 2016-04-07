@@ -21,11 +21,9 @@ import static org.mockito.Mockito.any;
 import android.util.Pair;
 import android.view.DragEvent;
 import android.view.MotionEvent;
-import android.view.View;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.R;
-import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
@@ -51,7 +49,6 @@ import static org.mockito.Mockito.when;
  * Tests for the {@link Dragger}.
  */
 public class DraggerTest extends MockitoAndroidTestCase {
-
     @Mock
     BlocklyController mMockController;
     @Mock
@@ -64,30 +61,42 @@ public class DraggerTest extends MockitoAndroidTestCase {
     @Mock
     DragEvent mDragLocationEvent;
 
-
     private ViewPoint mTempViewPoint = new ViewPoint();
     private WorkspaceHelper mWorkspaceHelper;
     private BlockViewFactory mViewFactory;
     private WorkspaceView mWorkspaceView;
     private Dragger mDragger;
+    private BlockTouchHandler mTouchHandler;
     private BlockFactory mBlockFactory;
-    private ArrayList<Block> mBlocks;
+    private Dragger.DragHandler mDragHandler = new Dragger.DragHandler() {
+        @Override
+        public void maybeAssignDragGroup(PendingDrag pendingDrag) {
+            mPendingDrag = pendingDrag;
+            pendingDrag.setDragGroup(mDragGroup);
+        }
+    };
 
     // Drag gesture state variables
-    long dragStartTime;
-    float dragReleaseX, dragReleaseY;
-
+    Block mTouchedBlock;
+    Block mDraggedBlock;
+    Block mTargetBlock;
+    BlockView mTouchedView;
+    BlockGroup mDragGroup;
+    PendingDrag mPendingDrag;
+    long mDragStartTime;
+    float mDragReleaseX, mDragReleaseY;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
+        mWorkspaceHelper.setWorkspaceView(mWorkspaceView);
         mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
 
+        // The following are queried by the Dragger.
         Mockito.stub(mMockWorkspace.getConnectionManager()).toReturn(mMockConnectionManager);
         Mockito.stub(mMockController.getBlockFactory()).toReturn(mBlockFactory);
         Mockito.stub(mMockController.getWorkspace()).toReturn(mMockWorkspace);
@@ -95,6 +104,9 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mDragger = new Dragger(mMockController);
         mDragger.setWorkspaceView(mWorkspaceView);
+        mTouchHandler = mDragger.buildBlockTouchHandler(mDragHandler);
+
+        // Since we can't create DragEvents...
         when(mDragStartedEvent.getAction()).thenReturn(DragEvent.ACTION_DRAG_STARTED);
         when(mDragLocationEvent.getAction()).thenReturn(DragEvent.ACTION_DRAG_LOCATION);
     }
@@ -108,49 +120,53 @@ public class DraggerTest extends MockitoAndroidTestCase {
     // Drag together two compatible blocks.
     public void testDragConnect() {
         // Setup
-        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
-        Block second = mBlockFactory.obtainBlock("output_no_input", "second block");
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlock(
+                "simple_input_output", "first block");
+        mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
 
-        Mockito.when(mMockConnectionManager.findBestConnection(Matchers.same(first), anyInt()))
-                .thenReturn(Pair.create(first.getOnlyValueInput().getConnection(),
-                        second.getOutputConnection()));
+        Mockito.when(mMockConnectionManager.findBestConnection(Matchers.same(mTouchedBlock), anyInt()))
+                .thenReturn(Pair.create(mTouchedBlock.getOnlyValueInput().getConnection(),
+                        mTargetBlock.getOutputConnection()));
 
-        setupDrag(first, second);
-        dragBlockToTarget(first, second);
+        setupDrag();
+        dragBlockToTarget();
 
         Mockito.verify(mMockConnectionManager, atLeastOnce())
-                .findBestConnection(Matchers.same(first), anyInt());
+                .findBestConnection(Matchers.same(mTouchedBlock), anyInt());
         Mockito.verify(mMockController).connect(
-                first, first.getOnlyValueInput().getConnection(), second.getOutputConnection());
+                mTouchedBlock, mTouchedBlock.getOnlyValueInput().getConnection(), mTargetBlock.getOutputConnection());
     }
 
     // Drag together two incompatible blocks.
     public void testDragNoConnect() {
         // Setup
-        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
-        Block second = mBlockFactory.obtainBlock("output_no_input", "second block");
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlock(
+                "simple_input_output", "first block");
+        mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
 
         Mockito.when(mMockConnectionManager.findBestConnection(any(Block.class), anyInt()))
                 .thenReturn(null);
 
-        setupDrag(first, second);
-        dragBlockToTarget(first, second);
+        setupDrag();
+        dragBlockToTarget();
 
         Mockito.verify(mMockConnectionManager, atLeastOnce())
-                .findBestConnection(Matchers.same(first), anyInt());
+                .findBestConnection(Matchers.same(mTouchedBlock), anyInt());
         Mockito.verify(mMockController, never())
                 .connect(any(Block.class), any(Connection.class), any(Connection.class));
     }
 
     public void testRemoveConnectionsDuringDrag() {
         // Setup
-        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
-        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
-        Block third = mBlockFactory.obtainBlock("multiple_input_output", "third block");
-        second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
+        mTargetBlock = mBlockFactory.obtainBlock("simple_input_output", "first block");
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlock(
+                "simple_input_output", "second block");
+        Block draggedChild = mBlockFactory.obtainBlock("multiple_input_output", "third block");
+        mDraggedBlock.getOnlyValueInput().getConnection().connect(
+                draggedChild.getOutputConnection());
 
         ArrayList<Connection> draggedConnections = new ArrayList<>();
-        second.getAllConnectionsRecursive(draggedConnections);
+        mDraggedBlock.getAllConnectionsRecursive(draggedConnections);
         assertEquals(5, draggedConnections.size());
 
         final ArrayList<Connection> removedConnections = new ArrayList<>();
@@ -170,15 +186,14 @@ public class DraggerTest extends MockitoAndroidTestCase {
             }
         }).when(mMockConnectionManager).addConnection(any(Connection.class));
 
-        setupDrag(second, first);
-        dragTouch(second, first);
+        setupDrag();
+        dragTouch();
 
         assertEquals(0, addedConnections.size());
         assertEquals(0, removedConnections.size());
 
-        dragMove(second, first);
+        dragMove();
 
-        verify(mMockController).extractBlockAsRoot(second);
         assertEquals(draggedConnections.size(), removedConnections.size());
         assertEquals(0, addedConnections.size());
         for (Connection conn : draggedConnections) {
@@ -187,7 +202,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         }
 
         // Complete the drag.
-        dragRelease(second, first);
+        dragRelease();
 
         assertEquals(draggedConnections.size(), removedConnections.size());
         assertEquals(draggedConnections.size(), addedConnections.size());
@@ -197,71 +212,89 @@ public class DraggerTest extends MockitoAndroidTestCase {
         }
     }
 
-    private void setupDrag(Block first, Block second) {
-        // Set the blocks to not be in the same place.
-        first.setPosition(100, 100);
-        second.setPosition(0, 50);
-        mBlocks.add(first);
-        mBlocks.add(second);
-        TestUtils.createViews(mBlocks, mViewFactory, mMockConnectionManager, mWorkspaceView);
+    private void setupDrag() {
+        if (mTouchedBlock == null || mDraggedBlock == null || mTargetBlock == null) {
+            throw new IllegalStateException("Blocks must not be null");
+        }
+        if (mTouchedBlock == mTargetBlock || mDraggedBlock == mTargetBlock) {
+            throw new IllegalStateException(
+                    "Target block must be different than touched and dragged");
+        }
+
+        // Set the workspace blocks to not be in the same place.
+        mDraggedBlock.setPosition(100, 100);
+        mTargetBlock.setPosition(1000, 1000);
+
+        BlockGroup touchedGroup = mViewFactory.buildBlockGroupTree(
+                mTouchedBlock, mMockConnectionManager, mTouchHandler);
+        mTouchedView = touchedGroup.getFirstBlockView();
+        mDragGroup = (mDraggedBlock == mTouchedBlock) ? touchedGroup :
+                mViewFactory.buildBlockGroupTree(mDraggedBlock, mMockConnectionManager,
+                                                 mTouchHandler);
+        BlockGroup targetGroup = mViewFactory.buildBlockGroupTree(
+                mTargetBlock, mMockConnectionManager, null);
+
+        mWorkspaceView.addView(mDragGroup);
+        mWorkspaceView.addView(targetGroup);
+
+
+        Mockito.stub(mMockWorkspace.isRootBlock(mDraggedBlock)).toReturn(true);
 
         // Layout never happens during this test, so we're forcing the connection locations
         // to be set from the block positions before we try to use them.
-        mWorkspaceHelper.getView(first).updateConnectorLocations();
-        mWorkspaceHelper.getView(second).updateConnectorLocations();
+        mTouchedView.updateConnectorLocations();
+        mDragGroup.updateAllConnectorLocations();
+        targetGroup.updateAllConnectorLocations();
     }
 
     /**
      * Drag a block to sit directly on top of another block.
-     * @param toDrag The {@link Block} to move.
-     * @param stationary The {@link Block} to move to.
      */
-    private void dragBlockToTarget(Block toDrag, Block stationary) {
-        dragTouch(toDrag, stationary);
-        dragMove(toDrag, stationary);
-        dragRelease(toDrag, stationary);
+    private void dragBlockToTarget() {
+        dragTouch();
+        dragMove();
+        dragRelease();
     }
 
-    private void dragTouch(Block toDrag, Block stationary) {
-        BlockView bv = mWorkspaceHelper.getView(toDrag);
+    private void dragTouch() {
+        /// Anm REWRITE (this doesn't feel right)     /////////////////////  FIX BEFORE COMMIT <<<<<<<<<<<
+
         // This is how far we need to move the block by
         int diffX = mWorkspaceHelper.workspaceToVirtualViewUnits(
-                stationary.getPosition().x - toDrag.getPosition().x);
+                mTargetBlock.getPosition().x - mDraggedBlock.getPosition().x);
         int diffY = mWorkspaceHelper.workspaceToVirtualViewUnits(
-                stationary.getPosition().y - toDrag.getPosition().y);
+                mTargetBlock.getPosition().y - mDraggedBlock.getPosition().y);
         // Get the initial offset
-        mWorkspaceHelper.getVirtualViewCoordinates((View) bv, mTempViewPoint);
+        mWorkspaceHelper.getVirtualViewCoordinates(mDragGroup, mTempViewPoint);
         // And calculate the view position to move to to reach the stationary block
-        dragReleaseX = diffX + mTempViewPoint.x;
-        dragReleaseY= diffY + mTempViewPoint.y;
+        mDragReleaseX = diffX + mTempViewPoint.x;
+        mDragReleaseY = diffY + mTempViewPoint.y;
 
-        dragStartTime = System.currentTimeMillis();
+        mDragStartTime = System.currentTimeMillis();
         MotionEvent me = MotionEvent.obtain(
-                dragStartTime, dragStartTime, MotionEvent.ACTION_DOWN, 0, 0, 0);
-        mDragger.onTouchBlock(bv, me);
+                mDragStartTime, mDragStartTime, MotionEvent.ACTION_DOWN, 0, 0, 0);
+        mDragger.onTouchBlockImpl(mDragHandler, mTouchedView, me, false);
     }
 
-    private void dragMove(Block toDrag, Block stationary) {
-        BlockView bv = mWorkspaceHelper.getView(toDrag);
-        long time = dragStartTime + 10L;
+    private void dragMove() {
+        long time = mDragStartTime + 10L;
         MotionEvent me = MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 30, -10, 0);
-        mDragger.onTouchBlock(bv, me);
-        mDragger.getDragEventListener().onDrag((View) bv, mDragStartedEvent);
+        mDragger.onTouchBlockImpl(mDragHandler, mTouchedView, me, false);
+        mDragger.getDragEventListener().onDrag(mWorkspaceView, mDragStartedEvent);
     }
 
-    private void dragRelease(Block toDrag, Block stationary) {
-        BlockView bv = mWorkspaceHelper.getView(toDrag);
+    private void dragRelease() {
         // Pretend to be the last DragEvent that registers, which should be right by the
         // stationary block.
         // getX() returns float, even though we'll cast back to int immediately.
-        when(mDragLocationEvent.getX()).thenReturn(dragReleaseX);
-        when(mDragLocationEvent.getY()).thenReturn(dragReleaseY);
+        when(mDragLocationEvent.getX()).thenReturn(mDragReleaseX);
+        when(mDragLocationEvent.getY()).thenReturn(mDragReleaseY);
 
-        mDragger.getDragEventListener().onDrag((View) bv, mDragLocationEvent);
+        mDragger.getDragEventListener().onDrag(mWorkspaceView, mDragLocationEvent);
 
         // Force the connector locations to update before the call to finishDragging().
-        bv.updateConnectorLocations();
-        mWorkspaceHelper.getView(stationary).updateConnectorLocations();
+        mDragGroup.updateAllConnectorLocations();
+        mWorkspaceHelper.getView(mTargetBlock).updateConnectorLocations();
 
         mDragger.finishDragging();
     }

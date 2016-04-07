@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * The root class for the Blockly model.  Keeps track of all the global state used in the workspace.
  */
@@ -126,6 +125,24 @@ public class Workspace {
         mDeletedBlocks.add(0, block);
     }
 
+    /**
+     * Moves {@code trashedBlock} out of {@link #mDeletedBlocks} and into {@link #mRootBlocks}.
+     *
+     * @param trashedBlock The {@link Block} to move.
+     * @throws IllegalArgumentException When {@code trashedBlock} is not found in
+     *         {@link #mDeletedBlocks}.
+     */
+    public void addBlockFromTrash(Block trashedBlock) {
+        boolean foundBlock = mDeletedBlocks.remove(trashedBlock);
+        if (!foundBlock) {
+            throw new IllegalArgumentException("trashedBlock not found in mDeletedBlocks");
+        }
+        mRootBlocks.add(trashedBlock);
+    }
+
+    /**
+     * @return The {@link ConnectionManager} managing the connection locations in this Workspace.
+     */
     public ConnectionManager getConnectionManager() {
         return mConnectionManager;
     }
@@ -272,5 +289,4 @@ public class Workspace {
     public boolean isRootBlock(Block block) {
         return mRootBlocks.contains(block);
     }
-
 }
