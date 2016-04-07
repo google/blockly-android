@@ -67,7 +67,9 @@ public class BasicFieldAngleView extends TextView implements FieldView {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mAngleField.setFromString(s.toString());
+                if (mAngleField != null) {
+                    mAngleField.setFromString(s.toString());
+                }
             }
         });
     }
