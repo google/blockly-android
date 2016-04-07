@@ -16,6 +16,7 @@
 package com.google.blockly.android.ui;
 
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -38,6 +39,15 @@ public interface BlockView {
 
     /** @see View#getParent() */
     ViewParent getParent();
+
+    /** @see View#getWidth() */
+    int getWidth();
+
+    /**
+     * @see View#getLocationOnScreen(int[])
+     * @param location an array of two integers in which to hold the coordinates
+     */
+    void getLocationOnScreen(@Size(2) int[] location);
 
     /**
      * @return The closest view tree ancestor that is a BlockGroup.
@@ -67,10 +77,10 @@ public interface BlockView {
     int getNextBlockVerticalOffset();
 
     /**
-     * @return Layout margin on the left-hand side of the block (for optional Output connector).
+     * @return Layout margin on the start side of the block (for optional Output connector).
      */
     // TODO(#133): Generalize for other block shapes? Idea in issue #133 would cover this.
-    int getLayoutMarginLeft();
+    int getOutputConnectorMargin();
 
     /**
      * Updates the locations of the connections based on their offsets within the {@link BlockView},

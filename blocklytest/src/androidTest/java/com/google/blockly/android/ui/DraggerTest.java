@@ -64,6 +64,9 @@ public class DraggerTest extends MockitoAndroidTestCase {
     @Mock
     DragEvent mDragLocationEvent;
 
+    @Mock
+    Dragger.DragHandler mMockDragHandler;
+
 
     private ViewPoint mTempViewPoint = new ViewPoint();
     private WorkspaceHelper mWorkspaceHelper;
@@ -238,14 +241,14 @@ public class DraggerTest extends MockitoAndroidTestCase {
         dragStartTime = System.currentTimeMillis();
         MotionEvent me = MotionEvent.obtain(
                 dragStartTime, dragStartTime, MotionEvent.ACTION_DOWN, 0, 0, 0);
-        mDragger.onTouchBlock(bv, me);
+        mDragger.onTouchBlockImpl(mMockDragHandler, bv, me);
     }
 
     private void dragMove(Block toDrag, Block stationary) {
         BlockView bv = mWorkspaceHelper.getView(toDrag);
         long time = dragStartTime + 10L;
         MotionEvent me = MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 30, -10, 0);
-        mDragger.onTouchBlock(bv, me);
+        mDragger.onTouchBlockImpl(mMockDragHandler, bv, me);
         mDragger.getDragEventListener().onDrag((View) bv, mDragStartedEvent);
     }
 

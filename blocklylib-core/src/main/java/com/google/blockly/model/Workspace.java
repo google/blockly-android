@@ -123,6 +123,14 @@ public class Workspace {
         mDeletedBlocks.add(0, block);
     }
 
+    public void addBlockFromTrash(Block trashedBlock) {
+        boolean foundBlock = mDeletedBlocks.remove(trashedBlock);
+        if (!foundBlock) {
+            throw new IllegalArgumentException("trashedBlock not found in mDeletedBlocks");
+        }
+        mRootBlocks.add(trashedBlock);
+    }
+
     public ConnectionManager getConnectionManager() {
         return mConnectionManager;
     }
@@ -258,5 +266,4 @@ public class Workspace {
     public boolean isRootBlock(Block block) {
         return mRootBlocks.contains(block);
     }
-
 }

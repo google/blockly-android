@@ -16,12 +16,18 @@
 package com.google.blockly.android.ui;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Workspace;
+import com.google.blockly.model.WorkspacePoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +37,31 @@ import java.util.List;
  * define a {@link RecyclerView.LayoutManager}.
  */
 public class BlockListView extends RecyclerView {
+    private static final String TAG = "BlockListView";
+
+    public interface OnDragListBlock {
+        /**
+         * Handles the selection of the draggable {@link BlockGroup}, including possibly adding the
+         * block to the {@link Workspace} and {@link WorkspaceView}.
+         *
+         * @param index The list position of the touched block group.
+         * @param blockInList The root block of the touched block.
+         * @param touchedBlockGroup The top level touched block.
+         * @param initialBlockPosition The initial workspace coordinate for
+         *         {@code touchedBlockGroup}'s screen location.
+         * @return The block group to drag within the workspace.
+         */
+        BlockGroup getDraggableBlockGroup(int index, Block blockInList,
+                                          BlockGroup touchedBlockGroup,
+                                          WorkspacePoint initialBlockPosition);
+    }
+
     private final ArrayList<Block> mBlocks = new ArrayList<>();
     private final Adapter mAdapter = new Adapter();
+
+    private final int[] tempArray = new int[2];
+    private final ViewPoint tempViewPoint = new ViewPoint();
+    private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
     private WorkspaceHelper mHelper;
     private BlockTouchHandler mTouchHandler;
@@ -52,10 +81,72 @@ public class BlockListView extends RecyclerView {
         addItemDecoration(new ItemSpacingDecoration(mAdapter));
     }
 
-    public void init(WorkspaceHelper helper,
-                     BlockTouchHandler touchHandler) {
-        mHelper = helper;
-        mTouchHandler = touchHandler;
+    public void init(final @Nullable BlocklyController controller,
+                     final OnDragListBlock blockDragListener) {
+        if (controller == null) {
+            mHelper = null;
+            mTouchHandler = null;
+        } else {
+            mHelper = controller.getWorkspaceHelper();
+            Dragger dragger = controller.getDragger();
+            mTouchHandler = dragger.buildBlockTouchHandler(new Dragger.DragHandler() {
+                @Override
+                public boolean maybeStartDrag(Dragger.PendingDrag pendingDrag) {
+                    BlockView touchedBlockView = pendingDrag.getTouchedBlockView();
+
+                    // When dragging out of the BlockListView, we really care about the root block.
+                    Block rootBlock = touchedBlockView.getBlock().getRootBlock();
+                    BlockView rootTouchedBlockView = mHelper.getView(rootBlock);
+                    BlockGroup rootTouchedGroup = rootTouchedBlockView.getParentBlockGroup();
+
+                    // Calculate the offset from rootTouchedGroup to touchedBlockView in view
+                    // pixels. We are assuming there is no scaling or translations between
+                    // BlockViews.
+                    View view = (View) touchedBlockView;
+                    float offsetX = view.getX() + pendingDrag.getTouchDownViewOffsetX();
+                    float offsetY = view.getY() + pendingDrag.getTouchDownViewOffsetY();
+                    ViewGroup parent = (ViewGroup) view.getParent();
+                    while (parent != rootTouchedGroup) {
+                        view = parent;
+                        offsetX += view.getX();
+                        offsetY += view.getY();
+                        parent = (ViewGroup) view.getParent();
+                    }
+                    Log.d(TAG, "Unscaled offset: " + offsetX + ", " + offsetY);
+
+                    // Capture the root group's original screen location (top left corner).
+                    int[] rootScreenCoord = tempArray;
+                    rootTouchedGroup.getLocationOnScreen(rootScreenCoord);
+
+                    // Adjust for RTL, where the block workspace coordinate will be in the top right
+                    if (mHelper.useRtl()) {
+                        offsetX = rootTouchedGroup.getWidth() - offsetX;
+                    }
+
+                    // Scale into workspace coordinates.
+                    offsetX = mHelper.virtualViewToWorkspaceUnits(offsetX);
+                    offsetY = mHelper.virtualViewToWorkspaceUnits(offsetY);
+
+                    // Convert touch screen coordinate to workspace coordinate.
+                    mHelper.screenToWorkspaceCoordinates(pendingDrag.getTouchDownScreenX(),
+                            pendingDrag.getTouchDownScreenY(), mTempWorkspacePoint);
+
+                    // Offset the workspace coord by the BlockGroup's touch offset.
+                    mTempWorkspacePoint.offset((int) -offsetX, (int) -offsetY);
+
+                    // Acquire the WorkspaceBlock from the OnDragListBlock
+                    int blockIndex = mBlocks.indexOf(rootBlock);
+                    BlockGroup dragGroup = blockDragListener.getDraggableBlockGroup(
+                            blockIndex, rootBlock, rootTouchedGroup, mTempWorkspacePoint);
+                    if (dragGroup != null) {
+                        pendingDrag.setDragGroup(dragGroup);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            });
+        }
 
         // Update all currently visible BlockGroups.
         int childCount = getChildCount();
@@ -64,9 +155,33 @@ public class BlockListView extends RecyclerView {
             FrameLayout container = (FrameLayout) getChildAt(i);
             if (container.getChildCount() > 0) {
                 BlockGroup bg = (BlockGroup) container.getChildAt(0);
-                bg.setTouchHandler(touchHandler);
+                bg.setTouchHandler(mTouchHandler);
             }
         }
+    }
+
+    protected void calculateWorkspaceLocation(Dragger.PendingDrag pendingDrag,
+                                              BlockView rootTouchedBlockView,
+                                              WorkspacePoint workspaceCoord) {
+        ViewPoint screenCoord = tempViewPoint;
+        screenCoord.x = pendingDrag.getTouchDownScreenX();
+        screenCoord.y = pendingDrag.getTouchDownScreenY();
+        mHelper.screenToWorkspaceCoordinates(screenCoord, workspaceCoord);
+
+        float connectorOffsetX;
+        if (mHelper.useRtl()) {
+            connectorOffsetX = rootTouchedBlockView.getWidth()
+                    - rootTouchedBlockView.getOutputConnectorMargin()
+                    - pendingDrag.getTouchDownViewOffsetX();
+        } else {
+            connectorOffsetX = pendingDrag.getTouchDownViewOffsetX()
+                    - rootTouchedBlockView.getOutputConnectorMargin();
+        }
+        float wsOffsetX = mHelper.virtualViewToWorkspaceUnits(connectorOffsetX);
+        float wsOffsetY = mHelper.virtualViewToWorkspaceUnits(
+                pendingDrag.getTouchDownViewOffsetY());
+        workspaceCoord.x = (int) (workspaceCoord.x - wsOffsetX);
+        workspaceCoord.y = (int) (workspaceCoord.y - wsOffsetY);
     }
 
     public void setContents(List<Block> blocks) {
@@ -131,10 +246,13 @@ public class BlockListView extends RecyclerView {
 
         @Override
         public void onViewRecycled(BlockListView.ViewHolder holder) {
-            // TODO(#77): Reuse views to save memory and allocation time.  E.g., a view pool.
-            holder.bg.unlinkModel();
-            holder.bg = null;
-            holder.mContainer.removeAllViews();
+            // BlockGroup may be reused under a new parent.
+            // Only clear if it is still a child of mContainer.
+            if (holder.bg.getParent() == holder.mContainer) {
+                holder.bg.unlinkModel();
+                holder.bg = null;
+                holder.mContainer.removeAllViews();
+            }
 
             super.onViewRecycled(holder);
         }

@@ -24,9 +24,9 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 
-import com.google.blockly.android.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -67,6 +67,7 @@ public class WorkspaceHelper {
     private static final int DEFAULT_MAX_SNAP_DISTANCE = 24;
 
     private final ViewPoint mVirtualWorkspaceViewOffset = new ViewPoint();
+    private final ViewPoint mTempScreenPosition = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final int[] mTempIntArray2 = new int[2];
     private final Context mContext;
@@ -201,8 +202,12 @@ public class WorkspaceHelper {
      *
      * @return The value in workspace units.
      */
-    public int virtualViewToWorkspaceUnits(int viewValue) {
+    public int virtualViewToWorkspaceUnits(float viewValue) {
         return (int) (viewValue / mDensity);
+    }
+
+    public float getWorkspaceViewScale() {
+        return mWorkspaceView.getScaleX();
     }
 
     /**
@@ -241,7 +246,8 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Get workspace coordinates of a given {@link View}.
+     * Get workspace coordinates of a given {@link View}, up to the nearest WorkspaceView or
+     * RecyclerView.
      * <p/>
      * This function always returns the coordinate of the corner of the view that corresponds to the
      * block coordinate in workspace coordinates. In left-to-right (LTR) mode, this is the
@@ -311,6 +317,19 @@ public class WorkspaceHelper {
     public BlockGroup getRootBlockGroup(Block block) {
         BlockView bv = getView(block.getRootBlock());
         return (bv == null) ? null : (BlockGroup) bv.getParent();
+    }
+
+
+    /**
+     * Find the highest {@link BlockGroup} in the hierarchy that contains this {@link BlockView}.
+     *
+     * @param blockView The BlockView to start searching from.
+     *
+     * @return The highest {@link BlockGroup} found.
+     */
+    @Nullable
+    public BlockGroup getRootBlockGroup(BlockView blockView) {
+        return getRootBlockGroup(blockView.getBlock());
     }
 
     /**
@@ -403,6 +422,19 @@ public class WorkspaceHelper {
     }
 
     /**
+     * Convenience method for {@link #screenToWorkspaceCoordinates(Point,WorkspacePoint)}.
+     *
+     * @param screenX X coordinate of a location in absolute coordinates on the screen.
+     * @param screenY Y coordinate of a location in absolute coordinates on the screen.
+     * @param workspacePositionOut Output coordinates of the same location in workspace coordinates.
+     */
+    public void screenToWorkspaceCoordinates(int screenX, int screenY,
+                                             WorkspacePoint workspacePositionOut) {
+        mTempScreenPosition.set(screenX, screenY);
+        screenToWorkspaceCoordinates(mTempScreenPosition, workspacePositionOut);
+    }
+
+    /**
      * Converts a point in workspace coordinates to virtual view coordinates, storing the result in
      * the second parameter. The resulting coordinates will be in the
      * {@link WorkspaceView WorkspaceView's} coordinates, relative to the current
@@ -468,6 +500,22 @@ public class WorkspaceHelper {
         workspacePosition.x = workspaceX;
         workspacePosition.y =
                 virtualViewToWorkspaceUnits(viewPosition.y + mVirtualWorkspaceViewOffset.y);
+    }
+
+    /**
+     * @param touchedView The potential child view in question.
+     * @return True if {@code touchedView} is a descendent of the {@link WorkspaceView} supported
+     *         by this {@link WorkspaceHelper}.
+     */
+    public boolean isInWorkspaceView(View touchedView) {
+        ViewParent parent = touchedView.getParent();
+        while (parent != null && parent instanceof ViewGroup) {
+            if (parent == mWorkspaceView) {
+                return true;
+            }
+            parent = ((ViewGroup) parent).getParent();
+        }
+        return false;
     }
 
     /**

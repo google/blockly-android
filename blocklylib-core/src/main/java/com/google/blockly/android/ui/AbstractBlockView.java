@@ -167,7 +167,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return hitTest(event) && mTouchHandler.onInterceptTouchEvent(this, event);
+        return mTouchHandler != null && hitTest(event)
+                && mTouchHandler.onInterceptTouchEvent(this, event);
     }
 
     /**
