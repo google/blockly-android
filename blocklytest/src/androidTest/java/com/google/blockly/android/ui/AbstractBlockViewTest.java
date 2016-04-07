@@ -88,7 +88,7 @@ public class AbstractBlockViewTest extends MockitoAndroidTestCase {
             }
 
             @Override
-            public int getLayoutMarginLeft() {
+            public int getOutputConnectorMargin() {
                 return 0;
             }
 

@@ -23,7 +23,6 @@ import android.view.ViewConfiguration;
 
 import com.google.blockly.android.control.BlocklyController;
 
-
 /**
  * Handles updating the viewport into the workspace and is the parent view for all blocks. This view
  * is responsible for handling drags. A drag on the workspace will move the viewport and a drag on a
@@ -74,7 +73,7 @@ public class WorkspaceView extends NonPropagatingViewGroup {
             // Determine this BlockGroup's bounds in view coordinates and extend boundaries
             // accordingly. Do NOT use mHelper.workspaceToVirtualViewCoordinates below, since we want the
             // bounding box independent of scroll offset.
-            mHelper.workspaceToVirtualViewDelta(blockGroup.getTopBlockPosition(), mTemp);
+            mHelper.workspaceToVirtualViewDelta(blockGroup.getFirstBlockPosition(), mTemp);
             if (mHelper.useRtl()) {
                 mTemp.x -= blockGroup.getMeasuredWidth();
             }
@@ -102,7 +101,7 @@ public class WorkspaceView extends NonPropagatingViewGroup {
                 // Get view coordinates of child from its workspace coordinates. Note that unlike
                 // onMeasure() above, workspaceToVirtualViewCoordinates() must be used for
                 // conversion here, so view scroll offset is properly applied for positioning.
-                mHelper.workspaceToVirtualViewCoordinates(bg.getTopBlockPosition(), mTemp);
+                mHelper.workspaceToVirtualViewCoordinates(bg.getFirstBlockPosition(), mTemp);
                 if (mHelper.useRtl()) {
                     mTemp.x -= bg.getMeasuredWidth();
                 }
@@ -133,7 +132,8 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     }
 
     /**
-     * Updates the dragger for this workspace view and passes through the view for the trash can.
+     * Updates the {@link Dragger} for this workspace view and passes through the view for the trash
+     * can.
      *
      * @param dragger The {@link Dragger} to use in this workspace.
      */

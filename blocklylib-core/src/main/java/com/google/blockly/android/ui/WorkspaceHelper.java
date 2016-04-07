@@ -21,12 +21,13 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 
-import com.google.blockly.android.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -67,6 +68,7 @@ public class WorkspaceHelper {
     private static final int DEFAULT_MAX_SNAP_DISTANCE = 24;
 
     private final ViewPoint mVirtualWorkspaceViewOffset = new ViewPoint();
+    private final ViewPoint mTempScreenPosition = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final int[] mTempIntArray2 = new int[2];
     private final Context mContext;
@@ -201,8 +203,12 @@ public class WorkspaceHelper {
      *
      * @return The value in workspace units.
      */
-    public int virtualViewToWorkspaceUnits(int viewValue) {
+    public int virtualViewToWorkspaceUnits(float viewValue) {
         return (int) (viewValue / mDensity);
+    }
+
+    public float getWorkspaceViewScale() {
+        return mWorkspaceView.getScaleX();
     }
 
     /**
@@ -241,7 +247,8 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Get workspace coordinates of a given {@link View}.
+     * Get workspace coordinates of a given {@link View}, relative to the nearest WorkspaceView or
+     * RecyclerView.
      * <p/>
      * This function always returns the coordinate of the corner of the view that corresponds to the
      * block coordinate in workspace coordinates. In left-to-right (LTR) mode, this is the
@@ -313,6 +320,19 @@ public class WorkspaceHelper {
         return (bv == null) ? null : (BlockGroup) bv.getParent();
     }
 
+
+    /**
+     * Find the highest {@link BlockGroup} in the hierarchy that contains this {@link BlockView}.
+     *
+     * @param blockView The BlockView to start searching from.
+     *
+     * @return The highest {@link BlockGroup} found.
+     */
+    @Nullable
+    public BlockGroup getRootBlockGroup(BlockView blockView) {
+        return getRootBlockGroup(blockView.getBlock());
+    }
+
     /**
      * Find the closest {@link BlockGroup} in the hierarchy that this {@link Block} descends from.
      *
@@ -377,18 +397,19 @@ public class WorkspaceHelper {
      * @param viewPositionOut Output coordinates of the same location in {@link WorkspaceView},
      * expressed with respect to the virtual view coordinate system.
      */
-    public void screenToVirtualViewCoordinates(Point screenPositionIn, ViewPoint viewPositionOut) {
+    public void screenToVirtualViewCoordinates(@Size(2) int[] screenPositionIn,
+                                               ViewPoint viewPositionOut) {
         mWorkspaceView.getLocationOnScreen(mTempIntArray2);
         viewPositionOut.x =
-                (int) ((screenPositionIn.x - mTempIntArray2[0]) / mWorkspaceView.getScaleX());
+                (int) ((screenPositionIn[0] - mTempIntArray2[0]) / mWorkspaceView.getScaleX());
         viewPositionOut.y =
-                (int) ((screenPositionIn.y - mTempIntArray2[1]) / mWorkspaceView.getScaleY());
+                (int) ((screenPositionIn[1] - mTempIntArray2[1]) / mWorkspaceView.getScaleY());
     }
 
     /**
      * Convenience method for direct mapping of screen to workspace coordinates.
      * <p/>
-     * This method applies {@link #screenToVirtualViewCoordinates(Point, ViewPoint)} followed by
+     * This method applies {@link #screenToVirtualViewCoordinates} followed by
      * {@link #virtualViewToWorkspaceCoordinates(ViewPoint, WorkspacePoint)} using an existing
      * temporary {@link ViewPoint} instance as intermediate.
      *
@@ -396,7 +417,7 @@ public class WorkspaceHelper {
      * screen.
      * @param workspacePositionOut Output coordinates of the same location in workspace coordinates.
      */
-    public void screenToWorkspaceCoordinates(Point screenPositionIn,
+    public void screenToWorkspaceCoordinates(@Size(2) int[] screenPositionIn,
                                              WorkspacePoint workspacePositionOut) {
         screenToVirtualViewCoordinates(screenPositionIn, mTempViewPoint);
         virtualViewToWorkspaceCoordinates(mTempViewPoint, workspacePositionOut);
@@ -468,6 +489,25 @@ public class WorkspaceHelper {
         workspacePosition.x = workspaceX;
         workspacePosition.y =
                 virtualViewToWorkspaceUnits(viewPosition.y + mVirtualWorkspaceViewOffset.y);
+    }
+
+    /**
+     * Returns true if the view is a child or deeper descendant of the {@link WorkspaceView}
+     * associated with this WorkspaceHelper.
+     *
+     * @param view The potential child view in question.
+     * @return True if {@code touchedView} is a descendant.
+     */
+    public boolean isInWorkspaceView(BlockView view) {
+        return view.getWorkspaceView() == mWorkspaceView;
+    }
+
+    /**
+     * @return The zoom scale of the workspace, where > 1.0 is enlarged ("zoomed in").
+     */
+    public float getWorkspaceZoomScale() {
+        // Workspace scale is simply the scale of the WorkspaceView, equal in both directions.
+        return (mWorkspaceView == null) ? 1.0f : mWorkspaceView.getScaleX();
     }
 
     /**
