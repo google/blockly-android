@@ -60,7 +60,7 @@ public class BlockView extends AbstractBlockView<InputView> {
     private int mBlockContentWidth;
     private int mBlockContentHeight;
     // Offset of the block origin inside the view's measured area.
-    private int mLayoutMarginLeft;
+    private int mOutputConnectorMargin;
     private int mMaxStatementFieldsWidth;
     // Vertical offset for positioning the "Next" block (if one exists).
     private int mNextBlockVerticalOffset;
@@ -156,10 +156,10 @@ public class BlockView extends AbstractBlockView<InputView> {
         }
 
         if (mBlock.getOutputConnection() != null) {
-            mLayoutMarginLeft = mPatchManager.mOutputConnectorWidth;
-            mBlockViewSize.x += mLayoutMarginLeft;
+            mOutputConnectorMargin = mPatchManager.mOutputConnectorWidth;
+            mBlockViewSize.x += mOutputConnectorMargin;
         } else {
-            mLayoutMarginLeft = 0;
+            mOutputConnectorMargin = 0;
         }
 
         setMeasuredDimension(mBlockViewSize.x, mBlockViewSize.y);
@@ -178,8 +178,8 @@ public class BlockView extends AbstractBlockView<InputView> {
      * @return Layout margin on the left-hand side of the block (for optional Output connector).
      */
     @Override
-    public int getLayoutMarginLeft() {
-        return mLayoutMarginLeft;
+    public int getOutputConnectorMargin() {
+        return mOutputConnectorMargin;
     }
 
     @Override
@@ -188,7 +188,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         boolean rtl = mHelper.useRtl();
         int rtlSign = rtl ? -1 : +1;
 
-        int xFrom = mLayoutMarginLeft;
+        int xFrom = mOutputConnectorMargin;
         if (rtl) {
             xFrom = mBlockViewSize.x - xFrom;
         }
@@ -254,7 +254,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         if (mHelper.useRtl()) {
             // First check whether event is in the general horizontal range of the block outline
             // (minus children) and exit if it is not.
-            final int blockEnd = mBlockViewSize.x - mLayoutMarginLeft;
+            final int blockEnd = mBlockViewSize.x - mOutputConnectorMargin;
             final int blockBegin = blockEnd - mBlockContentWidth;
             if (eventX < blockBegin || eventX > blockEnd) {
                 return false;
@@ -272,7 +272,7 @@ public class BlockView extends AbstractBlockView<InputView> {
                 }
             }
         } else {
-            final int blockBegin = mLayoutMarginLeft;
+            final int blockBegin = mOutputConnectorMargin;
             final int blockEnd = mBlockContentWidth;
             if (eventX < blockBegin || eventX > blockEnd) {
                 return false;
@@ -624,12 +624,12 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         // Leave room on the left for margin (accomodates optional output connector) and block
         // padding (accomodates block boundary).
-        int xFrom = mLayoutMarginLeft + mPatchManager.mBlockStartPadding;
+        int xFrom = mOutputConnectorMargin + mPatchManager.mBlockStartPadding;
 
         // For inline inputs, the upper horizontal coordinate of the block boundary varies by
         // section and changes after each Statement input. For external inputs, it is constant as
         // computed in measureExternalInputs.
-        int xTo = mLayoutMarginLeft;
+        int xTo = mOutputConnectorMargin;
         int inlineRowIdx = 0;
         if (mBlock.getInputsInline()) {
             xTo += mInlineRowWidth.get(inlineRowIdx);
@@ -708,7 +708,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         int bottomStartBorderResourceId = R.drawable.bottom_start_default_border;
         if (mBlock.getNextConnection() != null) {
             mHelper.setPointMaybeFlip(
-                    mNextConnectorOffset, mLayoutMarginLeft, mNextBlockVerticalOffset);
+                    mNextConnectorOffset, mOutputConnectorMargin, mNextBlockVerticalOffset);
             bottomStartResourceId = R.drawable.bottom_start_next;
             bottomStartBorderResourceId = R.drawable.bottom_start_next_border;
         }
@@ -719,7 +719,7 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         mHelper.setRtlAwareBounds(tempRect,
                 /* this width */ mBlockViewSize.x,
-                /* LTR start */ mLayoutMarginLeft,
+                /* LTR start */ mOutputConnectorMargin,
                 /* top */ topStartDrawable.getIntrinsicHeight(),
                 /* LTR end */ xTo,
                 /* bottom */ mBlockViewSize.y);
@@ -755,14 +755,14 @@ public class BlockView extends AbstractBlockView<InputView> {
         NinePatchDrawable topStartDrawable;
         NinePatchDrawable topStartBorderDrawable;
         if (mBlock.getPreviousConnection() != null) {
-            mHelper.setPointMaybeFlip(mPreviousConnectorOffset, mLayoutMarginLeft, yTop);
+            mHelper.setPointMaybeFlip(mPreviousConnectorOffset, mOutputConnectorMargin, yTop);
             topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_previous);
             topStartBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_previous_border);
             mPreviousConnectorHighlightPatch =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_previous_connection);
         } else if (mBlock.getOutputConnection() != null) {
-            mHelper.setPointMaybeFlip(mOutputConnectorOffset, mLayoutMarginLeft, yTop);
+            mHelper.setPointMaybeFlip(mOutputConnectorOffset, mOutputConnectorMargin, yTop);
             topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_output);
             topStartBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_output_border);

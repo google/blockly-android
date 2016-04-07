@@ -21,14 +21,18 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
+import android.support.v4.view.MotionEventCompat;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
+import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 
 import java.util.ArrayList;
@@ -50,6 +54,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
 
     // Child views for the block inputs and their children.
     protected final ArrayList<InputView> mInputViews;
+
+    protected WorkspaceView mWorkspaceView;
 
     // Reference points for connectors relative to this view (needed for selective highlighting).
     protected final ViewPoint mOutputConnectorOffset = new ViewPoint();
@@ -167,7 +173,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return hitTest(event) && mTouchHandler.onInterceptTouchEvent(this, event);
+        return mTouchHandler != null && hitTest(event)
+                && mTouchHandler.onInterceptTouchEvent(this, event);
     }
 
     /**
@@ -187,6 +194,14 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      */
     public Block getBlock() {
         return mBlock;
+    }
+
+    /**
+     * @return The nearest {@link WorkspaceView} this view is attached to.
+     */
+    @Override
+    public WorkspaceView getWorkspaceView() {
+        return mWorkspaceView;
     }
 
     /**
@@ -284,6 +299,53 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      */
     public InputView getInputView(int index) {
         return mInputViews.get(index);
+    }
+
+    @Override
+    public void getTouchLocationOnScreen(MotionEvent event, @Size(2) int[] locationOut) {
+        int pointerId =
+                MotionEventCompat.getPointerId(event, MotionEventCompat.getActionIndex(event));
+        int pointerIdx = MotionEventCompat.findPointerIndex(event, pointerId);
+        float offsetX =  MotionEventCompat.getX(event, pointerIdx);
+        float offsetY = MotionEventCompat.getY(event, pointerIdx);
+
+        getLocationOnScreen(locationOut);
+
+        // Get local screen coordinates.
+        if (mWorkspaceView != null) {
+            float scale = mWorkspaceView.getScaleX();
+            offsetX = offsetX * scale;
+            offsetY = offsetY * scale;
+        }
+        locationOut[0] += offsetX;
+        locationOut[1] += offsetY;
+    }
+
+    /**
+     * Stores a reference to the nearest {@link WorkspaceView} containing this BlockView.
+     */
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+
+        mWorkspaceView = null;
+        ViewParent parent = getParent();
+        while (parent != null && parent instanceof ViewGroup) {
+            if (parent instanceof WorkspaceView) {
+                mWorkspaceView = (WorkspaceView) parent;
+                return;
+            }
+            parent = ((ViewGroup) parent).getParent();
+        }
+    }
+
+    /**
+     * Clears the reference to any {@link WorkspaceView}.
+     */
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mWorkspaceView = null;
     }
 
     /**

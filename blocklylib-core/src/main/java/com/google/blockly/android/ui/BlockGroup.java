@@ -58,6 +58,7 @@ public class BlockGroup extends NonPropagatingViewGroup {
 
     @Override
     public void onMeasure(int widthSpec, int heightSpec) {
+        boolean rtl = mWorkspaceHelper.useRtl();
         mNextBlockVerticalOffset = 0;
 
         int childCount = getChildCount();
@@ -76,8 +77,8 @@ public class BlockGroup extends NonPropagatingViewGroup {
 
             // If the first child has a layout margin for an Output connector, then save the margin
             // to add it to all children that follow (but do not add to width of this child itself).
-            if (i == 0) {
-                margin = childBlockView.getLayoutMarginLeft();
+            if (!rtl && i == 0) {
+                margin = childBlockView.getOutputConnectorMargin();
             }
 
             // Only for last child, add the entire measured height. For all other children, add
@@ -124,8 +125,8 @@ public class BlockGroup extends NonPropagatingViewGroup {
 
             // If the first child has a layout margin for an Output connector, then save margin for
             // all children that follow.
-            if (i == 0) {
-                margin = childBlockView.getLayoutMarginLeft();
+            if (!rtl && i == 0) {
+                margin = childBlockView.getOutputConnectorMargin();
             }
         }
         // After we finish laying out we need to update the locations of the connectors
@@ -133,14 +134,30 @@ public class BlockGroup extends NonPropagatingViewGroup {
     }
 
     /**
+     * @return The first block in this group, or {@code null} if this group is empty.
+     */
+    public Block getFirstBlock() {
+        BlockView first = getFirstBlockView();
+        return first == null ? null : first.getBlock();
+    }
+
+    /**
+     * @return The view for the first block in this group, or {@code null} if this group is empty.
+     */
+    public BlockView getFirstBlockView() {
+        if (getChildCount() > 0) {
+            return (BlockView) getChildAt(0);
+        }
+        return null;
+    }
+
+    /**
      * @return The workspace position of the top block in this group, or {@code null} if this group
      * is empty.
      */
-    public WorkspacePoint getTopBlockPosition() {
-        if (getChildCount() > 0) {
-            return ((BlockView) getChildAt(0)).getBlock().getPosition();
-        }
-        return null;
+    public WorkspacePoint getFirstBlockPosition() {
+        Block topBlock = getFirstBlock();
+        return topBlock == null ? null : topBlock.getPosition();
     }
 
     /**

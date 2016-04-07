@@ -64,6 +64,9 @@ public class DraggerTest extends MockitoAndroidTestCase {
     @Mock
     DragEvent mDragLocationEvent;
 
+    @Mock
+    Dragger.DragHandler mMockDragHandler;
+
 
     private ViewPoint mTempViewPoint = new ViewPoint();
     private WorkspaceHelper mWorkspaceHelper;
@@ -86,6 +89,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
+        mWorkspaceHelper.setWorkspaceView(mWorkspaceView);
         mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
 
         Mockito.stub(mMockWorkspace.getConnectionManager()).toReturn(mMockConnectionManager);
@@ -238,14 +242,14 @@ public class DraggerTest extends MockitoAndroidTestCase {
         dragStartTime = System.currentTimeMillis();
         MotionEvent me = MotionEvent.obtain(
                 dragStartTime, dragStartTime, MotionEvent.ACTION_DOWN, 0, 0, 0);
-        mDragger.onTouchBlock(bv, me);
+        mDragger.onTouchBlockImpl(mMockDragHandler, bv, me, false);
     }
 
     private void dragMove(Block toDrag, Block stationary) {
         BlockView bv = mWorkspaceHelper.getView(toDrag);
         long time = dragStartTime + 10L;
         MotionEvent me = MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 30, -10, 0);
-        mDragger.onTouchBlock(bv, me);
+        mDragger.onTouchBlockImpl(mMockDragHandler, bv, me, false);
         mDragger.getDragEventListener().onDrag((View) bv, mDragStartedEvent);
     }
 

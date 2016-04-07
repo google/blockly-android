@@ -18,7 +18,6 @@ package com.google.blockly.android;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
@@ -29,18 +28,15 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockListView;
-import com.google.blockly.android.ui.BlockTouchHandler;
-import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.android.ui.Rotation;
 import com.google.blockly.android.ui.BlockDrawerFragment;
@@ -143,8 +139,6 @@ public class ToolboxFragment extends BlockDrawerFragment {
     @Retention(RetentionPolicy.SOURCE)
     private @interface EdgeEnum {}
 
-    protected final Point mTempScreenPosition = new Point();
-    protected final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
     protected final Rect mScrollablePadding = new Rect();
 
     protected ToolboxRoot mRootView;
@@ -155,6 +149,21 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
     private @EdgeEnum int mTabEdge = DEFAULT_TAB_EDGE;
     private boolean mRotateTabs = DEFAULT_ROTATE_TABS;
+
+    private BlockListView.OnDragListBlock mDragHandler = new BlockListView.OnDragListBlock() {
+        @Override
+        public BlockGroup getDraggableBlockGroup(int index, Block blockInList,
+                                                 BlockGroup touchedBlockGroup,
+                                                 WorkspacePoint initialBlockPosition) {
+            Block copy = blockInList.deepCopy();
+            copy.setPosition(initialBlockPosition.x, initialBlockPosition.y);
+            BlockGroup copyView = mController.addRootBlock(copy);
+            if (mCloseable) {
+                closeBlocksDrawer();
+            }
+            return copyView;
+        }
+    };
 
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
@@ -222,46 +231,9 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
         mController = controller;
         if (mController == null) {
-            mHelper = null;
             mBlockListView.setContents(new ArrayList<Block>(0));
-            mBlockListView.init(null, null);
-            return;
         }
-
-        mHelper = mController.getWorkspaceHelper();
-        mBlockListView.init(mHelper, new BlockTouchHandler() {
-            @Override
-            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
-                    return false;
-                }
-
-                Block original = blockView.getBlock().getRootBlock();
-                if (!original.isDraggable()) {
-                    Log.w(TAG, "A block group in the Toolbox cannot be dragged!");
-                    return false;
-                }
-                Block copiedModel = original.deepCopy();
-
-                // Make the pointer be in the same relative position on the block as it was in the
-                // toolbox.
-                mTempScreenPosition.set((int) motionEvent.getRawX() - (int) motionEvent.getX(),
-                        (int) motionEvent.getRawY() - (int) motionEvent.getY());
-                mHelper.screenToWorkspaceCoordinates(mTempScreenPosition, mTempWorkspacePosition);
-                copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                mController.addBlockFromToolbox(copiedModel, motionEvent);
-
-                if (mCloseable) {
-                    closeBlocksDrawer();
-                }
-                return true;
-            }
-
-            @Override
-            public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
-                return false;
-            }
-        });
+        mBlockListView.init(mController, mDragHandler);
     }
 
     /**

@@ -15,22 +15,16 @@
 
 package com.google.blockly.android;
 
-import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.BlockDrawerFragment;
+import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockListView;
-import com.google.blockly.android.ui.BlockTouchHandler;
-import com.google.blockly.android.ui.BlockView;
-import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -67,13 +61,22 @@ import java.util.List;
  * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
  */
 public class TrashFragment extends BlockDrawerFragment {
-    private static final String TAG = "TrashFragment";
     private BlocklyController mController;
-    private WorkspaceHelper mHelper;
     private BlockListView mBlockListView;
 
-    protected final Point mTempScreenPosition = new Point();
-    protected final WorkspacePoint mTempWorkspacePosition = new WorkspacePoint();
+    private BlockListView.OnDragListBlock mListDragHandler = new BlockListView.OnDragListBlock() {
+        @Override
+        public BlockGroup getDraggableBlockGroup(int index, Block blockInList,
+                                                 BlockGroup touchedBlockGroup,
+                                                 WorkspacePoint initialBlockPosition) {
+            blockInList.setPosition(initialBlockPosition.x, initialBlockPosition.y);
+            BlockGroup workspaceGroup = mController.addBlockFromTrash(blockInList);
+            if (mCloseable) {
+                setOpened(false);
+            }
+            return workspaceGroup;
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -89,7 +92,7 @@ public class TrashFragment extends BlockDrawerFragment {
         mBlockListView.setBackgroundColor(
                 getResources().getColor(R.color.blockly_trash_bg));  // Replace with attribute
 
-        maybeUpdateTouchHandler();
+        maybeInitListView();
 
         return mBlockListView;
     }
@@ -108,11 +111,13 @@ public class TrashFragment extends BlockDrawerFragment {
         }
 
         mController = controller;
-        if (controller != null) {
-            mHelper = controller.getWorkspaceHelper();
-        }
+        maybeInitListView();
+    }
 
-        maybeUpdateTouchHandler();
+    private void maybeInitListView() {
+        if (mBlockListView != null && mController != null) {
+            mBlockListView.init(mController, mListDragHandler);
+        }
     }
 
     /**
@@ -168,52 +173,20 @@ public class TrashFragment extends BlockDrawerFragment {
     }
 
     /**
-     * Called by the {@link BlocklyController}, notifying when a block was removed from the trash.
+     * Called by the {@link BlocklyController}, notifying when a block was added to the trash.
      *
-     * @param block The block to remove from the trash view.
+     * @param block The block to added to the trash view.
      */
     public void onBlockTrashed(Block block) {
         mBlockListView.addBlock(0, block);
     }
 
-    private void maybeUpdateTouchHandler() {
-        if (mBlockListView != null && mController != null) {
-            ConnectionManager connectionMan = mController.getWorkspace().getConnectionManager();
-            mBlockListView.init(mHelper, new BlockTouchHandler() {
-                @Override
-                public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                    if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
-                        return false;
-                    }
-
-                    Block rootBlock = blockView.getBlock().getRootBlock();
-                    if (!rootBlock.isDraggable()) {
-                        Log.w(TAG, "A block group in the Trash cannot be dragged!");
-                        return false;
-                    }
-                    Block copiedModel = rootBlock.deepCopy();
-
-                    // Make the pointer be in the same relative position on the block as it was in
-                    // the toolbox.
-                    mTempScreenPosition.set((int) motionEvent.getRawX() - (int) motionEvent.getX(),
-                            (int) motionEvent.getRawY() - (int) motionEvent.getY());
-                    mHelper.screenToWorkspaceCoordinates(
-                            mTempScreenPosition, mTempWorkspacePosition);
-                    copiedModel.setPosition(mTempWorkspacePosition.x, mTempWorkspacePosition.y);
-                    mController.addBlockFromToolbox(copiedModel, motionEvent);
-                    mBlockListView.removeBlock(rootBlock);
-
-                    if (mCloseable) {
-                        setOpened(false);
-                    }
-                    return true;
-                }
-
-                @Override
-                public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
-                    return false;
-                }
-            });
-        }
+    /**
+     * Called by the {@link BlocklyController}, notifying when a block was removed from the trash.
+     *
+     * @param block The block to remove from the trash view.
+     */
+    public void onBlockRemovedFromTrash(Block block) {
+        mBlockListView.removeBlock(block);
     }
 }

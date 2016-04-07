@@ -26,7 +26,6 @@ import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**

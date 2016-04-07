@@ -19,10 +19,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
-import android.view.MotionEvent;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 
 import com.google.blockly.android.ToolboxFragment;
 import com.google.blockly.android.TrashFragment;
@@ -33,7 +35,7 @@ import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.InputView;
-import com.google.blockly.android.ui.ViewPoint;
+import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Block;
@@ -69,26 +71,26 @@ public class BlocklyController {
 
     private final Workspace mWorkspace;
 
-    private final ViewPoint mTempViewPoint = new ViewPoint();
-
     private WorkspaceView mWorkspaceView;
     private WorkspaceFragment mWorkspaceFragment = null;
     private TrashFragment mTrashFragment = null;
     private ToolboxFragment mToolboxFragment = null;
     private Dragger mDragger;
 
-    /** Pass block touch interaction through the Dragger. */
-    private BlockTouchHandler mTouchHandler = new BlockTouchHandler() {
+    private final Dragger.DragHandler mWorkspaceDragHandler = new Dragger.DragHandler() {
         @Override
-        public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-            return mDragger.onTouchBlock(blockView, motionEvent);
-        }
+        public void maybeAssignDragGroup(PendingDrag pendingDrag) {
+            BlockView touchedView = pendingDrag.getTouchedBlockView();
+            extractBlockAsRoot(touchedView.getBlock());
+            // Since this block was already on the workspace, the block's position should
+            // be assigned correctly during the most recent layout pass.
+            BlockGroup bg = mHelper.getRootBlockGroup(touchedView);
+            bg.bringToFront();
 
-        @Override
-        public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
-            return mDragger.onInterceptTouchEvent(blockView, motionEvent);
+            pendingDrag.setDragGroup(bg);
         }
     };
+    private final BlockTouchHandler mTouchHandler;
 
     /**
      * Creates a new Controller with Workspace and WorkspaceHelper. Most controllers will require
@@ -126,6 +128,7 @@ public class BlocklyController {
         }
 
         mDragger = new Dragger(this);
+        mTouchHandler = mDragger.buildBlockTouchHandler(mWorkspaceDragHandler);
     }
 
     /**
@@ -210,6 +213,13 @@ public class BlocklyController {
      */
     public TrashFragment getTrashFragment() {
         return mTrashFragment;
+    }
+
+    /**
+     * @return The {@link Dragger} managing the drag behavior in connected views.
+     */
+    public Dragger getDragger() {
+        return mDragger;
     }
 
     /**
@@ -364,11 +374,12 @@ public class BlocklyController {
      *
      * @param block The {@link Block} to add to the workspace.
      */
-    public void addRootBlock(Block block) {
+    public BlockGroup addRootBlock(Block block) {
         if (block.getParentBlock() != null) {
             throw new IllegalArgumentException("New root block must not be connected.");
         }
-        addRootBlock(block, mHelper.getParentBlockGroup(block), true);
+        BlockGroup parentGroup = mHelper.getParentBlockGroup(block);
+        return addRootBlock(block, parentGroup, /* is new BlockView? */ parentGroup == null);
     }
 
     /**
@@ -502,26 +513,6 @@ public class BlocklyController {
     }
 
     /**
-     * Takes in a block model, creates corresponding views and adds it to the workspace.  Also
-     * starts a drag of that block group.
-     *
-     * @param block The root block to be added to the workspace.
-     * @param event The {@link MotionEvent} that caused the block to be added to the workspace. This
-     * is used to find the correct position to start the drag event.
-     */
-    public void addBlockFromToolbox(Block block, MotionEvent event) {
-        addRootBlock(block, null, true);
-        // let the workspace view know that this is the block we want to drag
-        mDragger.setTouchedBlock(mHelper.getView(block), event);
-        // Adjust the event's coordinates from the {@link BlockView}'s coordinate system to
-        // {@link WorkspaceView} coordinates.
-        mHelper.workspaceToVirtualViewCoordinates(block.getPosition(), mTempViewPoint);
-        mDragger.setDragStartPos((int) event.getX(), (int) event.getY(), mTempViewPoint.x,
-                mTempViewPoint.y);
-        mDragger.startDragging();
-    }
-
-    /**
      * Connects a block to a specific connection of another block.  The block must not have a
      * connected previous or output; usually a root block. If another block is in the way
      * of making the connection (occupies the required workspace location), that block will be
@@ -621,9 +612,47 @@ public class BlocklyController {
             unlinkViews(block);  // TODO(#77): Remove once TrashFragment can reuse views.
 
             mTrashFragment.onBlockTrashed(block);
+
+
+            if (mWorkspace.isRootBlock(block)) {
+                throw new IllegalStateException("Trashed block was not removed from workspace.");
+            }
         }
 
         return rootFoundAndRemoved;
+    }
+
+    /**
+     * Moves a block from the trashed blocks (removing it from the deleted blocks list), back to the
+     * workspace as a root block, including the BlockGroup and other views in the TrashFragment.
+     *
+     * @param previouslyTrashedBlock The block in the trash to be moved back to the workspace.
+     * @return The BlockGroup in the Workspace for the moved block.
+     *
+     * @throws IllegalArgumentException If trashedBlock is not found in the trashed blocks.
+     */
+    public BlockGroup addBlockFromTrash(@NonNull Block previouslyTrashedBlock) {
+        BlockGroup bg = mHelper.getParentBlockGroup(previouslyTrashedBlock);
+        if (bg != null) {
+            ViewParent parent = bg.getParent();
+            if (parent != null) {
+                ((ViewGroup) parent).removeView(bg);
+            }
+            bg.setTouchHandler(mTouchHandler);
+        }
+
+        mWorkspace.addBlockFromTrash(previouslyTrashedBlock);
+        if (mWorkspaceView != null) {
+            if (bg == null) {
+                bg = mViewFactory.buildBlockGroupTree(previouslyTrashedBlock,
+                        mWorkspace.getConnectionManager(), mTouchHandler);
+            }
+            mWorkspaceView.addView(bg);
+        }
+        if (mTrashFragment != null) {
+            mTrashFragment.onBlockRemovedFromTrash(previouslyTrashedBlock);
+        }
+        return bg;
     }
 
     /**
@@ -690,7 +719,7 @@ public class BlocklyController {
      * @param isNewBlock Whether the block is new to the {@link Workspace} and the workspace should
      *                   collect stats for this tree.
      */
-    private void addRootBlock(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
+    private BlockGroup addRootBlock(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
         mWorkspace.addRootBlock(block, isNewBlock);
         if (mWorkspaceView != null) {
             if (bg == null) {
@@ -701,6 +730,7 @@ public class BlocklyController {
             }
             mWorkspaceView.addView(bg);
         }
+        return bg;
     }
 
     /**
