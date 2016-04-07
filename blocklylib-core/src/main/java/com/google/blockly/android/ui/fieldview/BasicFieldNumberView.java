@@ -127,7 +127,7 @@ public class BasicFieldNumberView extends EditText implements FieldView {
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        if (!focused) {
+        if (!focused && mNumberField != null) {
             CharSequence text = getText();
             if (text.length() == 0) {
                 // Replace empty string with value closest to zero.
