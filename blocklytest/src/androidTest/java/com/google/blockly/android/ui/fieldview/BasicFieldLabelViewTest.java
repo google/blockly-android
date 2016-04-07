@@ -28,9 +28,6 @@ public class BasicFieldLabelViewTest extends MockitoAndroidTestCase {
 
     private static final String INIT_TEXT_VALUE = "someTextToInitializeLabel";
 
-    @Mock
-    private WorkspaceHelper mMockWorkspaceHelper;
-
     // Cannot mock final classes.
     private FieldLabel mFieldLabel;
 

@@ -27,11 +27,6 @@ import org.mockito.Mock;
  * Tests for {@link BasicFieldCheckboxView}.
  */
 public class BasicFieldCheckboxViewTest extends MockitoAndroidTestCase {
-
-    @Mock
-    private WorkspaceHelper mMockWorkspaceHelper;
-
-    // Cannot mock final classes.
     private FieldCheckbox mFieldCheckbox;
 
     @Override
