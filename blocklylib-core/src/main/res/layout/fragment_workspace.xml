@@ -11,6 +11,8 @@
         android:layout_height="match_parent"
         android:scrollbars="horizontal|vertical"
         android:scrollbarStyle="insideOverlay"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         style="@style/BlocklyTheme">
 
         <com.google.blockly.android.ui.WorkspaceView
