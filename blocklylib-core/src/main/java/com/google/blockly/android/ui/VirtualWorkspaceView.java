@@ -22,6 +22,7 @@ import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.inputmethod.InputMethodManager;
 
 import com.google.blockly.android.R;
 
@@ -33,7 +34,7 @@ import com.google.blockly.android.R;
  */
 public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private static final String TAG = "VirtualWorkspaceView";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     // TODO(#87): Replace with configuration. Use dp.
     // Default desired width of the view in pixels.
@@ -61,7 +62,6 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     private boolean mDrawGrid = true;
 
-
     // The workspace view that backs this virtual view.
     private WorkspaceView mWorkspaceView;
     // Flag indicating whether view should be reset before redrawing. This is set upon construction
@@ -69,6 +69,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private boolean mResetViewPending = true;
 
     private ScaleGestureDetector mScaleGestureDetector;
+    private InputMethodManager mImeManager;
 
     public VirtualWorkspaceView(Context context) {
         this(context, null);
@@ -98,6 +99,8 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
         mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
         mGridRenderer.updateGridBitmap(mViewScale);
+        mImeManager = (InputMethodManager) getContext()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
     /**
@@ -170,6 +173,9 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
+                clearFocus();
+                mImeManager.hideSoftInputFromWindow(getWindowToken(), 0);
+
                 final int pointerIdx = MotionEventCompat.getActionIndex(event);
                 mPanningPointerId = MotionEventCompat.getPointerId(event, pointerIdx);
                 mPanningStart.set(
