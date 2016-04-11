@@ -18,6 +18,7 @@ package com.google.blockly.android.ui.vertical;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.NinePatchDrawable;
+import android.support.v4.view.ViewCompat;
 
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
@@ -61,8 +62,7 @@ public class FieldColourView extends BasicFieldColourView {
     }
 
     private void maybeAcquireParentBlockView() {
-        if (mHelper != null && isAttachedToWindow()) {
-            mBlockView = (BlockView) mHelper.getClosestAncestorBlockView(this);
-        }
+        mBlockView = (mHelper != null && ViewCompat.isAttachedToWindow(this)) ?
+            (BlockView) mHelper.getClosestAncestorBlockView(this) : null;
     }
 }
