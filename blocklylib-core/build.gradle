@@ -26,6 +26,10 @@ android {
       // Suppress file collision error from hamcrest-core and hamcrest-integration JARs.
       exclude 'LICENSE.txt'
     }
+
+    sourceSets {
+        main.java.srcDirs += 'src/third_party/main/java'
+    }
 }
 
 dependencies {
