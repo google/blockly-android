@@ -17,6 +17,7 @@ package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.BlockTouchHandler;
@@ -81,7 +82,15 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     /** Implements {@link BlockViewFactory#buildFieldView}. */
     @Override
     protected FieldView buildFieldView(Field field) {
-        switch (field.getType()) {
+        @Field.FieldType int type = field.getType();
+        int layoutResId = getLayoutForField(type);
+        // If we have a layout for this field type load that and return it
+        if (layoutResId != 0) {
+            FieldView fieldView = (FieldView) mLayoutInflater.inflate(layoutResId, null);
+            fieldView.setField(field);
+            return fieldView;
+        }
+        switch (type) {
             // TODO(Anm): Inflate custom / styled variants.
             case Field.TYPE_COLOUR: {
                 FieldColourView colourView = new FieldColourView(mContext);
@@ -92,6 +101,21 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             default:
                 return super.buildFieldView(field);
         }
+    }
+
+    @Override
+    protected SpinnerAdapter getVariableAdapter() {
+        if (mVariableNameManager == null) {
+            throw new IllegalStateException("NameManager must be set before variable field is "
+                    + "instantiated.");
+        }
+        if (mVariableAdapter == null) {
+            BasicVariableAdapter adapter = new BasicVariableAdapter(mVariableNameManager, mContext,
+                    R.layout.default_spinner_item);
+            adapter.setDropDownViewResource(R.layout.default_spinner_drop_down);
+            mVariableAdapter = adapter;
+        }
+        return mVariableAdapter;
     }
 
     /**
@@ -106,6 +130,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
      */
     private void loadStyleData(int workspaceTheme) {
         TypedArray styles;
+        TypedArray fieldStyles = null;
 
         if (workspaceTheme != 0) {
             styles = mContext.obtainStyledAttributes(
@@ -114,9 +139,27 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             styles = mContext.obtainStyledAttributes(R.styleable.BlocklyWorkspaceTheme);
         }
         try {
+            // TODO: (#185) Move attributes into blocklylib-vertical and add missing attributes
             mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
+
+            int fieldStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_fieldStyle,
+                    R.style.DefaultFieldStyle);
+            fieldStyles = mContext.obtainStyledAttributes(fieldStyle,
+                    R.styleable.BlocklyFieldView);
+            setFieldLayout(Field.TYPE_DROPDOWN, R.layout.default_field_dropdown);
+            setFieldLayout(Field.TYPE_LABEL, R.layout.default_field_label);
+            setFieldLayout(Field.TYPE_CHECKBOX, R.layout.default_field_checkbox);
+            setFieldLayout(Field.TYPE_DATE, R.layout.default_field_date);
+            setFieldLayout(Field.TYPE_ANGLE, R.layout.default_field_angle);
+            setFieldLayout(Field.TYPE_NUMBER, R.layout.default_field_number);
+            setFieldLayout(Field.TYPE_INPUT, fieldStyles.getResourceId(
+                    R.styleable.BlocklyFieldView_fieldInputLayout,
+                    R.layout.default_field_input));
         } finally {
             styles.recycle();
+            if (fieldStyles != null) {
+                fieldStyles.recycle();
+            }
         }
     }
 }

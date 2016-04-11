@@ -84,13 +84,9 @@ public class BasicFieldColourView extends View implements FieldView {
         });
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param colourField The colour field to view.
-     */
-    public void setField(FieldColour colourField) {
+    @Override
+    public void setField(Field field) {
+        FieldColour colourField = (FieldColour) field;
         if (mColourField == colourField) {
             return;
         }

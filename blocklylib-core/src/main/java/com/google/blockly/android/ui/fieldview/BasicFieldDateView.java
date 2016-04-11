@@ -71,13 +71,9 @@ public class BasicFieldDateView extends TextView implements FieldView {
         });
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param dateField The date field to view.
-     */
-    public void setField(FieldDate dateField) {
+    @Override
+    public void setField(Field field) {
+        FieldDate dateField = (FieldDate) field;
         if (mDateField == dateField) {
             return;
         }

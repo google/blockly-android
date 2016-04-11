@@ -17,7 +17,10 @@ package com.google.blockly.android.ui;
 
 import android.content.Context;
 import android.database.DataSetObserver;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
+import android.util.SparseIntArray;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
@@ -76,6 +79,9 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected WorkspaceHelper mHelper;
     protected NameManager mVariableNameManager;
     protected SpinnerAdapter mVariableAdapter;
+    protected LayoutInflater mLayoutInflater;
+
+    private SparseIntArray mFieldLayouts = new SparseIntArray();
 
     // TODO(#137): Move to ViewPool class.
     protected final Map<String,WeakReference<BlockView>> mBlockIdToView
@@ -84,6 +90,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected BlockViewFactory(Context context, WorkspaceHelper helper) {
         mContext = context;
         mHelper = helper;
+        mLayoutInflater = LayoutInflater.from(context);
 
         helper.setBlockViewFactory(this);
     }
@@ -205,6 +212,32 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     }
 
     /**
+     * Sets a layout to inflate for the given field type. The layout file must contain a subclass
+     * of the appropriate field as its only top element. Setting the resource id to 0 will clear
+     * it.
+     *
+     * @param fieldType The type of field this layout should be used for.
+     * @param layoutResId The layout resource id to inflate when creating views for this field type.
+     */
+    protected final void setFieldLayout(@Field.FieldType int fieldType, int layoutResId) {
+        if (layoutResId == -1) {
+            mFieldLayouts.delete(fieldType);
+        } else {
+            mFieldLayouts.put(fieldType, layoutResId);
+        }
+    }
+
+    /**
+     * Gets the layout resource id for a given field type or 0 if none exist.
+     *
+     * @param fieldType The field type to get a layout for.
+     * @return The layout resource id or 0 if not found.
+     */
+    protected final int getLayoutForField(@Field.FieldType int fieldType) {
+        return mFieldLayouts.get(fieldType);
+    }
+
+    /**
      * @return A new, empty {@link BlockGroup} container view for a sequence of blocks.
      */
     protected BlockGroup buildBlockGroup() {
@@ -250,6 +283,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      */
     protected FieldView buildFieldView(Field field) {
         @Field.FieldType int type = field.getType();
+        // Otherwise create the default view for the field
         switch (type) {
             case Field.TYPE_ANGLE: {
                 BasicFieldAngleView fieldAngleView = new BasicFieldAngleView(mContext);
@@ -346,7 +380,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
          * @param resource The {@link TextView} layout to use when inflating items.
          */
         public BasicVariableAdapter(
-                NameManager variableNameManager, Context context, int resource) {
+                NameManager variableNameManager, Context context, @LayoutRes int resource) {
 
             super(context, resource);
             mVariableNameManager = variableNameManager;

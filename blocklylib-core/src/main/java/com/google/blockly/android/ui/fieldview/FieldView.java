@@ -31,6 +31,15 @@ public interface FieldView {
     Field getField();
 
     /**
+     * Sets the {@link Field} model for this view. If null the current field will be disconnected
+     * from the view if one is set. The field must be of the appropriate type for the specific view
+     * implementation.
+     *
+     * @param field The field backing this view.
+     */
+    void setField(Field field);
+
+    /**
      * Disconnect the model from this view.
      */
     void unlinkField();

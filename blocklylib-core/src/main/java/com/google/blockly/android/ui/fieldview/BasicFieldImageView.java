@@ -61,13 +61,9 @@ public class BasicFieldImageView extends ImageView implements FieldView {
         super(context, attrs, defStyleAttr);
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param imageField The image field to view.
-     */
-    public void setField(FieldImage imageField) {
+    @Override
+    public void setField(Field field) {
+        FieldImage imageField = (FieldImage) field;
         if (mImageField == imageField) {
             return;
         }

@@ -41,6 +41,7 @@ public class WebComparisonActivity extends AbstractBlocklyActivity {
             "default/loop_blocks.json",
             "default/math_blocks.json",
             "default/variable_blocks.json",
+            "default/test_blocks.json",
             "sample_sections/definitions.json"
     });
 
