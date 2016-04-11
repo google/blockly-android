@@ -105,22 +105,22 @@ public class BasicFieldColourViewTest
     public void testFieldUpdatesView() {
         mFieldColour.setColour(0);
         assertEquals(BasicFieldColourView.ALPHA_OPAQUE,
-                mFieldColorView.mSelectedColourPaint.getColor());
+                ((ColorDrawable)mFieldColorView.getBackground()).getColor());
 
         mFieldColour.setColour(Color.RED);
         assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.RED,
-                mFieldColorView.mSelectedColourPaint.getColor());
+                ((ColorDrawable)mFieldColorView.getBackground()).getColor());
 
         mFieldColour.setColour(Color.GREEN);
         assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.GREEN,
-                mFieldColorView.mSelectedColourPaint.getColor());
+                ((ColorDrawable)mFieldColorView.getBackground()).getColor());
 
         mFieldColour.setColour(Color.BLUE);
         assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.BLUE,
-                mFieldColorView.mSelectedColourPaint.getColor());
+                ((ColorDrawable)mFieldColorView.getBackground()).getColor());
 
         mFieldColour.setColour(Color.WHITE);
         assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.WHITE,
-                mFieldColorView.mSelectedColourPaint.getColor());
+                ((ColorDrawable)mFieldColorView.getBackground()).getColor());
     }
 }

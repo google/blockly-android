@@ -13,14 +13,10 @@
   ~  See the License for the specific language governing permissions and
   ~  limitations under the License.
   -->
-<com.google.blockly.android.ui.fieldview.BasicFieldInputView
+<com.google.blockly.android.ui.vertical.FieldColourView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/field_input"
-        style="@style/DefaultEditTextStyle"
-        android:singleLine="true"
-        android:paddingTop="4dip"
-        android:paddingBottom="4dip"
-        android:paddingLeft="8dip"
-        android:paddingRight="8dip"
+        android:foreground="@drawable/inset_field_border"
+        android:padding="4dip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
