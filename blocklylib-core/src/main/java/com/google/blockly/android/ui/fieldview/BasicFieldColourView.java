@@ -43,13 +43,9 @@ public class BasicFieldColourView extends View implements FieldView {
     private FieldColour.Observer mFieldObserver = new FieldColour.Observer() {
         @Override
         public void onColourChanged(Field field, int oldColour, int newColour) {
-            mSelectedColourPaint.setColor(ALPHA_OPAQUE | newColour);
-            invalidate();
+            setColour(newColour);
         }
     };
-
-    @VisibleForTesting
-    protected final Paint mSelectedColourPaint = new Paint();
 
     protected FieldColour mColourField = null;
 
@@ -84,13 +80,9 @@ public class BasicFieldColourView extends View implements FieldView {
         });
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param colourField The colour field to view.
-     */
-    public void setField(FieldColour colourField) {
+    @Override
+    public void setField(Field field) {
+        FieldColour colourField = (FieldColour) field;
         if (mColourField == colourField) {
             return;
         }
@@ -100,7 +92,7 @@ public class BasicFieldColourView extends View implements FieldView {
         }
         mColourField = colourField;
         if (mColourField != null) {
-            mSelectedColourPaint.setColor(ALPHA_OPAQUE | mColourField.getColour());
+            setColour(mColourField.getColour());
             mColourField.registerObserver(mFieldObserver);
         }
     }
@@ -122,7 +114,7 @@ public class BasicFieldColourView extends View implements FieldView {
      * @param colour The colour in {@code int} format.
      */
     public void setColour(int colour) {
-        mSelectedColourPaint.setColor(ALPHA_OPAQUE | colour);
+        setBackgroundColor(ALPHA_OPAQUE | colour);
     }
 
     @Override
@@ -148,11 +140,6 @@ public class BasicFieldColourView extends View implements FieldView {
             default:
                 return min;
         }
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        canvas.drawRect(0, 0, getWidth(), getHeight(), mSelectedColourPaint);
     }
 
     /**

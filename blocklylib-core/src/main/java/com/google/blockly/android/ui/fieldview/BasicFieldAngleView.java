@@ -74,13 +74,9 @@ public class BasicFieldAngleView extends TextView implements FieldView {
         });
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param angleField The angle field model to view.
-     */
-    public void setField(FieldAngle angleField) {
+    @Override
+    public void setField(Field field) {
+        FieldAngle angleField = (FieldAngle) field;
         if (mAngleField == angleField) {
             return;
         }
