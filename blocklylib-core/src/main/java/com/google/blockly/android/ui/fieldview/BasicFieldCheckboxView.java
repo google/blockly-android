@@ -65,13 +65,9 @@ public class BasicFieldCheckboxView extends CheckBox implements FieldView {
         });
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param checkboxField The checkbox field to view.
-     */
-    public void setField(FieldCheckbox checkboxField) {
+    @Override
+    public void setField(Field field) {
+        FieldCheckbox checkboxField = (FieldCheckbox) field;
         if (mCheckboxField == checkboxField) {
             return;
         }

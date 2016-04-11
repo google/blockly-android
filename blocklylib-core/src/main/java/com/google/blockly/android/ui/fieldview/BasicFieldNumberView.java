@@ -138,13 +138,9 @@ public class BasicFieldNumberView extends EditText implements FieldView {
         }
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param number The number field to view.
-     */
-    public void setField(FieldNumber number) {
+    @Override
+    public void setField(Field field) {
+        FieldNumber number = (FieldNumber) field;
         if (mNumberField == number) {
             return;
         }
