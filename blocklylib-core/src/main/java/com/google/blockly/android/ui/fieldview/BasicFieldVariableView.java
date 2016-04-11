@@ -54,13 +54,9 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
         super(context, attrs, defStyleAttr);
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param variableField The variable field to view.
-     */
-    public void setField(FieldVariable variableField) {
+    @Override
+    public void setField(Field field) {
+        FieldVariable variableField = (FieldVariable) field;
         Adapter adapter = getAdapter();
         if (adapter == null) {
             throw new IllegalStateException("Cannot set field before setting Adapter");

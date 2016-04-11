@@ -84,13 +84,9 @@ public class BasicFieldInputView extends EditText implements FieldView {
         addTextChangedListener(mWatcher);
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param input The input field to view.
-     */
-    public void setField(FieldInput input) {
+    @Override
+    public void setField(Field field) {
+        FieldInput input = (FieldInput) field;
         if (mInputField == input) {
             return;
         }
