@@ -31,6 +31,8 @@ public class FieldColourView extends BasicFieldColourView {
     protected WorkspaceHelper mHelper;
     private BlockView mBlockView = null;
 
+    private boolean mAttachedToWindow = false; // replaces API 19 method isAttachedToWindow()
+
     public FieldColourView(Context context) {
         super(context);
         mInsetPatch = (NinePatchDrawable) getResources().getDrawable(R.drawable.inset_field_border);
@@ -44,7 +46,15 @@ public class FieldColourView extends BasicFieldColourView {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+
+        mAttachedToWindow = true;
         maybeAcquireParentBlockView();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mAttachedToWindow = false;
     }
 
     @Override
@@ -61,7 +71,7 @@ public class FieldColourView extends BasicFieldColourView {
     }
 
     private void maybeAcquireParentBlockView() {
-        if (mHelper != null && isAttachedToWindow()) {
+        if (mHelper != null && mAttachedToWindow) {
             mBlockView = (BlockView) mHelper.getClosestAncestorBlockView(this);
         }
     }
