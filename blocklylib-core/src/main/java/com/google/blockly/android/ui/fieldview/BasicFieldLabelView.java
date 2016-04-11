@@ -52,13 +52,9 @@ public class BasicFieldLabelView extends TextView implements FieldView {
         super(context, attrs, defStyleAttr);
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param labelField The label field to view.
-     */
-    public void setField(FieldLabel labelField) {
+    @Override
+    public void setField(Field field) {
+        FieldLabel labelField = (FieldLabel) field;
         if (mLabelField == labelField) {
             return;
         }

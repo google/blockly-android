@@ -28,6 +28,12 @@
         <item name="fieldMinWidth">24dip</item>
         <item name="spinnerItem">@layout/default_spinner_item</item>
         <item name="spinnerItemDropDown">@layout/default_spinner_drop_down</item>
+        <item name="fieldInputLayout">@layout/default_field_input</item>
+    </style>
+
+    <style name="DefaultFieldDropdownStyle">
+        <item name="itemLayout">@layout/default_spinner_item</item>
+        <item name="dropdownItemLayout">@layout/default_spinner_drop_down</item>
     </style>
 
     <style name="DefaultEditTextStyle">

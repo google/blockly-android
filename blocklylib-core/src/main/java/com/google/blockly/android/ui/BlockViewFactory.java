@@ -17,7 +17,10 @@ package com.google.blockly.android.ui;
 
 import android.content.Context;
 import android.database.DataSetObserver;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
+import android.util.SparseIntArray;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
@@ -76,6 +79,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected WorkspaceHelper mHelper;
     protected NameManager mVariableNameManager;
     protected SpinnerAdapter mVariableAdapter;
+    protected LayoutInflater mLayoutInflater;
 
     // TODO(#137): Move to ViewPool class.
     protected final Map<String,WeakReference<BlockView>> mBlockIdToView
@@ -84,6 +88,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected BlockViewFactory(Context context, WorkspaceHelper helper) {
         mContext = context;
         mHelper = helper;
+        mLayoutInflater = LayoutInflater.from(context);
 
         helper.setBlockViewFactory(this);
     }
@@ -346,7 +351,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
          * @param resource The {@link TextView} layout to use when inflating items.
          */
         public BasicVariableAdapter(
-                NameManager variableNameManager, Context context, int resource) {
+                NameManager variableNameManager, Context context, @LayoutRes int resource) {
 
             super(context, resource);
             mVariableNameManager = variableNameManager;

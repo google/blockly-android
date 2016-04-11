@@ -17,6 +17,8 @@ package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.util.SparseIntArray;
+import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.BlockTouchHandler;
@@ -38,6 +40,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
 
     private final PatchManager mPatchManager;
 
+    private SparseIntArray mFieldLayouts = new SparseIntArray();
     private int mBlockStyle;
 
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper) {
@@ -81,17 +84,66 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     /** Implements {@link BlockViewFactory#buildFieldView}. */
     @Override
     protected FieldView buildFieldView(Field field) {
-        switch (field.getType()) {
-            // TODO(Anm): Inflate custom / styled variants.
+        @Field.FieldType int type = field.getType();
+        int layoutResId = getLayoutForField(type);
+        FieldView fieldView = null;
+        // If we have a layout for this field type load that and return it
+        if (layoutResId != 0) {
+            fieldView = (FieldView) mLayoutInflater.inflate(layoutResId, null);
+            fieldView.setField(field);
+        }
+
+        // Field specific configuration can be done here.
+        switch (type) {
             case Field.TYPE_COLOUR: {
-                FieldColourView colourView = new FieldColourView(mContext);
+                FieldColourView colourView = (FieldColourView) fieldView;
                 colourView.setWorkspaceHelper(mHelper);
-                colourView.setField((FieldColour) field);
-                return colourView;
+                // fall through
             }
             default:
-                return super.buildFieldView(field);
+                return fieldView != null ? fieldView : super.buildFieldView(field);
         }
+    }
+
+    @Override
+    protected SpinnerAdapter getVariableAdapter() {
+        if (mVariableNameManager == null) {
+            throw new IllegalStateException("NameManager must be set before variable field is "
+                    + "instantiated.");
+        }
+        if (mVariableAdapter == null) {
+            BasicVariableAdapter adapter = new BasicVariableAdapter(mVariableNameManager, mContext,
+                    R.layout.default_spinner_item);
+            adapter.setDropDownViewResource(R.layout.default_spinner_drop_down);
+            mVariableAdapter = adapter;
+        }
+        return mVariableAdapter;
+    }
+
+    /**
+     * Sets a layout to inflate for the given field type. The layout file must contain a subclass
+     * of the appropriate field as its only top element. Setting the resource id to 0 will clear
+     * it.
+     *
+     * @param fieldType The type of field this layout should be used for.
+     * @param layoutResId The layout resource id to inflate when creating views for this field type.
+     */
+    protected final void setFieldLayout(@Field.FieldType int fieldType, int layoutResId) {
+        if (layoutResId == 0) {
+            mFieldLayouts.delete(fieldType);
+        } else {
+            mFieldLayouts.put(fieldType, layoutResId);
+        }
+    }
+
+    /**
+     * Gets the layout resource id for a given field type or 0 if none exist.
+     *
+     * @param fieldType The field type to get a layout for.
+     * @return The layout resource id or 0 if not found.
+     */
+    protected final int getLayoutForField(@Field.FieldType int fieldType) {
+        return mFieldLayouts.get(fieldType);
     }
 
     /**
@@ -114,7 +166,17 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             styles = mContext.obtainStyledAttributes(R.styleable.BlocklyWorkspaceTheme);
         }
         try {
+            // TODO: (#185) Remove unused attributes from blocklylib-core.
             mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
+
+            setFieldLayout(Field.TYPE_DROPDOWN, R.layout.default_field_dropdown);
+            setFieldLayout(Field.TYPE_LABEL, R.layout.default_field_label);
+            setFieldLayout(Field.TYPE_CHECKBOX, R.layout.default_field_checkbox);
+            setFieldLayout(Field.TYPE_DATE, R.layout.default_field_date);
+            setFieldLayout(Field.TYPE_ANGLE, R.layout.default_field_angle);
+            setFieldLayout(Field.TYPE_NUMBER, R.layout.default_field_number);
+            setFieldLayout(Field.TYPE_COLOUR, R.layout.default_field_colour);
+            setFieldLayout(Field.TYPE_INPUT, R.layout.default_field_input);
         } finally {
             styles.recycle();
         }

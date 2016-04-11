@@ -79,13 +79,9 @@ public class BasicFieldDropdownView extends Spinner implements FieldView {
         }
     }
 
-    /**
-     * Sets the {@link Field} model for this view, if not null. Otherwise, disconnects the prior
-     * field model.
-     *
-     * @param dropdownField The dropdown field to view.
-     */
-    public void setField(FieldDropdown dropdownField) {
+    @Override
+    public void setField(Field field) {
+        FieldDropdown dropdownField = (FieldDropdown) field;
         if (mDropdownField == dropdownField) {
             return;
         }
