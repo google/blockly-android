@@ -16,9 +16,8 @@
 package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.drawable.NinePatchDrawable;
 import android.support.v4.view.ViewCompat;
+import android.util.AttributeSet;
 
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
@@ -27,14 +26,19 @@ import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
  * {@link BasicFieldColourView} with a inset emboss that matches its containing BlockView.
  */
 public class FieldColourView extends BasicFieldColourView {
-    private final NinePatchDrawable mInsetPatch;
-
     protected WorkspaceHelper mHelper;
     private BlockView mBlockView = null;
 
     public FieldColourView(Context context) {
         super(context);
-        mInsetPatch = (NinePatchDrawable) getResources().getDrawable(R.drawable.inset_field_border);
+    }
+
+    public FieldColourView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public FieldColourView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
     }
 
     public void setWorkspaceHelper(WorkspaceHelper helper) {
@@ -43,26 +47,21 @@ public class FieldColourView extends BasicFieldColourView {
     }
 
     @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         maybeAcquireParentBlockView();
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        int width = Math.max(getWidth(), mInsetPatch.getMinimumWidth());
-        int height = Math.max(getHeight(), mInsetPatch.getMinimumHeight());
-
-        canvas.drawRect(0, 0, width, height, mSelectedColourPaint);
-        if (mBlockView != null) {
-            mInsetPatch.setBounds(0, 0, width, height);
-            mInsetPatch.setColorFilter(mBlockView.getColorFilter());
-            mInsetPatch.draw(canvas);
-        }
-    }
-
     private void maybeAcquireParentBlockView() {
         mBlockView = (mHelper != null && ViewCompat.isAttachedToWindow(this)) ?
             (BlockView) mHelper.getClosestAncestorBlockView(this) : null;
+        if (mBlockView != null) {
+            getForeground().setColorFilter(mBlockView.getColorFilter());
+        }
     }
 }

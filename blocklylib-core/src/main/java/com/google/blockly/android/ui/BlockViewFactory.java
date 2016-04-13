@@ -17,6 +17,7 @@ package com.google.blockly.android.ui;
 
 import android.content.Context;
 import android.database.DataSetObserver;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -346,7 +347,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
          * @param resource The {@link TextView} layout to use when inflating items.
          */
         public BasicVariableAdapter(
-                NameManager variableNameManager, Context context, int resource) {
+                NameManager variableNameManager, Context context, @LayoutRes int resource) {
 
             super(context, resource);
             mVariableNameManager = variableNameManager;
