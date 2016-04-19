@@ -70,8 +70,8 @@ public class InputView extends AbstractInputView {
 
         mFactory = factory;
         mPatchManager = factory.getPatchManager();  // Shortcut.
-
-        initAttrs(context, mFactory.getBlockStyle());
+        mHorizontalFieldSpacing = (int) context.getResources()
+                .getDimension(R.dimen.field_horizontal_spacing);
     }
 
     @Override
@@ -217,18 +217,6 @@ public class InputView extends AbstractInputView {
      */
     int getInlineInputX() {
         return getMeasuredWidth() - mPatchManager.mBlockTotalPaddingX - getTotalChildWidth();
-    }
-
-    /**
-     * Initialize style attributes.
-     *
-     * @param context Context of this view.
-     * @param blockStyle The selected block style.
-     */
-    private void initAttrs(Context context, int blockStyle) {
-        TypedArray a = context.obtainStyledAttributes(blockStyle, R.styleable.BlocklyBlockView);
-        mHorizontalFieldSpacing = (int) a.getDimension(
-                R.styleable.BlocklyBlockView_fieldHorizontalPadding, DEFAULT_FIELD_SPACING);
     }
 
     /**

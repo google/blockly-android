@@ -48,10 +48,12 @@ import java.util.List;
 @SuppressLint("ViewConstructor")
 public class BlockView extends AbstractBlockView<InputView> {
     private static final boolean DEBUG = false;
-    // TODO(#86): Determine from 9-patch measurements.
-    private static final int MIN_BLOCK_WIDTH = 40;
+
     private static final float SHADOW_SATURATION_MULTIPLIER = 0.4f;
     private static final float SHADOW_VALUE_MULTIPLIER = 1.2f;
+
+    // TODO(#86): Determine from 9-patch measurements.
+    private final int mMinBlockWidth;
 
     // Width  and height of the block "content", i.e., all its input fields. Unlike the view size,
     // this does not include extruding connectors (e.g., Output, Next) and connected input blocks.
@@ -109,6 +111,7 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         mTouchHandler = touchHandler;
         mPatchManager = factory.getPatchManager();  // Shortcut.
+        mMinBlockWidth = (int) context.getResources().getDimension(R.dimen.min_block_width);
 
         setClickable(true);
         setFocusable(true);
@@ -453,8 +456,8 @@ public class BlockView extends AbstractBlockView<InputView> {
         mInlineRowWidth.add(Math.max(rowLeft,
                 mMaxStatementFieldsWidth + mPatchManager.mStatementInputIndent));
 
-        // Block width is the computed width of the widest input row, and at least MIN_BLOCK_WIDTH.
-        mBlockContentWidth = Math.max(MIN_BLOCK_WIDTH, maxRowWidth);
+        // Block width is the computed width of the widest input row, and at least mMinBlockWidth.
+        mBlockContentWidth = Math.max(mMinBlockWidth, maxRowWidth);
         mBlockViewSize.x = mBlockContentWidth;
 
         // View width is the computed width of the widest statement input, including child blocks
@@ -483,7 +486,7 @@ public class BlockView extends AbstractBlockView<InputView> {
      * </p>
      */
     private void measureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
-        int maxInputFieldsWidth = MIN_BLOCK_WIDTH;
+        int maxInputFieldsWidth = mMinBlockWidth;
         // Initialize max Statement width as zero so presence of Statement inputs can be determined
         // later; apply minimum size after that.
         mMaxStatementFieldsWidth = 0;
@@ -521,7 +524,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         // If there was a statement, force all other input fields to be at least as wide as required
         // by the Statement field plus port width.
         if (mMaxStatementFieldsWidth > 0) {
-            mMaxStatementFieldsWidth = Math.max(mMaxStatementFieldsWidth, MIN_BLOCK_WIDTH);
+            mMaxStatementFieldsWidth = Math.max(mMaxStatementFieldsWidth, mMinBlockWidth);
             maxInputFieldsWidth = Math.max(maxInputFieldsWidth,
                     mMaxStatementFieldsWidth + mPatchManager.mStatementInputIndent);
         }

@@ -15,7 +15,11 @@
 
 package com.google.blockly.android;
 
+import android.content.Context;
 import android.test.AndroidTestCase;
+import android.view.ContextThemeWrapper;
+
+import com.google.blockly.android.ui.vertical.R;
 
 import org.mockito.MockitoAnnotations;
 
@@ -23,11 +27,20 @@ import org.mockito.MockitoAnnotations;
  * Base class for Android tests with Mockito.
  */
 public class MockitoAndroidTestCase extends AndroidTestCase {
-        @Override
-        public void setUp() throws Exception {
-            super.setUp();
-            // To solve some issue with Dexmaker.  This allows us to use mockito.
-            System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-            MockitoAnnotations.initMocks(this);
-        }
+
+    Context mThemeContext;
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        mThemeContext = new ContextThemeWrapper(getContext(), R.style.BlocklyVerticalTheme);
+        // To solve some issue with Dexmaker.  This allows us to use mockito.
+        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        MockitoAnnotations.initMocks(this);
     }
+
+    @Override
+    public Context getContext() {
+        return mThemeContext != null ? mThemeContext : super.getContext();
+    }
+}

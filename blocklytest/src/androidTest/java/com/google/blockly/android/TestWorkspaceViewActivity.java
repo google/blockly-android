@@ -16,12 +16,14 @@ package com.google.blockly.android;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
+import com.google.blockly.android.ui.vertical.R;
 import com.google.blockly.model.Workspace;
 
 /**
@@ -33,15 +35,17 @@ public class TestWorkspaceViewActivity extends Activity {
     public BlockViewFactory mViewFactory;
     public Workspace mWorkspace;
     public WorkspaceView mWorkspaceView;
+    public ContextThemeWrapper mThemeWrapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mThemeWrapper = new ContextThemeWrapper(this, R.style.BlocklyVerticalTheme);
         mController = new BlocklyController.Builder(this).build();
         mWorkspace = mController.getWorkspace();
         mWorkspaceHelper = mController.getWorkspaceHelper();
-        mViewFactory = new VerticalBlockViewFactory(this, mWorkspaceHelper);
+        mViewFactory = new VerticalBlockViewFactory(mThemeWrapper, mWorkspaceHelper);
 
         mWorkspaceView = new WorkspaceView(this);
         mController.initWorkspaceView(mWorkspaceView);

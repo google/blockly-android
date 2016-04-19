@@ -168,14 +168,11 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
 
         if (workspaceTheme != 0) {
             styles = mContext.obtainStyledAttributes(
-                    workspaceTheme, R.styleable.BlocklyWorkspaceTheme);
+                    workspaceTheme, R.styleable.BlocklyVertical);
         } else {
-            styles = mContext.obtainStyledAttributes(R.styleable.BlocklyWorkspaceTheme);
+            styles = mContext.obtainStyledAttributes(R.styleable.BlocklyVertical);
         }
         try {
-            // TODO: (#185) Remove unused attributes from blocklylib-core.
-            mBlockStyle = styles.getResourceId(R.styleable.BlocklyWorkspaceTheme_blockViewStyle, 0);
-
             setFieldLayout(Field.TYPE_DROPDOWN, R.layout.default_field_dropdown);
             setFieldLayout(Field.TYPE_LABEL, R.layout.default_field_label);
             setFieldLayout(Field.TYPE_CHECKBOX, R.layout.default_field_checkbox);
