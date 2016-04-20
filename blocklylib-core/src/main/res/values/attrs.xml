@@ -16,11 +16,6 @@
 
 <resources>
     <declare-styleable name="BlocklyWorkspaceTheme">
-        <!-- The style to use for BlockViews. Should define BlocklyBlockView attrs.-->
-        <attr name="blockViewStyle" format="reference" />
-        <!-- The style to use for FieldLabelViews in this workspace. Should define attributes
-            from BlocklyFieldView and BlocklyFieldLabelView -->
-        <attr name="fieldStyle" format="reference"/>
         <!-- The minimum scaling supported by the workspace -->
         <attr name="minScale" format="float|reference" />
         <!-- The maximum scaling supported by the workspace -->
@@ -29,37 +24,9 @@
         <attr name="defaultScale" format="float|reference" />
     </declare-styleable>
 
-    <declare-styleable name="BlocklyBlockView">
-        <!-- The default horizontal space between fields -->
-        <attr name="fieldHorizontalPadding" format="dimension|reference"/>
-        <!-- The default vertical padding between fields -->
-        <attr name="fieldVerticalPadding" format="dimension|reference"/>
-        <!-- The min height for a Block with nothing in it. -->
-        <attr name="minBlockHeight" format="dimension|reference"/>
-        <!-- Padding around fields and inputs and the edge of the block -->
-        <attr name="innerPadding" format="dimension|reference" />
-    </declare-styleable>
-
-    <declare-styleable name="BlocklyFieldView">
-        <!-- The style to use for text if this view renders text inline. -->
-        <attr name="textAppearance" format="reference" />
-        <!-- The minimum height for any FieldView -->
-        <attr name="fieldMinHeight" format="dimension|reference"/>
-        <!-- The minimum width for any FieldView -->
-        <attr name="fieldMinWidth" format="dimension|reference"/>
-        <!-- The layout to use for spinner items like variables. Must contain a TextView
-                as the only element. -->
-        <attr name="spinnerItem" format="reference" />
-        <!-- The drop down layout to use for spinner items like variables. Must contain a TextView
-                as the only element. -->
-        <attr name="spinnerItemDropDown" format="reference" />
-        <!-- The layout to use for field inputs text entry. Must contain a FieldInputView as the
-                only element -->
-        <attr name="fieldInputLayout" format="reference"/>
-    </declare-styleable>
-
-    <declare-styleable name="BlocklyFieldLabelView">
-        <!-- Empty style for adding label specific attributes -->
+    <declare-styleable name="BasicFieldDropdownView">
+        <attr name="itemLayout" format="reference"/>
+        <attr name="dropdownItemLayout" format="reference"/>
     </declare-styleable>
 
     <!-- Base class of ToolboxFragment and TrashFragment. -->
@@ -100,10 +67,5 @@
             <flag name="start" value="0x00000012"/> <!-- RTL adaptive counter-clockwise -->
             <flag name="end" value="0x00000011"/> <!-- RTL adaptive clockwise -->
         </attr>
-    </declare-styleable>
-
-    <declare-styleable name="BasicFieldDropdownView">
-        <attr name="itemLayout" format="reference" />
-        <attr name="dropdownItemLayout" format="reference" />
     </declare-styleable>
 </resources>

@@ -17,6 +17,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/field_input"
         style="@style/TextAppearance.AppCompat.Large"
+        android:textSize="?blockTextSize"
         android:background="@color/angle_bg_colour"
         android:singleLine="true"
         android:padding="4dip"

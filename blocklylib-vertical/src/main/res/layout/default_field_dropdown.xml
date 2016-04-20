@@ -14,10 +14,12 @@
   ~  limitations under the License.
   -->
 <com.google.blockly.android.ui.fieldview.BasicFieldDropdownView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/field_input"
-        style="@style/DefaultFieldDropdownStyle"
-        android:singleLine="true"
-        android:padding="4dip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/field_input"
+    app:itemLayout="@layout/default_spinner_item"
+    app:dropdownItemLayout="@layout/default_spinner_drop_down"
+    android:singleLine="true"
+    android:padding="4dip"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>

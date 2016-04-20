@@ -15,12 +15,14 @@
 package com.google.blockly.android;
 
 import android.support.annotation.NonNull;
+import android.view.ContextThemeWrapper;
 
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
+import com.google.blockly.android.ui.vertical.R;
 
 import java.util.Arrays;
 import java.util.List;
@@ -66,7 +68,8 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
 
     @Override
     public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
-        return new VerticalBlockViewFactory(this, helper);
+        return new VerticalBlockViewFactory(
+                new ContextThemeWrapper(this, R.style.BlocklyVerticalTheme), helper);
     }
 
     @NonNull

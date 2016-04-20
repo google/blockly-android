@@ -67,7 +67,7 @@ public class BlockViewInActivityTest
         System.setProperty("dexmaker.dexcache", mActivity.getCacheDir().getPath());
         MockitoAnnotations.initMocks(this);
 
-        mBlockFactory = new BlockFactory(mActivity, new int[]{R.raw.test_blocks});
+        mBlockFactory = new BlockFactory(mActivity.mThemeWrapper, new int[]{R.raw.test_blocks});
         mHelper = mActivity.mWorkspaceHelper;
         mViewFactory = mActivity.mViewFactory;
     }
