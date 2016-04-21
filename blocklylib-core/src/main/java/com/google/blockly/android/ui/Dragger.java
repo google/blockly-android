@@ -18,7 +18,7 @@ package com.google.blockly.android.ui;
 import android.content.ClipData;
 import android.graphics.Rect;
 import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
+import android.support.annotation.Size;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.MotionEventCompat;
 import android.util.Log;
@@ -44,132 +44,6 @@ import java.util.List;
  */
 public class Dragger {
     private static final String TAG = "Dragger";
-
-    public final class PendingDrag {
-        private final DragHandler mDragHandler;
-        private final BlockView mTouchedView;
-        private final int mPointerId;
-
-        // The screen location of the first touch, in device pixel units.
-        private final int mTouchDownScreenX;
-        private final int mTouchDownScreenY;
-
-        /**
-         * The workspace location of the first touch, even if the touch occured outside the
-         * {@link VirtualWorkspaceView}.
-         */
-        private final WorkspacePoint mTouchDownWorkspace = new WorkspacePoint();
-
-        // The coordinates within the BlockView fo the first touch,
-        // in local pixel units (possibly scaled, if within the workspace).
-        private final int mTouchDownBlockX;
-        private final int mTouchDownBlockY;
-
-        private BlockGroup mDragGroup;
-        private BlockView mRootBlockView;
-        private WorkspacePoint mOriginalBlockPosition = new WorkspacePoint();
-
-        PendingDrag(@NonNull DragHandler dragHandler, @NonNull BlockView touchedView,
-                    @NonNull MotionEvent actionDown) {
-            assert (actionDown.getAction() == MotionEvent.ACTION_DOWN);
-
-            mDragHandler = dragHandler;
-            mTouchedView = touchedView;
-
-            mPointerId = MotionEventCompat.getPointerId(
-                    actionDown, MotionEventCompat.getActionIndex(actionDown));
-            int pointerIdx = MotionEventCompat.findPointerIndex(actionDown, mPointerId);
-            mTouchDownBlockX = (int) MotionEventCompat.getX(actionDown, pointerIdx);
-            mTouchDownBlockY = (int) MotionEventCompat.getY(actionDown, pointerIdx);
-
-            int[] viewScreenLocation = mTempArray;
-            touchedView.getLocationOnScreen(viewScreenLocation);
-
-            // Get local screen coordinates.
-            float screenOffsetX = mTouchDownBlockX;
-            float screenOffsetY = mTouchDownBlockY;
-            if (mHelper.isInWorkspaceView((View) touchedView)) {
-                float scale = mWorkspaceView.getScaleX(); // Scale is equal in both directions.
-                screenOffsetX = mTouchDownBlockX * scale;
-                screenOffsetY = mTouchDownBlockY * scale;
-            }
-            mTouchDownScreenX = (int) (viewScreenLocation[0] + screenOffsetX);
-            mTouchDownScreenY = (int) (viewScreenLocation[1] + screenOffsetY);
-
-            ViewPoint screenCoordinate = mTempViewPoint;
-            screenCoordinate.x = mTouchDownScreenX;
-            screenCoordinate.y = mTouchDownScreenY;
-            mHelper.screenToWorkspaceCoordinates(screenCoordinate, mTouchDownWorkspace);
-        }
-
-        public DragHandler getDragHandler() {
-            return mDragHandler;
-        }
-
-        public BlockView getTouchedBlockView() {
-            return mTouchedView;
-        }
-
-        public int getPointerId() {
-            return mPointerId;
-        }
-
-        public int getTouchDownScreenX() {
-            return mTouchDownScreenX;
-        }
-
-        public int getTouchDownScreenY() {
-            return mTouchDownScreenY;
-        }
-
-        public float getTouchDownViewOffsetX() {
-            return mTouchDownBlockX;
-        }
-
-        public float getTouchDownViewOffsetY() {
-            return mTouchDownBlockY;
-        }
-
-        public WorkspacePoint getTouchDownWorkspace() {
-            return mTouchDownWorkspace;
-        }
-
-        /**
-         *
-         * @param dragGroup The {@link BlockGroup} containing all the dragged blocks.
-         */
-        public void setDragGroup(BlockGroup dragGroup) {
-            if (!mController.getWorkspace().isRootBlock(dragGroup.getFirstBlock())) {
-                throw new IllegalArgumentException("dragGroup must be root block in workspace");
-            }
-
-            mDragGroup = dragGroup;
-
-            // Save reference to root block, so we know which block if dropped into another group
-            mRootBlockView = dragGroup.getFirstBlockView();
-            if (mRootBlockView == null) {
-                throw new IllegalStateException();
-            }
-
-            mOriginalBlockPosition.setFrom(dragGroup.getFirstBlock().getPosition());
-        }
-
-        public BlockGroup getDragGroup() {
-            return mDragGroup;
-        }
-
-        public Block getRootBlock() {
-            return mRootBlockView.getBlock();
-        }
-
-        public BlockView getRootBlockView() {
-            return mRootBlockView;
-        }
-
-        public WorkspacePoint getOriginalBlockPosition() {
-            return mOriginalBlockPosition;
-        }
-    }
 
     /**
      * Interface for processing a drag behavior.
@@ -203,7 +77,8 @@ public class Dragger {
     // Rect for finding the bounding box of the trash can view.
     private final Rect mTrashRect = new Rect();
     // For use in getting location on screen.
-    private final int[] mTempArray = new int[2];
+    private final int[] mTempScreenCoord1 = new int[2];
+    private final int[] mTempScreenCoord2 = new int[2];
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
@@ -274,7 +149,7 @@ public class Dragger {
     };
 
     /**
-     * @param blocklyController
+     * @param blocklyController The {@link BlocklyController} managing Blocks in this activity.
      */
     public Dragger(BlocklyController blocklyController) {
         mController = blocklyController;
@@ -459,12 +334,15 @@ public class Dragger {
                 MotionEventCompat.findPointerIndex(actionMove, mPendingDrag.getPointerId());
         if (mTouchState != TOUCH_STATE_DRAGGING) {
             // Not dragging yet - compute distance from Down event and start dragging if far enough.
-            int[] viewLocation = mTempArray;
+            @Size(2) int[] touchDownLocation = mTempScreenCoord2;
+            mPendingDrag.getTouchDownScreen(touchDownLocation);
+
+            @Size(2) int[] viewLocation = mTempScreenCoord2;
             mPendingDrag.getTouchedBlockView().getLocationOnScreen(viewLocation);
 
-            final float deltaX = mPendingDrag.getTouchDownScreenX()
+            final float deltaX = touchDownLocation[0]
                     - (viewLocation[0] + MotionEventCompat.getX(actionMove, pointerIdx));
-            final float deltaY = mPendingDrag.getTouchDownScreenY() -
+            final float deltaY = touchDownLocation[1]
                     - (viewLocation[1] + MotionEventCompat.getY(actionMove, pointerIdx));
 
             if (deltaX * deltaX + deltaY * deltaY >= mTouchSlopSquared) {
@@ -509,7 +387,7 @@ public class Dragger {
         }
 
         mTouchState = TOUCH_STATE_DOWN;
-        mPendingDrag = new PendingDrag(dragHandler, touchedView, actionDown);
+        mPendingDrag = new PendingDrag(mController, dragHandler, touchedView, actionDown);
         ((View) touchedView).setPressed(true);
     }
 
@@ -522,14 +400,14 @@ public class Dragger {
      * @return Whether the event was on top of the trash can button.
      */
     private boolean touchingTrashView(DragEvent event) {
-        mTrashView.getLocationOnScreen(mTempArray);
+        mTrashView.getLocationOnScreen(mTempScreenCoord1);
         mTrashView.getHitRect(mTrashRect);
 
-        mTrashRect.offset((mTempArray[0] - mTrashRect.left), (mTempArray[1] - mTrashRect.top));
+        mTrashRect.offset((mTempScreenCoord1[0] - mTrashRect.left), (mTempScreenCoord1[1] - mTrashRect.top));
         // offset drag event positions by the workspace view's position on screen.
-        mWorkspaceView.getLocationOnScreen(mTempArray);
-        return mTrashRect.contains((int) event.getX() + mTempArray[0],
-                (int) event.getY() + mTempArray[1]);
+        mWorkspaceView.getLocationOnScreen(mTempScreenCoord1);
+        return mTrashRect.contains((int) event.getX() + mTempScreenCoord1[0],
+                (int) event.getY() + mTempScreenCoord1[1]);
     }
 
     /**

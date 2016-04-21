@@ -91,7 +91,7 @@ public class BlockListView extends RecyclerView {
             Dragger dragger = controller.getDragger();
             mTouchHandler = dragger.buildBlockTouchHandler(new Dragger.DragHandler() {
                 @Override
-                public boolean maybeStartDrag(Dragger.PendingDrag pendingDrag) {
+                public boolean maybeStartDrag(PendingDrag pendingDrag) {
                     BlockView touchedBlockView = pendingDrag.getTouchedBlockView();
 
                     // When dragging out of the BlockListView, we really care about the root block.
@@ -127,11 +127,8 @@ public class BlockListView extends RecyclerView {
                     offsetX = mHelper.virtualViewToWorkspaceUnits(offsetX);
                     offsetY = mHelper.virtualViewToWorkspaceUnits(offsetY);
 
-                    // Convert touch screen coordinate to workspace coordinate.
-                    mHelper.screenToWorkspaceCoordinates(pendingDrag.getTouchDownScreenX(),
-                            pendingDrag.getTouchDownScreenY(), mTempWorkspacePoint);
-
                     // Offset the workspace coord by the BlockGroup's touch offset.
+                    mTempWorkspacePoint.setFrom(pendingDrag.getTouchDownWorkspace());
                     mTempWorkspacePoint.offset((int) -offsetX, (int) -offsetY);
 
                     // Acquire the WorkspaceBlock from the OnDragListBlock
@@ -158,30 +155,6 @@ public class BlockListView extends RecyclerView {
                 bg.setTouchHandler(mTouchHandler);
             }
         }
-    }
-
-    protected void calculateWorkspaceLocation(Dragger.PendingDrag pendingDrag,
-                                              BlockView rootTouchedBlockView,
-                                              WorkspacePoint workspaceCoord) {
-        ViewPoint screenCoord = tempViewPoint;
-        screenCoord.x = pendingDrag.getTouchDownScreenX();
-        screenCoord.y = pendingDrag.getTouchDownScreenY();
-        mHelper.screenToWorkspaceCoordinates(screenCoord, workspaceCoord);
-
-        float connectorOffsetX;
-        if (mHelper.useRtl()) {
-            connectorOffsetX = rootTouchedBlockView.getWidth()
-                    - rootTouchedBlockView.getOutputConnectorMargin()
-                    - pendingDrag.getTouchDownViewOffsetX();
-        } else {
-            connectorOffsetX = pendingDrag.getTouchDownViewOffsetX()
-                    - rootTouchedBlockView.getOutputConnectorMargin();
-        }
-        float wsOffsetX = mHelper.virtualViewToWorkspaceUnits(connectorOffsetX);
-        float wsOffsetY = mHelper.virtualViewToWorkspaceUnits(
-                pendingDrag.getTouchDownViewOffsetY());
-        workspaceCoord.x = (int) (workspaceCoord.x - wsOffsetX);
-        workspaceCoord.y = (int) (workspaceCoord.y - wsOffsetY);
     }
 
     public void setContents(List<Block> blocks) {

@@ -21,7 +21,6 @@ import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -36,6 +35,7 @@ import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.InputView;
+import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Block;
@@ -79,7 +79,7 @@ public class BlocklyController {
 
     private final Dragger.DragHandler mWorkspaceDragHandler = new Dragger.DragHandler() {
         @Override
-        public boolean maybeStartDrag(Dragger.PendingDrag pendingDrag) {
+        public boolean maybeStartDrag(PendingDrag pendingDrag) {
             BlockView touchedView = pendingDrag.getTouchedBlockView();
             extractBlockAsRoot(touchedView.getBlock());
             // Since this block was already on the workspace, the block's position should
