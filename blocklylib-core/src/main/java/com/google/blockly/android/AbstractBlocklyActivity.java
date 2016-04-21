@@ -614,6 +614,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void onRunCode() {
         try {
+            if (mWorkspaceFragment.getWorkspace().getRootBlocks().size() == 0) {
+                Log.i(TAG, "No blocks in workspace. Skipping run request.");
+                return;
+            }
             if (mBound) {
                 final StringOutputStream serialized = new StringOutputStream();
                 mWorkspaceFragment.getWorkspace().serializeToXml(serialized);
