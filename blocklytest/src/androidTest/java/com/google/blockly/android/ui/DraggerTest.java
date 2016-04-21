@@ -89,6 +89,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mBlocks = new ArrayList<>();
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
+        mWorkspaceHelper.setWorkspaceView(mWorkspaceView);
         mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
 
         Mockito.stub(mMockWorkspace.getConnectionManager()).toReturn(mMockConnectionManager);
