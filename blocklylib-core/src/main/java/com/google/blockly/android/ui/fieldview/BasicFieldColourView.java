@@ -25,6 +25,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.PopupWindow;
 
 import com.google.blockly.model.Field;
@@ -33,7 +34,7 @@ import com.google.blockly.model.FieldColour;
 /**
  * Renders a color field and picker as part of a BlockView.
  */
-public class BasicFieldColourView extends View implements FieldView {
+public class BasicFieldColourView extends FrameLayout implements FieldView {
     protected static final int DEFAULT_MIN_WIDTH_DP = 40;
     protected static final int DEFAULT_MIN_HEIGHT_DP = 28;  // Base on styled label text height?
 
