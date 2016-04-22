@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
@@ -58,7 +59,9 @@ public class Workspace {
     /**
      * Create a workspace.
      *
-     * @param controller The controller for this Workspace. {@link com.google.blockly.R.style#BlocklyTheme}
+     * @param context The context this workspace is associated with.
+     * @param controller The controller for this Workspace.
+     * @param factory The factory used to build blocks in this workspace.
      */
     public Workspace(Context context, BlocklyController controller,
             BlockFactory factory) {
@@ -168,7 +171,18 @@ public class Workspace {
         List<Block> newBlocks = BlocklyXmlHelper.loadFromXml(is, mBlockFactory, mStats);
 
         // Successfully deserialized.  Update workspace.
+        // TODO: (#22) Add proper variable support.
+        // For now just save and restore the list of variables.
+        SimpleArrayMap<String, String> varsMap = mVariableNameManager.getUsedNames();
+        String[] vars = new String[varsMap.size()];
+        for (int i = 0; i < varsMap.size(); i++) {
+            vars[i] = varsMap.keyAt(i);
+        }
         mController.resetWorkspace();
+        for (int i = 0; i < vars.length; i++) {
+            mController.addVariable(vars[i]);
+        }
+
         mRootBlocks.addAll(newBlocks);
         for (int i = 0; i < mRootBlocks.size(); i++) {
             mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
