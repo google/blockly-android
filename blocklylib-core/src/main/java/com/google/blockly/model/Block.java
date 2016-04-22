@@ -839,6 +839,16 @@ public class Block {
                                     "Created a null block. This should never happen.");
                         }
                         resultBlock.mIsShadow = true;
+                        // TODO: (#199) support more complex shadow blocks.
+                        List<Connection> connections = resultBlock.getAllConnections();
+                        if (resultBlock.getPreviousConnection() == null
+                                && resultBlock.getOutputConnection() == null) {
+                            Log.w(TAG,
+                                    "Shadow block has no previous or output and will be unusable.");
+                        } else if (connections.size() > 1) {
+                            // This block has a connection other than previous/output
+                            Log.e(TAG, "Shadows only support previous/output connections.");
+                        }
                         return resultBlock;
                     }else if (tagname.equalsIgnoreCase("field")) {
                         Field toSet = resultBlock.getFieldByName(fieldName);
@@ -927,15 +937,22 @@ public class Block {
                     } else if (tagname.equalsIgnoreCase("comment")) {
                         resultBlock.setComment(text);
                     } else if (tagname.equalsIgnoreCase("next")) {
-                        if (resultBlock.getNextConnection() == null
-                                || childBlock.getPreviousConnection() == null) {
-                            throw new BlocklyParserException("A connection was null.");
+                        // TODO: (#199) support more complex shadow blocks.
+                        if (childShadow != null) {
+                            Log.e(TAG, "Shadow blocks connected to next are not supported");
                         }
-                        if (resultBlock.getNextConnection().isConnected()) {
-                            throw new BlocklyParserException(
-                                    "Multiple next blocks were provided for the same block.");
+                        if (childBlock != null) {
+                            if (resultBlock.getNextConnection() == null
+                                    || childBlock.getPreviousConnection() == null) {
+                                throw new BlocklyParserException("A connection was null.");
+                            }
+                            if (resultBlock.getNextConnection().isConnected()) {
+                                throw new BlocklyParserException(
+                                        "Multiple next blocks were provided for the same block.");
+                            }
+                            resultBlock.getNextConnection()
+                                    .connect(childBlock.getPreviousConnection());
                         }
-                        resultBlock.getNextConnection().connect(childBlock.getPreviousConnection());
                     }
                     break;
 
