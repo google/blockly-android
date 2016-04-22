@@ -15,7 +15,7 @@
   -->
 <com.google.blockly.android.ui.fieldview.BasicFieldDropdownView
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/field_input"
+        android:id="@+id/field_dropdown"
         style="@style/DefaultFieldDropdownStyle"
         android:singleLine="true"
         android:padding="4dip"
