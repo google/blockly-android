@@ -15,7 +15,7 @@
   -->
 <com.google.blockly.android.ui.fieldview.BasicFieldAngleView
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/field_input"
+        android:id="@+id/field_angle"
         style="@style/TextAppearance.AppCompat.Large"
         android:textSize="?blockTextSize"
         android:background="@color/angle_bg_colour"

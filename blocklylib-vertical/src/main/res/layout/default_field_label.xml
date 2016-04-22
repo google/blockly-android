@@ -15,7 +15,7 @@
   -->
 <com.google.blockly.android.ui.fieldview.BasicFieldLabelView
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/field_input"
+        android:id="@+id/field_label"
         style="@style/TextAppearance.AppCompat.Large"
         android:textSize="?blockTextSize"
         android:singleLine="true"
