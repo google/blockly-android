@@ -14,7 +14,7 @@
   ~  limitations under the License.
   -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-          android:id="@android:id/text1"
+          android:id="@+id/default_item"
           style="@style/DefaultSpinnerStyle"
           android:textSize="?blockTextSize"
           android:singleLine="true"
