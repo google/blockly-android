@@ -19,12 +19,12 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
@@ -62,6 +62,7 @@ public class BlockListView extends RecyclerView {
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
     private WorkspaceHelper mHelper;
+    private ConnectionManager mConnectionManager;
     private BlockTouchHandler mTouchHandler;
 
     public BlockListView(Context context) {
@@ -79,14 +80,30 @@ public class BlockListView extends RecyclerView {
         addItemDecoration(new ItemSpacingDecoration(mAdapter));
     }
 
+    /**
+     * Initializes this BlockListView with the {@link BlocklyController} and {@link OnDragListBlock}
+     * listener.  If {@code controller} is null, this BlockListView is reset, including removing all
+     * blocks from the list.
+     *
+     * @param controller
+     * @param blockDragListener
+     */
     public void init(final @Nullable BlocklyController controller,
                      final OnDragListBlock blockDragListener) {
         if (controller == null) {
             mHelper = null;
+            mConnectionManager = null;
             mTouchHandler = null;
+
+            // Do not hold any blocks if the controller is unset.
+            int priorBlockCount = mBlocks.size();
+            mBlocks.clear();
+            mAdapter.notifyItemRangeRemoved(0, priorBlockCount-1);
         } else {
             mHelper = controller.getWorkspaceHelper();
+            mConnectionManager = controller.getWorkspace().getConnectionManager();
             Dragger dragger = controller.getDragger();
+
             mTouchHandler = dragger.buildBlockTouchHandler(new Dragger.DragHandler() {
                 @Override
                 public void maybeAssignDragGroup(PendingDrag pendingDrag) {
@@ -201,7 +218,8 @@ public class BlockListView extends RecyclerView {
             Block block = mBlocks.get(position);
             BlockGroup bg = mHelper.getParentBlockGroup(block);
             if (bg == null) {
-                bg = mHelper.getBlockViewFactory().buildBlockGroupTree(block, null, mTouchHandler);
+                bg = mHelper.getBlockViewFactory().buildBlockGroupTree(
+                        block, mConnectionManager, mTouchHandler);
             } else {
                 bg.setTouchHandler(mTouchHandler);
             }

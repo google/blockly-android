@@ -632,13 +632,14 @@ public class BlocklyController {
     }
 
     /**
-     * Moves a block from the trashed blocks (removing it from the deleted blocks list), back to the
-     * workspace as a root block, including the BlockGroup and other views in the TrashFragment.
+     * Moves a block (and the child blocks connected to it) from the trashed blocks (removing it
+     * from the deleted blocks list), back to the workspace as a root block, including the
+     * BlockGroup and other views in the TrashFragment.
      *
      * @param previouslyTrashedBlock The block in the trash to be moved back to the workspace.
      * @return The BlockGroup in the Workspace for the moved block.
      *
-     * @throws IllegalArgumentException If trashedBlock is not found in the trashed blocks.
+     * @throws IllegalArgumentException If {@code trashedBlock} is not found in the trashed blocks.
      */
     public BlockGroup addBlockFromTrash(@NonNull Block previouslyTrashedBlock) {
         BlockGroup bg = mHelper.getParentBlockGroup(previouslyTrashedBlock);

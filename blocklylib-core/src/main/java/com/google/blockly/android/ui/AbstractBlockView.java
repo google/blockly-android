@@ -32,7 +32,6 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
-import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 
 import java.util.ArrayList;
@@ -228,7 +227,10 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         // Ensure we have the right block location before we update the connections.
         updateBlockPosition();
 
-        if (mConnectionManager == null) {
+        // Connection location is only important when we are attached to a WorkspaceView that can
+        // interact with other connections.  BlockViews outside the WorkspaceView, such as those in
+        // BlockListViews, should be ignored.
+        if (mWorkspaceView == null) {
             return;
         }
 

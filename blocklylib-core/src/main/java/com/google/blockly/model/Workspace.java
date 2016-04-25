@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * The root class for the Blockly model.  Keeps track of all the global state used in the workspace.
  */
