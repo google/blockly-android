@@ -19,6 +19,7 @@
         style="@style/TextAppearance.AppCompat.Large"
         android:textSize="?blockTextSize"
         android:background="@color/blockly_edit_text_bg"
+        android:inputType="text"
         android:singleLine="true"
         android:paddingTop="4dip"
         android:paddingBottom="4dip"
