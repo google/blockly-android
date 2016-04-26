@@ -20,24 +20,24 @@ import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
+import com.google.blockly.android.ui.fieldview.BasicFieldColorView;
 
 /**
- * {@link BasicFieldColourView} with a inset emboss that matches its containing BlockView.
+ * {@link BasicFieldColorView} with a inset emboss that matches its containing BlockView.
  */
-public class FieldColourView extends BasicFieldColourView {
+public class FieldColorView extends BasicFieldColorView {
     protected WorkspaceHelper mHelper;
     private BlockView mBlockView = null;
 
-    public FieldColourView(Context context) {
+    public FieldColorView(Context context) {
         super(context);
     }
 
-    public FieldColourView(Context context, AttributeSet attrs) {
+    public FieldColorView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public FieldColourView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public FieldColorView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

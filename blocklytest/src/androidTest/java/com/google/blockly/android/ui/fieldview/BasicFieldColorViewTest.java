@@ -24,27 +24,27 @@ import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 
 import com.google.blockly.android.BlocklyTestActivity;
-import com.google.blockly.model.FieldColour;
+import com.google.blockly.model.FieldColor;
 
 import org.mockito.MockitoAnnotations;
 
 /**
- * Tests for {@link BasicFieldColourView}.
+ * Tests for {@link BasicFieldColorView}.
  */
-public class BasicFieldColourViewTest
+public class BasicFieldColorViewTest
         extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
 
     private static final int LAYOUT_HEIGHT = 1000;
     private static final int LAYOUT_WIDTH = 1000;
 
     private RelativeLayout mLayout;
-    private BasicFieldColourView mFieldColorView;
+    private BasicFieldColorView mFieldColorView;
 
     // Cannot mock final classes.
-    private FieldColour mFieldColour;
+    private FieldColor mFieldColor;
     private BlocklyTestActivity mActivity;
 
-    public BasicFieldColourViewTest() {
+    public BasicFieldColorViewTest() {
         super(BlocklyTestActivity.class);
     }
 
@@ -58,9 +58,9 @@ public class BasicFieldColourViewTest
         mLayout = new RelativeLayout(mActivity);
         mLayout.layout(0, 0, LAYOUT_WIDTH, LAYOUT_HEIGHT);
 
-        mFieldColour = new FieldColour("FieldColour");
-        mFieldColorView = new BasicFieldColourView(mActivity);
-        mFieldColorView.setField(mFieldColour);
+        mFieldColor = new FieldColor("FieldColor");
+        mFieldColorView = new BasicFieldColorView(mActivity);
+        mFieldColorView.setField(mFieldColor);
         mLayout.addView(mFieldColorView);
     }
 
@@ -82,9 +82,9 @@ public class BasicFieldColourViewTest
         final View popupWindowContentView = popupWindow.getContentView();
         assertNotNull(popupWindowContentView);
 
-        // Reset colour before test.
-        mFieldColour.setColour(0);
-        assertEquals(0, mFieldColour.getColour());
+        // Reset color before test.
+        mFieldColor.setColor(0);
+        assertEquals(0, mFieldColor.getColor());
 
         // Simulate click on the color panel.
         popupWindowContentView.onTouchEvent(
@@ -93,34 +93,34 @@ public class BasicFieldColourViewTest
 
         // Verify both field and field view background have been set to correct color.
         final int expectedColour = 0xffffff;
-        assertEquals(expectedColour, mFieldColour.getColour());  // setColour() masks out alpha.
-        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | expectedColour,
+        assertEquals(expectedColour, mFieldColor.getColor());  // setColour() masks out alpha.
+        assertEquals(BasicFieldColorView.ALPHA_OPAQUE | expectedColour,
                 ((ColorDrawable) mFieldColorView.getBackground()).getColor());
 
         // Popup window should have disappeared.
         assertFalse(popupWindow.isShowing());
     }
 
-    // Verify that changing colour in the field updates the UI.
+    // Verify that changing color in the field updates the UI.
     public void testFieldUpdatesView() {
-        mFieldColour.setColour(0);
-        assertEquals(BasicFieldColourView.ALPHA_OPAQUE,
+        mFieldColor.setColor(0);
+        assertEquals(BasicFieldColorView.ALPHA_OPAQUE,
                 ((ColorDrawable)mFieldColorView.getBackground()).getColor());
 
-        mFieldColour.setColour(Color.RED);
-        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.RED,
+        mFieldColor.setColor(Color.RED);
+        assertEquals(BasicFieldColorView.ALPHA_OPAQUE | Color.RED,
                 ((ColorDrawable)mFieldColorView.getBackground()).getColor());
 
-        mFieldColour.setColour(Color.GREEN);
-        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.GREEN,
+        mFieldColor.setColor(Color.GREEN);
+        assertEquals(BasicFieldColorView.ALPHA_OPAQUE | Color.GREEN,
                 ((ColorDrawable)mFieldColorView.getBackground()).getColor());
 
-        mFieldColour.setColour(Color.BLUE);
-        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.BLUE,
+        mFieldColor.setColor(Color.BLUE);
+        assertEquals(BasicFieldColorView.ALPHA_OPAQUE | Color.BLUE,
                 ((ColorDrawable)mFieldColorView.getBackground()).getColor());
 
-        mFieldColour.setColour(Color.WHITE);
-        assertEquals(BasicFieldColourView.ALPHA_OPAQUE | Color.WHITE,
+        mFieldColor.setColor(Color.WHITE);
+        assertEquals(BasicFieldColorView.ALPHA_OPAQUE | Color.WHITE,
                 ((ColorDrawable)mFieldColorView.getBackground()).getColor());
     }
 }

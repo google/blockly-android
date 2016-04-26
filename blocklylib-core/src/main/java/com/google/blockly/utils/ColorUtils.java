@@ -24,59 +24,59 @@ import java.text.ParseException;
 import java.util.regex.Pattern;
 
 /**
- * Constants and utility functions for handling colours and colour strings.
+ * Constants and utility functions for handling colors and color strings.
  */
-public class Colours {
-    private static final String TAG = "Colours";
+public class ColorUtils {
+    private static final String TAG = "ColorUtils";
 
     /** Regex pattern to match a standard six-digit color code. */
     public static final Pattern SIX_DIGIT_HEX_PATTERN = Pattern.compile("\\#([0-9A-Fa-f]{6})");
     public static final int ALPHA_OPAQUE = 255;
 
     public static final int DEFAULT_BLOCK_HUE = 0;
-    public static final float DEFAULT_BLOCK_SATURATION = 0.7f;
-    public static final float DEFAULT_BLOCK_VALUE = 0.8f;
-    public static final int DEFAULT_BLOCK_COLOUR = getBlockColourForHue(DEFAULT_BLOCK_HUE, null);
+    public static final float DEFAULT_BLOCK_SATURATION = 0.45f;
+    public static final float DEFAULT_BLOCK_VALUE = 0.65f;
+    public static final int DEFAULT_BLOCK_COLOR = getBlockColorForHue(DEFAULT_BLOCK_HUE, null);
 
     /**
-     * Parses a string as an opaque colour, either as a decimal hue (example: {@code 330}) using a
+     * Parses a string as an opaque color, either as a decimal hue (example: {@code 330}) using a
      * standard set of saturation and value) or as six digit hex code (example: {@code #BB66FF}).
      * If the string is null or cannot  otherwise be parsed, any error is logged and
-     * {@code defaultColour} is returned.
+     * {@code defaultColor} is returned.
      *
      * @param str The input to parse.
      * @param tempHsvArray An optional previously allocated array for HSV calculations.
-     * @param defaultColour The default colour to return if the colour cannot be parsed.
-     * @return The parsed colour, in {@code int} form.
+     * @param defaultColor The default color to return if the color cannot be parsed.
+     * @return The parsed color, in {@code int} form.
      */
-    public static int parseColour(
-            @Nullable String str, @Nullable float[] tempHsvArray, int defaultColour) {
+    public static int parseColor(
+            @Nullable String str, @Nullable float[] tempHsvArray, int defaultColor) {
         if (str == null) {
-            return defaultColour;
+            return defaultColor;
         }
         str = str.trim();
         if (str.isEmpty()) {
-            return defaultColour;
+            return defaultColor;
         }
         try {
-            return parseColour(str, tempHsvArray);
+            return parseColor(str, tempHsvArray);
         } catch (ParseException e) {
             Log.w(TAG, e.toString());
-            return defaultColour;
+            return defaultColor;
         }
     }
 
     /**
-     * Parses a string as an opaque colour, either as a decimal hue (example: {@code 330}) using a
+     * Parses a string as an opaque color, either as a decimal hue (example: {@code 330}) using a
      * standard set of saturation and value) or as six digit hex code (example: {@code #BB66FF}).
      * If the string cannot be parsed, a {@link ParseException} is thrown.
      *
      * @param str The input to parse.
      * @param tempHsvArray An optional previously allocated array for HSV calculations.
-     * @return The parsed colour, in {@code int} form.
+     * @return The parsed color, in {@code int} form.
      * @throws ParseException
      */
-    public static int parseColour(@NonNull String str, @Nullable float[] tempHsvArray)
+    public static int parseColor(@NonNull String str, @Nullable float[] tempHsvArray)
             throws ParseException {
         Integer result = null;
 
@@ -91,7 +91,7 @@ public class Colours {
         } else if (Character.isDigit(firstChar) && str.length() <= 3) {
             try {
                 int hue = Integer.parseInt(str);
-                result = getBlockColourForHue(hue, tempHsvArray);
+                result = getBlockColorForHue(hue, tempHsvArray);
             } catch (NumberFormatException e) {
                 throw new ParseException("Invalid color hue: " + str, 0);
             }
@@ -108,7 +108,7 @@ public class Colours {
      * @param tempHsvArray An optional previously allocated array for HSV calculations.
      * @return The color as an ARGB {@code int}.
      */
-    public static int getBlockColourForHue(int hue, @Nullable float[] tempHsvArray) {
+    public static int getBlockColorForHue(int hue, @Nullable float[] tempHsvArray) {
         hue = ((hue % 360) + 360) % 360;  // Clamp to 0-359
 
         if (tempHsvArray == null) {
@@ -121,13 +121,13 @@ public class Colours {
     }
 
     /**
-     * Linearly interpolate the RGB from colour {@code a} to colour {@code b}.  Alpha values are
+     * Linearly interpolate the RGB from color {@code a} to color {@code b}.  Alpha values are
      * ignored, and the resulting alpha is always opaque.
      *
-     * @param a The start colour, or the result if the {@code ratio} is 0.0.
-     * @param b The end colour, or the result if the {@code ratio} is 1.0.
+     * @param a The start color, or the result if the {@code ratio} is 0.0.
+     * @param b The end color, or the result if the {@code ratio} is 1.0.
      * @param ratio The ratio of {@code b}'s influence in the result, between 0.0 to 1.0.
-     * @return The computed blend colour as an integer.
+     * @return The computed blend color as an integer.
      */
     public static int blendRGB(int a, int b, float ratio) {
         return Color.argb(ALPHA_OPAQUE,
@@ -141,8 +141,8 @@ public class Colours {
      * 0-255 (either because the an input is outside the range, or the ratio is outside the range of
      * 0.0-1.0), the results will be clamped to 0-255.
      *
-     * @param a The start colour, or the result if the {@code ratio} is 0.0.
-     * @param b The end colour, or the result if the {@code ratio} is 1.0.
+     * @param a The start color, or the result if the {@code ratio} is 0.0.
+     * @param b The end color, or the result if the {@code ratio} is 1.0.
      * @param ratio The ratio of {@code b}'s influence in the result, between 0.0 to 1.0.
      * @return The computed blend value.
      */

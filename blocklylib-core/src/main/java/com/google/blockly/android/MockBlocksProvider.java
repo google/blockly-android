@@ -20,7 +20,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldAngle;
 import com.google.blockly.model.FieldCheckbox;
-import com.google.blockly.model.FieldColour;
+import com.google.blockly.model.FieldColor;
 import com.google.blockly.model.FieldDate;
 import com.google.blockly.model.FieldDropdown;
 import com.google.blockly.model.FieldImage;
@@ -73,7 +73,7 @@ public final class MockBlocksProvider {
         input = new Input.InputValue("input7", Input.ALIGN_RIGHT, null);
         input.add(new FieldImage(
                 "image", "https://www.gstatic.com/codesite/ph/images/star_on.gif", 15, 15, "star"));
-        input.add(new FieldColour("color", 0xFF0000));
+        input.add(new FieldColor("color", 0xFF0000));
         bob.addInput(input);
 
         input = new Input.InputValue("input8", null, null);
@@ -84,7 +84,7 @@ public final class MockBlocksProvider {
         input.add(new FieldInput("DO", "another loop"));
         bob.addInput(input);
 
-        bob.setColourHue(42);
+        bob.setColorHue(42);
         return bob.build();
     }
 
@@ -140,7 +140,7 @@ public final class MockBlocksProvider {
         input.add(new FieldLabel("label", "another value"));
         block.addInput(input);
 
-        block.setColourHue(120);
+        block.setColorHue(120);
         return block.build();
     }
 
@@ -152,7 +152,7 @@ public final class MockBlocksProvider {
         input.add(new FieldLabel("label", "zero"));
         block.addInput(input);
 
-        block.setColourHue(210);
+        block.setColorHue(210);
         return block.build();
     }
 
@@ -164,7 +164,7 @@ public final class MockBlocksProvider {
         input.add(new FieldLabel("label", "one input"));
         block.addInput(input);
 
-        block.setColourHue(110);
+        block.setColorHue(110);
         return block.build();
     }
 
@@ -177,7 +177,7 @@ public final class MockBlocksProvider {
         input.add(new FieldLabel("label", "do something"));
         block.addInput(input);
 
-        block.setColourHue(240);
+        block.setColorHue(240);
         return block.build();
     }
 

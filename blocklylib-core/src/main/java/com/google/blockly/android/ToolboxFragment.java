@@ -44,7 +44,7 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.ToolboxCategory;
 import com.google.blockly.model.WorkspacePoint;
-import com.google.blockly.utils.Colours;
+import com.google.blockly.utils.ColorUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -119,7 +119,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
     protected static final float BLOCKS_BACKGROUND_LIGHTNESS = 0.75f;
     protected static final int DEFAULT_BLOCKS_BACKGROUND_ALPHA = 0xBB;
-    protected static final int DEFAULT_BLOCKS_BACKGROUND_COLOUR = Color.LTGRAY;
+    protected static final int DEFAULT_BLOCKS_BACKGROUND_COLOR = Color.LTGRAY;
 
     public static final String ARG_TAB_EDGE = "ToolboxFragment_tabEdge";
     public static final String ARG_ROTATE_TABS = "ToolboxFragment_rotateTabs";
@@ -266,7 +266,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
             mCategoryTabs.setSelectedCategory(curCategory);
             mBlockListView.setContents(curCategory.getBlocks());
 
-            updateCategoryColours(curCategory);
+            updateCategoryColors(curCategory);
         }
     }
 
@@ -285,7 +285,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
         }
 
         mCategoryTabs.setSelectedCategory(category);
-        updateCategoryColours(category);
+        updateCategoryColors(category);
         mBlockListView.setVisibility(View.VISIBLE);
         mBlockListView.setContents(category.getBlocks());
     }
@@ -347,20 +347,20 @@ public class ToolboxFragment extends BlockDrawerFragment {
         }  // Otherwise leave it in the current state.
     }
 
-    protected void updateCategoryColours(ToolboxCategory curCategory) {
-        Integer maybeColour = curCategory.getColour();
-        int bgColour = DEFAULT_BLOCKS_BACKGROUND_COLOUR;
-        if (maybeColour != null) {
-            bgColour = getBackgroundColour(maybeColour);
+    protected void updateCategoryColors(ToolboxCategory curCategory) {
+        Integer maybeColor = curCategory.getColor();
+        int bgColor = DEFAULT_BLOCKS_BACKGROUND_COLOR;
+        if (maybeColor != null) {
+            bgColor = getBackgroundColor(maybeColor);
         }
         int alphaBgColor = Color.argb(
-                mCloseable ? DEFAULT_BLOCKS_BACKGROUND_ALPHA : Colours.ALPHA_OPAQUE,
-                Color.red(bgColour), Color.green(bgColour), Color.blue(bgColour));
+                mCloseable ? DEFAULT_BLOCKS_BACKGROUND_ALPHA : ColorUtils.ALPHA_OPAQUE,
+                Color.red(bgColor), Color.green(bgColor), Color.blue(bgColor));
         mBlockListView.setBackgroundColor(alphaBgColor);
     }
 
-    protected int getBackgroundColour(int categoryColour) {
-        return Colours.blendRGB(categoryColour, Color.WHITE, BLOCKS_BACKGROUND_LIGHTNESS);
+    protected int getBackgroundColor(int categoryColor) {
+        return ColorUtils.blendRGB(categoryColor, Color.WHITE, BLOCKS_BACKGROUND_LIGHTNESS);
     }
 
     /**

@@ -29,41 +29,41 @@ import android.widget.FrameLayout;
 import android.widget.PopupWindow;
 
 import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldColour;
+import com.google.blockly.model.FieldColor;
 
 /**
  * Renders a color field and picker as part of a BlockView.
  */
-public class BasicFieldColourView extends FrameLayout implements FieldView {
+public class BasicFieldColorView extends FrameLayout implements FieldView {
     protected static final int DEFAULT_MIN_WIDTH_DP = 40;
     protected static final int DEFAULT_MIN_HEIGHT_DP = 28;  // Base on styled label text height?
 
     @VisibleForTesting
     static final int ALPHA_OPAQUE = 0xFF000000;
 
-    private FieldColour.Observer mFieldObserver = new FieldColour.Observer() {
+    private FieldColor.Observer mFieldObserver = new FieldColor.Observer() {
         @Override
-        public void onColourChanged(Field field, int oldColour, int newColour) {
-            setColour(newColour);
+        public void onColorChanged(Field field, int oldColor, int newColor) {
+            setColor(newColor);
         }
     };
 
-    protected FieldColour mColourField = null;
+    protected FieldColor mColorField = null;
 
-    protected AutoPositionPopupWindow mColourPopupWindow;
-    protected ColourPaletteView mColourPaletteView;
+    protected AutoPositionPopupWindow mColorPopupWindow;
+    protected ColorPaletteView mColorPaletteView;
 
-    public BasicFieldColourView(Context context) {
+    public BasicFieldColorView(Context context) {
         super(context);
         initPostConstructor();
     }
 
-    public BasicFieldColourView(Context context, AttributeSet attrs) {
+    public BasicFieldColorView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initPostConstructor();
     }
 
-    public BasicFieldColourView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public BasicFieldColorView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initPostConstructor();
     }
@@ -76,31 +76,31 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                openColourPickerPopupWindow();
+                openColorPickerPopupWindow();
             }
         });
     }
 
     @Override
     public void setField(Field field) {
-        FieldColour colourField = (FieldColour) field;
-        if (mColourField == colourField) {
+        FieldColor colorField = (FieldColor) field;
+        if (mColorField == colorField) {
             return;
         }
 
-        if (mColourField != null) {
-            mColourField.unregisterObserver(mFieldObserver);
+        if (mColorField != null) {
+            mColorField.unregisterObserver(mFieldObserver);
         }
-        mColourField = colourField;
-        if (mColourField != null) {
-            setColour(mColourField.getColour());
-            mColourField.registerObserver(mFieldObserver);
+        mColorField = colorField;
+        if (mColorField != null) {
+            setColor(mColorField.getColor());
+            mColorField.registerObserver(mFieldObserver);
         }
     }
 
     @Override
     public Field getField() {
-        return mColourField;
+        return mColorField;
     }
 
     @Override
@@ -109,13 +109,13 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
     }
 
     /**
-     * Set the selected colour represented by this view.  The alpha values will be ignored for
+     * Set the selected color represented by this view.  The alpha values will be ignored for
      * rendering.
      *
-     * @param colour The colour in {@code int} format.
+     * @param color The color in {@code int} format.
      */
-    public void setColour(int colour) {
-        setBackgroundColor(ALPHA_OPAQUE | colour);
+    public void setColor(int color) {
+        setBackgroundColor(ALPHA_OPAQUE | color);
     }
 
     @Override
@@ -144,18 +144,18 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
     }
 
     /**
-     * Open a {@link PopupWindow} showing a colour selection palette.
+     * Open a {@link PopupWindow} showing a color selection palette.
      */
-    protected void openColourPickerPopupWindow() {
-        if (mColourPaletteView == null) {
-            mColourPaletteView = new ColourPaletteView(this);
+    protected void openColorPickerPopupWindow() {
+        if (mColorPaletteView == null) {
+            mColorPaletteView = new ColorPaletteView(this);
         }
 
-        if (mColourPopupWindow == null) {
-            mColourPopupWindow = new AutoPositionPopupWindow(mColourPaletteView);
+        if (mColorPopupWindow == null) {
+            mColorPopupWindow = new AutoPositionPopupWindow(mColorPaletteView);
         }
 
-        mColourPopupWindow.show(this);
+        mColorPopupWindow.show(this);
     }
 
     /**
@@ -209,9 +209,9 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
     }
 
     /**
-     * View for a colour palette that matches Web Blockly's.
+     * View for a color palette that matches Web Blockly's.
      */
-    protected class ColourPaletteView extends View {
+    protected class ColorPaletteView extends View {
         private static final int PALETTE_COLUMNS = 7;
         private static final int PALETTE_ROWS = 10;
 
@@ -219,13 +219,13 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
         private static final int PALETTE_FIELD_HEIGHT = 50;
         private static final float GRID_STROKE_WIDTH = 5;
 
-        private final BasicFieldColourView mParent;
+        private final BasicFieldColorView mParent;
         private final Paint mAreaPaint = new Paint();
         private final Paint mGridPaint = new Paint();
 
         // From https://github.com/google/closure-library/blob/master/closure/goog/ui/colorpicker.js
         // TODO(#70): move this table into resources.
-        private final int[] mColourArray = new int[]{
+        private final int[] mColorArray = new int[]{
                 // grays
                 0xffffffff, 0xffcccccc, 0xffc0c0c0, 0xff999999, 0xff666666, 0xff333333, 0xff000000,
                 // reds
@@ -248,7 +248,7 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
                 0xffffccff, 0xffff99ff, 0xffcc66cc, 0xffcc33cc, 0xff993399, 0xff663366, 0xff330033
         };
 
-        ColourPaletteView(BasicFieldColourView parent) {
+        ColorPaletteView(BasicFieldColorView parent) {
             super(parent.getContext());
             mParent = parent;
 
@@ -287,9 +287,9 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
                         (int) motionEvent.getY() / PALETTE_FIELD_HEIGHT);
 
                 int index = i + j * PALETTE_COLUMNS;
-                mParent.setBackgroundColor(mColourArray[index]);
-                mParent.mColourField.setColour(mColourArray[index]);
-                mParent.mColourPopupWindow.dismiss();
+                mParent.setBackgroundColor(mColorArray[index]);
+                mParent.mColorField.setColor(mColorArray[index]);
+                mParent.mColorPopupWindow.dismiss();
                 return true;
             }
 
@@ -303,7 +303,7 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
                 for (int i = 0; i < PALETTE_COLUMNS; ++i, ++paletteIndex) {
                     int x = i * PALETTE_FIELD_WIDTH;
 
-                    mAreaPaint.setColor(mColourArray[paletteIndex]);
+                    mAreaPaint.setColor(mColorArray[paletteIndex]);
                     canvas.drawRect(
                             x, y, x + PALETTE_FIELD_WIDTH, y + PALETTE_FIELD_HEIGHT, mAreaPaint);
                 }
@@ -328,6 +328,6 @@ public class BasicFieldColourView extends FrameLayout implements FieldView {
 
     @VisibleForTesting
     PopupWindow getColorPopupWindow() {
-        return mColourPopupWindow;
+        return mColorPopupWindow;
     }
 }

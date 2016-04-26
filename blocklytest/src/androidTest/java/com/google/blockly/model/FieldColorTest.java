@@ -17,35 +17,35 @@ package com.google.blockly.model;
 import android.test.AndroidTestCase;
 
 /**
- * Tests for {@link FieldColour}.
+ * Tests for {@link FieldColor}.
  */
-public class FieldColourTest extends AndroidTestCase {
+public class FieldColorTest extends AndroidTestCase {
     public void testFieldColour() {
-        FieldColour field = new FieldColour("fname", 0xaa00aa);
-        assertEquals(Field.TYPE_COLOUR, field.getType());
+        FieldColor field = new FieldColor("fname", 0xaa00aa);
+        assertEquals(Field.TYPE_COLOR, field.getType());
         assertEquals("fname", field.getName());
-        assertEquals(0xaa00aa, field.getColour());
+        assertEquals(0xaa00aa, field.getColor());
 
-        field = new FieldColour("fname");
+        field = new FieldColor("fname");
         assertEquals("fname", field.getName());
-        assertEquals(FieldColour.DEFAULT_COLOUR, field.getColour());
+        assertEquals(FieldColor.DEFAULT_COLOR, field.getColor());
 
-        field.setColour(0xb0bb1e);
-        assertEquals(0xb0bb1e, field.getColour());
+        field.setColor(0xb0bb1e);
+        assertEquals(0xb0bb1e, field.getColor());
 
         // xml parsing
         assertTrue(field.setFromString("#ffcc66"));
-        assertEquals(0xffcc66, field.getColour());
+        assertEquals(0xffcc66, field.getColor());
         assertTrue(field.setFromString("#00cc66"));
-        assertEquals(0x00cc66, field.getColour());
+        assertEquals(0x00cc66, field.getColor());
         assertTrue(field.setFromString("#1000cc66"));
-        assertEquals(0x00cc66, field.getColour());
+        assertEquals(0x00cc66, field.getColor());
         assertFalse(field.setFromString("This is not a color"));
         // Color does not change
-        assertEquals(0x00cc66, field.getColour());
+        assertEquals(0x00cc66, field.getColor());
         assertFalse(field.setFromString("#fc6"));
         // Color does not change
-        assertEquals(0x00cc66, field.getColour());
+        assertEquals(0x00cc66, field.getColor());
 
         assertNotSame(field, field.clone());
     }

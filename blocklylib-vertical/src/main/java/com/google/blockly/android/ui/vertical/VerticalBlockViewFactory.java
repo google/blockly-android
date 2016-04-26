@@ -28,7 +28,7 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldColour;
+import com.google.blockly.model.FieldColor;
 import com.google.blockly.model.Input;
 
 import java.util.List;
@@ -98,9 +98,9 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
 
         // Field specific configuration can be done here.
         switch (type) {
-            case Field.TYPE_COLOUR: {
-                FieldColourView colourView = (FieldColourView) fieldView;
-                colourView.setWorkspaceHelper(mHelper);
+            case Field.TYPE_COLOR: {
+                FieldColorView colorView = (FieldColorView) fieldView;
+                colorView.setWorkspaceHelper(mHelper);
                 break;
             }
             default:
@@ -179,7 +179,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             setFieldLayout(Field.TYPE_DATE, R.layout.default_field_date);
             setFieldLayout(Field.TYPE_ANGLE, R.layout.default_field_angle);
             setFieldLayout(Field.TYPE_NUMBER, R.layout.default_field_number);
-            setFieldLayout(Field.TYPE_COLOUR, R.layout.default_field_colour);
+            setFieldLayout(Field.TYPE_COLOR, R.layout.default_field_color);
             setFieldLayout(Field.TYPE_INPUT, R.layout.default_field_input);
         } finally {
             styles.recycle();
