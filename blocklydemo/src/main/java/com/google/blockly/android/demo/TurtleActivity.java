@@ -67,7 +67,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
         LEVEL_TOOLBOX[6] = "toolbox_colour_pen.xml";
         LEVEL_TOOLBOX[7] = "toolbox_colour_pen.xml";
         LEVEL_TOOLBOX[8] = "toolbox_colour_pen.xml";
-        LEVEL_TOOLBOX[9] = "toolbox_all.xml";
+        LEVEL_TOOLBOX[9] = "toolbox_advanced.xml";
     }
 
     private final Handler mHandler = new Handler();
