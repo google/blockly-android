@@ -31,7 +31,7 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.ui.fieldview.BasicFieldAngleView;
 import com.google.blockly.android.ui.fieldview.BasicFieldCheckboxView;
-import com.google.blockly.android.ui.fieldview.BasicFieldColourView;
+import com.google.blockly.android.ui.fieldview.BasicFieldColorView;
 import com.google.blockly.android.ui.fieldview.BasicFieldDateView;
 import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
 import com.google.blockly.android.ui.fieldview.BasicFieldImageView;
@@ -44,7 +44,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldAngle;
 import com.google.blockly.model.FieldCheckbox;
-import com.google.blockly.model.FieldColour;
+import com.google.blockly.model.FieldColor;
 import com.google.blockly.model.FieldDate;
 import com.google.blockly.model.FieldDropdown;
 import com.google.blockly.model.FieldImage;
@@ -262,10 +262,10 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                 fieldCheckboxView.setField((FieldCheckbox) field);
                 return fieldCheckboxView;
             }
-            case Field.TYPE_COLOUR: {
-                BasicFieldColourView fieldColourView = new BasicFieldColourView(mContext);
-                fieldColourView.setField((FieldColour) field);
-                return fieldColourView;
+            case Field.TYPE_COLOR: {
+                BasicFieldColorView fieldColorView = new BasicFieldColorView(mContext);
+                fieldColorView.setField((FieldColor) field);
+                return fieldColorView;
             }
             case Field.TYPE_DATE: {
                 BasicFieldDateView fieldDateView = new BasicFieldDateView(mContext);

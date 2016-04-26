@@ -19,7 +19,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.android.ToolboxFragment;
-import com.google.blockly.utils.Colours;
+import com.google.blockly.utils.ColorUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -36,14 +36,14 @@ import java.util.List;
 public class ToolboxCategory {
     private static final String TAG = "ToolboxCategory";
 
-    /** Array used for by {@link Colours#parseColour(String, float[], int)} during I/O. **/
+    /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
     private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
 
     private final List<ToolboxCategory> mSubcategories = new ArrayList<>();
     private final List<Block> mBlocks = new ArrayList<>();
     // As displayed in the toolbox.
     private String mCategoryName;
-    private Integer mColour = null;
+    private Integer mColor = null;
 
     public String getCategoryName() {
         return mCategoryName;
@@ -57,8 +57,8 @@ public class ToolboxCategory {
         return mSubcategories;
     }
 
-    public Integer getColour() {
-        return mColour;
+    public Integer getColor() {
+        return mColor;
     }
 
     /**
@@ -119,7 +119,7 @@ public class ToolboxCategory {
         String colourAttr = parser.getAttributeValue("", "colour");
         if (!TextUtils.isEmpty(colourAttr)) {
             try {
-                result.mColour = Colours.parseColour(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY);
+                result.mColor = ColorUtils.parseColor(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY);
             } catch (ParseException e) {
                 Log.w(TAG, "Invalid toolbox category colour \"" + colourAttr + "\"");
             }

@@ -592,7 +592,7 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     private void initDrawingObjects() {
-        int blockColour = mBlock.getColour();
+        int blockColour = mBlock.getColor();
         if (mBlock.isShadow()) {
             float hsv[] = new float[3];
             Color.colorToHSV(blockColour, hsv);

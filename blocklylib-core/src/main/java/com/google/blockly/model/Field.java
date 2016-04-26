@@ -40,7 +40,7 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     public static final int TYPE_INPUT = 1;
     public static final int TYPE_ANGLE = 2;
     public static final int TYPE_CHECKBOX = 3;
-    public static final int TYPE_COLOUR = 4;
+    public static final int TYPE_COLOR = 4;
     public static final int TYPE_DATE = 5;
     public static final int TYPE_VARIABLE = 6;
     public static final int TYPE_DROPDOWN = 7;
@@ -48,7 +48,7 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     public static final int TYPE_NUMBER = 9;
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOUR,
+    @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOR,
             TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE, TYPE_NUMBER})
     public @interface FieldType {}
     // When adding fields, also update stringToFieldType() below.
@@ -57,7 +57,7 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     public static final String TYPE_INPUT_STRING = "field_input";
     public static final String TYPE_ANGLE_STRING = "field_angle";
     public static final String TYPE_CHECKBOX_STRING = "field_checkbox";
-    public static final String TYPE_COLOUR_STRING = "field_colour";
+    public static final String TYPE_COLOR_STRING = "field_colour";
     public static final String TYPE_DATE_STRING = "field_date";
     public static final String TYPE_VARIABLE_STRING = "field_variable";
     public static final String TYPE_DROPDOWN_STRING = "field_dropdown";
@@ -169,8 +169,8 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
             case TYPE_CHECKBOX_STRING:
                 field = FieldCheckbox.fromJson(json);
                 break;
-            case TYPE_COLOUR_STRING:
-                field = FieldColour.fromJson(json);
+            case TYPE_COLOR_STRING:
+                field = FieldColor.fromJson(json);
                 break;
             case TYPE_DATE_STRING:
                 field = FieldDate.fromJson(json);
@@ -219,8 +219,8 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
                 return TYPE_ANGLE;
             case TYPE_CHECKBOX_STRING:
                 return TYPE_CHECKBOX;
-            case TYPE_COLOUR_STRING:
-                return TYPE_COLOUR;
+            case TYPE_COLOR_STRING:
+                return TYPE_COLOR;
             case TYPE_DATE_STRING:
                 return TYPE_DATE;
             case TYPE_VARIABLE_STRING:

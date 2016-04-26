@@ -18,7 +18,7 @@
         android:id="@+id/field_date"
         style="@style/TextAppearance.AppCompat.Large"
         android:textSize="?blockTextSize"
-        android:background="@color/date_bg_colour"
+        android:background="@color/date_bg"
         android:singleLine="true"
         android:padding="4dip"
         android:layout_width="wrap_content"

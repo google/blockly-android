@@ -13,7 +13,7 @@
   ~  See the License for the specific language governing permissions and
   ~  limitations under the License.
   -->
-<com.google.blockly.android.ui.vertical.FieldColourView
+<com.google.blockly.android.ui.vertical.FieldColorView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/field_color"
         android:foreground="@drawable/inset_field_border"

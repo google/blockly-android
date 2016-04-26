@@ -26,45 +26,45 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 
 /**
- * Adds a colour picker to an Input.
+ * Adds a color picker to an Input.
  */
-public final class FieldColour extends Field<FieldColour.Observer> {
-    public static final int DEFAULT_COLOUR = 0xff0000;  // Red
+public final class FieldColor extends Field<FieldColor.Observer> {
+    public static final int DEFAULT_COLOR = 0xff0000;  // Red
 
-    private int mColour;
+    private int mColor;
 
-    public FieldColour(String name) {
-        this(name, DEFAULT_COLOUR);
+    public FieldColor(String name) {
+        this(name, DEFAULT_COLOR);
     }
 
-    public FieldColour(String name, int colour) {
-        super(name, TYPE_COLOUR);
-        setColour(colour);
+    public FieldColor(String name, int color) {
+        super(name, TYPE_COLOR);
+        setColor(color);
     }
 
-    public static FieldColour fromJson(JSONObject json) throws BlockLoadingException {
+    public static FieldColor fromJson(JSONObject json) throws BlockLoadingException {
         String name = json.optString("name");
         if (TextUtils.isEmpty(name)) {
             throw new BlockLoadingException("field_colour \"name\" attribute must not be empty.");
         }
-        int colour = DEFAULT_COLOUR;
+        int color = DEFAULT_COLOR;
 
         String colourString = json.optString("colour");
         if (!TextUtils.isEmpty(colourString)) {
-            colour = Color.parseColor(colourString);
+            color = Color.parseColor(colourString);
         }
-        return new FieldColour(name, colour);
+        return new FieldColor(name, color);
     }
 
     @Override
-    public FieldColour clone() {
-        return new FieldColour(getName(), mColour);
+    public FieldColor clone() {
+        return new FieldColor(getName(), mColor);
     }
 
     @Override
     public boolean setFromString(String text) {
         try {
-            setColour(Color.parseColor(text));
+            setColor(Color.parseColor(text));
         } catch (IllegalArgumentException e) {
             return false;
         }
@@ -72,49 +72,49 @@ public final class FieldColour extends Field<FieldColour.Observer> {
     }
 
     /**
-     * @return The current colour in this field.
+     * @return The current color in this field.
      */
-    public int getColour() {
-        return mColour;
+    public int getColor() {
+        return mColor;
     }
 
     /**
-     * Sets the colour stored in this field.
+     * Sets the color stored in this field.
      *
-     * @param colour A colour in the form 0xRRGGBB
+     * @param color A color in the form 0xRRGGBB
      */
-    public void setColour(int colour) {
-        final int newColour = 0xFFFFFF & colour;
-        if (mColour != newColour) {
-            int oldColour = mColour;
-            mColour = newColour;
-            onColourChanged(oldColour, newColour);
+    public void setColor(int color) {
+        final int newColor = 0xFFFFFF & color;
+        if (mColor != newColor) {
+            int oldColor = mColor;
+            mColor = newColor;
+            onColorChanged(oldColor, newColor);
         }
     }
 
     @Override
     protected void serializeInner(XmlSerializer serializer) throws IOException {
         serializer.text(String.format("#%02x%02x%02x",
-                Color.red(mColour), Color.green(mColour), Color.blue(mColour)));
+                Color.red(mColor), Color.green(mColor), Color.blue(mColor)));
     }
 
-    private void onColourChanged(int oldColour, int newColour) {
+    private void onColorChanged(int oldColor, int newColor) {
         for (int i = 0; i < mObservers.size(); i++) {
-            mObservers.get(i).onColourChanged(this, oldColour, newColour);
+            mObservers.get(i).onColorChanged(this, oldColor, newColor);
         }
     }
 
     /**
-     * Observer for listening to changes to a colour field.
+     * Observer for listening to changes to a color field.
      */
     public interface Observer {
         /**
-         * Called when the field's colour changed.
+         * Called when the field's color changed.
          *
          * @param field The field that changed.
-         * @param oldColour The field's previous colour.
-         * @param newColour The field's new colour.
+         * @param oldColor The field's previous color.
+         * @param newColor The field's new color.
          */
-        void onColourChanged(Field field, int oldColour, int newColour);
+        void onColorChanged(Field field, int oldColor, int newColor);
     }
 }

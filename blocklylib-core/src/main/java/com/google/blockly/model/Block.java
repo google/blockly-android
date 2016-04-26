@@ -21,7 +21,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
-import com.google.blockly.utils.Colours;
+import com.google.blockly.utils.ColorUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,7 +41,7 @@ import java.util.UUID;
 public class Block {
     private static final String TAG = "Block";
 
-    /** Array used for by {@link Colours#parseColour(String, float[], int)} during I/O. **/
+    /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
     private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
 
     // These values are immutable once a block is created
@@ -53,7 +53,7 @@ public class Block {
     private final Connection mPreviousConnection;
     private final ArrayList<Input> mInputList;
     private final ArrayList<Connection> mConnectionList;
-    private final int mColour;
+    private final int mColor;
     private boolean mInputsInline;
     private boolean mIsShadow;
 
@@ -70,7 +70,7 @@ public class Block {
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
 
-    private Block(@Nullable String uuid, String name, int category, int colour,
+    private Block(@Nullable String uuid, String name, int category, int color,
                   Connection outputConnection, Connection nextConnection,
                   Connection previousConnection, ArrayList<Input> inputList, boolean inputsInline) {
         mUuid = (uuid != null) ? uuid : UUID.randomUUID().toString();
@@ -87,7 +87,7 @@ public class Block {
         mInputsInline = inputsInline;
         mPosition = new WorkspacePoint(0, 0);
 
-        mColour = colour;
+        mColor = color;
 
         mConnectionList = new ArrayList<>();
 
@@ -129,10 +129,10 @@ public class Block {
     }
 
     /**
-     * @return The colour this block should be drawn in.
+     * @return The color this block should be drawn in.
      */
-    public int getColour() {
-        return mColour;
+    public int getColor() {
+        return mColor;
     }
 
     /**
@@ -650,17 +650,17 @@ public class Block {
             }
         }
 
-        int blockColour = Colours.DEFAULT_BLOCK_COLOUR;
+        int blockColor = ColorUtils.DEFAULT_BLOCK_COLOR;
         if (json.has("colour")) {
             try {
                 String colourString = json.getString("colour");
-                blockColour = Colours.parseColour(colourString, TEMP_IO_THREAD_FLOAT_ARRAY,
-                        Colours.DEFAULT_BLOCK_COLOUR);
+                blockColor = ColorUtils.parseColor(colourString, TEMP_IO_THREAD_FLOAT_ARRAY,
+                        ColorUtils.DEFAULT_BLOCK_COLOR);
             } catch (JSONException e) {
                 // Won't get here. Checked above.
             }
         }
-        bob.setColour(blockColour);
+        bob.setColor(blockColor);
 
         ArrayList<Input> inputs = new ArrayList<>();
         ArrayList<Field> fields = new ArrayList<>();
@@ -972,7 +972,7 @@ public class Block {
         private String mUuid;
         private String mName;
         private int mCategory;
-        private int mColour = Colours.DEFAULT_BLOCK_COLOUR;
+        private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
         private Connection mOutputConnection;
         private Connection mNextConnection;
         private Connection mPreviousConnection;
@@ -997,7 +997,7 @@ public class Block {
 
         public Builder(Block block) {
             this(block.mName);
-            mColour = block.mColour;
+            mColor = block.mColor;
             mCategory = block.mCategory;
 
             mOutputConnection = Connection.cloneConnection(block.mOutputConnection);
@@ -1040,13 +1040,13 @@ public class Block {
             return this;
         }
 
-        public Builder setColourHue(int hue) {
-            mColour = Colours.getBlockColourForHue(hue, TEMP_IO_THREAD_FLOAT_ARRAY);
+        public Builder setColorHue(int hue) {
+            mColor = ColorUtils.getBlockColorForHue(hue, TEMP_IO_THREAD_FLOAT_ARRAY);
             return this;
         }
 
-        public Builder setColour(int colour) {
-            mColour = colour;
+        public Builder setColor(int color) {
+            mColor = color;
             return this;
         }
 
@@ -1148,7 +1148,7 @@ public class Block {
         }
 
         public Block build() {
-            Block b = new Block(mUuid, mName, mCategory, mColour, mOutputConnection, mNextConnection,
+            Block b = new Block(mUuid, mName, mCategory, mColor, mOutputConnection, mNextConnection,
                     mPreviousConnection, mInputs, mInputsInline);
             b.mTooltip = mTooltip;
             b.mComment = mComment;

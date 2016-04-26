@@ -44,7 +44,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     private static final String TAG = "DevTestsActivity";
 
     private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
-            Arrays.asList(new String[]{
+            Arrays.asList(new String[] {
                     "default/loop_blocks.json",
                     "default/math_blocks.json",
                     "default/variable_blocks.json",
