@@ -43,6 +43,49 @@
         <block type="statement_statement_input"></block>
         <block type="statement_value_input"></block>
     </category>
+    <category name="Groups">
+        <block type="statement_no_input">
+            <next>
+                <block type="statement_no_input"></block>
+            </next>
+        </block>
+        <block type="simple_input_output">
+            <value name="value">
+                <block type="simple_input_output"></block>
+            </value>
+        </block>
+        <block type="controls_repeat_ext">
+            <value name="TIMES">
+                <block type="math_number">
+                    <field name="NUM">10</field>
+                </block>
+            </value>
+            <statement name="DO">
+                <block type="statement_no_input"></block>
+            </statement>
+        </block>
+
+        <block type="statement_no_input">
+            <next>
+                <shadow type="statement_no_input"></shadow>
+            </next>
+        </block>
+        <block type="simple_input_output">
+            <value name="value">
+                <shadow type="simple_input_output"></shadow>
+            </value>
+        </block>
+        <block type="controls_repeat_ext">
+            <value name="TIMES">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+            <statement name="DO">
+                <shadow type="statement_no_input"></shadow>
+            </statement>
+        </block>
+    </category>
     <category name="Numbers">
         <block type="test_number">
             <field name="NUM">10</field>

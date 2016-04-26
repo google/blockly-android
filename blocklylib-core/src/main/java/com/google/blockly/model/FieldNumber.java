@@ -163,10 +163,6 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
                 char[] sigDigitsFormat = new char[significantDigits];
                 Arrays.fill(sigDigitsFormat, '#');
                 sb.append(sigDigitsFormat);
-                Log.d(TAG, "precision = " + precision
-                        + "\nprecisionStr = " + precisionStr + " (" + precisionStr.length()
-                        + " chars)\nsigDigits" + significantDigits
-                        + "\npattern = " + sb.toString());
                 mFormatter = new DecimalFormat(sb.toString());
             }
         }
