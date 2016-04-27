@@ -7,4 +7,5 @@
          https://developer.android.com/design/patterns/navigation-drawer.html -->
     <dimen name="navigation_drawer_width">240dp</dimen>
     <dimen name="toolbox_width">1000dp</dimen>
+    <dimen name="unified_workspace_min_trash_height">48dp</dimen>
 </resources>

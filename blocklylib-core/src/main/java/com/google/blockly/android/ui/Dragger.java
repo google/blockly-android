@@ -242,6 +242,7 @@ public class Dragger {
         mWorkspaceView = view;
     }
 
+    // TODO(#210): Generalize this to other possible block drop targets.
     public void setTrashView(View trashView) {
         mTrashView = trashView;
     }
@@ -388,7 +389,12 @@ public class Dragger {
      * coordinates.
      * @return Whether the event was on top of the trash can button.
      */
+    // TODO(#210): Generalize this to other possible block drop targets.
     private boolean touchingTrashView(DragEvent event) {
+        if (mTrashView == null) {
+            return false;
+        }
+
         mTrashView.getLocationOnScreen(mTempScreenCoord1);
         mTrashView.getHitRect(mTrashRect);
 

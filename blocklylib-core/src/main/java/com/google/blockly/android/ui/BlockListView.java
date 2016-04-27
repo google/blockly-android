@@ -58,7 +58,6 @@ public class BlockListView extends RecyclerView {
     private final Adapter mAdapter = new Adapter();
 
     private final int[] tempArray = new int[2];
-    private final ViewPoint tempViewPoint = new ViewPoint();
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
     private WorkspaceHelper mHelper;
