@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:blockly="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <fragment android:name="com.google.blockly.android.WorkspaceFragment"
+        android:id="@+id/blockly_workspace"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <fragment android:name="com.google.blockly.android.TrashFragment"
+        android:id="@+id/blockly_trash"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        blockly:closeable="true"
+        blockly:scrollOrientation="vertical"
+        tools:ignore="MissingPrefix"
+        />
+
+    <LinearLayout android:id="@+id/blockly_overlay_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical">
+
+        <ImageButton android:id="@+id/zoom_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/zoom_in"/>
+
+        <ImageButton android:id="@+id/zoom_out_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/zoom_out"/>
+
+        <ImageButton android:id="@+id/center_view_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/reset_view"/>
+
+        <ImageButton android:id="@+id/blockly_trash_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:background="@color/translucent"
+            android:padding="8dp"
+            android:src="@drawable/trash"/>
+    </LinearLayout>
+
+    <fragment android:name="com.google.blockly.android.ToolboxFragment"
+        android:id="@+id/blockly_toolbox"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@id/blockly_overlay_buttons"
+        android:layout_toStartOf="@id/blockly_overlay_buttons"
+        blockly:closeable="true"
+        blockly:scrollOrientation="vertical"
+        blockly:tabEdge="start"
+        blockly:rotateTabs="true"
+        tools:ignore="MissingPrefix"
+        />
+
+</merge>

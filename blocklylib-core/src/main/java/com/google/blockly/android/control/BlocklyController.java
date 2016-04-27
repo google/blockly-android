@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
@@ -36,6 +37,7 @@ import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.InputView;
 import com.google.blockly.android.ui.PendingDrag;
+import com.google.blockly.android.ui.VirtualWorkspaceView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Block;
@@ -71,9 +73,11 @@ public class BlocklyController {
 
     private final Workspace mWorkspace;
 
+    private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
     private WorkspaceFragment mWorkspaceFragment = null;
     private TrashFragment mTrashFragment = null;
+    private View mTrashIcon = null;
     private ToolboxFragment mToolboxFragment = null;
     private Dragger mDragger;
 
@@ -215,6 +219,19 @@ public class BlocklyController {
             mTrashFragment.setController(this);
             mTrashFragment.setContents(mWorkspace.getTrashContents());
         }
+    }
+
+    /**
+     * Assigns the view used for dropping blocks into the trash.
+     *
+     * @param trashIcon The trash icon for dropping blocks.
+     */
+    public void setTrashIcon(View trashIcon) {
+        if (trashIcon == mTrashIcon) {
+            return; // no-op
+        }
+        mTrashIcon = trashIcon;
+        mDragger.setTrashView(mTrashIcon);
     }
 
     /**
@@ -459,6 +476,7 @@ public class BlocklyController {
      * @param wv The root workspace view to add to.
      */
     public void initWorkspaceView(final WorkspaceView wv) {
+        mVirtualWorkspaceView = (VirtualWorkspaceView) wv.getParent();
         mWorkspaceView = wv;
         mWorkspaceView.setController(this);
 
@@ -922,6 +940,34 @@ public class BlocklyController {
     }
 
     /**
+     * Zooms into the workspace (i.e., enlarges the blocks), if the WorkspaceView has been attached.
+     *
+     * @return True if a zoom was changed. Otherwise false.
+     */
+    public boolean zoomIn() {
+        return (mVirtualWorkspaceView != null) && mVirtualWorkspaceView.zoomIn();
+    }
+
+    /**
+     * Zooms out the workspace (i.e., smaller the blocks), if the WorkspaceView has been attached.
+     *
+     * @return True if a zoom was changed. Otherwise false.
+     */
+    public boolean zoomOut() {
+        return (mVirtualWorkspaceView != null) && mVirtualWorkspaceView.zoomOut();
+    }
+
+    /**
+     * Reset the view to the top-left corner of the virtual workspace (with a small margin), and
+     * reset zoom to unit scale.
+     */
+    public void recenterWorkspace() {
+        if (mVirtualWorkspaceView != null) {
+            mVirtualWorkspaceView.resetView();
+        }
+    }
+
+    /**
      * Builder for configuring a new controller and workspace.
      */
     public static class Builder {
@@ -932,6 +978,7 @@ public class BlocklyController {
         private ToolboxFragment mToolboxFragment;
         private DrawerLayout mToolboxDrawer;
         private TrashFragment mTrashFragment;
+        private View mTrashIcon;
         private AssetManager mAssetManager;
 
         // TODO: Should these be part of the style?
@@ -970,6 +1017,11 @@ public class BlocklyController {
 
         public Builder setTrashFragment(TrashFragment trash) {
             mTrashFragment = trash;
+            return this;
+        }
+
+        public Builder setTrashIcon(View trashIcon) {
+            mTrashIcon = trashIcon;
             return this;
         }
 
@@ -1162,6 +1214,7 @@ public class BlocklyController {
             controller.setWorkspaceFragment(mWorkspaceFragment);
             controller.setTrashFragment(mTrashFragment);
             controller.setToolboxFragment(mToolboxFragment);
+            controller.setTrashIcon(mTrashIcon);
 
             return controller;
         }

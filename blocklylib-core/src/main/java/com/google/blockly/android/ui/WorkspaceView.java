@@ -43,7 +43,6 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     private BlocklyController mController = null;
     private WorkspaceHelper mHelper = null;
     private Dragger mDragger;
-    private View mTrashView;
 
     public WorkspaceView(Context context) {
         this(context, null);
@@ -141,9 +140,6 @@ public class WorkspaceView extends NonPropagatingViewGroup {
         mDragger = dragger;
         mDragger.setTouchSlop(mTouchSlop);
         setOnDragListener(mDragger.getDragEventListener());
-        if (mTrashView != null) {
-            mDragger.setTrashView(mTrashView);
-        }
     }
 
     /**
@@ -151,18 +147,5 @@ public class WorkspaceView extends NonPropagatingViewGroup {
      */
     public Rect getBlocksBoundingBox() {
         return mBlocksBoundingBox;
-    }
-
-    /**
-     * Update the {@link View} for the trash can, which will be passed to the dragger that moves
-     * blocks in this view.
-     *
-     * @param trashView The {@link View} of the trash can icon.
-     */
-    public void setTrashView(View trashView) {
-        mTrashView = trashView;
-        if (mDragger != null) {
-            mDragger.setTrashView(trashView);
-        }
     }
 }

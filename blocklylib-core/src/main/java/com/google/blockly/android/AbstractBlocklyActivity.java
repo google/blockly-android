@@ -100,6 +100,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected WorkspaceFragment mWorkspaceFragment;
     protected ToolboxFragment mToolboxFragment;
     protected TrashFragment mTrashFragment;
+    protected View mTrashIcon;
 
     // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
     protected View mNavigationDrawer;
@@ -313,6 +314,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .addBlockDefinitionsFromAssets(getBlockDefinitionsJsonPaths())
                 .setToolboxConfigurationAsset(getToolboxContentsXmlPath())
                 .setTrashFragment(mTrashFragment)
+                .setTrashIcon(mTrashIcon)
                 .setToolboxFragment(mToolboxFragment, mDrawerLayout);
         mController = builder.build();
 
@@ -593,13 +595,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mTrashFragment = (TrashFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
 
         if (mTrashFragment != null) {
+            mTrashIcon = findViewById(R.id.blockly_trash_icon);
+
             if (mTrashFragment.isCloseable()) {
                 mTrashFragment.setOpened(false);
 
-                mWorkspaceFragment.setTrashClickListener(new View.OnClickListener() {
+                mTrashIcon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mTrashFragment.setOpened(true);
+                        // Toggle opened state.
+                        mTrashFragment.setOpened(!mTrashFragment.isOpened());
                     }
                 });
             } else {
