@@ -136,20 +136,28 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     /**
      * Zoom into (i.e., enlarge) the workspace.
+     *
+     * @return True if a zoom was changed, increased. Otherwise false.
      */
-    public void zoomIn() {
+    public boolean zoomIn() {
         if (mCurrentZoomScaleIndex < ZOOM_SCALES.length - 1) {
             updateScaleStep(mCurrentZoomScaleIndex + 1);
+            return true;
         }
+        return false;
     }
 
     /**
      * Zoom out from (i.e.,shrink) the workspace.
+     *
+     * @return True if a zoom was changed, decreased. Otherwise false.
      */
-    public void zoomOut() {
+    public boolean zoomOut() {
         if (mCurrentZoomScaleIndex > 0) {
             updateScaleStep(mCurrentZoomScaleIndex - 1);
+            return true;
         }
+        return false;
     }
 
     /**

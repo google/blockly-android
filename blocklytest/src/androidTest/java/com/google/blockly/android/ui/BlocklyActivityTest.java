@@ -60,17 +60,12 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
     public void testZoomInOutReset() {
         final VirtualWorkspaceView virtualWorkspaceView =
                 (VirtualWorkspaceView) mActivity.findViewById(R.id.virtual_workspace);
-        final ImageButton zoomInButton = (ImageButton) mActivity.findViewById(R.id.zoom_in_button);
-        final ImageButton zoomOutButton =
-                (ImageButton) mActivity.findViewById(R.id.zoom_out_button);
-        final ImageButton resetViewButton =
-                (ImageButton) mActivity.findViewById(R.id.reset_view_button);
 
-        assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                zoomInButton.performClick();
+                assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
+                mActivity.getController().zoomIn();
                 assertTrue(virtualWorkspaceView.getViewScale() > 1.0f);
             }
         });
@@ -78,7 +73,7 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                zoomOutButton.performClick();
+                mActivity.getController().zoomOut();
                 assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
             }
         });
@@ -86,7 +81,7 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                zoomOutButton.performClick();
+                mActivity.getController().zoomOut();
                 assertTrue(virtualWorkspaceView.getViewScale() < 1.0f);
             }
         });
@@ -94,7 +89,7 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                resetViewButton.performClick();
+                mActivity.getController().recenterWorkspace();
                 assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
             }
         });
