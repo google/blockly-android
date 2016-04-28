@@ -60,11 +60,12 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
     public void testZoomInOutReset() {
         final VirtualWorkspaceView virtualWorkspaceView =
                 (VirtualWorkspaceView) mActivity.findViewById(R.id.virtual_workspace);
-        final ImageButton zoomInButton = (ImageButton) mActivity.findViewById(R.id.zoom_in_button);
+        final ImageButton zoomInButton =
+                (ImageButton) mActivity.findViewById(R.id.blockly_zoom_in_button);
         final ImageButton zoomOutButton =
-                (ImageButton) mActivity.findViewById(R.id.zoom_out_button);
+                (ImageButton) mActivity.findViewById(R.id.blockly_zoom_out_button);
         final ImageButton centerViewButton =
-                (ImageButton) mActivity.findViewById(R.id.center_view_button);
+                (ImageButton) mActivity.findViewById(R.id.blockly_center_view_button);
 
         assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
         mActivity.runOnUiThread(new Runnable() {

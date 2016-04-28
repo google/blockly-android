@@ -46,11 +46,11 @@ import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
+import com.google.blockly.android.ui.BlocklyUnifiedWorkspace;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
-import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
@@ -63,7 +63,7 @@ import java.util.List;
  * navigation menu.
  * <p/>
  * The default layout is filled with a workspace and with the toolbox and trash configured as
- * fly-out views (via the {@code unified_blockly_workspace.xml}.  Everything below the
+ * fly-out views (via the {@link BlocklyUnifiedWorkspace}).  Everything below the
  * {@link ActionBar} can be replaced by overriding {@link #onCreateContentView}.  After
  * {@link #onCreateContentView}, the base implementation of {@link #onCreateFragments()} looks for
  * the {@link WorkspaceFragment}, the {@link ToolboxFragment}, and the {@link TrashFragment} via
@@ -71,6 +71,14 @@ import java.util.List;
  * {@link R.id#blockly_trash}, respectively. If overriding {@link #onCreateContentView} without
  * {@code unified_blockly_workspace.xml} or those fragment ids, override
  * {@link #onCreateFragments()}, appropriately.
+ * <p/>
+ * The activity can also contain a few buttons to control the workspace.
+ * {@link R.id#blockly_zoom_in_button} and {@link R.id#blockly_zoom_out_button} control the
+ * workspace zoom scale, and {@link R.id#blockly_center_view_button} will reset it.
+ * {@link R.id#blockly_trash_icon} will toggle a closeable {@link TrashFragment}, and also act as
+ * a block drop target to delete blocks.  {@link #onConfigureButtons()} will search for these views
+ * and set the respective {@link android.view.View.OnClickListener}s.  By default, these views
+ * are provided by {@link BlocklyUnifiedWorkspace} in {@link #onCreateContentView}.
  * <p/>
  * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
  * {@link #getToolboxContentsXmlPath()}, and {@link #onCreateBlockViewFactory}.  An initial
@@ -100,7 +108,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected WorkspaceFragment mWorkspaceFragment;
     protected ToolboxFragment mToolboxFragment;
     protected TrashFragment mTrashFragment;
-    protected View mTrashIcon;
 
     // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
     protected View mNavigationDrawer;
@@ -303,6 +310,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         if (mWorkspaceFragment == null) {
             throw new IllegalStateException("mWorkspaceFragment is null");
         }
+
         mWorkspaceHelper = new WorkspaceHelper(this);
         mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
 
@@ -314,9 +322,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .addBlockDefinitionsFromAssets(getBlockDefinitionsJsonPaths())
                 .setToolboxConfigurationAsset(getToolboxContentsXmlPath())
                 .setTrashFragment(mTrashFragment)
-                .setTrashIcon(mTrashIcon)
                 .setToolboxFragment(mToolboxFragment, mDrawerLayout);
         mController = builder.build();
+        onConfigureButtons();
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
                 && mController.onRestoreSnapshot(savedInstanceState);
@@ -595,21 +603,55 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mTrashFragment = (TrashFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
 
         if (mTrashFragment != null) {
-            mTrashIcon = findViewById(R.id.blockly_trash_icon);
+            // TODO(#14): Make trash list a drop location.
+        }
+    }
 
+    protected void onConfigureButtons() {
+        View trashIcon = findViewById(R.id.blockly_trash_icon);
+        if (mTrashFragment != null && trashIcon != null) {
             if (mTrashFragment.isCloseable()) {
                 mTrashFragment.setOpened(false);
 
-                mTrashIcon.setOnClickListener(new View.OnClickListener() {
+                trashIcon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         // Toggle opened state.
                         mTrashFragment.setOpened(!mTrashFragment.isOpened());
                     }
                 });
-            } else {
-                // TODO(#14): Don't show trashcan
             }
+            mController.setTrashIcon(trashIcon);
+        }
+
+        View zoomInButton = findViewById(R.id.blockly_zoom_in_button);
+        if (zoomInButton != null) {
+            zoomInButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mController.zoomIn();
+                }
+            });
+        }
+
+        View zoomOutButton = findViewById(R.id.blockly_zoom_out_button);
+        if (zoomOutButton != null) {
+            zoomOutButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mController.zoomOut();
+                }
+            });
+        }
+
+        View recenterButton = findViewById(R.id.blockly_center_view_button);
+        if (recenterButton != null) {
+            recenterButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mController.recenterWorkspace();
+                }
+            });
         }
     }
 
