@@ -77,7 +77,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "turtle/toolbox_all.xml";
+        return "turtle/toolbox_advanced.xml";
     }
 
     @NonNull
