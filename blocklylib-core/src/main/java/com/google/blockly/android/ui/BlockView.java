@@ -24,6 +24,7 @@ import android.view.ViewParent;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.Input;
 
 /**
  * Draws a block and handles laying out all its inputs/fields.
@@ -111,4 +112,10 @@ public interface BlockView {
      * sure the view is not returned by {@link BlockViewFactory#getView(Block)}.
      */
     void unlinkModel();
+
+    /**
+     * @return The {@link InputView} for the {@link Input} at the given index.
+     */
+    @Nullable
+    InputView getInputView(int n);
 }

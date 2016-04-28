@@ -18,6 +18,7 @@ package com.google.blockly.android.ui.fieldview;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
@@ -126,5 +127,17 @@ public class BasicFieldDropdownView extends Spinner implements FieldView {
     @Override
     public void unlinkField() {
         setField(null);
+    }
+
+    @Override
+    public boolean callOnClick() {
+        Log.d(TAG, "callOnClick()");
+        return super.callOnClick();
+    }
+
+    @Override
+    public boolean performClick() {
+        Log.d(TAG, "performClick()");
+        return super.performClick();
     }
 }

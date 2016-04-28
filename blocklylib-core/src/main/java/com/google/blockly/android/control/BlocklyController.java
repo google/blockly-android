@@ -83,24 +83,35 @@ public class BlocklyController {
 
     private final Dragger.DragHandler mWorkspaceDragHandler = new Dragger.DragHandler() {
         @Override
-        public void maybeAssignDragGroup(PendingDrag pendingDrag) {
+        public Runnable maybeGetDragGroupCreator(final PendingDrag pendingDrag) {
             BlockView touchedView = pendingDrag.getTouchedBlockView();
 
             // If a shadow or other undraggable block is touched, and it is attached to a draggable
             // parent block, drag that block instead.
-            touchedView = mHelper.getNearestActiveView(touchedView);
+            final BlockView activeTouchedView = mHelper.getNearestActiveView(touchedView);
             if (touchedView == null) {
                 Log.i(TAG, "User touched a stack of blocks that may not be dragged");
-                return;
+                return null;
             }
 
-            extractBlockAsRoot(touchedView.getBlock());
-            // Since this block was already on the workspace, the block's position should have
-            // been assigned correctly during the most recent layout pass.
-            BlockGroup bg = mHelper.getRootBlockGroup(touchedView);
-            bg.bringToFront();
+            return new Runnable() {
+                @Override
+                public void run() {
+                    extractBlockAsRoot(activeTouchedView.getBlock());
+                    // Since this block was already on the workspace, the block's position should
+                    // have been assigned correctly during the most recent layout pass.
+                    BlockGroup bg = mHelper.getRootBlockGroup(activeTouchedView);
+                    bg.bringToFront();
 
-            pendingDrag.setDragGroup(bg);
+                    pendingDrag.setDragGroup(bg);
+                }
+            };
+        }
+
+        @Override
+        public boolean onBlockClicked(PendingDrag pendingDrag) {
+            // TODO(#35): Mark block as focused / selected.
+            return false;
         }
     };
     private final BlockTouchHandler mTouchHandler;
@@ -141,7 +152,7 @@ public class BlocklyController {
         }
 
         mDragger = new Dragger(this);
-        mTouchHandler = mDragger.buildBlockTouchHandler(mWorkspaceDragHandler);
+        mTouchHandler = mDragger.buildSloppyBlockTouchHandler(mWorkspaceDragHandler);
     }
 
     /**
