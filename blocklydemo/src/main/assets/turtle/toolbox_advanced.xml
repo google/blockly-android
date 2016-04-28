@@ -62,6 +62,18 @@
     </category>
     <category name="Math" colour="230">
         <block type="math_number" />
+        <block type="math_arithmetic">
+        <value name="A">
+            <shadow type="math_number">
+                <field name="NUM">1</field>
+            </shadow>
+        </value>
+        <value name="B">
+            <shadow type="math_number">
+                <field name="NUM">10</field>
+            </shadow>
+        </value>
+    </block>
     </category>
     <category name="Variables" colour="330">
         <block type="variables_get"></block>
