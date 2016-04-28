@@ -35,8 +35,6 @@ public class WorkspaceFragment extends Fragment {
     private BlocklyController mController;
     private Workspace mWorkspace;
     private WorkspaceView mWorkspaceView;
-    private View.OnClickListener mTrashClickListener;
-    private View mTrashIcon;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,35 +44,6 @@ public class WorkspaceFragment extends Fragment {
 
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
 
-        final VirtualWorkspaceView virtualWorkspaceView =
-                (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
-        mTrashIcon =  rootView.findViewById(R.id.trash_button);
-        mWorkspaceView.setTrashView(mTrashIcon);
-        mTrashIcon.setOnClickListener(mTrashClickListener);
-
-        rootView.findViewById(R.id.reset_view_button).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        virtualWorkspaceView.resetView();
-                    }
-                });
-
-        rootView.findViewById(R.id.zoom_out_button).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        virtualWorkspaceView.zoomOut();
-                    }
-                });
-
-        rootView.findViewById(R.id.zoom_in_button).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        virtualWorkspaceView.zoomIn();
-                    }
-                });
         return rootView;
     }
 
@@ -88,9 +57,6 @@ public class WorkspaceFragment extends Fragment {
         if (controller == mController) {
             return; // no-op
         }
-
-        // Reset...
-        mTrashClickListener = null;
 
         mController = controller;
         mWorkspace = (controller == null) ? null : mController.getWorkspace();
@@ -109,16 +75,5 @@ public class WorkspaceFragment extends Fragment {
      */
     public WorkspaceView getWorkspaceView() {
         return mWorkspaceView;
-    }
-
-    /**
-     * Sets the listener to be called when the trash is clicked. This is generally used to open
-     * the {@link TrashFragment}.
-     *
-     * @param listener The listener to call when the trash is clicked.
-     */
-    public void setTrashClickListener(View.OnClickListener listener) {
-        mTrashClickListener = listener;
-        mTrashIcon.setOnClickListener(mTrashClickListener);
     }
 }

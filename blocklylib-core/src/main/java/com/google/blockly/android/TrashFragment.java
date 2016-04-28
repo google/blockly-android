@@ -120,6 +120,13 @@ public class TrashFragment extends BlockDrawerFragment {
     }
 
     /**
+     * @return True if the trash is open (i.e., not closeable or not hidden).
+     */
+    public boolean isOpened() {
+        return !isCloseable() || !isHidden();
+    }
+
+    /**
      * Immediately executes a transaction that will open or close the {@code TrashFragment}.
      *
      * @param open Opens the trash if {@code true} and trash is closed. Closes it if {@code false}
