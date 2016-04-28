@@ -299,6 +299,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     /**
      * @return The {@link InputView} for the {@link Input} at the given index.
      */
+    @Override
     public InputView getInputView(int index) {
         return mInputViews.get(index);
     }

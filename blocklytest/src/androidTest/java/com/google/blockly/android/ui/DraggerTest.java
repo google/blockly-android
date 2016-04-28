@@ -70,9 +70,14 @@ public class DraggerTest extends MockitoAndroidTestCase {
     private BlockFactory mBlockFactory;
     private Dragger.DragHandler mDragHandler = new Dragger.DragHandler() {
         @Override
-        public void maybeAssignDragGroup(PendingDrag pendingDrag) {
+        public Runnable maybeGetDragGroupCreator(PendingDrag pendingDrag) {
             mPendingDrag = pendingDrag;
-            pendingDrag.setDragGroup(mDragGroup);
+            return mDragGroupCreator;
+        }
+
+        @Override
+        public boolean onBlockClicked(PendingDrag pendingDrag) {
+            return false;  // Never called.
         }
     };
 
@@ -81,6 +86,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
     Block mDraggedBlock;
     Block mTargetBlock;
     BlockView mTouchedView;
+    Runnable mDragGroupCreator;
     BlockGroup mDragGroup;
     PendingDrag mPendingDrag;
     long mDragStartTime;
@@ -104,7 +110,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
 
         mDragger = new Dragger(mMockController);
         mDragger.setWorkspaceView(mWorkspaceView);
-        mTouchHandler = mDragger.buildBlockTouchHandler(mDragHandler);
+        mTouchHandler = mDragger.buildSloppyBlockTouchHandler(mDragHandler);
 
         // Since we can't create DragEvents...
         when(mDragStartedEvent.getAction()).thenReturn(DragEvent.ACTION_DRAG_STARTED);
@@ -230,7 +236,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mTouchedView = touchedGroup.getFirstBlockView();
         mDragGroup = (mDraggedBlock == mTouchedBlock) ? touchedGroup :
                 mViewFactory.buildBlockGroupTree(mDraggedBlock, mMockConnectionManager,
-                                                 mTouchHandler);
+                        mTouchHandler);
         BlockGroup targetGroup = mViewFactory.buildBlockGroupTree(
                 mTargetBlock, mMockConnectionManager, null);
 
@@ -273,13 +279,13 @@ public class DraggerTest extends MockitoAndroidTestCase {
         mDragStartTime = System.currentTimeMillis();
         MotionEvent me = MotionEvent.obtain(
                 mDragStartTime, mDragStartTime, MotionEvent.ACTION_DOWN, 0, 0, 0);
-        mDragger.onTouchBlockImpl(mDragHandler, mTouchedView, me, false);
+        mDragger.onTouchBlockImpl(Dragger.DRAG_MODE_SLOPPY, mDragHandler, mTouchedView, me, false);
     }
 
     private void dragMove() {
         long time = mDragStartTime + 10L;
         MotionEvent me = MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 30, -10, 0);
-        mDragger.onTouchBlockImpl(mDragHandler, mTouchedView, me, false);
+        mDragger.onTouchBlockImpl(Dragger.DRAG_MODE_SLOPPY, mDragHandler, mTouchedView, me, false);
         mDragger.getDragEventListener().onDrag(mWorkspaceView, mDragStartedEvent);
     }
 

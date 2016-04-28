@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.ui;
 
+import android.support.annotation.Nullable;
 import android.view.ViewGroup;
 
 import com.google.blockly.model.Input;
@@ -38,7 +39,7 @@ public interface InputView {
      *
      * @param group The {@link BlockGroup} to add to this input view.
      */
-    void setConnectedBlockGroup(BlockGroup group);
+    void setConnectedBlockGroup(@Nullable BlockGroup group);
 
     /**
      * Sets the {@link BlockGroup} containing the shadow block connected to this input and updates
@@ -47,17 +48,26 @@ public interface InputView {
      *
      * @param group The {@link BlockGroup} to add to this input view.
      */
-    void setConnectedShadowGroup(BlockGroup group);
+    void setConnectedShadowGroup(@Nullable BlockGroup group);
 
     /**
      * @return The {@link BlockGroup} connected to this input connection.
      */
+    @Nullable
     BlockGroup getConnectedBlockGroup();
 
     /**
      * @return The {@link BlockGroup} shadow block connected to this input connection.
      */
+    @Nullable
     BlockGroup getConnectedShadowGroup();
+
+    /**
+     * @return The {@link BlockGroup} connected to this input connection, or the shadow block group
+     *         if no normal {@code BlockGroup} is connected.
+     */
+    @Nullable
+    BlockGroup getConnectedBlockGroupOrShadowGroup();
 
     /**
      * Recursively disconnects the view from the model, including all subviews/model subcomponents.
