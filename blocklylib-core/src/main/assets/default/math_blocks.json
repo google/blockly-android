@@ -15,6 +15,22 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Number"
   },
   {
+    "id": "math_number_hundredths",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "NUM",
+        "precision": 0.01,
+        "text": "3.14"
+      }
+    ],
+    "colour": 230,
+    "output": "Number",
+    "tooltip": "A number.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Number"
+  },
+  {
     "id": "math_arithmetic",
     "message0": "%1 %2 %3",
     "args0": [
@@ -44,5 +60,204 @@
     "output": "Number",
     "colour": 230,
     "helpUrl": "https://en.wikipedia.org/wiki/Arithmetic"
+  },
+  {
+    "id": "math_single",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "OP",
+        "options": [
+          ["square root", "ROOT"],
+          ["absolute", "ABS"],
+          ["-", "NEG"],
+          ["ln", "LN"],
+          ["log10", "LOG10"],
+          ["e^", "EXP"],
+          ["10^", "POW10"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "NUM",
+        "check": "Number"
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "helpUrl": "https://en.wikipedia.org/wiki/Square_root"
+  },
+  {
+    "id": "math_trig",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "OP",
+        "options": [
+          ["sin", "SIN"],
+          ["cos", "COS"],
+          ["tan", "TAN"],
+          ["asin", "ASIN"],
+          ["acos", "ACOS"],
+          ["atan", "ATAN"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "NUM",
+        "check": "Number"
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "helpUrl": "https://en.wikipedia.org/wiki/Trigonometric_functions"
+  },
+  {
+    "id": "math_constant",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "CONSTANT",
+        "options": [
+          ["\u03c0", "PI"],
+          ["e", "E"],
+          [
+            "\u03c6", "GOLDEN_RATIO"],
+          [
+            "sqrt(2)", "SQRT2"],
+          [
+            "sqrt(\u00bd)", "SQRT1_2"],
+          [
+            "\u221e", "INFINITY"]
+        ]
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Return one of the common constants: π (3.141…), e (2.718…), φ (1.618…), sqrt(2) (1.414…), sqrt(½) (0.707…), or ∞ (infinity).",
+    "helpUrl": "https://en.wikipedia.org/wiki/Mathematical_constant"
+  },
+  {
+    "id": "math_change",
+    "message0": "change %1 by %2",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      },
+      {
+        "type": "input_value",
+        "name": "DELTA",
+        "check": "Number"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "helpUrl": "https://en.wikipedia.org/wiki/Programming_idiom#Incrementing_a_counter"
+  },
+  {
+    "id": "math_round",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "OP",
+        "options": [
+          ["round", "ROUND"],
+          ["round up", "ROUNDUP"],
+          ["round down", "ROUNDDOWN"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "NUM",
+        "check": "Number"
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Round a number up or down.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Rounding"
+  },
+  {
+    "id": "math_modulo",
+    "message0": "remainder of %1 ÷ %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "DIVIDEND",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "DIVISOR",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Return the remainder from dividing the two numbers.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Modulo_operation"
+  },
+  {
+    "id": "math_constrain",
+    "message0": "constrain %1 low %2 high %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "LOW",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "HIGH",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Constrain a number to be between the specified limits (inclusive).",
+    "helpUrl": "https://en.wikipedia.org/wiki/Clamping_%28graphics%29"
+  },
+  {
+    "id": "math_random_int",
+    "message0": "random integer from %1 to %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "FROM",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "TO",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Return a random integer between the two specified limits, inclusive.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Random_number_generation"
+  },
+  {
+    "id": "math_random_float",
+    "message0": "random fraction",
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Return a random fraction between 0.0 (inclusive) and 1.0 (exclusive).",
+    "helpUrl": "https://en.wikipedia.org/wiki/Random_number_generation"
   }
 ]

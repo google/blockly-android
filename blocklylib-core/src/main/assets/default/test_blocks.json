@@ -160,7 +160,7 @@
     "tooltip": "An integer."
   },
   {
-    "id": "test_number_hundreths",
+    "id": "test_number_hundredths",
     "message0": "$ %1",
     "args0": [
       {
