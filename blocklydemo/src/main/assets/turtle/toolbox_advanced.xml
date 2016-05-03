@@ -17,16 +17,16 @@
     <category name="Turtle" colour="160">
         <block type="turtle_move">
             <value name="VALUE">
-                <block type="math_number">
+                <shadow type="math_number">
                     <field name="NUM">50</field>
-                </block>
+                </shadow>
             </value>
         </block>
         <block type="turtle_turn">
             <value name="VALUE">
-                <block type="math_number">
+                <shadow type="math_number">
                     <field name="NUM">90</field>
-                </block>
+                </shadow>
             </value>
         </block>
         <block type="turtle_pen">
@@ -34,18 +34,18 @@
         </block>
         <block type="turtle_width">
             <value name="WIDTH">
-                <block type="math_number">
+                <shadow type="math_number">
                     <field name="NUM">4</field>
-                </block>
+                </shadow>
             </value>
         </block>
     </category>
     <category name="Colour" colour="20">
         <block type="turtle_colour">
             <value name="COLOUR">
-                <block type="colour_picker">
+                <shadow type="colour_picker">
                     <field name="COLOUR">#ff0000</field>
-                </block>
+                </shadow>
             </value>
         </block>
         <block type="colour_picker"></block>
@@ -54,9 +54,9 @@
     <category name="Loops" colour="120">
         <block type="controls_repeat_ext">
             <value name="TIMES">
-                <block type="math_number">
+                <shadow type="math_number">
                     <field name="NUM">10</field>
-                </block>
+                </shadow>
             </value>
         </block>
     </category>
@@ -150,7 +150,7 @@
         <block type="variables_get"></block>
         <block type="variables_set">
             <value name="VALUE">
-                <block type="math_number"></block>
+                <shadow type="math_number"></shadow>
             </value>
         </block>
     </category>
