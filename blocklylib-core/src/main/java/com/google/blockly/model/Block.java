@@ -812,7 +812,8 @@ public class Block {
                         valueInput = resultBlock.getInputByName(
                                 parser.getAttributeValue(null, "name"));
                         if (valueInput == null) {
-                            throw new BlocklyParserException("The value input was null!");
+                            throw new BlocklyParserException("The value input was null at line "
+                                    + parser.getLineNumber() + "!");
                         }
                     } else if (tagname.equalsIgnoreCase("statement")) {
                         statementInput = resultBlock.getInputByName(
