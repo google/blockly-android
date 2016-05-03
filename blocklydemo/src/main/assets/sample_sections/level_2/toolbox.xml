@@ -35,7 +35,7 @@
         <block type="test_integer">
             <field name="NUM">10</field>
         </block>
-        <block type="test_number_hundreths">
+        <block type="test_number_hundredths">
             <field name="NUM">0.25</field>
         </block>
         <block type="test_integer_bounded">
@@ -67,9 +67,9 @@
             </value>
             <field name="OP">MULTIPLY</field>
             <value name="B">
-                <block type="variables_get">
+                <shadow type="variables_get">
                     <field name="VAR">zim</field>
-                </block>
+                </shadow>
             </value>
         </block>
         <block type="math_constant">
