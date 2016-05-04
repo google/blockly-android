@@ -398,7 +398,8 @@ public class Dragger {
                 } else {
                     // Mark all direct move events as handled, but only intercepted events if they
                     // initiate a new drag.
-                    result = (!isSlop(event) && maybeStartDrag(dragHandler)) || !interceptMode;
+                    boolean isNewDrag = (!isSlop(event) && maybeStartDrag(dragHandler));
+                    result = isNewDrag || !interceptMode;
                 }
             }
             // Handle the case when the user releases before moving far enough to start a drag.
