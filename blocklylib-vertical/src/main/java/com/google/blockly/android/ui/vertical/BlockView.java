@@ -103,9 +103,10 @@ public class BlockView extends AbstractBlockView<InputView> {
      * @param touchHandler The optional handler for forwarding touch events on this block to the
      *                     {@link Dragger}.
      */
-    BlockView(Context context, WorkspaceHelper helper, VerticalBlockViewFactory factory,
-              Block block, List<InputView> inputViews, ConnectionManager connectionManager,
-              @Nullable BlockTouchHandler touchHandler) {
+    protected BlockView(Context context, WorkspaceHelper helper, VerticalBlockViewFactory factory,
+                        Block block, List<InputView> inputViews,
+                        ConnectionManager connectionManager,
+                        @Nullable BlockTouchHandler touchHandler) {
 
         super(context, helper, factory, block, inputViews, connectionManager, touchHandler);
 

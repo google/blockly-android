@@ -17,12 +17,13 @@ package com.google.blockly.android.control;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.R;
+import com.google.blockly.android.testui.TestableBlockGroup;
+import com.google.blockly.android.testui.TestableBlockViewFactory;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
-import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTestStrings;
@@ -48,7 +49,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         super.setUp();
 
         mHelper = new WorkspaceHelper(getContext());
-        mViewFactory = new VerticalBlockViewFactory(getContext(), mHelper);
+        mViewFactory = new TestableBlockViewFactory(getContext(), mHelper);
         mController = new BlocklyController.Builder(getContext())
                 .setWorkspaceHelper(mHelper)
                 .setBlockViewFactory(mViewFactory)
@@ -87,6 +88,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             assertNotNull(sourceView);
             assertNotSame(mHelper.getRootBlockGroup(target),
                     mHelper.getRootBlockGroup(source));
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Perform test: connection source's output to target's input.
@@ -127,6 +134,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Validate preconditions
@@ -184,6 +197,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getParentBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getParentBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Perform test: Connect the source to where the tail is currently attached.
@@ -203,6 +222,10 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         if (withViews) {
             BlockGroup targetGroup = mHelper.getParentBlockGroup(target);
             BlockGroup tailGroup = mHelper.getParentBlockGroup(tail);
+
+            targetGroup.updateAllConnectorLocations();
+            tailGroup.updateAllConnectorLocations();
+
             assertSame(targetGroup, mHelper.getRootBlockGroup(target));
             assertSame(targetGroup, mHelper.getRootBlockGroup(source));
             assertSame(tailGroup, mHelper.getRootBlockGroup(tail));
@@ -233,6 +256,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Splice third between second and first.
@@ -276,6 +305,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
             assertNotNull(targetView);
             assertNotNull(sourceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Connect source after target. No prior connection to bump or splice.
@@ -324,6 +359,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             assertNotNull(targetView);
             assertNotNull(tailView);
             assertNotNull(sourceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Connect source after target, where tail is currently attached, causing a splice.
@@ -377,6 +418,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             assertNotNull(tailView1);
             assertNotNull(tailView2);
             assertNotNull(sourceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Run test: Connect source after target, where tail is currently attached.
@@ -430,6 +477,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(source);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Run test: Connect source inside target. No prior connection to bump.
@@ -477,6 +530,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             assertNotNull(targetView);
             assertNotNull(tailView);
             assertNotNull(sourceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Run test: Connect source inside target, where tail is attached, resulting in a splice.
@@ -525,6 +584,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             mController.initWorkspaceView(mWorkspaceView);
             sourceView = mHelper.getView(source);
             assertNotNull(sourceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(target))
+                    .setWorkspaceView(mWorkspaceView);
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(source))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Connect source inside target, where tail is attached.  Source does not have a next, so
@@ -569,6 +634,10 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(block);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(block))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Check Preconditions
@@ -606,6 +675,10 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             mController.initWorkspaceView(mWorkspaceView);
             assertNotNull(mHelper.getView(first));
             assertNotNull(mHelper.getView(second));
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(first))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Check preconditions
@@ -650,6 +723,10 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             mController.initWorkspaceView(mWorkspaceView);
             assertNotNull(mHelper.getView(first));
             assertNotNull(mHelper.getView(second));
+
+            // Fake onAttachToWindow()
+            ((TestableBlockGroup) mHelper.getRootBlockGroup(first))
+                    .setWorkspaceView(mWorkspaceView);
         }
 
         // Check preconditions
