@@ -169,7 +169,7 @@ public class BlockGroup extends NonPropagatingViewGroup {
      * @return A new {@link BlockGroup} containing blocks from the old group.
      */
     public BlockGroup extractBlocksAsNewGroup(Block firstBlock) {
-        BlockGroup newGroup = new BlockGroup(this.getContext(), mWorkspaceHelper);
+        BlockGroup newGroup = mWorkspaceHelper.getBlockViewFactory().buildBlockGroup();
         newGroup.moveBlocksFrom(this, firstBlock);
         return newGroup;
     }

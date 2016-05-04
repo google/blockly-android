@@ -505,8 +505,8 @@ public class BlocklyController {
             List<Block> rootBlocks = mWorkspace.getRootBlocks();
             ConnectionManager connManager = mWorkspace.getConnectionManager();
             for (int i = 0; i < rootBlocks.size(); i++) {
-                BlockGroup bg = new BlockGroup(mContext, mHelper);
-                mViewFactory.buildBlockViewTree(rootBlocks.get(i), bg, connManager, mTouchHandler);
+                BlockGroup bg = mViewFactory.buildBlockGroupTree(
+                        rootBlocks.get(i), connManager, mTouchHandler);
                 mWorkspaceView.addView(bg);
             }
         }
