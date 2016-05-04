@@ -62,7 +62,6 @@ import java.util.List;
  */
 public class TrashFragment extends BlockDrawerFragment {
     private BlocklyController mController;
-    private BlockListView mBlockListView;
 
     private BlockListView.OnDragListBlock mListDragHandler = new BlockListView.OnDragListBlock() {
         @Override

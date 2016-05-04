@@ -134,4 +134,16 @@ public class BasicFieldInputView extends EditText implements FieldView {
     public void unlinkField() {
         setField(null);
     }
+
+    @Override
+    public boolean callOnClick() {
+        Log.d(TAG, "callOnClick()");
+        return super.callOnClick();
+    }
+
+    @Override
+    public boolean performClick() {
+        Log.d(TAG, "performClick()");
+        return super.performClick();
+    }
 }

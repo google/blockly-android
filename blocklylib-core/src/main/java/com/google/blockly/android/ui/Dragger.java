@@ -17,7 +17,9 @@ package com.google.blockly.android.ui;
 
 import android.content.ClipData;
 import android.graphics.Rect;
+import android.os.Handler;
 import android.support.annotation.IntDef;
+import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.MotionEventCompat;
@@ -37,44 +39,59 @@ import com.google.blockly.model.WorkspacePoint;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * Controller for dragging blocks and groups of blocks within a workspace.
  */
+// TODO(#233): Rename to BlockViewTouchManager or similar
 public class Dragger {
     private static final String TAG = "Dragger";
+    private static final boolean LOG_TOUCH_EVENTS = false;
+    private static final boolean LOG_DRAG_EVENTS = false;
 
     /**
      * Interface for processing a drag behavior.
      */
+    // TODO(#233): Include clicks. Rename. BlockTouchHandler sounds good, but...
     public interface DragHandler {
         /**
-         * This method checks whether the pending drag is valid.  When valid, implementations are
-         * expected to call {@link PendingDrag#setDragGroup(BlockGroup)} to assign the draggable
-         * {@link BlockGroup}, which must contain a root block on the {@link Workspace} and be added
-         * to the {@link WorkspaceView}.
+         * This method checks whether the pending drag maps to a valid draggable {@link BlockGroup}
+         * on the workspace.  If it does, it should return a {@link Runnable} that will perform (at
+         * a later time) the necessary {@link Block} and {@link BlockView} manipulations to
+         * construct that drag group, and assign it to the {@link PendingDrag}.  Such manipulations
+         * must not occur immediately, because this can result in recursive touch events.  The
+         * {@link Dragger} is designed to catch these calls and forcibly crash.  Just don't do it.
+         * <p/>
+         * When the {@link Runnable} is called, it should proceed with the {@code Block} and
+         * {@code BlockView} manipulations, and call {@link PendingDrag#setDragGroup(BlockGroup)} to
+         * assign the draggable {@link BlockGroup}, which must contain a root block on the
+         * {@link Workspace} and be added to the {@link WorkspaceView}.
+         * <p/>
+         * If pending drag does not map to a draggable, this method should return null.
          *
          * @param pendingDrag The pending drag state in question.
          */
-        void maybeAssignDragGroup(PendingDrag pendingDrag);
+        @Nullable Runnable maybeGetDragGroupCreator(PendingDrag pendingDrag);
+
+        /**
+         * Handles click events on blocks.
+         *
+         * @param pendingDrag The pending drag state in question.
+         * @return True if click was processed and event should be captured.
+         */
+        boolean onBlockClicked(PendingDrag pendingDrag);
 
         // TODO(#202): onDragCancel(BlockGroup dragGroup) to support invalid drop locations.
         //     For instance, returning a block to the trash. Currently drops at the last move
         //     location.
     }
 
-    // Consider moving these to a new small class.
-    // No current touch interaction.
-    private static final int TOUCH_STATE_NONE = 0;
-    // Block in this view has received "Down" event; waiting for further interactions to decide
-    // whether to drag, show context menu, etc.
-    private static final int TOUCH_STATE_DOWN = 1;
-    // Block in this view is being dragged.
-    private static final int TOUCH_STATE_DRAGGING = 2;
-    // Block in this view received a long press.
-    private static final int TOUCH_STATE_LONGPRESS = 3;
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({DRAG_MODE_IMMEDIATE, DRAG_MODE_SLOPPY})
+    public @interface DragMode {}
+    @VisibleForTesting static final int DRAG_MODE_IMMEDIATE = 0;
+    @VisibleForTesting static final int DRAG_MODE_SLOPPY = 1;
 
     private final ArrayList<Connection> mDraggedConnections = new ArrayList<>();
     // For use in bumping neighbours; instance variable only to avoid repeated allocation.
@@ -87,12 +104,27 @@ public class Dragger {
     private final ViewPoint mTempViewPoint = new ViewPoint();
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
+    private Handler mMainHandler;
     private final BlocklyController mController;
     private final WorkspaceHelper mHelper;
     private final Workspace mWorkspace;
     private final ConnectionManager mConnectionManager;
 
+    /**
+     * This flags helps check {@link #onTouchBlockImpl} is not called recursively, which can occur
+     * when the view hierarchy is manipulated during event handling.
+     */
+    private boolean mWithinOnTouchBlockImpl = false;
+
     private PendingDrag mPendingDrag;
+    private Runnable mLogPending = (LOG_TOUCH_EVENTS || LOG_DRAG_EVENTS) ? new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, (mPendingDrag == null ? "\tnot pending" :
+                    (mPendingDrag.getDragGroup()==null ? "\tpending: touched = " + mPendingDrag.getTouchedBlockView()
+                    : "\tdragging: " + mPendingDrag.getDragGroup())));
+        }
+    } : null;
 
     // Which {@link BlockView} was touched, and possibly may be being dragged.
     private WorkspaceView mWorkspaceView;
@@ -103,23 +135,31 @@ public class Dragger {
     // square root operations at runtime.
     private float mTouchSlopSquared = 0.0f;
 
-    // Current state of touch interaction with blocks in this workspace view.
-    @TouchState
-    private int mTouchState = TOUCH_STATE_NONE;
-
     private View.OnDragListener mDragEventListener = new View.OnDragListener() {
         @Override
         public boolean onDrag(View workspaceView, DragEvent event) {
             final int action = event.getAction();
+
+            if (LOG_DRAG_EVENTS) {
+                String actionName = (action == DragEvent.ACTION_DRAG_STARTED) ? "DRAG_STARTED" :
+                        (action == DragEvent.ACTION_DRAG_LOCATION) ? "DRAG_LOCATION" :
+                        (action == DragEvent.ACTION_DRAG_ENDED) ? "DRAG_ENDED" :
+                        (action == DragEvent.ACTION_DROP) ? "DROP" :
+                        "UNKNOWN ACTION #" + action;
+                Log.d(TAG, "onDrag: " + actionName + ", " + event);
+
+                mMainHandler.removeCallbacks(mLogPending);  // Only log once per event tick
+                mMainHandler.post(mLogPending);
+            }
+
             switch (action) {
                 case DragEvent.ACTION_DRAG_STARTED:
                     // Triggered in maybeStartDrag(..).
-                    mTouchState = TOUCH_STATE_DRAGGING;
                     // The rest of the drag data is already captured in mPendingDrag.
                     // NOTE: This event position does not respect view scale.
                     return true;    // We want to keep listening for drag events
                 case DragEvent.ACTION_DRAG_LOCATION:
-                    if (mTouchState == TOUCH_STATE_DRAGGING) {
+                    if (mPendingDrag.isDragging()) {
                         // If we're still finishing up a previous drag we may have missed the
                         // start of the drag, in which case we shouldn't do anything.
                         continueDragging(event);
@@ -135,7 +175,7 @@ public class Dragger {
                     // Finalize dragging and reset dragging state flags.
                     // These state flags are still used in the initial phase of figuring out if a
                     // drag has started.
-                    if (mTouchState == TOUCH_STATE_DRAGGING) {
+                    if (mPendingDrag.isDragging()) {
                         if (touchingTrashView(event)) {
                             dropInTrash();
                         } else {
@@ -160,6 +200,8 @@ public class Dragger {
         mWorkspace = blocklyController.getWorkspace();
         mHelper = blocklyController.getWorkspaceHelper();
         mConnectionManager = mWorkspace.getConnectionManager();
+
+        mMainHandler = new Handler();
     }
 
     /**
@@ -169,11 +211,19 @@ public class Dragger {
         mTouchSlopSquared = slop * slop;
     }
 
-    public BlockTouchHandler buildBlockTouchHandler(final DragHandler dragHandler) {
+    /**
+     * Creates a BlockTouchHandler that will initiate a drag only after the user has dragged
+     * beyond some touch threshold.
+     *
+     * @param dragHandler The {@link DragHandler} to handle gestures for the constructed
+     *                    {@link BlockTouchHandler}.
+     * @return A newly constructed {@link BlockTouchHandler}.
+     */
+    public BlockTouchHandler buildSloppyBlockTouchHandler(final DragHandler dragHandler) {
         return new BlockTouchHandler() {
             @Override
             public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
-                return onTouchBlockImpl(dragHandler, blockView, motionEvent,
+                return onTouchBlockImpl(DRAG_MODE_SLOPPY, dragHandler, blockView, motionEvent,
                         /* interceptMode */ false);
             }
 
@@ -181,7 +231,31 @@ public class Dragger {
             public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
                 // Intercepted move events might still be handled but the child view, such as
                 // a drop down field.
-                return onTouchBlockImpl(dragHandler, blockView, motionEvent,
+                return onTouchBlockImpl(DRAG_MODE_SLOPPY, dragHandler, blockView, motionEvent,
+                        /* interceptMode */ true);
+            }
+        };
+    };
+
+    /**
+     * Creates a BlockTouchHandler that will initiate a drag as soon as the BlockView receives a
+     * {@link MotionEvent} directly (not via interception).
+     *
+     * @param dragHandler The {@link DragHandler} to handle gestures for the constructed
+     *                    {@link BlockTouchHandler}.
+     * @return A newly constructed {@link BlockTouchHandler}.
+     */
+    public BlockTouchHandler buildImmediateDragBlockTouchHandler(final DragHandler dragHandler) {
+        return new BlockTouchHandler() {
+            @Override
+            public boolean onTouchBlock(BlockView blockView, MotionEvent motionEvent) {
+                return onTouchBlockImpl(DRAG_MODE_IMMEDIATE, dragHandler, blockView, motionEvent,
+                        /* interceptMode */ false);
+            }
+
+            @Override
+            public boolean onInterceptTouchEvent(BlockView blockView, MotionEvent motionEvent) {
+                return onTouchBlockImpl(DRAG_MODE_IMMEDIATE, dragHandler, blockView, motionEvent,
                         /* interceptMode */ true);
             }
         };
@@ -189,13 +263,9 @@ public class Dragger {
 
     private void clearPendingDrag() {
         if (mPendingDrag != null) {
-            BlockView blockView = mPendingDrag.getTouchedBlockView();
-            if (blockView != null) {
-                ((View) blockView).setPressed(false);
-            }
+            ((View) mPendingDrag.getTouchedBlockView()).setPressed(false);
             mPendingDrag = null;
         }
-        mTouchState = TOUCH_STATE_NONE;
     }
 
     /**
@@ -256,8 +326,8 @@ public class Dragger {
      * events only return true (indicating they are handled) when a drag has been initiated. This
      * allows any underlying View, such as a field to handle the MotionEvent normally.
      *
-     * @param dragHandler The {@link DragHandler} attached to this view
-     *                    (via {@link #buildBlockTouchHandler}).
+     * @param dragMode The mode (immediate or sloppy) for handling this touch event.
+     * @param dragHandler The {@link DragHandler} attached to this view.
      * @param touchedView The {@link BlockView} that detected a touch event.
      * @param event The touch event.
      * @param interceptMode When true forces all {@link MotionEvent#ACTION_MOVE} events
@@ -267,40 +337,92 @@ public class Dragger {
      * @return True if the event was handled by this touch implementation.
      */
     @VisibleForTesting
-    boolean onTouchBlockImpl(DragHandler dragHandler, BlockView touchedView, MotionEvent event,
-                             boolean interceptMode) {
+    boolean onTouchBlockImpl(@DragMode int dragMode, DragHandler dragHandler, BlockView touchedView,
+                             MotionEvent event, boolean interceptMode) {
+        if (mWithinOnTouchBlockImpl) {
+            throw new IllegalStateException(
+                    "onTouchBlockImpl() called recursively. Make sure OnDragHandler." +
+                    "maybeGetDragGroupCreator() is not manipulating the View hierarchy.");
+        }
+        mWithinOnTouchBlockImpl = true;
+
         final int action = MotionEventCompat.getActionMasked(event);
-        final int pointerId = MotionEventCompat.getPointerId(
-                event, MotionEventCompat.getActionIndex(event));
 
-        boolean matchesPending = mPendingDrag != null && mPendingDrag.getPointerId() == pointerId
-                && mPendingDrag.getTouchedBlockView() == touchedView;
+        boolean matchesPending = false;
+        if (mPendingDrag != null) {
+            matchesPending = mPendingDrag.isMatchAndProcessed(event, touchedView);
+            if (!matchesPending && !mPendingDrag.isAlive()) {
+                mPendingDrag = null;  // Was a part of previous gesture. Delete.
+            }
+        }
 
+        if (LOG_TOUCH_EVENTS) {
+            Log.d(TAG, "onTouchBlockImpl: "
+                    + (dragMode == DRAG_MODE_IMMEDIATE ? "IMMEDIATE" : "SLOPPY")
+                    + (interceptMode ? " intercept" : " direct")
+                    + "\n\t" + event
+                    + "\n\tMatches pending? " + matchesPending);
+
+            mMainHandler.removeCallbacks(mLogPending);  // Only call once per event 'tick'
+            mMainHandler.post(mLogPending);
+        }
+
+        final boolean result;
         if (action == MotionEvent.ACTION_DOWN ) {
             if (mPendingDrag == null) {
-                handleActionDown(dragHandler, touchedView, event);
+                mPendingDrag = new PendingDrag(mController, touchedView, event);
+                if (interceptMode) {
+                    // Do not handle intercepted down events. Allow child views (particularly
+                    // fields) to handle the touch normally.
+                    result = false;
+                } else {
+                    // The user touched the block directly.
+                    ((View) mPendingDrag.getTouchedBlockView()).setPressed(true);
+                    if (dragMode == DRAG_MODE_IMMEDIATE) {
+                        result = maybeStartDrag(dragHandler);
+                    } else {
+                        result = true;
+                    }
+                }
+            } else if (matchesPending && !interceptMode) {
+                // The Pending Drag was created during intercept, but the child did not handle it
+                // and the event has bubbled down to here.
+                ((View) mPendingDrag.getTouchedBlockView()).setPressed(true);
+                result = true;
+            } else {
+                result = false; // Pending drag already started with a different view / pointer id.
             }
-            // Do not handle intercepted down events, to allow child views (particularly fields) to
-            // handle the touch normally.  However, the first intercept event may have created
-            // the PendingDrag, and if the view receives a normal event that means the child did
-            // not handle it, and we want to continue receiving events.
-            return !interceptMode && matchesPending;
-        }
-        if (matchesPending) {
-            // This touch is part of the previously started drag.
+        } else if (matchesPending) {
+            // This touch is part of the current PendingDrag.
             if (action == MotionEvent.ACTION_MOVE) {
-                // Mark all direct move events as handled, but only intercepted events if they
-                // initiate a new drag.
-                return maybeStartDrag(dragHandler, event)  || !interceptMode;
+                if (mPendingDrag == null || mPendingDrag.isDragging()) {
+                    result = false;  // We've already cancelled or started dragging.
+                } else {
+                    // Mark all direct move events as handled, but only intercepted events if they
+                    // initiate a new drag.
+                    boolean isNewDrag = isBeyondSlopThreshold(event) && maybeStartDrag(dragHandler);
+                    result = isNewDrag || !interceptMode;
+                }
             }
             // Handle the case when the user releases before moving far enough to start a drag.
-            if (action == MotionEvent.ACTION_UP) {
-                clearPendingDrag();
-                return !interceptMode;
+            else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                if (!mPendingDrag.isDragging()) {
+                    if (!interceptMode && mPendingDrag.isClick()) {
+                        dragHandler.onBlockClicked(mPendingDrag);
+                    }
+                    clearPendingDrag();
+                }
+                result = !interceptMode;
+            } else {
+                result = false; // Unrecognized event action
             }
+        } else {
+            result = false; // Doesn't match existing drag.
         }
 
-        return false;
+        if (LOG_TOUCH_EVENTS) Log.d(TAG, "\treturn " + result);
+        mWithinOnTouchBlockImpl = false;
+        return result;
     }
 
     /**
@@ -311,74 +433,71 @@ public class Dragger {
     }
 
     /**
+     * Checks whether {@code actionMove} is beyond the allowed slop (i.e., unintended) drag motion
+     * distance.
+     *
+     * @param actionMove The {@link MotionEvent#ACTION_MOVE} event.
+     * @return True if the motion is beyond the allowed slop threshold
+     */
+    private boolean isBeyondSlopThreshold(MotionEvent actionMove) {
+        BlockView touchedView = mPendingDrag.getTouchedBlockView();
+
+        // Not dragging yet - compute distance from Down event and start dragging if far enough.
+        @Size(2) int[] touchDownLocation = mTempScreenCoord1;
+        mPendingDrag.getTouchDownScreen(touchDownLocation);
+
+        @Size(2) int[] curScreenLocation = mTempScreenCoord2;
+        touchedView.getTouchLocationOnScreen(actionMove, curScreenLocation);
+
+        final int deltaX = touchDownLocation[0] - curScreenLocation[0];
+        final int deltaY = touchDownLocation[1] - curScreenLocation[1];
+
+        // Dragged far enough to start a drag?
+        return (deltaX * deltaX + deltaY * deltaY > mTouchSlopSquared);
+    }
+
+    /**
      * Handle motion events while starting to drag a block.  This keeps track of whether the block
      * has been dragged more than {@code mTouchSlop} and starts a drag if necessary. Once the drag
      * has been started, all following events will be handled through the {@link
      * #mDragEventListener}.
      */
-    private boolean maybeStartDrag(DragHandler dragHandler, MotionEvent actionMove) {
-        final int pointerIdx =
-                MotionEventCompat.findPointerIndex(actionMove, mPendingDrag.getPointerId());
-        if (mTouchState != TOUCH_STATE_DRAGGING) {
-            BlockView touchedView = mPendingDrag.getTouchedBlockView();
-
-            // Not dragging yet - compute distance from Down event and start dragging if far enough.
-            @Size(2) int[] touchDownLocation = mTempScreenCoord1;
-            mPendingDrag.getTouchDownScreen(touchDownLocation);
-
-            @Size(2) int[] curScreenLocation = mTempScreenCoord2;
-            touchedView.getTouchLocationOnScreen(actionMove, curScreenLocation);
-
-            final int deltaX = touchDownLocation[0] - curScreenLocation[0];
-            final int deltaY = touchDownLocation[1] - curScreenLocation[1];
-
-            if (deltaX * deltaX + deltaY * deltaY >= mTouchSlopSquared) {
-                // Dragged far enough to start a drag.  Check with the pending drag handler
-                // to select or create the dragged group.
-                dragHandler.maybeAssignDragGroup(mPendingDrag);
-                boolean dragStarted = mPendingDrag.isDragging();
-                if (dragStarted) {
-                    final PendingDrag pendingDrag = mPendingDrag;
-                    final BlockGroup dragGroup = mPendingDrag.getDragGroup();
-                    if (dragGroup.getParent() != mWorkspaceView) {
-                        throw new IllegalStateException("dragGroup is root in WorkspaceView");
+    private boolean maybeStartDrag(DragHandler dragHandler) {
+        // Check with the pending drag handler to select or create the dragged group.
+        final PendingDrag pendingDrag = mPendingDrag;  // Stash for async callback
+        final Runnable dragGroupCreator = dragHandler.maybeGetDragGroupCreator(pendingDrag);
+        final boolean foundDragGroup = (dragGroupCreator != null);
+        if (foundDragGroup) {
+            mMainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (mPendingDrag != null && mPendingDrag.isDragging()) {
+                        return; // Ignore.  Probably being handled by a child view.
                     }
 
-                    if (pendingDrag == mPendingDrag) {
+                    dragGroupCreator.run();
+                    boolean dragStarted = pendingDrag.isDragging();
+                    if (dragStarted) {
+                        mPendingDrag = pendingDrag;
+                        final BlockGroup dragGroup = mPendingDrag.getDragGroup();
+                        if (dragGroup.getParent() != mWorkspaceView) {
+                            throw new IllegalStateException("dragGroup is root in WorkspaceView");
+                        }
+
                         Block rootBlock = dragGroup.getFirstBlock();
                         removeDraggedConnections(rootBlock);
                         ClipData clipData = ClipData.newPlainText(
                                 WorkspaceView.BLOCK_GROUP_CLIP_DATA_LABEL, "");
                         dragGroup.startDrag(clipData,
                                 new View.DragShadowBuilder(), null, 0);
+                    } else {
+                        mPendingDrag = null;
                     }
-                    mTouchState = TOUCH_STATE_DRAGGING;
-                } else {
-                    mPendingDrag = null;
                 }
-
-                return dragStarted;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Save position of Down event for later use when (if) minimum dragging distance threshold has
-     * been met. By not calling Dragger.startDragging() here already, we prevent unnecessary block
-     * operations until we are sure that the user is dragging. Adjust the event's coordinates from
-     * the {@link BlockView}'s coordinate system to {@link WorkspaceView} coordinates.
-     */
-    private void handleActionDown(DragHandler dragHandler, BlockView touchedView,
-                                  MotionEvent actionDown) {
-
-        if (mPendingDrag != null || mTouchState == TOUCH_STATE_DRAGGING) {
-            return;  // Pending or active or drag. Possibly another finger.
+            });
         }
 
-        mTouchState = TOUCH_STATE_DOWN;
-        mPendingDrag = new PendingDrag(mController, touchedView, actionDown);
-        ((View) touchedView).setPressed(true);
+        return foundDragGroup;
     }
 
     /**
@@ -560,8 +679,4 @@ public class Dragger {
         int snapDistance = mHelper.getMaxSnapDistance();
         mConnectionManager.getNeighbours(conn, snapDistance, result);
     }
-
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({TOUCH_STATE_NONE, TOUCH_STATE_DOWN, TOUCH_STATE_DRAGGING, TOUCH_STATE_LONGPRESS})
-    public @interface TouchState {}
 }

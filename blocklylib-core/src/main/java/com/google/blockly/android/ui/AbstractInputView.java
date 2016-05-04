@@ -175,6 +175,16 @@ public abstract class AbstractInputView extends NonPropagatingViewGroup implemen
     }
 
     /**
+     * @return The {@link BlockGroup} connected to this input connection, or the shadow block group
+     *         if no normal {@code BlockGroup} is connected.
+     */
+    @Override
+    @Nullable
+    public BlockGroup getConnectedBlockGroupOrShadowGroup() {
+        return mConnectedGroup == null ? mConnectedShadowGroup : mConnectedGroup;
+    }
+
+    /**
      * Recursively disconnects the view from the model, and removes all views.
      */
     @Override

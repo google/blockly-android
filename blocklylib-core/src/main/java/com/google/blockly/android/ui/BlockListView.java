@@ -16,9 +16,12 @@
 package com.google.blockly.android.ui;
 
 import android.content.Context;
+import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -57,12 +60,14 @@ public class BlockListView extends RecyclerView {
     private final ArrayList<Block> mBlocks = new ArrayList<>();
     private final Adapter mAdapter = new Adapter();
 
-    private final int[] tempArray = new int[2];
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
     private WorkspaceHelper mHelper;
     private ConnectionManager mConnectionManager;
+    private OnDragListBlock mOnDragListBlock;
     private BlockTouchHandler mTouchHandler;
+
+    private boolean mInstantiateOnTap = true;
 
     public BlockListView(Context context) {
         this(context, null, 0);
@@ -84,11 +89,10 @@ public class BlockListView extends RecyclerView {
      * listener.  If {@code controller} is null, this BlockListView is reset, including removing all
      * blocks from the list.
      *
-     * @param controller
-     * @param blockDragListener
+     * @param controller The active {@link BlocklyController}.
+     * @param onDragListBlock The listener repsonsible for instantiating blocks to the workspace.
      */
-    public void init(final @Nullable BlocklyController controller,
-                     final OnDragListBlock blockDragListener) {
+    public void init(@Nullable BlocklyController controller, OnDragListBlock onDragListBlock) {
         if (controller == null) {
             mHelper = null;
             mConnectionManager = null;
@@ -101,57 +105,10 @@ public class BlockListView extends RecyclerView {
         } else {
             mHelper = controller.getWorkspaceHelper();
             mConnectionManager = controller.getWorkspace().getConnectionManager();
+            mOnDragListBlock = onDragListBlock;
+
             Dragger dragger = controller.getDragger();
-
-            mTouchHandler = dragger.buildBlockTouchHandler(new Dragger.DragHandler() {
-                @Override
-                public void maybeAssignDragGroup(PendingDrag pendingDrag) {
-                    BlockView touchedBlockView = pendingDrag.getTouchedBlockView();
-
-                    // When dragging out of the BlockListView, we really care about the root block.
-                    Block rootBlock = touchedBlockView.getBlock().getRootBlock();
-                    BlockView rootTouchedBlockView = mHelper.getView(rootBlock);
-                    BlockGroup rootTouchedGroup = rootTouchedBlockView.getParentBlockGroup();
-
-                    // Calculate the offset from rootTouchedGroup to touchedBlockView in view
-                    // pixels. We are assuming there is no scaling or translations between
-                    // BlockViews.
-                    View view = (View) touchedBlockView;
-                    float offsetX = view.getX() + pendingDrag.getTouchDownViewOffsetX();
-                    float offsetY = view.getY() + pendingDrag.getTouchDownViewOffsetY();
-                    ViewGroup parent = (ViewGroup) view.getParent();
-                    while (parent != rootTouchedGroup) {
-                        view = parent;
-                        offsetX += view.getX();
-                        offsetY += view.getY();
-                        parent = (ViewGroup) view.getParent();
-                    }
-
-                    // Capture the root group's original screen location (top left corner).
-                    int[] rootScreenCoord = tempArray;
-                    rootTouchedGroup.getLocationOnScreen(rootScreenCoord);
-
-                    // Adjust for RTL, where the block workspace coordinate will be in the top right
-                    if (mHelper.useRtl()) {
-                        offsetX = rootTouchedGroup.getWidth() - offsetX;
-                    }
-
-                    // Scale into workspace coordinates.
-                    offsetX = mHelper.virtualViewToWorkspaceUnits(offsetX);
-                    offsetY = mHelper.virtualViewToWorkspaceUnits(offsetY);
-
-                    // Offset the workspace coord by the BlockGroup's touch offset.
-                    mTempWorkspacePoint.setFrom(pendingDrag.getTouchDownWorkspaceCoordinates());
-                    mTempWorkspacePoint.offset((int) -offsetX, (int) -offsetY);
-
-                    // Acquire the draggable BlockGroup on the Workspace from the OnDragListBlock.
-                    BlockGroup dragGroup = blockDragListener.getDraggableBlockGroup(
-                            mBlocks.indexOf(rootBlock), rootBlock, mTempWorkspacePoint);
-                    if (dragGroup != null) {
-                        pendingDrag.setDragGroup(dragGroup);
-                    }
-                }
-            });
+            mTouchHandler = dragger.buildImmediateDragBlockTouchHandler(new DragHandler());
         }
 
         // Update all currently visible BlockGroups.
@@ -201,6 +158,92 @@ public class BlockListView extends RecyclerView {
         }
     }
 
+    /**
+     * Calculates the workspace point for a {@link PendingDrag}, such that the
+     * {@link MotionEvent#ACTION_DOWN} location remains in the same location on the screen
+     * (i.e., under the user's finger), and calls {@link OnDragListBlock#getDraggableBlockGroup}
+     * with the location. The workspace point accounts for the {@link WorkspaceView}'s location,
+     * pan, and scale.
+     *
+     * @param pendingDrag The {@link PendingDrag} for the gesture.
+     * @return The {@link BlockGroup} return by {@link OnDragListBlock#getDraggableBlockGroup}.
+     */
+    @NonNull
+    protected BlockGroup getWorkspaceBlockGroupForTouch(PendingDrag pendingDrag) {
+        BlockView touchedBlockView = pendingDrag.getTouchedBlockView();
+        Block rootBlock = touchedBlockView.getBlock().getRootBlock();
+        BlockView rootTouchedBlockView = mHelper.getView(rootBlock);
+        BlockGroup rootTouchedGroup = rootTouchedBlockView.getParentBlockGroup();
+
+        // Calculate the offset from rootTouchedGroup to touchedBlockView in view
+        // pixels. We are assuming there is no scaling or translations between
+        // BlockViews.
+        View view = (View) touchedBlockView;
+        float offsetX = view.getX() + pendingDrag.getTouchDownViewOffsetX();
+        float offsetY = view.getY() + pendingDrag.getTouchDownViewOffsetY();
+        ViewGroup parent = (ViewGroup) view.getParent();
+        while (parent != rootTouchedGroup) {
+            view = parent;
+            offsetX += view.getX();
+            offsetY += view.getY();
+            parent = (ViewGroup) view.getParent();
+        }
+
+        // Adjust for RTL, where the block workspace coordinate will be in the top right
+        if (mHelper.useRtl()) {
+            offsetX = rootTouchedGroup.getWidth() - offsetX;
+        }
+
+        // Scale into workspace coordinates.
+        int wsOffsetX = mHelper.virtualViewToWorkspaceUnits(offsetX);
+        int wsOffsetY = mHelper.virtualViewToWorkspaceUnits(offsetY);
+
+        // Offset the workspace coord by the BlockGroup's touch offset.
+        mTempWorkspacePoint.setFrom(
+                pendingDrag.getTouchDownWorkspaceCoordinates());
+        mTempWorkspacePoint.offset(-wsOffsetX, -wsOffsetY);
+
+        return mOnDragListBlock.getDraggableBlockGroup(
+                mBlocks.indexOf(rootBlock), rootBlock, mTempWorkspacePoint);
+    }
+
+    /** {@link Dragger.DragHandler} implementation for BlockListViews. */
+    private class DragHandler implements Dragger.DragHandler {
+        @Override
+        public Runnable maybeGetDragGroupCreator(final PendingDrag pendingDrag) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    // Acquire the draggable BlockGroup on the Workspace from the
+                    // {@link OnDragListBlock}.
+                    BlockGroup dragGroup = getWorkspaceBlockGroupForTouch(pendingDrag);
+                    if (dragGroup != null) {
+                        pendingDrag.setDragGroup(dragGroup);
+                    }
+
+                }
+            };
+        }
+
+        @Override
+        public boolean onBlockClicked(final PendingDrag pendingDrag) {
+            if (!mInstantiateOnTap) {
+                return false;
+            }
+
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    getWorkspaceBlockGroupForTouch(pendingDrag);
+                }
+            });
+            return true;
+        }
+    }
+
+    /**
+     * Adapts {@link Block}s in list into {@link BlockGroup}s inside {@Link FrameLayout}.
+     */
     protected class Adapter extends RecyclerView.Adapter<BlockListView.ViewHolder> {
         @Override
         public int getItemCount() {

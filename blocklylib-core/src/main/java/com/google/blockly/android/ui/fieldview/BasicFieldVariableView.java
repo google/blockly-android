@@ -118,6 +118,6 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
                 return;
             }
         }
-        throw new IllegalArgumentException("The variable " + variableName + " does not exist.");
+        throw new IllegalArgumentException("The variable \"" + variableName + "\" does not exist.");
     }
 }
