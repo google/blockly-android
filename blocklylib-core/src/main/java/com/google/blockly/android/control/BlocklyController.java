@@ -89,7 +89,7 @@ public class BlocklyController {
             // If a shadow or other undraggable block is touched, and it is attached to a draggable
             // parent block, drag that block instead.
             final BlockView activeTouchedView = mHelper.getNearestActiveView(touchedView);
-            if (touchedView == null) {
+            if (activeTouchedView == null) {
                 Log.i(TAG, "User touched a stack of blocks that may not be dragged");
                 return null;
             }

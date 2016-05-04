@@ -28,8 +28,9 @@ public final class PendingDrag {
      * </p>
      * We assume that during a drag, the system should continue to receive events on the touch
      * stream at least this often during the drag.  Further, by detecting and resetting the state,
-     * the system it is possible to recover, rather than presume the missing UP or CANCEL will
-     * arrive.  The latter can lead to invalid state that corrupts future drag gestures.
+     * it is possible to recover for new drags, rather than locking the drag state in under the
+     * presumption the missing UP or CANCEL will eventually arrive.  The latter case prevents
+     * the {@link Dragger} from detecting future drag gestures.
      */
     private long MAX_MOTION_EVENT_MILLISECONDS_DELTA = 500;
 
@@ -57,8 +58,8 @@ public final class PendingDrag {
     private WorkspacePoint mOriginalBlockPosition = new WorkspacePoint();
 
     // One gesture detector per drag ensures bad state will not carry over due to event bugs.
-    // Looking at the source, it seems like a lightweight class. Lots of primitives, but not
-    // instantiations.
+    // The GestureDetector class is relatively lightweight (as of API 23), without any
+    // instantiations at construction.
     private final GestureDetectorCompat mGestureDetector;
 
     private long mLatestEventTime;
@@ -227,8 +228,8 @@ public final class PendingDrag {
      * ({@link #isAlive()}, and not match any future events.
      * <p/>
      * If the event is a match and alive, it will pass the event through a {@link GestureDetector}
-     * to determine if the event trigger a click or other interesting event.  This trigger state can
-     * be retrieved via {@link #isClick()}.
+     * to determine if the event trigger a click (and other interesting gestures in the future).
+     * Check {@link #isClick()} to determine whether a click was detected.
      * <p/>
      * This method should only be called from {@link Dragger#onTouchBlockImpl}.
      *
