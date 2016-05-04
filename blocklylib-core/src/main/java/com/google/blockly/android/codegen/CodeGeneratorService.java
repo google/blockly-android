@@ -68,7 +68,8 @@ public class CodeGeneratorService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-        mWebview.addJavascriptInterface(new BlocklyController(), "BlocklyController");
+        mWebview.addJavascriptInterface(new BlocklyJavascriptInterface(),
+                "BlocklyJavascriptInterface");
 
         mWebview.setWebViewClient(new WebViewClient() {
             @Override
@@ -135,8 +136,7 @@ public class CodeGeneratorService extends Service {
         }
     }
 
-    // TODO(#129): Rename
-    private class BlocklyController {
+    private class BlocklyJavascriptInterface {
         @JavascriptInterface
         public void execute(String program) {
             CodeGenerationRequest.CodeGeneratorCallback cb;
