@@ -39,8 +39,8 @@
             }
         }
 
-        import_generators(BlocklyController.getBlockGeneratorsFilenames());
-        import_definitions(BlocklyController.getBlockDefinitions());
+        import_generators(BlocklyJavascriptInterface.getBlockGeneratorsFilenames());
+        import_definitions(BlocklyJavascriptInterface.getBlockDefinitions());
 
     </script>
 </head>
@@ -62,10 +62,10 @@
       try {
         Blockly.Xml.domToWorkspace(workspace, dom);
         var code = Blockly.JavaScript.workspaceToCode(workspace);
-        BlocklyController.execute(code);
+        BlocklyJavascriptInterface.execute(code);
       } catch (e) {
         console.log(e.message);
-        BlocklyController.execute("");
+        BlocklyJavascriptInterface.execute("");
       }
     }
   </script>
