@@ -208,7 +208,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     /**
      * @return A new, empty {@link BlockGroup} container view for a sequence of blocks.
      */
-    protected BlockGroup buildBlockGroup() {
+    public BlockGroup buildBlockGroup() {
         return new BlockGroup(mContext, mHelper);
     }
 
