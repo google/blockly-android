@@ -50,10 +50,9 @@ public class VerticalBlockViewFactoryTest extends MockitoAndroidTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
-        mBlockGroup = new BlockGroup(getContext(), mMockWorkspaceHelper);
-
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         mViewFactory = new VerticalBlockViewFactory(getContext(), mMockWorkspaceHelper);
+        mBlockGroup = mViewFactory.buildBlockGroup();
     }
 
     // Verify construction of a BlockView for a Block with inputs.
