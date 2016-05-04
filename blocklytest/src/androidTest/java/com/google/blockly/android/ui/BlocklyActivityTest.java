@@ -58,8 +58,10 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
 
     // Test zooming into workspace, then out, then reset.
     public void testZoomInOutReset() {
+        mInstrumentation.waitForIdleSync();
+        final WorkspaceView workspaceView = (WorkspaceView) mActivity.findViewById(R.id.workspace);
         final VirtualWorkspaceView virtualWorkspaceView =
-                (VirtualWorkspaceView) mActivity.findViewById(R.id.virtual_workspace);
+                (VirtualWorkspaceView) workspaceView.getParent();
 
         mActivity.runOnUiThread(new Runnable() {
             @Override
