@@ -662,7 +662,7 @@ public class BlockView extends AbstractBlockView<InputView> {
                 case Input.TYPE_DUMMY: {
                     boolean isLastInput = (i + 1 == mInputCount);
                     boolean nextIsStatement = !isLastInput
-                            && mInputViews.get(i+1).getInput().getType() == Input.TYPE_STATEMENT;
+                            && mInputViews.get(i + 1).getInput().getType() == Input.TYPE_STATEMENT;
                     boolean isEndOfLine = !mBlock.getInputsInline() || isLastInput
                             || nextIsStatement;
                     if (isEndOfLine) {
@@ -711,6 +711,9 @@ public class BlockView extends AbstractBlockView<InputView> {
                     mNextConnectorOffset, mOutputConnectorMargin, mNextBlockVerticalOffset);
             bottomStartResourceId = R.drawable.bottom_start_next;
             bottomStartBorderResourceId = R.drawable.bottom_start_next_border;
+        } else if (mBlock.getOutputConnection() != null) {
+            bottomStartResourceId = R.drawable.bottom_start_square;
+            bottomStartBorderResourceId = R.drawable.bottom_start_square_border;
         }
         final NinePatchDrawable bottomStartDrawable =
                 getColoredPatchDrawable(bottomStartResourceId);
