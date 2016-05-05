@@ -188,4 +188,10 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         reloadToolbox();
         return true;
     }
+
+    @Override
+    protected void onInitBlankWorkspace() {
+        // TODO: (#22) Remove this override when variables are supported properly
+        MockBlocksProvider.addDefaultVariables(getController());
+    }
 }

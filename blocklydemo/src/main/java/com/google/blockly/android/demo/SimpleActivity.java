@@ -81,5 +81,9 @@ public class SimpleActivity extends AbstractBlocklyActivity {
         // Initialize variable names.
         // TODO: (#22) Remove this override when variables are supported properly
         getController().addVariable("item");
+        getController().addVariable("leo");
+        getController().addVariable("don");
+        getController().addVariable("mike");
+        getController().addVariable("raf");
     }
 }
