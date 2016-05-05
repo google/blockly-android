@@ -22,13 +22,13 @@ import android.view.LayoutInflater;
 import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.control.ConnectionManager;
+import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldColor;
 import com.google.blockly.model.Input;
 
 import java.util.List;
@@ -68,6 +68,27 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
      */
     public PatchManager getPatchManager() {
         return mPatchManager;
+    }
+
+    /**
+     * Creates a new {@link BlockGroup} where the render order is reversed. That is, for each
+     * {@link BlockView}, any next connected {@link BlockView} below it (if any) will render first.
+     * This ensures connector highlights will not be occluded.
+     *
+     * @return A new {@link BlockGroup}
+     */
+    @Override
+    public BlockGroup buildBlockGroup() {
+        return new BlockGroup(mContext, mHelper) {
+            {
+                setChildrenDrawingOrderEnabled(true);
+            }
+
+            @Override
+            protected int getChildDrawingOrder(int childCount, int i) {
+                return childCount - i - 1;
+            }
+        };
     }
 
     /** Implements {@link BlockViewFactory#buildBlockView}. */

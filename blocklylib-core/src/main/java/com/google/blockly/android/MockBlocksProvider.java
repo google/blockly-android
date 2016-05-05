@@ -84,7 +84,7 @@ public final class MockBlocksProvider {
         input.add(new FieldInput("DO", "another loop"));
         bob.addInput(input);
 
-        bob.setColorHue(42);
+        bob.setColorHue(40);
         return bob.build();
     }
 
@@ -164,7 +164,7 @@ public final class MockBlocksProvider {
         input.add(new FieldLabel("label", "one input"));
         block.addInput(input);
 
-        block.setColorHue(110);
+        block.setColorHue(120);
         return block.build();
     }
 
