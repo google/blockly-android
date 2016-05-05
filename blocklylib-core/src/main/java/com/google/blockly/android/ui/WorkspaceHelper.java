@@ -417,6 +417,7 @@ public class WorkspaceHelper {
      * screen.
      * @param workspacePositionOut Output coordinates of the same location in workspace coordinates.
      */
+    // TODO(#248): Support floating point queries.
     public void screenToWorkspaceCoordinates(@Size(2) int[] screenPositionIn,
                                              WorkspacePoint workspacePositionOut) {
         screenToVirtualViewCoordinates(screenPositionIn, mTempViewPoint);
