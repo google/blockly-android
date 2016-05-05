@@ -152,30 +152,31 @@ public class Dragger {
                 mMainHandler.post(mLogPending);
             }
 
-            switch (action) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    // Triggered in maybeStartDrag(..).
-                    // The rest of the drag data is already captured in mPendingDrag.
-                    // NOTE: This event position does not respect view scale.
-                    return true;    // We want to keep listening for drag events
-                case DragEvent.ACTION_DRAG_LOCATION:
-                    if (mPendingDrag.isDragging()) {
+            if (mPendingDrag != null && mPendingDrag.isDragging()) {
+                switch (action) {
+                    case DragEvent.ACTION_DRAG_STARTED:
+                        // Triggered in maybeStartDrag(..).
+                        // The rest of the drag data is already captured in mPendingDrag.
+                        // NOTE: This event position does not respect view scale.
+
+                        // TODO(#35): This might be better described as "selected".
+                        ((View) mPendingDrag.getRootDraggedBlockView()).setPressed(true);
+                        return true;    // We want to keep listening for drag events
+                    case DragEvent.ACTION_DRAG_LOCATION:
                         // If we're still finishing up a previous drag we may have missed the
                         // start of the drag, in which case we shouldn't do anything.
                         continueDragging(event);
-                    }
-                    break;
-                case DragEvent.ACTION_DRAG_ENDED:
-                    // TODO(#202): Cancel pending drag?
-                    if (event.getResult()) {
                         break;
-                    }
-                    // Otherwise fall through
-                case DragEvent.ACTION_DROP:
-                    // Finalize dragging and reset dragging state flags.
-                    // These state flags are still used in the initial phase of figuring out if a
-                    // drag has started.
-                    if (mPendingDrag.isDragging()) {
+                    case DragEvent.ACTION_DRAG_ENDED:
+                        // TODO(#202): Cancel pending drag?
+                        if (event.getResult()) {
+                            break;
+                        }
+                        // Otherwise fall through
+                    case DragEvent.ACTION_DROP:
+                        // Finalize dragging and reset dragging state flags.
+                        // These state flags are still used in the initial phase of figuring out if a
+                        // drag has started.
                         if (touchingTrashView(event)) {
                             dropInTrash();
                         } else {
@@ -183,10 +184,9 @@ public class Dragger {
                         }
                         clearPendingDrag();
                         return true;    // The drop succeeded.
-                    }
-                    return false;
-                default:
-                    break;
+                    default:
+                        break;
+                }
             }
             return false;   // In every case that gets here, the return value won't be checked.
         }
@@ -263,7 +263,10 @@ public class Dragger {
 
     private void clearPendingDrag() {
         if (mPendingDrag != null) {
-            ((View) mPendingDrag.getTouchedBlockView()).setPressed(false);
+            BlockView blockView = mPendingDrag.getRootDraggedBlockView();
+            if (blockView != null) {
+                ((View) blockView).setPressed(false);
+            } // else, trashing or similar manipulation made the view disappear.
             mPendingDrag = null;
         }
     }
@@ -281,7 +284,7 @@ public class Dragger {
             mHighlightedBlockView.setHighlightedConnection(null);
         }
         Pair<Connection, Connection> connectionCandidate =
-                findBestConnection(mPendingDrag.getRootBlock());
+                findBestConnection(mPendingDrag.getRootDraggedBlock());
         if (connectionCandidate != null) {
             mHighlightedBlockView = mHelper.getView(connectionCandidate.second.getBlock());
             mHighlightedBlockView.setHighlightedConnection(connectionCandidate.second);
@@ -297,7 +300,7 @@ public class Dragger {
      */
     @VisibleForTesting
     void finishDragging() {
-        Block dragRoot = mPendingDrag.getRootBlock();
+        Block dragRoot = mPendingDrag.getRootDraggedBlock();
 
         // Maybe snap to connections
         Pair<Connection, Connection> connectionCandidate = findBestConnection(dragRoot);
@@ -377,7 +380,6 @@ public class Dragger {
                     result = false;
                 } else {
                     // The user touched the block directly.
-                    ((View) mPendingDrag.getTouchedBlockView()).setPressed(true);
                     if (dragMode == DRAG_MODE_IMMEDIATE) {
                         result = maybeStartDrag(dragHandler);
                     } else {
@@ -387,7 +389,6 @@ public class Dragger {
             } else if (matchesPending && !interceptMode) {
                 // The Pending Drag was created during intercept, but the child did not handle it
                 // and the event has bubbled down to here.
-                ((View) mPendingDrag.getTouchedBlockView()).setPressed(true);
                 result = true;
             } else {
                 result = false; // Pending drag already started with a different view / pointer id.
@@ -533,7 +534,7 @@ public class Dragger {
             mHighlightedBlockView = null;
         }
         mDraggedConnections.clear();
-        mController.trashRootBlock(mPendingDrag.getRootBlock());
+        mController.trashRootBlock(mPendingDrag.getRootDraggedBlock());
     }
 
     private void removeDraggedConnections(Block block) {
@@ -567,7 +568,7 @@ public class Dragger {
         int workspaceDeltaY = curDragPositionWorkspace.y - touchDownWorkspace.y;
 
         WorkspacePoint blockOrigPosition = mPendingDrag.getOriginalBlockPosition();
-        mPendingDrag.getRootBlock().setPosition(blockOrigPosition.x + workspaceDeltaX,
+        mPendingDrag.getRootDraggedBlock().setPosition(blockOrigPosition.x + workspaceDeltaX,
                                                 blockOrigPosition.y + workspaceDeltaY);
         mPendingDrag.getDragGroup().requestLayout();
     }
@@ -584,8 +585,8 @@ public class Dragger {
         // Update the drag group so that everything that has been changed will be properly
         // invalidated.
         BlockGroup newRootBlockGroup =
-                mHelper.getRootBlockGroup(mPendingDrag.getRootBlock());
-        bumpNeighbours(mPendingDrag.getRootBlock(), newRootBlockGroup);
+                mHelper.getRootBlockGroup(mPendingDrag.getRootDraggedBlock());
+        bumpNeighbours(mPendingDrag.getRootDraggedBlock(), newRootBlockGroup);
         // All of the connection locations will be set relative to their block views immediately
         // after this loop.  For now we just want to unset drag mode and add the connections back
         // to the list; 0, 0 is a cheap place to put them.
