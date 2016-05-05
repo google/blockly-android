@@ -161,6 +161,9 @@ public final class PendingDrag {
      * @param dragGroup The draggable {@link BlockGroup}.
      */
     public void setDragGroup(@NonNull BlockGroup dragGroup) {
+        if (dragGroup == null) {
+            throw new IllegalArgumentException("DragGroup cannot be null");
+        }
         if (mDragGroup != null) {
             throw new IllegalStateException("Drag group already assigned.");
         }
@@ -196,14 +199,14 @@ public final class PendingDrag {
     /**
      * @return The root {@link Block} of the drag group.
      */
-    public Block getRootBlock() {
+    public Block getRootDraggedBlock() {
         return mRootBlockView.getBlock();
     }
 
     /**
      * @return The root {@link BlockView} of the drag group.
      */
-    public BlockView getRootBlockView() {
+    public BlockView getRootDraggedBlockView() {
         return mRootBlockView;
     }
 
