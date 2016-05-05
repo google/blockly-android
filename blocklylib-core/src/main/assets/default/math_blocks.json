@@ -4,7 +4,7 @@
     "message0": "%1",
     "args0": [
       {
-        "type": "field_input",
+        "type": "field_number",
         "name": "NUM",
         "text": "0"
       }
