@@ -130,11 +130,20 @@ public class BlockView extends AbstractBlockView<InputView> {
         for (int i = 0; i < mBlockPatches.size(); ++i) {
             mBlockPatches.get(i).draw(c);
         }
+    }
+
+    /**
+     * Draw highlights and connector locators (if any) over above all child views.
+     * @param canvas
+     */
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);  // Normal draw call.
 
         if (DEBUG) {
-            drawConnectorCenters(c);  // Enable to debug connection positions.
+            drawConnectorCenters(canvas);  // Enable to debug connection positions.
         }
-        drawHighlights(c);
+        drawHighlights(canvas);
     }
 
     /**
