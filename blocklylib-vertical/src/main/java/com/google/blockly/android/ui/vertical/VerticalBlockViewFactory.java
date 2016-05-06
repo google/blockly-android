@@ -141,8 +141,8 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
         }
         if (mVariableAdapter == null) {
             BasicVariableAdapter adapter = new BasicVariableAdapter(mVariableNameManager, mContext,
-                    R.layout.default_spinner_item);
-            adapter.setDropDownViewResource(R.layout.default_spinner_drop_down);
+                    R.layout.default_spinner_closed_item);
+            adapter.setDropDownViewResource(R.layout.default_spinner_dropdown_item);
             mVariableAdapter = adapter;
         }
         return mVariableAdapter;

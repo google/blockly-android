@@ -14,13 +14,15 @@
   ~  limitations under the License.
   -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-          android:id="@+id/default_dropdown"
-          style="@style/DefaultSpinnerDropDownStyle"
-          android:textSize="?blockTextSize"
-          android:singleLine="true"
-          android:paddingTop="4dip"
-          android:layout_margin="0dip"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:ellipsize="marquee"
-          android:textAlignment="inherit"/>
+    android:id="@+id/default_dropdown"
+    android:textSize="?blockTextSize"
+    android:textColor="@color/field_text"
+    android:singleLine="true"
+    android:paddingTop="4dip"
+    android:paddingLeft="4dip"
+    android:paddingRight="4dip"
+    android:layout_margin="-4dip"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:ellipsize="marquee"
+    android:textAlignment="inherit"/>
