@@ -26,6 +26,7 @@ import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
+import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
@@ -124,6 +125,10 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
                 colorView.setWorkspaceHelper(mHelper);
                 break;
             }
+            case Field.TYPE_VARIABLE: {
+                BasicFieldVariableView varView = (BasicFieldVariableView) fieldView;
+                varView.setAdapter(getVariableAdapter());
+            }
             default:
                 if (fieldView == null) {
                     fieldView = super.buildFieldView(field);
@@ -202,6 +207,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             setFieldLayout(Field.TYPE_NUMBER, R.layout.default_field_number);
             setFieldLayout(Field.TYPE_COLOR, R.layout.default_field_color);
             setFieldLayout(Field.TYPE_INPUT, R.layout.default_field_input);
+            setFieldLayout(Field.TYPE_VARIABLE, R.layout.default_field_variable);
         } finally {
             styles.recycle();
         }

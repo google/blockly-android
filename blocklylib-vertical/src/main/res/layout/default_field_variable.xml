@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~  Copyright 2016 Google Inc. All Rights Reserved.
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+<com.google.blockly.android.ui.fieldview.BasicFieldVariableView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/field_dropdown"
+    app:itemLayout="@layout/default_spinner_closed_item"
+    app:dropdownItemLayout="@layout/default_spinner_dropdown_item"
+    android:background="@drawable/dropdown_background"
+    android:singleLine="true"
+    android:padding="4dip"
+    android:paddingLeft="@dimen/spinner_start_padding"
+    android:paddingStart="@dimen/spinner_start_padding"
+    android:paddingRight="@dimen/spinner_end_padding"
+    android:paddingEnd="@dimen/spinner_end_padding"
+    android:popupBackground="@drawable/rounded_rect_opaque_white"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>

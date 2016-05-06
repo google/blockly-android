@@ -28,12 +28,20 @@ import com.google.blockly.model.FieldAngle;
  * Renders an angle as part of a Block.
  */
 public class BasicFieldAngleView extends TextView implements FieldView {
+    private static final char DEGREE_SYMBOL = '\u00B0';
+
     protected FieldAngle.Observer mFieldObserver = new FieldAngle.Observer() {
         @Override
         public void onAngleChanged(Field field, int oldAngle, int newAngle) {
             String newAngleStr = Integer.toString(newAngle);
-            if (!newAngleStr.contentEquals(getText())) {
-                setText(newAngleStr);
+            CharSequence curDisplayText = getText();
+            int len = curDisplayText.length();
+            if (len > 0) {
+                // Trim the degree symbol
+                curDisplayText = curDisplayText.subSequence(0, len - 2);
+            }
+            if (!newAngleStr.contentEquals(curDisplayText)) {
+                setText(newAngleStr + DEGREE_SYMBOL);
             }
         }
     };
@@ -86,7 +94,7 @@ public class BasicFieldAngleView extends TextView implements FieldView {
         }
         mAngleField = angleField;
         if (mAngleField != null) {
-            setText(Integer.toString(mAngleField.getAngle()));
+            setText(Integer.toString(mAngleField.getAngle()) + DEGREE_SYMBOL);
             mAngleField.registerObserver(mFieldObserver);
         } else {
             setText("");
