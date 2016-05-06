@@ -16,6 +16,8 @@
 <com.google.blockly.android.ui.fieldview.BasicFieldCheckboxView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/field_checkbox"
+        android:button="@drawable/checkbox_button"
+        android:gravity="center"
         android:padding="4dip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
