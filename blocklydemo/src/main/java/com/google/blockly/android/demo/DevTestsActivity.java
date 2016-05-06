@@ -16,6 +16,7 @@
 package com.google.blockly.android.demo;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
@@ -24,7 +25,7 @@ import android.widget.Toast;
 import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
-import com.google.blockly.android.MockBlocksProvider;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
@@ -48,7 +49,8 @@ public class DevTestsActivity extends BlocklySectionsActivity {
                     "default/loop_blocks.json",
                     "default/math_blocks.json",
                     "default/variable_blocks.json",
-                    "default/test_blocks.json"
+                    "default/test_blocks.json",
+                    "sample_sections/mock_block_definitions.json"
             }));
 
     private static int CARPET_SIZE = 1000;
@@ -152,8 +154,13 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     @NonNull
     @Override
     protected void onLoadInitialWorkspace() {
-        MockBlocksProvider.makeComplexModel(getController());
-        MockBlocksProvider.addDefaultVariables(getController());
+        try {
+            getController().loadWorkspaceContents(getAssets().open(
+                    "sample_sections/mock_block_initial_workspace.xml"));
+        } catch (IOException e) {
+            Log.d(TAG, "Couldn't load initial workspace.");
+        }
+        addDefaultVariables();
     }
 
     @Override
@@ -191,7 +198,15 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     @Override
     protected void onInitBlankWorkspace() {
+        addDefaultVariables();
+    }
+
+    private void addDefaultVariables() {
         // TODO: (#22) Remove this override when variables are supported properly
-        MockBlocksProvider.addDefaultVariables(getController());
+        BlocklyController controller = getController();
+        controller.addVariable("item");
+        controller.addVariable("zim");
+        controller.addVariable("gir");
+        controller.addVariable("tak");
     }
 }

@@ -17,7 +17,6 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
-import com.google.blockly.android.MockBlocksProvider;
 import com.google.blockly.android.R;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -435,26 +434,26 @@ public class BlockTest extends AndroidTestCase {
     }
 
     public void testGetAllConnections() {
-        Block block = MockBlocksProvider.makeDummyBlock();
+        Block block = mBlockFactory.obtainBlock("frankenblock", null);
         List<Connection> allConnections = block.getAllConnections();
-        assertEquals(8, allConnections.size());
+        assertEquals(4, allConnections.size());
 
-        block = MockBlocksProvider.makeDummyBlock();
+        block = mBlockFactory.obtainBlock("frankenblock", null);
         allConnections.clear();
         block.getAllConnections(allConnections);
-        assertEquals(8, allConnections.size());
+        assertEquals(4, allConnections.size());
 
         allConnections.clear();
 
-        Block ivb = MockBlocksProvider.makeValueInputBlock();
+        Block ivb = mBlockFactory.obtainBlock("simple_input_output", null);
         block.getInputs().get(0).getConnection().connect(ivb.getOutputConnection());
-        Block svb = MockBlocksProvider.makeSimpleValueBlock();
+        Block svb = mBlockFactory.obtainBlock("output_no_input", null);
         ivb.getInputs().get(0).getConnection().connect(svb.getOutputConnection());
-        Block smb = MockBlocksProvider.makeStatementBlock();
-        block.getInputs().get(3).getConnection().connect(smb.getPreviousConnection());
+        Block smb = mBlockFactory.obtainBlock("statement_no_input", null);
+        block.getInputs().get(1).getConnection().connect(smb.getPreviousConnection());
 
         block.getAllConnectionsRecursive(allConnections);
-        assertEquals(13, allConnections.size());
+        assertEquals(9, allConnections.size());
     }
 
     public void testGetOnlyValueInput() {

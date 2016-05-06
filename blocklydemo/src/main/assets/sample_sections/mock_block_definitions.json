@@ -1,0 +1,189 @@
+[
+  {
+    "id": "dummy",
+    "message0": "this is a checkbox: %1 %2 degrees %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %16",
+    "args0": [
+      {
+        "type": "field_checkbox",
+        "name": "checkbox!",
+        "checked": true
+      },
+      {
+        "type": "input_value",
+        "name": "input2"
+      },
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "field_angle",
+        "name": "label2",
+        "angle": 180
+      },
+      {
+        "type": "field_date",
+        "name": "date",
+        "date": "2015-03-19"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "dropdown",
+        "options": [
+          [
+            "option1",
+            "value1"
+          ],
+          [
+            "option2",
+            "value2"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "input3",
+        "align": "CENTRE"
+      },
+      {
+        "type": "field_input",
+        "name": "DO",
+        "text": "loop"
+      },
+      {
+        "type": "input_statement",
+        "name": "input6"
+      },
+      {
+        "type": "field_image",
+        "src": "https://www.gstatic.com/codesite/ph/images/star_on.gif",
+        "width": 15,
+        "height": 15,
+        "alt": "star"
+      },
+      {
+        "type": "field_colour",
+        "name": "color",
+        "colour": "#ff0000"
+      },
+      {
+        "type": "input_value",
+        "name": "input7",
+        "align": "RIGHT"
+      },
+      {
+        "type": "field_input",
+        "name": "input text",
+        "text": "initial wide field of text"
+      },
+      {
+        "type": "input_value",
+        "name": "input8"
+      },
+      {
+        "type": "field_input",
+        "name": "DO_MORE",
+        "text": "another loop"
+      },
+      {
+        "type": "input_statement",
+        "name": "input9"
+      }
+    ],
+    "inputsInline": false,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 42,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#e879aw"
+  },
+  {
+    "id": "outer",
+    "message0": "block %1 value %2 this is a loop %3 another value %4",
+    "args0": [
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "input_value",
+        "name": "input2"
+      },
+      {
+        "type": "input_statement",
+        "name": "input3"
+      },
+      {
+        "type": "input_value",
+        "name": "input4"
+      }
+    ],
+    "inputsInline": true,
+    "output": null,
+    "tooltip": "",
+    "helpUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#khsggv"
+  },
+  {
+    "id": "statement-only",
+    "message0": "this is a loop %1",
+    "args0": [
+      {
+        "type": "input_statement",
+        "name": "input"
+      }
+    ],
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "inner",
+    "message0": "block %1 value %2 another value %3",
+    "args0": [
+      {
+        "type": "input_dummy",
+        "align": "RIGHT"
+      },
+      {
+        "type": "input_value",
+        "name": "input2"
+      },
+      {
+        "type": "input_value",
+        "name": "input3"
+      }
+    ],
+    "output": null,
+    "colour": 120,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "simpleValue",
+    "message0": "zero",
+    "output": null,
+    "colour": 210,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "valueInput",
+    "message0": "one input %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "input"
+      }
+    ],
+    "output": null,
+    "colour": 120,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
+    "id": "statement",
+    "message0": "do something",
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 240,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  }
+]
