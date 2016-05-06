@@ -191,6 +191,27 @@ public class BlockTest extends AndroidTestCase {
                 BlockTestStrings.STATEMENT_NO_CHILD), bf);
     }
 
+    public void testLoadFromXmlInline() throws IOException, XmlPullParserException {
+        // TODO(#84): Move test_blocks.json to the test app's resources
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+
+        Block loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_BEGINNING, bf);
+        assertTrue(loaded.getInputsInline());
+        assertTrue(loaded.getInputsInlineModified());
+
+        loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_END, bf);
+        assertTrue(loaded.getInputsInline());
+        assertTrue(loaded.getInputsInlineModified());
+
+        loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_FALSE, bf);
+        assertFalse(loaded.getInputsInline());
+        assertTrue(loaded.getInputsInlineModified());
+
+        loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK, bf);
+        assertFalse(loaded.getInputsInline());
+        assertFalse(loaded.getInputsInlineModified());
+    }
+
     public void testLoadFromXml_shadows() throws IOException, XmlPullParserException {
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
 
@@ -280,6 +301,32 @@ public class BlockTest extends AndroidTestCase {
         assertEquals(BlockTestStrings.blockStart("block", "frankenblock", "frankenblock1", null)
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END, os.toString());
+    }
+
+    public void testSerializeInputsInline() throws BlocklySerializerException, IOException {
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
+        block.setPosition(37, 13);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        XmlSerializer serializer = getXmlSerializer(os);
+
+        block.serialize(serializer, true);
+        serializer.flush();
+        assertEquals(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION, os.toString());
+
+        block.setInputsInline(false);
+        os = new ByteArrayOutputStream();
+        serializer = getXmlSerializer(os);
+        block.serialize(serializer, true);
+        serializer.flush();
+        assertEquals(BlockTestStrings.EMPTY_BLOCK_INLINE_FALSE, os.toString());
+
+        block.setInputsInline(true);
+        os = new ByteArrayOutputStream();
+        serializer = getXmlSerializer(os);
+        block.serialize(serializer, true);
+        serializer.flush();
+        assertEquals(BlockTestStrings.EMPTY_BLOCK_INLINE_TRUE, os.toString());
     }
 
     public void testSerializeShadowBlock() throws BlocklySerializerException, IOException {

@@ -79,6 +79,12 @@ public class BlockTestStrings {
     public static final String EMPTY_BLOCK_ID = "EMPTY_BLOCK_ID";
     public static final String EMPTY_BLOCK_WITH_POSITION =
             "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" x=\"37\" y=\"13\" />";
+    public static final String EMPTY_BLOCK_INLINE_FALSE =
+            "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" "
+                   + "x=\"37\" y=\"13\" inline=\"false\" />";
+    public static final String EMPTY_BLOCK_INLINE_TRUE =
+            "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" "
+                    + "x=\"37\" y=\"13\" inline=\"true\" />";
     public static final String EMPTY_SHADOW_WITH_POSITION =
             "<shadow type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" x=\"37\" y=\"13\" />";
     public static final String EMPTY_BLOCK_NO_POSITION =
@@ -93,6 +99,18 @@ public class BlockTestStrings {
             "<shadow type=\"frankenblock\" id=\"SIMPLE_BLOCK\" x=\"37\" y=\"13\">"
             + "<field name=\"text_input\">item</field>"
             + "</shadow>";
+    public static final String SIMPLE_BLOCK_INLINE_END =
+            "<block type=\"frankenblock\" id=\"INLINE_END\" x=\"37\" y=\"13\" inline=\"true\">"
+                    + "<field name=\"text_input\">item</field>"
+                    + "</block>";
+    public static final String SIMPLE_BLOCK_INLINE_BEGINNING =
+            "<block type=\"frankenblock\" id=\"INLINE_START\" inline=\"true\" x=\"37\" y=\"13\">"
+                    + "<field name=\"text_input\">item</field>"
+                    + "</block>";
+    public static final String SIMPLE_BLOCK_INLINE_FALSE =
+            "<block type=\"frankenblock\" id=\"INLINE_FALSE\" x=\"37\" y=\"13\" inline=\"false\">"
+                    + "<field name=\"text_input\">item</field>"
+                    + "</block>";
 
     public static final String NO_BLOCK_TYPE =
             "<block id=\"364\" x=\"37\" y=\"13\">"

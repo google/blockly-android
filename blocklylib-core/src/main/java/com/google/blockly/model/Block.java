@@ -54,7 +54,6 @@ public class Block {
     private final ArrayList<Input> mInputList;
     private final ArrayList<Connection> mConnectionList;
     private final int mColor;
-    private boolean mInputsInline;
     private boolean mIsShadow;
 
     // These values can be changed after creating the block
@@ -66,13 +65,18 @@ public class Block {
     private boolean mCanEdit;
     private boolean mCollapsed;
     private boolean mDisabled;
+    private boolean mInputsInline;
+
+    // Keep track of whether inputsInline has ever been changed.
+    private boolean mInputsInlineModified = false;
 
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
 
     private Block(@Nullable String uuid, String name, int category, int color,
                   Connection outputConnection, Connection nextConnection,
-                  Connection previousConnection, ArrayList<Input> inputList, boolean inputsInline) {
+                  Connection previousConnection, ArrayList<Input> inputList, boolean inputsInline,
+                  boolean inputsInlineModified) {
         mUuid = (uuid != null) ? uuid : UUID.randomUUID().toString();
         mName = name;
         mCategory = category;
@@ -85,6 +89,7 @@ public class Block {
 
         mInputList = inputList;
         mInputsInline = inputsInline;
+        mInputsInlineModified = inputsInlineModified;
         mPosition = new WorkspacePoint(0, 0);
 
         mColor = color;
@@ -224,6 +229,13 @@ public class Block {
     }
 
     /**
+     * @return Whether the flag for displaying inputs in-line has been explicitly set.
+     */
+    public boolean getInputsInlineModified() {
+        return mInputsInlineModified;
+    }
+
+    /**
      * @return The current state of the flag for displaying inputs in-line.
      */
     public boolean getInputsInline() {
@@ -234,6 +246,7 @@ public class Block {
      * Set flag for displaying inputs in-line.
      */
     public void setInputsInline(boolean inputsInline) {
+        mInputsInlineModified = true;
         mInputsInline = inputsInline;
     }
 
@@ -387,6 +400,13 @@ public class Block {
         if (rootBlock) {
             serializer.attribute(null, "x", Integer.toString(mPosition.x))
                     .attribute(null, "y", Integer.toString(mPosition.y));
+        }
+
+        // Only serialize whether the inputs are internal or external if it has been explicitly
+        // modified.  This can happen if it's set explicitly in json, if it's set in xml, or if
+        // it was changed by the user in the program.
+        if (mInputsInlineModified) {
+            serializer.attribute(null, "inline", Boolean.toString(mInputsInline));
         }
 
         for (int i = 0; i < mInputList.size(); i++) {
@@ -783,6 +803,11 @@ public class Block {
             throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
         }
 
+        String inputsInlineString = parser.getAttributeValue(null, "inline");
+        if (inputsInlineString != null) {
+            resultBlock.setInputsInline(Boolean.parseBoolean(inputsInlineString));
+        }
+
         // Set position.  Only if this is a top level block.
         String x = parser.getAttributeValue(null, "x");
         String y = parser.getAttributeValue(null, "y");
@@ -983,6 +1008,7 @@ public class Block {
         private String mComment;
         private boolean mHasContextMenu = false;
         private boolean mInputsInline = false;
+        private boolean mInputsInlineModified = false;
         private boolean mIsShadow = false;
         private boolean mCanDelete = true;
         private boolean mCanMove = true;
@@ -1016,6 +1042,7 @@ public class Block {
             }
 
             mInputsInline = block.mInputsInline;
+            mInputsInlineModified = block.mInputsInlineModified;
 
             // TODO: Reconsider the defaults for these
             mTooltip = block.mTooltip;
@@ -1094,6 +1121,7 @@ public class Block {
 
         public Builder setInputsInline(boolean inputsInline) {
             this.mInputsInline = inputsInline;
+            this.mInputsInlineModified = true;
             return this;
         }
 
@@ -1150,7 +1178,7 @@ public class Block {
 
         public Block build() {
             Block b = new Block(mUuid, mName, mCategory, mColor, mOutputConnection, mNextConnection,
-                    mPreviousConnection, mInputs, mInputsInline);
+                    mPreviousConnection, mInputs, mInputsInline, mInputsInlineModified);
             b.mTooltip = mTooltip;
             b.mComment = mComment;
             b.mHasContextMenu = mHasContextMenu;
