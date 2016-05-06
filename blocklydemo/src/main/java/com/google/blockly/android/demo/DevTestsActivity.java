@@ -16,6 +16,7 @@
 package com.google.blockly.android.demo;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
@@ -29,7 +30,9 @@ import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlocklySerializerException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +51,8 @@ public class DevTestsActivity extends BlocklySectionsActivity {
                     "default/loop_blocks.json",
                     "default/math_blocks.json",
                     "default/variable_blocks.json",
-                    "default/test_blocks.json"
+                    "default/test_blocks.json",
+                    "sample_sections/mock_block_definitions.json"
             }));
 
     private static int CARPET_SIZE = 1000;
@@ -152,7 +156,20 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     @NonNull
     @Override
     protected void onLoadInitialWorkspace() {
-        MockBlocksProvider.makeComplexModel(getController());
+        try {
+            getController().loadWorkspaceContents(getAssets().open(
+                    "sample_sections/mock_block_initial_workspace.xml"));
+        } catch (IOException e) {
+            Log.d(TAG, "Couldn't load initial workspace.");
+        }
+        //        MockBlocksProvider.makeComplexModel(getController());
+//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//        try {
+//            mController.getWorkspace().serializeToXml(outputStream);
+//            Log.d("XML", "\n" + outputStream.toString());
+//        } catch (BlocklySerializerException e) {
+//            e.printStackTrace();
+//        }
         MockBlocksProvider.addDefaultVariables(getController());
     }
 
