@@ -25,14 +25,12 @@ import android.widget.Toast;
 import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
-import com.google.blockly.android.MockBlocksProvider;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.BlocklySerializerException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -162,15 +160,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         } catch (IOException e) {
             Log.d(TAG, "Couldn't load initial workspace.");
         }
-        //        MockBlocksProvider.makeComplexModel(getController());
-//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//        try {
-//            mController.getWorkspace().serializeToXml(outputStream);
-//            Log.d("XML", "\n" + outputStream.toString());
-//        } catch (BlocklySerializerException e) {
-//            e.printStackTrace();
-//        }
-        MockBlocksProvider.addDefaultVariables(getController());
+        addDefaultVariables();
     }
 
     @Override
@@ -208,7 +198,15 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     @Override
     protected void onInitBlankWorkspace() {
+        addDefaultVariables();
+    }
+
+    private void addDefaultVariables() {
         // TODO: (#22) Remove this override when variables are supported properly
-        MockBlocksProvider.addDefaultVariables(getController());
+        BlocklyController controller = getController();
+        controller.addVariable("item");
+        controller.addVariable("zim");
+        controller.addVariable("gir");
+        controller.addVariable("tak");
     }
 }

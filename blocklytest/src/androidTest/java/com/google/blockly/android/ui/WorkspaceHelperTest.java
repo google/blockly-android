@@ -14,13 +14,13 @@
  */
 
 package com.google.blockly.android.ui;
-
-import com.google.blockly.android.MockBlocksProvider;
+import com.google.blockly.android.R;
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockFactory;
 
 import org.mockito.Mock;
 
@@ -35,6 +35,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private BlockViewFactory mViewFactory;
+    private BlockFactory mBlockFactory;
 
     @Mock
     private ConnectionManager mockConnectionManager;
@@ -48,32 +49,34 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
         mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
+        mBlockFactory = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
     }
 
     // test getParentBlockGroup
     public void testGetNearestParentBlockGroup() throws InterruptedException {
         final List<Block> blocks = new ArrayList<>();
-        Block root = MockBlocksProvider.makeStatementBlock();
+        Block root = mBlockFactory.obtainBlock("statement_no_input", null);
         Block cur = root;
         // Make a chain of statement blocks, all of which will be in the same block group.
         for (int i = 0; i < 3; i++) {
             cur.getNextConnection().connect(
-                    MockBlocksProvider.makeStatementBlock().getPreviousConnection());
+                    mBlockFactory.obtainBlock("statement_no_input", null).getPreviousConnection());
             cur = cur.getNextBlock();
         }
 
         // Add a block that has inputs at the end of the chain.
-        cur.getNextConnection().connect(MockBlocksProvider.makeDummyBlock().getPreviousConnection());
+        cur.getNextConnection().connect(
+                mBlockFactory.obtainBlock("statement_value_input", null).getPreviousConnection());
         cur = cur.getNextBlock();
 
         // Connect a block as an input.  It should be in its own block group.
-        Block hasOutput = MockBlocksProvider.makeSimpleValueBlock();
-        cur.getInputByName("input2").getConnection().connect(hasOutput.getOutputConnection());
+        Block hasOutput = mBlockFactory.obtainBlock("output_no_input", null);
+        cur.getInputByName("value").getConnection().connect(hasOutput.getOutputConnection());
 
         blocks.add(root);
 
         // Add a completely unconnected block.
-        blocks.add(MockBlocksProvider.makeStatementBlock());
+        blocks.add(mBlockFactory.obtainBlock("statement_no_input", null));
 
         TestUtils.createViews(blocks, mViewFactory, mockConnectionManager, mWorkspaceView);
 
@@ -91,23 +94,24 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     // test getDraggableBlockGroup
     public void testGetRootBlockGroup() throws InterruptedException {
         final List<Block> blocks = new ArrayList<>();
-        Block root = MockBlocksProvider.makeDummyBlock();
+        Block root = mBlockFactory.obtainBlock("statement_statement_input", null);
         Block cur = root;
         // Make a chain of blocks with statement inputs.  Each block will be connected to a
         // statement input on the block above.
         for (int i = 0; i < 3; i++) {
-            cur.getInputByName("input6").getConnection().connect(
-                    MockBlocksProvider.makeDummyBlock().getPreviousConnection());
-            cur = cur.getInputByName("input6").getConnection().getTargetBlock();
+            cur.getInputByName("statement input").getConnection().connect(
+                    mBlockFactory.obtainBlock("statement_statement_input", null)
+                            .getPreviousConnection());
+            cur = cur.getInputByName("statement input").getConnection().getTargetBlock();
         }
         // At the end of the chain, add a block as a "next".  It will still be in the same root
         // block group.
-        Block finalBlock = MockBlocksProvider.makeStatementBlock();
+        Block finalBlock = mBlockFactory.obtainBlock("statement_no_input", null);
         cur.getNextConnection().connect(finalBlock.getPreviousConnection());
         blocks.add(root);
 
         // Add a completely unconnected block.
-        blocks.add(MockBlocksProvider.makeDummyBlock());
+        blocks.add(mBlockFactory.obtainBlock("empty_block", null));
 
         TestUtils.createViews(blocks, mViewFactory, mockConnectionManager, mWorkspaceView);
 

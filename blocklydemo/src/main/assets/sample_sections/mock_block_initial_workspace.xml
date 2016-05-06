@@ -19,7 +19,7 @@
         <field name="input text">initial wide field of text</field>
         <field name="DO">another loop</field>
         <next>
-            <block type="dummy" id="second_dummy_block_id">
+            <block type="dummy" id="second_dummy_block_id" inline="true">
                 <field name="checkbox!">true</field>
                 <field name="label2">180</field>
                 <field name="date!">2015-03-19</field>
@@ -32,7 +32,7 @@
                 <field name="input text">initial wide field of text</field>
                 <field name="DO">another loop</field>
                 <next>
-                    <block type="dummy" id="third_dummy_block_id">
+                    <block type="dummy" id="third_dummy_block_id" inline="true">
                         <field name="checkbox!">true</field>
                         <field name="label2">180</field>
                         <field name="date!">2015-03-19</field>
