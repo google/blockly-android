@@ -28,6 +28,7 @@ import android.util.Pair;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
@@ -49,6 +50,8 @@ public class Dragger {
     private static final String TAG = "Dragger";
     private static final boolean LOG_TOUCH_EVENTS = false;
     private static final boolean LOG_DRAG_EVENTS = false;
+
+    private static final int TAP_TIMEOUT = ViewConfiguration.getTapTimeout();
 
     /**
      * Interface for processing a drag behavior.
@@ -389,19 +392,27 @@ public class Dragger {
             } else if (matchesPending && !interceptMode) {
                 // The Pending Drag was created during intercept, but the child did not handle it
                 // and the event has bubbled down to here.
-                result = true;
+                if (dragMode == DRAG_MODE_IMMEDIATE) {
+                    result = maybeStartDrag(dragHandler);
+                } else {
+                    result = true;
+                }
             } else {
                 result = false; // Pending drag already started with a different view / pointer id.
             }
         } else if (matchesPending) {
             // This touch is part of the current PendingDrag.
             if (action == MotionEvent.ACTION_MOVE) {
-                if (mPendingDrag == null || mPendingDrag.isDragging()) {
+                if (mPendingDrag.isDragging()) {
                     result = false;  // We've already cancelled or started dragging.
                 } else {
                     // Mark all direct move events as handled, but only intercepted events if they
                     // initiate a new drag.
-                    boolean isNewDrag = isBeyondSlopThreshold(event) && maybeStartDrag(dragHandler);
+                    boolean isDragGesture =
+                            (!interceptMode && dragMode == DRAG_MODE_IMMEDIATE
+                                    && event.getDownTime() > TAP_TIMEOUT)
+                            || isBeyondSlopThreshold(event);
+                    boolean isNewDrag = isDragGesture && maybeStartDrag(dragHandler);
                     result = isNewDrag || !interceptMode;
                 }
             }
