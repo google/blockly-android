@@ -18,6 +18,7 @@
         android:id="@+id/field_number"
         style="@style/TextAppearance.AppCompat.Large"
         android:textSize="?blockTextSize"
+        android:background="@drawable/edit_text_background"
         android:singleLine="true"
         android:paddingTop="4dip"
         android:paddingBottom="4dip"

@@ -18,7 +18,7 @@
         android:id="@+id/field_angle"
         style="@style/TextAppearance.AppCompat.Large"
         android:textSize="?blockTextSize"
-        android:background="@color/angle_bg"
+        android:background="@drawable/edit_text_background_disabled"
         android:singleLine="true"
         android:padding="4dip"
         android:layout_width="wrap_content"
