@@ -62,6 +62,8 @@
       try {
         Blockly.Xml.domToWorkspace(workspace, dom);
         var code = Blockly.JavaScript.workspaceToCode(workspace);
+        // Strip out block IDs for readability.
+        code = goog.string.trimRight(code.replace(/(,\s*)?'block_id_[^']+'\)/g, ')'))
         BlocklyJavascriptInterface.execute(code);
       } catch (e) {
         console.log(e.message);
