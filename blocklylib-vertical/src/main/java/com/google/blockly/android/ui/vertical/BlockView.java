@@ -632,6 +632,8 @@ public class BlockView extends AbstractBlockView<InputView> {
         mBlockBorderPatches.clear();
         mFillRects.clear();
 
+        boolean isShadow = mBlock.isShadow();
+
         // Leave room on the left for margin (accomodates optional output connector) and block
         // padding (accomodates block boundary).
         int xFrom = mOutputConnectorMargin + mPatchManager.mBlockStartPadding;
@@ -650,7 +652,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         // Position top-left corner drawable. Retain drawable object so we can position bottom-left
         // drawable correctly.
         int yTop = 0;
-        final NinePatchDrawable topStartDrawable = addTopLeftPatch(xTo, yTop);
+        final NinePatchDrawable topStartDrawable = addTopLeftPatch(isShadow, xTo, yTop);
 
         // Position inputs and connectors.
         mInputConnectionHighlightPatches.clear();
@@ -676,17 +678,17 @@ public class BlockView extends AbstractBlockView<InputView> {
                     boolean isEndOfLine = !mBlock.getInputsInline() || isLastInput
                             || nextIsStatement;
                     if (isEndOfLine) {
-                        addDummyBoundaryPatch(xTo, inputView, inputLayoutOrigin);
+                        addDummyBoundaryPatch(isShadow, xTo, inputView, inputLayoutOrigin);
                     }
                     break;
                 }
                 case Input.TYPE_VALUE: {
                     if (mBlock.getInputsInline()) {
                         addInlineValueInputPatch(
-                                i, inlineRowIdx, xFrom, inputView, inputLayoutOrigin);
+                                isShadow, i, inlineRowIdx, xFrom, inputView, inputLayoutOrigin);
 
                     } else {
-                        addExternalValueInputPatch(i, xTo, inputView, inputLayoutOrigin);
+                        addExternalValueInputPatch(isShadow, i, xTo, inputView, inputLayoutOrigin);
                     }
                     break;
                 }
@@ -703,7 +705,7 @@ public class BlockView extends AbstractBlockView<InputView> {
 
                     // Place the connector patches.
                     addStatementInputPatches(
-                            i, xFrom, xTo, xToBottom, inputView, inputLayoutOrigin);
+                            isShadow, i, xFrom, xTo, xToBottom, inputView, inputLayoutOrigin);
 
                     // Set new horizontal end coordinate for subsequent inputs.
                     xTo = xToBottom;
@@ -714,15 +716,18 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         // Select and position correct patch for bottom and left-hand side of the block, including
         // bottom-left corner.
-        int bottomStartResourceId = R.drawable.bottom_start_default;
+        int bottomStartResourceId = isShadow ? R.drawable.bottom_start_default_shadow
+                : R.drawable.bottom_start_default;
         int bottomStartBorderResourceId = R.drawable.bottom_start_default_border;
         if (mBlock.getNextConnection() != null) {
             mHelper.setPointMaybeFlip(
                     mNextConnectorOffset, mOutputConnectorMargin, mNextBlockVerticalOffset);
-            bottomStartResourceId = R.drawable.bottom_start_next;
+            bottomStartResourceId = isShadow ? R.drawable.bottom_start_next_shadow
+                    : R.drawable.bottom_start_next;
             bottomStartBorderResourceId = R.drawable.bottom_start_next_border;
         } else if (mBlock.getOutputConnection() != null) {
-            bottomStartResourceId = R.drawable.bottom_start_square;
+            bottomStartResourceId = isShadow ? R.drawable.bottom_start_default_square_shadow
+                    : R.drawable.bottom_start_default_square;
             bottomStartBorderResourceId = R.drawable.bottom_start_square_border;
         }
         final NinePatchDrawable bottomStartDrawable =
@@ -762,27 +767,30 @@ public class BlockView extends AbstractBlockView<InputView> {
      * bottom-left drawable, relative to it.
      */
     @NonNull
-    private NinePatchDrawable addTopLeftPatch(int xTo, int yTop) {
+    private NinePatchDrawable addTopLeftPatch(boolean isShadow, int xTo, int yTop) {
         // Select and position the correct patch for the top and left block sides including the
         // top-left corner.
         NinePatchDrawable topStartDrawable;
         NinePatchDrawable topStartBorderDrawable;
         if (mBlock.getPreviousConnection() != null) {
             mHelper.setPointMaybeFlip(mPreviousConnectorOffset, mOutputConnectorMargin, yTop);
-            topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_previous);
+            topStartDrawable = getColoredPatchDrawable(isShadow
+                    ? R.drawable.top_start_previous_shadow : R.drawable.top_start_previous);
             topStartBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_previous_border);
             mPreviousConnectorHighlightPatch =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_previous_connection);
         } else if (mBlock.getOutputConnection() != null) {
             mHelper.setPointMaybeFlip(mOutputConnectorOffset, mOutputConnectorMargin, yTop);
-            topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_output);
+            topStartDrawable = getColoredPatchDrawable(
+                    isShadow ? R.drawable.top_start_output_shadow : R.drawable.top_start_output);
             topStartBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_output_border);
             mOutputConnectorHighlightPatch =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_output_connection);
         } else {
-            topStartDrawable = getColoredPatchDrawable(R.drawable.top_start_default);
+            topStartDrawable = getColoredPatchDrawable(
+                    isShadow ? R.drawable.top_start_default_shadow : R.drawable.top_start_default);
             topStartBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_default_border);
         }
@@ -816,10 +824,11 @@ public class BlockView extends AbstractBlockView<InputView> {
      * @param inputLayoutOrigin The layout origin for the current input. This is used to determine
      * the vertical position for the patch.
      */
-    private void addDummyBoundaryPatch(int xTo, InputView inputView, ViewPoint inputLayoutOrigin) {
+    private void addDummyBoundaryPatch(boolean isShadow, int xTo, InputView inputView,
+                                       ViewPoint inputLayoutOrigin) {
         // For external dummy inputs, put a patch for the block boundary.
-        final NinePatchDrawable inputDrawable =
-                getColoredPatchDrawable(R.drawable.dummy_input);
+        final NinePatchDrawable inputDrawable = getColoredPatchDrawable(
+                isShadow ? R.drawable.dummy_input_shadow : R.drawable.dummy_input);
         final NinePatchDrawable inputBorderDrawable =
                 mPatchManager.getPatchDrawable(R.drawable.dummy_input_border);
         int width = inputDrawable.getIntrinsicWidth();
@@ -855,13 +864,13 @@ public class BlockView extends AbstractBlockView<InputView> {
      * @param inputLayoutOrigin The layout origin for the current input. This is used to determine
      * the vertical position for the patch.
      */
-    private void addExternalValueInputPatch(int i, int xTo,
+    private void addExternalValueInputPatch(boolean isShadow, int i, int xTo,
                                             InputView inputView, ViewPoint inputLayoutOrigin) {
         // Position patch and connector for external value input.
         mHelper.setPointMaybeFlip(mInputConnectorOffsets.get(i), xTo, inputLayoutOrigin.y);
 
-        final NinePatchDrawable inputDrawable =
-                getColoredPatchDrawable(R.drawable.value_input_external);
+        final NinePatchDrawable inputDrawable = getColoredPatchDrawable(isShadow
+                ? R.drawable.value_input_external_shadow : R.drawable.value_input_external);
         final NinePatchDrawable inputBorderDrawable =
                 mPatchManager.getPatchDrawable(R.drawable.value_input_external_border);
         final NinePatchDrawable connectionHighlightDrawable =
@@ -924,7 +933,7 @@ public class BlockView extends AbstractBlockView<InputView> {
      * @param inputView The input view.
      * @param inputLayoutOrigin Layout origin for the current input view.
      */
-    private void addInlineValueInputPatch(int i, int inlineRowIdx, int blockFromX,
+    private void addInlineValueInputPatch(boolean isShadow, int i, int inlineRowIdx, int blockFromX,
                                           InputView inputView, ViewPoint inputLayoutOrigin) {
         // Determine position for inline connector cutout.
         final int cutoutX = blockFromX + inputLayoutOrigin.x + inputView.getInlineInputX();
@@ -946,8 +955,8 @@ public class BlockView extends AbstractBlockView<InputView> {
         }
 
         // Position a properly-sized input cutout patch.
-        final NinePatchDrawable inputDrawable =
-                getColoredPatchDrawable(R.drawable.value_input_inline);
+        final NinePatchDrawable inputDrawable = getColoredPatchDrawable(
+                isShadow ? R.drawable.value_input_inline_shadow : R.drawable.value_input_inline);
         final NinePatchDrawable connectionHighlightDrawable =
                 mPatchManager.getPatchDrawable(R.drawable.value_input_inline_connection);
         mHelper.setRtlAwareBounds(tempRect,
@@ -986,8 +995,8 @@ public class BlockView extends AbstractBlockView<InputView> {
                     (inlineRowIdx > 0 ? 0 : mPatchManager.mBlockTopPadding);
             final int patchRight = patchX + mPatchManager.mBlockEndPadding;
 
-            final NinePatchDrawable blockFillDrawable =
-                    getColoredPatchDrawable(R.drawable.dummy_input);
+            final NinePatchDrawable blockFillDrawable = getColoredPatchDrawable(
+                    isShadow ? R.drawable.dummy_input_shadow : R.drawable.dummy_input);
             final NinePatchDrawable blockFillBorderDrawable =
                     mPatchManager.getPatchDrawable(R.drawable.dummy_input_border);
 
@@ -1020,7 +1029,8 @@ public class BlockView extends AbstractBlockView<InputView> {
      * @param inputView The view for this input.
      * @param inputLayoutOrigin Layout origin for this input.
      */
-    private void addStatementInputPatches(int i, int xFrom, int xToAbove, int xToBelow,
+    private void addStatementInputPatches(boolean isShadow, int i,
+                                          int xFrom, int xToAbove, int xToBelow,
                                           InputView inputView, ViewPoint inputLayoutOrigin) {
         // Position connector. Shift by horizontal and vertical patch thickness to line up with
         // "Previous" connector on child block.
@@ -1031,8 +1041,8 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         // Position patch for the top part of the Statement connector. This patch is
         // stretched only horizontally to extend to the block boundary.
-        final NinePatchDrawable statementTopDrawable =
-                getColoredPatchDrawable(R.drawable.statementinput_top);
+        final NinePatchDrawable statementTopDrawable = getColoredPatchDrawable(
+                isShadow ? R.drawable.statementinput_top_shadow : R.drawable.statementinput_top);
         final NinePatchDrawable statementTopBorderDrawable =
                 mPatchManager.getPatchDrawable(R.drawable.statementinput_top_border);
         final NinePatchDrawable statementConnectionHighlight =
@@ -1056,8 +1066,8 @@ public class BlockView extends AbstractBlockView<InputView> {
         // patch is stretched horizontally, like the top patch, but also vertically to
         // accomodate height of the input fields as well as the size of any connected
         // blocks.
-        final NinePatchDrawable statementBottomDrawable =
-                getColoredPatchDrawable(R.drawable.statementinput_bottom);
+        final NinePatchDrawable statementBottomDrawable = getColoredPatchDrawable(isShadow ?
+                R.drawable.statementinput_bottom_shadow : R.drawable.statementinput_bottom);
         final NinePatchDrawable statementBottomBorderDrawable =
                 mPatchManager.getPatchDrawable(R.drawable.statementinput_bottom_border);
 

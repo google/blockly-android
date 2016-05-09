@@ -16,6 +16,7 @@
 package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 
@@ -27,7 +28,6 @@ import com.google.blockly.android.ui.fieldview.BasicFieldColorView;
  */
 public class FieldColorView extends BasicFieldColorView {
     protected WorkspaceHelper mHelper;
-    private BlockView mBlockView = null;
 
     public FieldColorView(Context context) {
         super(context);
@@ -58,10 +58,14 @@ public class FieldColorView extends BasicFieldColorView {
     }
 
     private void maybeAcquireParentBlockView() {
-        mBlockView = (mHelper != null && ViewCompat.isAttachedToWindow(this)) ?
+        BlockView blockView = (mHelper != null && ViewCompat.isAttachedToWindow(this)) ?
             (BlockView) mHelper.getClosestAncestorBlockView(this) : null;
-        if (mBlockView != null) {
-            getForeground().setColorFilter(mBlockView.getColorFilter());
+        if (blockView != null) {
+            int foregroundId = blockView.getBlock().isShadow() ?
+                    R.drawable.inset_field_border_shadow : R.drawable.inset_field_border;
+            Drawable foreground = getResources().getDrawable(foregroundId);
+            foreground.setColorFilter(blockView.getColorFilter());
+            setForeground(foreground);
         }
     }
 }
