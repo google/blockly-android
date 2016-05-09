@@ -40,8 +40,10 @@ public class SplitActivity extends AbstractBlocklyActivity {
 
     // SplitActivity shares a save file with TurtleActivity to show generated code and running code.
     public static final String SAVED_WORKSPACE_FILENAME = TurtleActivity.SAVED_WORKSPACE_FILENAME;
-    TextView mGeneratedTextView;
-    Handler mHandler;
+    private TextView mGeneratedTextView;
+    private Handler mHandler;
+
+    private String mNoCodeText;
 
     CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new CodeGenerationRequest.CodeGeneratorCallback() {
@@ -77,6 +79,9 @@ public class SplitActivity extends AbstractBlocklyActivity {
     protected View onCreateContentView(int parentId) {
         View root = getLayoutInflater().inflate(R.layout.split_content, null);
         mGeneratedTextView = (TextView) root.findViewById(R.id.generated_code);
+
+        mNoCodeText = mGeneratedTextView.getText().toString(); // Capture initial value.
+
         return root;
     }
 
@@ -120,5 +125,11 @@ public class SplitActivity extends AbstractBlocklyActivity {
         getController().addVariable("don");
         getController().addVariable("mike");
         getController().addVariable("raf");
+    }
+
+    @Override
+    public void onClearWorkspace() {
+        super.onClearWorkspace();
+        mGeneratedTextView.setText(mNoCodeText);
     }
 }
