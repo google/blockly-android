@@ -38,6 +38,8 @@ import java.util.List;
 public class SplitActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SplitActivity";
 
+    // SplitActivity shares a save file with TurtleActivity to show generated code and running code.
+    public static final String SAVED_WORKSPACE_FILENAME = TurtleActivity.SAVED_WORKSPACE_FILENAME;
     TextView mGeneratedTextView;
     Handler mHandler;
 
@@ -53,6 +55,16 @@ public class SplitActivity extends AbstractBlocklyActivity {
                     });
                 }
             };
+
+    @Override
+    public void onLoadWorkspace() {
+        loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
+    }
+
+    @Override
+    public void onSaveWorkspace() {
+        saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
