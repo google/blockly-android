@@ -54,11 +54,11 @@
         "name": "DIR",
         "options": [
           [
-            "right by \u21BB",
+            "right \u21BB by",
             "turnRight"
           ],
           [
-            "left by \u21BA'",
+            "left \u21BA by",
             "turnLeft"
           ]
         ]
@@ -179,18 +179,18 @@
   },
   {
     "id": "turtle_move",
-    "message0": "%1 %2",
+    "message0": "move %1 %2",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "DIR",
         "options": [
           [
-            "move forward",
+            "forward",
             "moveForward"
           ],
           [
-            "move backward",
+            "backward",
             "moveBackward"
           ]
         ]
@@ -208,18 +208,18 @@
   },
   {
     "id": "turtle_turn",
-    "message0": "%1 %2",
+    "message0": "turn %1 %2",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "DIR",
         "options": [
           [
-            "turn right ↻",
+            "right \u21BB",
             "turnRight"
           ],
           [
-            "turn left ↺",
+            "left \u21BA",
             "turnLeft"
           ]
         ]
