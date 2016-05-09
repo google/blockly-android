@@ -16,6 +16,5 @@
 <resources>
     <dimen name="min_block_width">32dp</dimen>
     <dimen name="field_horizontal_spacing">8dip</dimen>
-    <dimen name="spinner_start_padding">8dip</dimen>
     <dimen name="spinner_end_padding">36dip</dimen>
 </resources>
