@@ -44,6 +44,7 @@ import java.util.List;
 public class DevTestsActivity extends BlocklySectionsActivity {
     private static final String TAG = "DevTestsActivity";
 
+    public static final String SAVED_WORKSPACE_FILENAME = "dev_tests_workspace.xml";
     private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
             Arrays.asList(new String[] {
                     "default/loop_blocks.json",
@@ -76,6 +77,16 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onLoadWorkspace() {
+        loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
+    }
+
+    @Override
+    public void onSaveWorkspace() {
+        saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
     }
 
     /**
