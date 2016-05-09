@@ -43,6 +43,7 @@ import java.util.List;
 public class TurtleActivity extends BlocklySectionsActivity {
     private static final String TAG = "TurtleActivity";
 
+    public static final String SAVED_WORKSPACE_FILENAME = "turtle_workspace.xml";
     static final List<String> TURTLE_BLOCK_DEFINITIONS = Arrays.asList(new String[]{
             "default/loop_blocks.json",
             "default/math_blocks.json",
@@ -50,13 +51,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
             "default/colour_blocks.json",
             "turtle/turtle_blocks.json"
     });
-
     static final List<String> TURTLE_BLOCK_GENERATORS = Arrays.asList(new String[]{
             "turtle/generators.js"
     });
-
     private static final int MAX_LEVELS = 10;
     private static final String[] LEVEL_TOOLBOX = new String[MAX_LEVELS];
+
     static {
         LEVEL_TOOLBOX[0] = "toolbox_basic.xml";
         LEVEL_TOOLBOX[1] = "toolbox_basic.xml";
@@ -90,6 +90,16 @@ public class TurtleActivity extends BlocklySectionsActivity {
                     });
                 }
             };
+
+    @Override
+    public void onLoadWorkspace() {
+        loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
+    }
+
+    @Override
+    public void onSaveWorkspace() {
+        saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
+    }
 
     @NonNull
     @Override
@@ -135,7 +145,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
         // them as simple text items in the sections drawer.
         String[] levelNames = new String[MAX_LEVELS];
         for (int i = 0; i < MAX_LEVELS; ++i) {
-            levelNames[i] = "Level " + (i +1);
+            levelNames[i] = "Level " + (i + 1);
         }
         return new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_activated_1,
