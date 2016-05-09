@@ -4,6 +4,10 @@
     <item android:drawable="@drawable/dropdown_background_pressed"
         android:state_pressed="true"/>
     <item android:drawable="@drawable/dropdown_background_focused"
+        android:state_window_focused="true"
         android:state_focused="true"/>
+    <item android:drawable="@drawable/dropdown_background_opened"
+        android:state_focused="true"
+        android:state_window_focused="true"/>
     <item android:drawable="@drawable/dropdown_background_default"/>
 </selector>
