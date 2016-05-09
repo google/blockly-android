@@ -316,7 +316,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                     + "instantiated.");
         }
         if (mVariableAdapter == null) {
-            mVariableAdapter = new BasicVariableAdapter(mVariableNameManager, mContext,
+            mVariableAdapter = new VariableViewAdapter(mContext, mVariableNameManager,
                     android.R.layout.simple_spinner_item);
         }
         return mVariableAdapter;
@@ -332,40 +332,5 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected final void unregisterView(BlockView blockView) {
         Block block = blockView.getBlock();
         mBlockIdToView.remove(block.getId());
-    }
-
-    /**
-     * An implementation of {@link ArrayAdapter} that wraps a name manager to create a list of
-     * items.
-     */
-    public static class BasicVariableAdapter extends ArrayAdapter<String> {
-        private final NameManager mVariableNameManager;
-
-        /**
-         * @param variableNameManager The name manager containing the variables.
-         * @param context A context for inflating layouts.
-         * @param resource The {@link TextView} layout to use when inflating items.
-         */
-        public BasicVariableAdapter(
-                NameManager variableNameManager, Context context, @LayoutRes int resource) {
-
-            super(context, resource);
-            mVariableNameManager = variableNameManager;
-            refreshVariables();
-            variableNameManager.registerObserver(new DataSetObserver() {
-                @Override
-                public void onChanged() {
-                    refreshVariables();
-                }
-            });
-        }
-
-        private void refreshVariables() {
-            clear();
-            for (int i = 0; i < mVariableNameManager.size(); i++) {
-                add(mVariableNameManager.get(i));
-            }
-            notifyDataSetChanged();
-        }
     }
 }

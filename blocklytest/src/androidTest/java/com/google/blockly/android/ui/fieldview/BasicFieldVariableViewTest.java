@@ -20,10 +20,14 @@ import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.control.NameManager;
+import com.google.blockly.android.ui.VariableViewAdapter;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldVariable;
 
 import org.mockito.Mock;
+
+import java.util.Set;
 
 /**
  * Tests for {@link BasicFieldVariableView}.
@@ -35,19 +39,22 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
 
     private FieldVariable mFieldVariable;
     private String[] mVariables = new String[] {"var1", "var2", "var3"};
-    private SpinnerAdapter mVariableAdapter;
-
+    private NameManager mNameManager;
+    private VariableViewAdapter mVariableAdapter;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        mFieldVariable = new FieldVariable("FieldVariable", "Var2");
-        assertNotNull(mFieldVariable);
-        assertEquals("Var2", mFieldVariable.getVariable());
+        mFieldVariable = new FieldVariable("field", "var2");
 
-        mVariableAdapter = new ArrayAdapter<String>(getContext(),
-                android.R.layout.simple_spinner_item, mVariables);
+        mNameManager = new NameManager.VariableNameManager();
+        mNameManager.addName("var1");
+        mNameManager.addName(mFieldVariable.getVariable());
+        mNameManager.addName("var3");
+
+        mVariableAdapter = new VariableViewAdapter(getContext(), mNameManager,
+                android.R.layout.simple_spinner_item);
     }
 
     // Verify object instantiation.

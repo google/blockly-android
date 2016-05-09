@@ -22,6 +22,7 @@ import android.widget.Adapter;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 
+import com.google.blockly.android.ui.VariableViewAdapter;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 
@@ -37,6 +38,7 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
     };
 
     protected FieldVariable mVariableField;
+    protected VariableViewAdapter mAdapter;
 
     /**
      * Constructs a new {@link BasicFieldVariableView}.
@@ -94,7 +96,9 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
 
     @Override
     public void setAdapter(SpinnerAdapter adapter) {
+        mAdapter = (VariableViewAdapter) adapter;
         super.setAdapter(adapter);
+
         if (adapter != null && mVariableField != null) {
             setSelection(mVariableField.getVariable());
         }
@@ -115,16 +119,8 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
         if (TextUtils.isEmpty(variableName)) {
             throw new IllegalArgumentException("Cannot set an empty variable name.");
         }
-        Adapter adapter = getAdapter();
-        if (adapter != null) {
-            int size = adapter.getCount();
-            for (int i = 0; i < size; i++) {
-                if (variableName.equalsIgnoreCase(adapter.getItem(i).toString())) {
-                    setSelection(i);
-                    return;
-                }
-            }
-            throw new IllegalArgumentException("The variable \"" + variableName + "\" does not exist.");
+        if (mAdapter != null) {
+            setSelection(mAdapter.getOrCreateVariableIndex(variableName));
         }
     }
 }
