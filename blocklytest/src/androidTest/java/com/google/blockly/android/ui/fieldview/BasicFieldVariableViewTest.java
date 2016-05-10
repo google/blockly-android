@@ -16,8 +16,6 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
-import android.widget.ArrayAdapter;
-import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.control.NameManager;
@@ -26,8 +24,6 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldVariable;
 
 import org.mockito.Mock;
-
-import java.util.Set;
 
 /**
  * Tests for {@link BasicFieldVariableView}.
