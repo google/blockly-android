@@ -35,8 +35,7 @@ public class LoggingCodeGeneratorCallback implements CodeGenerationRequest.CodeG
         // Sample callback.
         if (generatedCode.isEmpty()) {
             Toast.makeText(mContext,
-                    "Something went wrong while we were lovingly handcrafting your" +
-                            " artisan code", Toast.LENGTH_LONG).show();
+                    "Something went wrong with code generation.", Toast.LENGTH_LONG).show();
         } else {
             Log.d(mTag, "code: " + generatedCode);
             Toast.makeText(mContext, generatedCode, Toast.LENGTH_LONG).show();
