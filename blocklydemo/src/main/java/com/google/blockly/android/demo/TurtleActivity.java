@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -33,6 +34,7 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.util.JavascriptUtil;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -101,6 +103,36 @@ public class TurtleActivity extends BlocklySectionsActivity {
         saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        boolean loadWorkspace = false;
+        String filename = "";
+        if (id == R.id.action_demo_workspace_1) {
+            loadWorkspace = true;
+            filename = "demo_workspace_1.xml";
+        } else if (id == R.id.action_demo_workspace_2) {
+            loadWorkspace = true;
+            filename = "demo_workspace_2.xml";
+        } else if (id == R.id.action_demo_workspace_3) {
+            loadWorkspace = true;
+            filename = "demo_workspace_3.xml";
+        }
+
+        if (loadWorkspace) {
+            try {
+                getController().loadWorkspaceContents(getAssets().open(
+                        "turtle/demo_workspaces/" + filename));
+            } catch (IOException e) {
+                Log.d(TAG, "Couldn't load workspace from assets");
+            }
+            addDefaultVariables();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     @NonNull
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
@@ -108,6 +140,11 @@ public class TurtleActivity extends BlocklySectionsActivity {
         // level to level. The set of blocks shown in the toolbox for each level is defined by the
         // toolbox path below.
         return TURTLE_BLOCK_DEFINITIONS;
+    }
+
+    @Override
+    protected int getActionBarMenuResId() {
+        return R.menu.turtle_actionbar;
     }
 
     @NonNull
@@ -130,12 +167,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     protected void onInitBlankWorkspace() {
-        // TODO: (#22) Remove this override when variables are supported properly
-        getController().addVariable("item");
-        getController().addVariable("leo");
-        getController().addVariable("don");
-        getController().addVariable("mike");
-        getController().addVariable("raf");
+        addDefaultVariables();
     }
 
     @NonNull
@@ -178,5 +210,14 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @Override
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         return mCodeGeneratorCallback;
+    }
+
+    private void addDefaultVariables() {
+        // TODO: (#22) Remove this override when variables are supported properly
+        getController().addVariable("item");
+        getController().addVariable("leo");
+        getController().addVariable("don");
+        getController().addVariable("mike");
+        getController().addVariable("raf");
     }
 }

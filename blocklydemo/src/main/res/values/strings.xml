@@ -24,4 +24,8 @@
     <string name="split_activity_name">Blockly Split</string>
     <string name="turtle_activity_name">Blockly Turtle</string>
     <string name="style_activity_name">Blockly Styles</string>
+
+    <string name="action_demo_workspace_1">Open demo 1</string>
+    <string name="action_demo_workspace_2">Open demo 2</string>
+    <string name="action_demo_workspace_3">Open demo 3</string>
 </resources>
