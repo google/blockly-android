@@ -25,7 +25,7 @@
     <string name="turtle_activity_name">Blockly Turtle</string>
     <string name="style_activity_name">Blockly Styles</string>
 
-    <string name="action_demo_workspace_1">Open demo 1</string>
-    <string name="action_demo_workspace_2">Open demo 2</string>
-    <string name="action_demo_workspace_3">Open demo 3</string>
+    <string name="action_demo_android">Android</string>
+    <string name="action_demo_lacey_curves">Lacey Curves</string>
+    <string name="action_demo_paint_strokes">Paint Strokes</string>
 </resources>

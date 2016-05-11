@@ -1,0 +1,235 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+    <block type="controls_repeat_ext" x="-160" y="-202" inline="true">
+        <value name="TIMES">
+            <shadow type="math_number">
+                <field name="NUM">100.0</field>
+            </shadow>
+        </value>
+        <statement name="DO">
+            <block type="turtle_colour">
+                <value name="COLOUR">
+                    <shadow type="colour_picker">
+                        <field name="COLOUR">#ff0000</field>
+                    </shadow>
+                    <block type="colour_random" />
+                </value>
+                <next>
+                    <block type="variables_set" inline="true">
+                        <value name="VALUE">
+                            <shadow type="math_number">
+                                <field name="NUM">0.0</field>
+                            </shadow>
+                        </value>
+                        <field name="VAR">item</field>
+                        <next>
+                            <block type="variables_set" inline="true">
+                                <value name="VALUE">
+                                    <shadow type="math_number">
+                                        <field name="NUM">0.0</field>
+                                    </shadow>
+                                    <block type="math_random_int" inline="true">
+                                        <value name="FROM">
+                                            <shadow type="math_number">
+                                                <field name="NUM">3.0</field>
+                                            </shadow>
+                                        </value>
+                                        <value name="TO">
+                                            <shadow type="math_number">
+                                                <field name="NUM">10.0</field>
+                                            </shadow>
+                                        </value>
+                                    </block>
+                                </value>
+                                <field name="VAR">leo</field>
+                                <next>
+                                    <block type="variables_set" inline="true">
+                                        <value name="VALUE">
+                                            <shadow type="math_number">
+                                                <field name="NUM">0.0</field>
+                                            </shadow>
+                                            <block type="math_random_int" inline="true">
+                                                <value name="FROM">
+                                                    <shadow type="math_number">
+                                                        <field name="NUM">-10.0</field>
+                                                    </shadow>
+                                                </value>
+                                                <value name="TO">
+                                                    <shadow type="math_number">
+                                                        <field name="NUM">10.0</field>
+                                                    </shadow>
+                                                </value>
+                                            </block>
+                                        </value>
+                                        <field name="VAR">don</field>
+                                        <next>
+                                            <block type="controls_repeat_ext" inline="true">
+                                                <value name="TIMES">
+                                                    <shadow type="math_number">
+                                                        <field name="NUM">10.0</field>
+                                                    </shadow>
+                                                    <block type="math_random_int" inline="true">
+                                                        <value name="FROM">
+                                                            <shadow type="math_number">
+                                                                <field name="NUM">5.0</field>
+                                                            </shadow>
+                                                        </value>
+                                                        <value name="TO">
+                                                            <shadow type="math_number">
+                                                                <field name="NUM">20.0</field>
+                                                            </shadow>
+                                                        </value>
+                                                    </block>
+                                                </value>
+                                                <statement name="DO">
+                                                    <block type="math_change">
+                                                        <value name="DELTA">
+                                                            <shadow type="math_number">
+                                                                <field name="NUM">1.0</field>
+                                                            </shadow>
+                                                        </value>
+                                                        <field name="VAR">item</field>
+                                                        <next>
+                                                            <block type="turtle_width">
+                                                                <value name="WIDTH">
+                                                                    <shadow type="math_number">
+                                                                        <field name="NUM">4.0</field>
+                                                                    </shadow>
+                                                                    <block type="variables_get">
+                                                                        <field name="VAR">item</field>
+                                                                    </block>
+                                                                </value>
+                                                                <next>
+                                                                    <block type="turtle_move">
+                                                                        <value name="VALUE">
+                                                                            <shadow type="math_number">
+                                                                                <field name="NUM">10.0</field>
+                                                                            </shadow>
+                                                                            <block type="variables_get">
+                                                                                <field name="VAR">leo</field>
+                                                                            </block>
+                                                                        </value>
+                                                                        <field name="DIR">moveForward</field>
+                                                                        <next>
+                                                                            <block type="turtle_turn">
+                                                                                <value name="VALUE">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">90.0</field>
+                                                                                    </shadow>
+                                                                                    <block type="variables_get">
+                                                                                        <field name="VAR">don</field>
+                                                                                    </block>
+                                                                                </value>
+                                                                                <field name="DIR">turnRight</field>
+                                                                            </block>
+                                                                        </next>
+                                                                    </block>
+                                                                </next>
+                                                            </block>
+                                                        </next>
+                                                    </block>
+                                                </statement>
+                                                <next>
+                                                    <block type="turtle_pen">
+                                                        <field name="PEN">penUp</field>
+                                                        <next>
+                                                            <block type="turtle_turn">
+                                                                <value name="VALUE">
+                                                                    <shadow type="math_number">
+                                                                        <field name="NUM">90.0</field>
+                                                                    </shadow>
+                                                                    <block type="math_arithmetic" inline="true">
+                                                                        <value name="A">
+                                                                            <shadow type="math_number">
+                                                                                <field name="NUM">1.0</field>
+                                                                            </shadow>
+                                                                            <block type="math_arithmetic" inline="true">
+                                                                                <value name="A">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">1.0</field>
+                                                                                    </shadow>
+                                                                                    <block type="math_random_float" />
+                                                                                </value>
+                                                                                <value name="B">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">240.0</field>
+                                                                                    </shadow>
+                                                                                </value>
+                                                                                <field name="OP">MULTIPLY</field>
+                                                                            </block>
+                                                                        </value>
+                                                                        <value name="B">
+                                                                            <shadow type="math_number">
+                                                                                <field name="NUM">60.0</field>
+                                                                            </shadow>
+                                                                        </value>
+                                                                        <field name="OP">ADD</field>
+                                                                    </block>
+                                                                </value>
+                                                                <field name="DIR">turnRight</field>
+                                                                <next>
+                                                                    <block type="turtle_move">
+                                                                        <value name="VALUE">
+                                                                            <shadow type="math_number">
+                                                                                <field name="NUM">50.0</field>
+                                                                            </shadow>
+                                                                            <block type="math_random_int" inline="true">
+                                                                                <value name="FROM">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">30.0</field>
+                                                                                    </shadow>
+                                                                                </value>
+                                                                                <value name="TO">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">100.0</field>
+                                                                                    </shadow>
+                                                                                </value>
+                                                                            </block>
+                                                                        </value>
+                                                                        <field name="DIR">moveForward</field>
+                                                                        <next>
+                                                                            <block type="turtle_turn">
+                                                                                <value name="VALUE">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">90.0</field>
+                                                                                    </shadow>
+                                                                                    <block type="math_arithmetic" inline="true">
+                                                                                        <value name="A">
+                                                                                            <shadow type="math_number">
+                                                                                                <field name="NUM">1.0</field>
+                                                                                            </shadow>
+                                                                                            <block type="math_random_float" />
+                                                                                        </value>
+                                                                                        <value name="B">
+                                                                                            <shadow type="math_number">
+                                                                                                <field name="NUM">360.0</field>
+                                                                                            </shadow>
+                                                                                        </value>
+                                                                                        <field name="OP">ADD</field>
+                                                                                    </block>
+                                                                                </value>
+                                                                                <field name="DIR">turnRight</field>
+                                                                                <next>
+                                                                                    <block type="turtle_pen">
+                                                                                        <field name="PEN">penDown</field>
+                                                                                    </block>
+                                                                                </next>
+                                                                            </block>
+                                                                        </next>
+                                                                    </block>
+                                                                </next>
+                                                            </block>
+                                                        </next>
+                                                    </block>
+                                                </next>
+                                            </block>
+                                        </next>
+                                    </block>
+                                </next>
+                            </block>
+                        </next>
+                    </block>
+                </next>
+            </block>
+        </statement>
+    </block>
+</xml>

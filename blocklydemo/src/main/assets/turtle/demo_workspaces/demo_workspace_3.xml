@@ -1,9 +1,0 @@
-<xml xmlns="http://www.w3.org/1999/xhtml">
-    <block type="turtle_move_internal">
-        <field name="VALUE">150</field>
-        <field name="DIR">moveForward</field>
-    </block>
-    <block type="turtle_turn_internal">
-        <field name="VALUE">144</field>
-    </block>
-</xml>
