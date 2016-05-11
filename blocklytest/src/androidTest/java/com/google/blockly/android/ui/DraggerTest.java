@@ -57,8 +57,7 @@ import static org.mockito.Mockito.when;
 public class DraggerTest extends MockitoAndroidTestCase {
     /**
      * Default timeout of 1 second, which should be plenty for most UI actions.  Anything longer
-     * would be an error.  However, to step through this code with a debugger, you will need to use
-     * a much longer duration.
+     * is an error.  However, to step through this code with a debugger, use a much longer duration.
      */
     private static final long TIMEOUT = 1000L;
 
