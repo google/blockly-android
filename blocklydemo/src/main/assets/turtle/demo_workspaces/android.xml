@@ -1,0 +1,400 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+    <block type="variables_set" x="-160" y="-424" inline="true">
+        <value name="VALUE">
+            <shadow type="math_number">
+                <field name="NUM">240.0</field>
+            </shadow>
+        </value>
+        <field name="VAR">body width</field>
+        <next>
+            <block type="variables_set" x="-165" y="-424" inline="true">
+                <value name="VALUE">
+                    <shadow type="math_number">
+                        <field name="NUM">120.0</field>
+                    </shadow>
+                </value>
+                <field name="VAR">body length</field>
+                <next>
+                    <block type="variables_set" x="-165" y="-424" inline="true">
+                        <value name="VALUE">
+                            <shadow type="math_number">
+                                <field name="NUM">240.0</field>
+                            </shadow>
+                        </value>
+                        <field name="VAR">arm width</field>
+                        <next>
+                            <block type="variables_set" x="-165" y="-424" inline="true">
+                                <value name="VALUE">
+                                    <shadow type="math_number">
+                                        <field name="NUM">240.0</field>
+                                    </shadow>
+                                </value>
+                                <field name="VAR">arm length</field>
+                                <next>
+                                    <block type="variables_set" x="-165" y="-424" inline="true">
+                                        <value name="VALUE">
+                                            <shadow type="math_number">
+                                                <field name="NUM">240.0</field>
+                                            </shadow>
+                                        </value>
+                                        <field name="VAR">leg width</field>
+                                        <next>
+                                            <block type="variables_set" x="-165" y="-424" inline="true">
+                                                <value name="VALUE">
+                                                    <shadow type="math_number">
+                                                        <field name="NUM">240.0</field>
+                                                    </shadow>
+                                                </value>
+                                                <field name="VAR">leg length</field>
+                                            </block>
+                                        </next>
+                                    </block>
+                                </next>
+                            </block>
+                        </next>
+                    </block>
+                </next>
+            </block>
+        </next>
+    </block>
+    <block type="turtle_colour" x="-160" y="0">
+        <value name="COLOUR">
+            <shadow type="colour_picker">
+                <field name="COLOUR">#33cc00</field>
+            </shadow>
+        </value>
+        <next>
+            <block type="turtle_width">
+                <value name="WIDTH">
+                    <shadow type="math_number">
+                        <field name="NUM">240.0</field>
+                    </shadow>
+                    <block type="variables_get">
+                        <field name="VAR">body width</field>
+                    </block>
+                </value>
+                <next>
+                    <block type="turtle_move">
+                        <value name="VALUE">
+                            <block type="variables_get">
+                                <field name="VAR">body length</field>
+                            </block>
+                        </value>
+                        <field name="DIR">moveForward</field>
+                        <next>
+                            <block type="turtle_width">
+                                <value name="WIDTH">
+                                    <shadow type="math_number">
+                                        <field name="NUM">10.0</field>
+                                    </shadow>
+                                </value>
+                                <next>
+                                    <block type="turtle_turn">
+                                        <value name="VALUE">
+                                            <shadow type="math_number">
+                                                <field name="NUM">90.0</field>
+                                            </shadow>
+                                        </value>
+                                        <field name="DIR">turnLeft</field>
+                                        <next>
+                                            <block type="controls_repeat_ext" inline="true">
+                                                <value name="TIMES">
+                                                    <shadow type="math_number">
+                                                        <field name="NUM">2.0</field>
+                                                    </shadow>
+                                                </value>
+                                                <statement name="DO">
+                                                    <block type="turtle_turn">
+                                                        <value name="VALUE">
+                                                            <shadow type="math_number">
+                                                                <field name="NUM">45.0</field>
+                                                            </shadow>
+                                                        </value>
+                                                        <field name="DIR">turnRight</field>
+                                                        <next>
+                                                            <block type="turtle_move">
+                                                                <value name="VALUE">
+                                                                    <shadow type="math_number">
+                                                                        <field name="NUM">160.0</field>
+                                                                    </shadow>
+                                                                </value>
+                                                                <field name="DIR">moveForward</field>
+                                                                <next>
+                                                                    <block type="turtle_move">
+                                                                        <value name="VALUE">
+                                                                            <shadow type="math_number">
+                                                                                <field name="NUM">160.0</field>
+                                                                            </shadow>
+                                                                        </value>
+                                                                        <field name="DIR">moveBackward</field>
+                                                                        <next>
+                                                                            <block type="turtle_turn">
+                                                                                <value name="VALUE">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">45.0</field>
+                                                                                    </shadow>
+                                                                                </value>
+                                                                                <field name="DIR">turnRight</field>
+                                                                            </block>
+                                                                        </next>
+                                                                    </block>
+                                                                </next>
+                                                            </block>
+                                                        </next>
+                                                    </block>
+                                                </statement>
+                                                <next>
+                                                    <block type="turtle_pen">
+                                                        <field name="PEN">penUp</field>
+                                                        <next>
+                                                            <block type="turtle_width">
+                                                                <value name="WIDTH">
+                                                                    <shadow type="math_number">
+                                                                        <field name="NUM">50.0</field>
+                                                                    </shadow>
+                                                                </value>
+                                                                <next>
+                                                                    <block type="controls_repeat_ext" inline="true">
+                                                                        <value name="TIMES">
+                                                                            <shadow type="math_number">
+                                                                                <field name="NUM">2.0</field>
+                                                                            </shadow>
+                                                                        </value>
+                                                                        <statement name="DO">
+                                                                            <block type="turtle_move">
+                                                                                <value name="VALUE">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">160.0</field>
+                                                                                    </shadow>
+                                                                                </value>
+                                                                                <field name="DIR">moveForward</field>
+                                                                                <next>
+                                                                                    <block type="turtle_turn">
+                                                                                        <value name="VALUE">
+                                                                                            <shadow type="math_number">
+                                                                                                <field name="NUM">90.0</field>
+                                                                                            </shadow>
+                                                                                        </value>
+                                                                                        <field name="DIR">turnRight</field>
+                                                                                        <next>
+                                                                                            <block type="turtle_pen">
+                                                                                                <field name="PEN">penDown</field>
+                                                                                                <next>
+                                                                                                    <block type="turtle_move">
+                                                                                                        <value name="VALUE">
+                                                                                                            <shadow type="math_number">
+                                                                                                                <field name="NUM">120.0</field>
+                                                                                                            </shadow>
+                                                                                                        </value>
+                                                                                                        <field name="DIR">moveForward</field>
+                                                                                                        <next>
+                                                                                                            <block type="turtle_pen">
+                                                                                                                <field name="PEN">penUp</field>
+                                                                                                                <next>
+                                                                                                                    <block type="turtle_turn">
+                                                                                                                        <value name="VALUE">
+                                                                                                                            <shadow type="math_number">
+                                                                                                                                <field name="NUM">90.0</field>
+                                                                                                                            </shadow>
+                                                                                                                        </value>
+                                                                                                                        <field name="DIR">turnRight</field>
+                                                                                                                        <next>
+                                                                                                                            <block type="turtle_move">
+                                                                                                                                <value name="VALUE">
+                                                                                                                                    <shadow type="math_number">
+                                                                                                                                        <field name="NUM">160.0</field>
+                                                                                                                                    </shadow>
+                                                                                                                                </value>
+                                                                                                                                <field name="DIR">moveForward</field>
+                                                                                                                            </block>
+                                                                                                                        </next>
+                                                                                                                    </block>
+                                                                                                                </next>
+                                                                                                            </block>
+                                                                                                        </next>
+                                                                                                    </block>
+                                                                                                </next>
+                                                                                            </block>
+                                                                                        </next>
+                                                                                    </block>
+                                                                                </next>
+                                                                            </block>
+                                                                        </statement>
+                                                                        <next>
+                                                                            <block type="turtle_move">
+                                                                                <value name="VALUE">
+                                                                                    <shadow type="math_number">
+                                                                                        <field name="NUM">100.0</field>
+                                                                                    </shadow>
+                                                                                </value>
+                                                                                <field name="DIR">moveForward</field>
+                                                                                <next>
+                                                                                    <block type="turtle_turn">
+                                                                                        <value name="VALUE">
+                                                                                            <shadow type="math_number">
+                                                                                                <field name="NUM">90.0</field>
+                                                                                            </shadow>
+                                                                                        </value>
+                                                                                        <field name="DIR">turnRight</field>
+                                                                                        <next>
+                                                                                            <block type="turtle_move">
+                                                                                                <value name="VALUE">
+                                                                                                    <shadow type="math_number">
+                                                                                                        <field name="NUM">280.0</field>
+                                                                                                    </shadow>
+                                                                                                </value>
+                                                                                                <field name="DIR">moveForward</field>
+                                                                                                <next>
+                                                                                                    <block type="turtle_turn">
+                                                                                                        <value name="VALUE">
+                                                                                                            <shadow type="math_number">
+                                                                                                                <field name="NUM">90.0</field>
+                                                                                                            </shadow>
+                                                                                                        </value>
+                                                                                                        <field name="DIR">turnRight</field>
+                                                                                                        <next>
+                                                                                                            <block type="turtle_width">
+                                                                                                                <value name="WIDTH">
+                                                                                                                    <shadow type="math_number">
+                                                                                                                        <field name="NUM">240.0</field>
+                                                                                                                    </shadow>
+                                                                                                                </value>
+                                                                                                                <next>
+                                                                                                                    <block type="turtle_pen">
+                                                                                                                        <field name="PEN">penDown</field>
+                                                                                                                        <next>
+                                                                                                                            <block type="turtle_colour">
+                                                                                                                                <value name="COLOUR">
+                                                                                                                                    <shadow type="colour_picker">
+                                                                                                                                        <field name="COLOUR">#ffffff</field>
+                                                                                                                                    </shadow>
+                                                                                                                                </value>
+                                                                                                                                <next>
+                                                                                                                                    <block type="turtle_move">
+                                                                                                                                        <value name="VALUE">
+                                                                                                                                            <shadow type="math_number">
+                                                                                                                                                <field name="NUM">200.0</field>
+                                                                                                                                            </shadow>
+                                                                                                                                        </value>
+                                                                                                                                        <field name="DIR">moveForward</field>
+                                                                                                                                        <next>
+                                                                                                                                            <block type="turtle_move">
+                                                                                                                                                <value name="VALUE">
+                                                                                                                                                    <shadow type="math_number">
+                                                                                                                                                        <field name="NUM">60.0</field>
+                                                                                                                                                    </shadow>
+                                                                                                                                                </value>
+                                                                                                                                                <field name="DIR">moveBackward</field>
+                                                                                                                                                <next>
+                                                                                                                                                    <block type="turtle_width">
+                                                                                                                                                        <value name="WIDTH">
+                                                                                                                                                            <shadow type="math_number">
+                                                                                                                                                                <field name="NUM">20.0</field>
+                                                                                                                                                            </shadow>
+                                                                                                                                                        </value>
+                                                                                                                                                        <next>
+                                                                                                                                                            <block type="turtle_turn">
+                                                                                                                                                                <value name="VALUE">
+                                                                                                                                                                    <shadow type="math_number">
+                                                                                                                                                                        <field name="NUM">90.0</field>
+                                                                                                                                                                    </shadow>
+                                                                                                                                                                </value>
+                                                                                                                                                                <field name="DIR">turnRight</field>
+                                                                                                                                                                <next>
+                                                                                                                                                                    <block type="turtle_move">
+                                                                                                                                                                        <value name="VALUE">
+                                                                                                                                                                            <shadow type="math_number">
+                                                                                                                                                                                <field name="NUM">50.0</field>
+                                                                                                                                                                            </shadow>
+                                                                                                                                                                        </value>
+                                                                                                                                                                        <field name="DIR">moveForward</field>
+                                                                                                                                                                        <next>
+                                                                                                                                                                            <block type="turtle_turn">
+                                                                                                                                                                                <value name="VALUE">
+                                                                                                                                                                                    <shadow type="math_number">
+                                                                                                                                                                                        <field name="NUM">90.0</field>
+                                                                                                                                                                                    </shadow>
+                                                                                                                                                                                </value>
+                                                                                                                                                                                <field name="DIR">turnLeft</field>
+                                                                                                                                                                                <next>
+                                                                                                                                                                                    <block type="turtle_colour">
+                                                                                                                                                                                        <value name="COLOUR">
+                                                                                                                                                                                            <shadow type="colour_picker">
+                                                                                                                                                                                                <field name="COLOUR">#33cc00</field>
+                                                                                                                                                                                            </shadow>
+                                                                                                                                                                                        </value>
+                                                                                                                                                                                        <next>
+                                                                                                                                                                                            <block type="controls_repeat_ext" inline="true">
+                                                                                                                                                                                                <value name="TIMES">
+                                                                                                                                                                                                    <shadow type="math_number">
+                                                                                                                                                                                                        <field name="NUM">3.0</field>
+                                                                                                                                                                                                    </shadow>
+                                                                                                                                                                                                </value>
+                                                                                                                                                                                                <statement name="DO">
+                                                                                                                                                                                                    <block type="turtle_turn">
+                                                                                                                                                                                                        <value name="VALUE">
+                                                                                                                                                                                                            <shadow type="math_number">
+                                                                                                                                                                                                                <field name="NUM">90.0</field>
+                                                                                                                                                                                                            </shadow>
+                                                                                                                                                                                                        </value>
+                                                                                                                                                                                                        <field name="DIR">turnRight</field>
+                                                                                                                                                                                                        <next>
+                                                                                                                                                                                                            <block type="turtle_move">
+                                                                                                                                                                                                                <value name="VALUE">
+                                                                                                                                                                                                                    <shadow type="math_number">
+                                                                                                                                                                                                                        <field name="NUM">80.0</field>
+                                                                                                                                                                                                                    </shadow>
+                                                                                                                                                                                                                </value>
+                                                                                                                                                                                                                <field name="DIR">moveForward</field>
+                                                                                                                                                                                                            </block>
+                                                                                                                                                                                                        </next>
+                                                                                                                                                                                                    </block>
+                                                                                                                                                                                                </statement>
+                                                                                                                                                                                            </block>
+                                                                                                                                                                                        </next>
+                                                                                                                                                                                    </block>
+                                                                                                                                                                                </next>
+                                                                                                                                                                            </block>
+                                                                                                                                                                        </next>
+                                                                                                                                                                    </block>
+                                                                                                                                                                </next>
+                                                                                                                                                            </block>
+                                                                                                                                                        </next>
+                                                                                                                                                    </block>
+                                                                                                                                                </next>
+                                                                                                                                            </block>
+                                                                                                                                        </next>
+                                                                                                                                    </block>
+                                                                                                                                </next>
+                                                                                                                            </block>
+                                                                                                                        </next>
+                                                                                                                    </block>
+                                                                                                                </next>
+                                                                                                            </block>
+                                                                                                        </next>
+                                                                                                    </block>
+                                                                                                </next>
+                                                                                            </block>
+                                                                                        </next>
+                                                                                    </block>
+                                                                                </next>
+                                                                            </block>
+                                                                        </next>
+                                                                    </block>
+                                                                </next>
+                                                            </block>
+                                                        </next>
+                                                    </block>
+                                                </next>
+                                            </block>
+                                        </next>
+                                    </block>
+                                </next>
+                            </block>
+                        </next>
+                    </block>
+                </next>
+            </block>
+        </next>
+    </block>
+</xml>

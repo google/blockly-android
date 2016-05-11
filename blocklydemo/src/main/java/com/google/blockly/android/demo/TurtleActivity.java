@@ -16,9 +16,11 @@
 package com.google.blockly.android.demo;
 
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -26,13 +28,16 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.Toast;
 
+import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.util.JavascriptUtil;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -101,6 +106,41 @@ public class TurtleActivity extends BlocklySectionsActivity {
         saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return onDemoItemSelected(item, this) || super.onOptionsItemSelected(item);
+    }
+
+    static boolean onDemoItemSelected(MenuItem item, AbstractBlocklyActivity activity) {
+        BlocklyController controller = activity.getController();
+        int id = item.getItemId();
+        boolean loadWorkspace = false;
+        String filename = "";
+        if (id == R.id.action_demo_android) {
+            loadWorkspace = true;
+            filename = "android.xml";
+        } else if (id == R.id.action_demo_lacey_curves) {
+            loadWorkspace = true;
+            filename = "lacey_curves.xml";
+        } else if (id == R.id.action_demo_paint_strokes) {
+            loadWorkspace = true;
+            filename = "paint_strokes.xml";
+        }
+
+        if (loadWorkspace) {
+            try {
+                controller.loadWorkspaceContents(activity.getAssets().open(
+                        "turtle/demo_workspaces/" + filename));
+            } catch (IOException e) {
+                Log.d(TAG, "Couldn't load workspace from assets");
+            }
+            addDefaultVariables(controller);
+            return true;
+        }
+
+        return false;
+    }
+
     @NonNull
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
@@ -108,6 +148,11 @@ public class TurtleActivity extends BlocklySectionsActivity {
         // level to level. The set of blocks shown in the toolbox for each level is defined by the
         // toolbox path below.
         return TURTLE_BLOCK_DEFINITIONS;
+    }
+
+    @Override
+    protected int getActionBarMenuResId() {
+        return R.menu.turtle_actionbar;
     }
 
     @NonNull
@@ -130,12 +175,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     protected void onInitBlankWorkspace() {
-        // TODO: (#22) Remove this override when variables are supported properly
-        getController().addVariable("item");
-        getController().addVariable("leo");
-        getController().addVariable("don");
-        getController().addVariable("mike");
-        getController().addVariable("raf");
+        addDefaultVariables(getController());
     }
 
     @NonNull
@@ -178,5 +218,15 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @Override
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         return mCodeGeneratorCallback;
+    }
+
+    static void addDefaultVariables(BlocklyController controller) {
+        // TODO: (#22) Remove this override when variables are supported properly
+        controller.addVariable("item");
+        controller.addVariable("count");
+        controller.addVariable("marshmallow");
+        controller.addVariable("lollipop");
+        controller.addVariable("kitkat");
+        controller.addVariable("android");
     }
 }

@@ -18,7 +18,7 @@ package com.google.blockly.android.demo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.util.DisplayMetrics;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -71,6 +71,11 @@ public class SplitActivity extends AbstractBlocklyActivity {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return TurtleActivity.onDemoItemSelected(item, this) || super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -86,6 +91,11 @@ public class SplitActivity extends AbstractBlocklyActivity {
         mNoCodeText = mGeneratedTextView.getText().toString(); // Capture initial value.
 
         return root;
+    }
+
+    @Override
+    protected int getActionBarMenuResId() {
+        return R.menu.turtle_actionbar;
     }
 
     @NonNull
@@ -122,12 +132,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
 
     @Override
     protected void onInitBlankWorkspace() {
-        // TODO: (#22) Remove this override when variables are supported properly
-        getController().addVariable("item");
-        getController().addVariable("leo");
-        getController().addVariable("don");
-        getController().addVariable("mike");
-        getController().addVariable("raf");
+        TurtleActivity.addDefaultVariables(getController());
     }
 
     @Override

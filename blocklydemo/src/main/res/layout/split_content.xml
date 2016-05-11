@@ -19,5 +19,6 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:text="Run the block code\nto see it in javascript!"
+        android:textIsSelectable="true"
         />
 </LinearLayout>
