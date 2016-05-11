@@ -16,6 +16,7 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.Adapter;
@@ -40,6 +41,8 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
     protected FieldVariable mVariableField;
     protected VariableViewAdapter mAdapter;
 
+    private final Handler mMainHandler;
+
     /**
      * Constructs a new {@link BasicFieldVariableView}.
      *
@@ -47,14 +50,17 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
      */
     public BasicFieldVariableView(Context context) {
         super(context);
+        mMainHandler = new Handler(context.getMainLooper());
     }
 
     public BasicFieldVariableView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mMainHandler = new Handler(context.getMainLooper());
     }
 
     public BasicFieldVariableView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        mMainHandler = new Handler(context.getMainLooper());
     }
 
     @Override
@@ -70,6 +76,7 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
         }
         mVariableField = variableField;
         if (mVariableField != null) {
+            // Update immediately.
             setSelection(mVariableField.getVariable());
             mVariableField.registerObserver(mFieldObserver);
         } else {
@@ -115,12 +122,19 @@ public class BasicFieldVariableView extends Spinner implements FieldView {
      *
      * @param variableName The name of the variable, ignoring case.
      */
-    private void setSelection(String variableName) {
+    private void setSelection(final String variableName) {
         if (TextUtils.isEmpty(variableName)) {
             throw new IllegalArgumentException("Cannot set an empty variable name.");
         }
         if (mAdapter != null) {
-            setSelection(mAdapter.getOrCreateVariableIndex(variableName));
+            // Because this may change the available indices, we want to make sure each assignment
+            // is in it's own event tick.
+            mMainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    setSelection(mAdapter.getOrCreateVariableIndex(variableName));
+                }
+            });
         }
     }
 }
