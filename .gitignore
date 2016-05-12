@@ -1,0 +1,33 @@
+gradle*
+build.gradle
+settings.gradle
+settings.jar
+.settings
+.project
+
+# Local Settings
+local.properties
+
+# Project files
+/blocklylib-core
+/blocklylib-vertical
+/blocklytest
+/blocklydemo
+*.komodoproject
+.gradle
+*.iml
+.idea
+
+# Build files
+/build
+*.pyc
+*.apk
+*.ap_
+*.class
+*.dex
+
+# OSX Files
+.DS_Store
+
+# Windows Files
+Thumb.db
