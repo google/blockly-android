@@ -27,18 +27,24 @@ import com.google.blockly.android.ui.fieldview.BasicFieldColorView;
  * {@link BasicFieldColorView} with a inset emboss that matches its containing BlockView.
  */
 public class FieldColorView extends BasicFieldColorView {
+    protected static final int MIN_WIDTH_DP = 41;
+    protected static final int MIN_HEIGHT_DP = 41;
+
     protected WorkspaceHelper mHelper;
 
     public FieldColorView(Context context) {
         super(context);
+        initPostConstructor();
     }
 
     public FieldColorView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        initPostConstructor();
     }
 
     public FieldColorView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        initPostConstructor();
     }
 
     public void setWorkspaceHelper(WorkspaceHelper helper) {
@@ -55,6 +61,12 @@ public class FieldColorView extends BasicFieldColorView {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         maybeAcquireParentBlockView();
+    }
+
+    private void initPostConstructor() {
+        float density = getContext().getResources().getDisplayMetrics().density;
+        setMinimumWidth((int) (MIN_WIDTH_DP * density));
+        setMinimumHeight((int) (MIN_HEIGHT_DP * density));
     }
 
     private void maybeAcquireParentBlockView() {
