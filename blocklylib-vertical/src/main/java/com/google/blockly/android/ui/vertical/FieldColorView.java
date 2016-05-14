@@ -27,7 +27,7 @@ import com.google.blockly.android.ui.fieldview.BasicFieldColorView;
  * {@link BasicFieldColorView} with a inset emboss that matches its containing BlockView.
  */
 public class FieldColorView extends BasicFieldColorView {
-    protected static final int MIN_WIDTH_DP = 40;
+    protected static final int MIN_WIDTH_DP = 41;
     protected static final int MIN_HEIGHT_DP = 41;
 
     protected WorkspaceHelper mHelper;
