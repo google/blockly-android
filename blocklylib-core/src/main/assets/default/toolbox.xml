@@ -14,9 +14,12 @@
   -->
 
 <toolbox>
-    <category name="Colour" colour="20">
-        <block type="colour_picker"></block>
-        <block type="colour_random"></block>
+    <category name="Logic" colour="210">
+        <block type="controls_if"></block>
+        <block type="logic_compare"></block>
+        <block type="logic_operation"></block>
+        <block type="logic_negate"></block>
+        <block type="logic_boolean"></block>
     </category>
     <category name="Loops" colour="120">
         <block type="controls_repeat_ext">
@@ -26,6 +29,7 @@
                 </shadow>
             </value>
         </block>
+        <block type="controls_whileUntil"></block>
     </category>
     <category name="Math" colour="230">
         <block type="math_number"></block>
@@ -112,6 +116,10 @@
             </value>
         </block>
         <block type="math_random_float"></block>
+    </category>
+    <category name="Colour" colour="20">
+        <block type="colour_picker"></block>
+        <block type="colour_random"></block>
     </category>
     <category name="Variables" colour="330">
         <block type="variables_get"></block>
