@@ -1,0 +1,126 @@
+[
+  {
+    "id": "controls_if",
+    "message0": "if %1 do %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "IF0",
+        "check": "Boolean"
+      },
+      {
+        "type": "input_statement",
+        "name": "DO0"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "tooltip": "If a value is true, then do some statements."
+  },
+  {
+    "id": "logic_compare",
+    "message0": "%1 %2 %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "A"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "OP",
+        "options": [
+          [
+            "=",
+            "EQ"
+          ],
+          [
+            "\u2260",
+            "NEQ"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "B"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Boolean",
+    "colour": 210,
+    "tooltip": "",
+    "helpUrl": "https://en.wikipedia.org/wiki/Equality_(mathematics)"
+  },
+  {
+    "id": "logic_operation",
+    "message0": "%1 %2 %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "A"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "OP",
+        "options": [
+          [
+            "and",
+            "AND"
+          ],
+          [
+            "or",
+            "OR"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "B"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Boolean",
+    "colour": 210,
+    "tooltip": "",
+    "helpUrl": "https://github.com/google/blockly/wiki/Logic#logical-operations"
+  },
+  {
+    "id": "logic_negate",
+    "message0": "not %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "BOOL",
+        "check": "Boolean"
+      }
+    ],
+    "output": "Boolean",
+    "colour": 210,
+    "tooltip": "Returns true if the input is false. Returns false if the input is true.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Logic#not"
+  },
+  {
+    "id": "logic_boolean",
+    "message0": "%1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "BOOL",
+        "options": [
+          [
+            "true",
+            "TRUE"
+          ],
+          [
+            "false",
+            "FALSE"
+          ]
+        ]
+      }
+    ],
+    "output": "Boolean",
+    "colour": 210,
+    "tooltip": "Returns either true or false.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Logic#values"
+  }
+]
