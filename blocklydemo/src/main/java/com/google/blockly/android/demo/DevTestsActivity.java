@@ -47,6 +47,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public static final String SAVED_WORKSPACE_FILENAME = "dev_tests_workspace.xml";
     private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
             Arrays.asList(new String[] {
+                    "default/logic_blocks.json",
                     "default/loop_blocks.json",
                     "default/math_blocks.json",
                     "default/variable_blocks.json",

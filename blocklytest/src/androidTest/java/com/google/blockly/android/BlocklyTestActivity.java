@@ -35,6 +35,7 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
 
     private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(new String[]{
             "default/colour_blocks.json",
+            "default/logic_blocks.json",
             "default/loop_blocks.json",
             "default/math_blocks.json",
             "default/variable_blocks.json",
