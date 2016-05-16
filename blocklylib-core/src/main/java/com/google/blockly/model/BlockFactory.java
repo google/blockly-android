@@ -81,10 +81,10 @@ public class BlockFactory {
      * @param block The master block to add.
      */
     public void addBlockTemplate(Block block) {
-        if (mBlockTemplates.containsKey(block.getName())) {
-            Log.i(TAG, "Replacing block: " + block.getName());
+        if (mBlockTemplates.containsKey(block.getType())) {
+            Log.i(TAG, "Replacing block: " + block.getType());
         }
-        mBlockTemplates.put(block.getName(), new Block.Builder(block).build());
+        mBlockTemplates.put(block.getType(), new Block.Builder(block).build());
     }
 
     /**
@@ -216,13 +216,13 @@ public class BlockFactory {
             JSONArray blocks = new JSONArray(json);
             for (int i = 0; i < blocks.length(); i++) {
                 JSONObject block = blocks.getJSONObject(i);
-                String id = block.optString("id");
-                if (!TextUtils.isEmpty(id)) {
-                    mBlockTemplates.put(id, Block.fromJson(id, block));
+                String type = block.optString("type");
+                if (!TextUtils.isEmpty(type)) {
+                    mBlockTemplates.put(type, Block.fromJson(type, block));
                     ++blockAddedCount;
                 } else {
                     throw new BlockLoadingException(
-                            "Block " + i + " has no id and cannot be loaded.");
+                            "Block " + i + " has no type and cannot be loaded.");
                 }
             }
         } catch (JSONException e) {

@@ -1,6 +1,6 @@
 [
   {
-    "id": "variables_get",
+    "type": "variables_get",
     "message0": "get %1",
     "args0": [
       {
@@ -15,7 +15,7 @@
     "helpUrl": "https://github.com/google/blockly/wiki/Variables#get"
   },
   {
-    "id": "variables_set",
+    "type": "variables_set",
     "message0": "set %1 to %2",
     "args0": [
       {

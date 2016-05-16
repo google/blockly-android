@@ -138,11 +138,11 @@ public class ProcedureManager {
     }
 
     public static boolean isReference(Block block) {
-        return block.getName().startsWith(PROCEDURE_REFERENCE_PREFIX);
+        return block.getType().startsWith(PROCEDURE_REFERENCE_PREFIX);
     }
 
     public static boolean isDefinition(Block block) {
-        return block.getName().startsWith(PROCEDURE_DEFINITION_PREFIX);
+        return block.getType().startsWith(PROCEDURE_DEFINITION_PREFIX);
     }
 
     private static String getProcedureName(Block block) {
