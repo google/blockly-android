@@ -32,7 +32,7 @@
                 var jsonArr = JSON.parse(definitions);
                 for (var index = 0; index < jsonArr.length; index++) {
                     var elem = jsonArr[index];
-                    Blockly.Blocks[elem.id] = {
+                    Blockly.Blocks[elem.type] = {
                         init: init_factory(elem)
                     }
                 }
@@ -60,7 +60,7 @@
       // Create a headless workspace.
       var workspace = new Blockly.Workspace();
       try {
-        Blockly.Xml.domToWorkspace(workspace, dom);
+        Blockly.Xml.domToWorkspace(dom, workspace);
         var code = Blockly.JavaScript.workspaceToCode(workspace);
         BlocklyJavascriptInterface.execute(code);
       } catch (e) {

@@ -1,6 +1,6 @@
 [
   {
-    "id": "turtle_move_internal",
+    "type": "turtle_move_internal",
     "message0": "move %1 %2",
     "args0": [
       {
@@ -46,7 +46,7 @@
     "tooltip": "Moves the turtle forward or backward by the specified amount."
   },
   {
-    "id": "turtle_turn_internal",
+    "type": "turtle_turn_internal",
     "message0": "turn %1 %2",
     "args0": [
       {
@@ -100,7 +100,7 @@
     "tooltip": "Turns the turtle left or right by the specified number of degrees."
   },
   {
-    "id": "turtle_pen",
+    "type": "turtle_pen",
     "message0": "pen %1",
     "args0": [
       {
@@ -124,7 +124,7 @@
     "tooltip": "Lifts or lowers the pen, to stop or start drawing."
   },
   {
-    "id": "turtle_colour_internal",
+    "type": "turtle_colour_internal",
     "message0": "set colour to %1",
     "args0": [
       {
@@ -139,7 +139,7 @@
     "tooltip": "Changes the colour of the pen."
   },
   {
-    "id": "turtle_repeat_internal",
+    "type": "turtle_repeat_internal",
     "message0": "repeat %1 times %2 %3",
     "args0": [
       {
@@ -178,7 +178,7 @@
     "tooltip": "Do some statements several times."
   },
   {
-    "id": "turtle_move",
+    "type": "turtle_move",
     "message0": "move %1 %2",
     "args0": [
       {
@@ -207,7 +207,7 @@
     "blockFactoryUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#metkk9"
   },
   {
-    "id": "turtle_turn",
+    "type": "turtle_turn",
     "message0": "turn %1 %2",
     "args0": [
       {
@@ -236,7 +236,7 @@
     "blockFactoryUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#nwzsuj"
   },
   {
-    "id": "turtle_width",
+    "type": "turtle_width",
     "message0": "set width to %1",
     "args0": [
       {
@@ -251,7 +251,7 @@
     "blockFactoryUrl": "https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#wkz8h4"
   },
   {
-    "id": "turtle_colour",
+    "type": "turtle_colour",
     "message0": "set colour to %1",
     "args0": [
       {

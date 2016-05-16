@@ -1,6 +1,6 @@
 [
   {
-    "id": "controls_whileUntil",
+    "type": "controls_whileUntil",
     "message0": "repeat %1 %2 %3",
     "args0": [
       {
@@ -30,7 +30,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "simple_input_output",
+    "type": "simple_input_output",
     "message0": "test block %1",
     "args0": [
       {
@@ -43,7 +43,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "multiple_input_output",
+    "type": "multiple_input_output",
     "message0": "test block %1 %2",
     "args0": [
       {
@@ -60,7 +60,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "statement_no_input",
+    "type": "statement_no_input",
     "message0": "test block ",
     "args0": [],
     "previousStatement": null,
@@ -69,7 +69,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "statement_value_input",
+    "type": "statement_value_input",
     "message0": "test block %1",
     "args0": [
       {
@@ -83,7 +83,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "statement_multiple_value_input",
+    "type": "statement_multiple_value_input",
     "message0": "test block %1 %2",
     "args0": [
       {
@@ -101,7 +101,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "statement_statement_input",
+    "type": "statement_statement_input",
     "message0": "test block %1",
     "args0": [
       {
@@ -115,7 +115,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "output_no_input",
+    "type": "output_no_input",
     "message0": "test block",
     "args0": [],
     "output": null,
@@ -123,7 +123,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "statement_no_next",
+    "type": "statement_no_next",
     "message0": "test block",
     "args0": [],
     "previousStatement": null,
@@ -131,7 +131,7 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "id": "test_number",
+    "type": "test_number",
     "message0": "float %1",
     "args0": [
       {
@@ -145,7 +145,7 @@
     "tooltip": "A number."
   },
   {
-    "id": "test_integer",
+    "type": "test_integer",
     "message0": "integer %1",
     "args0": [
       {
@@ -160,7 +160,7 @@
     "tooltip": "An integer."
   },
   {
-    "id": "test_number_hundredths",
+    "type": "test_number_hundredths",
     "message0": "$ %1",
     "args0": [
       {
@@ -175,7 +175,7 @@
     "tooltip": "A dollar amount."
   },
   {
-    "id": "test_integer_bounded",
+    "type": "test_integer_bounded",
     "message0": "midi note %1",
     "args0": [
       {

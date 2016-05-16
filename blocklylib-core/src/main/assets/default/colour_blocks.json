@@ -1,6 +1,6 @@
 [
   {
-    "id": "colour_picker",
+    "type": "colour_picker",
     "message0": "%1",
     "args0": [
       {
@@ -15,7 +15,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Color"
   },
   {
-    "id": "colour_random",
+    "type": "colour_random",
     "message0": "random colour",
     "args0": [],
     "output": null,

@@ -216,13 +216,13 @@ public class BlockFactory {
             JSONArray blocks = new JSONArray(json);
             for (int i = 0; i < blocks.length(); i++) {
                 JSONObject block = blocks.getJSONObject(i);
-                String id = block.optString("id");
-                if (!TextUtils.isEmpty(id)) {
-                    mBlockTemplates.put(id, Block.fromJson(id, block));
+                String type = block.optString("type");
+                if (!TextUtils.isEmpty(type)) {
+                    mBlockTemplates.put(type, Block.fromJson(type, block));
                     ++blockAddedCount;
                 } else {
                     throw new BlockLoadingException(
-                            "Block " + i + " has no id and cannot be loaded.");
+                            "Block " + i + " has no type and cannot be loaded.");
                 }
             }
         } catch (JSONException e) {
