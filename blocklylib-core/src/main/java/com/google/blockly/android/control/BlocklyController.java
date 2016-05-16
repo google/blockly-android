@@ -1050,7 +1050,7 @@ public class BlocklyController {
          * The resource must be a json file in the raw directory. If the file contains blocks that
          * were previously defined they will be overridden.
          * <p/>
-         * A duplicate block is any block with the same {@link Block#getName() name}.
+         * A duplicate block is any block with the same {@link Block#getType() type}.
          *
          * @param blockDefinitionsResId The resource to load blocks from.
          * @return this
@@ -1067,7 +1067,7 @@ public class BlocklyController {
          * <p/>
          * The asset name must be a path to a file in the assets directory. If the file contains
          * blocks that were previously defined, they will be overridden. A duplicate block is any
-         * block with the same {@link Block#getName() name}.
+         * block with the same {@link Block#getType() type}.
          *
          * @param assetName the path of the asset to load from.
          * @return this
@@ -1084,7 +1084,7 @@ public class BlocklyController {
          * <p/>
          * The asset names must be a path to files in the assets directory. If the files contain
          * blocks that were previously defined, they will be overridden. A duplicate block is any
-         * block with the same {@link Block#getName() name}.
+         * block with the same {@link Block#getType() type}.
          *
          * @param assetNames The paths of the assets to load.
          * @return this
@@ -1105,7 +1105,7 @@ public class BlocklyController {
          * Blocks added here will always be loaded after any blocks added with {@link
          * #addBlockDefinitions(int)};
          * <p/>
-         * A duplicate block is any block with the same {@link Block#getName() name}.
+         * A duplicate block is any block with the same {@link Block#getType() type}.
          *
          * @param blocks The list of blocks to add to the workspace.
          * @return this

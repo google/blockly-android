@@ -37,7 +37,7 @@ public class BlockFactoryTest extends AndroidTestCase {
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
         Block emptyBlock = bf.obtainBlock("empty_block", null);
         assertNotNull("Failed to create the empty block.", emptyBlock);
-        assertEquals("Empty block has the wrong name", "empty_block", emptyBlock.getName());
+        assertEquals("Empty block has the wrong type", "empty_block", emptyBlock.getType());
 
         Block frankenblock = bf.obtainBlock("frankenblock", null);
         assertNotNull("Failed to create the frankenblock.", frankenblock);

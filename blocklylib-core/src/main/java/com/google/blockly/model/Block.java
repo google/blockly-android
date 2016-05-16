@@ -46,7 +46,7 @@ public class Block {
 
     // These values are immutable once a block is created
     private final String mUuid;
-    private final String mName;
+    private final String mType;
     private final int mCategory;
     private final Connection mOutputConnection;
     private final Connection mNextConnection;
@@ -78,7 +78,7 @@ public class Block {
                   Connection previousConnection, ArrayList<Input> inputList, boolean inputsInline,
                   boolean inputsInlineModified) {
         mUuid = (uuid != null) ? uuid : UUID.randomUUID().toString();
-        mName = name;
+        mType = name;
         mCategory = category;
 
         // This constructor reuses Connections and Inputs instead of copying them.  Consider using
@@ -122,8 +122,8 @@ public class Block {
     /**
      * @return The name of the block. Not for display.
      */
-    public String getName() {
-        return mName;
+    public String getType() {
+        return mType;
     }
 
     /**
@@ -393,7 +393,7 @@ public class Block {
      */
     public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
         serializer.startTag(null, mIsShadow ? "shadow" : "block")
-                .attribute(null, "type", mName)
+                .attribute(null, "type", mType)
                 .attribute(null, "id", mUuid);
 
         // The position of the block only needs to be saved if it is a top level block.
@@ -626,19 +626,19 @@ public class Block {
      * Generate a Blockly Block from JSON. If the JSON is misformatted a {@link RuntimeException}
      * will be thrown. All inputs and fields for the block will also be generated.
      *
-     * @param name The name of the block.
+     * @param type The type of the block.
      * @param json The JSON to generate the block from.
      *
      * @return The generated Block.
      */
-    public static Block fromJson(String name, JSONObject json) throws BlockLoadingException {
-        if (TextUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("Block name may not be null or empty.");
+    public static Block fromJson(String type, JSONObject json) throws BlockLoadingException {
+        if (TextUtils.isEmpty(type)) {
+            throw new IllegalArgumentException("Block type may not be null or empty.");
         }
         if (json == null) {
             throw new IllegalArgumentException("Json may not be null.");
         }
-        Builder bob = new Builder(name);
+        Builder bob = new Builder(type);
 
         if (json.has("output") && json.has("previousStatement")) {
             throw new IllegalArgumentException(
@@ -729,15 +729,15 @@ public class Block {
                         throw new RuntimeException("Error reading arg %" + index, e);
                     }
                     while (element != null) {
-                        String type = element.optString("type");
-                        if (TextUtils.isEmpty(type)) {
+                        String elementType = element.optString("type");
+                        if (TextUtils.isEmpty(elementType)) {
                             throw new IllegalArgumentException("No type for arg %" + index);
                         }
 
-                        if (Field.isFieldType(type)) {
+                        if (Field.isFieldType(elementType)) {
                             fields.add(Field.fromJson(element));
                             break;
-                        } else if (Input.isInputType(type)) {
+                        } else if (Input.isInputType(elementType)) {
                             Input input = Input.fromJson(element);
                             input.addAll(fields);
                             fields.clear();
@@ -745,7 +745,7 @@ public class Block {
                             break;
                         } else {
                             // Try getting the fallback block if it exists
-                            Log.w(TAG, "Unknown element type: " + type);
+                            Log.w(TAG, "Unknown element type: " + elementType);
                             element = element.optJSONObject("alt");
                         }
                     }
@@ -996,7 +996,7 @@ public class Block {
         private final WorkspacePoint mPosition;
         // These values are immutable once a block is created
         private String mUuid;
-        private String mName;
+        private String mType;
         private int mCategory;
         private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
         private Connection mOutputConnection;
@@ -1016,14 +1016,14 @@ public class Block {
         private boolean mCollapsed = false;
         private boolean mDisabled = false;
 
-        public Builder(String name) {
-            mName = name;
+        public Builder(String type) {
+            mType = type;
             mInputs = new ArrayList<>();
             mPosition = new WorkspacePoint(0, 0);
         }
 
         public Builder(Block block) {
-            this(block.mName);
+            this(block.mType);
             mColor = block.mColor;
             mCategory = block.mCategory;
 
@@ -1058,8 +1058,8 @@ public class Block {
             mPosition.y = block.mPosition.y;
         }
 
-        public Builder setName(String name) {
-            mName = name;
+        public Builder setType(String type) {
+            mType = type;
             return this;
         }
 
@@ -1177,7 +1177,7 @@ public class Block {
         }
 
         public Block build() {
-            Block b = new Block(mUuid, mName, mCategory, mColor, mOutputConnection, mNextConnection,
+            Block b = new Block(mUuid, mType, mCategory, mColor, mOutputConnection, mNextConnection,
                     mPreviousConnection, mInputs, mInputsInline, mInputsInlineModified);
             b.mTooltip = mTooltip;
             b.mComment = mComment;
