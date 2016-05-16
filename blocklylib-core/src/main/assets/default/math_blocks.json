@@ -1,6 +1,6 @@
 [
   {
-    "id": "math_number",
+    "type": "math_number",
     "message0": "%1",
     "args0": [
       {
@@ -15,7 +15,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Number"
   },
   {
-    "id": "math_number_hundredths",
+    "type": "math_number_hundredths",
     "message0": "%1",
     "args0": [
       {
@@ -31,7 +31,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Number"
   },
   {
-    "id": "math_arithmetic",
+    "type": "math_arithmetic",
     "message0": "%1 %2 %3",
     "args0": [
       {
@@ -62,7 +62,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Arithmetic"
   },
   {
-    "id": "math_single",
+    "type": "math_single",
     "message0": "%1 %2",
     "args0": [
       {
@@ -89,7 +89,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Square_root"
   },
   {
-    "id": "math_trig",
+    "type": "math_trig",
     "message0": "%1 %2",
     "args0": [
       {
@@ -115,7 +115,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Trigonometric_functions"
   },
   {
-    "id": "math_constant",
+    "type": "math_constant",
     "message0": "%1",
     "args0": [
       {
@@ -141,7 +141,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Mathematical_constant"
   },
   {
-    "id": "math_change",
+    "type": "math_change",
     "message0": "change %1 by %2",
     "args0": [
       {
@@ -161,7 +161,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Programming_idiom#Incrementing_a_counter"
   },
   {
-    "id": "math_round",
+    "type": "math_round",
     "message0": "%1 %2",
     "args0": [
       {
@@ -185,7 +185,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Rounding"
   },
   {
-    "id": "math_modulo",
+    "type": "math_modulo",
     "message0": "remainder of %1 ÷ %2",
     "args0": [
       {
@@ -206,7 +206,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Modulo_operation"
   },
   {
-    "id": "math_constrain",
+    "type": "math_constrain",
     "message0": "constrain %1 low %2 high %3",
     "args0": [
       {
@@ -232,7 +232,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Clamping_%28graphics%29"
   },
   {
-    "id": "math_random_int",
+    "type": "math_random_int",
     "message0": "random integer from %1 to %2",
     "args0": [
       {
@@ -253,7 +253,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Random_number_generation"
   },
   {
-    "id": "math_random_float",
+    "type": "math_random_float",
     "message0": "random fraction",
     "output": "Number",
     "colour": 230,

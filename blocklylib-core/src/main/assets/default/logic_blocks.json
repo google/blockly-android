@@ -1,6 +1,6 @@
 [
   {
-    "id": "controls_if",
+    "type": "controls_if",
     "message0": "if %1 do %2",
     "args0": [
       {
@@ -19,7 +19,7 @@
     "tooltip": "If a value is true, then do some statements."
   },
   {
-    "id": "logic_compare",
+    "type": "logic_compare",
     "message0": "%1 %2 %3",
     "args0": [
       {
@@ -52,7 +52,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/Equality_(mathematics)"
   },
   {
-    "id": "logic_operation",
+    "type": "logic_operation",
     "message0": "%1 %2 %3",
     "args0": [
       {
@@ -85,7 +85,7 @@
     "helpUrl": "https://github.com/google/blockly/wiki/Logic#logical-operations"
   },
   {
-    "id": "logic_negate",
+    "type": "logic_negate",
     "message0": "not %1",
     "args0": [
       {
@@ -100,7 +100,7 @@
     "helpUrl": "https://github.com/google/blockly/wiki/Logic#not"
   },
   {
-    "id": "logic_boolean",
+    "type": "logic_boolean",
     "message0": "%1",
     "args0": [
       {

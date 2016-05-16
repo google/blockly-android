@@ -1,6 +1,6 @@
 [
   {
-    "id": "controls_repeat_ext",
+    "type": "controls_repeat_ext",
     "message0": "repeat %1 times %2 do %3",
     "args0": [
       {
@@ -23,7 +23,7 @@
     "helpUrl": "https://en.wikipedia.org/wiki/For_loop"
   },
   {
-    "id": "controls_whileUntil",
+    "type": "controls_whileUntil",
     "message0": "repeat %1 %2 do %3",
     "args0": [
       {
@@ -57,7 +57,7 @@
     "helpUrl": "https://github.com/google/blockly/wiki/Loops#repeat"
   },
   {
-    "id": "controls_for",
+    "type": "controls_for",
     "message0": "count with %1 from %2 to %3 by %4 do %5",
     "args0": [
       {
