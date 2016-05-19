@@ -188,19 +188,21 @@ public abstract class Input implements Cloneable {
      */
     public void serialize(XmlSerializer serializer, @Nullable String tag) throws IOException {
         if (tag != null && getConnection() != null && (getConnection().isConnected()
-                || getConnection().getTargetShadowBlock() != null)) {
+                || getConnection().getShadowBlock() != null)) {
             serializer.startTag(null, tag)
                     .attribute(null, "name", getName());
 
             // Serialize the connection's shadow if it has one
-            Block block = getConnection().getTargetShadowBlock();
+            Block block = getConnection().getShadowBlock();
             if (block != null) {
                 block.serialize(serializer, false);
             }
             // Then serialize its non-shadow target if it has one
-            block = getConnection().getTargetBlock();
-            if (block != null) {
-                block.serialize(serializer, false);
+            if (block != getConnection().getTargetBlock()) {
+                block = getConnection().getTargetBlock();
+                if (block != null) {
+                    block.serialize(serializer, false);
+                }
             }
 
             serializer.endTag(null, tag);

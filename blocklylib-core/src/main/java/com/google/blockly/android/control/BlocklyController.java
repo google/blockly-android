@@ -98,6 +98,7 @@ public class BlocklyController {
                 @Override
                 public void run() {
                     extractBlockAsRoot(activeTouchedView.getBlock());
+
                     // Since this block was already on the workspace, the block's position should
                     // have been assigned correctly during the most recent layout pass.
                     BlockGroup bg = mHelper.getRootBlockGroup(activeTouchedView);
@@ -439,33 +440,34 @@ public class BlocklyController {
                 : mHelper.getRootBlockGroup(block);
 
         // Child block
-        if (block.getPreviousConnection() != null
-                && block.getPreviousConnection().isConnected()) {
-            Input in = block.getPreviousConnection().getTargetConnection().getInput();
+        if (block.getParentConnection() != null) {
+            Connection parentConnection = block.getParentConnection();
+            Input in = parentConnection.getInput();
             if (in == null) {
                 if (bg != null) {
                     // Next block
                     bg = bg.extractBlocksAsNewGroup(block);
                 }
             } else {
-                // Statement input
+                // Statement or value input
                 // Disconnect view.
                 InputView inView = in.getView();
                 if (inView != null) {
                     inView.setConnectedBlockGroup(null);
                 }
             }
-            block.getPreviousConnection().disconnect();
-        } else if (block.getOutputConnection() != null
-                && block.getOutputConnection().isConnected()) {
-            // Value input
-            Input in = block.getOutputConnection().getTargetConnection().getInput();
-            block.getOutputConnection().disconnect();
+            parentConnection.disconnect();
 
-            // Disconnect view.
-            InputView inView = in.getView();
-            if (inView != null) {
-                inView.setConnectedBlockGroup(null);
+            // Check if the block's old parent had a shadow that we should create views for.
+            // If this is itself a shadow block the answer is 'no'.
+            if (!block.isShadow() && parentConnection != null
+                    && parentConnection.getShadowBlock() != null) {
+                Block shadowBlock = parentConnection.getShadowBlock();
+                // We add the shadow as a root and then connect it so we properly add all the
+                // connectors and views.
+                addRootBlock(shadowBlock, null, true);
+                connect(shadowBlock, parentConnection.getShadowConnection(),
+                        parentConnection);
             }
         }
 
@@ -555,6 +557,8 @@ public class BlocklyController {
      * connected previous or output; usually a root block. If another block is in the way
      * of making the connection (occupies the required workspace location), that block will be
      * bumped out of the way.
+     * <p>
+     * Note: The blocks involved are assumed to be in the workspace.
      *
      * @param block The {@link Block} that is the root of the group of blocks being connected.
      * @param blockConnection The {@link Connection} of the block being moved to connect.
@@ -814,20 +818,25 @@ public class BlocklyController {
         // If there was already a block connected there.
         if (parentStatementConnection.isConnected()) {
             Block remainderBlock = parentStatementConnection.getTargetBlock();
-            parentStatementConnection.disconnect();
-            InputView parentInputView = parentStatementConnection.getInputView();
-            if (parentInputView != null) {
-                parentInputView.setConnectedBlockGroup(null);
-            }
-
-            // Try to reconnect the remainder to the end of the new sequence.
-            Block lastBlock = toConnect.getLastBlockInSequence();
-            if (lastBlock.getNextConnection() != null) {
-                connectAfter(lastBlock, remainderBlock);
+            if (remainderBlock.isShadow()) {
+                removeBlockTree(remainderBlock);
             } else {
-                // Nothing to connect to.  Bump and add to root.
-                addRootBlock(remainderBlock, mHelper.getParentBlockGroup(remainderBlock), false);
-                bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
+                parentStatementConnection.disconnect();
+                InputView parentInputView = parentStatementConnection.getInputView();
+                if (parentInputView != null) {
+                    parentInputView.setConnectedBlockGroup(null);
+                }
+
+                // Try to reconnect the remainder to the end of the new sequence.
+                Block lastBlock = toConnect.getLastBlockInSequence();
+                if (lastBlock.getNextConnection() != null) {
+                    connectAfter(lastBlock, remainderBlock);
+                } else {
+                    // Nothing to connect to.  Bump and add to root.
+                    addRootBlock(remainderBlock, mHelper.getParentBlockGroup(remainderBlock),
+                            false);
+                    bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
+                }
             }
         }
         connectAsInput(parentStatementConnection, toConnect.getPreviousConnection());
@@ -910,23 +919,31 @@ public class BlocklyController {
         Connection previousTargetConnection = null;
         if (parentConn.isConnected()) {
             previousTargetConnection = parentConn.getTargetConnection();
-            parentConn.disconnect();
-            if (parentInputView != null) {
-                parentInputView.setConnectedBlockGroup(null);
+            // If there was a shadow block here delete it from the hierarchy and forget about it.
+            if (previousTargetConnection.getBlock().isShadow()) {
+                removeBlockTree(previousTargetConnection.getBlock());
+                previousTargetConnection = null;
+            } else {
+                // Otherwise just disconnect for now
+                parentConn.disconnect();
+                if (parentInputView != null) {
+                    parentInputView.setConnectedBlockGroup(null);
+                }
             }
         }
         parentConn.connect(childConn);
         if (previousTargetConnection != null) {
             Block previousTargetBlock = previousTargetConnection.getBlock();
 
-            // Traverse the tree to ensure it doesn't branch. We only reconnect if there's a single
-            // place it could be rebased to.
+            // Traverse the tree to ensure it doesn't branch. We only reconnect if there's a
+            // single place it could be rebased to.
             Connection lastInputConnection = child.getLastUnconnectedInputConnection();
             if (lastInputConnection != null) {
                 connectAsInput(lastInputConnection, previousTargetConnection);
             } else {
                 // Bump and add back to root.
-                BlockGroup previousTargetGroup = mHelper.getParentBlockGroup(previousTargetBlock);
+                BlockGroup previousTargetGroup =
+                        mHelper.getParentBlockGroup(previousTargetBlock);
                 addRootBlock(previousTargetBlock, previousTargetGroup, false);
                 bumpBlock(parentConn, previousTargetConnection);
             }

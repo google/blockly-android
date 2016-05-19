@@ -16,13 +16,9 @@
 package com.google.blockly.android.ui;
 
 import android.content.Context;
-import android.database.DataSetObserver;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
-import android.widget.TextView;
 
 import com.google.blockly.android.ToolboxFragment;
 import com.google.blockly.android.TrashFragment;
@@ -158,13 +154,6 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                     BlockGroup subgroup = buildBlockGroupTree(
                             targetBlock, connectionManager, touchHandler);
                     inputView.setConnectedBlockGroup(subgroup);
-                }
-                targetBlock = input.getConnection().getTargetShadowBlock();
-                if (targetBlock != null) {
-                    // Blocks connected to inputs live in their own BlockGroups.
-                    BlockGroup subgroup = buildBlockGroupTree(
-                            targetBlock, connectionManager, touchHandler);
-                    inputView.setConnectedShadowGroup(subgroup);
                 }
             }
             inputViews.add(inputView);
