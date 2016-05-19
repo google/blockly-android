@@ -28,6 +28,7 @@ import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTestStrings;
+import com.google.blockly.model.Connection;
 import com.google.blockly.model.Workspace;
 
 import java.util.List;
@@ -76,8 +77,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         // Setup
         Block target = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
         Block source = mBlockFactory.obtainBlock("simple_input_output", "connectSource");
+        Connection targetConnection = target.getOnlyValueInput().getConnection();
+        Connection sourceConnection = source.getOutputConnection();
         mController.addRootBlock(target);
         mController.addRootBlock(source);
+
+        Block shadow = new Block.Builder(target).setUuid("connectShadow").setShadow(true).build();
 
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
@@ -93,19 +98,41 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Perform test: connection source's output to target's input.
-        mController.connect(source, source.getOutputConnection(),
-                target.getOnlyValueInput().getConnection());
+        mController.connect(source, sourceConnection, targetConnection);
 
         // Validate model changes.
         assertTrue(mWorkspace.isRootBlock(target));
         assertFalse(mWorkspace.isRootBlock(source));
-        assertSame(target, source.getOutputConnection().getTargetBlock());
+        assertSame(target, sourceConnection.getTargetBlock());
 
         if (withViews) {
             // Validate view changes
             BlockGroup targetGroup = mHelper.getParentBlockGroup(target);
             assertSame(targetGroup, mHelper.getRootBlockGroup(target));
             assertSame(targetGroup, mHelper.getRootBlockGroup(source));
+        }
+
+        // Add the shadow connection and disconnect the block
+        targetConnection.setShadowConnection(shadow.getOutputConnection());
+        mController.extractBlockAsRoot(source);
+        assertNull(source.getParentBlock());
+        // Validate the block was replaced by the shadow
+        assertEquals(targetConnection.getTargetBlock(), shadow);
+
+        if (withViews) {
+            // Check that the shadow block now has views
+            assertNotNull(mHelper.getView(shadow));
+            BlockGroup shadowGroup = mHelper.getParentBlockGroup(target);
+            assertSame(shadowGroup, mHelper.getRootBlockGroup(shadow));
+        }
+
+        // Reattach the block and verify the shadow is hidden again
+        mController.connect(source, sourceConnection, targetConnection);
+        assertEquals(targetConnection.getTargetBlock(), source);
+        assertNull(shadow.getOutputConnection().getTargetBlock());
+
+        if (withViews) {
+            assertNull(mHelper.getView(shadow));
         }
     }
 
@@ -218,6 +245,71 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             assertNotSame(targetGroup, tailGroup);
             assertTrue(mHelper.getMaxSnapDistance() <=
                     source.getOutputConnection().distanceFrom(tail.getOutputConnection()));
+        }
+    }
+
+    public void testConnect_outputToInputBumpShadow_headless() {
+        testConnect_outputToInputBumpShadow(false);
+    }
+
+    public void testConnect_outputToInputBumpShadow_withViews() {
+        testConnect_outputToInputBumpShadow(true);
+    }
+
+    private void testConnect_outputToInputBumpShadow(boolean withViews) {
+        // Setup
+        Block target = mBlockFactory.obtainBlock("simple_input_output", "target");
+        Block tail = mBlockFactory.obtainBlock("simple_input_output", "tail");
+        Block source = mBlockFactory.obtainBlock("simple_input_output", "source");
+        Block shadow = new Block.Builder(source).setShadow(true).setUuid("shadow").build();
+        Connection sourceInputConnection = source.getOnlyValueInput().getConnection();
+
+        // Connect the output of tail to the input of target.
+        target.getOnlyValueInput().getConnection().connect(tail.getOutputConnection());
+        // Add the shadow to the source
+        sourceInputConnection.setShadowConnection(shadow.getOutputConnection());
+        sourceInputConnection.connect(shadow.getOutputConnection());
+
+        mController.addRootBlock(target);
+        mController.addRootBlock(source);
+        if (withViews) {
+            mController.initWorkspaceView(mWorkspaceView);
+            fakeOnAttachToWindow(target, source);
+        }
+
+        // Validate preconditions
+        assertEquals(2, mWorkspace.getRootBlocks().size());
+        assertTrue(mWorkspace.isRootBlock(target));
+        assertFalse(mWorkspace.isRootBlock(tail));
+        assertTrue(mWorkspace.isRootBlock(source));
+
+        // Perform test: Connect the source to where the tail is currently attached.
+        mController.connect(source, source.getOutputConnection(),
+                target.getOnlyValueInput().getConnection());
+
+        // source is now a child of target, and tail is a new root block
+        assertEquals(2, mWorkspace.getRootBlocks().size());
+        assertTrue(mWorkspace.isRootBlock(target));
+        assertFalse(mWorkspace.isRootBlock(source));
+        assertTrue(mWorkspace.isRootBlock(tail));
+        assertSame(target, target.getRootBlock());
+        assertSame(target, source.getRootBlock());
+        assertSame(tail, tail.getRootBlock());
+        assertNull(tail.getOutputConnection().getTargetBlock());
+        assertSame(target, shadow.getRootBlock());
+
+        if (withViews) {
+            BlockGroup targetGroup = mHelper.getParentBlockGroup(target);
+            BlockGroup tailGroup = mHelper.getParentBlockGroup(tail);
+            assertSame(targetGroup, mHelper.getRootBlockGroup(target));
+            assertSame(targetGroup, mHelper.getRootBlockGroup(source));
+            assertSame(targetGroup, mHelper.getRootBlockGroup(shadow));
+            assertSame(tailGroup, mHelper.getRootBlockGroup(tail));
+            assertNotSame(targetGroup, tailGroup);
+
+            // Check that tail has been bumped far enough away.
+            assertTrue(mHelper.getMaxSnapDistance() <=
+                    tail.getOutputConnection().distanceFrom(source.getOutputConnection()));
         }
     }
 
