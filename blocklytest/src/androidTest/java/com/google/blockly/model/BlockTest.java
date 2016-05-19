@@ -82,14 +82,15 @@ public class BlockTest extends AndroidTestCase {
         Block originalShadow = mBlockFactory.obtainBlock("simple_input_output", "3");
         originalShadow.setShadow(true);
         original.getOnlyValueInput().getConnection().connect(original2.getOutputConnection());
-        original.getOnlyValueInput().getConnection().connect(originalShadow.getOutputConnection());
+        original.getOnlyValueInput().getConnection()
+                .setShadowConnection(originalShadow.getOutputConnection());
 
         Block copy = original.deepCopy();
         assertNotSame(original, copy);
         assertNotSame(original.getOnlyValueInput().getConnection().getTargetBlock(),
                 copy.getOnlyValueInput().getConnection().getTargetBlock());
-        assertNotSame(original.getOnlyValueInput().getConnection().getTargetShadowBlock(),
-                copy.getOnlyValueInput().getConnection().getTargetShadowBlock());
+        assertNotSame(original.getOnlyValueInput().getConnection().getShadowBlock(),
+                copy.getOnlyValueInput().getConnection().getShadowBlock());
     }
 
     public void testMessageTokenizer() {
@@ -223,22 +224,22 @@ public class BlockTest extends AndroidTestCase {
         loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "1",
                 BlockTestStrings.VALUE_SHADOW), bf);
         Connection conn = loaded.getInputByName("value_input").getConnection();
-        assertNull(conn.getTargetBlock());
-        assertTrue(conn.getTargetShadowBlock().isShadow());
+        assertEquals(conn.getTargetBlock(), conn.getShadowBlock());
+        assertTrue(conn.getShadowBlock().isShadow());
 
         loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "2",
                 BlockTestStrings.VALUE_SHADOW_GOOD), bf);
         conn = loaded.getInputByName("value_input").getConnection();
         assertEquals("VALUE_REAL", conn.getTargetBlock().getId());
         assertFalse(conn.getTargetBlock().isShadow());
-        assertEquals("VALUE_SHADOW", conn.getTargetShadowBlock().getId());
-        assertTrue(conn.getTargetShadowBlock().isShadow());
+        assertEquals("VALUE_SHADOW", conn.getShadowBlock().getId());
+        assertTrue(conn.getShadowBlock().isShadow());
 
         loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "3",
                 BlockTestStrings.STATEMENT_SHADOW), bf);
         conn = loaded.getInputByName("NAME").getConnection();
-        assertNull(conn.getTargetBlock());
-        assertTrue(conn.getTargetShadowBlock().isShadow());
+        assertEquals(conn.getTargetBlock(), conn.getShadowBlock());
+        assertTrue(conn.getShadowBlock().isShadow());
 
         // Clear refs so block names can be reused
         bf.clearPriorBlockReferences();
@@ -247,30 +248,29 @@ public class BlockTest extends AndroidTestCase {
         conn = loaded.getInputByName("NAME").getConnection();
         assertEquals("STATEMENT_REAL", conn.getTargetBlock().getId());
         assertFalse(conn.getTargetBlock().isShadow());
-        assertEquals("STATEMENT_SHADOW", conn.getTargetShadowBlock().getId());
-        assertTrue(conn.getTargetShadowBlock().isShadow());
+        assertEquals("STATEMENT_SHADOW", conn.getShadowBlock().getId());
+        assertTrue(conn.getShadowBlock().isShadow());
 
         loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "5",
                 BlockTestStrings.VALUE_NESTED_SHADOW), bf);
         conn = loaded.getInputByName("value_input").getConnection();
-        assertNull(conn.getTargetBlock());
-        Block shadow1 = conn.getTargetShadowBlock();
+        assertEquals(conn.getTargetBlock(), conn.getShadowBlock());
+        Block shadow1 = conn.getShadowBlock();
         assertEquals("SHADOW1", shadow1.getId());
         conn = shadow1.getOnlyValueInput().getConnection();
-        assertNull(conn.getTargetBlock());
-        assertEquals("SHADOW2", conn.getTargetShadowBlock().getId());
+        assertEquals(conn.getTargetBlock(), conn.getShadowBlock());
+        assertEquals("SHADOW2", conn.getShadowBlock().getId());
 
         // Clear refs so block names can be reused
         bf.clearPriorBlockReferences();
         loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "6",
                 BlockTestStrings.VALUE_NESTED_SHADOW_BLOCK), bf);
         conn = loaded.getInputByName("value_input").getConnection();
-        assertNull(conn.getTargetBlock());
-        shadow1 = conn.getTargetShadowBlock();
+        shadow1 = conn.getShadowBlock();
         assertEquals("SHADOW1", shadow1.getId());
         conn = shadow1.getOnlyValueInput().getConnection();
         assertEquals("BLOCK_INNER", conn.getTargetBlock().getId());
-        assertEquals("SHADOW2", conn.getTargetShadowBlock().getId());
+        assertEquals("SHADOW2", conn.getShadowBlock().getId());
     }
 
     public void testSerializeBlock() throws BlocklySerializerException, IOException {
@@ -372,7 +372,7 @@ public class BlockTest extends AndroidTestCase {
         input.getConnection().connect(inputBlock.getOutputConnection());
         inputBlock = bf.obtainBlock("output_foo", "VALUE_SHADOW");
         inputBlock.setShadow(true);
-        input.getConnection().connect(inputBlock.getOutputConnection());
+        input.getConnection().setShadowConnection(inputBlock.getOutputConnection());
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);

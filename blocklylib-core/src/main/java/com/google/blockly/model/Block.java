@@ -482,20 +482,18 @@ public class Block {
     }
 
     /**
-     * If the block has a output, and the output is connected, retrieves the matching {@link Input}
-     * belonging to the parent.
-     *
-     * @return Input connected to this block's output, if present and connected.
+     * @return The next or input {@link Connection} this block is connected to, or null.
      */
-    public Input getConnectedInput() {
-        if (mOutputConnection == null) {
-            return null;
+    public Connection getParentConnection() {
+        Connection prev = mPreviousConnection;
+        if (prev != null) {
+            return prev.getTargetConnection();
         }
-        Connection connectedTo = mOutputConnection.getTargetConnection();
-        if (connectedTo == null) {
-            return null;
+        Connection output = mOutputConnection;
+        if (output != null) {
+            return output.getTargetConnection();
         }
-        return connectedTo.getInput();
+        return null;
     }
 
     /**
@@ -503,15 +501,8 @@ public class Block {
      *         Otherwise null.
      */
     public Block getParentBlock() {
-        Connection prev = mPreviousConnection;
-        if (prev != null) {
-            return prev.getTargetBlock();
-        }
-        Connection output = mOutputConnection;
-        if (output != null) {
-            return output.getTargetBlock();
-        }
-        return null;
+        Connection parentConnection = getParentConnection();
+        return parentConnection == null ? null : parentConnection.getBlock();
     }
 
     @VisibleForTesting
@@ -534,21 +525,27 @@ public class Block {
             throw new IllegalArgumentException(
                     "Connection types must match and must be a superior connection.");
         }
+        Block copy = null;
+        if (sourceConnection.getShadowBlock() != null) {
+            // Make a copy of the shadow if we have one and set it on the connection
+            copy = sourceConnection.getShadowBlock().deepCopy();
+            if (destConnection.getType() == Connection.CONNECTION_TYPE_NEXT) {
+                destConnection.setShadowConnection(copy.getPreviousConnection());
+            } else if (destConnection.getType() == Connection.CONNECTION_TYPE_INPUT) {
+                destConnection.setShadowConnection(copy.getOutputConnection());
+            }
+        }
 
         if (sourceConnection.getTargetBlock() != null) {
-            Block copy = sourceConnection.getTargetBlock().deepCopy();
+            // If a block other than the shadow was connected make a copy of that
+            if (sourceConnection.getTargetBlock() != sourceConnection.getShadowBlock()) {
+                copy = sourceConnection.getTargetBlock().deepCopy();
+            }
+            // Connect a copy of whichever block was connected to the source
             if (destConnection.getType() == Connection.CONNECTION_TYPE_NEXT) {
                 destConnection.connect(copy.getPreviousConnection());
             } else if (destConnection.getType() == Connection.CONNECTION_TYPE_INPUT) {
                 destConnection.connect(copy.getOutputConnection());
-            }
-        }
-        if (sourceConnection.getTargetShadowBlock() != null) {
-            Block shadowCopy = sourceConnection.getTargetShadowBlock().deepCopy();
-            if (destConnection.getType() == Connection.CONNECTION_TYPE_NEXT) {
-                destConnection.connect(shadowCopy.getPreviousConnection());
-            } else if (destConnection.getType() == Connection.CONNECTION_TYPE_INPUT) {
-                destConnection.connect(shadowCopy.getOutputConnection());
             }
         }
     }
@@ -865,16 +862,6 @@ public class Block {
                                     "Created a null block. This should never happen.");
                         }
                         resultBlock.mIsShadow = true;
-                        // TODO: (#199) support more complex shadow blocks.
-                        List<Connection> connections = resultBlock.getAllConnections();
-                        if (resultBlock.getPreviousConnection() == null
-                                && resultBlock.getOutputConnection() == null) {
-                            Log.w(TAG,
-                                    "Shadow block has no previous or output and will be unusable.");
-                        } else if (connections.size() > 1) {
-                            // This block has a connection other than previous/output
-                            Log.e(TAG, "Shadows only support previous/output connections.");
-                        }
                         return resultBlock;
                     }else if (tagname.equalsIgnoreCase("field")) {
                         Field toSet = resultBlock.getFieldByName(fieldName);
@@ -886,7 +873,8 @@ public class Block {
                         }
                     } else if (tagname.equalsIgnoreCase("value")) {
                         if (valueInput != null) {
-                            if (valueInput.getConnection() == null) {
+                            Connection inputConnection = valueInput.getConnection();
+                            if (inputConnection == null) {
                                 throw new BlocklyParserException("The input connection was null.");
                             }
                             if (childBlock != null) {
@@ -894,25 +882,27 @@ public class Block {
                                     throw new BlocklyParserException(
                                             "The child connection was null.");
                                 }
-                                if (valueInput.getConnection().isConnected()) {
+                                if (inputConnection.isConnected()) {
                                     throw new BlocklyParserException(
                                             "Multiple values were provided for the same input.");
                                 }
-                                valueInput.getConnection()
-                                        .connect(childBlock.getOutputConnection());
+                                inputConnection.connect(childBlock.getOutputConnection());
                             }
                             if (childShadow != null) {
-                                if (childShadow.getOutputConnection() == null) {
+                                Connection shadowConnection = childShadow.getOutputConnection();
+                                if (shadowConnection == null) {
                                     throw new BlocklyParserException(
                                             "The shadow block connection was null.");
                                 }
-                                if (valueInput.getConnection().isShadowConnected()) {
+                                if (inputConnection.getShadowConnection() != null) {
                                     throw new BlocklyParserException(
                                             "Multiple shadows were provided for the same "
                                             + "input.");
                                 }
-                                valueInput.getConnection()
-                                        .connect(childShadow.getOutputConnection());
+                                inputConnection.setShadowConnection(shadowConnection);
+                                if (!inputConnection.isConnected()) {
+                                    inputConnection.connect(shadowConnection);
+                                }
                             }
                             valueInput = null;
                             childBlock = null;
@@ -923,7 +913,8 @@ public class Block {
                         }
                     } else if (tagname.equalsIgnoreCase("statement")) {
                         if (statementInput != null) {
-                            if (statementInput.getConnection() == null) {
+                            Connection inputConnection = statementInput.getConnection();
+                            if (inputConnection == null) {
                                 throw new BlocklyParserException(
                                         "The statement connection was null.");
                             }
@@ -932,26 +923,29 @@ public class Block {
                                     throw new BlocklyParserException(
                                             "The child connection was null.");
                                 }
-                                if (statementInput.getConnection().isConnected()) {
+                                if (inputConnection.isConnected()) {
                                     throw new BlocklyParserException(
                                             "Multiple statements were provided for the same "
                                             + "input.");
                                 }
-                                statementInput.getConnection().connect(
-                                        childBlock.getPreviousConnection());
+                                inputConnection.connect(childBlock.getPreviousConnection());
                             }
                             if (childShadow != null) {
-                                if (childShadow.getPreviousConnection() == null) {
+                                Connection shadowConnection = childShadow.getPreviousConnection();
+                                if (shadowConnection == null) {
                                     throw new BlocklyParserException(
                                             "The shadow block connection was null.");
                                 }
-                                if (statementInput.getConnection().isShadowConnected()) {
+                                if (inputConnection.getShadowConnection() != null) {
                                     throw new BlocklyParserException(
                                             "Multiple shadows were provided for the same "
                                                     + "input.");
                                 }
-                                statementInput.getConnection().connect(
-                                        childShadow.getPreviousConnection());
+                                inputConnection.setShadowConnection(shadowConnection);
+                                if (!inputConnection.isConnected()) {
+                                    // If there was no standard block connect the shadow
+                                    inputConnection.connect(shadowConnection);
+                                }
                             }
                             valueInput = null;
                             childBlock = null;
@@ -963,7 +957,7 @@ public class Block {
                     } else if (tagname.equalsIgnoreCase("comment")) {
                         resultBlock.setComment(text);
                     } else if (tagname.equalsIgnoreCase("next")) {
-                        // TODO: (#199) support more complex shadow blocks.
+                        // TODO: (#199) maybe support more complex shadow blocks.
                         if (childShadow != null) {
                             Log.e(TAG, "Shadow blocks connected to next are not supported");
                         }
