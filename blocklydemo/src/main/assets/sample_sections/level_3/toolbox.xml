@@ -85,6 +85,32 @@
                 <shadow type="statement_no_input"></shadow>
             </statement>
         </block>
+        <block type="controls_if">
+            <value name="IF0">
+                <shadow type="logic_compare">
+                    <field name="OP">EQ</field>
+                    <value name="A">
+                        <shadow type="math_number">
+                            <field name="NUM">0</field>
+                        </shadow>
+                    </value>
+                    <value name="B">
+                        <shadow type="math_number">
+                            <field name="NUM">0</field>
+                        </shadow>
+                    </value>
+                </shadow>
+            </value>
+            <statement name="DO0">
+                <shadow type="statement_value_input">
+                    <value name="value">
+                        <shadow type="math_number">
+                            <field name="NUM">11</field>
+                        </shadow>
+                    </value>
+                </shadow>
+            </statement>
+        </block>
     </category>
     <category name="Numbers">
         <block type="test_number">

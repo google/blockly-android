@@ -86,22 +86,22 @@ public class ConnectionManagerTest extends AndroidTestCase {
         Connection one = createConnection(5 /* x */, 10 /* y */, Connection.CONNECTION_TYPE_INPUT);
         Connection two = createConnection(10 /* x */, 15 /* y */, Connection.CONNECTION_TYPE_OUTPUT);
 
-        assertTrue(manager.isConnectionAllowed(one, two, 20.0));
+        assertTrue(manager.isConnectionAllowed(one, two, 20.0, false));
         // Move connections farther apart
         two.setPosition(100, 100);
-        assertFalse(manager.isConnectionAllowed(one, two, 20.0));
+        assertFalse(manager.isConnectionAllowed(one, two, 20.0, false));
 
         // Don't offer to connect an already connected left (male) value plug to
         // an available right (female) value plug.
         Connection three = createConnection(0, 0, Connection.CONNECTION_TYPE_OUTPUT);
-        assertTrue(manager.isConnectionAllowed(one, three, 20.0));
+        assertTrue(manager.isConnectionAllowed(one, three, 20.0, false));
         Connection four = createConnection(0, 0, Connection.CONNECTION_TYPE_INPUT);
         three.connect(four);
-        assertFalse(manager.isConnectionAllowed(one, three, 20.0));
+        assertFalse(manager.isConnectionAllowed(one, three, 20.0, false));
 
         // Don't connect two connections on the same block
         two.setBlock(one.getBlock());
-        assertFalse(manager.isConnectionAllowed(one, two, 1000.0));
+        assertFalse(manager.isConnectionAllowed(one, two, 1000.0, false));
     }
 
     public void testIsConnectionAllowedNext() {
@@ -113,9 +113,9 @@ public class ConnectionManagerTest extends AndroidTestCase {
 
         // Don't offer to connect the bottom of a statement block to one that's already connected.
         Connection three = createConnection(0, 0, Connection.CONNECTION_TYPE_PREVIOUS);
-        assertTrue(manager.isConnectionAllowed(one, three, 20.0));
+        assertTrue(manager.isConnectionAllowed(one, three, 20.0, false));
         three.connect(two);
-        assertFalse(manager.isConnectionAllowed(one, three, 20.0));
+        assertFalse(manager.isConnectionAllowed(one, three, 20.0, false));
     }
 
     // Test YSortedList
