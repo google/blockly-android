@@ -168,11 +168,14 @@ public class ConnectionManager {
      * @param candidate A nearby connection to check.  Must be in the {@link ConnectionManager},
      * and therefore not be mid-drag.
      * @param maxRadius The maximum radius allowed for connections.
+     * @param allowShadowParent False if shadows should not be allowed as parents of non-shadow
+     *                          blocks, true to skip the shadow parent check.
      *
      * @return True if the connection is allowed, false otherwise.
      */
     @VisibleForTesting
-    boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius) {
+    boolean isConnectionAllowed(Connection moving, Connection candidate, double maxRadius,
+            boolean allowShadowParent) {
         if (moving.distanceFrom(candidate) > maxRadius) {
             return false;
         }
@@ -190,6 +193,22 @@ public class ConnectionManager {
         if (candidate.getType() == Connection.CONNECTION_TYPE_OUTPUT
                 || candidate.getType() == Connection.CONNECTION_TYPE_PREVIOUS) {
             if (candidate.isConnected()) {
+                return false;
+            }
+        }
+
+        if (!allowShadowParent) {
+            Block parent;
+            Block child;
+            if (moving.getType() == Connection.CONNECTION_TYPE_INPUT
+                    || moving.getType() == Connection.CONNECTION_TYPE_NEXT) {
+                parent = moving.getBlock();
+                child = candidate.getBlock();
+            } else {
+                parent = candidate.getBlock();
+                child = moving.getBlock();
+            }
+            if (parent.isShadow() && !child.isShadow()) {
                 return false;
             }
         }
@@ -375,7 +394,7 @@ public class ConnectionManager {
             int pointerMin = closestIndex - 1;
             while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMin);
-                if (isConnectionAllowed(conn, temp, bestRadius)) {
+                if (isConnectionAllowed(conn, temp, bestRadius, false)) {
                     bestConnection = temp;
                     bestRadius = temp.distanceFrom(conn);
                 }
@@ -385,7 +404,7 @@ public class ConnectionManager {
             int pointerMax = closestIndex;
             while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMax);
-                if (isConnectionAllowed(conn, temp, bestRadius)) {
+                if (isConnectionAllowed(conn, temp, bestRadius, false)) {
                     bestConnection = temp;
                     bestRadius = temp.distanceFrom(conn);
                 }
@@ -415,7 +434,7 @@ public class ConnectionManager {
             while (pointerMin >= 0 && isInYRange(pointerMin, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMin);
                 if ((!conn.isConnected() || !temp.isConnected())
-                        && isConnectionAllowed(conn, temp, maxRadius)) {
+                        && isConnectionAllowed(conn, temp, maxRadius, true)) {
                     neighbours.add(temp);
                 }
                 pointerMin--;
@@ -425,7 +444,7 @@ public class ConnectionManager {
             while (pointerMax < mConnections.size() && isInYRange(pointerMax, baseY, maxRadius)) {
                 Connection temp = mConnections.get(pointerMax);
                 if ((!conn.isConnected() || !temp.isConnected())
-                        && isConnectionAllowed(conn, temp, maxRadius)) {
+                        && isConnectionAllowed(conn, temp, maxRadius, true)) {
                     neighbours.add(temp);
                 }
                 pointerMax++;
