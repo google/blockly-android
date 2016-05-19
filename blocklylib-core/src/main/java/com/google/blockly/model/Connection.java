@@ -15,7 +15,6 @@
 
 package com.google.blockly.model;
 
-import android.graphics.Point;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -81,6 +80,9 @@ public class Connection implements Cloneable {
     private Block mBlock;
     private Input mInput;
     private Connection mTargetConnection;
+    // The shadow connection is only valid for next/input connections. It is not a live connection,
+    // just a reference to the default shadow (if there is one) that should be connected when there
+    // isn't another connection.
     private Connection mTargetShadowConnection;
     private boolean mInDragMode = false;
 
@@ -107,6 +109,29 @@ public class Connection implements Cloneable {
      */
     public boolean canConnect(Connection target) {
         return canConnectWithReason(target) == CAN_CONNECT;
+    }
+
+    /**
+     * Sets the connection (and shadow block) to use when a normal block isn't connected. This may
+     * only be called on connections that belong to an input (value or statement).
+     *
+     * @param target The connection on the shadow block to use.
+     */
+    public void setShadowConnection(Connection target) {
+        if (target == null) {
+            mTargetShadowConnection = null;
+            return;
+        }
+        if (mInput == null) {
+            throw new IllegalStateException("Only input connections can have shadows");
+        }
+        if (canConnectWithReason(target, true) != CAN_CONNECT) {
+            throw new IllegalArgumentException("The shadow connection can't be connected.");
+        }
+        if (!target.getBlock().isShadow()) {
+            throw new IllegalArgumentException("The connection does not belong to a shadow block");
+        }
+        mTargetShadowConnection = target;
     }
 
     /**
@@ -153,10 +178,19 @@ public class Connection implements Cloneable {
     }
 
     /**
-     * @return The shadow {@link Block} this is connected to or null if it has no shadow block.
+     * @return The shadow {@link Block} that is used when no other block is connected or null if it
+     * has no shadow block.
      */
-    public Block getTargetShadowBlock() {
+    public Block getShadowBlock() {
         return mTargetShadowConnection == null ? null : mTargetShadowConnection.getBlock();
+    }
+
+    /**
+     * @return The shadow block {@link Connection} that is used when no other block is connected or
+     * null if it has no shadow block.
+     */
+    public Connection getShadowConnection() {
+        return mTargetShadowConnection;
     }
 
     /**
@@ -263,13 +297,6 @@ public class Connection implements Cloneable {
     }
 
     /**
-     * @return True if the connection has a shadow block connection, false otherwise.
-     */
-    public boolean isShadowConnected() {
-        return mTargetShadowConnection != null;
-    }
-
-    /**
      * @return Whether the connection has high priority in the context of bumping connections away.
      */
     public boolean isHighPriority() {
@@ -283,6 +310,17 @@ public class Connection implements Cloneable {
      */
     @CheckResultType
     public int canConnectWithReason(Connection target) {
+        return canConnectWithReason(target, false);
+    }
+
+    /**
+     * @param target The {@link Connection} to check compatibility with.
+     * @param ignoreDisconnect True to skip checking if the connection is already connected.
+     *
+     * @return {@code CAN_CONNECT} if the connection is legal, an error code otherwise.
+     */
+    @CheckResultType
+    private int canConnectWithReason(Connection target, boolean ignoreDisconnect) {
         if (target == null || target.getBlock() == null) {
             return REASON_TARGET_NULL;
         }
@@ -292,11 +330,7 @@ public class Connection implements Cloneable {
         if (target.getType() != OPPOSITE_TYPES[mConnectionType]) {
             return REASON_WRONG_TYPE;
         }
-        if (target.getBlock().isShadow()) {
-            if (mTargetShadowConnection != null) {
-                return REASON_MUST_DISCONNECT;
-            }
-        } else if (mTargetConnection != null) {
+        if (!ignoreDisconnect && mTargetConnection != null) {
             return REASON_MUST_DISCONNECT;
         }
         if (!checksMatch(target)) {
@@ -322,11 +356,7 @@ public class Connection implements Cloneable {
     }
 
     private void connectInternal(Connection target) {
-        if (target.getBlock().isShadow()) {
-            mTargetShadowConnection = target;
-        } else {
-            mTargetConnection = target;
-        }
+        mTargetConnection = target;
     }
 
     private void disconnectInternal() {

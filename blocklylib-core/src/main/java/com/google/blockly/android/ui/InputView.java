@@ -42,32 +42,10 @@ public interface InputView {
     void setConnectedBlockGroup(@Nullable BlockGroup group);
 
     /**
-     * Sets the {@link BlockGroup} containing the shadow block connected to this input and updates
-     * the view hierarchy. This generally only needs to be done when the view hierarchy is first
-     * created. Calling this with null will disconnect the current group.
-     *
-     * @param group The {@link BlockGroup} to add to this input view.
-     */
-    void setConnectedShadowGroup(@Nullable BlockGroup group);
-
-    /**
      * @return The {@link BlockGroup} connected to this input connection.
      */
     @Nullable
     BlockGroup getConnectedBlockGroup();
-
-    /**
-     * @return The {@link BlockGroup} shadow block connected to this input connection.
-     */
-    @Nullable
-    BlockGroup getConnectedShadowGroup();
-
-    /**
-     * @return The {@link BlockGroup} connected to this input connection, or the shadow block group
-     *         if no normal {@code BlockGroup} is connected.
-     */
-    @Nullable
-    BlockGroup getConnectedBlockGroupOrShadowGroup();
 
     /**
      * Recursively disconnects the view from the model, including all subviews/model subcomponents.
