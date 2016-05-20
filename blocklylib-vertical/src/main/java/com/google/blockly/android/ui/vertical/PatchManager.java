@@ -141,7 +141,7 @@ public class PatchManager {
 
         final NinePatchDrawable bottomPatchNext = getPatchDrawable(R.drawable.bottom_start_next);
         if (!bottomPatchNext.getPadding(mTempRect)) {
-            throw new IllegalStateException("9-patch 'blottom_start_next' does not have padding.");
+            throw new IllegalStateException("9-patch 'bottom_start_next' does not have padding.");
         }
         mNextConnectorHeight = mTempRect.bottom - mBlockBottomPadding;
 
