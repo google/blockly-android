@@ -120,18 +120,14 @@ public class ConnectionTest extends AndroidTestCase {
         // Verify a shadow can connect
         assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(shadowOutput));
         input.connect(output);
-        // Verify it can still connect after a non-shadow has been connected
-        assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(shadowOutput));
+        // Verify a shadow and non shadow can't be connected at the same time
+        assertEquals(Connection.REASON_MUST_DISCONNECT, input.canConnectWithReason(shadowOutput));
+        input.disconnect();
         input.connect(shadowOutput);
 
-        shadowOutput = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
-        shadowOutput.setBlock(blockBuilder.build());
-        // And can't connect once another shadow is connected
-        assertEquals(Connection.REASON_MUST_DISCONNECT, input.canConnectWithReason(shadowOutput));
-
-        // Veryify a normal connection can be made after a shadow connection
+        // Veryify a normal connection can't be made after a shadow connection
         next.connect(shadowPrevious);
-        assertEquals(Connection.CAN_CONNECT, next.canConnectWithReason(previous));
+        assertEquals(Connection.REASON_MUST_DISCONNECT, next.canConnectWithReason(previous));
     }
 
     public void testCheckConnection_failure() {

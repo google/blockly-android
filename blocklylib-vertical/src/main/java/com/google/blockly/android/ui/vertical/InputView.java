@@ -266,8 +266,7 @@ public class InputView extends AbstractInputView {
     private void measureConnectedBlockGroup(int widthMeasureSpec, int heightMeasureSpec) {
         final boolean inputsInline = mInput.getBlock().getInputsInline();
 
-        BlockGroup groupToMeasure = mConnectedGroup != null ? mConnectedGroup
-                : mConnectedShadowGroup;
+        BlockGroup groupToMeasure = mConnectedGroup;
         if (groupToMeasure != null) {
             // There is a block group connected to this input - measure it and add its size
             // to this InputView's size.
@@ -331,8 +330,7 @@ public class InputView extends AbstractInputView {
      * If there is a child connected to this Input, then layout the child in the correct place.
      */
     private void layoutChild() {
-        BlockGroup groupToLayout = mConnectedGroup != null ? mConnectedGroup
-                : mConnectedShadowGroup;
+        BlockGroup groupToLayout = mConnectedGroup;
         if (groupToLayout != null) {
             // Compute offset of child relative to InputView. By default, align top of fields and
             // input, and shift right by left padding plus field width.
