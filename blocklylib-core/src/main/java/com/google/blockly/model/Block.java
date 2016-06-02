@@ -60,9 +60,9 @@ public class Block {
     private String mTooltip;
     private String mComment;
     private boolean mHasContextMenu;
-    private boolean mCanDelete;
-    private boolean mCanMove;
-    private boolean mCanEdit;
+    private boolean mDeletable;
+    private boolean mMovable;
+    private boolean mEditable;
     private boolean mCollapsed;
     private boolean mDisabled;
     private boolean mInputsInline;
@@ -138,6 +138,130 @@ public class Block {
      */
     public int getColor() {
         return mColor;
+    }
+
+    /**
+     * @return Whether the user can edit field values.
+     * @see #setEditable(boolean)
+     */
+    public boolean isEditable() {
+        return mEditable;
+    }
+
+    /**
+     * If a block is editable, the user can edit the values of the block's fields.  The editable
+     * state does not affect whether child blocks can be connected or disconnected.
+     *
+     * Blocks are editable by default.
+     *
+     * Warning: FieldViews do not yet respect block disabled state (#303).
+     *
+     * @param editable
+     */
+    public void setEditable(boolean editable) {
+        mEditable = editable;
+    }
+
+    /**
+     * @return Whether the block can be moved.
+     * @see #setMovable(boolean)
+     */
+    public boolean isMovable() {
+        return mMovable;
+    }
+
+    /**
+     * If a block is movable, users can drag it as a root block on the workspace, or disconnect it
+     * from its parent block.
+     *
+     * Blocks are movable by default.
+     *
+     * Warning: The Android Dragger implementation does not yet respect movable false state (#304).
+     *
+     * @param movable
+     */
+    public void setMovable(boolean movable) {
+        mMovable = movable;
+    }
+
+    /**
+     * @return Whether the user can delete / trash this block.
+     */
+    public boolean isDeletable() {
+        return mDeletable;
+    }
+
+    /**
+     * Users can delete (i.e., drag to trash) blocks that are deletable.
+     *
+     * Blocks are deletable by default.
+     *
+     * Warning: The Android Dragger implementation does not respect deletable false state (#305).
+     *
+     * @param deletable
+     */
+    public void setDeletable(boolean deletable) {
+        mDeletable = deletable;
+    }
+
+    /**
+     * @return Whether the block is disabled.  Does not check if parent or ancestor is disabled.
+     * @see #setDisabled(boolean)
+     */
+    public boolean isDisabledBlock() {
+        return mDisabled;
+    }
+
+    /**
+     * @return Whether the block is disabled, possibly via a disabled parent or ancestor block.
+     * @see #setDisabled(boolean)
+     */
+    public boolean isDisabled() {
+        if (mDisabled) {
+            return true;
+        }
+        Block ancestor = getParentBlock();
+        while (ancestor != null) {
+            if (ancestor.mDisabled) {
+                return true;
+            }
+            ancestor = ancestor.getParentBlock();
+        }
+        return false;
+    }
+
+    /**
+     * Disabling a block is effectively a way to comment out a block. The block is skipped during
+     * code generation, including all connection value input and statement input children.  Next
+     * statement children are not effected.
+     *
+     * By default, blocks are not disabled.
+     *
+     * Warning: Not yet respected by Dragger (#304).
+     *
+     * @param disabled
+     */
+    public void setDisabled(boolean disabled) {
+        mDisabled = disabled;
+    }
+
+    /**
+     * @return Whether the block is collapsed.
+     * @see #setCollapsed(boolean)
+     */
+    public boolean isCollapsed() {
+        return mCollapsed;
+    }
+
+    /**
+     * Users can collapse blocks, to render them in a condensed, text-only form.
+     *
+     * Warning: Not yet supported by Android BlockViews (#307).
+     *
+     * @param collapsed Whether the block should be collapsed.
+     */
+    public void setCollapsed(boolean collapsed) {
+        mCollapsed = collapsed;
     }
 
     /**
@@ -355,7 +479,7 @@ public class Block {
      * @return True if this block can be dragged by the user, false otherwise.
      */
     public boolean isDraggable() {
-        return !mIsShadow && mCanMove;
+        return !mIsShadow && mMovable;
     }
 
     /**
@@ -400,6 +524,22 @@ public class Block {
         if (rootBlock) {
             serializer.attribute(null, "x", Integer.toString(mPosition.x))
                     .attribute(null, "y", Integer.toString(mPosition.y));
+        }
+
+        if (isCollapsed()) {
+            serializer.attribute(null, "collapsed", "true");
+        }
+        if (!isDeletable() && !isShadow()) {
+            serializer.attribute(null, "deletable", "false");
+        }
+        if (isDisabled()) {
+            serializer.attribute(null, "disabled", "true");
+        }
+        if (!isEditable()) {
+            serializer.attribute(null, "editable", "false");
+        }
+        if (!isMovable() && !isShadow()) {
+            serializer.attribute(null, "movable", "false");
         }
 
         // Only serialize whether the inputs are internal or external if it has been explicitly
@@ -804,9 +944,34 @@ public class Block {
             throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
         }
 
+        String collapsedString = parser.getAttributeValue(null, "collapsed");
+        if (collapsedString != null) {
+            resultBlock.setCollapsed(Boolean.parseBoolean(collapsedString));
+        }
+
+        String deletableString = parser.getAttributeValue(null, "deletable");
+        if (deletableString != null) {
+            resultBlock.setDeletable(Boolean.parseBoolean(deletableString));
+        }
+
+        String disabledString = parser.getAttributeValue(null, "disabled");
+        if (disabledString != null) {
+            resultBlock.setDisabled(Boolean.parseBoolean(disabledString));
+        }
+
+        String editableString = parser.getAttributeValue(null, "editable");
+        if (editableString != null) {
+            resultBlock.setEditable(Boolean.parseBoolean(editableString));
+        }
+
         String inputsInlineString = parser.getAttributeValue(null, "inline");
         if (inputsInlineString != null) {
             resultBlock.setInputsInline(Boolean.parseBoolean(inputsInlineString));
+        }
+
+        String movableString = parser.getAttributeValue(null, "movable");
+        if (movableString != null) {
+            resultBlock.setMovable(Boolean.parseBoolean(movableString));
         }
 
         // Set position.  Only if this is a top level block.
@@ -980,9 +1145,9 @@ public class Block {
         private boolean mInputsInline = false;
         private boolean mInputsInlineModified = false;
         private boolean mIsShadow = false;
-        private boolean mCanDelete = true;
-        private boolean mCanMove = true;
-        private boolean mCanEdit = true;
+        private boolean mDeletable = true;
+        private boolean mMovable = true;
+        private boolean mEditable = true;
         private boolean mCollapsed = false;
         private boolean mDisabled = false;
 
@@ -1019,9 +1184,9 @@ public class Block {
             mComment = block.mComment;
             mHasContextMenu = block.mHasContextMenu;
             mIsShadow = block.mIsShadow;
-            mCanDelete = block.mCanDelete;
-            mCanMove = block.mCanMove;
-            mCanEdit = block.mCanEdit;
+            mDeletable = block.mDeletable;
+            mMovable = block.mMovable;
+            mEditable = block.mEditable;
             mCollapsed = block.mCollapsed;
             mDisabled = block.mDisabled;
             mPosition.x = block.mPosition.x;
@@ -1115,18 +1280,18 @@ public class Block {
             return this;
         }
 
-        public Builder setCanDelete(boolean canDelete) {
-            mCanDelete = canDelete;
+        public Builder setDeletable(boolean canDelete) {
+            mDeletable = canDelete;
             return this;
         }
 
-        public Builder setCanMove(boolean canMove) {
-            mCanMove = canMove;
+        public Builder setMovable(boolean canMove) {
+            mMovable = canMove;
             return this;
         }
 
-        public Builder setCanEdit(boolean canEdit) {
-            mCanEdit = canEdit;
+        public Builder setEditable(boolean canEdit) {
+            mEditable = canEdit;
             return this;
         }
 
@@ -1153,9 +1318,9 @@ public class Block {
             b.mComment = mComment;
             b.mHasContextMenu = mHasContextMenu;
             b.mIsShadow = mIsShadow;
-            b.mCanDelete = mCanDelete;
-            b.mCanMove = mCanMove;
-            b.mCanEdit = mCanEdit;
+            b.mDeletable = mDeletable;
+            b.mMovable = mMovable;
+            b.mEditable = mEditable;
             b.mCollapsed = mCollapsed;
             b.mDisabled = mDisabled;
             b.mPosition = mPosition;

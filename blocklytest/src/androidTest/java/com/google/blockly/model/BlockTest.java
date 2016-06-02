@@ -19,6 +19,8 @@ import android.test.AndroidTestCase;
 
 import com.google.blockly.android.R;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.BlocklyXmlHelper;
+import com.google.blockly.utils.StringOutputStream;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +32,12 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -643,6 +651,132 @@ public class BlockTest extends AndroidTestCase {
 
     public void testBlockIdSerializedDeserialized() {
         Block block = mBlockFactory.obtainBlock("statement_no_input", "123");
+    }
+
+    public void testCollapsed() {
+        Block block = new Block.Builder("statement_no_input").build();
+        assertFalse("By default, blocks are not collapsed.", block.isCollapsed());
+
+        String blockXml = toXml(block);
+        assertFalse("Default state is not stored in XML", blockXml.contains("collapsed"));
+
+        Block blockFromXml = fromXmlWithoutId(blockXml);
+        assertFalse("By default, blocks loaded from XML are not collapsed.",
+                blockFromXml.isCollapsed());
+
+        block.setCollapsed(true);
+        assertTrue("Collapsed state can change.", block.isCollapsed());
+
+        blockXml = toXml(block);
+        assertTrue("Collapsed state is stored in XML.", blockXml.contains("collapsed=\"true\""));
+
+        blockFromXml = fromXmlWithoutId(blockXml);
+        assertTrue("Collapsed state set from XML.", blockFromXml.isCollapsed());
+    }
+
+    public void testDeletable() {
+        Block block = new Block.Builder("statement_no_input").build();
+        assertTrue("By default, blocks are deletable.", block.isDeletable());
+
+        String blockXml = toXml(block);
+        assertFalse("Default state is not stored in XML", blockXml.contains("deletable"));
+
+        Block blockFromXml = fromXmlWithoutId(blockXml);
+        assertTrue("By default, blocks loaded from XML are deletable.", blockFromXml.isDeletable());
+
+        block.setDeletable(false);
+        assertFalse("Deletable state can change.", block.isDeletable());
+
+        blockXml = toXml(block);
+        assertTrue("Deletable state is stored in XML", blockXml.contains("deletable=\"false\""));
+
+        blockFromXml = fromXmlWithoutId(blockXml);
+        assertFalse("Deletable state set from XML.", blockFromXml.isDeletable());
+    }
+
+    public void testDisabled() {
+        Block block = new Block.Builder("statement_no_input").build();
+        assertFalse("By default, blocks are not disabled.", block.isDisabled());
+
+        String blockXml = toXml(block);
+        assertFalse("Default state is not stored in XML", blockXml.contains("disabled"));
+
+        Block blockFromXml = fromXmlWithoutId(blockXml);
+        assertFalse("By default, blocks loaded from XML are not disabled.",
+                blockFromXml.isDisabled());
+
+        block.setDisabled(true);
+        assertTrue("Disabled state can change.", block.isDisabled());
+
+        blockXml = toXml(block);
+        assertTrue("Disabled state is stored in XML.", blockXml.contains("disabled=\"true\""));
+
+        blockFromXml = fromXmlWithoutId(blockXml);
+        assertTrue("Disabled state set from XML.", blockFromXml.isDisabled());
+    }
+
+    public void testEditable() {
+        Block block = new Block.Builder("statement_no_input").build();
+        assertTrue("By default, blocks are editable.", block.isEditable());
+
+        String blockXml = toXml(block);
+        assertFalse("Default state is not stored in XML", blockXml.contains("editable"));
+
+        Block blockFromXml = fromXmlWithoutId(blockXml);
+        assertTrue("By default, blocks loaded from XML are editable.", blockFromXml.isEditable());
+
+        block.setEditable(false);
+        assertFalse("Editable state can change.", block.isEditable());
+
+        blockXml = toXml(block);
+        assertTrue("Editable state is stored in XML", blockXml.contains("editable=\"false\""));
+
+        blockFromXml = fromXmlWithoutId(blockXml);
+        assertFalse("Editable state set from XML.", blockFromXml.isEditable());
+    }
+
+    public void testMovable() {
+        Block block = new Block.Builder("statement_no_input").build();
+        assertTrue("By default, blocks are editable.", block.isMovable());
+
+        String blockXml = toXml(block);
+        assertFalse("Default state is not stored in XML", blockXml.contains("movable"));
+
+        Block blockFromXml = fromXmlWithoutId(blockXml);
+        assertTrue("By default, blocks loaded from XML are movable.", blockFromXml.isMovable());
+
+        block.setMovable(false);
+        assertFalse("Movable state can change.", block.isMovable());
+
+        blockXml = toXml(block);
+        assertTrue("Movable state is stored in XML", blockXml.contains("movable=\"false\""));
+
+        blockFromXml = fromXmlWithoutId(blockXml);
+        assertFalse("Movable state set from XML.", blockFromXml.isMovable());
+    }
+
+    private String toXml(Block block) {
+        StringOutputStream out = new StringOutputStream();
+        try {
+            BlocklyXmlHelper.writeOneBlockToXml(block, out);
+        } catch (BlocklySerializerException e) {
+            throw new IllegalArgumentException("Failed to serialize block.", e);
+        }
+        return out.toString();
+    }
+
+    private Block fromXmlWithoutId(String xml) {
+        xml = xml.replaceAll("id=\\\"[^\\\"]*\\\"", "");  // Remove id attributes.
+        return fromXml(xml);
+    }
+
+    private Block fromXml(String xml) {
+        try {
+            InputStream stream = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+            return BlocklyXmlHelper.loadOneBlockFromXml(stream, mBlockFactory);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void assertStringNotEmpty(String mesg, String str) {
