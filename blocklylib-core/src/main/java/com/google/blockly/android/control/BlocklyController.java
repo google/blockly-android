@@ -800,6 +800,9 @@ public class BlocklyController {
                     mWorkspaceView.removeView(group);
                 }
             }
+            if (cleanupStats) {
+                mDragger.removeFromDraggingConnections(block);
+            }
         }
         return rootFoundAndRemoved;
     }
@@ -815,33 +818,41 @@ public class BlocklyController {
      */
     private void connectToStatement(Connection parentStatementConnection, Block toConnect) {
 
+        Block remainderBlock = parentStatementConnection.getTargetBlock();
         // If there was already a block connected there.
-        if (parentStatementConnection.isConnected()) {
-            Block remainderBlock = parentStatementConnection.getTargetBlock();
+        if (remainderBlock != null) {
             if (remainderBlock.isShadow()) {
+                // If it was a shadow just remove it
                 removeBlockTree(remainderBlock);
+                remainderBlock = null;
             } else {
+                // Disconnect the remainder and we'll reattach it below
                 parentStatementConnection.disconnect();
                 InputView parentInputView = parentStatementConnection.getInputView();
                 if (parentInputView != null) {
                     parentInputView.setConnectedBlockGroup(null);
                 }
-
-                // Try to reconnect the remainder to the end of the new sequence.
-                Block lastBlock = toConnect.getLastBlockInSequence();
-                // lastBlock may not have a next or it may have a shadow block connected. In either
-                // case bump instead of connecting.
-                if (lastBlock.getNextConnection() != null && lastBlock.getNextBlock() == null) {
-                    connectAfter(lastBlock, remainderBlock);
-                } else {
-                    // Nothing to connect to.  Bump and add to root.
-                    addRootBlock(remainderBlock, mHelper.getParentBlockGroup(remainderBlock),
-                            false);
-                    bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
-                }
             }
         }
+
+        // Connect the new block to the parent
         connectAsInput(parentStatementConnection, toConnect.getPreviousConnection());
+
+        // Reconnecting the remainder must be done after connecting the parent so that the parent
+        // is considered in the workspace during connection checks.
+        if (remainderBlock != null) {
+            // Try to reconnect the remainder to the end of the new sequence. Shadows will be
+            // replaced by the remainder.
+            Block lastBlock = toConnect.getLastBlockInSequence();
+            // If lastBlock doesn't have a next bump instead.
+            if (lastBlock.getNextConnection() != null) {
+                connectAfter(lastBlock, remainderBlock);
+            } else {
+                // Nothing to connect to.  Bump and add to root.
+                addRootBlock(remainderBlock, mHelper.getParentBlockGroup(remainderBlock), false);
+                bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
+            }
+        }
     }
 
     /**
@@ -859,33 +870,41 @@ public class BlocklyController {
         // Get the relevant BlockGroups.  Either may be null if view is not initialized.
         BlockGroup superiorBlockGroup = mHelper.getParentBlockGroup(superior);
         BlockGroup inferiorBlockGroup = mHelper.getParentBlockGroup(inferior);
+        Block remainderBlock = superior.getNextBlock();
+        BlockGroup remainderGroup = null;
 
         // To splice between two blocks, just need another call to connectAfter.
-        if (superior.getNextConnection().isConnected()) {
-            Block remainderBlock = superior.getNextBlock();
+        if (remainderBlock != null) {
             if (remainderBlock.isShadow()) {
                 // If there was a shadow connected just remove it
                 removeBlockTree(remainderBlock);
+                remainderBlock = null;
             } else {
-                BlockGroup remainderGroup = (superiorBlockGroup == null) ? null :
+                // Disconnect the remainder and save it for later
+                remainderGroup = (superiorBlockGroup == null) ? null :
                         superiorBlockGroup.extractBlocksAsNewGroup(remainderBlock);
                 superior.getNextConnection().disconnect();
-
-                // Try to reconnect the remainder to the end of the new sequence. If the last block
-                // has no next or has a shadow block connected bump instead.
-                Block lastBlock = inferior.getLastBlockInSequence();
-                if (lastBlock.getNextConnection() != null && lastBlock.getNextBlock() == null) {
-                    connectAfter(lastBlock, inferiorBlockGroup, remainderBlock, remainderGroup);
-                } else {
-                    // Nothing to connect to.  Bump and add to root.
-                    addRootBlock(remainderBlock, remainderGroup, false);
-                    bumpBlock(inferior.getPreviousConnection(),
-                            remainderBlock.getPreviousConnection());
-                }
             }
         }
 
+        // Connect the new block to its parent
         connectAfter(superior, superiorBlockGroup, inferior, inferiorBlockGroup);
+
+        // Reconnecting the remainder must be done after connecting the parent so that the parent
+        // is considered in the workspace during connection checks.
+        if (remainderBlock != null) {
+            // Try to reconnect the remainder to the end of the new sequence. If the last block
+            // has no next bump instead. Shadows will be replaced by the remainder.
+            Block lastBlock = inferior.getLastBlockInSequence();
+            if (lastBlock.getNextConnection() != null) {
+                connectAfter(lastBlock, superiorBlockGroup, remainderBlock, remainderGroup);
+            } else {
+                // Nothing to connect to.  Bump and add to root.
+                addRootBlock(remainderBlock, remainderGroup, false);
+                bumpBlock(inferior.getPreviousConnection(),
+                        remainderBlock.getPreviousConnection());
+            }
+        }
     }
 
     /**
@@ -899,6 +918,12 @@ public class BlocklyController {
      */
     private void connectAfter(Block superior, BlockGroup superiorBlockGroup, Block inferior,
             BlockGroup inferiorBlockGroup) {
+        // If there's still a next block at this point it should be a shadow. Double check and
+        // remove it.
+        Block nextBlock = superior.getNextBlock();
+        if (nextBlock != null && nextBlock.isShadow()) {
+            removeBlockTree(nextBlock);
+        }
         // The superior's next connection and the inferior's previous connections must already be
         // disconnected.
         superior.getNextConnection().connect(inferior.getPreviousConnection());
@@ -945,9 +970,10 @@ public class BlocklyController {
             Block previousTargetBlock = previousTargetConnection.getBlock();
 
             // Traverse the tree to ensure it doesn't branch. We only reconnect if there's a
-            // single place it could be rebased to and there's no shadow there.
+            // single place it could be reconnected to. The previousTarget will replace a shadow if
+            // one was present.
             Connection lastInputConnection = child.getLastUnconnectedInputConnection();
-            if (lastInputConnection != null && !lastInputConnection.isConnected()) {
+            if (lastInputConnection != null) {
                 connectAsInput(lastInputConnection, previousTargetConnection);
             } else {
                 // Bump and add back to root.

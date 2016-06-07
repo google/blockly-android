@@ -248,15 +248,15 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
-    public void testConnect_outputToInputBumpShadow_headless() {
-        testConnect_outputToInputBumpShadow(false);
+    public void testConnect_outputToInputShadowSplice_headless() {
+        testConnect_outputToInputShadowSplice(false);
     }
 
-    public void testConnect_outputToInputBumpShadow_withViews() {
-        testConnect_outputToInputBumpShadow(true);
+    public void testConnect_outputToInputShadowSplice_withViews() {
+        testConnect_outputToInputShadowSplice(true);
     }
 
-    private void testConnect_outputToInputBumpShadow(boolean withViews) {
+    private void testConnect_outputToInputShadowSplice(boolean withViews) {
         // Setup
         Block target = mBlockFactory.obtainBlock("simple_input_output", "target");
         Block tail = mBlockFactory.obtainBlock("simple_input_output", "tail");
@@ -287,29 +287,22 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.connect(source, source.getOutputConnection(),
                 target.getOnlyValueInput().getConnection());
 
-        // source is now a child of target, and tail is a new root block
-        assertEquals(2, mWorkspace.getRootBlocks().size());
+        // source is now a child of target, and tail replaced the shadow
+        assertEquals(1, mWorkspace.getRootBlocks().size());
         assertTrue(mWorkspace.isRootBlock(target));
         assertFalse(mWorkspace.isRootBlock(source));
-        assertTrue(mWorkspace.isRootBlock(tail));
+        assertFalse(mWorkspace.isRootBlock(tail));
         assertSame(target, target.getRootBlock());
         assertSame(target, source.getRootBlock());
-        assertSame(tail, tail.getRootBlock());
-        assertNull(tail.getOutputConnection().getTargetBlock());
-        assertSame(target, shadow.getRootBlock());
+        assertSame(target, tail.getRootBlock());
+        assertSame(source, tail.getParentBlock());
 
         if (withViews) {
             BlockGroup targetGroup = mHelper.getParentBlockGroup(target);
-            BlockGroup tailGroup = mHelper.getParentBlockGroup(tail);
             assertSame(targetGroup, mHelper.getRootBlockGroup(target));
             assertSame(targetGroup, mHelper.getRootBlockGroup(source));
-            assertSame(targetGroup, mHelper.getRootBlockGroup(shadow));
-            assertSame(tailGroup, mHelper.getRootBlockGroup(tail));
-            assertNotSame(targetGroup, tailGroup);
-
-            // Check that tail has been bumped far enough away.
-            assertTrue(mHelper.getMaxSnapDistance() <=
-                    tail.getOutputConnection().distanceFrom(source.getOutputConnection()));
+            assertSame(targetGroup, mHelper.getRootBlockGroup(tail));
+            assertNull(mHelper.getView(shadow));
         }
     }
 
@@ -557,23 +550,22 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
     }
 
 
-    public void testConnect_previousToNextBumpShadow_headless() {
-        testConnect_previousToNextBumpShadow(false);
+    public void testConnect_previousToNextShadowSplice_headless() {
+        testConnect_previousToNextShadowSplice(false);
     }
 
-    public void testConnect_previousToNextBumpShadow_withViews() {
-        testConnect_previousToNextBumpShadow(true);
+    public void testConnect_previousToNextShadowSplice_withViews() {
+        testConnect_previousToNextShadowSplice(true);
     }
 
-    private void testConnect_previousToNextBumpShadow(boolean withViews) {
+    private void testConnect_previousToNextShadowSplice(boolean withViews) {
         // setup
         Block target = mBlockFactory.obtainBlock("statement_no_input", "target");
         Block tail1 = mBlockFactory.obtainBlock("statement_no_input", "tail1");
         Block tail2 = mBlockFactory.obtainBlock("statement_no_input", "tail2");
         Block source = mBlockFactory.obtainBlock("statement_no_input", "source");
         Block shadowTail = new Block.Builder(tail1).setShadow(true).setUuid("shadowTail").build();
-        BlockView targetView = null, tailView1 = null, tailView2 = null, sourceView = null,
-                shadowView = null;
+        BlockView targetView = null, tailView1 = null, tailView2 = null, sourceView = null;
 
         // Create a sequence of target, tail1, and tail2.
         tail1.getPreviousConnection().connect(target.getNextConnection());
@@ -591,51 +583,45 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             tailView1 = mHelper.getView(tail1);
             tailView2 = mHelper.getView(tail2);
             sourceView = mHelper.getView(source);
-            shadowView = mHelper.getView(shadowTail);
 
             assertNotNull(targetView);
             assertNotNull(tailView1);
             assertNotNull(tailView2);
             assertNotNull(sourceView);
-            assertNotNull(shadowView);
+            assertNotNull(mHelper.getView(shadowTail));
         }
 
         // Run test: Connect source after target, where tail is currently attached.
-        // Since source has a shadow connected to next, bump the tail.
+        // Since source has a shadow connected to next, tail should replace it.
         mController.connect(source, source.getPreviousConnection(),
                 target.getNextConnection());
 
         // Target and source are connected.
         assertTrue(mWorkspace.isRootBlock(target));
         assertSame(target, source.getPreviousBlock());
-        assertSame(target, shadowTail.getRootBlock());
 
-        // Tail has been returned to the workspace root.
-        assertTrue(mWorkspace.isRootBlock(tail1));
-        assertNull(tail1.getPreviousBlock());
+        // Tail has replaced the shadow.
+        assertFalse(mWorkspace.isRootBlock(tail1));
+        assertNull(shadowTail.getPreviousBlock());
+        assertSame(source, tail1.getParentBlock());
         assertFalse(mWorkspace.isRootBlock(tail2));
         assertFalse(mWorkspace.isRootBlock(source));
-        assertSame(tail1, tail1.getRootBlock());
-        assertSame(tail1, tail2.getRootBlock());
+        assertSame(target, tail1.getRootBlock());
+        assertSame(target, tail2.getRootBlock());
 
         if (withViews) {
             BlockGroup targetRootGroup = mHelper.getRootBlockGroup(target);
-            BlockGroup tailRootGroup = mHelper.getRootBlockGroup(tail1);
             assertSame(targetRootGroup, mHelper.getParentBlockGroup(target));
             assertSame(targetRootGroup, mHelper.getRootBlockGroup(source));
-            assertSame(targetRootGroup, mHelper.getRootBlockGroup(shadowTail));
-            assertSame(shadowView, targetRootGroup.getChildAt(2));
+            assertSame(targetRootGroup, mHelper.getRootBlockGroup(tail1));
+            assertSame(targetRootGroup, mHelper.getRootBlockGroup(tail2));
 
-            assertNotSame(targetRootGroup, tailRootGroup);
-            assertSame(tailRootGroup, mHelper.getRootBlockGroup(tail2));
             assertSame(targetView, targetRootGroup.getChildAt(0));
             assertSame(sourceView, targetRootGroup.getChildAt(1));
-            assertSame(tailView1, tailRootGroup.getChildAt(0));
-            assertSame(tailView2, tailRootGroup.getChildAt(1));
+            assertSame(tailView1, targetRootGroup.getChildAt(2));
+            assertSame(tailView2, targetRootGroup.getChildAt(3));
 
-            // Check that tail has been bumped far enough away.
-            assertTrue(mHelper.getMaxSnapDistance() <=
-                    tail1.getPreviousConnection().distanceFrom(target.getNextConnection()));
+            assertNull(mHelper.getView(shadowTail));
         }
     }
 
@@ -815,20 +801,20 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
-    public void testConnect_previousToStatemenBumpShadow_headless() {
-        testConnect_previousToStatementBumpShadow(false);
+    public void testConnect_previousToStatementShadowSplice_headless() {
+        testConnect_previousToStatementShadowSplice(false);
     }
 
-    public void testConnect_previousToStatemenBumpShadow_withViews() {
-        testConnect_previousToStatementBumpShadow(true);
+    public void testConnect_previousToStatementShadowSplice_withViews() {
+        testConnect_previousToStatementShadowSplice(true);
     }
 
-    private void testConnect_previousToStatementBumpShadow(boolean withViews) {
+    private void testConnect_previousToStatementShadowSplice(boolean withViews) {
         Block target = mBlockFactory.obtainBlock("statement_statement_input", "target");
         Block tail = mBlockFactory.obtainBlock("statement_statement_input", "tail");
         Block source = mBlockFactory.obtainBlock("statement_no_input", "source");
         Block shadow = new Block.Builder(source).setShadow(true).setUuid("shadow").build();
-        BlockView sourceView = null, shadowView = null;
+        BlockView sourceView = null;
 
         // Connect tail inside target.
         Connection statementConnection = target.getInputByName("statement input").getConnection();
@@ -845,38 +831,38 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
             fakeOnAttachToWindow(target, source);
 
             sourceView = mHelper.getView(source);
-            shadowView = mHelper.getView(shadow);
             assertNotNull(sourceView);
-            assertNotNull(shadowView);
+            assertNotNull(mHelper.getView(shadow));
         }
 
         // Connect source inside target, where tail is attached.  Source has a shadow on next, so
-        // this will bump tail back to the root.
+        // tail should replace it.
         mController.connect(source, source.getPreviousConnection(), statementConnection);
 
         // Validate
         assertTrue(mWorkspace.isRootBlock(target));
-        assertTrue(mWorkspace.isRootBlock(tail));
+        assertFalse(mWorkspace.isRootBlock(tail));
         assertFalse(mWorkspace.isRootBlock(source));
         assertSame(statementConnection, source.getPreviousConnection().getTargetConnection());
-        assertNull(tail.getPreviousBlock());
-        assertSame(target, shadow.getRootBlock());
+        assertSame(source, tail.getPreviousBlock());
+        assertNull(shadow.getParentBlock());
 
         if (withViews) {
             BlockGroup targetRootGroup = mHelper.getRootBlockGroup(target);
-            BlockGroup tailRootGroup = mHelper.getRootBlockGroup(tail);
             BlockGroup sourceGroup = mHelper.getParentBlockGroup(source);
             assertSame(targetRootGroup, mHelper.getParentBlockGroup(target));
-            assertNotSame(targetRootGroup, tailRootGroup);
-            assertSame(tailRootGroup, mHelper.getParentBlockGroup(tail));
+            assertSame(targetRootGroup, mHelper.getRootBlockGroup(tail));
+            assertSame(sourceGroup, mHelper.getParentBlockGroup(tail));
             assertSame(targetRootGroup, mHelper.getRootBlockGroup(source));
-            assertSame(targetRootGroup, mHelper.getRootBlockGroup(shadow));
             assertSame(sourceGroup.getParent(), target.getInputByName("statement input").getView());
             assertSame(sourceView, sourceGroup.getChildAt(0));
-            assertSame(shadowView, sourceGroup.getChildAt(1));
-            assertTrue(mHelper.getMaxSnapDistance() <=
-                    source.getPreviousConnection().distanceFrom(tail.getPreviousConnection()));
+            assertSame(mHelper.getView(tail), sourceGroup.getChildAt(1));
+
+            assertNull(mHelper.getView(shadow));
         }
+
+        // Make sure nothing breaks when we detach the tail and the shadow comes back
+        mController.extractBlockAsRoot(tail);
     }
 
     public void testExtractAsRootBlock_alreadyRoot_headless() {
