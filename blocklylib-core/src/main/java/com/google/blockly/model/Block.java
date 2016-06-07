@@ -581,8 +581,9 @@ public class Block {
     /**
      * Walks the chain of blocks in this block, at each stage checking if there are multiple
      * value inputs.  If there is only one value input at each block, follows that input to the
-     * next block.  If at any point there is more than one value input on a block, there are no
-     * value inputs on a block, or there is a visible shadow block, returns null.
+     * next block.  If at any point there is more than one value input on a block or there are no
+     * value inputs on a block, returns null. If the next block in the sequence is a shadow block
+     * this returns the connection before the shadow.
      *
      * @return the {@link Connection} on the only input on the last block in the chain.
      */
@@ -591,9 +592,6 @@ public class Block {
 
         // Loop until there are no more singular, connected inputs.
         while (true) {
-            if (block.isShadow()) {
-                return null;
-            }
             Input onlyValueInput = block.getOnlyValueInput();
             if (onlyValueInput == null) {
                 return null;
@@ -606,6 +604,9 @@ public class Block {
                 return conn;
             }
             block = conn.getTargetBlock();
+            if (block.isShadow()) {
+                return conn;
+            }
         }
     }
 

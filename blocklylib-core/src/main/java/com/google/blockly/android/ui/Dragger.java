@@ -98,7 +98,7 @@ public class Dragger {
 
     private final ArrayList<Connection> mDraggedConnections = new ArrayList<>();
     // For use in bumping neighbours; instance variable only to avoid repeated allocation.
-    private final ArrayList<Connection> mNeighbouringConnections = new ArrayList<>();
+    private final ArrayList<Connection> mTempConnections = new ArrayList<>();
     // Rect for finding the bounding box of the trash can view.
     private final Rect mTrashRect = new Rect();
     // For use in getting location on screen.
@@ -212,6 +212,26 @@ public class Dragger {
      */
     public void setTouchSlop(float slop) {
         mTouchSlopSquared = slop * slop;
+    }
+
+    /**
+     * Remove all the connections in a blocks tree from the list of connections being dragged. This
+     * is used when removing shadow blocks from a block tree during a drag. If there's no drag
+     * in progress this has no effects.
+     *
+     * @param rootBlock The start of the block tree to remove connections for.
+     */
+    public void removeFromDraggingConnections(Block rootBlock) {
+        if (!rootBlock.isShadow()) {
+            throw new IllegalArgumentException(
+                    "Deleting a non-shadow during a drag shouldn't happen.");
+        }
+        if (mPendingDrag == null) {
+            return;
+        }
+        mTempConnections.clear();
+        rootBlock.getAllConnectionsRecursive(mTempConnections);
+        mDraggedConnections.removeAll(mTempConnections);
     }
 
     /**
@@ -601,6 +621,7 @@ public class Dragger {
         // All of the connection locations will be set relative to their block views immediately
         // after this loop.  For now we just want to unset drag mode and add the connections back
         // to the list; 0, 0 is a cheap place to put them.
+
         for (int i = 0; i < mDraggedConnections.size(); i++) {
             Connection cur = mDraggedConnections.get(i);
             cur.setPosition(0, 0);
@@ -653,10 +674,10 @@ public class Dragger {
      * operation.
      */
     private void bumpInferior(BlockGroup rootBlockGroup, Connection lowerPriority) {
-        getBumpableNeighbours(lowerPriority, mNeighbouringConnections);
+        getBumpableNeighbours(lowerPriority, mTempConnections);
         // Bump from the first one that isn't in the same block group.
-        for (int j = 0; j < mNeighbouringConnections.size(); j++) {
-            Connection curNeighbour = mNeighbouringConnections.get(j);
+        for (int j = 0; j < mTempConnections.size(); j++) {
+            Connection curNeighbour = mTempConnections.get(j);
             if (mHelper.getRootBlockGroup(curNeighbour.getBlock()) != rootBlockGroup) {
                 mController.bumpBlock(curNeighbour, lowerPriority);
                 return;
@@ -672,9 +693,9 @@ public class Dragger {
      * @param rootBlockGroup The root block group of the block conn belongs to.
      */
     private void bumpConnectionNeighbours(Connection conn, BlockGroup rootBlockGroup) {
-        getBumpableNeighbours(conn, mNeighbouringConnections);
-        for (int j = 0; j < mNeighbouringConnections.size(); j++) {
-            Connection curNeighbour = mNeighbouringConnections.get(j);
+        getBumpableNeighbours(conn, mTempConnections);
+        for (int j = 0; j < mTempConnections.size(); j++) {
+            Connection curNeighbour = mTempConnections.get(j);
             BlockGroup neighbourBlockGroup = mHelper.getRootBlockGroup(
                     curNeighbour.getBlock());
             if (neighbourBlockGroup != rootBlockGroup) {

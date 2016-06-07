@@ -599,6 +599,24 @@ public class BlockTest extends AndroidTestCase {
         assertNull(first.getLastUnconnectedInputConnection());
     }
 
+    public void testGetLastUnconnectedInputConnectionShadowAtEnd() {
+        // Two simple input blocks
+        ArrayList<Block> blocks = new ArrayList<>();
+        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
+        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
+        Block shadow = new Block.Builder(second).setUuid("shadow block").setShadow(true).build();
+        first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
+        Connection secondConn = second.getOnlyValueInput().getConnection();
+        secondConn.setShadowConnection(shadow.getOutputConnection());
+        secondConn.connect(shadow.getOutputConnection());
+        blocks.add(first);
+
+        assertSame(second.getLastUnconnectedInputConnection(),
+                second.getOnlyValueInput().getConnection());
+        assertSame(first.getLastUnconnectedInputConnection(),
+                second.getOnlyValueInput().getConnection());
+    }
+
     public void testLastBlockInSequence_blockLacksNext() {
         Block block = mBlockFactory.obtainBlock("statement_input_no_next", "block");
 
@@ -647,6 +665,18 @@ public class BlockTest extends AndroidTestCase {
         third.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
         assertSame(third, first.getLastBlockInSequence());
+    }
+
+    public void testLastBlockInSequence_lastBlockShadow() {
+        Block first = mBlockFactory.obtainBlock("statement_no_input", "first block");
+        Block second = mBlockFactory.obtainBlock("statement_no_input", "second block");
+        Block shadow = new Block.Builder(second).setUuid("shadow block").setShadow(true).build();
+
+        first.getNextConnection().connect(second.getPreviousConnection());
+        second.getNextConnection().setShadowConnection(shadow.getPreviousConnection());
+        second.getNextConnection().connect(shadow.getPreviousConnection());
+
+        assertSame(second, first.getLastBlockInSequence());
     }
 
     public void testBlockIdSerializedDeserialized() {
