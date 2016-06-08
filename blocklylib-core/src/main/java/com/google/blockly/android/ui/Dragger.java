@@ -222,10 +222,6 @@ public class Dragger {
      * @param rootBlock The start of the block tree to remove connections for.
      */
     public void removeFromDraggingConnections(Block rootBlock) {
-        if (!rootBlock.isShadow()) {
-            throw new IllegalArgumentException(
-                    "Deleting a non-shadow during a drag shouldn't happen.");
-        }
         if (mPendingDrag == null) {
             return;
         }
