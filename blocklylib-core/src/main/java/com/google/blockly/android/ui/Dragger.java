@@ -231,7 +231,11 @@ public class Dragger {
         }
         mTempConnections.clear();
         rootBlock.getAllConnectionsRecursive(mTempConnections);
-        mDraggedConnections.removeAll(mTempConnections);
+        for (int i = 0; i < mTempConnections.size(); i++) {
+            Connection conn = mTempConnections.get(i);
+            mDraggedConnections.remove(conn);
+            conn.setDragMode(false);
+        }
     }
 
     /**
