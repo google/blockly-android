@@ -740,11 +740,17 @@ public class BlocklyController {
         for (int i = 0; i < rootBlocks.size(); ++i) {
             unlinkViews(rootBlocks.get(i));
         }
-
+        List<Block> trashBlocks = mWorkspace.getTrashContents();
+        for (int i = 0; i < trashBlocks.size(); i++) {
+            unlinkViews(trashBlocks.get(i));
+        }
         mWorkspace.resetWorkspace();
         if (mWorkspaceView != null) {
             mWorkspaceView.removeAllViews();
             initBlockViews();
+        }
+        if (mTrashFragment != null) {
+            mTrashFragment.setContents(mWorkspace.getTrashContents());
         }
     }
 
