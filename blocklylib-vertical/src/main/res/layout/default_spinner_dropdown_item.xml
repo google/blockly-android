@@ -15,6 +15,7 @@
   -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/default_dropdown"
+    android:saveEnabled="false"
     android:textSize="?blockTextSize"
     android:textColor="@color/field_text"
     android:singleLine="true"

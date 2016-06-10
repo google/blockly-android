@@ -17,6 +17,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/field_label"
         style="@style/TextAppearance.AppCompat.Large"
+        android:saveEnabled="false"
         android:textColor="@color/label_text"
         android:textSize="?blockTextSize"
         android:singleLine="true"
