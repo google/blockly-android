@@ -15,6 +15,7 @@
   -->
 <com.google.blockly.android.ui.vertical.FieldColorView
         xmlns:android="http://schemas.android.com/apk/res/android"
+        android:saveEnabled="false"
         android:id="@+id/field_color"
         android:foreground="@drawable/inset_field_border"
         android:padding="4dip"

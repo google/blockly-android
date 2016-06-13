@@ -17,6 +17,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/field_number"
         style="@style/TextAppearance.AppCompat.Large"
+        android:saveEnabled="false"
         android:textSize="?blockTextSize"
         android:background="@drawable/edit_text_background"
         android:singleLine="true"
