@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.inputmethod.InputMethodManager;
@@ -197,6 +198,11 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
                 if (mPanningPointerId != MotionEvent.INVALID_POINTER_ID) {
                     final int pointerIdx =
                             MotionEventCompat.findPointerIndex(event, mPanningPointerId);
+                    if (pointerIdx == -1) {
+                        // TODO: (#319) remove when we clean up multi-touch handling.
+                        Log.w(TAG, "Got an invalid pointer idx for the panning pointer.");
+                        return false;
+                    }
                     scrollTo(
                             mOriginalScrollX + mPanningStart.x -
                                     (int) MotionEventCompat.getX(event, pointerIdx),
