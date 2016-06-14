@@ -134,6 +134,30 @@ public class Block {
     }
 
     /**
+     * Adds to <code>outList</code> all block ids for this block and all child blocks.
+     * This will not include occluded shadow block ids.
+     *
+     * @param outList List of ids to add to.
+     */
+    public void addAllBlockIds(List<String> outList) {
+        outList.add(getId());
+        int inputCount = mInputList.size();
+        for (int i = 0; i < inputCount; ++i) {
+            Input input = mInputList.get(i);
+            Block connectedBlock = input.getConnectedBlock();
+            if (connectedBlock != null) {
+                connectedBlock.addAllBlockIds(outList);
+            }
+        }
+        if (mNextConnection != null) {
+            Block next = mNextConnection.getTargetBlock();
+            if (next != null) {
+                next.addAllBlockIds(outList);
+            }
+        }
+    }
+
+    /**
      * @return The color this block should be drawn in.
      */
     public int getColor() {
@@ -656,6 +680,44 @@ public class Block {
     }
 
     /**
+<<<<<<< HEAD
+=======
+     * Called by Workspace methods to set the workspace reference when added or removed.
+     *
+     * @param workspace The new workspace reference.
+     */
+    void setWorkspace(Workspace workspace) {
+        int inputCount = mInputList.size();
+        for (int i = 0; i < inputCount; ++i) {
+            Connection connection = mInputList.get(i).getConnection();
+            if (connection != null) {
+                Block shadowChild = connection.getShadowBlock();
+                if (shadowChild != null) {
+                    shadowChild.setWorkspace(workspace);
+                }
+
+                Block child = connection.getTargetBlock();
+                if (child != null && child != shadowChild) {
+                    child.setWorkspace(workspace);
+                }
+            }
+        }
+
+        if (mNextConnection != null) {
+            Block shadowNext = mNextConnection.getShadowBlock();
+            if (shadowNext != null) {
+                shadowNext.setWorkspace(workspace);
+            }
+
+            Block next = mNextConnection.getTargetBlock();
+            if (next != null && next != shadowNext) {
+                next.setWorkspace(workspace);
+            }
+        }
+    }
+
+    /**
+>>>>>>> f33d483... Addressing comments and WIP
      * Makes a copy of any blocks connected to the source connection and adds the copies to the
      * destination connection. The source and destination Connections must be of the same type and
      * must be either a next or input connection.

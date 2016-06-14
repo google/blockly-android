@@ -399,6 +399,11 @@ public abstract class Input implements Cloneable {
         return ALIGN_LEFT;
     }
 
+    @Nullable
+    public Block getConnectedBlock() {
+        return (mConnection == null) ? null : mConnection.getTargetBlock();
+    }
+
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({TYPE_VALUE, TYPE_STATEMENT, TYPE_DUMMY})
     public @interface InputType {

@@ -14,6 +14,11 @@
           android:orderInCategory="15" app:showAsAction="ifRoom"
         android:icon="@drawable/ic_play_arrow_white_24dp"/>
 
+    <group android:checkableBehavior="all">
+        <item android:id="@+id/log_events_menuitem"
+            android:title="@string/log_events_menuitem" />
+    </group>
+
     <item android:id="@+id/action_airstrike" android:title="@string/action_airstrike"
           android:orderInCategory="90" app:showAsAction="never"/>
     <item android:id="@+id/action_carpet_bomb" android:title="@string/action_carpet_bomb"

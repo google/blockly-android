@@ -32,6 +32,10 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,7 +84,7 @@ public final class BlocklyXmlHelper {
      */
     public static void loadFromXml(InputStream is, BlockFactory blockFactory, WorkspaceStats stats,
             List<Block> result) throws BlocklyParserException {
-        loadBlocksFromXml(is, blockFactory, stats, result);
+        loadBlocksFromXml(is, null, blockFactory, stats, result);
     }
 
     /**
@@ -89,7 +93,7 @@ public final class BlocklyXmlHelper {
     public static List<Block> loadFromXml(InputStream is, BlockFactory blockFactory,
             WorkspaceStats stats) throws BlocklyParserException {
         List<Block> result = new ArrayList<>();
-        loadBlocksFromXml(is, blockFactory, stats, result);
+        loadBlocksFromXml(is, null, blockFactory, stats, result);
         return result;
     }
 
@@ -106,25 +110,78 @@ public final class BlocklyXmlHelper {
     public static Block loadOneBlockFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
         List<Block> temp = loadFromXml(is, blockFactory, null);
-        if (temp == null || temp.isEmpty()) {
+        if (temp.isEmpty()) {
             return null;
         }
         return temp.get(0);
     }
 
     /**
+     * Convenience function to load only one Block.
+     *
+     * @param xml The XML in string form to read the block from.
+     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     *
+     * @return The first Block read from is, or null if no Block was read.
+     * @throws BlocklyParserException
+     */
+    @Nullable
+    public static Block loadOneBlockFromXml(String xml, BlockFactory blockFactory)
+            throws BlocklyParserException {
+        List<Block> result = new ArrayList<>();
+        loadBlocksFromXml(null, xml, blockFactory, null, result);
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result.get(0);
+    }
+
+    /**
      * Serializes all Blocks in the given list and writes them to the given output stream.
      *
      * @param toSerialize A list of Blocks to serialize.
-     * @param os An OutputStream to which to write them.
+     * @param os An OutputStream to write the blocks to.
      *
      * @throws BlocklySerializerException
      */
     public static void writeToXml(List<Block> toSerialize, OutputStream os)
             throws BlocklySerializerException {
+        writeToXmlImpl(toSerialize, os, null);
+    }
+
+    /**
+     * Serializes all Blocks in the given list and writes them to the given writer.
+     *
+     * @param toSerialize A list of Blocks to serialize.
+     * @param writer A writer to write the blocks to.
+     *
+     * @throws BlocklySerializerException
+     */
+    public static void writeToXml(List<Block> toSerialize, Writer writer)
+            throws BlocklySerializerException {
+        writeToXmlImpl(toSerialize, null, writer);
+    }
+
+    /**
+     * Serializes all Blocks in the given list and writes them to the either the output stream or
+     * writer, whichever is not null.
+     *
+     * @param toSerialize A list of Blocks to serialize.
+     * @param os An OutputStream to write the blocks to.
+     * @param writer A writer to write the blocks to, if {@code os} is null.
+     *
+     * @throws BlocklySerializerException
+     */
+    public static void writeToXmlImpl(List<Block> toSerialize, @Nullable OutputStream os,
+                                      @Nullable Writer writer)
+            throws BlocklySerializerException {
         try {
             XmlSerializer serializer = mParserFactory.newSerializer();
-            serializer.setOutput(os, null);
+            if (os != null) {
+                serializer.setOutput(os, null);
+            } else {
+                serializer.setOutput(writer);
+            }
             serializer.setPrefix("", XML_NAMESPACE);
             serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
 
@@ -155,21 +212,51 @@ public final class BlocklyXmlHelper {
     }
 
     /**
+     * Convenience function to serialize only one Block.
+     *
+     * @param toSerialize A Block to serialize.
+     * @return XML string for block and all descendant blocks.
+     * @throws BlocklySerializerException
+     */
+    public static String writeOneBlockToXml(Block toSerialize)
+            throws BlocklySerializerException {
+        StringWriter sw = new StringWriter();
+        List<Block> temp = new ArrayList<>();
+        temp.add(toSerialize);
+        writeToXml(temp, sw);
+        String xmlString = sw.toString();
+        try {
+            sw.close();
+            return xmlString;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
      * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
      * contained in it or descending from it.
      *
-     * @param is The input stream from which to read.
+     * @param inStream The input stream to read blocks from. Maybe null.
+     * @param inString The xml string to read blocks from if {@code is} is null.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
      * @return A list of top-level Blocks.
      * @throws BlocklyParserException
      */
     private static void loadBlocksFromXml(
-            InputStream is, BlockFactory blockFactory, WorkspaceStats stats, List<Block> result)
+            InputStream inStream, String inString, BlockFactory blockFactory, WorkspaceStats stats,
+            List<Block> result)
             throws BlocklyParserException {
+        StringReader reader = null;
         try {
             XmlPullParser parser = mParserFactory.newPullParser();
-            parser.setInput(is, null);
+            if (inStream != null) {
+                parser.setInput(inStream, null);
+            } else {
+                reader = new StringReader(inString);
+                parser.setInput(reader);
+            }
             int eventType = parser.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 switch (eventType) {
@@ -192,6 +279,9 @@ public final class BlocklyXmlHelper {
             }
         } catch (XmlPullParserException | IOException e) {
             throw new BlocklyParserException(e);
+        }
+        if (reader != null) {
+            reader.close();
         }
     }
 
