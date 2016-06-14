@@ -139,6 +139,23 @@ public class Block {
     }
 
     /**
+     * Adds to <code>outList</code> all block ids for this block and all child blocks.
+     *
+     * @param outList List of ids to add to.
+     */
+    public void addAllBlockIds(List<String> outList) {
+        outList.add(getId());
+        int inputCount = mInputList.size();
+        for (int i = 0; i < inputCount; ++i) {
+            Input input = mInputList.get(i);
+            Block connectedBlock = input.getConnectedBlock();
+            if (connectedBlock != null) {
+                connectedBlock.addAllBlockIds(outList);
+            }
+        }
+    }
+
+    /**
      * @return The color this block should be drawn in.
      */
     public int getColor() {
