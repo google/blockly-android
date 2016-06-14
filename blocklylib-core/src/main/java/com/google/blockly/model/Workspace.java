@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The root class for the Blockly model.  Keeps track of all the global state used in the workspace.
@@ -39,7 +40,10 @@ public class Workspace {
     private static final String TAG = "Workspace";
     private static final boolean DEBUG = true;
 
+    private final Context mContext;
     private final BlocklyController mController;
+    private BlockFactory mBlockFactory;
+    private String mId;
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
     private final ProcedureManager mProcedureManager = new ProcedureManager();
@@ -49,9 +53,7 @@ public class Workspace {
             new WorkspaceStats(mVariableNameManager, mProcedureManager,
                     mConnectionManager);
     private final List<Block> mDeletedBlocks = new LinkedList<>();
-    private final Context mContext;
     private ToolboxCategory mToolboxCategory;
-    private BlockFactory mBlockFactory;
 
     private List<Connection> mTempConnections = new ArrayList<>();
 
@@ -72,6 +74,11 @@ public class Workspace {
         mContext = context;
         mController = controller;
         mBlockFactory = factory;
+        mId = UUID.randomUUID().toString();
+    }
+
+    public String getId() {
+        return mId;
     }
 
     /**

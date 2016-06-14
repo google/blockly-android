@@ -59,7 +59,6 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
                 .build();
         mBlockFactory = mController.getBlockFactory();
         mWorkspace = mController.getWorkspace();
-        mHelper = mController.getWorkspaceHelper();
         mConnectionManager = mController.getWorkspace().getConnectionManager();
 
         mWorkspaceView = new WorkspaceView(getContext());

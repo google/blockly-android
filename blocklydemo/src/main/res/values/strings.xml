@@ -25,6 +25,8 @@
     <string name="turtle_activity_name">Blockly Turtle</string>
     <string name="style_activity_name">Blockly Styles</string>
 
+    <string name="log_events_menuitem">Log Events</string>
+
     <string name="action_demo_android">Android</string>
     <string name="action_demo_lacey_curves">Lacey Curves</string>
     <string name="action_demo_paint_strokes">Paint Strokes</string>
