@@ -32,6 +32,9 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,15 +119,48 @@ public final class BlocklyXmlHelper {
      * Serializes all Blocks in the given list and writes them to the given output stream.
      *
      * @param toSerialize A list of Blocks to serialize.
-     * @param os An OutputStream to which to write them.
+     * @param os An OutputStream which to write them.
      *
      * @throws BlocklySerializerException
      */
     public static void writeToXml(List<Block> toSerialize, OutputStream os)
             throws BlocklySerializerException {
+        writeToXmlImpl(toSerialize, os, null);
+    }
+
+    /**
+     * Serializes all Blocks in the given list and writes them to the given writer.
+     *
+     * @param toSerialize A list of Blocks to serialize.
+     * @param writer An writer which to write them.
+     *
+     * @throws BlocklySerializerException
+     */
+    public static void writeToXml(List<Block> toSerialize, Writer writer)
+            throws BlocklySerializerException {
+        writeToXmlImpl(toSerialize, null, writer);
+    }
+
+    /**
+     * Serializes all Blocks in the given list and writes them to the either the output stream or
+     * writer, whichever is not null.
+     *
+     * @param toSerialize A list of Blocks to serialize.
+     * @param os An OutputStream which to write them.
+     * @param writer A writer which to write, if <code>os</code> is null.
+     *
+     * @throws BlocklySerializerException
+     */
+    public static void writeToXmlImpl(List<Block> toSerialize, @Nullable OutputStream os,
+                                      @Nullable Writer writer)
+            throws BlocklySerializerException {
         try {
             XmlSerializer serializer = mParserFactory.newSerializer();
-            serializer.setOutput(os, null);
+            if (os != null) {
+                serializer.setOutput(os, null);
+            } else {
+                serializer.setOutput(writer);
+            }
             serializer.setPrefix("", XML_NAMESPACE);
             serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
 
@@ -152,6 +188,28 @@ public final class BlocklyXmlHelper {
         List<Block> temp = new ArrayList<>();
         temp.add(toSerialize);
         writeToXml(temp, os);
+    }
+
+    /**
+     * Convenience function to serialize only one Block.
+     *
+     * @param toSerialize A Block to serialize.
+     *
+     * @throws BlocklySerializerException
+     */
+    public static String writeOneBlockToXmlString(Block toSerialize)
+            throws BlocklySerializerException {
+        StringWriter sw = new StringWriter();
+        List<Block> temp = new ArrayList<>();
+        temp.add(toSerialize);
+        writeToXml(temp, sw);
+        String xmlString = sw.toString();
+        try {
+            sw.close();
+            return xmlString;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**

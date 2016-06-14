@@ -47,14 +47,15 @@ import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
 
 /**
  * Controller to coordinate the state among all the major Blockly components: Workspace, Toolbar,
@@ -66,12 +67,31 @@ public class BlocklyController {
     private static final String SNAPSHOT_BUNDLE_KEY = "com.google.blockly.snapshot";
     private static final String SERIALIZED_WORKSPACE_KEY = "SERIALIZED_WORKSPACE";
 
+    public interface Listener {
+        /**
+         * @return The bitmask of event types handled by this Listener.  Must not change.
+         */
+        @BlocklyEvent.EventType int getTypesBitmask();
+
+        /**
+         * Called when an event group contains at least on of the requested types.  Some events in
+         * the group may be outside this listener's requested scope.
+         *
+         * @param events List of all the events in this group.
+         */
+        void onEventGroup(List<BlocklyEvent> events);
+    }
+
     private final Context mContext;
     private final BlockFactory mModelFactory;
     private final BlockViewFactory mViewFactory;
     private final WorkspaceHelper mHelper;
 
     private final Workspace mWorkspace;
+    private final ArrayList<Listener> mListeners = new ArrayList<>();
+    private final ArrayList<BlocklyEvent> mPendingEvents = new ArrayList<>();
+    private int mPendingEventsMask = 0;
+    private int mEventListenerMask = 0;
 
     private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
@@ -415,6 +435,21 @@ public class BlocklyController {
         return mHelper;
     }
 
+    public void addListener(Listener listener) {
+        if (!mListeners.contains(listener)) {
+            mListeners.add(listener);
+            mEventListenerMask |= listener.getTypesBitmask();
+        }
+    }
+
+    public boolean removeListener(Listener listener) {
+        boolean found = mListeners.remove(listener);
+        if (found) {
+            recalculateListenerEventMask();
+        }
+        return found;
+    }
+
     /**
      * Adds the provided block to the list of root blocks.  If the controller has an initialized
      * {@link WorkspaceView}, it will also create corresponding views.
@@ -426,7 +461,11 @@ public class BlocklyController {
             throw new IllegalArgumentException("New root block must not be connected.");
         }
         BlockGroup parentGroup = mHelper.getParentBlockGroup(block);
-        return addRootBlock(block, parentGroup, /* is new BlockView? */ parentGroup == null);
+        BlockGroup newRootGroup =
+                addRootBlock(block, parentGroup, /* is new BlockView? */ parentGroup == null);
+
+        firePendingEvents();
+        return newRootGroup;
     }
 
     /**
@@ -487,6 +526,8 @@ public class BlocklyController {
             // Only add back to the workspace if the original tree is part of the workspace model.
             addRootBlock(block, bg, false);
         }
+
+        firePendingEvents();
     }
 
     /**
@@ -621,6 +662,8 @@ public class BlocklyController {
             default:
                 break;
         }
+
+        firePendingEvents();
     }
 
     public void bumpBlock(Connection staticConnection, Connection impingingConnection) {
@@ -785,7 +828,23 @@ public class BlocklyController {
      *                   collect stats for this tree.
      */
     private BlockGroup addRootBlock(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
+        BlocklyEvent.CreateEvent event = null;
+        if ((mEventListenerMask & BlocklyEvent.TYPE_CREATE) != 0) {
+            try {
+                String xml = BlocklyXmlHelper.writeOneBlockToXmlString(block);
+                List<String> ids = new ArrayList<>();
+                block.addAllBlockIds(ids);
+                event = new BlocklyEvent.CreateEvent(
+                        mWorkspace.getId(), /* groupId */ null, block.getId(), xml, ids);
+            } catch (BlocklySerializerException e) {
+                throw new IllegalArgumentException("Invalid block for event serialization");
+            }
+        }
+
         mWorkspace.addRootBlock(block, isNewBlock);
+        if (event != null) {
+            addPendingEvent(event);
+        }
         if (mWorkspaceView != null) {
             if (bg == null) {
                 bg = mViewFactory.buildBlockGroupTree(block, mWorkspace.getConnectionManager(),
@@ -1057,6 +1116,33 @@ public class BlocklyController {
         if (mVirtualWorkspaceView != null) {
             mVirtualWorkspaceView.resetView();
         }
+    }
+
+    private void addPendingEvent(BlocklyEvent event) {
+        mPendingEvents.add(event);
+        mPendingEventsMask |= event.getTypeId();
+    }
+
+    private void recalculateListenerEventMask() {
+        mEventListenerMask = 0;
+        for (Listener listener : mListeners) {
+            mEventListenerMask |= listener.getTypesBitmask();
+        }
+    }
+
+    private void firePendingEvents() {
+        List<BlocklyEvent> unmodifiableEventList = null;
+        for (Listener listener : mListeners) {
+            if ((mPendingEventsMask & listener.getTypesBitmask()) != 0) {
+                if (unmodifiableEventList == null) {
+                    unmodifiableEventList = Collections.unmodifiableList(mPendingEvents);
+                }
+                listener.onEventGroup(unmodifiableEventList);
+            }
+        }
+
+        mPendingEvents.clear();
+        mPendingEventsMask = 0;
     }
 
     /**
