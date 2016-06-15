@@ -45,6 +45,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
 
     private SparseIntArray mFieldLayouts = new SparseIntArray();
     private LayoutInflater mLayoutInflater;
+    private boolean mUseHats = false;
 
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper) {
         this(context, helper, 0);
@@ -58,10 +59,10 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper, int workspaceTheme) {
         super(context, helper);
 
-        mPatchManager = new PatchManager(mContext.getResources(), helper.useRtl());
-        mLayoutInflater = LayoutInflater.from(context);
-
         loadStyleData(workspaceTheme);
+
+        mPatchManager = new PatchManager(mContext.getResources(), helper.useRtl(), mUseHats);
+        mLayoutInflater = LayoutInflater.from(context);
     }
 
     /**
@@ -90,6 +91,13 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
                 return childCount - i - 1;
             }
         };
+    }
+
+    /**
+     * @return Whether blocks without previous or output should have a bump.
+     */
+    public boolean isBlockHatsEnabled() {
+        return mUseHats;
     }
 
     /** Implements {@link BlockViewFactory#buildBlockView}. */
@@ -192,6 +200,8 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             styles = mContext.obtainStyledAttributes(R.styleable.BlocklyVertical);
         }
         try {
+            mUseHats = styles.getBoolean(R.styleable.BlocklyVertical_blockHat, false);
+
             setFieldLayout(Field.TYPE_DROPDOWN, R.layout.default_field_dropdown);
             setFieldLayout(Field.TYPE_LABEL, R.layout.default_field_label);
             setFieldLayout(Field.TYPE_CHECKBOX, R.layout.default_field_checkbox);

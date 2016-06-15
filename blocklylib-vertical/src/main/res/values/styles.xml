@@ -17,5 +17,6 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
     <style name="BlocklyVerticalTheme" parent="BlocklyTheme">
         <item name="blockTextSize">24sp</item>
+        <item name="blockHat">true</item>
     </style>
 </resources>
