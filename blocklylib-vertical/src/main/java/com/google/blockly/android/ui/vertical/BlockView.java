@@ -81,6 +81,8 @@ public class BlockView extends AbstractBlockView<InputView> {
     @Nullable private Rect mNextFillRect = null;
     private ColorFilter mBlockColorFilter;
     private final Paint mFillPaint = new Paint();
+    private final boolean mUseHat;
+    private int mBlockTopPadding;
 
     // Keeps track of if the current set of touch events had started on this block
     private boolean mHasHit = false;
@@ -113,6 +115,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         mTouchHandler = touchHandler;
         mPatchManager = factory.getPatchManager();  // Shortcut.
         mMinBlockWidth = (int) context.getResources().getDimension(R.dimen.min_block_width);
+        mUseHat = factory.isBlockHatsEnabled();
 
         setClickable(true);
         setFocusable(true);
@@ -153,6 +156,8 @@ public class BlockView extends AbstractBlockView<InputView> {
     // TODO(#144): Move to AbstractBlockView, using abstract methods for calls. After #133
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        mBlockTopPadding = mPatchManager.computeBlockTopPadding(mBlock);
+
         if (getBlock().getInputsInline()) {
             measureInlineInputs(widthMeasureSpec, heightMeasureSpec);
         } else {
@@ -389,7 +394,7 @@ public class BlockView extends AbstractBlockView<InputView> {
                 // If the first input is a Statement, add vertical space above to draw top of
                 // connector just below block top boundary.
                 if (i == 0) {
-                    rowTop += mPatchManager.mBlockTopPadding;
+                    rowTop += mBlockTopPadding;
                 }
 
                 // Force all Statement inputs to have the same field width.
@@ -549,7 +554,7 @@ public class BlockView extends AbstractBlockView<InputView> {
                 // If the first input is a Statement, add vertical space above to draw top of
                 // connector just below block top boundary.
                 if (i == 0) {
-                    rowTop += mPatchManager.mBlockTopPadding;
+                    rowTop += mBlockTopPadding;
                 }
 
                 // Force all Statement inputs to have the same field width.
@@ -788,6 +793,11 @@ public class BlockView extends AbstractBlockView<InputView> {
                     mPatchManager.getPatchDrawable(R.drawable.top_start_output_border);
             mOutputConnectorHighlightPatch =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_output_connection);
+        } else if (mUseHat) {
+            topStartDrawable = getColoredPatchDrawable(
+                    isShadow ? R.drawable.top_start_hat_shadow : R.drawable.top_start_hat);
+            topStartBorderDrawable =
+                    mPatchManager.getPatchDrawable(R.drawable.top_start_hat_border);
         } else {
             topStartDrawable = getColoredPatchDrawable(
                     isShadow ? R.drawable.top_start_default_shadow : R.drawable.top_start_default);
@@ -843,7 +853,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         mHelper.setRtlAwareBounds(tempRect,
                 /* this width */  mBlockViewSize.x,
                 /* LTR start */ xTo - width,
-                /* top */ inputLayoutOrigin.y + (inTopRow ? mPatchManager.mBlockTopPadding : 0),
+                /* top */ inputLayoutOrigin.y + (inTopRow ? mBlockTopPadding : 0),
                 /* LTR end */ xTo,
                 /* bottom */ inputLayoutOrigin.y + inputView.getRowHeight());
         inputDrawable.setBounds(tempRect);
@@ -878,7 +888,7 @@ public class BlockView extends AbstractBlockView<InputView> {
 
         int patchLeft = xTo - inputDrawable.getIntrinsicWidth();
         int patchRight = xTo;
-        int connectorTop = inputLayoutOrigin.y + mPatchManager.mBlockTopPadding;
+        int connectorTop = inputLayoutOrigin.y + mBlockTopPadding;
         int connectorBottom = inputLayoutOrigin.y + inputView.getMeasuredHeight();
 
         mHelper.setRtlAwareBounds(tempRect,
@@ -937,7 +947,7 @@ public class BlockView extends AbstractBlockView<InputView> {
                                           InputView inputView, ViewPoint inputLayoutOrigin) {
         // Determine position for inline connector cutout.
         final int cutoutX = blockFromX + inputLayoutOrigin.x + inputView.getInlineInputX();
-        final int cutoutY = inputLayoutOrigin.y + mPatchManager.mBlockTopPadding;
+        final int cutoutY = inputLayoutOrigin.y + mBlockTopPadding;
 
         // Set connector position - shift w.r.t. patch location to where the corner of connected
         // blocks will be positioned.
@@ -950,7 +960,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         // is aligned with block boundary patch.
         if (inlineRowIdx > 0) {
             fillRectBySize(cutoutX, inputLayoutOrigin.y,
-                    inputView.getTotalChildWidth(), mPatchManager.mBlockTopPadding);
+                    inputView.getTotalChildWidth(), mBlockTopPadding);
             finishFillRect();  // Prevent filling through the inline connector.
         }
 
@@ -992,7 +1002,7 @@ public class BlockView extends AbstractBlockView<InputView> {
             // Vertical patch position is the input layout origin, plus room for block boundary if
             // this is the first input row.
             final int patchY = inputLayoutOrigin.y +
-                    (inlineRowIdx > 0 ? 0 : mPatchManager.mBlockTopPadding);
+                    (inlineRowIdx > 0 ? 0 : mBlockTopPadding);
             final int patchRight = patchX + mPatchManager.mBlockEndPadding;
 
             final NinePatchDrawable blockFillDrawable = getColoredPatchDrawable(
@@ -1161,7 +1171,7 @@ public class BlockView extends AbstractBlockView<InputView> {
      */
     private void finishFillRect() {
         if (mNextFillRect != null) {
-            mNextFillRect.top = Math.max(mNextFillRect.top, mPatchManager.mBlockTopPadding);
+            mNextFillRect.top = Math.max(mNextFillRect.top, mBlockTopPadding);
             mNextFillRect.bottom = Math.min(mNextFillRect.bottom,
                     mBlockContentHeight - mPatchManager.mBlockBottomPadding);
 
