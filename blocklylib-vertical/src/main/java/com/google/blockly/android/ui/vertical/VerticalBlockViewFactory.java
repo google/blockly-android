@@ -45,7 +45,6 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
 
     private SparseIntArray mFieldLayouts = new SparseIntArray();
     private LayoutInflater mLayoutInflater;
-    private int mBlockStyle;
 
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper) {
         this(context, helper, 0);
@@ -178,13 +177,6 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
      */
     protected final int getLayoutForField(@Field.FieldType int fieldType) {
         return mFieldLayouts.get(fieldType);
-    }
-
-    /**
-     * @return The style resource id to use for drawing field labels.
-     */
-    int getBlockStyle() {
-        return mBlockStyle;
     }
 
     /**
