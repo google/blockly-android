@@ -36,11 +36,6 @@ public abstract class NonPropagatingViewGroup extends ViewGroup {
         super(context, attrs, defStyleAttr);
     }
 
-    public NonPropagatingViewGroup(Context context, AttributeSet attrs, int defStyleAttr,
-            int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-    }
-
     @Override
     public void dispatchSetActivated(boolean activated) {
         // Do nothing.  Do not assign the activated state to children.

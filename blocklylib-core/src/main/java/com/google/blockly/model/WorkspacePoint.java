@@ -16,6 +16,8 @@
 package com.google.blockly.model;
 
 import android.graphics.Point;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * A point in workspace coordinates.
@@ -53,4 +55,22 @@ public class WorkspacePoint extends Point {
         x = other.x;
         y = other.y;
     }
+
+    public static final Parcelable.Creator<WorkspacePoint> CREATOR = new Parcelable.Creator<WorkspacePoint>() {
+        /**
+         * Return a new point from the data in the specified parcel.
+         */
+        public WorkspacePoint createFromParcel(Parcel in) {
+            WorkspacePoint r = new WorkspacePoint();
+            r.readFromParcel(in);
+            return r;
+        }
+
+        /**
+         * Return an array of rectangles of the specified size.
+         */
+        public WorkspacePoint[] newArray(int size) {
+            return new WorkspacePoint[size];
+        }
+    };
 }

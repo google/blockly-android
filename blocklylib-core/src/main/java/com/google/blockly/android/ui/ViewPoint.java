@@ -16,6 +16,8 @@
 package com.google.blockly.android.ui;
 
 import android.graphics.Point;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * A point in view coordinates.
@@ -53,4 +55,22 @@ public class ViewPoint extends Point {
         x = other.x;
         y = other.y;
     }
+
+    public static final Parcelable.Creator<ViewPoint> CREATOR = new Parcelable.Creator<ViewPoint>() {
+        /**
+         * Return a new point from the data in the specified parcel.
+         */
+        public ViewPoint createFromParcel(Parcel in) {
+            ViewPoint r = new ViewPoint();
+            r.readFromParcel(in);
+            return r;
+        }
+
+        /**
+         * Return an array of rectangles of the specified size.
+         */
+        public ViewPoint[] newArray(int size) {
+            return new ViewPoint[size];
+        }
+    };
 }
