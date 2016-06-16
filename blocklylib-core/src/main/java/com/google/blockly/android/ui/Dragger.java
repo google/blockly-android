@@ -550,10 +550,12 @@ public class Dragger {
         mTrashView.getHitRect(mTrashRect);
 
         mTrashRect.offset((mTempScreenCoord1[0] - mTrashRect.left), (mTempScreenCoord1[1] - mTrashRect.top));
-        // offset drag event positions by the workspace view's position on screen.
-        mWorkspaceView.getLocationOnScreen(mTempScreenCoord1);
-        return mTrashRect.contains((int) event.getX() + mTempScreenCoord1[0],
-                (int) event.getY() + mTempScreenCoord1[1]);
+        // Get the touch location on the screen
+        mTempViewPoint.set((int) event.getX(), (int) event.getY());
+        mHelper.virtualViewToScreenCoordinates(mTempViewPoint, mTempViewPoint);
+
+        // Check if the touch location was on the trash
+        return mTrashRect.contains(mTempViewPoint.x, mTempViewPoint.y);
     }
 
     /**
