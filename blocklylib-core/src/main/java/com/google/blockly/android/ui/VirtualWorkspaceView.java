@@ -21,6 +21,7 @@ import android.graphics.Rect;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.inputmethod.InputMethodManager;
@@ -70,6 +71,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private boolean mResetViewPending = true;
 
     private ScaleGestureDetector mScaleGestureDetector;
+    private GestureDetector mTapGestureDetector;
     private InputMethodManager mImeManager;
 
     public VirtualWorkspaceView(Context context) {
@@ -99,6 +101,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         setVerticalScrollBarEnabled(true);
 
         mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
+        mTapGestureDetector = new GestureDetector(getContext(), new TapGestureListener());
         mGridRenderer.updateGridBitmap(mViewScale);
         mImeManager = (InputMethodManager) getContext()
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -167,6 +170,12 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     public float getViewScale() {
         return mViewScale;
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        mTapGestureDetector.onTouchEvent(event);
+        return super.dispatchTouchEvent(event);
     }
 
     @Override
@@ -483,6 +492,12 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     private static int clampToRange(int y, int min, int max) {
         return Math.min(max, Math.max(min, y));
+    }
+
+    private class TapGestureListener extends GestureDetector.SimpleOnGestureListener {
+        public boolean onSingleTapUp(MotionEvent e) {
+            return callOnClick();
+        }
     }
 
     /** Listener class for scaling and panning the view using pinch-to-zoom gestures. */
