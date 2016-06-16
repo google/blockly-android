@@ -80,6 +80,15 @@ public class BlocklyController {
     private View mTrashIcon = null;
     private ToolboxFragment mToolboxFragment = null;
     private Dragger mDragger;
+    private View.OnClickListener mDismissClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mTrashFragment.isOpened() && mTrashFragment.isCloseable()) {
+                mTrashFragment.setOpened(false);
+            }
+            mToolboxFragment.closeBlocksDrawer();
+        }
+    };
 
     private final Dragger.DragHandler mWorkspaceDragHandler = new Dragger.DragHandler() {
         @Override
@@ -489,7 +498,13 @@ public class BlocklyController {
      * @param wv The root workspace view to add to.
      */
     public void initWorkspaceView(final WorkspaceView wv) {
+        if (mVirtualWorkspaceView != null) {
+            mVirtualWorkspaceView.setOnClickListener(null);
+        }
         mVirtualWorkspaceView = (VirtualWorkspaceView) wv.getParent();
+        if (mVirtualWorkspaceView != null) {
+            mVirtualWorkspaceView.setOnClickListener(mDismissClickListener);
+        }
         mWorkspaceView = wv;
         mWorkspaceView.setController(this);
 
