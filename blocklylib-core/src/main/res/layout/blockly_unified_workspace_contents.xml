@@ -67,8 +67,6 @@
         android:id="@+id/blockly_toolbox"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_toLeftOf="@id/blockly_overlay_buttons"
-        android:layout_toStartOf="@id/blockly_overlay_buttons"
         blockly:closeable="true"
         blockly:scrollOrientation="vertical"
         blockly:tabEdge="start"

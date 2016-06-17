@@ -459,12 +459,21 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
             // Measure the tabs before the the block list.
             measureChild(mCategoryTabs, widthMeasureSpec, heightMeasureSpec);
             updateScrollablePadding();
             measureChild(mBlockListView, widthMeasureSpec, heightMeasureSpec);
+
+            int listWidth = mBlockListView.getVisibility() == View.GONE ?
+                    0 : mBlockListView.getMeasuredWidth();
+            int listHeight = mBlockListView.getVisibility() == View.GONE ?
+                    0 : mBlockListView.getMeasuredHeight();
+            int width = Math.max(mCategoryTabs.getMeasuredWidth(), listWidth);
+            int height = Math.max(mCategoryTabs.getMeasuredHeight(), listHeight);
+            width = getSizeForSpec(widthMeasureSpec, width);
+            height = getSizeForSpec(heightMeasureSpec, height);
+
+            setMeasuredDimension(width, height);
         }
 
         @Override
@@ -493,6 +502,21 @@ public class ToolboxFragment extends BlockDrawerFragment {
                     break;
             }
         }
+    }
+
+    private int getSizeForSpec(int measureSpec, int desiredSize) {
+        int mode = View.MeasureSpec.getMode(measureSpec);
+        int size = View.MeasureSpec.getSize(measureSpec);
+
+        switch (mode) {
+            case View.MeasureSpec.AT_MOST:
+                return Math.min(size, desiredSize);
+            case View.MeasureSpec.EXACTLY:
+                return size;
+            case View.MeasureSpec.UNSPECIFIED:
+                return desiredSize;
+        }
+        return desiredSize;
     }
 
     /**
