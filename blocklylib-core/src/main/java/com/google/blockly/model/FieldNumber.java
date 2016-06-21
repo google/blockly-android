@@ -34,9 +34,7 @@ import java.util.Arrays;
 public final class FieldNumber extends Field<FieldNumber.Observer> {
     private static final String TAG = "FieldNumber";
 
-    public static final double NO_MINIMUM = -Double.MAX_VALUE;   // Not MIN_VALUE (just above zero)
-    public static final double NO_MAXIMUM = Double.MAX_VALUE;
-    public static final double NO_PRECISION = Double.MIN_NORMAL;
+    public static final double NO_CONSTRAINT = Double.NaN;
 
     /**
      * This formatter is used by fields without precision, and to count precision's significant
@@ -57,14 +55,14 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
     private static final DecimalFormat INTEGER_DECIMAL_FORMAT = new DecimalFormat("0");
 
     private double mValue;
-    private double mMin = NO_MINIMUM;
-    private double mMax = NO_MAXIMUM;
-    private double mPrecision = NO_PRECISION;
+    private double mMin = NO_CONSTRAINT;
+    private double mMax = NO_CONSTRAINT;
+    private double mPrecision = NO_CONSTRAINT;
 
     private DecimalFormat mFormatter;
     private boolean mIntegerPrecision;
-    private double mEffectiveMin = mMin;  // mMin as a multiple of mPrecision
-    private double mEffectiveMax = mMax;  // mMax as a multiple of mPrecision
+    private double mEffectiveMin = -Double.MAX_VALUE;  // mMin as a multiple of mPrecision
+    private double mEffectiveMax = Double.MAX_VALUE;  // mMax as a multiple of mPrecision
 
     public FieldNumber(String name) {
         super(name, TYPE_NUMBER);
@@ -88,9 +86,9 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
         }
         try {
             field.setConstraints(
-                    json.optDouble("min", NO_MINIMUM),
-                    json.optDouble("max", NO_MAXIMUM),
-                    json.optDouble("precision", NO_PRECISION));
+                    json.optDouble("min", NO_CONSTRAINT),
+                    json.optDouble("max", NO_CONSTRAINT),
+                    json.optDouble("precision", NO_CONSTRAINT));
         } catch (IllegalArgumentException e) {
             throw new BlockLoadingException(e);
         }
@@ -106,36 +104,47 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
     }
 
     public void setConstraints(double min, double max, double precision) {
-        if (Double.isInfinite(min) || Double.isNaN(min)|| Double.isInfinite(max)
-                || Double.isNaN(max) || Double.isInfinite(precision) || Double.isNaN(precision)) {
-            throw new IllegalArgumentException("Constraints cannot be infinite nor NaN.");
+        if (max == Double.POSITIVE_INFINITY || Double.isNaN(max)) {
+            max = NO_CONSTRAINT;
+        } else if (max == Double.NEGATIVE_INFINITY) {
+            throw new IllegalArgumentException("Max cannot be -Inf. No valid values would exist.");
         }
-        if (min > max) {
+        if (min == Double.NEGATIVE_INFINITY || Double.isNaN(min)) {
+            min = NO_CONSTRAINT;
+        } else if (min == Double.POSITIVE_INFINITY) {
+            throw new IllegalArgumentException("Min cannot be Inf. No valid values would exist.");
+        }
+        if (precision == 0 || Double.isNaN(precision)) {
+            precision = NO_CONSTRAINT;
+        }
+        if (Double.isInfinite(precision)) {
+            throw new IllegalArgumentException("Precision cannot be infinite.");
+        }
+        if (!Double.isNaN(min) && !Double.isNaN(max) && min > max) {
             throw new IllegalArgumentException("Minimum value must be less than max. Found "
                     + min + " > " + max);
         }
-        if (precision <= 0) {
+        if (!Double.isNaN(precision) && precision <= 0) {
             throw new IllegalArgumentException("Precision must be positive. Found " + precision);
         }
 
-        double effectiveMin, effectiveMax;
-        if (precision == NO_PRECISION) {
-            effectiveMin = min;
-            effectiveMax = max;
-        } else {
-            if (min < 0) {
-                double multiplier = Math.floor(-min / precision);
+        double effectiveMin = Double.isNaN(min) ? -Double.MAX_VALUE : min;
+        double  effectiveMax = Double.isNaN(max) ? Double.MAX_VALUE : max;
+        if (!Double.isNaN(precision)) {
+            if (effectiveMin < 0) {
+                double multiplier = Math.floor(-effectiveMin / precision);
                 effectiveMin = precision * -multiplier;
             } else {
-                double multiplier = Math.ceil(min / precision);
+                double multiplier = Math.ceil(effectiveMin / precision);
                 effectiveMin = precision * multiplier;
             }
-            if (max < 0) {
-                double multiplier = Math.ceil(-max / precision);
+            if (effectiveMax < 0) {
+                double multiplier = Math.ceil(-effectiveMax / precision);
                 effectiveMax = precision * -multiplier;
             } else {
-                double multiplier = Math.floor(max / precision);
+                double multiplier = Math.floor(effectiveMax / precision);
                 effectiveMax = precision * multiplier;
+
             }
             if (effectiveMin > effectiveMax) {
                 throw new IllegalArgumentException("No valid value in range.");
@@ -148,7 +157,7 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
         mEffectiveMin = effectiveMin;
         mEffectiveMax = effectiveMax;
         mIntegerPrecision = (precision == Math.round(precision));
-        if (mPrecision == NO_PRECISION) {
+        if (Double.isNaN(mPrecision)) {
             mFormatter = NAIVE_DECIMAL_FORMAT;
         } else if (mIntegerPrecision) {
             mFormatter = INTEGER_DECIMAL_FORMAT;
@@ -224,7 +233,7 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
     }
 
     private void setValueImpl(double newValue, boolean onConstraintsChanged) {
-        if (mPrecision != NO_PRECISION) {
+        if (!Double.isNaN(mPrecision)) {
             newValue = mPrecision * Math.round(newValue / mPrecision);
             if (newValue < mEffectiveMin) {
                 newValue = mEffectiveMin;
