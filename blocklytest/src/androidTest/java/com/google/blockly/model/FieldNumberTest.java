@@ -38,18 +38,13 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
 
     public void testConstraintDefaults() {
         // Before assignment
-        assertEquals(FieldNumber.NO_MINIMUM, mField.getMinimumValue());
-        assertEquals(FieldNumber.NO_MAXIMUM, mField.getMaximumValue());
-        assertEquals(FieldNumber.NO_PRECISION, mField.getPrecision());
+        assertTrue(Double.isNaN(mField.getMinimumValue()));
+        assertTrue(Double.isNaN(mField.getMaximumValue()));
+        assertTrue(Double.isNaN(mField.getPrecision()));
 
-        assertTrue("Default minimum is very very negative",
-                FieldNumber.NO_MINIMUM < -1.0e100);
-        assertTrue("Default maximum is very very positive",
-                FieldNumber.NO_MAXIMUM > 1.0e100);
-        assertTrue("Default precision is positive",
-                FieldNumber.NO_PRECISION > 0);
-        assertTrue("Default precision is very very small",
-                FieldNumber.NO_PRECISION < 1.0e-100);
+        assertFalse(mField.hasMaximum());
+        assertFalse(mField.hasMinimum());
+        assertFalse(mField.hasPrecision());
     }
 
     public void testConstrainedRangeSuccess() {
@@ -61,6 +56,7 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
         assertEquals(MIN, mField.getMinimumValue());
         assertEquals(MAX, mField.getMaximumValue());
         assertEquals(PRECISION, mField.getPrecision());
+        assertTrue(mField.hasPrecision());
 
         // Normal assignments
         mField.setValue(3.0);
@@ -99,13 +95,11 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
         assertEquals(MAX, mField.getValue());
     }
 
-    public void testSetConstraints_IllegalArguments() {
-        try {
-            mField.setConstraints(Double.NaN, 1.0, 0.1);
-            fail("NaN minimum is not allowed.");
-        } catch (IllegalArgumentException e) {
-            // Expected
-        }
+    public void testSetConstraints_SpecialValues() {
+        mField.setConstraints(Double.NaN, 1.0, 0.1);
+        assertTrue(Double.isNaN(mField.getMinimumValue()));
+        assertFalse(mField.hasMinimum());
+        assertTrue(mField.hasMaximum());
 
         try {
             mField.setConstraints(Double.POSITIVE_INFINITY, 1.0, 0.1);
@@ -114,26 +108,20 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
             // Expected
         }
 
-        try {
-            mField.setConstraints(Double.NEGATIVE_INFINITY, 1.0, 0.1);
-            fail("NEGATIVE_INFINITY minimum is not allowed.");
-        } catch (IllegalArgumentException e) {
-            // Expected
-        }
+        mField.setConstraints(Double.NEGATIVE_INFINITY, 1.0, 0.1);
+        assertTrue(Double.isNaN(mField.getMinimumValue()));
+        assertFalse(mField.hasMinimum());
+        assertTrue(mField.hasMaximum());
 
-        try {
-            mField.setConstraints(-1.0, Double.NaN, 0.1);
-            fail("NaN maximum is not allowed.");
-        } catch (IllegalArgumentException e) {
-            // Expected
-        }
+        mField.setConstraints(-1.0, Double.NaN, 0.1);
+        assertTrue(Double.isNaN(mField.getMaximumValue()));
+        assertTrue(mField.hasMinimum());
+        assertFalse(mField.hasMaximum());
 
-        try {
-            mField.setConstraints(-1.0, Double.POSITIVE_INFINITY, 0.1);
-            fail("POSITIVE_INFINITY maximum is not allowed.");
-        } catch (IllegalArgumentException e) {
-            // Expected
-        }
+        mField.setConstraints(-1.0, Double.POSITIVE_INFINITY, 0.1);
+        assertTrue(Double.isNaN(mField.getMaximumValue()));
+        assertTrue(mField.hasMinimum());
+        assertFalse(mField.hasMaximum());
 
         try {
             mField.setConstraints(-1.0, Double.NEGATIVE_INFINITY, 0.1);
@@ -143,12 +131,11 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
         }
 
 
-        try {
-            mField.setConstraints(-1.0, 1.0, Double.NaN);
-            fail("NaN precision is not allowed.");
-        } catch (IllegalArgumentException e) {
-            // Expected
-        }
+        mField.setConstraints(-1.0, 1.0, Double.NaN);
+        assertTrue(Double.isNaN(mField.getPrecision()));
+        assertTrue(mField.hasMinimum());
+        assertTrue(mField.hasMaximum());
+        assertFalse(mField.hasPrecision());
 
         try {
             mField.setConstraints(-1.0, 1.0, Double.POSITIVE_INFINITY);
@@ -167,7 +154,7 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
 
     public void testSetConstraints_InvalidConstraintPairs() {
         try {
-            mField.setConstraints(1.0, -1.0, FieldNumber.NO_PRECISION);
+            mField.setConstraints(1.0, -1.0, FieldNumber.NO_CONSTRAINT);
             fail("min must be less than max.");
         } catch (IllegalArgumentException e) {
             // Expected
@@ -182,8 +169,8 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
     }
 
     public void testDecimalPrecisionLessThanOne() {
-        final double MIN = FieldNumber.NO_MINIMUM;
-        final double MAX = FieldNumber.NO_MAXIMUM;
+        final double MIN = FieldNumber.NO_CONSTRAINT;
+        final double MAX = FieldNumber.NO_CONSTRAINT;
         final double PRECISION = 0.25;  // Two significant digits
         mField.setConstraints(MIN, MAX, PRECISION);
 
@@ -252,8 +239,8 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
     }
 
     public void testIntegerPrecisionOne() {
-        final double MIN = FieldNumber.NO_MINIMUM;
-        final double MAX = FieldNumber.NO_MAXIMUM;
+        final double MIN = FieldNumber.NO_CONSTRAINT;
+        final double MAX = FieldNumber.NO_CONSTRAINT;
         final double PRECISION = 1;
         mField.setConstraints(MIN, MAX, PRECISION);
 
@@ -349,8 +336,8 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
     }
 
     public void testIntegerPrecisionTwo() {
-        final double MIN = FieldNumber.NO_MINIMUM;
-        final double MAX = FieldNumber.NO_MAXIMUM;
+        final double MIN = FieldNumber.NO_CONSTRAINT;
+        final double MAX = FieldNumber.NO_CONSTRAINT;
         final double PRECISION = 2;
         mField.setConstraints(MIN, MAX, PRECISION);
 
@@ -411,9 +398,9 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
     }
 
     public void testSetFromString_ExponentNotation() {
-        final double MIN = FieldNumber.NO_MINIMUM;
-        final double MAX = FieldNumber.NO_MAXIMUM;
-        final double PRECISION = FieldNumber.NO_PRECISION;
+        final double MIN = FieldNumber.NO_CONSTRAINT;
+        final double MAX = FieldNumber.NO_CONSTRAINT;
+        final double PRECISION = FieldNumber.NO_CONSTRAINT;
         mField.setConstraints(MIN, MAX, PRECISION);
 
         mField.setFromString("123e4");
