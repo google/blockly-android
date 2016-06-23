@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.ui;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.view.MotionEvent;
@@ -37,6 +38,7 @@ public interface BlockView {
     /**
      * @return The block represented by this view.
      */
+    @NonNull
     Block getBlock();
 
     /** @see View#getParent() */
