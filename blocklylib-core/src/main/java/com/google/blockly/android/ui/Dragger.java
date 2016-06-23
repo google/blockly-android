@@ -162,9 +162,14 @@ public class Dragger {
                         // The rest of the drag data is already captured in mPendingDrag.
                         // NOTE: This event position does not respect view scale.
 
-                        // TODO(#35): This might be better described as "selected".
-                        ((View) mPendingDrag.getRootDraggedBlockView()).setPressed(true);
-                        return true;    // We want to keep listening for drag events
+                        BlockView rootDraggedBlockView = mPendingDrag.getRootDraggedBlockView();
+                        if(rootDraggedBlockView.getBlock().isMovable()) {
+                            // TODO(#35): This might be better described as "selected".
+                            ((View) rootDraggedBlockView).setPressed(true);
+                            return true;    // We want to keep listening for drag events
+                        } else {
+                            return false;   // We don't want to keep listening for drag events
+                        }
                     case DragEvent.ACTION_DRAG_LOCATION:
                         // If we're still finishing up a previous drag we may have missed the
                         // start of the drag, in which case we shouldn't do anything.

@@ -176,8 +176,6 @@ public class Block {
      *
      * Blocks are movable by default.
      *
-     * Warning: The Android Dragger implementation does not yet respect movable false state (#304).
-     *
      * @param movable
      */
     public void setMovable(boolean movable) {
