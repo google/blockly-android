@@ -163,7 +163,6 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         return new VerticalBlockViewFactory(this, helper);
     }
 
-    @NonNull
     @Override
     protected void onLoadInitialWorkspace() {
         try {
