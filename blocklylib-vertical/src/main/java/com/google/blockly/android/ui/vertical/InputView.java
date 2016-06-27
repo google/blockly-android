@@ -16,10 +16,10 @@
 package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.view.View;
 
 import com.google.blockly.android.ui.BlockGroup;
+import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.android.ui.AbstractInputView;
 import com.google.blockly.android.ui.BlockView;
@@ -39,6 +39,8 @@ public class InputView extends AbstractInputView {
 
     private int mHorizontalFieldSpacing;
 
+    // Padding above the first input of a block.
+    private int mBlockTopPadding;
     // Total measured width of all fields including padding around and between them.
     private int mTotalFieldWidth;
     // Maximum height over all fields, not including padding.
@@ -81,6 +83,8 @@ public class InputView extends AbstractInputView {
                     " must be called before each call to measure().");
         }
         mHasMeasuredFieldsAndInput = false;
+        Block block = mInput.getBlock();
+        mBlockTopPadding = mPatchManager.computeBlockTopPadding(block);
 
         // Width is the width of all fields, plus padding, plus width of child.
         final int width =
@@ -88,8 +92,9 @@ public class InputView extends AbstractInputView {
 
         // Height is maximum of field height with padding or child height, and at least the minimum
         // height for an empty block.
-        final int height = Math.max(mPatchManager.mMinBlockHeight, Math.max(mMaxFieldHeight
-                + mPatchManager.mBlockTotalPaddingY, mConnectedGroupHeight));
+        final int totalPaddingHeight = mPatchManager.computeBlockTotalPaddingY(mInput.getBlock());
+        final int height = Math.max(mPatchManager.mMinBlockHeight,
+                Math.max(mMaxFieldHeight + totalPaddingHeight, mConnectedGroupHeight));
 
         setMeasuredDimension(width, height);
 
@@ -115,8 +120,8 @@ public class InputView extends AbstractInputView {
             int fieldHeight = view.getMeasuredHeight();
 
             int left = rtl ? viewWidth - (cursorX + fieldWidth) : cursorX;
-            view.layout(left, mPatchManager.mBlockTopPadding, left + fieldWidth,
-                    mPatchManager.mBlockTopPadding + fieldHeight);
+            view.layout(left, mBlockTopPadding, left + fieldWidth,
+                    mBlockTopPadding + fieldHeight);
 
             // Move x position left or right, depending on RTL mode.
             cursorX += fieldWidth + mHorizontalFieldSpacing;
@@ -339,15 +344,14 @@ public class InputView extends AbstractInputView {
             switch (mInputType) {
                 case Input.TYPE_VALUE: {
                     if (mInput.getBlock().getInputsInline()) {
-                        topOffset += mPatchManager.mBlockTopPadding +
-                                mPatchManager.mInlineInputTopPadding;
+                        topOffset += mBlockTopPadding + mPatchManager.mInlineInputTopPadding;
                         leftOffset += mPatchManager.mInlineInputStartPadding;
                     } else {
                         // The child block overlaps the parent block slightly at the connector, by
                         // the width of the extruding output connector.
-                        leftOffset +=
-                                mPatchManager.mBlockEndPadding + mPatchManager.mValueInputWidth -
-                                        mPatchManager.mOutputConnectorWidth;
+                        leftOffset += mPatchManager.mBlockEndPadding
+                                + mPatchManager.mValueInputWidth
+                                - mPatchManager.mOutputConnectorWidth;
                     }
                     break;
                 }

@@ -20,6 +20,8 @@ import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.NinePatchDrawable;
 
+import com.google.blockly.model.Block;
+
 /**
  * Helper class to manage patches, including 9-patches, for drawing blocks.
  */
@@ -33,13 +35,15 @@ public class PatchManager {
     int mBlockEndPadding;
 
     // Vertical block padding - this space accomodates top and bottom block boundaries.
-    int mBlockTopPadding;
+    int mBlockTopDefaultPadding;
+    int mBlockTopOutputPadding;
+    int mBlockTopPreviousPadding;
+    int mBlockTopMinPadding;
     int mBlockBottomPadding;
 
     // Convenience fields - these are the sums of mBlockStartPadding and mBlockEndPadding, or
     // mBlockTopPadding and mBlockBottomPadding, respectively.
     int mBlockTotalPaddingX;
-    int mBlockTotalPaddingY;
 
     // Height of the "Next" connector - this is in addition to the bottom block boundary thickness,
     // which is mBlockBottomPadding.
@@ -101,9 +105,9 @@ public class PatchManager {
     // Minimum height of a block.
     int mMinBlockHeight;
 
-    PatchManager(Resources resources, boolean rtl) {
+    PatchManager(Resources resources, boolean rtl, boolean useHat) {
         mResources = resources;
-        computePatchLayoutMeasures(rtl);
+        computePatchLayoutMeasures(rtl, useHat);
     }
 
     /**
@@ -119,7 +123,7 @@ public class PatchManager {
     /**
      * Compute layout measures such as offsets and paddings from the various block patches.
      */
-    private void computePatchLayoutMeasures(boolean rtl) {
+    private void computePatchLayoutMeasures(boolean rtl, boolean useHat) {
         final Configuration config = mResources.getConfiguration();
 
         if (!getPatchDrawable(R.drawable.top_start_default).getPadding(mTempRect)) {
@@ -145,17 +149,34 @@ public class PatchManager {
         }
         mNextConnectorHeight = mTempRect.bottom - mBlockBottomPadding;
 
+        final NinePatchDrawable topLeftDefaultPatch = getPatchDrawable(
+                useHat ? R.drawable.top_start_hat : R.drawable.top_start_default);
+        if (!topLeftDefaultPatch.getPadding(mTempRect)) {
+            throw new IllegalStateException("9-patch 'top_start_default' does not have padding.");
+        };
+        mBlockTopDefaultPadding = mTempRect.top;
+
+        final NinePatchDrawable topLeftPreviousPatch =
+                getPatchDrawable(R.drawable.top_start_previous);
+        if (!topLeftPreviousPatch.getPadding(mTempRect)) {
+            throw new IllegalStateException("9-patch 'top_start_previous' does not have padding.");
+        };
+        mBlockTopPreviousPadding = mTempRect.top;
+
         final NinePatchDrawable topLeftOutputPatch = getPatchDrawable(R.drawable.top_start_output);
         if (!topLeftOutputPatch.getPadding(mTempRect)) {
             throw new IllegalStateException("9-patch 'top_start_output' does not have padding.");
         };
-        mBlockTopPadding = mTempRect.top;
+        mBlockTopOutputPadding = mTempRect.top;
         mOutputConnectorWidth = (rtl ? mTempRect.right : mTempRect.left) - mBlockStartPadding;
         mOutputConnectorHeight = topLeftOutputPatch.getIntrinsicHeight();
 
-        // Block height must be sufficient to at least accomodate vertical padding and an Output
+        mBlockTopMinPadding = Math.min(mBlockTopDefaultPadding,
+                Math.min(mBlockTopOutputPadding, mBlockTopPreviousPadding));
+
+        // Block height must be sufficient to at least accommodate vertical padding and an Output
         // connector.
-        mMinBlockHeight = mBlockTotalPaddingY + mOutputConnectorHeight;
+        mMinBlockHeight = mBlockTopMinPadding + mOutputConnectorHeight + mBlockBottomPadding;
 
         final NinePatchDrawable statementTopPatch = getPatchDrawable(R.drawable.statementinput_top);
         if (!statementTopPatch.getPadding(mTempRect)) {
@@ -188,6 +209,20 @@ public class PatchManager {
 
         // Convenience fields.
         mBlockTotalPaddingX = mBlockStartPadding + mBlockEndPadding;
-        mBlockTotalPaddingY = mBlockTopPadding + mBlockBottomPadding;
+    }
+
+    int computeBlockTopPadding(Block block) {
+        if (block.getPreviousConnection() != null) {
+            return mBlockTopPreviousPadding;
+        } else if (block.getOutputConnection() != null) {
+            return mBlockTopOutputPadding;
+        }
+
+        // else...
+        return mBlockTopDefaultPadding;
+    }
+
+    int computeBlockTotalPaddingY(Block block) {
+        return computeBlockTopPadding(block) + mBlockBottomPadding;
     }
 }
