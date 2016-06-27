@@ -134,12 +134,23 @@ public class Block {
         return mUuid;
     }
 
+    /**
+     * @return The {@link Workspace} this block is a part of.
+     */
     public Workspace getWorkspace() {
         return mWorkspace;
     }
 
     /**
+     * @return The id of the {@link Workspace} this block is a part of.
+     */
+    public String getWorkspaceId() {
+        return mWorkspace == null ? null : mWorkspace.getId();
+    }
+
+    /**
      * Adds to <code>outList</code> all block ids for this block and all child blocks.
+     * This will not include occluded shadow block ids.
      *
      * @param outList List of ids to add to.
      */
@@ -151,6 +162,12 @@ public class Block {
             Block connectedBlock = input.getConnectedBlock();
             if (connectedBlock != null) {
                 connectedBlock.addAllBlockIds(outList);
+            }
+        }
+        if (mNextConnection != null) {
+            Block next = mNextConnection.getTargetBlock();
+            if (next != null) {
+                next.addAllBlockIds(outList);
             }
         }
     }

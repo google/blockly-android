@@ -67,15 +67,19 @@ public class BlocklyController {
     private static final String SNAPSHOT_BUNDLE_KEY = "com.google.blockly.snapshot";
     private static final String SERIALIZED_WORKSPACE_KEY = "SERIALIZED_WORKSPACE";
 
-    public interface Listener {
+    /**
+     * Callback interface for {@link BlocklyEvent}s.
+     */
+    public interface EventsCallback {
         /**
-         * @return The bitmask of event types handled by this Listener.  Must not change.
+         * @return The bitmask of event types handled by this callback.  Must not change.
          */
         @BlocklyEvent.EventType int getTypesBitmask();
 
         /**
-         * Called when an event group contains at least on of the requested types.  Some events in
-         * the group may be outside this listener's requested scope.
+         * Called when a group of events are fired and at least one event is of a type specified by
+         * {@link #getTypesBitmask}. While events in the group will always include at least one
+         * event of the requested type, the group may also contain other events.
          *
          * @param events List of all the events in this group.
          */
@@ -88,10 +92,10 @@ public class BlocklyController {
     private final WorkspaceHelper mHelper;
 
     private final Workspace mWorkspace;
-    private final ArrayList<Listener> mListeners = new ArrayList<>();
+    private final ArrayList<EventsCallback> mListeners = new ArrayList<>();
     private final ArrayList<BlocklyEvent> mPendingEvents = new ArrayList<>();
     private int mPendingEventsMask = 0;
-    private int mEventListenerMask = 0;
+    private int mEventCallbackMask = 0;
 
     private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
@@ -435,14 +439,14 @@ public class BlocklyController {
         return mHelper;
     }
 
-    public void addListener(Listener listener) {
+    public void addListener(EventsCallback listener) {
         if (!mListeners.contains(listener)) {
             mListeners.add(listener);
-            mEventListenerMask |= listener.getTypesBitmask();
+            mEventCallbackMask |= listener.getTypesBitmask();
         }
     }
 
-    public boolean removeListener(Listener listener) {
+    public boolean removeListener(EventsCallback listener) {
         boolean found = mListeners.remove(listener);
         if (found) {
             recalculateListenerEventMask();
@@ -754,6 +758,10 @@ public class BlocklyController {
         if (mTrashFragment != null) {
             mTrashFragment.onBlockRemovedFromTrash(previouslyTrashedBlock);
         }
+        if (hasCallback(BlocklyEvent.TYPE_CREATE)) {
+            addPendingEvent(new BlocklyEvent.CreateEvent(bg.getFirstBlock()));
+            firePendingEvents();
+        }
         return bg;
     }
 
@@ -821,6 +829,8 @@ public class BlocklyController {
      * functions and variables. This should only be {@code  false} if re-adding a moodel previously
      * removed via {@link #removeRootBlock(Block, boolean)} where {@code cleanupStats} was also
      * {@code false}.
+     * <p/>
+     * This method will add a create event if the block is new ({@code isNewBlock}).
      *
      * @param block The {@link Block} to add to the workspace.
      * @param bg The {@link BlockGroup} with block as the first {@link BlockView}.
@@ -828,23 +838,7 @@ public class BlocklyController {
      *                   collect stats for this tree.
      */
     private BlockGroup addRootBlock(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
-        BlocklyEvent.CreateEvent event = null;
-        if ((mEventListenerMask & BlocklyEvent.TYPE_CREATE) != 0) {
-            try {
-                String xml = BlocklyXmlHelper.writeOneBlockToXmlString(block);
-                List<String> ids = new ArrayList<>();
-                block.addAllBlockIds(ids);
-                event = new BlocklyEvent.CreateEvent(
-                        mWorkspace.getId(), /* groupId */ null, block.getId(), xml, ids);
-            } catch (BlocklySerializerException e) {
-                throw new IllegalArgumentException("Invalid block for event serialization");
-            }
-        }
-
         mWorkspace.addRootBlock(block, isNewBlock);
-        if (event != null) {
-            addPendingEvent(event);
-        }
         if (mWorkspaceView != null) {
             if (bg == null) {
                 bg = mViewFactory.buildBlockGroupTree(block, mWorkspace.getConnectionManager(),
@@ -853,6 +847,9 @@ public class BlocklyController {
                 bg.setTouchHandler(mTouchHandler);
             }
             mWorkspaceView.addView(bg);
+        }
+        if (isNewBlock && hasCallback(BlocklyEvent.TYPE_CREATE)) {
+            addPendingEvent(new BlocklyEvent.CreateEvent(block));
         }
         return bg;
     }
@@ -1118,21 +1115,25 @@ public class BlocklyController {
         }
     }
 
+    private boolean hasCallback(@BlocklyEvent.EventType int typeQueryBitMask) {
+        return (mEventCallbackMask & typeQueryBitMask) != 0;
+    }
+
     private void addPendingEvent(BlocklyEvent event) {
         mPendingEvents.add(event);
         mPendingEventsMask |= event.getTypeId();
     }
 
     private void recalculateListenerEventMask() {
-        mEventListenerMask = 0;
-        for (Listener listener : mListeners) {
-            mEventListenerMask |= listener.getTypesBitmask();
+        mEventCallbackMask = 0;
+        for (EventsCallback listener : mListeners) {
+            mEventCallbackMask |= listener.getTypesBitmask();
         }
     }
 
     private void firePendingEvents() {
         List<BlocklyEvent> unmodifiableEventList = null;
-        for (Listener listener : mListeners) {
+        for (EventsCallback listener : mListeners) {
             if ((mPendingEventsMask & listener.getTypesBitmask()) != 0) {
                 if (unmodifiableEventList == null) {
                     unmodifiableEventList = Collections.unmodifiableList(mPendingEvents);

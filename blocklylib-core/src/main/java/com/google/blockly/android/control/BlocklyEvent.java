@@ -9,23 +9,39 @@ import android.text.TextUtils;
 import android.util.SparseArray;
 
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.Field;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.utils.BlocklyXmlHelper;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Base class to all Blockly events.
+ * Base class for all Blockly events.
  */
 public abstract class BlocklyEvent {
+    // JSON serialization attributes.  See also TYPENAME_ and ELEMENT_ constants for ids.
+    private static final String JSON_BLOCK_ID = "blockId";
+    private static final String JSON_ELEMENT = "element";
+    private static final String JSON_GROUP_ID = "groupId";
+    private static final String JSON_NAME = "name";
+    private static final String JSON_NEW_VALUE = "newValue";
+    private static final String JSON_OLD_VALUE = "oldValue";  // Rarely used.
+    private static final String JSON_WORKSPACE_ID = "workspaceId"; // Rarely used.
+    private static final String JSON_XML = "xml";
+
     @IntDef(flag = true,
             value = {TYPE_CHANGE, TYPE_CREATE, TYPE_DELETE, TYPE_MOVE, TYPE_UI})
     @Retention(RetentionPolicy.SOURCE)
@@ -36,7 +52,8 @@ public abstract class BlocklyEvent {
     public static final int TYPE_CHANGE = 1 << 2;
     public static final int TYPE_MOVE = 1 << 3;
     public static final int TYPE_UI = 1 << 4;
-    // When adding an event type, update TYPE_ID_COUNT, TYPE_ALL, TYPE_ID_TO_NAME, and TYPE_NAME_TO_ID.
+    // When adding an event type, update TYPE_ID_COUNT, TYPE_ALL, TYPE_ID_TO_NAME, and
+    // TYPE_NAME_TO_ID.
     private static final int TYPE_ID_COUNT = 5;
     public static final @EventType int TYPE_ALL =
             TYPE_CHANGE | TYPE_CREATE | TYPE_DELETE | TYPE_MOVE | TYPE_UI;
@@ -89,7 +106,7 @@ public abstract class BlocklyEvent {
     }
 
     /**
-     * Ensures {@code typeId} is a singular valid event it.
+     * Ensures {@code typeId} is a singular valid event id.
      * @param typeId The typeId to test.
      */
     public static void validateEventType(int typeId) {
@@ -101,13 +118,13 @@ public abstract class BlocklyEvent {
 
     /**
      * @param eventTypeName A JSON "type" event name.
-     * @return returns The {@link EventType} for {@code eventTypeName}.
+     * @return returns The {@link EventType} for {@code eventTypeName}, or 0 if not valid.
      * @throws IllegalArgumentException when
      */
     public static int getIdForEventName(final String eventTypeName) {
         Integer typeId = TYPE_NAME_TO_ID.get(eventTypeName);
         if (typeId == null) {
-            throw new IllegalArgumentException("Unrecognized event type: " + eventTypeName);
+            return 0;
         }
         return typeId;
     }
@@ -117,7 +134,7 @@ public abstract class BlocklyEvent {
      * @return The canonical (identity comparable) version of {@code changeElement}.
      * @throws IllegalArgumentException If {@code changeElement} is not a {@link ChangeElement}.
      */
-    public static String validateChangeElement(final @ChangeElement String changeElement) {
+    public static String validateChangeElement(final String changeElement) {
         switch (changeElement) {
             case ELEMENT_COLLAPSED:
                 return ELEMENT_COLLAPSED;
@@ -142,7 +159,7 @@ public abstract class BlocklyEvent {
      * @return The canonical (identity comparable) version of the {@code uiElement}.
      * @throws IllegalArgumentException If {@code changeElement} is not a {@link UIElement}.
      */
-    public static String validateUiElement(final @UIElement String uiElement) {
+    public static String validateUiElement(final String uiElement) {
         switch (uiElement) {
             case ELEMENT_CATEGORY:
                 return ELEMENT_CATEGORY;
@@ -169,13 +186,31 @@ public abstract class BlocklyEvent {
 
     protected String mGroupId;
 
+    /**
+     * Base constructor for all BlocklyEvents.
+     *
+     * @param typeId The {@link EventType}.
+     * @param blockId The id string of the block affected. Null for a few event types (e.g., toolbox
+     *                category).
+     * @param workspaceId The id string of the Blockly workspace.
+     * @param groupId The id string of the event group. Usually null for local events (assigned
+     *                later); non-null for remote events.
+     */
     protected BlocklyEvent(@EventType int typeId, @Nullable String blockId,
-                           @Nullable String workspaceId, @Nullable String groupId) {
+                           @NonNull String workspaceId, @Nullable String groupId) {
         validateEventType(typeId);
         mTypeId = typeId;
         mBlockId = blockId;
         mWorkspaceId = workspaceId;
         mGroupId = groupId;
+    }
+
+    protected BlocklyEvent(@EventType int typeId, JSONObject json) throws JSONException {
+        validateEventType(typeId);
+        mTypeId = typeId;
+        mWorkspaceId = json.optString(JSON_WORKSPACE_ID);
+        mGroupId = json.optString(JSON_GROUP_ID);
+        mBlockId = json.optString(JSON_BLOCK_ID);
     }
 
     /**
@@ -216,14 +251,15 @@ public abstract class BlocklyEvent {
         out.key("type");
         out.value(getTypeName());
         if (!TextUtils.isEmpty(mBlockId)) {
-            out.key("blockId");
+            out.key(JSON_BLOCK_ID);
             out.value(mBlockId);
         }
         if (!TextUtils.isEmpty(mGroupId)) {
-            out.key("groupId");
+            out.key(JSON_GROUP_ID);
             out.value(mGroupId);
         }
         writeJsonAttributes(out);
+        // Workspace id is not included to reduce size over network.
         out.endObject();
         return out.toString();
     }
@@ -235,9 +271,9 @@ public abstract class BlocklyEvent {
     protected abstract void writeJsonAttributes(JSONStringer out) throws JSONException;
 
     /**
-     * Event fired when a block's field value has changed.
+     * Event fired when a property of a block changes.
      */
-    public static class ChangeEvent extends BlocklyEvent {
+    public static final class ChangeEvent extends BlocklyEvent {
         @NonNull @ChangeElement
         private final String mElementChanged;
         @Nullable
@@ -247,30 +283,75 @@ public abstract class BlocklyEvent {
         @NonNull
         private final String mNewValue;
 
-
-        ChangeEvent(@NonNull String workspaceId, @Nullable String groupId, @NonNull String blockId,
-                    @NonNull String fieldName, @NonNull @ChangeElement String elementChanged,
-                    @NonNull String oldValue, @NonNull String newValue) {
-            super(TYPE_CHANGE, workspaceId, groupId, blockId);
-            if (TextUtils.isEmpty(workspaceId) || TextUtils.isEmpty(blockId)
-                    || TextUtils.isEmpty(elementChanged)) {
-                throw new IllegalArgumentException("The following must not be null or empty: "
-                        + "workspaceId, blockId, or changeElemet");
+        /**
+         * Constructs a ChangeEvent, signifying {@code field}'s value changed.
+         *
+         * @param block The block containing the change.
+         * @param field The field containing the change, if the change is a field value. Otherwise
+         *              null.
+         * @param oldValue The original field value.
+         */
+        public ChangeEvent(@NonNull Block block, @NonNull Field field, @NonNull String oldValue) {
+            super(TYPE_CHANGE, block.getWorkspaceId(), null, block.getId());
+            mElementChanged = ELEMENT_FIELD;
+            if (mElementChanged == ELEMENT_FIELD) {
+                mFieldName = field.getName();
+            }  else {
+                mFieldName = null; // otherwise ignore the field name
             }
-            if (oldValue == null || newValue == null) {
-                throw new IllegalArgumentException("oldValue and newValue cannot be null");
+            mOldValue = oldValue;
+            mNewValue = field.getSerializedValue();
+        }
+
+        /**
+         * Constructs a ChangeEvent, signifying a property of {@code block} changed.
+         *
+         * @param elementChanged The {@link ChangeElement} identifying the aspect of the change.
+         * @param workspaceId The string id for the workspace.
+         * @param groupId The string id for the event group.
+         * @param block The block containing the change.
+         * @param oldValue The original field value.
+         * @param newValue The new field value.
+         */
+        public ChangeEvent(@NonNull @ChangeElement String elementChanged,
+                           @NonNull String workspaceId, @Nullable String groupId,
+                           @NonNull Block block,
+                           @Nullable String oldValue, @Nullable String newValue) {
+            super(TYPE_CHANGE, workspaceId, groupId, block.getId());
+            if (TextUtils.isEmpty(workspaceId) || TextUtils.isEmpty(elementChanged)) {
+                throw new IllegalArgumentException("The following must not be null or empty: "
+                        + "workspaceId, or changeElemet");
             }
             mElementChanged = validateChangeElement(elementChanged);
             if (mElementChanged == ELEMENT_FIELD) {
-                if (TextUtils.isEmpty(fieldName)) {
-                    throw new IllegalArgumentException("field cannot be null");
-                }
-                mFieldName = fieldName;
+                throw new IllegalArgumentException(
+                        "Use ChangeEvent(Block,Field,String) constructor for field changes.");
             }  else {
                 mFieldName = null; // otherwise ignore the field name
             }
             mOldValue = oldValue;
             mNewValue = newValue;
+        }
+
+        /**
+         * Deserializes a {@link ChangeEvent} from {@code json}.
+         * @param json The serialized representation.
+         * @throws JSONException
+         */
+        public ChangeEvent(@NonNull JSONObject json) throws JSONException {
+            super(TYPE_CHANGE, json);
+            if (TextUtils.isEmpty(mBlockId)) {
+                throw new JSONException(JSON_BLOCK_ID + " must be assigned.");
+            }
+            String element = json.getString(JSON_ELEMENT);
+            try {
+                mElementChanged = validateChangeElement(element);
+            } catch (IllegalArgumentException e) {
+                throw new JSONException("Invalid change element: " + element);
+            }
+            mFieldName = (mElementChanged == ELEMENT_FIELD) ? json.getString(JSON_NAME) : null;
+            mOldValue = json.optString(JSON_OLD_VALUE); // Not usually serialized.
+            mNewValue = json.getString(JSON_NEW_VALUE);
         }
 
         @NonNull @ChangeElement
@@ -294,21 +375,60 @@ public abstract class BlocklyEvent {
      * Event fired when a block is added to the workspace, possibly containing other child blocks
      * and next blocks.
      */
-    public static class CreateEvent extends BlocklyEvent {
+    public static final class CreateEvent extends BlocklyEvent {
         private final String mXml;
         private final List<String> mIds;
 
-        CreateEvent(@NonNull String workspaceId, @NonNull String groupId, @Nullable String blockId,
-                    @NonNull String xml, @NonNull List<String> ids) {
-            super(TYPE_CREATE, workspaceId, groupId, blockId);
-            this.mXml = xml;
-            this.mIds = Collections.unmodifiableList(ids);
+        /**
+         * Constructs a {@code CreateEvent} for the given block.
+         *
+         * @param block The newly created block.
+         */
+        public CreateEvent(@NonNull Block block) {
+            super(TYPE_CREATE, block.getWorkspaceId(), null, block.getId());
+            try {
+                mXml = BlocklyXmlHelper.writeOneBlockToXml(block);
+            } catch (BlocklySerializerException e) {
+                throw new IllegalArgumentException("Invalid block for event serialization");
+            }
+
+            List<String> ids = new ArrayList<>();
+            block.addAllBlockIds(ids);
+            mIds = Collections.unmodifiableList(ids);
         }
 
+        /**
+         * Constructs a {@code CreateEvent} from the given JSON.
+         *
+         * @param json Serialized representation of the event.
+         * @throws JSONException
+         */
+        public CreateEvent(JSONObject json) throws JSONException {
+            super(TYPE_CREATE, json);
+            if (mBlockId == null) {
+                throw new JSONException(JSON_BLOCK_ID + " must be assigned.");
+            }
+            mXml = json.getString(JSON_XML);
+
+            JSONArray jsonIds = json.getJSONArray("ids");
+            int count = jsonIds.length();
+            List<String> ids = new ArrayList<>(count);
+            for (int i = 0; i < count; ++i) {
+                ids.add(jsonIds.getString(i));
+            }
+            mIds = Collections.unmodifiableList(ids);
+        }
+
+        /**
+         * @return The XML serialization of all blocks created by this event.
+         */
         public String getXml() {
             return mXml;
         }
 
+        /**
+         * @return The list of all block ids for all blocks created by this event.
+         */
         public List<String> getIds() {
             return mIds;
         }
@@ -329,14 +449,40 @@ public abstract class BlocklyEvent {
     /**
      * Event fired when a block is removed from the workspace.
      */
-    public static class DeleteEvent extends BlocklyEvent {
+    public static final class DeleteEvent extends BlocklyEvent {
         private final String mOldXml;
         private final List<String> mIds;
 
-        DeleteEvent(String workspaceId, String groupId, @Nullable String blockId, String oldXml, List<String> ids) {
-            super(TYPE_DELETE, workspaceId, groupId, blockId);
-            this.mOldXml = oldXml;
-            this.mIds = Collections.unmodifiableList(ids);
+        /**
+         * Constructs a {@code DeleteEvent}, signifying the removal of a block from the workspace.
+         *
+         * @param block The deleted block (or to-be-deleted block), with all children attached.
+         */
+        DeleteEvent(@NonNull Block block) {
+            super(TYPE_DELETE, block.getWorkspaceId(), null, block.getId());
+            try {
+                mOldXml = BlocklyXmlHelper.writeOneBlockToXml(block);
+            } catch (BlocklySerializerException e) {
+                throw new IllegalArgumentException("Invalid block for event serialization");
+            }
+
+            List<String> ids = new ArrayList<>();
+            block.addAllBlockIds(ids);
+            mIds = Collections.unmodifiableList(ids);
+        }
+
+        /**
+         * @return The XML serialization of all blocks deleted by this event.
+         */
+        public String getXml() {
+            return mOldXml;
+        }
+
+        /**
+         * @return The list of all block ids for all blocks deleted by this event.
+         */
+        public List<String> getIds() {
+            return mIds;
         }
 
         @Override
@@ -352,8 +498,12 @@ public abstract class BlocklyEvent {
 
     /**
      * Event fired when a block is moved on the workspace, or its parent connection is changed.
+     * <p/>
+     * This event must be created before the block is moved to capture the original position.
+     * After the move has been completed in the workspace, capture the updated position or parent
+     * using {@link #recordNew(Block)}.
      */
-    public static class MoveEvent extends BlocklyEvent {
+    public static final class MoveEvent extends BlocklyEvent {
         @Nullable
         private final String mOldParentId;
         @Nullable
@@ -372,13 +522,12 @@ public abstract class BlocklyEvent {
         private int mNewPositionY;
 
         /**
-         * Creates a new
-         * @param workspaceId
-         * @param groupId
-         * @param block
+         * Constructs a {@link MoveEvent} signifying the movement of a block on the workspace.
+         *
+         * @param block The block to be moved, while it is still in its original position.
          */
-        MoveEvent(String workspaceId, String groupId, @NonNull Block block) {
-            super(TYPE_MOVE, workspaceId, groupId, block.getId());
+        MoveEvent(@NonNull Block block) {
+            super(TYPE_MOVE, block.getWorkspaceId(), null, block.getId());
 
             Connection parentConnection = block.getParentConnection();
             if (parentConnection == null) {
@@ -433,6 +582,10 @@ public abstract class BlocklyEvent {
             return mOldInputName;
         }
 
+        public boolean hasOldPosition() {
+            return mHasOldPosition;
+        }
+
         public WorkspacePoint getOldWorkspacePosition(WorkspacePoint output) {
             output.set(mOldPositionX, mOldPositionY);
             return output;
@@ -444,6 +597,10 @@ public abstract class BlocklyEvent {
 
         public String getNewInputName() {
             return mNewInputName;
+        }
+
+        public boolean hasNewPosition() {
+            return mHasNewPosition;
         }
 
         public WorkspacePoint getNewWorkspacePosition(WorkspacePoint output) {
@@ -474,32 +631,87 @@ public abstract class BlocklyEvent {
      * Event class for user interface related actions, including selecting blocks, opening/closing
      * the toolbox or trash, and changing toolbox categories.
      */
-    public static class UIEvent extends BlocklyEvent {
+    public static final class UIEvent extends BlocklyEvent {
         private final @BlocklyEvent.UIElement String mUiElement;
         private final String mOldValue;
         private final String mNewValue;
 
-        UIEvent(String workspaceId, String groupId, @Nullable String blockId,
-                @BlocklyEvent.UIElement String element, String oldValue, String newValue) {
-            super(TYPE_UI, workspaceId, groupId, blockId);
+        public UIEvent newBlockClickedEvent(@NonNull Block block) {
+            return new UIEvent(ELEMENT_CLICK, block.getWorkspaceId(), block.getId(), null, null);
+        }
+
+        public UIEvent newBlockCommentEvent(@NonNull Block block, @UIElement String element,
+                                            boolean openedBefore, boolean openedAfter) {
+            return new UIEvent(ELEMENT_COMMENT_OPEN, block.getWorkspaceId(), block.getId(),
+                    openedBefore ? "true" : "false", openedAfter ? "true" : "false");
+        }
+
+        public UIEvent newBlockMutatorEvent(@NonNull Block block, @UIElement String element,
+                                            boolean openedBefore, boolean openedAfter) {
+            return new UIEvent(ELEMENT_MUTATOR_OPEN, block.getWorkspaceId(), block.getId(),
+                    openedBefore ? "true" : "false", openedAfter ? "true" : "false");
+        }
+
+        public UIEvent newBlockSelectedEvent(@NonNull Block block, @UIElement String element,
+                                            boolean selectedBefore, boolean selectedAfter) {
+            return new UIEvent(ELEMENT_SELECTED, block.getWorkspaceId(), block.getId(),
+                               selectedBefore ? "true" : "false", selectedAfter ? "true" : "false");
+        }
+
+        public UIEvent newBlockWarningEvent(@NonNull Block block, @UIElement String element,
+                                            boolean openedBefore, boolean openedAfter) {
+            return new UIEvent(ELEMENT_WARNING_OPEN, block.getWorkspaceId(), block.getId(),
+                    openedBefore ? "true" : "false", openedAfter ? "true" : "false");
+        }
+
+        public UIEvent newToolboxCategoryEvent(@NonNull String workspaceId,
+                                               @Nullable String oldValue,
+                                               @Nullable String newValue) {
+            return new UIEvent(ELEMENT_CATEGORY, workspaceId, null, oldValue, newValue);
+        }
+
+        /**
+         * Constructs a block related UI event, such as clicked, selected, comment opened, mutator
+         * opened, or warning opened.
+         *
+         * @param element The UI element that changed.
+         * @param workspaceId The id of the associated
+         * @param blockId The id of related block. Null for toolbox category events.
+         * @param oldValue The value before the event. Booleans are mapped to "true" and "false".
+         * @param newValue The value after the event. Booleans are mapped to "true" and "false".
+         */
+        private UIEvent(@BlocklyEvent.UIElement String element, @Nullable String workspaceId,
+                        @Nullable String blockId, String oldValue, String newValue) {
+            super(TYPE_UI, workspaceId, null, blockId);
             this.mUiElement = validateUiElement(element);
             this.mOldValue = oldValue;
             this.mNewValue = newValue;
         }
 
-        UIEvent(String workspaceId, String groupId, @Nullable String blockId,
-                @BlocklyEvent.UIElement String element, boolean oldValue, boolean newValue) {
-            super(TYPE_UI, workspaceId, groupId, blockId);
-            this.mUiElement = validateUiElement(element);
-            this.mOldValue = oldValue ? "true" : "false";
-            this.mNewValue = newValue ? "true" : "false";
+        UIEvent(JSONObject json) throws JSONException {
+            super(TYPE_UI, json);
+            String element = json.getString(JSON_ELEMENT);
+            try {
+                mUiElement = validateUiElement(element);
+            } catch (IllegalArgumentException e) {
+                throw new JSONException("Invalid UI element: " + element);
+            }
+            if (mUiElement != ELEMENT_CATEGORY && TextUtils.isEmpty(mBlockId)) {
+                throw new JSONException("UI element " + mUiElement + " requires " + JSON_BLOCK_ID);
+            }
+            this.mOldValue = json.optString(JSON_OLD_VALUE);  // Rarely used.
+            this.mNewValue = json.optString(JSON_NEW_VALUE);
+            if (mUiElement != ELEMENT_CATEGORY && mUiElement != ELEMENT_CLICK
+                    && TextUtils.isEmpty(mNewValue)) {
+                throw new JSONException("UI element " + mUiElement + " requires " + JSON_NEW_VALUE);
+            }
         }
 
         public String getElement() {
             return mUiElement;
         }
 
-        public String getOldElement() {
+        public String getOldValue() {
             return mOldValue;
         }
 
@@ -515,6 +727,7 @@ public abstract class BlocklyEvent {
                 out.key("newValue");
                 out.value(mNewValue);
             }
+            // Old value is not included to reduce size over network.
         }
     }
 }

@@ -65,7 +65,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     protected CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
-    protected LogAllEventsListener mEventsListener = new LogAllEventsListener("Events");
+    protected LogAllEventsListener mEventsListener = new LogAllEventsListener("BlocklyEvents");
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -80,7 +80,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (item == mLogEventsMenuItem) {
+        if (id == R.id.log_events_menuitem) {
             setLogEvents(!item.isChecked());
         } else if (id == R.id.action_airstrike) {
             airstrike();

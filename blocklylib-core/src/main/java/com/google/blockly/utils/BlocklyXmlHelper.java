@@ -119,7 +119,7 @@ public final class BlocklyXmlHelper {
      * Serializes all Blocks in the given list and writes them to the given output stream.
      *
      * @param toSerialize A list of Blocks to serialize.
-     * @param os An OutputStream which to write them.
+     * @param os An OutputStream to write the blocks to.
      *
      * @throws BlocklySerializerException
      */
@@ -132,7 +132,7 @@ public final class BlocklyXmlHelper {
      * Serializes all Blocks in the given list and writes them to the given writer.
      *
      * @param toSerialize A list of Blocks to serialize.
-     * @param writer An writer which to write them.
+     * @param writer A writer to write the blocks to.
      *
      * @throws BlocklySerializerException
      */
@@ -146,8 +146,8 @@ public final class BlocklyXmlHelper {
      * writer, whichever is not null.
      *
      * @param toSerialize A list of Blocks to serialize.
-     * @param os An OutputStream which to write them.
-     * @param writer A writer which to write, if <code>os</code> is null.
+     * @param os An OutputStream to write the blocks to.
+     * @param writer A writer to write the blocks to, if {@code os} is null.
      *
      * @throws BlocklySerializerException
      */
@@ -194,10 +194,10 @@ public final class BlocklyXmlHelper {
      * Convenience function to serialize only one Block.
      *
      * @param toSerialize A Block to serialize.
-     *
+     * @return XML string for block and all descendant blocks.
      * @throws BlocklySerializerException
      */
-    public static String writeOneBlockToXmlString(Block toSerialize)
+    public static String writeOneBlockToXml(Block toSerialize)
             throws BlocklySerializerException {
         StringWriter sw = new StringWriter();
         List<Block> temp = new ArrayList<>();

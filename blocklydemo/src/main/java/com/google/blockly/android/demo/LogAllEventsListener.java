@@ -7,7 +7,6 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.BlocklyEvent;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,7 +16,7 @@ import java.util.List;
 /**
  * Logs all {@link BlocklyEvent}s to the console.
  */
-public class LogAllEventsListener implements BlocklyController.Listener {
+public class LogAllEventsListener implements BlocklyController.EventsCallback {
     private static final String TAG = "LogAllEventsListener";
 
     private final String mEventsTag;
