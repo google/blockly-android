@@ -38,7 +38,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         assertEquals(displayNames.length, field.getDisplayNames().size());
         for (int i = 0; i < values.length; i++) {
             field.setSelectedIndex(i);
-            assertEquals(values[i], field.getSelectedValue());
+            assertEquals(values[i], field.getSerializedValue());
             assertEquals(displayNames[i], field.getSelectedDisplayName());
             assertEquals(displayNames[i], fieldDisplayNames.get(i));
         }
@@ -56,7 +56,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         assertEquals(displayNames.length, field.getDisplayNames().size());
         for (int i = 0; i < values.length; i++) {
             field.setSelectedIndex(i);
-            assertEquals(values[i], field.getSelectedValue());
+            assertEquals(values[i], field.getSerializedValue());
             assertEquals(displayNames[i], field.getSelectedDisplayName());
             assertEquals(displayNames[i], fieldDisplayNames.get(i));
         }
@@ -65,25 +65,25 @@ public class FieldDropdownTest extends AndroidTestCase {
         field.setSelectedIndex(1);
         assertEquals(1, field.getSelectedIndex());
         assertEquals(displayNames[1], field.getSelectedDisplayName());
-        assertEquals(values[1], field.getSelectedValue());
+        assertEquals(values[1], field.getSerializedValue());
 
         // test setting by value
         field.setSelectedValue(values[2]);
         assertEquals(2, field.getSelectedIndex());
         assertEquals(displayNames[2], field.getSelectedDisplayName());
-        assertEquals(values[2], field.getSelectedValue());
+        assertEquals(values[2], field.getSerializedValue());
 
         // xml parsing
         assertTrue(field.setFromString(values[1]));
         assertEquals(1, field.getSelectedIndex());
         assertEquals(displayNames[1], field.getSelectedDisplayName());
-        assertEquals(values[1], field.getSelectedValue());
+        assertEquals(values[1], field.getSerializedValue());
 
         // xml parsing; setting a non-existent value defaults to 0
         assertTrue(field.setFromString(""));
         assertEquals(0, field.getSelectedIndex());
         assertEquals(displayNames[0], field.getSelectedDisplayName());
-        assertEquals(values[0], field.getSelectedValue());
+        assertEquals(values[0], field.getSerializedValue());
 
         try {
             // test setting out of bounds
@@ -97,13 +97,13 @@ public class FieldDropdownTest extends AndroidTestCase {
         field.setSelectedValue("blah");
         assertEquals(0, field.getSelectedIndex());
         assertEquals(displayNames[0], field.getSelectedDisplayName());
-        assertEquals(values[0], field.getSelectedValue());
+        assertEquals(values[0], field.getSerializedValue());
 
         // swap the values/display names and verify it was updated.
         field.setOptions(Arrays.asList(displayNames), Arrays.asList(values));
         for (int i = 0; i < values.length; i++) {
             field.setSelectedIndex(i);
-            assertEquals(displayNames[i], field.getSelectedValue());
+            assertEquals(displayNames[i], field.getSerializedValue());
             assertEquals(values[i], field.getSelectedDisplayName());
         }
     }

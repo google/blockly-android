@@ -133,7 +133,7 @@ public class BasicFieldNumberView extends EditText implements FieldView {
                 // Replace empty string with value closest to zero.
                 mNumberField.setValue(0);
             }
-            setText(mNumberField.getValueString());
+            setText(mNumberField.getSerializedValue());
             setTextValid(true);
         }
     }
@@ -151,7 +151,7 @@ public class BasicFieldNumberView extends EditText implements FieldView {
         mNumberField = number;
         if (mNumberField != null) {
             updateInputMethod();
-            setText(mNumberField.getValueString());
+            setText(mNumberField.getSerializedValue());
             mNumberField.registerObserver(mFieldObserver);
         } else {
             setText("");

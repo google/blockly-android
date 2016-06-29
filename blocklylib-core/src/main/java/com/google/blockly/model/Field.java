@@ -89,7 +89,7 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
             return;
         }
         serializer.startTag(null, "field").attribute(null, "name", mName);
-        serializeInner(serializer);
+        serializer.text(getSerializedValue());
         serializer.endTag(null, "field");
     }
 
@@ -123,6 +123,11 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
      * @return True if the value was set, false otherwise.
      */
     public abstract boolean setFromString(String text);
+
+    /**
+     * @return The value serialized into a string.
+     */
+    public abstract String getSerializedValue();
 
     /**
      * Checks if the given type name is a known field type.
@@ -235,13 +240,4 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
                 return TYPE_UNKNOWN;
         }
     }
-
-    /**
-     * Writes the value of the Field as a string.
-     *
-     * @param serializer The XmlSerializer to write to.
-     *
-     * @throws IOException
-     */
-    protected abstract void serializeInner(XmlSerializer serializer) throws IOException;
 }

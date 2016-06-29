@@ -73,8 +73,8 @@ public final class FieldCheckbox extends Field<FieldCheckbox.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        serializer.text(mChecked ? "true" : "false");
+    public String getSerializedValue() {
+        return mChecked ? "true" : "false";
     }
 
     private void onCheckChanged(boolean newState) {
