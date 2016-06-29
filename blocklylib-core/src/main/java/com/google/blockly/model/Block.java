@@ -57,6 +57,7 @@ public class Block {
     private boolean mIsShadow;
 
     // These values can be changed after creating the block
+    private Workspace mWorkspace;
     private String mTooltip;
     private String mComment;
     private boolean mHasContextMenu;
@@ -131,6 +132,10 @@ public class Block {
      */
     public String getId() {
         return mUuid;
+    }
+
+    public Workspace getWorkspace() {
+        return mWorkspace;
     }
 
     /**
@@ -653,6 +658,42 @@ public class Block {
     @VisibleForTesting
     void setShadow(boolean isShadow) {
         mIsShadow = isShadow;
+    }
+
+    /**
+     * Called by Workspace methods to set the workspace reference when added or removed.
+     *
+     * @param workspace The new workspace reference.
+     */
+    void setWorkspace(Workspace workspace) {
+        int inputCount = mInputList.size();
+        for (int i = 0; i < inputCount; ++i) {
+            Connection connection = mInputList.get(i).getConnection();
+            if (connection != null) {
+                Block shadowChild = connection.getShadowBlock();
+                if (shadowChild != null) {
+                    shadowChild.setWorkspace(workspace);
+                }
+
+                Block child = connection.getTargetBlock();
+                if (child != null && child != shadowChild) {
+                    child.setWorkspace(workspace);
+                }
+            }
+        }
+
+        if (mNextConnection != null) {
+            Block shadowNext = mNextConnection.getShadowBlock();
+            if (shadowNext != null) {
+                shadowNext.setWorkspace(workspace);
+            }
+
+            Block next = mNextConnection.getTargetBlock();
+            if (next != null && next != shadowNext) {
+                next.setWorkspace(workspace);
+            }
+        }
+        mWorkspace = workspace;
     }
 
     /**

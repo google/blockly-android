@@ -93,6 +93,7 @@ public class Workspace {
         }
         mRootBlocks.add(block);
         if (isNewBlock) {
+            block.setWorkspace(this);
             mStats.collectStats(block, true);
         }
     }
@@ -106,6 +107,7 @@ public class Workspace {
     public boolean removeRootBlock(Block block, boolean removeConnections) {
         boolean foundAndRemoved = mRootBlocks.remove(block);
         if (foundAndRemoved && removeConnections) {
+            block.setWorkspace(null);
             block.getAllConnectionsRecursive(mTempConnections);
             for (int i = 0; i < mTempConnections.size(); ++i) {
                 mConnectionManager.removeConnection(mTempConnections.get(i));
@@ -123,6 +125,7 @@ public class Workspace {
     // TODO(#56): Make sure the block doesn't have a parent.
     public void addBlockToTrash(Block block) {
         mDeletedBlocks.add(0, block);
+        block.setWorkspace(null);
     }
 
     /**
@@ -137,6 +140,7 @@ public class Workspace {
         if (!foundBlock) {
             throw new IllegalArgumentException("trashedBlock not found in mDeletedBlocks");
         }
+        trashedBlock.setWorkspace(this);
         mRootBlocks.add(trashedBlock);
     }
 
@@ -202,7 +206,10 @@ public class Workspace {
 
         mRootBlocks.addAll(newBlocks);
         for (int i = 0; i < mRootBlocks.size(); i++) {
-            mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
+            Block block = mRootBlocks.get(i);
+            // Can setWorkspace() be integrated into the collectStats()? Both are recursive.
+            block.setWorkspace(this);
+            mStats.collectStats(block, true /* recursive */);
         }
     }
 
