@@ -93,9 +93,9 @@ public final class FieldColor extends Field<FieldColor.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        serializer.text(String.format("#%02x%02x%02x",
-                Color.red(mColor), Color.green(mColor), Color.blue(mColor)));
+    public String getSerializedValue() {
+        return String.format("#%02x%02x%02x",
+                Color.red(mColor), Color.green(mColor), Color.blue(mColor));
     }
 
     private void onColorChanged(int oldColor, int newColor) {

@@ -126,8 +126,8 @@ public final class FieldDate extends Field<FieldDate.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        serializer.text(DATE_FORMAT.format(mDate));
+    public String getSerializedValue() {
+        return DATE_FORMAT.format(mDate);
     }
 
     private void onDateChanged(long oldMillis, long newMillis) {

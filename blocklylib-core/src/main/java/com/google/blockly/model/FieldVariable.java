@@ -78,8 +78,8 @@ public final class FieldVariable extends Field<FieldVariable.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        serializer.text(mVariable);
+    public String getSerializedValue() {
+        return mVariable;
     }
 
     private void onVariableChanged(com.google.blockly.model.FieldVariable field, String oldVar, String newVar) {

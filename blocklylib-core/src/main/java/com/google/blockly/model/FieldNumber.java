@@ -216,7 +216,7 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
     }
 
     /**
-     * @return The formatted string version of the input.
+     * @return The formatted (human readable) string version of the input.
      */
     public String getValueString() {
         return mFormatter.format(mValue);
@@ -258,8 +258,8 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        serializer.text(Double.toString(mValue));
+    public String getSerializedValue() {
+        return Double.toString(mValue);
     }
 
     private void onValueChanged(double oldValue, double newValue) {
