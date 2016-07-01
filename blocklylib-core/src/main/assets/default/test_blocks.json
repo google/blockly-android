@@ -26,6 +26,8 @@
         "name": "DO"
       }
     ],
+    "previousStatement": null,
+    "nextStatement": null,
     "tooltip": "",
     "helpUrl": "http://www.example.com/"
   },
