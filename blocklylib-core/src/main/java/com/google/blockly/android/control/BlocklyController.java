@@ -72,6 +72,7 @@ public class BlocklyController {
     private final WorkspaceHelper mHelper;
 
     private final Workspace mWorkspace;
+    private final ConnectionManager mConnectionManager;
 
     private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
@@ -80,6 +81,10 @@ public class BlocklyController {
     private View mTrashIcon = null;
     private ToolboxFragment mToolboxFragment = null;
     private Dragger mDragger;
+
+    // For use in bumping neighbours; instance variable only to avoid repeated allocation.
+    private final ArrayList<Connection> mTempConnections = new ArrayList<>();
+
     private View.OnClickListener mDismissClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -155,6 +160,7 @@ public class BlocklyController {
         mViewFactory = blockViewFactory;
 
         mWorkspace = new Workspace(mContext, this, mModelFactory);
+        mConnectionManager = mWorkspace.getConnectionManager();
 
         if (mViewFactory != null) {
             // TODO(#81): Check if variables are enabled/disabled
@@ -475,8 +481,7 @@ public class BlocklyController {
                 // We add the shadow as a root and then connect it so we properly add all the
                 // connectors and views.
                 addRootBlock(shadowBlock, null, true);
-                connect(shadowBlock, parentConnection.getShadowConnection(),
-                        parentConnection);
+                connect(parentConnection.getShadowConnection(), parentConnection);
             }
         }
 
@@ -576,18 +581,15 @@ public class BlocklyController {
      * <p>
      * Note: The blocks involved are assumed to be in the workspace.
      *
-     * @param block The {@link Block} that is the root of the group of blocks being connected.
-     * @param blockConnection The {@link Connection} of the block being moved to connect.
+     * @param blockConnection The {@link Connection} on the block being moved.
      * @param otherConnection The target {@link Connection} to connect to.
      */
-    public void connect(Block block, Connection blockConnection, Connection otherConnection) {
-        if (block.getPreviousBlock() != null) {
+    public void connect(Connection blockConnection, Connection otherConnection) {
+        Block block = blockConnection.getBlock();
+        if (block.getParentBlock() != null) {
             throw new IllegalArgumentException("Connecting block must not be connected.");
         }
-        Connection output = block.getOutputConnection();
-        if (output != null && output.isConnected()) {
-            throw new IllegalArgumentException("Connecting block must not be connected.");
-        }
+        Block newParentBlock = otherConnection.getBlock();
 
         switch (blockConnection.getType()) {
             case Connection.CONNECTION_TYPE_OUTPUT:
@@ -597,30 +599,32 @@ public class BlocklyController {
             case Connection.CONNECTION_TYPE_PREVIOUS:
                 removeRootBlock(block, false);
                 if (otherConnection.isStatementInput()) {
-                    connectToStatement(otherConnection, blockConnection.getBlock());
+                    connectToStatement(otherConnection, block);
                 } else {
-                    connectAfter(otherConnection.getBlock(), blockConnection.getBlock());
+                    connectAfter(newParentBlock, block);
                 }
                 break;
             case Connection.CONNECTION_TYPE_NEXT:
                 if (!otherConnection.isConnected()) {
-                    removeRootBlock(otherConnection.getBlock(), false);
+                    removeRootBlock(newParentBlock, false);
                 }
                 if (blockConnection.isStatementInput()) {
-                    connectToStatement(blockConnection, otherConnection.getBlock());
+                    connectToStatement(blockConnection, newParentBlock);
                 } else {
-                    connectAfter(blockConnection.getBlock(), otherConnection.getBlock());
+                    connectAfter(block, newParentBlock);
                 }
                 break;
             case Connection.CONNECTION_TYPE_INPUT:
                 if (!otherConnection.isConnected()) {
-                    removeRootBlock(otherConnection.getBlock(), false);
+                    removeRootBlock(newParentBlock, false);
                 }
                 connectAsInput(blockConnection, otherConnection);
                 break;
             default:
                 break;
         }
+
+        bumpNeighbours(block);
     }
 
     public void bumpBlock(Connection staticConnection, Connection impingingConnection) {
@@ -640,6 +644,24 @@ public class BlocklyController {
             impingingBlockGroup.updateAllConnectorLocations();
             mWorkspaceView.requestLayout();
         }
+    }
+
+    /**
+     * Move all neighbours of the current block and its sub-blocks so that they don't appear to be
+     * connected to the current block.  Does not do anything in headless mode (no views attached).
+     *
+     * @param currentBlock The {@link Block} to bump others away from.
+     */
+    // TODO(#82): Refactor this into part of the connect(..) method.
+    public void bumpNeighbours(Block currentBlock) {
+        BlockGroup rootBlockGroup = mHelper.getRootBlockGroup(currentBlock);
+        if (rootBlockGroup == null) {
+            return; // Do nothing, as connection locations are determined by views.
+        }
+
+        bumpNeighboursRecursively(currentBlock, rootBlockGroup);
+
+        rootBlockGroup.requestLayout();
     }
 
     /**
@@ -743,6 +765,34 @@ public class BlocklyController {
             if (view != null) {
                 view.unlinkModel();
             }
+        }
+    }
+
+    /**
+     * Zooms into the workspace (i.e., enlarges the blocks), if the WorkspaceView has been attached.
+     *
+     * @return True if a zoom was changed. Otherwise false.
+     */
+    public boolean zoomIn() {
+        return (mVirtualWorkspaceView != null) && mVirtualWorkspaceView.zoomIn();
+    }
+
+    /**
+     * Zooms out the workspace (i.e., smaller the blocks), if the WorkspaceView has been attached.
+     *
+     * @return True if a zoom was changed. Otherwise false.
+     */
+    public boolean zoomOut() {
+        return (mVirtualWorkspaceView != null) && mVirtualWorkspaceView.zoomOut();
+    }
+
+    /**
+     * Reset the view to the top-left corner of the virtual workspace (with a small margin), and
+     * reset zoom to unit scale.
+     */
+    public void recenterWorkspace() {
+        if (mVirtualWorkspaceView != null) {
+            mVirtualWorkspaceView.resetView();
         }
     }
 
@@ -1032,31 +1082,76 @@ public class BlocklyController {
     }
 
     /**
-     * Zooms into the workspace (i.e., enlarges the blocks), if the WorkspaceView has been attached.
+     * Recursive implementation of {@link #bumpNeighbours(Block)}.
      *
-     * @return True if a zoom was changed. Otherwise false.
+     * @param currentBlock The {@link Block} to bump others away from.
      */
-    public boolean zoomIn() {
-        return (mVirtualWorkspaceView != null) && mVirtualWorkspaceView.zoomIn();
-    }
-
-    /**
-     * Zooms out the workspace (i.e., smaller the blocks), if the WorkspaceView has been attached.
-     *
-     * @return True if a zoom was changed. Otherwise false.
-     */
-    public boolean zoomOut() {
-        return (mVirtualWorkspaceView != null) && mVirtualWorkspaceView.zoomOut();
-    }
-
-    /**
-     * Reset the view to the top-left corner of the virtual workspace (with a small margin), and
-     * reset zoom to unit scale.
-     */
-    public void recenterWorkspace() {
-        if (mVirtualWorkspaceView != null) {
-            mVirtualWorkspaceView.resetView();
+    private void bumpNeighboursRecursively(Block currentBlock, BlockGroup rootBlockGroup) {
+        List<Connection> connectionsOnBlock = new ArrayList<>();
+        rootBlockGroup.updateAllConnectorLocations();
+        // Move this block before trying to bump others
+        Connection prev = currentBlock.getPreviousConnection();
+        if (prev != null && !prev.isConnected()) {
+            bumpInferior(rootBlockGroup, prev);
         }
+        Connection out = currentBlock.getOutputConnection();
+        if (out != null && !out.isConnected()) {
+            bumpInferior(rootBlockGroup, out);
+        }
+
+        currentBlock.getAllConnections(connectionsOnBlock);
+        for (int i = 0; i < connectionsOnBlock.size(); i++) {
+            Connection conn = connectionsOnBlock.get(i);
+            if (conn.isHighPriority()) {
+                if (conn.isConnected()) {
+                    bumpNeighboursRecursively(conn.getTargetBlock(), rootBlockGroup);
+                }
+                bumpConnectionNeighbours(conn, rootBlockGroup);
+            }
+        }
+    }
+
+    /**
+     * Bump the block containing {@code lowerPriority} away from the first nearby block it finds.
+     *
+     * @param rootBlockGroup The root block group of the block being bumped.
+     * @param lowerPriority The low priority connection that is the center of the current bump
+     * operation.
+     */
+    private void bumpInferior(BlockGroup rootBlockGroup, Connection lowerPriority) {
+        getBumpableNeighbours(lowerPriority, mTempConnections);
+        // Bump from the first one that isn't in the same block group.
+        for (int j = 0; j < mTempConnections.size(); j++) {
+            Connection curNeighbour = mTempConnections.get(j);
+            if (mHelper.getRootBlockGroup(curNeighbour.getBlock()) != rootBlockGroup) {
+                bumpBlock(curNeighbour, lowerPriority);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Find all connections near a given connection and bump their blocks away.
+     *
+     * @param conn The high priority connection that is at the center of the current bump
+     * operation.
+     * @param rootBlockGroup The root block group of the block conn belongs to.
+     */
+    private void bumpConnectionNeighbours(Connection conn, BlockGroup rootBlockGroup) {
+        getBumpableNeighbours(conn, mTempConnections);
+        for (int j = 0; j < mTempConnections.size(); j++) {
+            Connection curNeighbour = mTempConnections.get(j);
+            BlockGroup neighbourBlockGroup = mHelper.getRootBlockGroup(
+                    curNeighbour.getBlock());
+            if (neighbourBlockGroup != rootBlockGroup) {
+                bumpBlock(conn, curNeighbour);
+            }
+        }
+    }
+
+    private void getBumpableNeighbours(Connection conn, List<Connection> result) {
+        int snapDistance = mHelper.getMaxSnapDistance();
+        mConnectionManager.getNeighbours(conn, snapDistance, result);
     }
 
     /**
