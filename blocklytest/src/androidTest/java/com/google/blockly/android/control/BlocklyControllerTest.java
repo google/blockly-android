@@ -98,7 +98,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Perform test: connection source's output to target's input.
-        mController.connect(source, sourceConnection, targetConnection);
+        mController.connect(sourceConnection, targetConnection);
 
         // Validate model changes.
         assertTrue(mWorkspace.isRootBlock(target));
@@ -127,7 +127,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Reattach the block and verify the shadow is hidden again
-        mController.connect(source, sourceConnection, targetConnection);
+        mController.connect(sourceConnection, targetConnection);
         assertEquals(targetConnection.getTargetBlock(), source);
         assertNull(shadow.getOutputConnection().getTargetBlock());
 
@@ -167,8 +167,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertTrue(mWorkspace.isRootBlock(source));
 
         // Perform test: Connect the source to where the tail is currently attached.
-        mController.connect(source, source.getOutputConnection(),
-                target.getOnlyValueInput().getConnection());
+        mController.connect(
+                source.getOutputConnection(), target.getOnlyValueInput().getConnection());
 
         // source is now a child of target, and tail is a new root block
         assertEquals(2, mWorkspace.getRootBlocks().size());
@@ -219,8 +219,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Perform test: Connect the source to where the tail is currently attached.
-        mController.connect(source, source.getOutputConnection(),
-                target.getOnlyValueInput().getConnection());
+        mController.connect(
+                source.getOutputConnection(), target.getOnlyValueInput().getConnection());
 
         // Source is now a child of target
         assertTrue(mWorkspace.isRootBlock(target));
@@ -284,8 +284,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertTrue(mWorkspace.isRootBlock(source));
 
         // Perform test: Connect the source to where the tail is currently attached.
-        mController.connect(source, source.getOutputConnection(),
-                target.getOnlyValueInput().getConnection());
+        mController.connect(
+                source.getOutputConnection(), target.getOnlyValueInput().getConnection());
 
         // source is now a child of target, and tail replaced the shadow
         assertEquals(1, mWorkspace.getRootBlocks().size());
@@ -336,8 +336,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Splice third between second and first.
-        mController.connect(source, source.getOutputConnection(),
-                target.getOnlyValueInput().getConnection());
+        mController.connect(
+                source.getOutputConnection(), target.getOnlyValueInput().getConnection());
 
         // Validate
         assertTrue(mWorkspace.isRootBlock(target));
@@ -383,8 +383,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Connect source after target. No prior connection to bump or splice.
-        mController.connect(source, source.getPreviousConnection(),
-                target.getNextConnection());
+        mController.connect(source.getPreviousConnection(), target.getNextConnection());
 
         // Validate
         assertTrue(mWorkspace.isRootBlock(target));
@@ -414,7 +413,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Reattach the source and verify the shadow went away.
-        mController.connect(source, source.getPreviousConnection(), target.getNextConnection());
+        mController.connect(source.getPreviousConnection(), target.getNextConnection());
         assertFalse(mWorkspace.isRootBlock(source));
         assertSame(target.getNextBlock(), source);
         assertNull(shadow.getPreviousBlock());
@@ -460,8 +459,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Connect source after target, where tail is currently attached, causing a splice.
-        mController.connect(source, source.getPreviousConnection(),
-                target.getNextConnection());
+        mController.connect(source.getPreviousConnection(), target.getNextConnection());
 
         assertSame(target, source.getPreviousBlock());
         assertSame(source, tail.getPreviousBlock());
@@ -516,8 +514,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
         // Run test: Connect source after target, where tail is currently attached.
         // Since source does not have a next connection, bump the tail.
-        mController.connect(source, source.getPreviousConnection(),
-                target.getNextConnection());
+        mController.connect(source.getPreviousConnection(), target.getNextConnection());
 
         // Target and source are connected.
         assertTrue(mWorkspace.isRootBlock(target));
@@ -593,8 +590,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
         // Run test: Connect source after target, where tail is currently attached.
         // Since source has a shadow connected to next, tail should replace it.
-        mController.connect(source, source.getPreviousConnection(),
-                target.getNextConnection());
+        mController.connect(source.getPreviousConnection(), target.getNextConnection());
 
         // Target and source are connected.
         assertTrue(mWorkspace.isRootBlock(target));
@@ -649,7 +645,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Run test: Connect source inside target. No prior connection to bump.
-        mController.connect(source, source.getPreviousConnection(), statementConnection);
+        mController.connect(source.getPreviousConnection(), statementConnection);
 
         assertTrue(mWorkspace.isRootBlock(target));
         assertFalse(mWorkspace.isRootBlock(source));
@@ -676,7 +672,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Reconnect the source and make sure the shadow goes away
-        mController.connect(source, source.getPreviousConnection(), statementConnection);
+        mController.connect(source.getPreviousConnection(), statementConnection);
         assertNull(shadow.getPreviousBlock());
         assertSame(statementConnection.getTargetBlock(), source);
         assertFalse(mWorkspace.isRootBlock(shadow));
@@ -725,7 +721,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
 
         // Run test: Connect source inside target, where tail is attached, resulting in a splice.
-        mController.connect(source, source.getPreviousConnection(), statementConnection);
+        mController.connect(source.getPreviousConnection(), statementConnection);
 
         // Validate result.
         assertTrue(mWorkspace.isRootBlock(target));
@@ -775,8 +771,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
         // Connect source inside target, where tail is attached.  Source does not have a next, so
         // this will bump tail back to the root.
-        mController.connect(source, source.getPreviousConnection(),
-                target.getInputByName("statement input").getConnection());
+        mController.connect(source.getPreviousConnection(),
+                            target.getInputByName("statement input").getConnection());
 
         // Validate
         assertTrue(mWorkspace.isRootBlock(target));
@@ -837,7 +833,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
         // Connect source inside target, where tail is attached.  Source has a shadow on next, so
         // tail should replace it.
-        mController.connect(source, source.getPreviousConnection(), statementConnection);
+        mController.connect(source.getPreviousConnection(), statementConnection);
 
         // Validate
         assertTrue(mWorkspace.isRootBlock(target));
@@ -910,8 +906,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
     private void testExtractBlockAsRoot_fromInput(boolean withViews) {
         Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
         Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
-        mController.connect(second, second.getOutputConnection(),
-                first.getOnlyValueInput().getConnection());
+        mController.connect(
+                second.getOutputConnection(), first.getOnlyValueInput().getConnection());
         mController.addRootBlock(first);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
@@ -954,7 +950,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         // Configure
         Block first = mBlockFactory.obtainBlock("statement_statement_input", "first block");
         Block second = mBlockFactory.obtainBlock("statement_statement_input", "second block");
-        mController.connect(second, second.getPreviousConnection(), first.getNextConnection());
+        mController.connect(second.getPreviousConnection(), first.getNextConnection());
         mController.addRootBlock(first);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);

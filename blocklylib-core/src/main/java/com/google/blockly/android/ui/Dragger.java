@@ -40,7 +40,6 @@ import com.google.blockly.model.WorkspacePoint;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Controller for dragging blocks and groups of blocks within a workspace.
@@ -325,13 +324,34 @@ public class Dragger {
     void finishDragging() {
         Block dragRoot = mPendingDrag.getRootDraggedBlock();
 
-        // Maybe snap to connections
+        // Maybe snap to connections.
         Pair<Connection, Connection> connectionCandidate = findBestConnection(dragRoot);
         if (connectionCandidate != null) {
-            mController.connect(dragRoot, connectionCandidate.first, connectionCandidate.second);
+            mController.connect(connectionCandidate.first, connectionCandidate.second);
+            // .connect(..) includes bumping block within snap distance of the new location.
+        } else {
+            // Even if no connection is found, still bump any neighbors within snap distance of the
+            // new location.
+            mController.bumpNeighbours(dragRoot);
         }
 
-        finalizeMove();
+        // Update the drag group so that everything that has been changed will be properly
+        // invalidated. Also, update the positions of all of the connections that were impacted by
+        // the move and add them back to the manager. All of the connection locations will be set
+        // relative to their block views immediately after this loop.  For now we just want to unset
+        // drag mode and add the connections back to the list; 0, 0 is a cheap place to put them.
+        for (int i = 0; i < mDraggedConnections.size(); i++) {
+            Connection cur = mDraggedConnections.get(i);
+            cur.setPosition(0, 0);
+            cur.setDragMode(false);
+            mConnectionManager.addConnection(cur);
+        }
+        mDraggedConnections.clear();
+
+        if (mHighlightedBlockView != null) {
+            mHighlightedBlockView.setHighlightedConnection(null);
+            mHighlightedBlockView = null;
+        }
     }
 
     public void setWorkspaceView(WorkspaceView view) {
@@ -517,7 +537,7 @@ public class Dragger {
                         }
 
                         Block rootBlock = dragGroup.getFirstBlock();
-                        removeDraggedConnections(rootBlock);
+                        removeDraggedConnectionsFromConnectionManager(rootBlock);
                         ClipData clipData = ClipData.newPlainText(
                                 WorkspaceView.BLOCK_GROUP_CLIP_DATA_LABEL, "");
                         dragGroup.startDrag(clipData,
@@ -570,7 +590,14 @@ public class Dragger {
         mController.trashRootBlock(mPendingDrag.getRootDraggedBlock());
     }
 
-    private void removeDraggedConnections(Block block) {
+    /**
+     * Removes all connections of block and its descendants from the {@link }ConnectionManager}, so
+     * these connections are not considered as potential connections when looking from connections
+     * during dragging.
+     *
+     * @param block The root block of connections that should be removed.
+     */
+    private void removeDraggedConnectionsFromConnectionManager(Block block) {
         mDraggedConnections.clear();
         // Don't track any of the connections that we're dragging around.
         block.getAllConnectionsRecursive(mDraggedConnections);
@@ -606,112 +633,7 @@ public class Dragger {
         mPendingDrag.getDragGroup().requestLayout();
     }
 
-    /**
-     * Update the positions of all of the connections that were impacted by the move and add them
-     * back to the manager.
-     */
-    private void finalizeMove() {
-        if (mHighlightedBlockView != null) {
-            mHighlightedBlockView.setHighlightedConnection(null);
-            mHighlightedBlockView = null;
-        }
-        // Update the drag group so that everything that has been changed will be properly
-        // invalidated.
-        BlockGroup newRootBlockGroup =
-                mHelper.getRootBlockGroup(mPendingDrag.getRootDraggedBlock());
-        bumpNeighbours(mPendingDrag.getRootDraggedBlock(), newRootBlockGroup);
-        // All of the connection locations will be set relative to their block views immediately
-        // after this loop.  For now we just want to unset drag mode and add the connections back
-        // to the list; 0, 0 is a cheap place to put them.
-
-        for (int i = 0; i < mDraggedConnections.size(); i++) {
-            Connection cur = mDraggedConnections.get(i);
-            cur.setPosition(0, 0);
-            cur.setDragMode(false);
-            mConnectionManager.addConnection(cur);
-        }
-        mDraggedConnections.clear();
-
-        newRootBlockGroup.requestLayout();
-    }
-
-    /**
-     * Move all neighbours of the current block and its sub-blocks so that they don't appear to be
-     * connected to the current block.
-     *
-     * @param currentBlock The {@link Block} to bump others away from.
-     * @param rootBlockGroup The root of {@code currentBlock}.
-     */
-    // TODO(#82): Move to BlocklyController as part of the connect(..) method.
-    private void bumpNeighbours(Block currentBlock, BlockGroup rootBlockGroup) {
-        List<Connection> connectionsOnBlock = new ArrayList<>();
-        rootBlockGroup.updateAllConnectorLocations();
-        // Move this block before trying to bump others
-        Connection prev = currentBlock.getPreviousConnection();
-        if (prev != null && !prev.isConnected()) {
-            bumpInferior(rootBlockGroup, prev);
-        }
-        Connection out = currentBlock.getOutputConnection();
-        if (out != null && !out.isConnected()) {
-            bumpInferior(rootBlockGroup, out);
-        }
-
-        currentBlock.getAllConnections(connectionsOnBlock);
-        for (int i = 0; i < connectionsOnBlock.size(); i++) {
-            Connection conn = connectionsOnBlock.get(i);
-            if (conn.isHighPriority()) {
-                if (conn.isConnected()) {
-                    bumpNeighbours(conn.getTargetBlock(), rootBlockGroup);
-                }
-                bumpConnectionNeighbours(conn, rootBlockGroup);
-            }
-        }
-    }
-
-    /**
-     * Bump the block containing {@code lowerPriority} away from the first nearby block it finds.
-     *
-     * @param rootBlockGroup The root block group of the block being bumped.
-     * @param lowerPriority The low priority connection that is the center of the current bump
-     * operation.
-     */
-    private void bumpInferior(BlockGroup rootBlockGroup, Connection lowerPriority) {
-        getBumpableNeighbours(lowerPriority, mTempConnections);
-        // Bump from the first one that isn't in the same block group.
-        for (int j = 0; j < mTempConnections.size(); j++) {
-            Connection curNeighbour = mTempConnections.get(j);
-            if (mHelper.getRootBlockGroup(curNeighbour.getBlock()) != rootBlockGroup) {
-                mController.bumpBlock(curNeighbour, lowerPriority);
-                return;
-            }
-        }
-    }
-
-    /**
-     * Find all connections near a given connection and bump their blocks away.
-     *
-     * @param conn The high priority connection that is at the center of the current bump
-     * operation.
-     * @param rootBlockGroup The root block group of the block conn belongs to.
-     */
-    private void bumpConnectionNeighbours(Connection conn, BlockGroup rootBlockGroup) {
-        getBumpableNeighbours(conn, mTempConnections);
-        for (int j = 0; j < mTempConnections.size(); j++) {
-            Connection curNeighbour = mTempConnections.get(j);
-            BlockGroup neighbourBlockGroup = mHelper.getRootBlockGroup(
-                    curNeighbour.getBlock());
-            if (neighbourBlockGroup != rootBlockGroup) {
-                mController.bumpBlock(conn, curNeighbour);
-            }
-        }
-    }
-
     private Pair<Connection, Connection> findBestConnection(Block block) {
         return mConnectionManager.findBestConnection(block, mHelper.getMaxSnapDistance());
-    }
-
-    private void getBumpableNeighbours(Connection conn, List<Connection> result) {
-        int snapDistance = mHelper.getMaxSnapDistance();
-        mConnectionManager.getNeighbours(conn, snapDistance, result);
     }
 }
