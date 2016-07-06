@@ -106,8 +106,8 @@ public final class FieldImage extends Field<FieldImage.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer xmlSerializer) {
-        // Something to do here?
+    public String getSerializedValue() {
+        return ""; // Image fields do not have value.
     }
 
     private void onImageChanged(String newSource, int newWidth, int newHeight) {

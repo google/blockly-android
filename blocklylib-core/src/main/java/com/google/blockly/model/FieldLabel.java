@@ -71,8 +71,8 @@ public final class FieldLabel extends Field<FieldLabel.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        // Nothing to do.
+    public String getSerializedValue() {
+        return ""; // Label fields do not have value.
     }
 
     private void onTextChanged(String oldText, String newText) {

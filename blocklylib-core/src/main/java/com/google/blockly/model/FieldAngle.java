@@ -92,8 +92,8 @@ public final class FieldAngle extends Field<FieldAngle.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        serializer.text(Integer.toString(mAngle));
+    public String getSerializedValue() {
+        return Integer.toString(mAngle);
     }
 
     private void onAngleChanged(int oldAngle, int newAngle) {

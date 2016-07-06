@@ -17,6 +17,7 @@ package com.google.blockly.android.demo;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
@@ -59,14 +60,28 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     public static final String WORKSPACE_FOLDER_PREFIX = "sample_sections/level_";
 
+    protected MenuItem mLogEventsMenuItem;
+
     protected CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
+    protected LogAllEventsListener mEventsListener = new LogAllEventsListener("BlocklyEvents");
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        boolean isShown = super.onCreateOptionsMenu(menu);
+        if (isShown) {
+            mLogEventsMenuItem = menu.findItem(R.id.log_events_menuitem);
+        }
+        return isShown;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_airstrike) {
+        if (id == R.id.log_events_menuitem) {
+            setLogEvents(!mLogEventsMenuItem.isChecked());
+        } else if (id == R.id.action_airstrike) {
             airstrike();
             return true;
         } else if (id == R.id.action_carpet_bomb) {
@@ -88,6 +103,15 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     @Override
     public void onSaveWorkspace() {
         saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
+    }
+
+    private void setLogEvents(boolean logEvents) {
+        if (logEvents) {
+            mController.addListener(mEventsListener);
+        } else {
+            mController.removeListener(mEventsListener);
+        }
+        mLogEventsMenuItem.setChecked(logEvents);
     }
 
     /**

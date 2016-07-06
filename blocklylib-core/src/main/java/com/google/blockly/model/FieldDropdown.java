@@ -22,9 +22,7 @@ import com.google.blockly.utils.BlockLoadingException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlSerializer;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,7 +101,7 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
      * @param options A list of options consisting of pairs of displayName/value.
      */
     public void setOptions(List<Option> options) {
-        String previousValue = getSelectedValue();
+        String previousValue = getSerializedValue();
         mOptions = options;
         setSelectedValue(previousValue);
     }
@@ -216,8 +214,8 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        serializer.text(getSelectedValue());
+    public String getSerializedValue() {
+        return getSelectedValue();
     }
 
     private void onSelectionChanged(FieldDropdown field, int oldIndex, int newIndex) {

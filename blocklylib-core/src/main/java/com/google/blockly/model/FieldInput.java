@@ -76,8 +76,8 @@ public final class FieldInput extends Field<FieldInput.Observer> {
     }
 
     @Override
-    protected void serializeInner(XmlSerializer serializer) throws IOException {
-        serializer.text(mText == null ? "" : mText);
+    public String getSerializedValue() {
+        return mText == null ? "" : mText;
     }
 
     private void onTextChanged(String oldText, String newText) {

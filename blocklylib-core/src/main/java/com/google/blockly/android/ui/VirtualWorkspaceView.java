@@ -500,7 +500,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         }
     }
 
-    /** Listener class for scaling and panning the view using pinch-to-zoom gestures. */
+    /** EventsCallback class for scaling and panning the view using pinch-to-zoom gestures. */
     private class ScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         // Focus point at the start of the pinch gesture. This is used for computing proper scroll
         // offsets during scaling, as well as for simultaneous panning.
