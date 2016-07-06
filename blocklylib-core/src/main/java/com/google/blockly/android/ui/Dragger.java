@@ -332,7 +332,7 @@ public class Dragger {
         } else {
             // Even if no connection is found, still bump any neighbors within snap distance of the
             // new location.
-            mController.bumpNeighbours(dragRoot);
+            mController.bumpNeighbors(dragRoot);
         }
 
         // Update the drag group so that everything that has been changed will be properly

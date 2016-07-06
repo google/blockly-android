@@ -47,7 +47,6 @@ import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
-import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -110,7 +109,7 @@ public class BlocklyController {
     private ToolboxFragment mToolboxFragment = null;
     private Dragger mDragger;
 
-    // For use in bumping neighbours; instance variable only to avoid repeated allocation.
+    // For use in bumping neighbors; instance variable only to avoid repeated allocation.
     private final ArrayList<Connection> mTempConnections = new ArrayList<>();
 
     private View.OnClickListener mDismissClickListener = new View.OnClickListener() {
@@ -663,12 +662,12 @@ public class BlocklyController {
     }
 
     /**
-     * Move all neighbours of the current block and its sub-blocks so that they don't appear to be
+     * Move all neighbors of the current block and its sub-blocks so that they don't appear to be
      * connected to the current block.  Does not do anything in headless mode (no views attached).
      *
      * @param currentBlock The {@link Block} to bump others away from.
      */
-    public void bumpNeighbours(Block currentBlock) {
+    public void bumpNeighbors(Block currentBlock) {
         checkPendingEventsEmpty();
 
         BlockGroup rootBlockGroup = mHelper.getRootBlockGroup(currentBlock);
@@ -676,7 +675,7 @@ public class BlocklyController {
             return; // Do nothing, as connection locations are determined by views.
         }
 
-        bumpNeighboursRecursively(currentBlock, rootBlockGroup);
+        bumpNeighborsRecursively(currentBlock, rootBlockGroup);
 
         rootBlockGroup.requestLayout();
     }
@@ -1114,8 +1113,8 @@ public class BlocklyController {
     }
 
     /**
-     * This implements {@link #connect(Connection, Connection)}.  It is not responsible for firing
-     * events.
+     * This implements {@link #connect(Connection, Connection)}, without firing events so multiple
+     * events can accumulate in recursive calls.
      *
      * @param blockConnection The {@link Connection} on the block being moved.
      * @param otherConnection The target {@link Connection} to connect to.
@@ -1162,20 +1161,18 @@ public class BlocklyController {
 
         BlockGroup rootBlockGroup = mHelper.getRootBlockGroup(block);
         if (rootBlockGroup != null) {
-            bumpNeighboursRecursively(block, rootBlockGroup);
+            bumpNeighborsRecursively(block, rootBlockGroup);
         } // otherwise we are probably running headless, without views.
-
-        firePendingEvents();
     }
 
     /**
-     * Recursive implementation of {@link #bumpNeighbours(Block)}.  It is not responsible for firing
+     * Recursive implementation of {@link #bumpNeighbors(Block)}.  It is not responsible for firing
      * events.
      *
      * @param currentBlock The {@link Block} to bump others away from.
      * @param rootBlockGroup The root {@link BlockGroup} containing {@code currentBlock}.
      */
-    private void bumpNeighboursRecursively(Block currentBlock, BlockGroup rootBlockGroup) {
+    private void bumpNeighborsRecursively(Block currentBlock, BlockGroup rootBlockGroup) {
         List<Connection> connectionsOnBlock = new ArrayList<>();
         rootBlockGroup.updateAllConnectorLocations();
         // Move this block before trying to bump others
@@ -1193,9 +1190,9 @@ public class BlocklyController {
             Connection conn = connectionsOnBlock.get(i);
             if (conn.isHighPriority()) {
                 if (conn.isConnected()) {
-                    bumpNeighboursRecursively(conn.getTargetBlock(), rootBlockGroup);
+                    bumpNeighborsRecursively(conn.getTargetBlock(), rootBlockGroup);
                 }
-                bumpConnectionNeighbours(conn, rootBlockGroup);
+                bumpConnectionNeighbors(conn, rootBlockGroup);
             }
         }
     }
@@ -1208,12 +1205,12 @@ public class BlocklyController {
      * operation.
      */
     private void bumpInferior(BlockGroup rootBlockGroup, Connection lowerPriority) {
-        getBumpableNeighbours(lowerPriority, mTempConnections);
+        getBumpableNeighbors(lowerPriority, mTempConnections);
         // Bump from the first one that isn't in the same block group.
         for (int j = 0; j < mTempConnections.size(); j++) {
-            Connection curNeighbour = mTempConnections.get(j);
-            if (mHelper.getRootBlockGroup(curNeighbour.getBlock()) != rootBlockGroup) {
-                bumpBlock(curNeighbour, lowerPriority);
+            Connection curNeighbor = mTempConnections.get(j);
+            if (mHelper.getRootBlockGroup(curNeighbor.getBlock()) != rootBlockGroup) {
+                bumpBlock(curNeighbor, lowerPriority);
                 return;
             }
         }
@@ -1226,14 +1223,14 @@ public class BlocklyController {
      * operation.
      * @param rootBlockGroup The root block group of the block conn belongs to.
      */
-    private void bumpConnectionNeighbours(Connection conn, BlockGroup rootBlockGroup) {
-        getBumpableNeighbours(conn, mTempConnections);
+    private void bumpConnectionNeighbors(Connection conn, BlockGroup rootBlockGroup) {
+        getBumpableNeighbors(conn, mTempConnections);
         for (int j = 0; j < mTempConnections.size(); j++) {
-            Connection curNeighbour = mTempConnections.get(j);
-            BlockGroup neighbourBlockGroup = mHelper.getRootBlockGroup(
-                    curNeighbour.getBlock());
-            if (neighbourBlockGroup != rootBlockGroup) {
-                bumpBlock(conn, curNeighbour);
+            Connection curNeighbor = mTempConnections.get(j);
+            BlockGroup neighborBlockGroup = mHelper.getRootBlockGroup(
+                    curNeighbor.getBlock());
+            if (neighborBlockGroup != rootBlockGroup) {
+                bumpBlock(conn, curNeighbor);
             }
         }
     }
@@ -1269,9 +1266,9 @@ public class BlocklyController {
         mPendingEventsMask = 0;
     }
 
-    private void getBumpableNeighbours(Connection conn, List<Connection> result) {
+    private void getBumpableNeighbors(Connection conn, List<Connection> result) {
         int snapDistance = mHelper.getMaxSnapDistance();
-        mConnectionManager.getNeighbours(conn, snapDistance, result);
+        mConnectionManager.getNeighbors(conn, snapDistance, result);
     }
 
     private void checkPendingEventsEmpty() {

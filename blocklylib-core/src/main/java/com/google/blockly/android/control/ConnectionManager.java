@@ -111,7 +111,7 @@ public class ConnectionManager {
      *
      * @return A list of all nearby compatible connections.
      */
-    public void getNeighbours(Connection conn, int maxRadius, List<Connection> result) {
+    public void getNeighbors(Connection conn, int maxRadius, List<Connection> result) {
         result.clear();
         YSortedList compatibleList = oppositeLists[conn.getType()];
         compatibleList.getNeighbours(conn, maxRadius, result);
