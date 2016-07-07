@@ -190,7 +190,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
         Mockito.verify(mMockConnectionManager, atLeastOnce())
                 .findBestConnection(Matchers.same(mTouchedBlock), anyInt());
         Mockito.verify(mMockController).connect(
-                mTouchedBlock, mTouchedBlock.getOnlyValueInput().getConnection(), mTargetBlock.getOutputConnection());
+                mTouchedBlock.getOnlyValueInput().getConnection(),
+                mTargetBlock.getOutputConnection());
     }
 
     // Drag together two incompatible blocks.
@@ -209,7 +210,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         Mockito.verify(mMockConnectionManager, atLeastOnce())
                 .findBestConnection(Matchers.same(mTouchedBlock), anyInt());
         Mockito.verify(mMockController, never())
-                .connect(any(Block.class), any(Connection.class), any(Connection.class));
+                .connect(any(Connection.class), any(Connection.class));
     }
 
     public void testRemoveConnectionsDuringDrag() {
