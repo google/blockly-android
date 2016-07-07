@@ -138,6 +138,7 @@ public class BlocklyController {
             return new Runnable() {
                 @Override
                 public void run() {
+                    // extractBlockAsRoot() fires move event immediately.
                     extractBlockAsRoot(activeTouchedView.getBlock());
 
                     // Since this block was already on the workspace, the block's position should
@@ -448,7 +449,7 @@ public class BlocklyController {
         return mHelper;
     }
 
-    public void addListener(EventsCallback listener) {
+    public void addCallback(EventsCallback listener) {
         if (!mListeners.contains(listener)) {
             mListeners.add(listener);
             mEventCallbackMask |= listener.getTypesBitmask();
@@ -475,6 +476,8 @@ public class BlocklyController {
         if (block.getParentBlock() != null) {
             throw new IllegalArgumentException("New root block must not be connected.");
         }
+        checkPendingEventsEmpty();
+
         BlockGroup parentGroup = mHelper.getParentBlockGroup(block);
         BlockGroup newRootGroup =
                 addRootBlock(block, parentGroup, /* is new BlockView? */ parentGroup == null);
@@ -490,57 +493,8 @@ public class BlocklyController {
      * @param block {@link Block} to extract as a root block in the workspace.
      */
     public void extractBlockAsRoot(Block block) {
-        Block rootBlock = block.getRootBlock();
-
-        if (block == rootBlock) {
-            return;
-        }
-        boolean isPartOfWorkspace = mWorkspace.isRootBlock(rootBlock);
-
-        BlockView bv = mHelper.getView(block);
-        BlockGroup bg = (bv == null) ? null : (BlockGroup) bv.getParent();
-        BlockGroup originalRootBlockGroup = (mWorkspaceView == null) ? null
-                : mHelper.getRootBlockGroup(block);
-
-        // Child block
-        if (block.getParentConnection() != null) {
-            Connection parentConnection = block.getParentConnection();
-            Input in = parentConnection.getInput();
-            if (in == null) {
-                if (bg != null) {
-                    // Next block
-                    bg = bg.extractBlocksAsNewGroup(block);
-                }
-            } else {
-                // Statement or value input
-                // Disconnect view.
-                InputView inView = in.getView();
-                if (inView != null) {
-                    inView.setConnectedBlockGroup(null);
-                }
-            }
-            parentConnection.disconnect();
-
-            // Check if the block's old parent had a shadow that we should create views for.
-            // If this is itself a shadow block the answer is 'no'.
-            if (!block.isShadow() && parentConnection != null
-                    && parentConnection.getShadowBlock() != null) {
-                Block shadowBlock = parentConnection.getShadowBlock();
-                // We add the shadow as a root and then connect it so we properly add all the
-                // connectors and views.
-                addRootBlock(shadowBlock, null, true);
-                connectImpl(parentConnection.getShadowConnection(), parentConnection);
-            }
-        }
-
-        if (originalRootBlockGroup != null) {
-            originalRootBlockGroup.requestLayout();
-        }
-        if (isPartOfWorkspace) {
-            // Only add back to the workspace if the original tree is part of the workspace model.
-            addRootBlock(block, bg, false);
-        }
-
+        checkPendingEventsEmpty();
+        extractBlockAsRootImpl(block);
         firePendingEvents();
     }
 
@@ -640,25 +594,16 @@ public class BlocklyController {
         firePendingEvents();
     }
 
+    /**
+     * Offsets the root block of impingingConnection, to confusion occlusion.
+     *
+     * @param staticConnection The original connection of the block.
+     * @param impingingConnection The connection of the block to offset.
+     */
     public void bumpBlock(Connection staticConnection, Connection impingingConnection) {
         checkPendingEventsEmpty();
-
-        Block rootBlock = impingingConnection.getBlock().getRootBlock();
-        BlockGroup impingingBlockGroup = mHelper.getRootBlockGroup(rootBlock);
-
-        int maxSnapDistance = mHelper.getMaxSnapDistance();
-        int dx = (staticConnection.getPosition().x + maxSnapDistance)
-                - impingingConnection.getPosition().x;
-        int dy = (staticConnection.getPosition().y + maxSnapDistance)
-                - impingingConnection.getPosition().y;
-        rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
-
-        if (mWorkspaceView != null && impingingBlockGroup != null) {
-            // Update UI
-            impingingBlockGroup.bringToFront();
-            impingingBlockGroup.updateAllConnectorLocations();
-            mWorkspaceView.requestLayout();
-        }
+        bumpBlockImpl(staticConnection, impingingConnection);
+        firePendingEvents();
     }
 
     /**
@@ -709,15 +654,17 @@ public class BlocklyController {
         boolean rootFoundAndRemoved = removeRootBlock(block, true);
         if (rootFoundAndRemoved) {
             mWorkspace.addBlockToTrash(block);
-            unlinkViews(block);  // TODO(#77): Remove once TrashFragment can reuse views.
+            unlinkViews(block);
 
-            mTrashFragment.onBlockTrashed(block);
+            if (mTrashFragment != null) {
+                mTrashFragment.onBlockTrashed(block);
+            }
 
-
-            if (mWorkspace.isRootBlock(block)) {
-                throw new IllegalStateException("Trashed block was not removed from workspace.");
+            if (hasCallback(BlocklyEvent.TYPE_DELETE)) {
+                addPendingEvent(new BlocklyEvent.DeleteEvent(mWorkspace, block));
             }
         }
+        firePendingEvents();
 
         return rootFoundAndRemoved;
     }
@@ -756,7 +703,7 @@ public class BlocklyController {
             mTrashFragment.onBlockRemovedFromTrash(previouslyTrashedBlock);
         }
         if (hasCallback(BlocklyEvent.TYPE_CREATE)) {
-            addPendingEvent(new BlocklyEvent.CreateEvent(mWorkspace, bg.getFirstBlock()));
+            addPendingEvent(new BlocklyEvent.CreateEvent(mWorkspace, previouslyTrashedBlock));
             firePendingEvents();
         }
         return bg;
@@ -880,6 +827,18 @@ public class BlocklyController {
     }
 
     /**
+     * Implements {@link #removeBlockTree(Block)}, without firing events. so it can be called from
+     * other methods.
+     *
+     * @param block The {@link Block} to look up and remove.
+     */
+    private void removeBlockTreeImpl(Block block) {
+        extractBlockAsRootImpl(block);
+        removeRootBlock(block, true);
+        unlinkViews(block);
+    }
+
+    /**
      * Removes the given block from the {@link Workspace} and removes its view from the
      * {@link WorkspaceView}.  If the block is not a root block of the workspace, the method does
      * nothing and returns false.
@@ -920,15 +879,22 @@ public class BlocklyController {
      * @param toConnect The {@link Block} to connect to the statement input.
      */
     private void connectToStatement(Connection parentStatementConnection, Block toConnect) {
+        // Store the state of toConnect in its original location.
+        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(mWorkspace, toConnect);
 
         Block remainderBlock = parentStatementConnection.getTargetBlock();
+        BlocklyEvent.MoveEvent remainderMove = null;
         // If there was already a block connected there.
         if (remainderBlock != null) {
             if (remainderBlock.isShadow()) {
                 // If it was a shadow just remove it
                 removeBlockTree(remainderBlock);
+                addPendingEvent(new BlocklyEvent.DeleteEvent(mWorkspace, remainderBlock));
                 remainderBlock = null;
             } else {
+                // Store the original location of the remainder.
+                remainderMove = new BlocklyEvent.MoveEvent(mWorkspace, remainderBlock);
+
                 // Disconnect the remainder and we'll reattach it below
                 parentStatementConnection.disconnect();
                 InputView parentInputView = parentStatementConnection.getInputView();
@@ -940,6 +906,8 @@ public class BlocklyController {
 
         // Connect the new block to the parent
         connectAsInput(parentStatementConnection, toConnect.getPreviousConnection());
+        moveEvent.recordNew(toConnect);
+        addPendingEvent(moveEvent);
 
         // Reconnecting the remainder must be done after connecting the parent so that the parent
         // is considered in the workspace during connection checks.
@@ -951,10 +919,16 @@ public class BlocklyController {
             if (lastBlock.getNextConnection() == null) {
                 // Nothing to connect to.  Bump and add to root.
                 addRootBlock(remainderBlock, mHelper.getParentBlockGroup(remainderBlock), false);
-                bumpBlock(parentStatementConnection, remainderBlock.getPreviousConnection());
+
+                bumpBlockImpl(parentStatementConnection, remainderBlock.getPreviousConnection());
             } else {
                 // Connect the remainder
                 connectAfter(lastBlock, remainderBlock);
+            }
+
+            if (remainderMove != null) {  // if not a shadow block.
+                remainderMove.recordNew(remainderBlock);
+                addPendingEvent(remainderMove);
             }
         }
     }
@@ -981,7 +955,7 @@ public class BlocklyController {
         if (remainderBlock != null) {
             if (remainderBlock.isShadow()) {
                 // If there was a shadow connected just remove it
-                removeBlockTree(remainderBlock);
+                removeBlockTreeImpl(remainderBlock);
                 remainderBlock = null;
             } else {
                 // Disconnect the remainder and save it for later
@@ -1003,7 +977,7 @@ public class BlocklyController {
             if (lastBlock.getNextConnection() == null) {
                 // Nothing to connect to.  Bump and add to root.
                 addRootBlock(remainderBlock, remainderGroup, false);
-                bumpBlock(inferior.getPreviousConnection(),
+                bumpBlockImpl(inferior.getPreviousConnection(),
                         remainderBlock.getPreviousConnection());
             } else {
                 // Connect the remainder
@@ -1021,8 +995,8 @@ public class BlocklyController {
      * @param inferior The {@link Block} that will follow immediately after the superior block.
      * @param inferiorBlockGroup The {@link BlockGroup} belonging to the inferior block.
      */
-    private void connectAfter(Block superior, BlockGroup superiorBlockGroup, Block inferior,
-            BlockGroup inferiorBlockGroup) {
+    private void connectAfter(Block superior, BlockGroup superiorBlockGroup,
+                              Block inferior, BlockGroup inferiorBlockGroup) {
         // If there's still a next block at this point it should be a shadow. Double check and
         // remove it. If it's not a shadow something went wrong and connect() will crash.
         Block nextBlock = superior.getNextBlock();
@@ -1087,7 +1061,7 @@ public class BlocklyController {
                 BlockGroup previousTargetGroup =
                         mHelper.getParentBlockGroup(previousTargetBlock);
                 addRootBlock(previousTargetBlock, previousTargetGroup, false);
-                bumpBlock(parentConn, previousTargetConnection);
+                bumpBlockImpl(parentConn, previousTargetConnection);
             } else {
                 // Connect the previous part
                 connectAsInput(lastInputConnection, previousTargetConnection);
@@ -1100,6 +1074,65 @@ public class BlocklyController {
                         child, mWorkspace.getConnectionManager(), mTouchHandler);
             }
             parentInputView.setConnectedBlockGroup(childBlockGroup);
+        }
+    }
+
+    /**
+     * Implements {@link #extractBlockAsRoot(Block)} without firing events, so it can be called from
+     * other local methods.
+     *
+     * @param block {@link Block} to extract as a root block in the workspace.
+     */
+    private void extractBlockAsRootImpl(Block block) {
+        Block rootBlock = block.getRootBlock();
+
+        if (block == rootBlock) {
+            return;
+        }
+        boolean isPartOfWorkspace = mWorkspace.isRootBlock(rootBlock);
+
+        BlockView bv = mHelper.getView(block);
+        BlockGroup bg = (bv == null) ? null : (BlockGroup) bv.getParent();
+        BlockGroup originalRootBlockGroup = (mWorkspaceView == null) ? null
+                : mHelper.getRootBlockGroup(block);
+
+        // Child block
+        if (block.getParentConnection() != null) {
+            Connection parentConnection = block.getParentConnection();
+            Input in = parentConnection.getInput();
+            if (in == null) {
+                if (bg != null) {
+                    // Next block
+                    bg = bg.extractBlocksAsNewGroup(block);
+                }
+            } else {
+                // Statement or value input
+                // Disconnect view.
+                InputView inView = in.getView();
+                if (inView != null) {
+                    inView.setConnectedBlockGroup(null);
+                }
+            }
+            parentConnection.disconnect();
+
+            // Check if the block's old parent had a shadow that we should create views for.
+            // If this is itself a shadow block the answer is 'no'.
+            if (!block.isShadow() && parentConnection != null
+                    && parentConnection.getShadowBlock() != null) {
+                Block shadowBlock = parentConnection.getShadowBlock();
+                // We add the shadow as a root and then connect it so we properly add all the
+                // connectors and views.
+                addRootBlock(shadowBlock, null, true);
+                connectImpl(parentConnection.getShadowConnection(), parentConnection);
+            }
+        }
+
+        if (originalRootBlockGroup != null) {
+            originalRootBlockGroup.requestLayout();
+        }
+        if (isPartOfWorkspace) {
+            // Only add back to the workspace if the original tree is part of the workspace model.
+            addRootBlock(block, bg, false);
         }
     }
 
@@ -1166,6 +1199,32 @@ public class BlocklyController {
     }
 
     /**
+     * Implements {@link #bumpBlock(Connection, Connection)}. This is not responsible for firing
+     * events.
+     *
+     * @param staticConnection The original connection of the block.
+     * @param impingingConnection The connection of the block to offset.
+     */
+    private void bumpBlockImpl(Connection staticConnection, Connection impingingConnection) {
+        Block rootBlock = impingingConnection.getBlock().getRootBlock();
+        BlockGroup impingingBlockGroup = mHelper.getRootBlockGroup(rootBlock);
+
+        int maxSnapDistance = mHelper.getMaxSnapDistance();
+        int dx = (staticConnection.getPosition().x + maxSnapDistance)
+                - impingingConnection.getPosition().x;
+        int dy = (staticConnection.getPosition().y + maxSnapDistance)
+                - impingingConnection.getPosition().y;
+        rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
+
+        if (mWorkspaceView != null && impingingBlockGroup != null) {
+            // Update UI
+            impingingBlockGroup.bringToFront();
+            impingingBlockGroup.updateAllConnectorLocations();
+            mWorkspaceView.requestLayout();
+        }
+    }
+
+    /**
      * Recursive implementation of {@link #bumpNeighbors(Block)}.  It is not responsible for firing
      * events.
      *
@@ -1208,9 +1267,9 @@ public class BlocklyController {
         getBumpableNeighbors(lowerPriority, mTempConnections);
         // Bump from the first one that isn't in the same block group.
         for (int j = 0; j < mTempConnections.size(); j++) {
-            Connection curNeighbor = mTempConnections.get(j);
-            if (mHelper.getRootBlockGroup(curNeighbor.getBlock()) != rootBlockGroup) {
-                bumpBlock(curNeighbor, lowerPriority);
+            Connection curNeighbour = mTempConnections.get(j);
+            if (mHelper.getRootBlockGroup(curNeighbour.getBlock()) != rootBlockGroup) {
+                bumpBlockImpl(curNeighbour, lowerPriority);
                 return;
             }
         }
@@ -1226,13 +1285,18 @@ public class BlocklyController {
     private void bumpConnectionNeighbors(Connection conn, BlockGroup rootBlockGroup) {
         getBumpableNeighbors(conn, mTempConnections);
         for (int j = 0; j < mTempConnections.size(); j++) {
-            Connection curNeighbor = mTempConnections.get(j);
-            BlockGroup neighborBlockGroup = mHelper.getRootBlockGroup(
-                    curNeighbor.getBlock());
-            if (neighborBlockGroup != rootBlockGroup) {
-                bumpBlock(conn, curNeighbor);
+            Connection curNeighbour = mTempConnections.get(j);
+            BlockGroup neighbourBlockGroup = mHelper.getRootBlockGroup(
+                    curNeighbour.getBlock());
+            if (neighbourBlockGroup != rootBlockGroup) {
+                bumpBlockImpl(conn, curNeighbour);
             }
         }
+    }
+
+    private void getBumpableNeighbors(Connection conn, List<Connection> result) {
+        int snapDistance = mHelper.getMaxSnapDistance();
+        mConnectionManager.getNeighbors(conn, snapDistance, result);
     }
 
     private boolean hasCallback(@BlocklyEvent.EventType int typeQueryBitMask) {
@@ -1264,11 +1328,6 @@ public class BlocklyController {
 
         mPendingEvents.clear();
         mPendingEventsMask = 0;
-    }
-
-    private void getBumpableNeighbors(Connection conn, List<Connection> result) {
-        int snapDistance = mHelper.getMaxSnapDistance();
-        mConnectionManager.getNeighbors(conn, snapDistance, result);
     }
 
     private void checkPendingEventsEmpty() {

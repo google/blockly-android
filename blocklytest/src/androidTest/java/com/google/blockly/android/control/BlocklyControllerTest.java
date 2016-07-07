@@ -31,6 +31,7 @@ import com.google.blockly.model.BlockTestStrings;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Workspace;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,6 +47,19 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
     ConnectionManager mConnectionManager;
     WorkspaceView mWorkspaceView;
 
+    List<BlocklyEvent> mEventsFired = new ArrayList<>();
+    BlocklyController.EventsCallback mCallback = new BlocklyController.EventsCallback() {
+        @Override
+        public int getTypesBitmask() {
+            return BlocklyEvent.TYPE_ALL;
+        }
+
+        @Override
+        public void onEventGroup(List<BlocklyEvent> events) {
+            mEventsFired.addAll(events);
+        }
+    };
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -57,11 +71,51 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
                 .setBlockViewFactory(mViewFactory)
                 .addBlockDefinitions(R.raw.test_blocks)
                 .build();
+        mController.addCallback(mCallback);
         mBlockFactory = mController.getBlockFactory();
         mWorkspace = mController.getWorkspace();
         mConnectionManager = mController.getWorkspace().getConnectionManager();
 
         mWorkspaceView = new WorkspaceView(getContext());
+    }
+
+    public void testAddRootBlock() {
+        assertTrue(mEventsFired.isEmpty());
+
+        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        mController.addRootBlock(block);
+
+        assertTrue(mWorkspace.getRootBlocks().contains(block));
+        assertEquals(mEventsFired.size(), 1);
+        assertEquals(mEventsFired.get(0).getTypeId(), BlocklyEvent.TYPE_CREATE);
+        assertEquals(mEventsFired.get(0).getBlockId(), block.getId());
+    }
+
+    public void testTrashRootBlock() {
+        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        mController.addRootBlock(block);
+
+        mEventsFired.clear();
+        mController.trashRootBlock(block);
+
+        assertTrue(mWorkspace.getRootBlocks().isEmpty());
+        assertEquals(mEventsFired.size(), 1);
+        assertEquals(mEventsFired.get(0).getTypeId(), BlocklyEvent.TYPE_DELETE);
+        assertEquals(mEventsFired.get(0).getBlockId(), block.getId());
+    }
+
+    public void testAddBlockFromTrash() {
+        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        mController.addRootBlock(block);
+        mController.trashRootBlock(block);
+
+        mEventsFired.clear();
+        mController.addBlockFromTrash(block);
+
+        assertTrue(mWorkspace.getRootBlocks().contains(block));
+        assertEquals(mEventsFired.size(), 1);
+        assertEquals(mEventsFired.get(0).getTypeId(), BlocklyEvent.TYPE_CREATE);
+        assertEquals(mEventsFired.get(0).getBlockId(), block.getId());
     }
 
     public void testConnect_outputToInput_headless() {

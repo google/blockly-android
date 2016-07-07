@@ -64,7 +64,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     protected CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
-    protected LogAllEventsListener mEventsListener = new LogAllEventsListener("BlocklyEvents");
+    protected LogAllEventsCallback mEventsCallback = new LogAllEventsCallback("BlocklyEvents");
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -107,9 +107,9 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     private void setLogEvents(boolean logEvents) {
         if (logEvents) {
-            mController.addListener(mEventsListener);
+            mController.addCallback(mEventsCallback);
         } else {
-            mController.removeListener(mEventsListener);
+            mController.removeListener(mEventsCallback);
         }
         mLogEventsMenuItem.setChecked(logEvents);
     }
