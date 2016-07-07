@@ -16,20 +16,20 @@ import java.util.List;
 /**
  * Logs all {@link BlocklyEvent}s to the console.
  */
-public class LogAllEventsListener implements BlocklyController.EventsCallback {
-    private static final String TAG = "LogAllEventsListener";
+public class LogAllEventsCallback implements BlocklyController.EventsCallback {
+    private static final String TAG = "LogAllEventsCallback";
 
     private final String mEventsTag;
     private boolean mPrettyPrint = false;
 
-    public LogAllEventsListener(String tag) {
+    public LogAllEventsCallback(String tag) {
         if (TextUtils.isEmpty(tag)) {
             throw new IllegalArgumentException("Tag cannot be null");
         }
         mEventsTag = tag;
     }
 
-    public LogAllEventsListener() {
+    public LogAllEventsCallback() {
         this(TAG);
     }
 

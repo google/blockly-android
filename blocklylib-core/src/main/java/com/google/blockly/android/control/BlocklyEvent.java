@@ -678,9 +678,12 @@ public abstract class BlocklyEvent {
                 mNewParentId = null;
                 mNewInputName = null;
             } else {
-                Input parentInput = parentConnection.getInput();
-                mNewInputName = parentInput.getName();
-                mNewParentId = parentInput.getBlock().getId();
+                mNewParentId = parentConnection.getBlock().getId();
+                if (parentConnection.getType() == Connection.CONNECTION_TYPE_NEXT) {
+                    mNewInputName = null;
+                } else {
+                    mNewInputName = parentConnection.getInput().getName();
+                }
                 mHasNewPosition = false;
                 mNewPositionX = mNewPositionY = -1;
             }
