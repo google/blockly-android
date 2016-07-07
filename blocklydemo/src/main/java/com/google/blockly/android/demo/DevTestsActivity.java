@@ -107,7 +107,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     private void setLogEvents(boolean logEvents) {
         if (logEvents) {
-            mController.addListener(mEventsListener);
+            mController.addCallback(mEventsListener);
         } else {
             mController.removeListener(mEventsListener);
         }
