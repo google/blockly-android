@@ -108,16 +108,14 @@ public class Workspace {
      * Remove a block from the workspace.
      *
      * @param block The block block to remove, possibly with descendants attached.
+     * @param cleanupStats True if this block is being deleted and its connections and references
+     *                     should be removed.
      * @return True if the block was removed, false otherwise.
      */
-    public boolean removeRootBlock(Block block, boolean removeConnections) {
+    public boolean removeRootBlock(Block block, boolean cleanupStats) {
         boolean foundAndRemoved = mRootBlocks.remove(block);
-        if (foundAndRemoved && removeConnections) {
-            block.getAllConnectionsRecursive(mTempConnections);
-            for (int i = 0; i < mTempConnections.size(); ++i) {
-                mConnectionManager.removeConnection(mTempConnections.get(i));
-            }
-            mTempConnections.clear();
+        if (foundAndRemoved && cleanupStats) {
+            mStats.cleanupStats(block);
         }
         return foundAndRemoved;
     }
@@ -243,6 +241,21 @@ public class Workspace {
     public int getVariableRefCount(String variable) {
         List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
         return refs == null ? 0 : refs.size();
+    }
+
+    /**
+     * @return A list of all blocks referencing the given variable.
+     */
+    public List<Block> getVariableBlocks(String variable) {
+        List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
+        List<Block> blocks = new ArrayList<>();
+        for (int i = 0; i < refs.size(); i++) {
+            Block block = refs.get(i).getBlock();
+            if (!blocks.contains(block)) {
+                blocks.add(block);
+            }
+        }
+        return blocks;
     }
 
     /**

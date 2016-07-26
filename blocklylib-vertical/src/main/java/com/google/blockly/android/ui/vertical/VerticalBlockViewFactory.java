@@ -25,7 +25,6 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.android.ui.VariableViewAdapter;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
@@ -46,6 +45,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     private SparseIntArray mFieldLayouts = new SparseIntArray();
     private LayoutInflater mLayoutInflater;
     private boolean mUseHats = false;
+    private BasicFieldVariableView.VariableViewAdapter mVariableAdapter;
 
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper) {
         this(context, helper, 0);
@@ -136,6 +136,8 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             case Field.TYPE_VARIABLE: {
                 BasicFieldVariableView varView = (BasicFieldVariableView) fieldView;
                 varView.setAdapter(getVariableAdapter());
+                varView.setVariableRequestCallback(mVariableCallback);
+                break;
             }
             default:
                 if (fieldView == null) {
@@ -153,7 +155,8 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
                     + "instantiated.");
         }
         if (mVariableAdapter == null) {
-            VariableViewAdapter adapter = new VariableViewAdapter(mContext, mVariableNameManager,
+            BasicFieldVariableView.VariableViewAdapter
+                    adapter = new BasicFieldVariableView.VariableViewAdapter(mContext, mVariableNameManager,
                     R.layout.default_spinner_closed_item);
             adapter.setDropDownViewResource(R.layout.default_spinner_dropdown_item);
             mVariableAdapter = adapter;

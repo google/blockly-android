@@ -22,4 +22,13 @@
     <string name="toast_workspace_file_not_found">Couldn\'t find saved workspace.</string>
 
     <string name="blockly_toolbox_default_category_name">Blocks</string>
+    <string name="rename_variable">Rename variable\u2026"</string>
+    <string name="delete_variable">Delete variable\u2026"</string>
+    <string name="create_variable">New variable</string>
+    <string name="delete_variable_title">Delete variable</string>
+    <!-- Confirmation message shown if a user is deleting a variable with more than 1 block that
+         uses it. -->
+    <string name="delete_variable_confirm">Delete variable %1$s and %2$d blocks using it?</string>
+    <string name="delete_variable_positive">Delete</string>
+    <string name="delete_variable_negative">Cancel</string>
 </resources>

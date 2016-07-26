@@ -40,6 +40,7 @@ import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.android.ui.VirtualWorkspaceView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
+import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyParserException;
@@ -59,6 +60,9 @@ import java.util.List;
 /**
  * Controller to coordinate the state among all the major Blockly components: Workspace, Toolbar,
  * Trash, models, and views.
+ *
+ * Note: Only public methods should call {@link #firePendingEvents()} and only Impl methods should
+ * call {@link #addPendingEvent(BlocklyEvent)}. This is to make it easier to maintain events.
  */
 public class BlocklyController {
     private static final String TAG = "BlocklyController";
@@ -108,6 +112,22 @@ public class BlocklyController {
     private View mTrashIcon = null;
     private ToolboxFragment mToolboxFragment = null;
     private Dragger mDragger;
+    private VariableCallback mVariableCallback = null;
+
+    private VariableCallback mVariableViewCallback = new VariableCallback() {
+        @Override
+        public boolean onDeleteVariable(String variable) {
+            removeVariable(variable, false);
+            return true;
+        }
+
+        @Override
+        public void onRenameVariable(String variable) {
+            if (mVariableCallback != null) {
+                mVariableCallback.onRenameVariable(variable);
+            }
+        }
+    };
 
     // For use in bumping neighbors; instance variable only to avoid repeated allocation.
     private final ArrayList<Connection> mTempConnections = new ArrayList<>();
@@ -193,6 +213,19 @@ public class BlocklyController {
         if (mViewFactory != null) {
             // TODO(#81): Check if variables are enabled/disabled
             mViewFactory.setVariableNameManager(mWorkspace.getVariableNameManager());
+            mViewFactory.setVariableRequestCallback(new VariableRequestCallback() {
+                @Override
+                public void onVariableRequest(int request, String variable) {
+                    if (request == VariableRequestCallback.REQUEST_RENAME) {
+                        if (mVariableCallback != null) {
+                            mVariableCallback.onRenameVariable(variable);
+                        }
+                    } else if (request
+                            == VariableRequestCallback.REQUEST_DELETE) {
+                        removeVariable(variable, false);
+                    }
+                }
+            });
         }
 
         mDragger = new Dragger(this);
@@ -287,6 +320,16 @@ public class BlocklyController {
         }
         mTrashIcon = trashIcon;
         mDragger.setTrashView(mTrashIcon);
+    }
+
+    /**
+     * Sets the callback to notify when the user requests a variable change, such as deleting or
+     * renaming a variable.
+     *
+     * @param variableCallback The callback to notify when a variable is being deleted.
+     */
+    public void setVariableCallback(VariableCallback variableCallback) {
+        mVariableCallback = variableCallback;
     }
 
     /**
@@ -412,8 +455,7 @@ public class BlocklyController {
             }
             ByteArrayInputStream in = new ByteArrayInputStream(bytes);
             try {
-                mWorkspace.loadWorkspaceContents(in);
-                initBlockViews();
+                loadWorkspaceContents(in);
             } catch(BlocklyParserException e) {
                 // Ignore all other workspace state variables.
                 Log.w(TAG, "Unable to restore Blockly state.", e);
@@ -494,7 +536,22 @@ public class BlocklyController {
      */
     public void extractBlockAsRoot(Block block) {
         checkPendingEventsEmpty();
-        extractBlockAsRootImpl(block);
+        extractBlockAsRootImpl(block, true);
+        firePendingEvents();
+    }
+
+    /**
+     * Takes a block and adds it to the root blocks, disconnecting previous or output connections
+     * and next connections if necessary. If there was a next block connected it will be attached
+     * to the previous block if allowed, otherwise it will also be made a root block and bumped
+     * away.
+     *
+     * @param block The {@link Block} to extract as a root without any next blocks.
+     */
+    public void extractBlockAsRootWithoutFollowing(Block block) {
+        checkPendingEventsEmpty();
+
+        extractBlockAsRootImpl(block, false);
         firePendingEvents();
     }
 
@@ -561,20 +618,31 @@ public class BlocklyController {
     }
 
     /**
-     * Remove a variable from the workspace. A variable may only be removed if it is not being used
-     * in the workspace. {@link #isVariableInUse(String)} should be called to check if a variable
-     * may be removed.
+     * Returns the list of blocks that are using the specified variable.
+     *
+     * @param variable The variable to get a list of blocks for.
+     * @return The list of blocks using that variable.
+     */
+    public List<Block> getVariableBlocks(String variable) {
+        return mWorkspace.getVariableBlocks(variable);
+    }
+
+    /**
+     * Remove a variable from the workspace. If a {@link VariableCallback} is set it will be
+     * called prior to removing the variable, otherwise the variable and all blocks using it will
+     * be deleted.
      *
      * @param variable The variable to remove.
+     * @param forced True to skip the variable callback check and remove the variable and all blocks
+     *              that are using it.
      * @return True if the variable existed and was removed, false otherwise.
      * @throws IllegalStateException If there are still instances of that variable in the workspace.
      */
-    public boolean removeVariable(String variable) {
-        if (isVariableInUse(variable)) {
-            throw new IllegalStateException(
-                    "Cannot remove a variable that exists in the workspace.");
-        }
-        return mWorkspace.getVariableNameManager().remove(variable);
+    public boolean removeVariable(String variable, boolean forced) {
+        checkPendingEventsEmpty();
+        boolean result = removeVariableImpl(variable, forced);
+        firePendingEvents();
+        return result;
     }
 
     /**
@@ -638,6 +706,25 @@ public class BlocklyController {
         extractBlockAsRoot(block);
         removeRootBlock(block, true);
         unlinkViews(block);
+        addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace(), block));
+        firePendingEvents();
+    }
+
+    /**
+     * Removes the given block from its parent and reparents its next block if it has one to its
+     * former parent. Then removes the block from the model and unlinks all views.
+     * <p>
+     * This behaves similarly to {@link #removeBlockTree(Block)}, except it doesn't delete blocks
+     * that come after the given block in sequence, only blocks connected to its inputs.
+     *
+     * @param block The {@link Block} to look up and remove.
+     * @return True if the block was removed, false if it wasn't found.
+     */
+    public boolean removeBlockAndInputBlocks(Block block) {
+        checkPendingEventsEmpty();
+        boolean result = removeBlockAndInputBlocksImpl(block);
+        firePendingEvents();
+        return result;
     }
 
     /**
@@ -827,15 +914,53 @@ public class BlocklyController {
     }
 
     /**
-     * Implements {@link #removeBlockTree(Block)}, without firing events. so it can be called from
+     * Implements {@link #removeVariable(String, boolean)}, without firing events.
+     *
+     * @param variable The variable to remove.
+     * @param forced True to force removal even if there's a callback to delegate the action to.
+     * @return True if the variable was removed, false otherwise.
+     */
+    private boolean removeVariableImpl(String variable, boolean forced) {
+        if (!forced && mVariableCallback != null) {
+            if (!mVariableCallback.onDeleteVariable(variable)) {
+                return false;
+            }
+        }
+        if (isVariableInUse(variable)) {
+            List<Block> blocks = mWorkspace.getVariableBlocks(variable);
+            for (int i = 0; i < blocks.size(); i++) {
+                removeBlockAndInputBlocksImpl(blocks.get(i));
+            }
+        }
+        return mWorkspace.getVariableNameManager().remove(variable);
+    }
+
+    /**
+     * Implements {@link #removeBlockTree(Block)}, without firing events. so it may be called from
      * other methods.
      *
      * @param block The {@link Block} to look up and remove.
      */
     private void removeBlockTreeImpl(Block block) {
-        extractBlockAsRootImpl(block);
+        extractBlockAsRootImpl(block, true);
         removeRootBlock(block, true);
         unlinkViews(block);
+    }
+
+    /**
+     * Implements {@link #removeBlockAndInputBlocks(Block)} without firing events, so it may be
+     * called from other methods.
+     *
+     * @param block The {@link Block} to look up and remove.
+     */
+    private boolean removeBlockAndInputBlocksImpl(Block block) {
+        extractBlockAsRootImpl(block, false);
+        boolean result = removeRootBlock(block, true);
+        unlinkViews(block);
+        if (result) {
+            addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace(), block));
+        }
+        return true;
     }
 
     /**
@@ -880,6 +1005,7 @@ public class BlocklyController {
      */
     private void connectToStatement(Connection parentStatementConnection, Block toConnect) {
         // Store the state of toConnect in its original location.
+        // TODO: (#342) move the event up to the impl method
         BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(mWorkspace, toConnect);
 
         Block remainderBlock = parentStatementConnection.getTargetBlock();
@@ -1081,20 +1207,42 @@ public class BlocklyController {
      * Implements {@link #extractBlockAsRoot(Block)} without firing events, so it can be called from
      * other local methods.
      *
+     * The following events will be added to the pending events.
+     * <ol>
+     *    <li>A move of the block to the workspace if it is not already a root block.</li>
+     *    <li>A move of the next block if includeNext is false and a next block exists.</li>
+     * </ol>
+     *
      * @param block {@link Block} to extract as a root block in the workspace.
+     * @param includeNext True to include any blocks connected to next, false to reattach them to
+     *                    the previous block if allowed.
      */
-    private void extractBlockAsRootImpl(Block block) {
+    private void extractBlockAsRootImpl(Block block, boolean includeNext) {
         Block rootBlock = block.getRootBlock();
-
         if (block == rootBlock) {
+            if (!includeNext && block.getNextBlock() != null) {
+                extractBlockAsRootImpl(block.getNextBlock(), true);
+            }
             return;
         }
         boolean isPartOfWorkspace = mWorkspace.isRootBlock(rootBlock);
+        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(getWorkspace(), block);
+        BlocklyEvent.MoveEvent remainderEvent = null;
 
         BlockView bv = mHelper.getView(block);
         BlockGroup bg = (bv == null) ? null : (BlockGroup) bv.getParent();
         BlockGroup originalRootBlockGroup = (mWorkspaceView == null) ? null
                 : mHelper.getRootBlockGroup(block);
+        Block remainderBlock = null;
+        BlockGroup remainderGroup = null;
+        if (!includeNext && block.getNextBlock() != null) {
+            remainderBlock = block.getNextBlock();
+            remainderEvent = new BlocklyEvent.MoveEvent(getWorkspace(), remainderBlock);
+
+            remainderGroup = (bg == null) ? null :
+                    bg.extractBlocksAsNewGroup(remainderBlock);
+            block.getNextConnection().disconnect();
+        }
 
         // Child block
         if (block.getParentConnection() != null) {
@@ -1114,16 +1262,27 @@ public class BlocklyController {
                 }
             }
             parentConnection.disconnect();
-
-            // Check if the block's old parent had a shadow that we should create views for.
-            // If this is itself a shadow block the answer is 'no'.
-            if (!block.isShadow() && parentConnection != null
+            // Check if we need to heal the stack, if not check if the block's old parent had a
+            // shadow that we should create views for. If this is itself a shadow block the answer
+            // is 'no'.
+            if (remainderBlock != null && parentConnection
+                    .canConnect(remainderBlock.getPreviousConnection())) {
+                if (parentConnection.getInput() != null) {
+                    connectToStatement(parentConnection, remainderBlock);
+                } else {
+                    connectAfter(parentConnection.getBlock(), remainderBlock);
+                }
+            } else if (!block.isShadow() && parentConnection != null
                     && parentConnection.getShadowBlock() != null) {
                 Block shadowBlock = parentConnection.getShadowBlock();
                 // We add the shadow as a root and then connect it so we properly add all the
                 // connectors and views.
                 addRootBlock(shadowBlock, null, true);
                 connectImpl(parentConnection.getShadowConnection(), parentConnection);
+            }
+            // Add the remainder as a root block if it didn't get attached to anything
+            if (remainderBlock != null && remainderBlock.getParentConnection() == null) {
+                addRootBlock(remainderBlock, remainderGroup, false);
             }
         }
 
@@ -1133,6 +1292,15 @@ public class BlocklyController {
         if (isPartOfWorkspace) {
             // Only add back to the workspace if the original tree is part of the workspace model.
             addRootBlock(block, bg, false);
+        }
+
+        // Add pending events. Order is important to prevent side effects. Send the move event for
+        // the first block, then the move event for its remainder.
+        moveEvent.recordNew(block);
+        addPendingEvent(moveEvent);
+        if (remainderEvent != null) {
+            remainderEvent.recordNew(remainderBlock);
+            addPendingEvent(remainderEvent);
         }
     }
 
@@ -1343,6 +1511,7 @@ public class BlocklyController {
         private Context mContext;
         private WorkspaceHelper mWorkspaceHelper;
         private BlockViewFactory mViewFactory;
+        private VariableCallback mVariableCallback;
         private WorkspaceFragment mWorkspaceFragment;
         private ToolboxFragment mToolboxFragment;
         private DrawerLayout mToolboxDrawer;
@@ -1370,6 +1539,11 @@ public class BlocklyController {
 
         public Builder setBlockViewFactory(BlockViewFactory blockViewFactory) {
             mViewFactory = blockViewFactory;
+            return this;
+        }
+
+        public Builder setVariableCallback(VariableCallback variableCallback) {
+            mVariableCallback = variableCallback;
             return this;
         }
 
@@ -1584,8 +1758,48 @@ public class BlocklyController {
             controller.setTrashFragment(mTrashFragment);
             controller.setToolboxFragment(mToolboxFragment);
             controller.setTrashIcon(mTrashIcon);
+            controller.setVariableCallback(mVariableCallback);
 
             return controller;
+        }
+    }
+
+    /**
+     * Callback for handling requests to modify the list of variables. This can be used to show a
+     * confirmation dialog when deleting a variable, or customize the UI shown for creating/editing
+     * a variable.
+     */
+    public abstract static class VariableCallback {
+
+        /**
+         * Sent when the user tries to delete a variable. If true is returned the variable and
+         * any blocks referencing it will be deleted.
+         *
+         * @param variable The variable being deleted.
+         * @return True to allow the delete, false to prevent it.
+         */
+        public boolean onDeleteVariable(String variable) {
+            return true;
+        }
+
+        /**
+         * Sent when the user tries to create a new variable. If true is returned a variable
+         * will be created with the next available default name.
+         *
+         * @return True to create a default named variable, false to handle it yourself.
+         */
+        public boolean onCreateVariable() {
+            return true;
+        }
+
+        /**
+         * Sent when the user tries to rename a variable. There is no default handling for variable
+         * renaming in the controller, so an application must override this to support renaming
+         * variables.
+         *
+         * @param variable The variable to rename.
+         */
+        public void onRenameVariable(String variable) {
         }
     }
 }
