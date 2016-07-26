@@ -45,9 +45,11 @@ import android.widget.Toast;
 import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
+import com.google.blockly.android.ui.DeleteVariableDialog;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.BlocklyUnifiedWorkspace;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
@@ -114,6 +116,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
     protected View mNavigationDrawer;
     protected ActionBarDrawerToggle mDrawerToggle;
+
+    // This may be null if {@link #getVariableCallback} never sets it.
+    private BlocklyController.VariableCallback mVariableCb;
     private boolean mUserLearnedDrawer;
 
     protected BlocklyController mController;
@@ -320,6 +325,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .setAssetManager(getAssets())  // TODO(#128) Remove
                 .setWorkspaceHelper(mWorkspaceHelper)
                 .setBlockViewFactory(mBlockViewFactory)
+                .setVariableCallback(getVariableCallback())
                 .setWorkspaceFragment(mWorkspaceFragment)
                 .addBlockDefinitionsFromAssets(getBlockDefinitionsJsonPaths())
                 .setToolboxConfigurationAsset(getToolboxContentsXmlPath())
@@ -477,6 +483,21 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected int getStyleResId() {
         return 0;
+    }
+
+    /**
+     * Returns a callback for handling user requests to change the list of variables (create,
+     * rename, delete). This can be used to provide UI for confirming a deletion or renaming a
+     * variable.
+     *
+     * @return A {@link com.google.blockly.android.control.BlocklyController.VariableCallback} for
+     *         handling variable updates from the controller.
+     */
+    protected BlocklyController.VariableCallback getVariableCallback() {
+        if (mVariableCb == null) {
+            mVariableCb = new DefaultVariableCallback(new DeleteVariableDialog());
+        }
+        return mVariableCb;
     }
 
     /**
@@ -811,5 +832,32 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         return mTrashFragment != null
                 && mTrashFragment.isCloseable()
                 && mTrashFragment.setOpened(false);
+    }
+
+    private class DefaultVariableCallback extends BlocklyController.VariableCallback {
+        private final DeleteVariableDialog mDeleteDialog;
+
+
+        public DefaultVariableCallback(DeleteVariableDialog deleteVariableDialog) {
+            mDeleteDialog = deleteVariableDialog;
+        }
+
+        @Override
+        public boolean onRemoveVariable(String variable) {
+            BlocklyController controller = getController();
+            if (!controller.isVariableInUse(variable)) {
+                return true;
+            }
+            List<Block> blocks = controller.getBlocksWithVariable(variable);
+            if (blocks.size() == 1) {
+                // For one block just let the controller delete it.
+                return true;
+            }
+
+            mDeleteDialog.setController(controller);
+            mDeleteDialog.setVariable(variable, blocks.size());
+            mDeleteDialog.show(getSupportFragmentManager(), "DeleteVariable");
+            return false;
+        }
     }
 }

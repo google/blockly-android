@@ -15,6 +15,9 @@
 
 package com.google.blockly.android.control;
 
+import android.view.View;
+import android.view.ViewGroup;
+
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.R;
 import com.google.blockly.android.testui.TestableBlockGroup;
@@ -25,10 +28,12 @@ import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
+import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTestStrings;
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Workspace;
 
 import java.util.ArrayList;
@@ -60,6 +65,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     };
 
+    MockVariableCallback mVariableCallback = new MockVariableCallback();
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -72,6 +79,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
                 .addBlockDefinitions(R.raw.test_blocks)
                 .build();
         mController.addCallback(mCallback);
+        mController.setVariableCallback(mVariableCallback);
         mBlockFactory = mController.getBlockFactory();
         mWorkspace = mController.getWorkspace();
         mConnectionManager = mController.getWorkspace().getConnectionManager();
@@ -999,7 +1007,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         testExtractBlockAsRoot_fromNext(true);
     }
 
-    public void testExtractBlockAsRoot_fromNext(boolean withViews) {
+    private void testExtractBlockAsRoot_fromNext(boolean withViews) {
         // Configure
         Block first = mBlockFactory.obtainBlock("statement_statement_input", "first block");
         Block second = mBlockFactory.obtainBlock("statement_statement_input", "second block");
@@ -1040,6 +1048,181 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    public void testVariableCallback_onCreate() {
+        NameManager.VariableNameManager nameManager =
+                (NameManager.VariableNameManager) mController.getWorkspace()
+                        .getVariableNameManager();
+
+        assertNull(mVariableCallback.onCreateVariable);
+
+        // Calling requestAddVariable and the callback blocking creation
+        mVariableCallback.whenOnCreateCalled = false;
+        mController.requestAddVariable("var1");
+        assertEquals("var1", mVariableCallback.onCreateVariable);
+        assertEquals(0, nameManager.getUsedNames().size());
+
+        // Calling addVariable bypasses the callback
+        mVariableCallback.onCreateVariable = null;
+        mController.addVariable("var1");
+        assertNull(mVariableCallback.onCreateVariable);
+        assertTrue(nameManager.contains("var1"));
+
+        // Calling requestAddVariable and the callback allows creation
+        mVariableCallback.reset();
+        mVariableCallback.whenOnCreateCalled = true;
+        mController.requestAddVariable("var2");
+        assertEquals("var2", mVariableCallback.onCreateVariable);
+        assertTrue(nameManager.contains("var2"));
+    }
+
+    public void testVariableCallback_onRename() {
+        NameManager.VariableNameManager nameManager =
+                (NameManager.VariableNameManager) mController.getWorkspace()
+                        .getVariableNameManager();
+        mController.addVariable("var1");
+        mController.addVariable("var2");
+
+        // Calling rename without forcing and the callback blocks it
+        mVariableCallback.whenOnRenameCalled = false;
+        mController.requestRenameVariable("var1", "var3");
+        assertEquals("var1", mVariableCallback.onRenameVariable);
+        assertFalse(nameManager.contains("var3"));
+        assertTrue(nameManager.contains("var1"));
+
+        // Calling rename with forcing skips the callback
+        mVariableCallback.onRenameVariable = null;
+        mController.renameVariable("var1", "var3");
+        assertNull(mVariableCallback.onRenameVariable);
+        assertTrue(nameManager.contains("var3"));
+        assertFalse(nameManager.contains("var1"));
+
+        // Calling rename without forcing and the callback allows it
+        mVariableCallback.whenOnRenameCalled = true;
+        mController.requestRenameVariable("var2", "var4");
+        assertEquals("var2", mVariableCallback.onRenameVariable);
+        assertTrue(nameManager.contains("var4"));
+        assertFalse(nameManager.contains("var2"));
+
+        // Verify that we have two variables still
+        assertEquals(2, nameManager.size());
+    }
+
+    public void testVariableCallback_onRemove() {
+        NameManager.VariableNameManager nameManager =
+                (NameManager.VariableNameManager) mController.getWorkspace()
+                        .getVariableNameManager();
+        mController.addVariable("var3");
+        mController.addVariable("var4");
+
+        // Calling delete without forcing and the callback blocks it
+        mVariableCallback.whenOnDeleteCalled = false;
+        mController.requestRemoveVariable("var3");
+        assertEquals("var3", mVariableCallback.onDeleteVariable);
+        assertTrue(nameManager.contains("var3"));
+
+        // Calling delete with forcing skips callback
+        mVariableCallback.onDeleteVariable = null;
+        mController.removeVariable("var3");
+        assertNull(mVariableCallback.onDeleteVariable);
+        assertFalse(nameManager.contains("var3"));
+
+        // Calling delete without forcing and callback allows it
+        mVariableCallback.whenOnDeleteCalled = true;
+        mController.requestRemoveVariable("var4");
+        assertEquals("var4", mVariableCallback.onDeleteVariable);
+        assertFalse(nameManager.contains("var4"));
+
+        // Verify that we have no variables left
+        assertEquals(0, nameManager.size());
+    }
+
+    public void testRemoveVariable() {
+        mController.addVariable("var1");
+        mController.addVariable("var2");
+        mController.addVariable("var3");
+        mController.addVariable("var4");
+
+        Block set1 = mBlockFactory.obtainBlock("set_variable", "first block");
+        Block set2 = mBlockFactory.obtainBlock("set_variable", "second block");
+        Block set3 = mBlockFactory.obtainBlock("set_variable", "third block");
+        Block set4 = mBlockFactory.obtainBlock("set_variable", "fourth block");
+        Block set5 = mBlockFactory.obtainBlock("set_variable", "fifth block");
+        Block set6 = mBlockFactory.obtainBlock("set_variable", "sixth block");
+        Block statement = mBlockFactory.obtainBlock("statement_statement_input", "statement block");
+        Block get1 = mBlockFactory.obtainBlock("get_variable", "get1");
+        Block get2 = mBlockFactory.obtainBlock("get_variable", "get2");
+        Block get3 = mBlockFactory.obtainBlock("get_variable", "get3");
+
+        mController.connect(statement.getInputs().get(0).getConnection(),
+                set1.getPreviousConnection());
+        mController.connect(set1.getNextConnection(), set2.getPreviousConnection());
+        mController.connect(set2.getNextConnection(), set3.getPreviousConnection());
+        mController.connect(set3.getNextConnection(), set4.getPreviousConnection());
+        mController.connect(set4.getNextConnection(), set5.getPreviousConnection());
+        mController.connect(set2.getOnlyValueInput().getConnection(), get1.getOutputConnection());
+        mController.connect(set5.getOnlyValueInput().getConnection(), get2.getOutputConnection());
+
+        FieldVariable var = (FieldVariable) set1.getFieldByName("variable");
+        var.setVariable("var1");
+        var = (FieldVariable) set2.getFieldByName("variable");
+        var.setVariable("var2");
+        var = (FieldVariable) set3.getFieldByName("variable");
+        var.setVariable("var1");
+        var = (FieldVariable) set4.getFieldByName("variable");
+        var.setVariable("var3");
+        var = (FieldVariable) set5.getFieldByName("variable");
+        var.setVariable("var1");
+        var = (FieldVariable) set6.getFieldByName("variable");
+        var.setVariable("var1");
+        var = (FieldVariable) get1.getFieldByName("variable");
+        var.setVariable("var1");
+        var = (FieldVariable) get2.getFieldByName("variable");
+        var.setVariable("var4");
+        var = (FieldVariable) get3.getFieldByName("variable");
+        var.setVariable("var1");
+
+        mController.addRootBlock(statement);
+        mController.addRootBlock(set6);
+        mController.addRootBlock(get3);
+
+        // Workspace setup:
+        // Statement block with a statement input
+        //     set1 "var1"
+        //     set2 "var2" <- get1 "var1"
+        //     set3 "var1"
+        //     set4 "var3"
+        //     set5 "var1" <- get2 "var4"
+        //
+        // set6 "var1"
+        //
+        // get3 "var1"
+
+        // Expected state after deleting var1:
+        // Statement block with a statement input
+        //     set2 "var2"
+        //     set4 "var 3"
+        List<Block> rootBlocks = mController.getWorkspace().getRootBlocks();
+        assertEquals(3, rootBlocks.size());
+
+        mVariableCallback.whenOnDeleteCalled = true;
+        mVariableCallback.onDeleteVariable = null;
+        mController.requestRemoveVariable("var1");
+
+        assertEquals("var1", mVariableCallback.onDeleteVariable);
+        assertEquals(1, rootBlocks.size());
+
+        Block block = rootBlocks.get(0);
+        assertSame(block, statement);
+        block = block.getInputs().get(0).getConnectedBlock();
+        assertSame(block, set2);
+
+        block = block.getNextBlock();
+        assertSame(block, set4);
+
+        block = block.getNextBlock();
+        assertNull(block);
+    }
+
     public void testLoadWorkspaceContents_andReset() {
         mController.initWorkspaceView(mWorkspaceView);
         assertEquals(0, mWorkspace.getRootBlocks().size());
@@ -1068,6 +1251,43 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         for (int i = 0; i < blocks.length; ++i) {
             ((TestableBlockGroup) mHelper.getRootBlockGroup(blocks[i]))
                     .setWorkspaceView(mWorkspaceView);
+        }
+    }
+
+    private static class MockVariableCallback extends BlocklyController.VariableCallback {
+        String onDeleteVariable = null;
+        String onCreateVariable = null;
+        String onRenameVariable = null;
+
+        boolean whenOnDeleteCalled = true;
+        boolean whenOnCreateCalled = true;
+        boolean whenOnRenameCalled = true;
+
+        @Override
+        public boolean onRemoveVariable(String variable) {
+            onDeleteVariable = variable;
+            return whenOnDeleteCalled;
+        }
+
+        @Override
+        public boolean onCreateVariable(String varName) {
+            onCreateVariable = varName;
+            return whenOnCreateCalled;
+        }
+
+        @Override
+        public boolean onRenameVariable(String variable, String newVariable) {
+            onRenameVariable = variable;
+            return whenOnRenameCalled;
+        }
+
+        public void reset() {
+            onDeleteVariable = null;
+            onCreateVariable = null;
+            onRenameVariable = null;
+            whenOnDeleteCalled = true;
+            whenOnCreateCalled = true;
+            whenOnRenameCalled = true;
         }
     }
 }
