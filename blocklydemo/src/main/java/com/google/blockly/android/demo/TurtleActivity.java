@@ -16,7 +16,6 @@
 package com.google.blockly.android.demo;
 
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -223,11 +222,11 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     static void addDefaultVariables(BlocklyController controller) {
         // TODO: (#22) Remove this override when variables are supported properly
-        controller.addVariable("item");
-        controller.addVariable("count");
-        controller.addVariable("marshmallow");
-        controller.addVariable("lollipop");
-        controller.addVariable("kitkat");
-        controller.addVariable("android");
+        controller.addVariable("item", true);
+        controller.addVariable("count", true);
+        controller.addVariable("marshmallow", true);
+        controller.addVariable("lollipop", true);
+        controller.addVariable("kitkat", true);
+        controller.addVariable("android", true);
     }
 }

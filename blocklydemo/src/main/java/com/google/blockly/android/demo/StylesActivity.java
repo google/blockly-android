@@ -72,10 +72,10 @@ public class StylesActivity extends AbstractBlocklyActivity {
     @Override
     protected void onInitBlankWorkspace() {
         // TODO: (#22) Remove this override when variables are supported properly
-        getController().addVariable("item");
-        getController().addVariable("leo");
-        getController().addVariable("don");
-        getController().addVariable("mike");
-        getController().addVariable("raf");
+        getController().addVariable("item", true);
+        getController().addVariable("leo", true);
+        getController().addVariable("don", true);
+        getController().addVariable("mike", true);
+        getController().addVariable("raf", true);
     }
 }

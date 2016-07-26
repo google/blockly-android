@@ -60,6 +60,8 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     };
 
+    MockVariableCallback mVariableCallback = new MockVariableCallback();
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -72,6 +74,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
                 .addBlockDefinitions(R.raw.test_blocks)
                 .build();
         mController.addCallback(mCallback);
+        mController.setVariableCallback(mVariableCallback);
         mBlockFactory = mController.getBlockFactory();
         mWorkspace = mController.getWorkspace();
         mConnectionManager = mController.getWorkspace().getConnectionManager();
@@ -999,7 +1002,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         testExtractBlockAsRoot_fromNext(true);
     }
 
-    public void testExtractBlockAsRoot_fromNext(boolean withViews) {
+    private void testExtractBlockAsRoot_fromNext(boolean withViews) {
         // Configure
         Block first = mBlockFactory.obtainBlock("statement_statement_input", "first block");
         Block second = mBlockFactory.obtainBlock("statement_statement_input", "second block");
@@ -1040,6 +1043,87 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    public void testVariableCallbacks() {
+        NameManager.VariableNameManager nameManager =
+                (NameManager.VariableNameManager) mController.getWorkspace()
+                        .getVariableNameManager();
+
+        assertNull(mVariableCallback.onCreateVariable);
+
+        // Calling addVariable without forcing and the callback blocking creation
+        mVariableCallback.whenOnCreateCalled = false;
+        mController.addVariable("var1", false);
+        assertEquals("var1", mVariableCallback.onCreateVariable);
+        assertEquals(0, nameManager.getUsedNames().size());
+
+        // Calling addVariable with forcing bypasses the callback
+        mVariableCallback.onCreateVariable = null;
+        mController.addVariable("var1", true);
+        assertNull(mVariableCallback.onCreateVariable);
+        assertTrue(nameManager.contains("var1"));
+
+        // Calling addVariable without forcing and the callback allows creation
+        mVariableCallback.reset();
+        mVariableCallback.whenOnCreateCalled = true;
+        mController.addVariable("var2", false);
+        assertEquals("var2", mVariableCallback.onCreateVariable);
+        assertTrue(nameManager.contains("var2"));
+
+        // Calling rename without forcing and the callback blocks it
+        mVariableCallback.whenOnRenameCalled = false;
+        mController.renameVariable("var1", "var3", false);
+        assertEquals("var1", mVariableCallback.onRenameVariable);
+        assertFalse(nameManager.contains("var3"));
+        assertTrue(nameManager.contains("var1"));
+
+        // Calling rename with forcing skips the callback
+        mVariableCallback.onRenameVariable = null;
+        mController.renameVariable("var1", "var3", true);
+        assertNull(mVariableCallback.onRenameVariable);
+        assertTrue(nameManager.contains("var3"));
+        assertFalse(nameManager.contains("var1"));
+
+        // Calling rename without forcing and the callback allows it
+        mVariableCallback.whenOnRenameCalled = true;
+        mController.renameVariable("var2", "var4", false);
+        assertEquals("var2", mVariableCallback.onRenameVariable);
+        assertTrue(nameManager.contains("var4"));
+        assertFalse(nameManager.contains("var2"));
+
+        // Calling delete without forcing and the callback blocks it
+        mVariableCallback.whenOnDeleteCalled = false;
+        mController.removeVariable("var3", false);
+        assertEquals("var3", mVariableCallback.onDeleteVariable);
+        assertTrue(nameManager.contains("var3"));
+
+        // Calling delete with forcing skips callback
+        mVariableCallback.onDeleteVariable = null;
+        mController.removeVariable("var3", true);
+        assertNull(mVariableCallback.onDeleteVariable);
+        assertFalse(nameManager.contains("var3"));
+
+        // Calling delete without forcing and callback allows it
+        mVariableCallback.whenOnDeleteCalled = true;
+        mController.removeVariable("var4", false);
+        assertEquals("var4", mVariableCallback.onDeleteVariable);
+        assertFalse(nameManager.contains("var4"));
+
+        // Verify that the entire sequence brought us back to having no variables
+        assertEquals(0, nameManager.size());
+    }
+
+    public void testRemoveVariable_singleBlock_headless() {
+        testRemoveVariable_singleBlock(false);
+    }
+
+    public void testRemoveVariable_singleBlock_withViews() {
+        testRemoveVariable_singleBlock(true);
+    }
+
+    private void testRemoveVariable_singleBlock(boolean withViews) {
+
+    }
+
     public void testLoadWorkspaceContents_andReset() {
         mController.initWorkspaceView(mWorkspaceView);
         assertEquals(0, mWorkspace.getRootBlocks().size());
@@ -1068,6 +1152,43 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         for (int i = 0; i < blocks.length; ++i) {
             ((TestableBlockGroup) mHelper.getRootBlockGroup(blocks[i]))
                     .setWorkspaceView(mWorkspaceView);
+        }
+    }
+
+    private static class MockVariableCallback extends BlocklyController.VariableCallback {
+        String onDeleteVariable = null;
+        String onCreateVariable = null;
+        String onRenameVariable = null;
+
+        boolean whenOnDeleteCalled = true;
+        boolean whenOnCreateCalled = true;
+        boolean whenOnRenameCalled = true;
+
+        @Override
+        public boolean onDeleteVariable(String variable) {
+            onDeleteVariable = variable;
+            return whenOnDeleteCalled;
+        }
+
+        @Override
+        public boolean onCreateVariable(String varName) {
+            onCreateVariable = varName;
+            return whenOnCreateCalled;
+        }
+
+        @Override
+        public boolean onRenameVariable(String variable, String newVariable) {
+            onRenameVariable = variable;
+            return whenOnRenameCalled;
+        }
+
+        public void reset() {
+            onDeleteVariable = null;
+            onCreateVariable = null;
+            onRenameVariable = null;
+            whenOnDeleteCalled = true;
+            whenOnCreateCalled = true;
+            whenOnRenameCalled = true;
         }
     }
 }

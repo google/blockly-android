@@ -108,16 +108,14 @@ public class Workspace {
      * Remove a block from the workspace.
      *
      * @param block The block block to remove, possibly with descendants attached.
+     * @param cleanupStats True if this block is being deleted and its connections and references
+     *                     should be removed.
      * @return True if the block was removed, false otherwise.
      */
-    public boolean removeRootBlock(Block block, boolean removeConnections) {
+    public boolean removeRootBlock(Block block, boolean cleanupStats) {
         boolean foundAndRemoved = mRootBlocks.remove(block);
-        if (foundAndRemoved && removeConnections) {
-            block.getAllConnectionsRecursive(mTempConnections);
-            for (int i = 0; i < mTempConnections.size(); ++i) {
-                mConnectionManager.removeConnection(mTempConnections.get(i));
-            }
-            mTempConnections.clear();
+        if (foundAndRemoved && cleanupStats) {
+            mStats.cleanupStats(block);
         }
         return foundAndRemoved;
     }
@@ -204,7 +202,7 @@ public class Workspace {
         }
         mController.resetWorkspace();
         for (int i = 0; i < vars.length; i++) {
-            mController.addVariable(vars[i]);
+            mController.addVariable(vars[i], true);
         }
 
         mRootBlocks.addAll(newBlocks);
@@ -235,6 +233,13 @@ public class Workspace {
     }
 
     /**
+     * @return The list of fields that are using the given variable.
+     */
+    public List<FieldVariable> getVariableRefs(String variable) {
+        return mStats.getVariableReferences().get(variable);
+    }
+
+    /**
      * Return the number of times a variable is referenced in this workspace.
      *
      * @param variable The variable to get a ref count for.
@@ -243,6 +248,28 @@ public class Workspace {
     public int getVariableRefCount(String variable) {
         List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
         return refs == null ? 0 : refs.size();
+    }
+
+    /**
+     * Gets all blocks that are using the specified variable.
+     *
+     * @param variable The variable to get blocks for.
+     * @param resultList An optional list to put the results in. This object will be returned if not
+     *                   null.
+     * @return A list of all blocks referencing the given variable.
+     */
+    public List<Block> getVariableBlocks(String variable, List<Block> resultList) {
+        List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
+        if (resultList == null) {
+            resultList = new ArrayList<>();
+        }
+        for (int i = 0; i < refs.size(); i++) {
+            Block block = refs.get(i).getBlock();
+            if (!resultList.contains(block)) {
+                resultList.add(block);
+            }
+        }
+        return resultList;
     }
 
     /**

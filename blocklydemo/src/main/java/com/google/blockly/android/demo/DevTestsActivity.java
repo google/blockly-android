@@ -239,9 +239,9 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     private void addDefaultVariables() {
         // TODO: (#22) Remove this override when variables are supported properly
         BlocklyController controller = getController();
-        controller.addVariable("item");
-        controller.addVariable("zim");
-        controller.addVariable("gir");
-        controller.addVariable("tak");
+        controller.addVariable("item", true);
+        controller.addVariable("zim", true);
+        controller.addVariable("gir", true);
+        controller.addVariable("tak", true);
     }
 }

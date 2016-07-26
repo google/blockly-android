@@ -285,6 +285,9 @@ public abstract class Input implements Cloneable {
         if (mConnection != null) {
             mConnection.setBlock(block);
         }
+        for (int i = 0; i < mFields.size(); i++) {
+            mFields.get(i).setBlock(block);
+        }
     }
 
     /**

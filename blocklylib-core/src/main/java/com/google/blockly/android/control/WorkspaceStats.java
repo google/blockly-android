@@ -59,6 +59,7 @@ public class WorkspaceStats {
             list.add(field);
         }
     };
+    private final List<Connection> mTempConnecitons = new ArrayList<>();
 
     public WorkspaceStats(NameManager variableManager, ProcedureManager procedureManager,
                           ConnectionManager connectionManager) {
@@ -135,8 +136,35 @@ public class WorkspaceStats {
         mConnectionManager.clear();
     }
 
-    public void removeConnection(Connection conn, boolean recursive) {
-        // TODO(fenichel): Implement in next CL.
+    /**
+     * Remove all the stats associated with this block and its descendents. This will remove all
+     * connections from the ConnectionManager and dereference any variables in the tree.
+     *
+     * @param block The starting block to cleanup stats for.
+     */
+    public void cleanupStats(Block block) {
+        block.getAllConnections(mTempConnecitons);
+        for (int i = 0; i < mTempConnecitons.size(); i++) {
+            mConnectionManager.removeConnection(mTempConnecitons.get(i));
+        }
+        mTempConnecitons.clear();
+        List<Input> inputs = block.getInputs();
+        for (int i = 0; i < inputs.size(); i++) {
+            Input input = inputs.get(i);
+            List<Field> fields = input.getFields();
+            for (int j = 0; j < fields.size(); j++) {
+                Field field = fields.get(j);
+                if (field instanceof FieldVariable) {
+                    mVariableReferences.get(((FieldVariable)field).getVariable()).remove(field);
+                }
+            }
+            if (input.getConnection() != null && input.getConnection().getTargetBlock() != null) {
+                cleanupStats(input.getConnection().getTargetBlock());
+            }
+        }
+        if (block.getNextBlock() != null) {
+            cleanupStats(block.getNextBlock());
+        }
     }
 
     private void addConnection(Connection conn, boolean recursive) {
