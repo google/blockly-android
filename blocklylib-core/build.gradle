@@ -15,11 +15,6 @@ android {
         release {
             minifyEnabled false
         }
-        debug {
-            // To generate code coverage run './gradlew connectedCheck'.
-            // Coverage report at blocklylib/build/reports/coverage/debug/index.html
-            testCoverageEnabled true
-        }
     }
 
     packagingOptions {
