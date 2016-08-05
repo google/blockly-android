@@ -16,6 +16,7 @@
 package com.google.blockly.android;
 
 import android.content.Context;
+import android.os.Looper;
 import android.test.AndroidTestCase;
 import android.view.ContextThemeWrapper;
 
@@ -33,6 +34,14 @@ public class MockitoAndroidTestCase extends AndroidTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+
+        // Espresso support requires AndroidJUnitRunner, and that doesn't run tests on in the main
+        // thread (and thus, not in a Looper).  Adding a Looper allows normal unit tests to run
+        // correctly.
+        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
+
         mThemeContext = new ContextThemeWrapper(getContext(), R.style.BlocklyVerticalTheme);
         // To solve some issue with Dexmaker.  This allows us to use mockito.
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
