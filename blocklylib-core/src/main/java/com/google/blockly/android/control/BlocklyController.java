@@ -207,7 +207,7 @@ public class BlocklyController {
                     if (request == VariableRequestCallback.REQUEST_RENAME) {
                         requestRenameVariable(variable, variable);
                     } else if (request == VariableRequestCallback.REQUEST_DELETE) {
-                        requestRemoveVariable(variable);
+                        requestDeleteVariable(variable);
                     }
                 }
             });
@@ -617,38 +617,38 @@ public class BlocklyController {
     }
 
     /**
-     * Remove a variable from the workspace and all blocks using that variable.
+     * Delete a variable from the workspace and remove all blocks using that variable.
      *
-     * @param variable The variable to remove.
+     * @param variable The variable to delete.
      *
-     * @return True if the variable existed and was removed, false otherwise.
+     * @return True if the variable existed and was deleted, false otherwise.
      */
-    public boolean removeVariable(String variable) {
+    public boolean deleteVariable(String variable) {
         checkPendingEventsEmpty();
-        boolean result = removeVariableImpl(variable, true);
+        boolean result = deleteVariableImpl(variable, true);
         firePendingEvents();
         return result;
     }
 
     /**
-     * Attempt to remove a variable from the workspace. If a {@link VariableCallback} is set
-     * {@link VariableCallback#onRemoveVariable(String)} will be called to check if removal is
+     * Attempt to delete a variable from the workspace. If a {@link VariableCallback} is set
+     * {@link VariableCallback#onDeleteVariable(String)} will be called to check if deletion is
      * allowed.
      *
-     * @param variable The variable to remove.
-     * @return True if the variable existed and was removed, false otherwise.
+     * @param variable The variable to delete.
+     * @return True if the variable existed and was deleted, false otherwise.
      */
-    public boolean requestRemoveVariable(String variable) {
+    public boolean requestDeleteVariable(String variable) {
         checkPendingEventsEmpty();
-        boolean result = removeVariableImpl(variable, false);
+        boolean result = deleteVariableImpl(variable, false);
         firePendingEvents();
         return result;
     }
 
     /**
-     * Renames a variable in the workspace. If a variable already exists with the new name it will
-     * be modified to be unique. All fields that reference the renamed variable will be updated to
-     * the new name.
+     * Renames a variable in the workspace. If a variable already exists with the new name the
+     * renamed variable will be modified to be unique. All fields that reference the renamed
+     * variable will be updated to the new name.
      *
      * @param variable The variable to rename.
      * @param newVariable The new name for the variable.
@@ -665,7 +665,8 @@ public class BlocklyController {
     /**
      * Renames a variable in the workspace. If a {@link VariableCallback} is set
      * {@link VariableCallback#onRenameVariable(String, String)} will be called before renaming. If
-     * a variable already exists with the new name it will be modified to be unique.
+     * a variable already exists with the new name the renamed variable will be modified to be
+     * unique.
      *
      * @param variable The variable to rename.
      * @param newVariable The new name for the variable.
@@ -968,15 +969,15 @@ public class BlocklyController {
     }
 
     /**
-     * Implements {@link #removeVariable(String)}, without firing events.
+     * Implements {@link #deleteVariable(String)}, without firing events.
      *
      * @param variable The variable to remove.
      * @param forced True to force removal even if there's a callback to delegate the action to.
      * @return True if the variable was removed, false otherwise.
      */
-    private boolean removeVariableImpl(String variable, boolean forced) {
+    private boolean deleteVariableImpl(String variable, boolean forced) {
         if (!forced && mVariableCallback != null) {
-            if (!mVariableCallback.onRemoveVariable(variable)) {
+            if (!mVariableCallback.onDeleteVariable(variable)) {
                 return false;
             }
         }
@@ -1023,7 +1024,7 @@ public class BlocklyController {
             }
         }
 
-        removeVariableImpl(variable, true);
+        deleteVariableImpl(variable, true);
         return newVariable;
     }
 
@@ -1870,7 +1871,7 @@ public class BlocklyController {
          * @param variable The variable being deleted.
          * @return True to allow the delete, false to prevent it.
          */
-        public boolean onRemoveVariable(String variable) {
+        public boolean onDeleteVariable(String variable) {
             return true;
         }
 

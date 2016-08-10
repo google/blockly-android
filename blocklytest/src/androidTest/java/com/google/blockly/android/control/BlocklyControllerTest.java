@@ -15,9 +15,6 @@
 
 package com.google.blockly.android.control;
 
-import android.view.View;
-import android.view.ViewGroup;
-
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.R;
 import com.google.blockly.android.testui.TestableBlockGroup;
@@ -28,7 +25,6 @@ import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
-import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTestStrings;
@@ -1116,19 +1112,19 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
         // Calling delete without forcing and the callback blocks it
         mVariableCallback.whenOnDeleteCalled = false;
-        mController.requestRemoveVariable("var3");
+        mController.requestDeleteVariable("var3");
         assertEquals("var3", mVariableCallback.onDeleteVariable);
         assertTrue(nameManager.contains("var3"));
 
         // Calling delete with forcing skips callback
         mVariableCallback.onDeleteVariable = null;
-        mController.removeVariable("var3");
+        mController.deleteVariable("var3");
         assertNull(mVariableCallback.onDeleteVariable);
         assertFalse(nameManager.contains("var3"));
 
         // Calling delete without forcing and callback allows it
         mVariableCallback.whenOnDeleteCalled = true;
-        mController.requestRemoveVariable("var4");
+        mController.requestDeleteVariable("var4");
         assertEquals("var4", mVariableCallback.onDeleteVariable);
         assertFalse(nameManager.contains("var4"));
 
@@ -1206,7 +1202,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
         mVariableCallback.whenOnDeleteCalled = true;
         mVariableCallback.onDeleteVariable = null;
-        mController.requestRemoveVariable("var1");
+        mController.requestDeleteVariable("var1");
 
         assertEquals("var1", mVariableCallback.onDeleteVariable);
         assertEquals(1, rootBlocks.size());
@@ -1264,7 +1260,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         boolean whenOnRenameCalled = true;
 
         @Override
-        public boolean onRemoveVariable(String variable) {
+        public boolean onDeleteVariable(String variable) {
             onDeleteVariable = variable;
             return whenOnDeleteCalled;
         }

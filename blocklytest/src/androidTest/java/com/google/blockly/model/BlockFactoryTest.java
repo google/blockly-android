@@ -30,7 +30,7 @@ public class BlockFactoryTest extends AndroidTestCase {
     public void testLoadBlocks() {
         BlockFactory bf = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
         List<Block> blocks = bf.getAllBlocks();
-        assertEquals("BlockFactory failed to load all blocks.", 18, blocks.size());
+        assertEquals("BlockFactory failed to load all blocks.", 20, blocks.size());
     }
 
     public void testObtainBlock() {
