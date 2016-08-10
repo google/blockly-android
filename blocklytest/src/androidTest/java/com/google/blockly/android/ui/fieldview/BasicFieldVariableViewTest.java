@@ -23,7 +23,6 @@ import android.support.annotation.NonNull;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.control.NameManager;
-import com.google.blockly.android.ui.VariableViewAdapter;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldVariable;
 
@@ -51,7 +50,7 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
     private FieldVariable mFieldVariable;
     private String[] mVariables = new String[] {"var1", "var2", "var3"};
     private NameManager mNameManager;
-    private VariableViewAdapter mVariableAdapter;
+    private BasicFieldVariableView.VariableViewAdapter mVariableAdapter;
 
     private Context mMockContext;
     private HandlerThread mThread;
@@ -78,7 +77,7 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
         mNameManager.addName(mFieldVariable.getVariable());
         mNameManager.addName("var3");
 
-        mVariableAdapter = new VariableViewAdapter(getContext(), mNameManager,
+        mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(getContext(), mNameManager,
                 android.R.layout.simple_spinner_item);
     }
 
@@ -93,7 +92,7 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
         }, TIMEOUT);
 
         assertSame(mFieldVariable, view[0].getField());
-        assertEquals(mVariables.length, view[0].getCount());
+        assertEquals(mVariables.length + 2, view[0].getCount());
         assertEquals(mFieldVariable.getVariable(), (String) (view[0].getSelectedItem()));
     }
 

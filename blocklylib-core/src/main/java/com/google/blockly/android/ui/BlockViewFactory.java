@@ -36,6 +36,7 @@ import com.google.blockly.android.ui.fieldview.BasicFieldLabelView;
 import com.google.blockly.android.ui.fieldview.BasicFieldNumberView;
 import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
+import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldAngle;
@@ -69,10 +70,24 @@ import java.util.Map;
  */
 public abstract class BlockViewFactory<BlockView extends com.google.blockly.android.ui.BlockView,
                                        InputView extends com.google.blockly.android.ui.InputView> {
+    /**
+     * Context for creating or loading views.
+     */
     protected Context mContext;
+    /**
+     * Helper for doing conversions and style lookups.
+     */
     protected WorkspaceHelper mHelper;
+    /**
+     * Name manager for the list of variables in this instance of Blockly.
+     */
     protected NameManager mVariableNameManager;
-    protected SpinnerAdapter mVariableAdapter;
+    /**
+     * The callback to use for views that can request changes to the list of variables.
+     */
+    protected VariableRequestCallback mVariableCallback;
+
+    private SpinnerAdapter mVariableAdapter;
 
     // TODO(#137): Move to ViewPool class.
     protected final Map<String,WeakReference<BlockView>> mBlockIdToView
@@ -83,6 +98,15 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         mHelper = helper;
 
         helper.setBlockViewFactory(this);
+    }
+
+    /**
+     * Sets the callback to use for variable view events, such as the user selected delete/rename.
+     *
+     * @param callback The callback to set on variable field views.
+     */
+    public void setVariableRequestCallback(VariableRequestCallback callback) {
+        mVariableCallback = callback;
     }
 
     public WorkspaceHelper getWorkspaceHelper() {
@@ -234,6 +258,16 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
 
     /**
      * Build and populate the {@link FieldView} for {@code field}.
+     * <p>
+     * Note: Variables need some extra setup when they are created by a custom
+     * ViewFactory.
+     * <ul>
+     *     <li>If they use an adapter to display the list of variables it must be set.</li>
+     *     <li>If they have delete/rename/create options they must have a
+     *     {@link VariableRequestCallback} set on them. {@link #mVariableCallback} may be used for
+     *     this purpose.</li>
+     * </ul>
+     *
      *
      * @param field The {@link Field} to build a view for.
      * @return The new {@link FieldView}.
@@ -285,6 +319,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                 BasicFieldVariableView fieldVariableView = new BasicFieldVariableView(mContext);
                 fieldVariableView.setAdapter(getVariableAdapter());
                 fieldVariableView.setField((FieldVariable) field);
+                fieldVariableView.setVariableRequestCallback(mVariableCallback);
                 return fieldVariableView;
             }
             case Field.TYPE_NUMBER: {
@@ -305,7 +340,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                     + "instantiated.");
         }
         if (mVariableAdapter == null) {
-            mVariableAdapter = new VariableViewAdapter(mContext, mVariableNameManager,
+            mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(mContext, mVariableNameManager,
                     android.R.layout.simple_spinner_item);
         }
         return mVariableAdapter;

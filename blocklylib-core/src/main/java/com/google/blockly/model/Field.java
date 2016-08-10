@@ -66,6 +66,7 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
 
     private final String mName;
     private final int mType;
+    private Block mBlock;
 
     public Field(String name, @FieldType int type) {
         mName = name;
@@ -110,6 +111,13 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     }
 
     /**
+     * @return The parent block for this field.
+     */
+    public Block getBlock() {
+        return mBlock;
+    }
+
+    /**
      * Sets the values of the field from a string.
      * <p/>
      * This is used for setting values of all types of fields when loading a workspace from XML. It
@@ -128,6 +136,15 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
      * @return The value serialized into a string.
      */
     public abstract String getSerializedValue();
+
+    /**
+     * Sets the parent block for this field. Should only be used during block intialization.
+     *
+     * @param block The parent block for this field.
+     */
+    protected void setBlock(Block block) {
+        mBlock = block;
+    }
 
     /**
      * Checks if the given type name is a known field type.
