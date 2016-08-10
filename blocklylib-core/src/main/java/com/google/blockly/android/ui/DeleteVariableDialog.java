@@ -27,7 +27,7 @@ public class DeleteVariableDialog extends DialogFragment {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mController.removeVariable(mVariable);
+                        mController.deleteVariable(mVariable);
                     }
                 });
         return bob.create();

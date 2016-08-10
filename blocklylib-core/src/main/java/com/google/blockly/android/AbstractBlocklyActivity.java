@@ -843,7 +843,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         }
 
         @Override
-        public boolean onRemoveVariable(String variable) {
+        public boolean onDeleteVariable(String variable) {
             BlocklyController controller = getController();
             if (!controller.isVariableInUse(variable)) {
                 return true;
