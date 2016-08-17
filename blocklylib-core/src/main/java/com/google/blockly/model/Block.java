@@ -1057,6 +1057,10 @@ public class Block {
                             throw new BlocklyParserException(
                                     "Created a null block. This should never happen.");
                         }
+                        if (containsVariableField(resultBlock.mInputList)) {
+                            throw new IllegalArgumentException(
+                                    "Shadow blocks cannot contain variable fields.");
+                        }
                         resultBlock.mIsShadow = true;
                         return resultBlock;
                     }else if (tagname.equalsIgnoreCase("field")) {
@@ -1150,6 +1154,23 @@ public class Block {
         // Should never reach here, since this is called from a workspace fromXml function.
         throw new BlocklyParserException(
                 "Reached the end of Block.fromXml. This should never happen.");
+    }
+
+    private static boolean containsVariableField(ArrayList<Input> mInputs) {
+        // Verify there's not a variable field
+        int inputCount = mInputs.size();
+        for (int i = 0; i < inputCount; i++) {
+            Input in = mInputs.get(i);
+            List<Field> fields = in.getFields();
+            int fieldCount = fields.size();
+            for (int j = 0; j < fieldCount; j++) {
+                Field f = fields.get(j);
+                if (f.getType() == Field.TYPE_VARIABLE) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static class Builder {
@@ -1337,6 +1358,9 @@ public class Block {
         }
 
         public Block build() {
+            if (mIsShadow && containsVariableField(mInputs)) {
+                throw new IllegalArgumentException("Shadow blocks cannot contain variables");
+            }
             Block b = new Block(mUuid, mType, mCategory, mColor, mOutputConnection, mNextConnection,
                     mPreviousConnection, mInputs, mInputsInline, mInputsInlineModified);
             b.mTooltip = mTooltip;
@@ -1352,6 +1376,7 @@ public class Block {
 
             return b;
         }
+
     }
 
 }

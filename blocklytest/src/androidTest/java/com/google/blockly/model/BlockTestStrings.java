@@ -96,8 +96,8 @@ public class BlockTestStrings {
             + "<field name=\"text_input\">item</field>"
             + "</block>";
     public static final String SIMPLE_SHADOW =
-            "<shadow type=\"frankenblock\" id=\"SIMPLE_BLOCK\" x=\"37\" y=\"13\">"
-            + "<field name=\"text_input\">item</field>"
+            "<shadow type=\"math_number\" id=\"SIMPLE_BLOCK\" x=\"37\" y=\"13\">"
+            + "<field name=\"NUM\">42</field>"
             + "</shadow>";
     public static final String SIMPLE_BLOCK_INLINE_END =
             "<block type=\"frankenblock\" id=\"INLINE_END\" x=\"37\" y=\"13\" inline=\"true\">"
@@ -157,6 +157,9 @@ public class BlockTestStrings {
     public static final String VALUE_SHADOW = "<value name=\"value_input\">" +
             "<shadow type=\"output_foo\" id=\"VALUE_GOOD\" />" +
             "</value>";
+    public static final String VALUE_SHADOW_VARIABLE = "<value name=\"value_input\">" +
+            "<shadow type=\"get_variable\" id=\"VALUE_VARIABLE\" />" +
+            "</value>";
     public static final String VALUE_SHADOW_GOOD = "<value name=\"value_input\">" +
             "<shadow type=\"output_foo\" id=\"VALUE_SHADOW\" />" +
             "<block type=\"output_foo\" id=\"VALUE_REAL\" />" +
@@ -194,11 +197,11 @@ public class BlockTestStrings {
             "      </block>" +
             "    </statement>";
     public static final String STATEMENT_SHADOW = "<statement name=\"NAME\">" +
-            "<shadow type=\"frankenblock\" id=\"STATEMENT_SHADOW\">" +
+            "<shadow type=\"statement_value_input\" id=\"STATEMENT_SHADOW\">" +
             "</shadow>" +
             "</statement>";
     public static final String STATEMENT_SHADOW_GOOD = "<statement name=\"NAME\">" +
-            "<shadow type=\"frankenblock\" id=\"STATEMENT_SHADOW\">" +
+            "<shadow type=\"statement_value_input\" id=\"STATEMENT_SHADOW\">" +
             "</shadow>" +
             "<block type=\"frankenblock\" id=\"STATEMENT_REAL\">" +
             "</block>" +
