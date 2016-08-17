@@ -224,7 +224,7 @@ public class BlockTest extends AndroidTestCase {
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
 
         Block loaded = parseShadowFromXml(BlockTestStrings.SIMPLE_SHADOW, bf);
-        assertEquals("frankenblock", loaded.getType());
+        assertEquals("math_number", loaded.getType());
         assertEquals(new WorkspacePoint(37, 13), loaded.getPosition());
         assertTrue(loaded.isShadow());
 
@@ -279,6 +279,15 @@ public class BlockTest extends AndroidTestCase {
         conn = shadow1.getOnlyValueInput().getConnection();
         assertEquals("BLOCK_INNER", conn.getTargetBlock().getId());
         assertEquals("SHADOW2", conn.getShadowBlock().getId());
+
+        // Verify a block with a variable cannot be turned into a shadow block
+        try {
+            loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "7",
+                    BlockTestStrings.VALUE_SHADOW_VARIABLE), bf);
+            fail("Shadow blocks may not contain variables.");
+        } catch (IllegalArgumentException e) {
+            // Expected
+        }
     }
 
     public void testSerializeBlock() throws BlocklySerializerException, IOException {
