@@ -236,7 +236,12 @@ public class Workspace {
      * @return The list of fields that are using the given variable.
      */
     public List<FieldVariable> getVariableRefs(String variable) {
-        return mStats.getVariableReferences().get(variable);
+        List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
+        List<FieldVariable> copy = new ArrayList<>(refs == null ? 0 : refs.size());
+        if (refs != null) {
+            copy.addAll(refs);
+        }
+        return copy;
     }
 
     /**

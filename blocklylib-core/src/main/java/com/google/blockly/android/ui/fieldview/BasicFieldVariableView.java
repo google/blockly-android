@@ -22,6 +22,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
@@ -42,7 +43,7 @@ public class BasicFieldVariableView extends Spinner implements FieldView, Variab
     protected FieldVariable.Observer mFieldObserver = new FieldVariable.Observer() {
         @Override
         public void onVariableChanged(FieldVariable field, String oldVar, String newVar) {
-            setSelection(mVariableField.getVariable());
+            refreshSelection();
         }
     };
 
@@ -86,7 +87,7 @@ public class BasicFieldVariableView extends Spinner implements FieldView, Variab
         mVariableField = variableField;
         if (mVariableField != null) {
             // Update immediately.
-            setSelection(mVariableField.getVariable());
+            refreshSelection();
             mVariableField.registerObserver(mFieldObserver);
         } else {
             setSelection(0);
@@ -139,13 +140,13 @@ public class BasicFieldVariableView extends Spinner implements FieldView, Variab
 
         if (adapter != null) {
             if (mVariableField != null) {
-                setSelection(mVariableField.getVariable());
+                refreshSelection();
             }
             mAdapter.registerDataSetObserver(new DataSetObserver() {
                 @Override
                 public void onChanged() {
                     if (mVariableField != null) {
-                        setSelection(mVariableField.getVariable());
+                        refreshSelection();
                     }
                 }
             });
@@ -163,22 +164,20 @@ public class BasicFieldVariableView extends Spinner implements FieldView, Variab
     }
 
     /**
-     * Set the selection from a variable name, ignoring case. The variable must be a variable in
-     * the workspace.
-     *
-     * @param variableName The name of the variable, ignoring case.
+     * Updates the selection from the field. This is used when the indices may have changed to
+     * ensure the correct index is selected.
      */
-    private void setSelection(final String variableName) {
-        if (TextUtils.isEmpty(variableName)) {
-            throw new IllegalArgumentException("Cannot set an empty variable name.");
-        }
+    private void refreshSelection() {
         if (mAdapter != null) {
             // Because this may change the available indices, we want to make sure each assignment
             // is in its own event tick.
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    setSelection(mAdapter.getOrCreateVariableIndex(variableName));
+                    if (mVariableField != null) {
+                        setSelection(mAdapter
+                                .getOrCreateVariableIndex(mVariableField.getVariable()));
+                    }
                 }
             });
         }

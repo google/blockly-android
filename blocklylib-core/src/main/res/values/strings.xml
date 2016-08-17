@@ -31,4 +31,10 @@
     <string name="delete_variable_confirm">Delete variable %1$s and %2$d blocks using it?</string>
     <string name="delete_variable_positive">Delete</string>
     <string name="delete_variable_negative">Cancel</string>
+    <!-- Message shown when creating or renaming a variable. -->
+    <string name="name_variable_title">Variable name</string>
+    <string name="name_variable_message">New variable name</string>
+    <string name="name_variable_positive">OK</string>
+    <string name="name_variable_negative">Cancel</string>
+
 </resources>
