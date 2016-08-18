@@ -748,23 +748,6 @@ public class BlocklyController {
     }
 
     /**
-     * Removes the given block from its parent and reparents its next block if it has one to its
-     * former parent. Then removes the block from the model and unlinks all views.
-     * <p>
-     * This behaves similarly to {@link #removeBlockTree(Block)}, except it doesn't delete blocks
-     * that come after the given block in sequence, only blocks connected to its inputs.
-     *
-     * @param block The {@link Block} to look up and remove.
-     * @return True if the block was removed, false if it wasn't found.
-     */
-    public boolean removeBlockAndInputBlocks(Block block) {
-        checkPendingEventsEmpty();
-        boolean result = removeBlockAndInputBlocksImpl(block);
-        firePendingEvents();
-        return result;
-    }
-
-    /**
      * Remove a block and its descendants from the workspace and put it in the trash.  If the block
      * was not a root block of the workspace, do nothing and returns false.
      *
@@ -1041,10 +1024,23 @@ public class BlocklyController {
     }
 
     /**
-     * Implements {@link #removeBlockAndInputBlocks(Block)} without firing events, so it may be
-     * called from other methods.
+     * Removes the given block from its parent and reparents its next block if it has one to its
+     * former parent. Then removes the block from the model and unlinks all views.
+     * <p>
+     * This behaves similarly to {@link #removeBlockTree(Block)}, except it doesn't delete blocks
+     * that come after the given block in sequence, only blocks connected to its inputs.
+     * <p>
+     * The following event may be added to the pending events:
+     * <ol>
+     *    <li>A move of the block to the workspace if it is not already a root block
+     *        (via {@link #extractBlockAsRootImpl}).</li>
+     *    <li>A move of the next block if a next block exists
+     *        (via {@link #extractBlockAsRootImpl}).</li>
+     *    <li>a delete event for the block if found.</li>
+     * </ol>
      *
      * @param block The {@link Block} to look up and remove.
+     * @return True if the block was removed, false if it wasn't found.
      */
     private boolean removeBlockAndInputBlocksImpl(Block block) {
         extractBlockAsRootImpl(block, true);
