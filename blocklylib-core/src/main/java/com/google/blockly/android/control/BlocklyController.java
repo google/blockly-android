@@ -503,11 +503,10 @@ public class BlocklyController {
         if (block.getParentBlock() != null) {
             throw new IllegalArgumentException("New root block must not be connected.");
         }
-        checkPendingEventsEmpty();
 
         BlockGroup parentGroup = mHelper.getParentBlockGroup(block);
         BlockGroup newRootGroup =
-                addRootBlock(block, parentGroup, /* is new BlockView? */ parentGroup == null);
+                addRootBlockImpl(block, parentGroup, /* is new BlockView? */ parentGroup == null);
 
         firePendingEvents();
         return newRootGroup;
@@ -739,11 +738,7 @@ public class BlocklyController {
      */
     public void removeBlockTree(Block block) {
         checkPendingEventsEmpty();
-
-        extractBlockAsRoot(block);
-        removeRootBlock(block, true);
-        unlinkViews(block);
-        addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace(), block));
+        removeBlockTreeImpl(block);
         firePendingEvents();
     }
 
@@ -757,8 +752,22 @@ public class BlocklyController {
     // TODO(#56) Make this handle any block, not just root blocks.
     public boolean trashRootBlock(Block block) {
         checkPendingEventsEmpty();
+        boolean rootFoundAndRemoved = trashRootBlockImpl(block);
+        firePendingEvents(); // May not have any events to fire if block was not found.
+        return rootFoundAndRemoved;
+    }
 
-        boolean rootFoundAndRemoved = removeRootBlock(block, true);
+    /**
+     * Implements {@link #trashRootBlock(Block)}. The following events may be added to the
+     * pending events:
+     * <ol>
+     *    <li>A delete of the block from the workspace.</li>
+     * </ol>
+     *
+     * @param block {@link Block} to delete from the workspace.
+     */
+    private boolean trashRootBlockImpl(Block block) {
+        boolean rootFoundAndRemoved = removeRootBlockImpl(block, true);
         if (rootFoundAndRemoved) {
             mWorkspace.addBlockToTrash(block);
             unlinkViews(block);
@@ -771,15 +780,16 @@ public class BlocklyController {
                 addPendingEvent(new BlocklyEvent.DeleteEvent(mWorkspace, block));
             }
         }
-        firePendingEvents();
 
         return rootFoundAndRemoved;
     }
-
     /**
      * Moves a block (and the child blocks connected to it) from the trashed blocks (removing it
      * from the deleted blocks list), back to the workspace as a root block, including the
      * BlockGroup and other views in the TrashFragment.
+     *
+     * This method does not connect the block to existing blocks, even if the block was connected
+     * before putting it in the trash.
      *
      * @param previouslyTrashedBlock The block in the trash to be moved back to the workspace.
      * @return The BlockGroup in the Workspace for the moved block.
@@ -787,6 +797,22 @@ public class BlocklyController {
      * @throws IllegalArgumentException If {@code trashedBlock} is not found in the trashed blocks.
      */
     public BlockGroup addBlockFromTrash(@NonNull Block previouslyTrashedBlock) {
+        checkPendingEventsEmpty();
+        BlockGroup trashedGroupRoot = addBlockFromTrashImpl(previouslyTrashedBlock);
+        firePendingEvents();  // May not have any events to fire if block was not found in the trash
+        return trashedGroupRoot;
+    }
+
+    /**
+     * Implements {@link #addBlockFromTrash(Block)}. The following events may be added to the
+     * pending events:
+     * <ol>
+     *    <li>A create event for adding the block back into the workspace.</li>
+     * </ol>
+     *
+     * @param previouslyTrashedBlock {@link Block} to add back to the workspace from the trash.
+     */
+    private BlockGroup addBlockFromTrashImpl(@NonNull Block previouslyTrashedBlock) {
         checkPendingEventsEmpty();
 
         BlockGroup bg = mHelper.getParentBlockGroup(previouslyTrashedBlock);
@@ -811,7 +837,6 @@ public class BlocklyController {
         }
         if (hasCallback(BlocklyEvent.TYPE_CREATE)) {
             addPendingEvent(new BlocklyEvent.CreateEvent(mWorkspace, previouslyTrashedBlock));
-            firePendingEvents();
         }
         return bg;
     }
@@ -906,17 +931,20 @@ public class BlocklyController {
      * <p/>
      * If {@code isNewBlock} is {@code true}, the system will collect stats about the connections,
      * functions and variables. This should only be {@code  false} if re-adding a moodel previously
-     * removed via {@link #removeRootBlock(Block, boolean)} where {@code cleanupStats} was also
+     * removed via {@link #removeRootBlockImpl(Block, boolean)} where {@code cleanupStats} was also
      * {@code false}.
      * <p/>
-     * This method will add a create event if the block is new ({@code isNewBlock}).
+     * The following event may be added to the pending events:
+     * <ol>
+     *    <li>a create event if the block is new ({@code isNewBlock}).</li>
+     * </ol>
      *
      * @param block The {@link Block} to add to the workspace.
      * @param bg The {@link BlockGroup} with block as the first {@link BlockView}.
      * @param isNewBlock Whether the block is new to the {@link Workspace} and the workspace should
      *                   collect stats for this tree.
      */
-    private BlockGroup addRootBlock(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
+    private BlockGroup addRootBlockImpl(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
         mWorkspace.addRootBlock(block, isNewBlock);
         if (mWorkspaceView != null) {
             if (bg == null) {
@@ -976,7 +1004,11 @@ public class BlocklyController {
     }
 
     /**
-     * Implements {@link #renameVariable(String, String)}, without firing events.
+     * Implements {@link #renameVariable(String, String)}.  The following events may be added to the
+     * pending events:
+     * <ol>
+     *    <li>a change event for each variable field referencing the variable.</li>
+     * </ol>
      *
      * @param variable The variable to rename.
      * @param newVariable The new name for the variable.
@@ -1000,10 +1032,10 @@ public class BlocklyController {
             for (int i = 0; i < count; i++) {
                 FieldVariable field = varRefs.get(i);
                 field.setVariable(newVariable);
-                BlocklyEvent.ChangeEvent event = BlocklyEvent.ChangeEvent
+                BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
                         .newFieldValueEvent(getWorkspace(), field.getBlock(), field,
                                 variable, newVariable);
-                addPendingEvent(event);
+                addPendingEvent(change);
             }
         }
 
@@ -1012,15 +1044,20 @@ public class BlocklyController {
     }
 
     /**
-     * Implements {@link #removeBlockTree(Block)}, without firing events. so it may be called from
-     * other methods.
+     * Implements {@link #removeBlockTree(Block)}. The following event may be added to the
+     * pending events:
+     * <ol>
+     *    <li>a delete event for the block if found.</li>
+     * </ol>
      *
      * @param block The {@link Block} to look up and remove.
      */
     private void removeBlockTreeImpl(Block block) {
         extractBlockAsRootImpl(block, false);
-        removeRootBlock(block, true);
-        unlinkViews(block);
+        if (removeRootBlockImpl(block, true)) {
+            unlinkViews(block);
+            addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace(), block));
+        }
     }
 
     /**
@@ -1044,7 +1081,7 @@ public class BlocklyController {
      */
     private boolean removeBlockAndInputBlocksImpl(Block block) {
         extractBlockAsRootImpl(block, true);
-        boolean result = removeRootBlock(block, true);
+        boolean result = removeRootBlockImpl(block, true);
         unlinkViews(block);
         if (result) {
             addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace(), block));
@@ -1065,7 +1102,7 @@ public class BlocklyController {
      * @param block The {@link Block} to look up and remove.
      * @param cleanupStats Removes connection info and other stats.
      */
-    private boolean removeRootBlock(Block block, boolean cleanupStats) {
+    private boolean removeRootBlockImpl(Block block, boolean cleanupStats) {
         boolean rootFoundAndRemoved = mWorkspace.removeRootBlock(block, cleanupStats);
         if (rootFoundAndRemoved) {
             BlockView bv = mHelper.getView(block);
@@ -1092,7 +1129,7 @@ public class BlocklyController {
      * to.  Must be on a statement input.
      * @param toConnect The {@link Block} to connect to the statement input.
      */
-    private void connectToStatement(Connection parentStatementConnection, Block toConnect) {
+    private void connectToStatementImpl(Connection parentStatementConnection, Block toConnect) {
         // Store the state of toConnect in its original location.
         // TODO: (#342) move the event up to the impl method
         BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(mWorkspace, toConnect);
@@ -1103,8 +1140,7 @@ public class BlocklyController {
         if (remainderBlock != null) {
             if (remainderBlock.isShadow()) {
                 // If it was a shadow just remove it
-                removeBlockTree(remainderBlock);
-                addPendingEvent(new BlocklyEvent.DeleteEvent(mWorkspace, remainderBlock));
+                removeBlockTreeImpl(remainderBlock);
                 remainderBlock = null;
             } else {
                 // Store the original location of the remainder.
@@ -1133,7 +1169,7 @@ public class BlocklyController {
             // If lastBlock doesn't have a next bump instead.
             if (lastBlock.getNextConnection() == null) {
                 // Nothing to connect to.  Bump and add to root.
-                addRootBlock(remainderBlock, mHelper.getParentBlockGroup(remainderBlock), false);
+                addRootBlockImpl(remainderBlock, mHelper.getParentBlockGroup(remainderBlock), false);
 
                 bumpBlockImpl(parentStatementConnection, remainderBlock.getPreviousConnection());
             } else {
@@ -1191,7 +1227,7 @@ public class BlocklyController {
             Block lastBlock = inferior.getLastBlockInSequence();
             if (lastBlock.getNextConnection() == null) {
                 // Nothing to connect to.  Bump and add to root.
-                addRootBlock(remainderBlock, remainderGroup, false);
+                addRootBlockImpl(remainderBlock, remainderGroup, false);
                 bumpBlockImpl(inferior.getPreviousConnection(),
                         remainderBlock.getPreviousConnection());
             } else {
@@ -1249,7 +1285,7 @@ public class BlocklyController {
             previousTargetConnection = parentConn.getTargetConnection();
             // If there was a shadow block here delete it from the hierarchy and forget about it.
             if (previousTargetConnection.getBlock().isShadow()) {
-                removeBlockTree(previousTargetConnection.getBlock());
+                removeBlockTreeImpl(previousTargetConnection.getBlock());
                 previousTargetConnection = null;
             } else {
                 // Otherwise just disconnect for now
@@ -1275,7 +1311,7 @@ public class BlocklyController {
                 // Bump and add back to root.
                 BlockGroup previousTargetGroup =
                         mHelper.getParentBlockGroup(previousTargetBlock);
-                addRootBlock(previousTargetBlock, previousTargetGroup, false);
+                addRootBlockImpl(previousTargetBlock, previousTargetGroup, false);
                 bumpBlockImpl(parentConn, previousTargetConnection);
             } else {
                 // Connect the previous part
@@ -1293,10 +1329,8 @@ public class BlocklyController {
     }
 
     /**
-     * Implements {@link #extractBlockAsRoot(Block)} without firing events, so it can be called from
-     * other local methods.
-     *
-     * The following events will be added to the pending events.
+     * Implements {@link #extractBlockAsRoot(Block)}. The following events will be added to the
+     * pending events:
      * <ol>
      *    <li>A move of the block to the workspace if it is not already a root block.</li>
      *    <li>A move of the next block if reattachNext is true and a next block exists.</li>
@@ -1309,11 +1343,13 @@ public class BlocklyController {
     private void extractBlockAsRootImpl(Block block, boolean reattachNext) {
         Block rootBlock = block.getRootBlock();
         if (block == rootBlock) {
-            if (reattachNext && block.getNextBlock() != null) {
-                extractBlockAsRootImpl(block.getNextBlock(), false);
+            Block nextBlock = block.getNextBlock();
+            if (reattachNext && nextBlock != null) {
+                extractBlockAsRootImpl(nextBlock, false);
             }
             return;
         }
+        // TODO: Document when this call valid but the root is not already part of the workspace.
         boolean isPartOfWorkspace = mWorkspace.isRootBlock(rootBlock);
         BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(getWorkspace(), block);
         BlocklyEvent.MoveEvent remainderEvent = null;
@@ -1357,7 +1393,7 @@ public class BlocklyController {
             if (remainderBlock != null && parentConnection
                     .canConnect(remainderBlock.getPreviousConnection())) {
                 if (parentConnection.getInput() != null) {
-                    connectToStatement(parentConnection, remainderBlock);
+                    connectToStatementImpl(parentConnection, remainderBlock);
                 } else {
                     connectAfter(parentConnection.getBlock(), remainderBlock);
                 }
@@ -1366,12 +1402,12 @@ public class BlocklyController {
                 Block shadowBlock = parentConnection.getShadowBlock();
                 // We add the shadow as a root and then connect it so we properly add all the
                 // connectors and views.
-                addRootBlock(shadowBlock, null, true);
+                addRootBlockImpl(shadowBlock, null, true);
                 connectImpl(parentConnection.getShadowConnection(), parentConnection);
             }
             // Add the remainder as a root block if it didn't get attached to anything
             if (remainderBlock != null && remainderBlock.getParentConnection() == null) {
-                addRootBlock(remainderBlock, remainderGroup, false);
+                addRootBlockImpl(remainderBlock, remainderGroup, false);
             }
         }
 
@@ -1380,7 +1416,7 @@ public class BlocklyController {
         }
         if (isPartOfWorkspace) {
             // Only add back to the workspace if the original tree is part of the workspace model.
-            addRootBlock(block, bg, false);
+            addRootBlockImpl(block, bg, false);
         }
 
         // Add pending events. Order is important to prevent side effects. Send the move event for
@@ -1418,30 +1454,30 @@ public class BlocklyController {
 
         switch (blockConnection.getType()) {
             case Connection.CONNECTION_TYPE_OUTPUT:
-                removeRootBlock(block, false);
+                removeRootBlockImpl(block, false);
                 connectAsInput(otherConnection, blockConnection);
                 break;
             case Connection.CONNECTION_TYPE_PREVIOUS:
-                removeRootBlock(block, false);
+                removeRootBlockImpl(block, false);
                 if (otherConnection.isStatementInput()) {
-                    connectToStatement(otherConnection, block);
+                    connectToStatementImpl(otherConnection, block);
                 } else {
                     connectAfter(newParentBlock, block);
                 }
                 break;
             case Connection.CONNECTION_TYPE_NEXT:
                 if (!otherConnection.isConnected()) {
-                    removeRootBlock(newParentBlock, false);
+                    removeRootBlockImpl(newParentBlock, false);
                 }
                 if (blockConnection.isStatementInput()) {
-                    connectToStatement(blockConnection, newParentBlock);
+                    connectToStatementImpl(blockConnection, newParentBlock);
                 } else {
                     connectAfter(block, newParentBlock);
                 }
                 break;
             case Connection.CONNECTION_TYPE_INPUT:
                 if (!otherConnection.isConnected()) {
-                    removeRootBlock(newParentBlock, false);
+                    removeRootBlockImpl(newParentBlock, false);
                 }
                 connectAsInput(blockConnection, otherConnection);
                 break;
