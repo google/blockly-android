@@ -90,6 +90,9 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         } else if (id == R.id.action_spaghetti) {
             loadSpaghetti();
             return true;
+        } else if (id == R.id.action_create_variable) {
+            getController().requestAddVariable("item");
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

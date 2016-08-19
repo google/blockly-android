@@ -46,6 +46,7 @@ import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DeleteVariableDialog;
+import com.google.blockly.android.ui.NameVariableDialog;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.BlocklyUnifiedWorkspace;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
@@ -495,7 +496,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected BlocklyController.VariableCallback getVariableCallback() {
         if (mVariableCb == null) {
-            mVariableCb = new DefaultVariableCallback(new DeleteVariableDialog());
+            mVariableCb = new DefaultVariableCallback(new DeleteVariableDialog(),
+                    new NameVariableDialog());
         }
         return mVariableCb;
     }
@@ -836,10 +838,28 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     private class DefaultVariableCallback extends BlocklyController.VariableCallback {
         private final DeleteVariableDialog mDeleteDialog;
+        private final NameVariableDialog mNameDialog;
+
+        private final NameVariableDialog.Callback mRenameCallback = new NameVariableDialog
+                .Callback() {
+            @Override
+            public void onNameConfirmed(String oldName, String newName) {
+                getController().renameVariable(oldName, newName);
+            }
+        };
+        private final NameVariableDialog.Callback mCreateCallback = new NameVariableDialog
+                .Callback() {
+            @Override
+            public void onNameConfirmed(String originalName, String newName) {
+                getController().addVariable(newName);
+            }
+        };
 
 
-        public DefaultVariableCallback(DeleteVariableDialog deleteVariableDialog) {
+        public DefaultVariableCallback(DeleteVariableDialog deleteVariableDialog,
+                NameVariableDialog nameVariableDialog) {
             mDeleteDialog = deleteVariableDialog;
+            mNameDialog = nameVariableDialog;
         }
 
         @Override
@@ -857,6 +877,20 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
             mDeleteDialog.setController(controller);
             mDeleteDialog.setVariable(variable, blocks.size());
             mDeleteDialog.show(getSupportFragmentManager(), "DeleteVariable");
+            return false;
+        }
+
+        @Override
+        public boolean onRenameVariable(String variable, String newName) {
+            mNameDialog.setVariable(variable, mRenameCallback);
+            mNameDialog.show(getSupportFragmentManager(), "RenameVariable");
+            return false;
+        }
+
+        @Override
+        public boolean onCreateVariable(String variable) {
+            mNameDialog.setVariable(variable, mCreateCallback);
+            mNameDialog.show(getSupportFragmentManager(), "CreateVariable");
             return false;
         }
     }

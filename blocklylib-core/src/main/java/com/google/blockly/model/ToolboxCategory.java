@@ -43,10 +43,15 @@ public class ToolboxCategory {
     private final List<Block> mBlocks = new ArrayList<>();
     // As displayed in the toolbox.
     private String mCategoryName;
+    private String mCustomType;
     private Integer mColor = null;
 
     public String getCategoryName() {
         return mCategoryName;
+    }
+
+    public String getCustomType() {
+        return mCustomType;
     }
 
     public List<Block> getBlocks() {
@@ -116,6 +121,7 @@ public class ToolboxCategory {
             throws IOException, XmlPullParserException {
         ToolboxCategory result = new ToolboxCategory();
         result.mCategoryName = parser.getAttributeValue("", "name");
+        result.mCustomType = parser.getAttributeValue("", "custom");
         String colourAttr = parser.getAttributeValue("", "colour");
         if (!TextUtils.isEmpty(colourAttr)) {
             try {
