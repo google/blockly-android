@@ -95,5 +95,6 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
                 assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
             }
         });
+        mInstrumentation.waitForIdleSync();
     }
 }

@@ -147,6 +147,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 Mockito.stub(mMockController.getBlockFactory()).toReturn(mBlockFactory);
                 Mockito.stub(mMockController.getWorkspace()).toReturn(mMockWorkspace);
                 Mockito.stub(mMockController.getWorkspaceHelper()).toReturn(mWorkspaceHelper);
+                Mockito.stub(mMockController.getContext()).toReturn(mMockContext);
 
                 mDragger = new Dragger(mMockController);
                 mDragger.setWorkspaceView(mWorkspaceView);

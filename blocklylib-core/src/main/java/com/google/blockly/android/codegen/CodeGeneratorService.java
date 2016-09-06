@@ -22,6 +22,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -33,6 +34,9 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -111,6 +115,16 @@ public class CodeGeneratorService extends Service {
             if (mReady && mRequestQueue.size() > 0) {
                 mReady = false;
                 final CodeGenerationRequest request = mRequestQueue.pop();
+                if (TextUtils.isEmpty(request.getXml())) {
+                    Log.d(TAG, "Request xml was empty, skipping");
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            handleRequest();
+                        }
+                    });
+                    return;
+                }
                 // Run on the main thread.
                 mHandler.post(new Runnable() {
                     @Override
@@ -127,8 +141,22 @@ public class CodeGeneratorService extends Service {
                             mRequestQueue.addFirst(request);
                             mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
                         } else {
-                            mWebview.loadUrl("javascript:" +
-                                    "generate('" + request.getXml() + "')");
+                            String xml = request.getXml();
+                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                                // Prior to KitKat a different WebView was used that didn't handle
+                                // special characters passed in to it. We skip the encoding on
+                                // later versions to save time.
+                                try {
+                                    xml = URLEncoder.encode(xml, "UTF-8");
+                                } catch (UnsupportedEncodingException e) {
+                                    Log.e(TAG, "Error encoding", e);
+                                    return;
+                                }
+                                xml = xml.replace("+", "%20");
+                                mWebview.loadUrl("javascript:generateEscaped('" + xml + "');");
+                            } else {
+                                mWebview.loadUrl("javascript:generate('" + xml + "');");
+                            }
                         }
                     }
                 });
