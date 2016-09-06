@@ -49,11 +49,11 @@
 <script>
     function generate(blocklyxml) {
       // Parse the XML into a tree.
-      var xmlText = blocklyxml;
       var dom;
       try {
-        dom = Blockly.Xml.textToDom(xmlText)
+        dom = Blockly.Xml.textToDom(blocklyxml);
       } catch (e) {
+        console.log(e);
         alert(e);
         return;
       }
@@ -64,9 +64,13 @@
         var code = Blockly.JavaScript.workspaceToCode(workspace);
         BlocklyJavascriptInterface.execute(code);
       } catch (e) {
-        console.log(e.message);
+        console.log(e);
         BlocklyJavascriptInterface.execute("");
       }
+    }
+
+    function generateEscaped(blocklyxml) {
+      generate(unescape(blocklyxml));
     }
   </script>
 </body>
