@@ -53,7 +53,7 @@
       try {
         dom = Blockly.Xml.textToDom(blocklyxml);
       } catch (e) {
-        console.log(e);
+        console.log(e.stack || e);
         alert(e);
         return;
       }
@@ -64,7 +64,7 @@
         var code = Blockly.JavaScript.workspaceToCode(workspace);
         BlocklyJavascriptInterface.execute(code);
       } catch (e) {
-        console.log(e);
+        console.log(e.stack || e);
         BlocklyJavascriptInterface.execute("");
       }
     }
