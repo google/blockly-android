@@ -22,6 +22,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -199,8 +200,8 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mBlockListView = new BlockListView(getContext());
         mBlockListView.setLayoutManager(createLinearLayoutManager());
         mBlockListView.addItemDecoration(new BlocksItemDecoration());
-        mBlockListView.setBackgroundColor(
-                getResources().getColor(R.color.blockly_toolbox_bg));  // Replace with attrib
+        mBlockListView.setBackgroundColor(ContextCompat.getColor(getContext(),
+                R.color.blockly_toolbox_bg));// Replace with attrib
         mCategoryTabs = new CategoryTabs(getContext());
         mCategoryTabs.setLabelAdapter(onCreateLabelAdapter());
         mCategoryTabs.setCallback(new CategoryTabs.Callback() {

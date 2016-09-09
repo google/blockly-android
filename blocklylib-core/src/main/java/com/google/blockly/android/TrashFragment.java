@@ -17,6 +17,7 @@ package com.google.blockly.android;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,8 +88,8 @@ public class TrashFragment extends BlockDrawerFragment {
 
         mBlockListView = new BlockListView(getContext());
         mBlockListView.setLayoutManager(createLinearLayoutManager());
-        mBlockListView.setBackgroundColor(
-                getResources().getColor(R.color.blockly_trash_bg));  // Replace with attribute
+        mBlockListView.setBackgroundColor(ContextCompat.getColor(getContext(),
+                R.color.blockly_trash_bg));  // Replace with attribute
 
         maybeInitListView();
 
