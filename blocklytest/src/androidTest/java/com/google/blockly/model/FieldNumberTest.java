@@ -179,47 +179,47 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
         // Exact values
         mField.setValue(0.0);
         assertEquals(0.0, mField.getValue());
-        assertEquals("0", mField.getValueString());
+        assertEquals("0", mField.getReadableValueString());
 
         mField.setValue(0.25);
         assertEquals(0.25, mField.getValue());
-        assertEquals("0.25", mField.getValueString());
+        assertEquals("0.25", mField.getReadableValueString());
 
         mField.setValue(1.0);
         assertEquals(1.0, mField.getValue());
-        assertEquals("1", mField.getValueString());
+        assertEquals("1", mField.getReadableValueString());
 
         mField.setValue(1.25);
         assertEquals(1.25, mField.getValue());
-        assertEquals("1.25", mField.getValueString());
+        assertEquals("1.25", mField.getReadableValueString());
 
         mField.setValue(2.50);
         assertEquals(2.5, mField.getValue());
-        assertEquals("2.5", mField.getValueString());
+        assertEquals("2.5", mField.getReadableValueString());
 
         mField.setValue(25);
         assertEquals(25.0, mField.getValue());
-        assertEquals("25", mField.getValueString());
+        assertEquals("25", mField.getReadableValueString());
 
         mField.setValue(-0.25);
         assertEquals(-0.25, mField.getValue());
-        assertEquals("-0.25", mField.getValueString());
+        assertEquals("-0.25", mField.getReadableValueString());
 
         mField.setValue(-1.0);
         assertEquals(-1.0, mField.getValue());
-        assertEquals("-1", mField.getValueString());
+        assertEquals("-1", mField.getReadableValueString());
 
         mField.setValue(-1.25);
         assertEquals(-1.25, mField.getValue());
-        assertEquals("-1.25", mField.getValueString());
+        assertEquals("-1.25", mField.getReadableValueString());
 
         mField.setValue(-2.50);
         assertEquals(-2.5, mField.getValue());
-        assertEquals("-2.5", mField.getValueString());
+        assertEquals("-2.5", mField.getReadableValueString());
 
         mField.setValue(-25);
         assertEquals(-25.0, mField.getValue());
-        assertEquals("-25", mField.getValueString());
+        assertEquals("-25", mField.getReadableValueString());
 
         // Rounded Values
         mField.setValue(0.2);
@@ -252,55 +252,55 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
         // Exact values
         mField.setValue(0.0);
         assertEquals(0.0, mField.getValue());
-        assertEquals("0", mField.getValueString());
+        assertEquals("0", mField.getReadableValueString());
 
         mField.setValue(1.0);
         assertEquals(1.0, mField.getValue());
-        assertEquals("1", mField.getValueString());
+        assertEquals("1", mField.getReadableValueString());
 
         mField.setValue(2.0);
         assertEquals(2.0, mField.getValue());
-        assertEquals("2", mField.getValueString());
+        assertEquals("2", mField.getReadableValueString());
 
         mField.setValue(7.0);
         assertEquals(7.0, mField.getValue());
-        assertEquals("7", mField.getValueString());
+        assertEquals("7", mField.getReadableValueString());
 
         mField.setValue(10.0);
         assertEquals(10.0, mField.getValue());
-        assertEquals("10", mField.getValueString());
+        assertEquals("10", mField.getReadableValueString());
 
         mField.setValue(100.0);
         assertEquals(100.0, mField.getValue());
-        assertEquals("100", mField.getValueString());
+        assertEquals("100", mField.getReadableValueString());
 
         mField.setValue(1000000.0);
         assertEquals(1000000.0, mField.getValue());
-        assertEquals("1000000", mField.getValueString());
+        assertEquals("1000000", mField.getReadableValueString());
 
         mField.setValue(-1.0);
         assertEquals(-1.0, mField.getValue());
-        assertEquals("-1", mField.getValueString());
+        assertEquals("-1", mField.getReadableValueString());
 
         mField.setValue(-2.0);
         assertEquals(-2.0, mField.getValue());
-        assertEquals("-2", mField.getValueString());
+        assertEquals("-2", mField.getReadableValueString());
 
         mField.setValue(-7.0);
         assertEquals(-7.0, mField.getValue());
-        assertEquals("-7", mField.getValueString());
+        assertEquals("-7", mField.getReadableValueString());
 
         mField.setValue(-10.0);
         assertEquals(-10.0, mField.getValue());
-        assertEquals("-10", mField.getValueString());
+        assertEquals("-10", mField.getReadableValueString());
 
         mField.setValue(-100.0);
         assertEquals(-100.0, mField.getValue());
-        assertEquals("-100", mField.getValueString());
+        assertEquals("-100", mField.getReadableValueString());
 
         mField.setValue(-1000000.0);
         assertEquals(-1000000.0, mField.getValue());
-        assertEquals("-1000000", mField.getValueString());
+        assertEquals("-1000000", mField.getReadableValueString());
 
 
         // Rounded Values
@@ -346,27 +346,27 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
         // Exact values
         mField.setValue(0.0);
         assertEquals(0.0, mField.getValue());
-        assertEquals("0", mField.getValueString());
+        assertEquals("0", mField.getReadableValueString());
 
         mField.setValue(2.0);
         assertEquals(2.0, mField.getValue());
-        assertEquals("2", mField.getValueString());
+        assertEquals("2", mField.getReadableValueString());
 
         mField.setValue(8.0);
         assertEquals(8.0, mField.getValue());
-        assertEquals("8", mField.getValueString());
+        assertEquals("8", mField.getReadableValueString());
 
         mField.setValue(10.0);
         assertEquals(10.0, mField.getValue());
-        assertEquals("10", mField.getValueString());
+        assertEquals("10", mField.getReadableValueString());
 
         mField.setValue(-2.0);
         assertEquals(-2.0, mField.getValue());
-        assertEquals("-2", mField.getValueString());
+        assertEquals("-2", mField.getReadableValueString());
 
         mField.setValue(-8.0);
         assertEquals(-8.0, mField.getValue());
-        assertEquals("-8", mField.getValueString());
+        assertEquals("-8", mField.getReadableValueString());
 
         // Rounded Values
         mField.setValue(0.2);

@@ -218,7 +218,7 @@ public final class FieldNumber extends Field<FieldNumber.Observer> {
     /**
      * @return The formatted (human readable) string version of the input.
      */
-    public String getValueString() {
+    public String getReadableValueString() {
         return mFormatter.format(mValue);
     }
 
