@@ -18,6 +18,7 @@ package com.google.blockly.android.ui;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
@@ -25,9 +26,6 @@ import android.view.ViewGroup;
 
 import com.google.blockly.android.R;
 import com.google.blockly.model.ToolboxCategory;
-
-// Solves https://code.google.com/p/android/issues/detail?id=74772 until the fix is released.
-import org.solovyev.android.views.llm.LinearLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
