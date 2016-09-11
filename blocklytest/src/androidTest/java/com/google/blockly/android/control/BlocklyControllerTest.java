@@ -100,12 +100,38 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.addRootBlock(block);
 
         mEventsFired.clear();
-        mController.trashRootBlock(block);
+        assertTrue(mController.trashRootBlock(block));
 
         assertTrue(mWorkspace.getRootBlocks().isEmpty());
-        assertEquals(mEventsFired.size(), 1);
-        assertEquals(mEventsFired.get(0).getTypeId(), BlocklyEvent.TYPE_DELETE);
-        assertEquals(mEventsFired.get(0).getBlockId(), block.getId());
+        assertEquals(1, mEventsFired.size());
+        assertEquals(BlocklyEvent.TYPE_DELETE, mEventsFired.get(0).getTypeId());
+        assertEquals(block.getId(), mEventsFired.get(0).getBlockId());
+    }
+
+    public void testTrashRootBlockNotDeletable() {
+        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        block.setDeletable(false);
+        mController.addRootBlock(block);
+
+        mEventsFired.clear();
+        assertFalse(mController.trashRootBlock(block));
+
+        assertEquals(1, mWorkspace.getRootBlocks().size());  // Still there!
+        assertEquals(0, mEventsFired.size());
+    }
+
+    public void testTrashRootBlockIgnoringDeletable() {
+        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        block.setDeletable(false);
+        mController.addRootBlock(block);
+
+        mEventsFired.clear();
+        assertTrue(mController.trashRootBlockIgnoringDeletable(block));
+
+        assertTrue(mWorkspace.getRootBlocks().isEmpty());
+        assertEquals(1, mEventsFired.size());
+        assertEquals(BlocklyEvent.TYPE_DELETE, mEventsFired.get(0).getTypeId());
+        assertEquals(block.getId(), mEventsFired.get(0).getBlockId());
     }
 
     public void testAddBlockFromTrash() {

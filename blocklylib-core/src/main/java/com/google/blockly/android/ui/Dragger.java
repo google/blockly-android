@@ -592,7 +592,9 @@ public class Dragger {
             mHighlightedBlockView = null;
         }
         mDraggedConnections.clear();
-        mController.trashRootBlock(mPendingDrag.getRootDraggedBlock());
+        if (!mController.trashRootBlock(mPendingDrag.getRootDraggedBlock())) {
+            // TODO(#305):
+        }
     }
 
     /**

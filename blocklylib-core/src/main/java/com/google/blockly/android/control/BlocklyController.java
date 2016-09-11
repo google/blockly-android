@@ -743,16 +743,30 @@ public class BlocklyController {
     }
 
     /**
-     * Remove a block and its descendants from the workspace and put it in the trash.  If the block
-     * was not a root block of the workspace, do nothing and returns false.
+     * Remove a block and its descendants from the workspace and put it in the trash, respecting the
+     * block's deletable flag. This is the method to use for user actions.
      *
      * @param block The block to remove, possibly with descendants attached.
      * @return True if the block was removed, false otherwise.
      */
-    // TODO(#56) Make this handle any block, not just root blocks.
     public boolean trashRootBlock(Block block) {
         checkPendingEventsEmpty();
-        boolean rootFoundAndRemoved = trashRootBlockImpl(block);
+        boolean rootFoundAndRemoved = trashRootBlockImpl(block, true);
+        firePendingEvents(); // May not have any events to fire if block was not found.
+        return rootFoundAndRemoved;
+    }
+
+    /**
+     * Remove a block and its descendants from the workspace and put it in the trash, regardless of
+     * block's deletable state.  This method should only be used by for programmatic manipulation of
+     * the workspace.
+     *
+     * @param block The block to remove, possibly with descendants attached.
+     * @return True if the block was removed, false otherwise.
+     */
+    public boolean trashRootBlockIgnoringDeletable(Block block) {
+        checkPendingEventsEmpty();
+        boolean rootFoundAndRemoved = trashRootBlockImpl(block, false);
         firePendingEvents(); // May not have any events to fire if block was not found.
         return rootFoundAndRemoved;
     }
@@ -765,8 +779,15 @@ public class BlocklyController {
      * </ol>
      *
      * @param block {@link Block} to delete from the workspace.
+     * @param respectDeletable If true, simply returns false when {@code block} is not deletable.
+     * @return Whether the block was found among the root blocks and deleted.
      */
-    private boolean trashRootBlockImpl(Block block) {
+    // TODO(#56) Make this handle any block, not just root blocks.
+    private boolean trashRootBlockImpl(Block block, boolean respectDeletable) {
+        if (respectDeletable && !block.isDeletable()) {
+            return false;
+        }
+
         boolean rootFoundAndRemoved = removeRootBlockImpl(block, true);
         if (rootFoundAndRemoved) {
             mWorkspace.addBlockToTrash(block);
