@@ -52,6 +52,16 @@ public class Dragger {
 
     private static final int TAP_TIMEOUT = ViewConfiguration.getTapTimeout();
 
+    // Modes of finishDragging()
+    private static final int FINISH_BEHAVIOR_DROP = 1;
+    private static final int FINISH_BEHAVIOR_REVERT = 2;
+    private static final int FINISH_BEHAVIOR_DELETED = 3;
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({FINISH_BEHAVIOR_DROP, FINISH_BEHAVIOR_REVERT, FINISH_BEHAVIOR_DELETED})
+    public @interface FinishDragBehavior {}
+
+
     /**
      * Interface for processing a drag behavior.
      */
@@ -184,12 +194,18 @@ public class Dragger {
                         // Finalize dragging and reset dragging state flags.
                         // These state flags are still used in the initial phase of figuring out if a
                         // drag has started.
+                        int finishBehavior;
                         if (touchingTrashView(event)) {
-                            dropInTrash();
+                            if (dropInTrash()) {
+                                finishBehavior = FINISH_BEHAVIOR_DELETED;
+                            } else {
+                                finishBehavior = FINISH_BEHAVIOR_REVERT;
+                            }
                         } else {
-                            finishDragging();
+                            maybeConnectDragGroup();
+                            finishBehavior = FINISH_BEHAVIOR_DROP;
                         }
-                        clearPendingDrag();
+                        finishDragging(finishBehavior);
                         return true;    // The drop succeeded.
                     default:
                         break;
@@ -288,16 +304,6 @@ public class Dragger {
         };
     };
 
-    private void clearPendingDrag() {
-        if (mPendingDrag != null) {
-            BlockView blockView = mPendingDrag.getRootDraggedBlockView();
-            if (blockView != null) {
-                ((View) blockView).setPressed(false);
-            } // else, trashing or similar manipulation made the view disappear.
-            mPendingDrag = null;
-        }
-    }
-
     /**
      * Continue dragging the currently moving block.  Called during ACTION_DRAG_LOCATION.
      *
@@ -321,12 +327,9 @@ public class Dragger {
     }
 
     /**
-     * Finish block dragging. Called during ACTION_DRAG_ENDED and ACTION_DROP.
-     * <p/>
-     * This method must be called upon receiving the "up" event that ends an ongoing drag process.
+     * Attempts to connect a dropped drag group with nearby connections
      */
-    @VisibleForTesting
-    void finishDragging() {
+    void maybeConnectDragGroup() {
         Block dragRoot = mPendingDrag.getRootDraggedBlock();
 
         // Maybe snap to connections.
@@ -339,23 +342,42 @@ public class Dragger {
             // new location.
             mController.bumpNeighbors(dragRoot);
         }
+    }
 
-        // Update the drag group so that everything that has been changed will be properly
-        // invalidated. Also, update the positions of all of the connections that were impacted by
-        // the move and add them back to the manager. All of the connection locations will be set
-        // relative to their block views immediately after this loop.  For now we just want to unset
-        // drag mode and add the connections back to the list; 0, 0 is a cheap place to put them.
-        for (int i = 0; i < mDraggedConnections.size(); i++) {
-            Connection cur = mDraggedConnections.get(i);
-            cur.setPosition(0, 0);
-            cur.setDragMode(false);
-            mConnectionManager.addConnection(cur);
+    /**
+     * Finish a drag gesture and clear pending drag info.  Called by event handlers for ACTION_UP,
+     * ACTION_CANCEL, ACTION_DROP, and ACTION_DRAG_ENDED.
+     */
+    // TODO(305): Revert actions when behavior == FINISH_BEHAVIOR_REVERT
+    private void finishDragging(@FinishDragBehavior int behavior) {
+        if (behavior == FINISH_BEHAVIOR_DROP || behavior == FINISH_BEHAVIOR_REVERT) {
+            // Update the drag group so that everything that has been changed will be properly
+            // invalidated. Also, update the positions of all of the connections that were impacted
+            // by the move and add them back to the manager. All of the connection locations will be
+            // set relative to their block views immediately after this loop.  For now we just want
+            // to unset drag mode and add the connections back to the list; 0, 0 is a cheap place to
+            // put them.
+            // Dragged connections may be empty, especially if the
+            for (int i = 0; i < mDraggedConnections.size(); i++) {
+                Connection cur = mDraggedConnections.get(i);
+                cur.setPosition(0, 0);
+                cur.setDragMode(false);
+                mConnectionManager.addConnection(cur);
+            }
         }
         mDraggedConnections.clear();
 
         if (mHighlightedBlockView != null) {
             mHighlightedBlockView.setHighlightedConnection(null);
             mHighlightedBlockView = null;
+        }
+
+        if (mPendingDrag != null) {
+            BlockView blockView = mPendingDrag.getRootDraggedBlockView();
+            if (blockView != null) {
+                ((View) blockView).setPressed(false);
+            } // else, trashing or similar manipulation made the view disappear.
+            mPendingDrag = null;
         }
     }
 
@@ -467,7 +489,7 @@ public class Dragger {
                     if (!interceptMode && mPendingDrag.isClick()) {
                         dragHandler.onBlockClicked(mPendingDrag);
                     }
-                    clearPendingDrag();
+                    finishDragging(FINISH_BEHAVIOR_REVERT);
                 }
                 result = !interceptMode;
             } else {
@@ -586,13 +608,13 @@ public class Dragger {
     /**
      * Ends a drag in the trash can, clearing state and deleting blocks as needed.
      */
-    private void dropInTrash() {
+    private boolean dropInTrash() {
         if (mHighlightedBlockView != null) {
             mHighlightedBlockView.setHighlightedConnection(null);
             mHighlightedBlockView = null;
         }
         mDraggedConnections.clear();
-        mController.trashRootBlock(mPendingDrag.getRootDraggedBlock());
+        return mController.trashRootBlock(mPendingDrag.getRootDraggedBlock());
     }
 
     /**

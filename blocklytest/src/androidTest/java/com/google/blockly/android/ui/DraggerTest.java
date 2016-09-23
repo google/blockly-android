@@ -72,6 +72,8 @@ public class DraggerTest extends MockitoAndroidTestCase {
     DragEvent mDragStartedEvent;
     @Mock
     DragEvent mDragLocationEvent;
+    @Mock
+    DragEvent mDropEvent;
 
     private Context mMockContext;
     private HandlerThread mThread;
@@ -156,6 +158,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 // Since we can't create DragEvents...
                 when(mDragStartedEvent.getAction()).thenReturn(DragEvent.ACTION_DRAG_STARTED);
                 when(mDragLocationEvent.getAction()).thenReturn(DragEvent.ACTION_DRAG_LOCATION);
+                when(mDropEvent.getAction()).thenReturn(DragEvent.ACTION_DROP);
             }
         }, TIMEOUT);
 
@@ -167,7 +170,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         super.tearDown();
     }
 
-/* This set of tests covers the full sequence of dragging operations.
+    /* This set of tests covers the full sequence of dragging operations.
      * Because we're skipping layout, the connector locations will never be exactly perfect.
      * Calling updateConnectorLocations puts all of the connections on a block at the
      * workspace position of that block.
@@ -369,8 +372,7 @@ public class DraggerTest extends MockitoAndroidTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
-                // Pretend to be the last DragEvent that registers, which should be right by the
-                // stationary block.
+                // Mock the last drag location event, which should be right by the stationary block.
                 // getX() returns float, even though we'll cast back to int immediately.
                 when(mDragLocationEvent.getX()).thenReturn(mDragReleaseX);
                 when(mDragLocationEvent.getY()).thenReturn(mDragReleaseY);
@@ -381,7 +383,11 @@ public class DraggerTest extends MockitoAndroidTestCase {
                 mDragGroup.updateAllConnectorLocations();
                 mWorkspaceHelper.getView(mTargetBlock).updateConnectorLocations();
 
-                mDragger.finishDragging();
+                // Mock the drop event, which is in the same place.
+                when(mDropEvent.getX()).thenReturn(mDragReleaseX);
+                when(mDropEvent.getY()).thenReturn(mDragReleaseY);
+
+                mDragger.getDragEventListener().onDrag(mWorkspaceView, mDropEvent);
             }
         }, TIMEOUT);
     }
