@@ -744,7 +744,10 @@ public class BlocklyController {
 
     /**
      * Remove a block and its descendants from the workspace and put it in the trash, respecting the
-     * block's deletable flag. This is the method to use for user actions.
+     * root block's deletable flag. Use this method for user actions.
+     * <p>
+     * Note: Child blocks marked undeletable may be deleted, and this behavior may change in the
+     * future. See <a href="https://github.com/google/blockly-android/issues/370">issue #370</a>.
      *
      * @param block The block to remove, possibly with descendants attached.
      * @return True if the block was removed, false otherwise.
@@ -758,7 +761,7 @@ public class BlocklyController {
 
     /**
      * Remove a block and its descendants from the workspace and put it in the trash, regardless of
-     * block's deletable state.  This method should only be used by for programmatic manipulation of
+     * block's deletable state.  This method should only be used for programmatic manipulation of
      * the workspace.
      *
      * @param block The block to remove, possibly with descendants attached.
@@ -782,7 +785,8 @@ public class BlocklyController {
      * @param respectDeletable If true, simply returns false when {@code block} is not deletable.
      * @return Whether the block was found among the root blocks and deleted.
      */
-    // TODO(#56) Make this handle any block, not just root blocks.
+    // TODO(#56): Make this handle any block, not just root blocks.
+    // TODO(#370): Handle isDeletable() in child blocks.
     private boolean trashRootBlockImpl(Block block, boolean respectDeletable) {
         if (respectDeletable && !block.isDeletable()) {
             return false;
