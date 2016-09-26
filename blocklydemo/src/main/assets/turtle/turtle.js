@@ -70,7 +70,7 @@ Turtle.init = function() {
     '<canvas id="display" width="'+ Turtle.STAGE_WIDTH + '" height="' + Turtle.STAGE_HEIGHT +'"></canvas>'
     + '<canvas id="scratch" width="'+ Turtle.STAGE_WIDTH + '" height="' + Turtle.STAGE_HEIGHT + '" style="display: none"></canvas>';
 
-  // Add to reserved word list: API, local variables in execution evironment
+  // Add to reserved word list: API, local variables in execution environment
   // (execute) and the infinite loop detection function.
   //Blockly.JavaScript.addReservedWords('Turtle,code');
 
