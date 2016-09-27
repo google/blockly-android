@@ -93,5 +93,29 @@
     "nextStatement": null,
     "colour": 120,
     "helpUrl": "https://github.com/google/blockly/wiki/Loops#count-with"
+  },
+  {
+    "type": "controls_flow_statements",
+    "message0": "%1 of loop",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "FLOW",
+        "options": [
+          [
+            "break out",
+            "BREAK"
+          ],
+          [
+            "continue with next iteration",
+            "CONTINUE"
+          ]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "colour": 120,
+    "helpUrl": "https://github.com/google/blockly/wiki/Loops#loop-termination-blocks",
+    "TODO": "https://github.com/google/blockly-android/issues/375"
   }
 ]
