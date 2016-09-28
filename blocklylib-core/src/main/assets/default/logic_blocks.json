@@ -122,5 +122,36 @@
     "colour": 210,
     "tooltip": "Returns either true or false.",
     "helpUrl": "https://github.com/google/blockly/wiki/Logic#values"
+  },
+  {
+    "type": "logic_null",
+    "message0": "null",
+    "output": null,
+    "colour": 210,
+    "tooltip": "Returns null.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Nullable_type"
+  },
+  {
+    "type": "logic_ternary",
+    "message0": "test %1 if true %2 if false %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "IF"
+      },
+      {
+        "type": "input_value",
+        "name": "THEN"
+      },
+      {
+        "type": "input_value",
+        "name": "ELSE"
+      }
+    ],
+    "output": null,
+    "colour": 210,
+    "tooltip": "Check the condition in \"test\". If the condition is true, returns the \"if true\" value; otherwise returns the \"if false\" value.",
+    "helpUrl": "https://en.wikipedia.org/wiki/%3F:",
+    "TODO": "https://github.com/google/blockly-android/issues/374"
   }
 ]

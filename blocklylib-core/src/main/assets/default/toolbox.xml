@@ -20,6 +20,8 @@
         <block type="logic_operation"></block>
         <block type="logic_negate"></block>
         <block type="logic_boolean"></block>
+        <block type="logic_null"></block>
+        <block type="logic_ternary"></block>
     </category>
     <category name="Loops" colour="120">
         <block type="controls_repeat_ext">
@@ -53,16 +55,10 @@
                 </shadow>
             </value>
         </block>
+        <block type="controls_flow_statements"></block>
     </category>
     <category name="Math" colour="230">
         <block type="math_number"></block>
-        <block type="math_change">
-            <value name="DELTA">
-                <shadow type="math_number">
-                    <field name="NUM">1</field>
-                </shadow>
-            </value>
-        </block>
         <block type="math_arithmetic">
             <value name="A">
                 <shadow type="math_number">
@@ -90,6 +86,14 @@
             </value>
         </block>
         <block type="math_constant"></block>
+        <block type="math_number_property"></block>
+        <block type="math_change">
+            <value name="DELTA">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
         <block type="math_round">
             <value name="NUM">
                 <shadow type="math_number">
