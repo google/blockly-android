@@ -74,7 +74,7 @@ public final class FieldCheckbox extends Field<FieldCheckbox.Observer> {
 
     @Override
     public String getSerializedValue() {
-        return mChecked ? "true" : "false";
+        return mChecked ? "TRUE" : "FALSE";
     }
 
     private void onCheckChanged(boolean newState) {
