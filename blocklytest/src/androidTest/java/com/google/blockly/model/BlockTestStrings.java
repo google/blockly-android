@@ -59,7 +59,7 @@ public class BlockTestStrings {
             + "    {"
             + "      \"type\": \"field_checkbox\","
             + "      \"name\": \"NAME\","
-            + "      \"checked\": true"
+            + "      \"checked\": TRUE"
             + "    },"
             + "    {"
             + "      \"type\": \"input_value\","
@@ -214,7 +214,7 @@ public class BlockTestStrings {
 
     public static final String FRANKENBLOCK_DEFAULT_VALUES_START =
             "<field name=\"text_input\">something</field>"
-            + "<field name=\"checkbox\">true</field>";
+            + "<field name=\"checkbox\">TRUE</field>";
     public static final String FRANKENBLOCK_DEFAULT_VALUES_END =
             "<field name=\"dropdown\">OPTIONNAME1</field>"
             + "<field name=\"variable\">item</field>"
