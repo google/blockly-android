@@ -1,0 +1,245 @@
+[
+  {
+    "type": "lists_create_empty",
+    "message0": "create empty list",
+    "output": "Array",
+    "colour": 260,
+    "tooltip": "Returns a list, of length 0, containing no data records.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Lists#create-empty-list"
+  },
+  {
+    "type": "lists_repeat",
+    "message0": "create list with item %1 repeated %2 times",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "ITEM"
+      },
+      {
+        "type": "input_value",
+        "name": "NUM",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Array",
+    "colour": 260,
+    "tooltip": "Creates a list consisting of the given value repeated the specified number of times.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Lists#create-list-with"
+  },
+  {
+    "type": "lists_length",
+    "message0": "length of %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": ['String', 'Array']
+      }
+    ],
+    "output": 'Number',
+    "colour": 260,
+    "tooltip": "Returns the length of a list.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Lists#length-of"
+  },
+  {
+    "type": "lists_isEmpty",
+    "message0": "%1 is empty",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": ['String', 'Array']
+      }
+    ],
+    "output": 'Boolean',
+    "inputsInline": true,
+    "colour": 260,
+    "tooltip": "Returns true if the list is empty.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Lists#is-empty"
+  },
+  {
+    "type": "lists_indexOf",
+    "message0": "in list %1 find %2 occurence of item %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": "Array"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "END",
+        "options": [
+          ["first", "FIRST"],
+          ["last", "LAST"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "FIND"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Number",
+    "colour": 260,
+    "tooltip": "Returns the index of the first/last occurrence of the item in the list. Returns -1 if item is not found.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list",
+    "TODO(#379)": "https://github.com/google/blockly-android/issues/379"
+  },
+  {
+    "type": "lists_getIndex",
+    "message0": "in list %1 %2 %3 %4",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": "Array"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "MODE",
+        "options": [
+          ["get", "GET"],
+          ["get and remove", "GET_REMOVE"]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE",
+        "options": [
+          ["#", "FROM_START"],
+          ["# from end", "FROM_END"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "NAME",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": null,
+    "colour": 260,
+    "helpUrl": "https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list",
+    "TODO(#380)": "https://github.com/google/blockly-android/issues/380",
+    "TODO(#381)": "https://github.com/google/blockly-android/issues/381",
+    "TODO(#383)": "https://github.com/google/blockly-android/issues/383"
+  },
+  {
+    "type": "lists_setIndex",
+    "message0": "in list %1 %2 %3 %4 as %5",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "LIST",
+        "check": "Array"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "MODE",
+        "options": [
+          ["set", "SET"],
+          ["insert at","INSERT"]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE",
+        "options": [
+          ["#", "FROM_START"],
+          ["# from end","FROM_END"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "TO"
+      }
+    ],
+    "inputsInline": true,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 260,
+    "helpUrl": "https://github.com/google/blockly/wiki/Lists#getting-a-sublist",
+    "TODO(#381)": "https://github.com/google/blockly-android/issues/381",
+    "TODO(#383)": "https://github.com/google/blockly-android/issues/383"
+  },
+  {
+    "type": "lists_getSublist",
+    "message0": "in list %1 get sub-list from %2 %3 to %4 %5",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "LIST",
+        "check": "Array"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE1",
+        "options": [
+          ["#", "FROM_START"],
+          ["# from end","FROM_END"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT1",
+        "check": "Number"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE2",
+        "options": [
+          ["#", "FROM_START"],
+          ["# from end", "FROM_END"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT2",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Array",
+    "colour": 260,
+    "tooltip": "Creates a copy of the specified portion of a list."
+  },
+  {
+    "type": "lists_sort",
+    "message0": "sort %1 %2 %3",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "TYPE",
+        "options": [
+          ["numeric","NUMERIC"],
+          ["alphabetic", "TEXT"],
+          ["alphabetic, ignore case", "IGNORE_CASE"]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "DIRECTION",
+        "options": [
+          ["ascending", "1"],
+          ["descending", "-1"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "LIST",
+        "check": "Array"
+      }
+    ],
+    "output": "Array",
+    "colour": 260,
+    "tooltip": "Sort a copy of a list.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Lists#sorting-a-list"
+  }
+]

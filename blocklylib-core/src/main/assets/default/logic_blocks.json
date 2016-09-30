@@ -152,6 +152,6 @@
     "colour": 210,
     "tooltip": "Check the condition in \"test\". If the condition is true, returns the \"if true\" value; otherwise returns the \"if false\" value.",
     "helpUrl": "https://en.wikipedia.org/wiki/%3F:",
-    "TODO": "https://github.com/google/blockly-android/issues/374"
+    "TODO(#374)": "https://github.com/google/blockly-android/issues/374"
   }
 ]

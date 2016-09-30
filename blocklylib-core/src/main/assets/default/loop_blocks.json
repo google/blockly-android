@@ -95,6 +95,30 @@
     "helpUrl": "https://github.com/google/blockly/wiki/Loops#count-with"
   },
   {
+    "type": "controls_forEach",
+    "message0": "for each item %1 in list %2 do %3",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": null
+      },
+      {
+        "type": "input_value",
+        "name": "LIST",
+        "check": "Array"
+      },
+      {
+        "type": "input_statement",
+        "name": "DO"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 120,
+    "helpUrl": "https://github.com/google/blockly/wiki/Loops#for-each"
+  },
+  {
     "type": "controls_flow_statements",
     "message0": "%1 of loop",
     "args0": [
@@ -116,6 +140,6 @@
     "previousStatement": null,
     "colour": 120,
     "helpUrl": "https://github.com/google/blockly/wiki/Loops#loop-termination-blocks",
-    "TODO": "https://github.com/google/blockly-android/issues/375"
+    "TODO(#375)": "https://github.com/google/blockly-android/issues/375"
   }
 ]

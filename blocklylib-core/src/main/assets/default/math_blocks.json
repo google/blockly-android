@@ -184,7 +184,7 @@
     "colour": 230,
     "output": "Boolean",
     "tooltip": "Check if a number is an even, odd, prime, whole, positive, or negative. Returns true or false.",
-    "TODO": "https://github.com/google/blockly-android/issues/376"
+    "TODO(#376)": "https://github.com/google/blockly-android/issues/376"
   },
   {
     "type": "math_change",
