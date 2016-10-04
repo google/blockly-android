@@ -6,8 +6,8 @@
       {
         "type": "field_image",
         "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAKCAQAAAAqJXdxAAAAn0lEQVQI1z3OMa5BURSF4f/cQhAKjUQhuQmFNwGJEUi0RKN5rU7FHKhpjEH3TEMtkdBSCY1EIv8r7nFX9e29V7EBAOvu7RPjwmWGH/VuF8CyN9/OAdvqIXYLvtRaNjx9mMTDyo+NjAN1HNcl9ZQ5oQMM3dgDUqDo1l8DzvwmtZN7mnD+PkmLa+4mhrxVA9fRowBWmVBhFy5gYEjKMfz9AylsaRRgGzvZAAAAAElFTkSuQmCC",
-        "width": 10,
-        "height": 10,
+        "width": 12,
+        "height": 12,
         "alt": "\u201C"
       },
       {
@@ -18,8 +18,8 @@
       {
         "type": "field_image",
         "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAKCAQAAAAqJXdxAAAAqUlEQVQI1z3KvUpCcRiA8ef9E4JNHhI0aFEacm1o0BsI0Slx8wa8gLauoDnoBhq7DcfWhggONDmJJgqCPA7neJ7p934EOOKOnM8Q7PDElo/4x4lFb2DmuUjcUzS3URnGib9qaPNbuXvBO3sGPHJDRG6fGVdMSeWDP2q99FQdFrz26Gu5Tq7dFMzUvbXy8KXeAj57cOklgA+u1B5AoslLtGIHQMaCVnwDnADZIFIrXsoXrgAAAABJRU5ErkJggg==",
-        "width": 10,
-        "height": 10,
+        "width": 12,
+        "height": 12,
         "alt": "\u201D"
       }
     ],
@@ -27,5 +27,88 @@
     "colour": 160,
     "tooltip": "A letter, word, or line of text.",
     "helpUrl": "https://en.wikipedia.org/wiki/String_(computer_science)"
+  },
+  {
+    "type": "text_append",
+    "message0": "to %1 append text %2",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      },
+      {
+        "type": "input_value",
+        "name": "TEXT"
+      }
+    ],
+    "output": "String",
+    "colour": 160,
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#text-modification",
+    "TODO(#386)": "https://github.com/google/blockly-android/issues/386"
+  },
+  {
+    "type": "text_length",
+    "message0": "length of %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": ["String", "Array"]
+      }
+    ],
+    "output": "Number",
+    "colour": 160,
+    "tooltip": "Returns the number of letters (including spaces) in the provided text.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#text-modification"
+  },
+  {
+    "type": "text_isEmpty",
+    "message0": "%1 is empty",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": ["String", "Array"]
+      }
+    ],
+    "inputsInline": true,
+    "output": "Boolean",
+    "colour": 160,
+    "tooltip": "Returns true if the provided text is empty.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#checking-for-empty-text"
+  },
+  {
+    "type": "text_indexOf",
+    "message0": "in text %1 find %2 occurrence of text %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "END",
+        "options": [
+          [
+            "first",
+            "FIRST"
+          ],
+          [
+            "last",
+            "LAST"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "FIND"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Number",
+    "colour": 160,
+    "tooltip": "Returns the index of the first/last occurrence of the first text in the second text. Returns %1 if text is not found.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#finding-text"
   }
 ]
