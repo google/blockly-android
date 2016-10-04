@@ -1016,6 +1016,7 @@ public class Block {
             String tagname = parser.getName();
             switch (eventType) {
                 case XmlPullParser.START_TAG:
+                    text = ""; // Ignore text from parent (or prior) block.
                     if (tagname.equalsIgnoreCase("block")) {
                         childBlock = fromXml(parser, factory);
                     } else if (tagname.equalsIgnoreCase("shadow")) {
