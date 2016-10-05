@@ -197,6 +197,20 @@
                 </shadow>
             </value>
         </block>
+        <block type="text_trim">
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="text_print">
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+        </block>
     </category>
     <category name="Lists" colour="260">
         <block type="lists_create_empty"></block>

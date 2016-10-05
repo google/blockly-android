@@ -233,10 +233,58 @@
         "check": "String"
       }
     ],
-    "inputsInline": true,
     "output": "String",
     "colour": 160,
     "tooltip": "Return a copy of the text in a different case.",
     "helpUrl": "https://github.com/google/blockly/wiki/Text#adjusting-text-case"
+  },
+  {
+    "type": "text_trim",
+    "message0": "trim spaces from %1 of %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "MODE",
+        "options": [
+          [
+            "both sides",
+            "BOTH"
+          ],
+          [
+            "left side",
+            "LEFT"
+          ],
+          [
+            "right side",
+            "RIGHT"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "TEXT",
+        "check": "String"
+      }
+    ],
+    "inputsInline": false,
+    "output": "String",
+    "colour": 160,
+    "tooltip": "Return a copy of the text with spaces removed from one or both ends.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#trimming-removing-spaces"
+  },
+  {
+    "type": "text_print",
+    "message0": "print %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "TEXT"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Print the specified text, number or other value.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#printing-text"
   }
 ]
