@@ -54,6 +54,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
             "default/math_blocks.json",
             "default/variable_blocks.json",
             "default/colour_blocks.json",
+            "default/text_blocks.json",
             "turtle/turtle_blocks.json"
     });
     static final List<String> TURTLE_BLOCK_GENERATORS = Arrays.asList(new String[]{
