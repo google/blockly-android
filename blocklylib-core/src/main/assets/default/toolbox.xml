@@ -183,6 +183,13 @@
                 </block>
             </value>
         </block>
+        <block type="text_getSubstring">
+            <value name="STRING">
+                <block type="variables_get">
+                    <field name="VAR">text</field>
+                </block>
+            </value>
+        </block>
     </category>
     <category name="Lists" colour="260">
         <block type="lists_create_empty"></block>

@@ -39,7 +39,8 @@
       },
       {
         "type": "input_value",
-        "name": "TEXT"
+        "name": "TEXT",
+        "check": "String"
       }
     ],
     "output": "String",
@@ -84,7 +85,8 @@
     "args0": [
       {
         "type": "input_value",
-        "name": "VALUE"
+        "name": "VALUE",
+        "check": "String"
       },
       {
         "type": "field_dropdown",
@@ -102,7 +104,8 @@
       },
       {
         "type": "input_value",
-        "name": "FIND"
+        "name": "FIND",
+        "check": "String"
       }
     ],
     "inputsInline": true,
@@ -117,7 +120,8 @@
     "args0": [
       {
         "type": "input_value",
-        "name": "VALUE"
+        "name": "VALUE",
+        "check": "String"
       },
       {
         "type": "field_dropdown",
@@ -135,7 +139,8 @@
       },
       {
         "type": "input_value",
-        "name": "AT"
+        "name": "AT",
+        "check": "Number"
       }
     ],
     "inputsInline": true,
@@ -144,5 +149,60 @@
     "tooltip": "Returns the letter at the specified position.",
     "helpUrl": "https://github.com/google/blockly/wiki/Text#extracting-text",
     "TODO(#390)": "https://github.com/google/blockly-android/issues/390"
+  },
+  {
+    "type": "text_getSubstring",
+    "message0": "in text %1 get substring from %2 %3 to %4 %5",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "STRING",
+        "check": "String"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE1",
+        "options": [
+          [
+            "letter #",
+            "FROM_START"
+          ],
+          [
+            "letter # from end",
+            "FROM_END"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT1",
+        "check": "Number"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE2",
+        "options": [
+          [
+            "letter #",
+            "FROM_START"
+          ],
+          [
+            "letter # from end",
+            "FROM_END"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT2",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "String",
+    "colour": 160,
+    "tooltip": "Returns a specified portion of the text.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#extracting-a-region-of-text",
+    "TODO(#391)": "https://github.com/google/blockly-android/issues/391"
   }
 ]
