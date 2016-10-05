@@ -110,5 +110,39 @@
     "colour": 160,
     "tooltip": "Returns the index of the first/last occurrence of the first text in the second text. Returns %1 if text is not found.",
     "helpUrl": "https://github.com/google/blockly/wiki/Text#finding-text"
+  },
+  {
+    "type": "text_charAt",
+    "message0": "in text %1 get %2 %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE",
+        "options": [
+          [
+            "letter #",
+            "FROM_START"
+          ],
+          [
+            "letter # from end",
+            "FROM_END"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT"
+      }
+    ],
+    "inputsInline": true,
+    "output": "String",
+    "colour": 160,
+    "tooltip": "Returns the letter at the specified position.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#extracting-text",
+    "TODO(#390)": "https://github.com/google/blockly-android/issues/390"
   }
 ]
