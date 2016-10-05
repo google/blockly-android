@@ -204,5 +204,39 @@
     "tooltip": "Returns a specified portion of the text.",
     "helpUrl": "https://github.com/google/blockly/wiki/Text#extracting-a-region-of-text",
     "TODO(#391)": "https://github.com/google/blockly-android/issues/391"
+  },
+  {
+    "type": "text_changeCase",
+    "message0": "to %1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "CASE",
+        "options": [
+          [
+            "UPPER CASE",
+            "UPPERCASE"
+          ],
+          [
+            "lower case",
+            "LOWERCASE"
+          ],
+          [
+            "Title Case",
+            "TITLECASE"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "TEXT",
+        "check": "String"
+      }
+    ],
+    "inputsInline": true,
+    "output": "String",
+    "colour": 160,
+    "tooltip": "Return a copy of the text in a different case.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#adjusting-text-case"
   }
 ]
