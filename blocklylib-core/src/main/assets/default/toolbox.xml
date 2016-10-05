@@ -211,6 +211,13 @@
                 </shadow>
             </value>
         </block>
+        <block type="text_prompt_ext">
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+        </block>
     </category>
     <category name="Lists" colour="260">
         <block type="lists_create_empty"></block>
