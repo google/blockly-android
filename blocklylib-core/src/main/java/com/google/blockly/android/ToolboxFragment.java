@@ -29,10 +29,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.blockly.android.control.BlocklyController;
@@ -144,6 +146,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
     protected ToolboxRoot mRootView;
     protected CategoryTabs mCategoryTabs;
+    protected Button mActionButton;
 
     protected BlocklyController mController;
     protected WorkspaceHelper mHelper;
@@ -197,6 +200,16 @@ public class ToolboxFragment extends BlockDrawerFragment {
         readArgumentsFromBundle(getArguments());
         readArgumentsFromBundle(savedInstanceState);  // Overwrite initial state with stored state.
 
+        mActionButton = (Button) inflater.inflate(R.layout.default_create_variable_button, null);
+        mActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mController != null) {
+                    mController.requestAddVariable("item");
+                }
+            }
+        });
+
         mBlockListView = new BlockListView(getContext());
         mBlockListView.setLayoutManager(createLinearLayoutManager());
         mBlockListView.addItemDecoration(new BlocksItemDecoration());
@@ -232,6 +245,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mController = controller;
         if (mController == null) {
             mBlockListView.setContents(new ArrayList<Block>(0));
+            mActionButton.setVisibility(View.GONE);
         }
         mBlockListView.init(mController, mDragHandler);
     }
@@ -264,10 +278,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
         if (mBlockListView.getVisibility() == View.VISIBLE) {
             ToolboxCategory curCategory = subcats.isEmpty() ? topLevelCategory : subcats.get(0);
-            mCategoryTabs.setSelectedCategory(curCategory);
-            mBlockListView.setContents(curCategory.getBlocks());
-
-            updateCategoryColors(curCategory);
+            setCurrentCategory(curCategory);
         }
     }
 
@@ -288,6 +299,11 @@ public class ToolboxFragment extends BlockDrawerFragment {
         mCategoryTabs.setSelectedCategory(category);
         updateCategoryColors(category);
         mBlockListView.setVisibility(View.VISIBLE);
+        if (category.isVariableCategory()) {
+            mActionButton.setVisibility(View.VISIBLE);
+        } else {
+            mActionButton.setVisibility(View.GONE);
+        }
         mBlockListView.setContents(category.getBlocks());
     }
 
@@ -300,6 +316,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
     public boolean closeBlocksDrawer() {
         if (mCloseable && mBlockListView.getVisibility() == View.VISIBLE) {
             mBlockListView.setVisibility(View.GONE);
+            mActionButton.setVisibility(View.GONE);
             mCategoryTabs.setSelectedCategory(null);
             return true;
         }
@@ -376,19 +393,44 @@ public class ToolboxFragment extends BlockDrawerFragment {
      * and placement of the tabs.
      */
     private void updateScrollablePadding() {
+        int buttonHeight = mActionButton.getVisibility() == View.GONE ?
+                0 : mActionButton.getMeasuredHeight();
+        int buttonWidth = mActionButton.getVisibility() == View.GONE ?
+                0 : mActionButton.getMeasuredWidth();
+        int buttonVerticalPadding = 0, buttonHorizontalPadding= 0;
+        if (mScrollOrientation == SCROLL_VERTICAL) {
+            buttonVerticalPadding = buttonHeight;
+        } else {
+            buttonHorizontalPadding = buttonWidth;
+        }
         int layoutDir = ViewCompat.getLayoutDirection(mRootView);
         switch (GravityCompat.getAbsoluteGravity(mTabEdge, layoutDir)) {
             case Gravity.LEFT:
-                mScrollablePadding.set(mCategoryTabs.getMeasuredWidth(), 0, 0, 0);
+                mScrollablePadding.set(mCategoryTabs.getMeasuredWidth() + buttonHorizontalPadding,
+                        buttonVerticalPadding, 0, 0);
                 break;
             case Gravity.TOP:
-                mScrollablePadding.set(0, mCategoryTabs.getMeasuredHeight(), 0, 0);
+                if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                    mScrollablePadding.set(buttonHorizontalPadding,
+                            mCategoryTabs.getMeasuredHeight() + buttonVerticalPadding, 0, 0);
+                } else {
+                    mScrollablePadding.set(0,
+                            mCategoryTabs.getMeasuredHeight() + buttonVerticalPadding,
+                            buttonHorizontalPadding, 0);
+                }
                 break;
             case Gravity.RIGHT:
-                mScrollablePadding.set(0, 0, mCategoryTabs.getMeasuredWidth(), 0);
+                mScrollablePadding.set(0, buttonVerticalPadding,
+                        mCategoryTabs.getMeasuredWidth() + buttonHorizontalPadding, 0);
                 break;
             case Gravity.BOTTOM:
-                mScrollablePadding.set(0, 0, 0, mCategoryTabs.getMeasuredHeight());
+                if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                    mScrollablePadding.set(buttonHorizontalPadding, 0, 0,
+                            mCategoryTabs.getMeasuredHeight() + buttonVerticalPadding);
+                } else {
+                    mScrollablePadding.set(0, 0, buttonHorizontalPadding,
+                            mCategoryTabs.getMeasuredHeight() + buttonVerticalPadding);
+                }
                 break;
         }
     }
@@ -448,6 +490,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
     /**
      * A custom view to manage the measure and draw order of the tabs and blocks drawer.
+     * TODO (#393): Refactor ToolboxRoot into its own view class with appropriate config/subviews.
      */
     private class ToolboxRoot extends ViewGroup {
         ToolboxRoot(Context context) {
@@ -456,12 +499,14 @@ public class ToolboxFragment extends BlockDrawerFragment {
             // Always add the BlockListView before the tabs, for draw order.
             addView(mBlockListView);
             addView(mCategoryTabs);
+            addView(mActionButton);
         }
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             // Measure the tabs before the the block list.
             measureChild(mCategoryTabs, widthMeasureSpec, heightMeasureSpec);
+            measureChild(mActionButton, widthMeasureSpec, heightMeasureSpec);
             updateScrollablePadding();
             measureChild(mBlockListView, widthMeasureSpec, heightMeasureSpec);
 
@@ -469,6 +514,8 @@ public class ToolboxFragment extends BlockDrawerFragment {
                     0 : mBlockListView.getMeasuredWidth();
             int listHeight = mBlockListView.getVisibility() == View.GONE ?
                     0 : mBlockListView.getMeasuredHeight();
+
+            // The scrollable padding should already take the button size into account.
             int width = Math.max(mCategoryTabs.getMeasuredWidth(), listWidth);
             int height = Math.max(mCategoryTabs.getMeasuredHeight(), listHeight);
             width = getSizeForSpec(widthMeasureSpec, width);
@@ -487,19 +534,53 @@ public class ToolboxFragment extends BlockDrawerFragment {
             int tabMeasuredWidth = mCategoryTabs.getMeasuredWidth();
             int tabMeasuredHeight = mCategoryTabs.getMeasuredHeight();
             int layoutDir = ViewCompat.getLayoutDirection(mRootView);
-            switch (GravityCompat.getAbsoluteGravity(mTabEdge, layoutDir)) {
+            int tabGravity = GravityCompat.getAbsoluteGravity(mTabEdge, layoutDir);
+            int tabRight = 0, tabLeft = 0, tabBottom = 0, tabTop = 0;
+            switch (tabGravity) {
                 case Gravity.LEFT:
                 case Gravity.TOP:
-                    mCategoryTabs.layout(0, 0,
-                            Math.min(width, tabMeasuredWidth), Math.min(height, tabMeasuredHeight));
+                    tabRight = Math.min(width, tabMeasuredWidth);
+                    tabBottom = Math.min(height, tabMeasuredHeight);
                     break;
                 case Gravity.RIGHT:
-                    mCategoryTabs.layout(Math.max(0, width - tabMeasuredWidth), 0, width,
-                            Math.min(height, tabMeasuredHeight));
+                    tabLeft = Math.max(0, width - tabMeasuredWidth);
+                    tabRight = width;
+                    tabBottom = Math.min(height, tabMeasuredHeight);
                     break;
                 case Gravity.BOTTOM:
-                    mCategoryTabs.layout(0, Math.max(0, height - tabMeasuredHeight),
-                            Math.min(width, tabMeasuredWidth), bottom);
+                    tabTop = Math.max(0, height - tabMeasuredHeight);
+                    tabRight = Math.min(width, tabMeasuredWidth);
+                    tabBottom = bottom;
+                    break;
+            }
+            mCategoryTabs.layout(tabLeft, tabTop, tabRight, tabBottom);
+
+            switch (tabGravity) {
+                case Gravity.LEFT:
+                    mActionButton.layout(tabRight, 0, tabRight + mActionButton.getMeasuredWidth(),
+                            mActionButton.getMeasuredHeight());
+                    break;
+                case Gravity.RIGHT:
+                    mActionButton.layout(tabLeft - mActionButton.getMeasuredWidth(), 0, tabLeft,
+                            mActionButton.getMeasuredHeight());
+                    break;
+                case Gravity.TOP:
+                    if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                        mActionButton.layout(0, tabBottom, mActionButton.getMeasuredWidth(),
+                                tabBottom + mActionButton.getMeasuredHeight());
+                    } else {
+                        mActionButton.layout(width - mActionButton.getMeasuredWidth(), tabBottom,
+                                width, tabBottom + mActionButton.getMeasuredHeight());
+                    }
+                    break;
+                case Gravity.BOTTOM:
+                    if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                        mActionButton.layout(0, tabTop - mActionButton.getMeasuredHeight(),
+                                mActionButton.getMeasuredWidth(), tabTop);
+                    } else {
+                        mActionButton.layout(width - mActionButton.getMeasuredWidth(),
+                                tabTop - mActionButton.getMeasuredHeight(), width, tabTop);
+                    }
                     break;
             }
         }

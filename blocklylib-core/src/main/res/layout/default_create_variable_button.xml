@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textSize="24sp"
+    android:minHeight="48dip"
+    android:maxLines="1"
+    android:singleLine="true"
+    android:text="@string/create_variable"
+    />

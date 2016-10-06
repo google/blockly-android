@@ -45,6 +45,8 @@ public class ToolboxCategory {
     private String mCategoryName;
     private String mCustomType;
     private Integer mColor = null;
+    private boolean mIsVariableCategory = false;
+    private boolean mIsFunctionCategory = false;
 
     public String getCategoryName() {
         return mCategoryName;
@@ -52,6 +54,14 @@ public class ToolboxCategory {
 
     public String getCustomType() {
         return mCustomType;
+    }
+
+    public boolean isVariableCategory() {
+        return mIsVariableCategory;
+    }
+
+    public boolean isFunctionCategory() {
+        return mIsFunctionCategory;
     }
 
     public List<Block> getBlocks() {
@@ -122,6 +132,10 @@ public class ToolboxCategory {
         ToolboxCategory result = new ToolboxCategory();
         result.mCategoryName = parser.getAttributeValue("", "name");
         result.mCustomType = parser.getAttributeValue("", "custom");
+        result.mIsVariableCategory = result.mCustomType != null
+                && TextUtils.equals("VARIABLE", result.mCustomType.toUpperCase());
+        result.mIsFunctionCategory = result.mCustomType != null
+                && TextUtils.equals("FUNCTION", result.mCustomType.toUpperCase());
         String colourAttr = parser.getAttributeValue("", "colour");
         if (!TextUtils.isEmpty(colourAttr)) {
             try {
