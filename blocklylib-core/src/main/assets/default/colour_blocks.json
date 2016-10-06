@@ -22,5 +22,61 @@
     "colour": 20,
     "tooltip": "Choose a colour at random.",
     "helpUrl": "http://randomcolour.com"
+  },
+  {
+    "type": "colour_rgb",
+    "message0": "colour with red %1 green %2 blue %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "RED",
+        "check": "Number",
+        "align": "RIGHT"
+      },
+      {
+        "type": "input_value",
+        "name": "GREEN",
+        "check": "Number",
+        "align": "RIGHT"
+      },
+      {
+        "type": "input_value",
+        "name": "BLUE",
+        "check": "Number",
+        "align": "RIGHT"
+      }
+    ],
+    "output": "Colour",
+    "colour": 20,
+    "tooltip": "Create a colour with the specified amount of red, green, and blue. All values must be between 0 and 100.",
+    "helpUrl": "http://www.december.com/html/spec/colorper.html"
+  },
+  {
+    "type": "colour_blend",
+    "message0": "blend colour 1 %1 colour 2 %2 ratio %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "COLOUR1",
+        "check": "Colour",
+        "align": "RIGHT"
+      },
+      {
+        "type": "input_value",
+        "name": "COLOUR2",
+        "check": "Colour",
+        "align": "RIGHT"
+      },
+      {
+        "type": "input_value",
+        "name": "RATIO",
+        "check": "Number",
+        "align": "RIGHT"
+      }
+    ],
+    "output": null,
+    "colour": 20,
+    "tooltip": "Blends two colours together with a given ratio (0.0 - 1.0).",
+    "helpUrl": "http://meyerweb.com/eric/tools/color-blend/"
   }
 ]

@@ -6,8 +6,8 @@
       {
         "type": "field_image",
         "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAKCAQAAAAqJXdxAAAAn0lEQVQI1z3OMa5BURSF4f/cQhAKjUQhuQmFNwGJEUi0RKN5rU7FHKhpjEH3TEMtkdBSCY1EIv8r7nFX9e29V7EBAOvu7RPjwmWGH/VuF8CyN9/OAdvqIXYLvtRaNjx9mMTDyo+NjAN1HNcl9ZQ5oQMM3dgDUqDo1l8DzvwmtZN7mnD+PkmLa+4mhrxVA9fRowBWmVBhFy5gYEjKMfz9AylsaRRgGzvZAAAAAElFTkSuQmCC",
-        "width": 10,
-        "height": 10,
+        "width": 12,
+        "height": 12,
         "alt": "\u201C"
       },
       {
@@ -18,8 +18,8 @@
       {
         "type": "field_image",
         "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAKCAQAAAAqJXdxAAAAqUlEQVQI1z3KvUpCcRiA8ef9E4JNHhI0aFEacm1o0BsI0Slx8wa8gLauoDnoBhq7DcfWhggONDmJJgqCPA7neJ7p934EOOKOnM8Q7PDElo/4x4lFb2DmuUjcUzS3URnGib9qaPNbuXvBO3sGPHJDRG6fGVdMSeWDP2q99FQdFrz26Gu5Tq7dFMzUvbXy8KXeAj57cOklgA+u1B5AoslLtGIHQMaCVnwDnADZIFIrXsoXrgAAAABJRU5ErkJggg==",
-        "width": 10,
-        "height": 10,
+        "width": 12,
+        "height": 12,
         "alt": "\u201D"
       }
     ],
@@ -27,5 +27,294 @@
     "colour": 160,
     "tooltip": "A letter, word, or line of text.",
     "helpUrl": "https://en.wikipedia.org/wiki/String_(computer_science)"
+  },
+  {
+    "type": "text_append",
+    "message0": "to %1 append text %2",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      },
+      {
+        "type": "input_value",
+        "name": "TEXT",
+        "check": "String"
+      }
+    ],
+    "output": "String",
+    "colour": 160,
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#text-modification",
+    "TODO(#386)": "https://github.com/google/blockly-android/issues/386"
+  },
+  {
+    "type": "text_length",
+    "message0": "length of %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": ["String", "Array"]
+      }
+    ],
+    "output": "Number",
+    "colour": 160,
+    "tooltip": "Returns the number of letters (including spaces) in the provided text.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#text-modification"
+  },
+  {
+    "type": "text_isEmpty",
+    "message0": "%1 is empty",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": ["String", "Array"]
+      }
+    ],
+    "inputsInline": true,
+    "output": "Boolean",
+    "colour": 160,
+    "tooltip": "Returns true if the provided text is empty.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#checking-for-empty-text"
+  },
+  {
+    "type": "text_indexOf",
+    "message0": "in text %1 find %2 occurrence of text %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": "String"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "END",
+        "options": [
+          [
+            "first",
+            "FIRST"
+          ],
+          [
+            "last",
+            "LAST"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "FIND",
+        "check": "String"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Number",
+    "colour": 160,
+    "tooltip": "Returns the index of the first/last occurrence of the first text in the second text. Returns %1 if text is not found.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#finding-text"
+  },
+  {
+    "type": "text_charAt",
+    "message0": "in text %1 get %2 %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": "String"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE",
+        "options": [
+          [
+            "letter #",
+            "FROM_START"
+          ],
+          [
+            "letter # from end",
+            "FROM_END"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "String",
+    "colour": 160,
+    "tooltip": "Returns the letter at the specified position.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#extracting-text",
+    "TODO(#390)": "https://github.com/google/blockly-android/issues/390"
+  },
+  {
+    "type": "text_getSubstring",
+    "message0": "in text %1 get substring from %2 %3 to %4 %5",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "STRING",
+        "check": "String"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE1",
+        "options": [
+          [
+            "letter #",
+            "FROM_START"
+          ],
+          [
+            "letter # from end",
+            "FROM_END"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT1",
+        "check": "Number"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "WHERE2",
+        "options": [
+          [
+            "letter #",
+            "FROM_START"
+          ],
+          [
+            "letter # from end",
+            "FROM_END"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "AT2",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "String",
+    "colour": 160,
+    "tooltip": "Returns a specified portion of the text.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#extracting-a-region-of-text",
+    "TODO(#391)": "https://github.com/google/blockly-android/issues/391"
+  },
+  {
+    "type": "text_changeCase",
+    "message0": "to %1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "CASE",
+        "options": [
+          [
+            "UPPER CASE",
+            "UPPERCASE"
+          ],
+          [
+            "lower case",
+            "LOWERCASE"
+          ],
+          [
+            "Title Case",
+            "TITLECASE"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "TEXT",
+        "check": "String"
+      }
+    ],
+    "output": "String",
+    "colour": 160,
+    "tooltip": "Return a copy of the text in a different case.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#adjusting-text-case"
+  },
+  {
+    "type": "text_trim",
+    "message0": "trim spaces from %1 of %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "MODE",
+        "options": [
+          [
+            "both sides",
+            "BOTH"
+          ],
+          [
+            "left side",
+            "LEFT"
+          ],
+          [
+            "right side",
+            "RIGHT"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "TEXT",
+        "check": "String"
+      }
+    ],
+    "output": "String",
+    "colour": 160,
+    "tooltip": "Return a copy of the text with spaces removed from one or both ends.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#trimming-removing-spaces"
+  },
+  {
+    "type": "text_print",
+    "message0": "print %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "TEXT"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Print the specified text, number or other value.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#printing-text"
+  },
+  {
+    "type": "text_prompt_ext",
+    "message0": "prompt for %1 with message %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "TYPE",
+        "options": [
+          [
+            "text",
+            "TEXT"
+          ],
+          [
+            "number",
+            "NUMBER"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "TEXT",
+        "check": "String"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Prompt for user for some text or a number.",
+    "helpUrl": "https://github.com/google/blockly/wiki/Text#getting-input-from-the-user",
+    "TODO(#394)": "https://github.com/google/blockly-android/issues/394"
   }
 ]
