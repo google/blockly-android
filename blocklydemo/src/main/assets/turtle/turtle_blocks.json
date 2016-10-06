@@ -139,6 +139,85 @@
     "tooltip": "Changes the colour of the pen."
   },
   {
+    "type": "turtle_visibility",
+    "message0": "%1 turtle",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "VISIBILITY",
+        "options": [
+          ['hide', "hideTurtle"],
+          ['show', "showTurtle"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Makes the turtle (circle and arrow) visible or invisible."
+  },
+  {
+    "type": "turtle_print",
+    "message0": "print %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "TEXT"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Draws text in the turtle's direction at its location.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Printing"
+  },
+  {
+    "type": "turtle_font",
+    "message0": "font %1 %2 font size %3 %4 %5",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "FONT",
+        "options": [
+          ['Arial', 'Arial'],
+          ['Courier New', 'Courier New'],
+          ['Georgia', 'Georgia'],
+          ['Impact', 'Impact'],
+          ['Times New Roman', 'Times New Roman'],
+          ['Trebuchet MS', 'Trebuchet MS'],
+          ['Verdana', 'Verdana']
+        ]
+      },
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "field_number",
+        "name": "FONTSIZE",
+        "value": 18,
+        "min": 1,
+        "max": 1000
+      },
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "FONTSTYLE",
+        "options": [
+          ["normal", "normal"],
+          ["italic", "italic"],
+          ["bold", "bold"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "",
+    "helpUrl": "http://www.example.com/"
+  },
+  {
     "type": "turtle_repeat_internal",
     "message0": "repeat %1 times %2 %3",
     "args0": [
@@ -215,11 +294,11 @@
         "name": "DIR",
         "options": [
           [
-            "right \u21BB",
+            "right \u21BB by",
             "turnRight"
           ],
           [
-            "left \u21BA",
+            "left \u21BA by",
             "turnLeft"
           ]
         ]

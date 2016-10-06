@@ -29,9 +29,6 @@
                 </shadow>
             </value>
         </block>
-        <block type="turtle_pen">
-            <field name="PEN">penUp</field>
-        </block>
         <block type="turtle_width">
             <value name="WIDTH">
                 <shadow type="math_number">
@@ -39,6 +36,18 @@
                 </shadow>
             </value>
         </block>
+        <block type="turtle_pen">
+            <field name="PEN">penUp</field>
+        </block>
+        <block type="turtle_visibility"></block>
+        <block type="turtle_print">
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT"></field>
+                </shadow>
+            </value>
+        </block>
+        <block type="turtle_font"></block>
     </category>
     <category name="Colour" colour="20">
         <block type="turtle_colour">
@@ -50,6 +59,40 @@
         </block>
         <block type="colour_picker"></block>
         <block type="colour_random"></block>
+        <block type="colour_rgb">
+            <value name="RED">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+            <value name="GREEN">
+                <shadow type="math_number">
+                    <field name="NUM">50</field>
+                </shadow>
+            </value>
+            <value name="BLUE">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="colour_blend">
+            <value name="COLOUR1">
+                <shadow type="colour_picker">
+                    <field name="COLOUR">#ff0000</field>
+                </shadow>
+            </value>
+            <value name="COLOUR2">
+                <shadow type="colour_picker">
+                    <field name="COLOUR">#3333ff</field>
+                </shadow>
+            </value>
+            <value name="RATIO">
+                <shadow type="math_number">
+                    <field name="NUM">0.5</field>
+                </shadow>
+            </value>
+        </block>
     </category>
     <category name="Logic" colour="210">
         <block type="controls_if"></block>
@@ -57,6 +100,7 @@
         <block type="logic_operation"></block>
         <block type="logic_negate"></block>
         <block type="logic_boolean"></block>
+        <block type="logic_ternary"></block>
     </category>
     <category name="Loops" colour="120">
         <block type="controls_repeat_ext">
@@ -90,6 +134,7 @@
                 </shadow>
             </value>
         </block>
+        <block type="controls_flow_statements"></block>
     </category>
     <category name="Math" colour="230">
         <block type="math_number"></block>
