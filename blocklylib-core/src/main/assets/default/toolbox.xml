@@ -298,7 +298,7 @@
             </value>
         </block>
     </category>
-    <category name="Variables" colour="330">
+    <category name="Variables" colour="330" custom="VARIABLE">
         <block type="variables_get"></block>
         <block type="variables_set">
             <value name="VALUE">

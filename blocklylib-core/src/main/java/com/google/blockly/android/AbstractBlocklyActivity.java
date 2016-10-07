@@ -376,6 +376,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void onLoadInitialWorkspace() {
         onInitBlankWorkspace();
+        mToolboxFragment.closeBlocksDrawer();
     }
 
     /**
