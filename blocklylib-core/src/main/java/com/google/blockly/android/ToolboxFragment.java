@@ -22,6 +22,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
@@ -42,6 +43,7 @@ import com.google.blockly.android.ui.BlockListView;
 import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.android.ui.Rotation;
 import com.google.blockly.android.ui.BlockDrawerFragment;
+import com.google.blockly.android.ui.ToolboxView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.ToolboxCategory;
@@ -93,22 +95,11 @@ import java.util.List;
  * rotate counter-clockwise on the left edge, and clockwise on the right edge. Top and bottom edge
  * tabs will never rotate.
  * <p/>
- * {@code blockly:tabEdge} takes the following values:
- * <table>
- *     <tr><th>XML attribute {@code blockly:tabEdge}</th><th>Fragment argument {@link #ARG_TAB_EDGE}</th></tr>
- *     <tr><td>{@code top}</td><td>{@link Gravity#TOP}</td><td>The top edge, with tabs justified to the start.  The default.</td></tr>
- *     <tr><td>{@code bottom}</td><td>{@link Gravity#BOTTOM}</td><td>The bottom edge, justified to the start.</td></tr>
- *     <tr><td>{@code left}</td><td>{@link Gravity#LEFT}</td><td>Left edge, justified to the top.</td></tr>
- *     <tr><td>{@code right}</td><td>{@link Gravity#RIGHT}</td><td>Right edge, justified to the top.</td></tr>
- *     <tr><td>{@code start}</td><td>{@link GravityCompat#START}</td><td>Starting edge (left in left-to-right), justified to the top.</td></tr>
- *     <tr><td>{@code end}</td><td>{@link GravityCompat#END}</td><td>Ending edge (right in left-to-right), justified to the top.</td></tr>
- * </table>
  * If there are more tabs than space allows, the tabs will be scrollable by dragging along the edge.
  * If this behavior is required, make sure the space is not draggable by other views, such as a
  * DrawerLayout.
  * <p/>
- * Developers can further customize the tab look by overriding {@link #onCreateLabelAdapter()} and
- * providing their own {@link CategoryTabs.LabelAdapter}.
+ * Developers can further customize the toolbox by providing their own ToolboxView.
  *
  * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_closeable
  * @attr ref com.google.blockly.R.styleable#BlockDrawerFragment_scrollOrientation
@@ -116,47 +107,12 @@ import java.util.List;
  * @attr ref com.google.blockly.R.styleable#ToolboxFragment_rotateTabs
  */
 // TODO(#9): Attribute and arguments to set the tab background.
-public class ToolboxFragment extends BlockDrawerFragment {
+public class ToolboxFragment extends Fragment {
     private static final String TAG = "ToolboxFragment";
 
-    protected static final float BLOCKS_BACKGROUND_LIGHTNESS = 0.75f;
-    protected static final int DEFAULT_BLOCKS_BACKGROUND_ALPHA = 0xBB;
-    protected static final int DEFAULT_BLOCKS_BACKGROUND_COLOR = Color.LTGRAY;
-
-    public static final String ARG_TAB_EDGE = "ToolboxFragment_tabEdge";
-    public static final String ARG_ROTATE_TABS = "ToolboxFragment_rotateTabs";
-
-    public static final int DEFAULT_TAB_EDGE = Gravity.TOP;
-    public static final boolean DEFAULT_ROTATE_TABS = true;
-    private TrashFragment mTrashFragment = null;
-
-    public void setTrashFragment(TrashFragment trashFragment) {
-        this.mTrashFragment = trashFragment;
-    }
-
-    /** Subset of Gravity to identify the edge the category tabs should be bound to. */
-    @IntDef(flag=true, value={
-            Gravity.TOP,
-            Gravity.LEFT,
-            Gravity.BOTTOM,
-            Gravity.RIGHT,
-            GravityCompat.START,
-            GravityCompat.END
-    })
-    @Retention(RetentionPolicy.SOURCE)
-    private @interface EdgeEnum {}
-
-    protected final Rect mScrollablePadding = new Rect();
-
-    protected ToolboxRoot mRootView;
-    protected CategoryTabs mCategoryTabs;
-    protected Button mActionButton;
-
+    protected ToolboxView mToolboxView;
     protected BlocklyController mController;
     protected WorkspaceHelper mHelper;
-
-    private @EdgeEnum int mTabEdge = DEFAULT_TAB_EDGE;
-    private boolean mRotateTabs = DEFAULT_ROTATE_TABS;
 
     private BlockListView.OnDragListBlock mDragHandler = new BlockListView.OnDragListBlock() {
         @Override
@@ -165,7 +121,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
             Block copy = blockInList.deepCopy();
             copy.setPosition(initialBlockPosition.x, initialBlockPosition.y);
             BlockGroup copyView = mController.addRootBlock(copy);
-            if (mCloseable) {
+            if (mToolboxView.isCloseable()) {
                 closeBlocksDrawer();
             }
             return copyView;
@@ -173,64 +129,27 @@ public class ToolboxFragment extends BlockDrawerFragment {
     };
 
     @Override
-    public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
-        super.onInflate(context, attrs, savedInstanceState);
-
-        TypedArray a = context.getTheme().obtainStyledAttributes(
-                attrs,
-                R.styleable.ToolboxFragment,
-                0, 0);
-        try {
-            //noinspection ResourceType
-            mTabEdge = a.getInt(R.styleable.ToolboxFragment_tabEdge, DEFAULT_TAB_EDGE);
-            mRotateTabs = a.getBoolean(R.styleable.ToolboxFragment_rotateTabs, DEFAULT_ROTATE_TABS);
-        } finally {
-            a.recycle();
-        }
-
-        // Store values in arguments, so fragment resume works (no inflation during resume).
-        Bundle args = getArguments();
-        if (args == null) {
-            setArguments(args = new Bundle());
-        }
-        args.putInt(ARG_TAB_EDGE, mTabEdge);
-        args.putBoolean(ARG_ROTATE_TABS, mRotateTabs);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        // Read configure
-        readArgumentsFromBundle(getArguments());
-        readArgumentsFromBundle(savedInstanceState);  // Overwrite initial state with stored state.
+        // TODO replace with lookup in onFinishInflate
+        mToolboxView = onCreateToolboxView(inflater, savedInstanceState);
 
-        mActionButton = (Button) inflater.inflate(R.layout.default_create_variable_button, null);
-        mActionButton.setOnClickListener(new View.OnClickListener() {
+        mToolboxView.setOnActionClickListener(new ToolboxView.OnActionClickListener() {
             @Override
-            public void onClick(View v) {
-                if (mController != null) {
+            public void onActionClicked(View v, ToolboxCategory category) {
+                if (category.isVariableCategory() && mController != null) {
                     mController.requestAddVariable("item");
                 }
             }
         });
 
-        mBlockListView = new BlockListView(getContext());
-        mBlockListView.setLayoutManager(createLinearLayoutManager());
-        mBlockListView.addItemDecoration(new BlocksItemDecoration());
-        mBlockListView.setBackgroundColor(ContextCompat.getColor(getContext(),
-                R.color.blockly_toolbox_bg));// Replace with attrib
-        mCategoryTabs = new CategoryTabs(getContext());
-        mCategoryTabs.setLabelAdapter(onCreateLabelAdapter());
-        mCategoryTabs.setCallback(new CategoryTabs.Callback() {
+        mToolboxView.setCategoryTabsCallback(new CategoryTabs.Callback() {
             @Override
             public void onCategorySelected(ToolboxCategory category) {
-                setCurrentCategory(category);
+                mToolboxView.setCurrentCategory(category);
             }
         });
-        mRootView = new ToolboxRoot(getContext());
-        updateViews();
-
-        return mRootView;
+        return mToolboxView;
     }
 
     /**
@@ -248,10 +167,11 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
         mController = controller;
         if (mController == null) {
-            mBlockListView.setContents(new ArrayList<Block>(0));
-            mActionButton.setVisibility(View.GONE);
+            mToolboxView.reset();
         }
-        mBlockListView.init(mController, mDragHandler);
+        mToolboxView.init(mController, mDragHandler);
+        BlockListView blv = mToolboxView.getBlockListView();
+        blv.init(mController, mDragHandler);
     }
 
     /**
@@ -263,27 +183,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
      * @param topLevelCategory The top-level category in the toolbox.
      */
     public void setContents(final ToolboxCategory topLevelCategory) {
-        List<Block> blocks = topLevelCategory.getBlocks();
-        List<ToolboxCategory> subcats = topLevelCategory.getSubcategories();
-
-        if (!blocks.isEmpty() && !subcats.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Toolbox cannot have both blocks and categories in the root level.");
-        }
-
-        if (blocks.isEmpty()) {
-            mCategoryTabs.setCategories(subcats);
-        } else {
-            List<ToolboxCategory> singleCategory = new ArrayList<>(1);
-            singleCategory.add(topLevelCategory);
-            mCategoryTabs.setCategories(singleCategory);
-        }
-        updateViews();
-
-        if (mBlockListView.getVisibility() == View.VISIBLE) {
-            ToolboxCategory curCategory = subcats.isEmpty() ? topLevelCategory : subcats.get(0);
-            setCurrentCategory(curCategory);
-        }
+        mToolboxView.setContents(topLevelCategory);
     }
 
     /**
@@ -295,24 +195,11 @@ public class ToolboxFragment extends BlockDrawerFragment {
      */
     // TODO(#80): Add mBlockList animation hooks for subclasses.
     public void setCurrentCategory(@Nullable ToolboxCategory category) {
-        if (category == null) {
-            closeBlocksDrawer();
-            return;
-        }
+        mToolboxView.setCurrentCategory(category);
+    }
 
-        if(mTrashFragment != null) {
-            mTrashFragment.setOpened(false);
-        }
-
-        mCategoryTabs.setSelectedCategory(category);
-        updateCategoryColors(category);
-        mBlockListView.setVisibility(View.VISIBLE);
-        if (category.isVariableCategory()) {
-            mActionButton.setVisibility(View.VISIBLE);
-        } else {
-            mActionButton.setVisibility(View.GONE);
-        }
-        mBlockListView.setContents(category.getBlocks());
+    public boolean isCloseable() {
+        return mToolboxView.isCloseable();
     }
 
     /**
@@ -322,339 +209,20 @@ public class ToolboxFragment extends BlockDrawerFragment {
      */
     // TODO(#80): Add mBlockList animation hooks for subclasses.
     public boolean closeBlocksDrawer() {
-        if (mCloseable && mBlockListView.getVisibility() == View.VISIBLE) {
-            mBlockListView.setVisibility(View.GONE);
-            mActionButton.setVisibility(View.GONE);
-            mCategoryTabs.setSelectedCategory(null);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(ARG_TAB_EDGE, mTabEdge);
-        outState.putBoolean(ARG_ROTATE_TABS, mRotateTabs);
+        return mToolboxView.setCurrentCategory(null);
     }
 
     /**
-     * @return True if this {@code ToolboxFragment} displays tabs. Otherwise false.
+     * Create the {@link ToolboxView} to be used as the base view for this class. Typically, this
+     * just needs to inflate the appropriate layout and return it, but custom configuration may
+     * also be done.
+     *
+     * @param inflater The inflater to use for loading a layout.
+     * @param savedInstanceState Any saved state for the fragment.
+     * @return
      */
-    public boolean hasTabs() {
-        return mCloseable || mCategoryTabs.getTabCount() > 1;
-    }
-
-    protected CategoryTabs.LabelAdapter onCreateLabelAdapter() {
-        return new DefaultTabsAdapter();
-    }
-
-    @Override
-    protected void readArgumentsFromBundle(Bundle bundle) {
-        super.readArgumentsFromBundle(bundle);
-        if (bundle != null) {
-            //noinspection ResourceType
-            mTabEdge = bundle.getInt(ARG_TAB_EDGE, mTabEdge);
-            mRotateTabs = bundle.getBoolean(ARG_ROTATE_TABS, mRotateTabs);
-        }
-    }
-
-    /**
-     * Update the fragment's views based on the current values of {@link #mCloseable},
-     * {@link #mTabEdge}, and {@link #mRotateTabs}.
-     */
-    protected void updateViews() {
-        // If there is only one drawer and the drawer is not closeable, we don't need the tab.
-        if (!hasTabs()) {
-            mCategoryTabs.setVisibility(View.GONE);
-        } else {
-            mCategoryTabs.setVisibility(View.VISIBLE);
-            mCategoryTabs.setOrientation(isTabsHorizontal() ? CategoryTabs.HORIZONTAL
-                    : CategoryTabs.VERTICAL);
-            mCategoryTabs.setLabelRotation(getLabelRotation());
-            mCategoryTabs.setTapSelectedDeselects(mCloseable);
-        }
-
-        if (!mCloseable) {
-            mBlockListView.setVisibility(View.VISIBLE);
-        }  // Otherwise leave it in the current state.
-    }
-
-    protected void updateCategoryColors(ToolboxCategory curCategory) {
-        Integer maybeColor = curCategory.getColor();
-        int bgColor = DEFAULT_BLOCKS_BACKGROUND_COLOR;
-        if (maybeColor != null) {
-            bgColor = getBackgroundColor(maybeColor);
-        }
-        int alphaBgColor = Color.argb(
-                mCloseable ? DEFAULT_BLOCKS_BACKGROUND_ALPHA : ColorUtils.ALPHA_OPAQUE,
-                Color.red(bgColor), Color.green(bgColor), Color.blue(bgColor));
-        mBlockListView.setBackgroundColor(alphaBgColor);
-    }
-
-    protected int getBackgroundColor(int categoryColor) {
-        return ColorUtils.blendRGB(categoryColor, Color.WHITE, BLOCKS_BACKGROUND_LIGHTNESS);
-    }
-
-    /**
-     * @return True if {@link #mTabEdge} is {@link Gravity#TOP} or {@link Gravity#BOTTOM}.
-     */
-    protected boolean isTabsHorizontal() {
-        return (mTabEdge == Gravity.TOP || mTabEdge == Gravity.BOTTOM);
-    }
-
-    /**
-     * Updates the padding used to calculate the margins of the scrollable blocks, based on the size
-     * and placement of the tabs.
-     */
-    private void updateScrollablePadding() {
-        int buttonHeight = mActionButton.getVisibility() == View.GONE ?
-                0 : mActionButton.getMeasuredHeight();
-        int buttonWidth = mActionButton.getVisibility() == View.GONE ?
-                0 : mActionButton.getMeasuredWidth();
-        int buttonVerticalPadding = 0, buttonHorizontalPadding= 0;
-        if (mScrollOrientation == SCROLL_VERTICAL) {
-            buttonVerticalPadding = buttonHeight;
-        } else {
-            buttonHorizontalPadding = buttonWidth;
-        }
-        int layoutDir = ViewCompat.getLayoutDirection(mRootView);
-        int spacingForTabs;
-        switch (GravityCompat.getAbsoluteGravity(mTabEdge, layoutDir)) {
-            case Gravity.LEFT:
-                spacingForTabs = hasTabs() ? mCategoryTabs.getMeasuredWidth() : 0;  // Horizontal
-                mScrollablePadding.set(
-                        spacingForTabs + buttonHorizontalPadding, buttonVerticalPadding, 0, 0);
-                break;
-            case Gravity.TOP:
-                spacingForTabs = hasTabs() ? mCategoryTabs.getMeasuredHeight() : 0;  // Vertical
-                if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
-                    mScrollablePadding.set(
-                            buttonHorizontalPadding, spacingForTabs + buttonVerticalPadding,
-                            0, 0);
-                } else {
-                    mScrollablePadding.set(
-                            0, spacingForTabs + buttonVerticalPadding,
-                            buttonHorizontalPadding, 0);
-                }
-                break;
-            case Gravity.RIGHT:
-                spacingForTabs = hasTabs() ? mCategoryTabs.getMeasuredWidth() : 0;  // Horizontal
-                mScrollablePadding.set(
-                        0, buttonVerticalPadding, spacingForTabs + buttonHorizontalPadding, 0);
-                break;
-            case Gravity.BOTTOM:
-                spacingForTabs = hasTabs() ? mCategoryTabs.getMeasuredHeight() : 0;  // Vertical
-                if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
-                    mScrollablePadding.set(
-                            buttonHorizontalPadding, 0, 0, spacingForTabs + buttonVerticalPadding);
-                } else {
-                    mScrollablePadding.set(
-                            0, 0, buttonHorizontalPadding, spacingForTabs + buttonVerticalPadding);
-                }
-                break;
-        }
-    }
-
-    /**
-     * @return Computed {@link Rotation} constant for {@link #mRotateTabs} and {@link #mTabEdge}.
-     */
-    @Rotation.Enum
-    private int getLabelRotation() {
-        if (!mRotateTabs) {
-            return Rotation.NONE;
-        }
-        switch (mTabEdge) {
-            case Gravity.LEFT:
-                return Rotation.COUNTER_CLOCKWISE;
-            case Gravity.RIGHT:
-                return Rotation.CLOCKWISE;
-            case Gravity.TOP:
-                return Rotation.NONE;
-            case Gravity.BOTTOM:
-                return Rotation.NONE;
-            case GravityCompat.START:
-                return Rotation.ADAPTIVE_COUNTER_CLOCKWISE;
-            case GravityCompat.END:
-                return Rotation.ADAPTIVE_CLOCKWISE;
-            default:
-                throw new IllegalArgumentException("Invalid tabEdge: " + mTabEdge);
-        }
-    }
-
-    /** Manages TextView labels derived from {@link R.layout#default_toolbox_tab}. */
-    protected class DefaultTabsAdapter extends CategoryTabs.LabelAdapter {
-        @Override
-        public View onCreateLabel() {
-            return (TextView) LayoutInflater.from(getContext())
-                    .inflate(R.layout.default_toolbox_tab, null);
-        }
-
-        /**
-         * Assigns the category name to the {@link TextView}. Tabs without labels will be assigned
-         * the text {@link R.string#blockly_toolbox_default_category_name} ("Blocks" in English).
-         *
-         * @param labelView The view used as the label.
-         * @param category The {@link ToolboxCategory}.
-         * @param position The ordering position of the tab.
-         */
-        @Override
-        public void onBindLabel(View labelView, ToolboxCategory category, int position) {
-            String labelText = category.getCategoryName();
-            if (TextUtils.isEmpty(labelText)) {
-                labelText = getContext().getString(R.string.blockly_toolbox_default_category_name);
-            }
-            ((TextView) labelView).setText(labelText);
-        }
-
-    }
-
-    /**
-     * A custom view to manage the measure and draw order of the tabs and blocks drawer.
-     * TODO (#393): Refactor ToolboxRoot into its own view class with appropriate config/subviews.
-     */
-    private class ToolboxRoot extends ViewGroup {
-        ToolboxRoot(Context context) {
-            super(context);
-
-            // Always add the BlockListView before the tabs, for draw order.
-            addView(mBlockListView);
-            addView(mCategoryTabs);
-            addView(mActionButton);
-        }
-
-        @Override
-        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            // Measure the tabs before the the block list.
-            measureChild(mCategoryTabs, widthMeasureSpec, heightMeasureSpec);
-            measureChild(mActionButton, widthMeasureSpec, heightMeasureSpec);
-            updateScrollablePadding();
-            measureChild(mBlockListView, widthMeasureSpec, heightMeasureSpec);
-
-            int listWidth = mBlockListView.getVisibility() == View.GONE ?
-                    0 : mBlockListView.getMeasuredWidth();
-            int listHeight = mBlockListView.getVisibility() == View.GONE ?
-                    0 : mBlockListView.getMeasuredHeight();
-
-            // The scrollable padding should already take the button size into account.
-            int width = Math.max(mCategoryTabs.getMeasuredWidth(), listWidth);
-            int height = Math.max(mCategoryTabs.getMeasuredHeight(), listHeight);
-            width = getSizeForSpec(widthMeasureSpec, width);
-            height = getSizeForSpec(heightMeasureSpec, height);
-
-            setMeasuredDimension(width, height);
-        }
-
-        @Override
-        protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-            int width = right - left;
-            int height = bottom - top;
-
-            mBlockListView.layout(0, 0, width, height);
-
-            int tabMeasuredWidth = mCategoryTabs.getMeasuredWidth();
-            int tabMeasuredHeight = mCategoryTabs.getMeasuredHeight();
-            int layoutDir = ViewCompat.getLayoutDirection(mRootView);
-            int tabGravity = GravityCompat.getAbsoluteGravity(mTabEdge, layoutDir);
-            int tabRight = 0, tabLeft = 0, tabBottom = 0, tabTop = 0;
-            switch (tabGravity) {
-                case Gravity.LEFT:
-                case Gravity.TOP:
-                    tabRight = Math.min(width, tabMeasuredWidth);
-                    tabBottom = Math.min(height, tabMeasuredHeight);
-                    break;
-                case Gravity.RIGHT:
-                    tabLeft = Math.max(0, width - tabMeasuredWidth);
-                    tabRight = width;
-                    tabBottom = Math.min(height, tabMeasuredHeight);
-                    break;
-                case Gravity.BOTTOM:
-                    tabTop = Math.max(0, height - tabMeasuredHeight);
-                    tabRight = Math.min(width, tabMeasuredWidth);
-                    tabBottom = bottom;
-                    break;
-            }
-            mCategoryTabs.layout(tabLeft, tabTop, tabRight, tabBottom);
-
-            switch (tabGravity) {
-                case Gravity.LEFT:
-                    mActionButton.layout(tabRight, 0, tabRight + mActionButton.getMeasuredWidth(),
-                            mActionButton.getMeasuredHeight());
-                    break;
-                case Gravity.RIGHT:
-                    mActionButton.layout(tabLeft - mActionButton.getMeasuredWidth(), 0, tabLeft,
-                            mActionButton.getMeasuredHeight());
-                    break;
-                case Gravity.TOP:
-                    if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
-                        mActionButton.layout(0, tabBottom, mActionButton.getMeasuredWidth(),
-                                tabBottom + mActionButton.getMeasuredHeight());
-                    } else {
-                        mActionButton.layout(width - mActionButton.getMeasuredWidth(), tabBottom,
-                                width, tabBottom + mActionButton.getMeasuredHeight());
-                    }
-                    break;
-                case Gravity.BOTTOM:
-                    if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
-                        mActionButton.layout(0, tabTop - mActionButton.getMeasuredHeight(),
-                                mActionButton.getMeasuredWidth(), tabTop);
-                    } else {
-                        mActionButton.layout(width - mActionButton.getMeasuredWidth(),
-                                tabTop - mActionButton.getMeasuredHeight(), width, tabTop);
-                    }
-                    break;
-            }
-        }
-    }
-
-    private int getSizeForSpec(int measureSpec, int desiredSize) {
-        int mode = View.MeasureSpec.getMode(measureSpec);
-        int size = View.MeasureSpec.getSize(measureSpec);
-
-        switch (mode) {
-            case View.MeasureSpec.AT_MOST:
-                return Math.min(size, desiredSize);
-            case View.MeasureSpec.EXACTLY:
-                return size;
-            case View.MeasureSpec.UNSPECIFIED:
-                return desiredSize;
-        }
-        return desiredSize;
-    }
-
-    /**
-     * {@link RecyclerView.ItemDecoration} to assign padding to block items, to avoid initial
-     * overlap with the tabs.
-     */
-    private class BlocksItemDecoration extends RecyclerView.ItemDecoration {
-        @Override
-        public void getItemOffsets(
-                Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-            boolean ltr = ViewCompat.getLayoutDirection(parent) == ViewCompat.LAYOUT_DIRECTION_LTR;
-            int itemCount = state.getItemCount();
-            int itemIndex = parent.getChildAdapterPosition(view);
-
-            boolean isFirst = (itemIndex == 0);
-            boolean isLast = (itemIndex == itemCount - 1);
-            int scrollDirection =
-                    ((LinearLayoutManager) parent.getLayoutManager()).getOrientation();
-
-            switch (scrollDirection) {
-                case LinearLayoutManager.HORIZONTAL: {
-                    boolean leftmost = ltr ? isFirst : isLast;
-                    boolean rightmost = ltr ? isLast : isFirst;
-                    outRect.set(leftmost ? mScrollablePadding.left: 0, mScrollablePadding.top,
-                            rightmost ? mScrollablePadding.right : 0, mScrollablePadding.bottom);
-                    break;
-                }
-                case LinearLayoutManager.VERTICAL: {
-                    boolean topmost = ltr ? isFirst : isLast;
-                    boolean bottommost = ltr ? isLast : isFirst;
-                    outRect.set(mScrollablePadding.left, topmost ? mScrollablePadding.top : 0,
-                            mScrollablePadding.right, bottommost ? mScrollablePadding.bottom : 0);
-                    break;
-                }
-            }
-        }
+    protected ToolboxView onCreateToolboxView(LayoutInflater inflater, Bundle savedInstanceState) {
+        mToolboxView = (ToolboxView) inflater.inflate(R.layout.default_toolbox_start, null);
+        return mToolboxView;
     }
 }

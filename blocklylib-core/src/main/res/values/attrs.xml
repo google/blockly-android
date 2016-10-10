@@ -60,20 +60,6 @@
         </attr>
     </declare-styleable>
 
-    <declare-styleable name="ToolboxFragment" parent="BlockDrawerFragment">
-        <attr name="tabEdge">
-            <!-- Values match Gravity constants. -->
-            <flag name="left" value="0x00000003"/>
-            <flag name="top" value="0x00000030"/>
-            <flag name="right" value="0x00000005"/>
-            <flag name="bottom" value="0x00000050"/>
-            <flag name="start" value="0x00800003"/> <!-- Default -->
-            <flag name="end" value="0x00800005"/>
-        </attr>
-
-        <attr name="rotateTabs" format="boolean"/>
-    </declare-styleable>
-
     <declare-styleable name="TrashFragment" parent="BlockDrawerFragment" />
 
     <declare-styleable name="CategoryTabs">
@@ -86,6 +72,12 @@
             <flag name="right" value="0x00000001"/> <!-- Clockwise synonym. Top of view moves right. -->
             <flag name="start" value="0x00000012"/> <!-- RTL adaptive counter-clockwise -->
             <flag name="end" value="0x00000011"/> <!-- RTL adaptive clockwise -->
+        </attr>
+
+        <attr name="tabOrientation">
+            <!-- Same values as LinearLayoutManager constants. -->
+            <flag name="horizontal" value="0"/> <!-- SCROLL_HORIZONTAL. Default. -->
+            <flag name="vertical" value="1"/> <!-- SCROLL_VERTICAL. -->
         </attr>
     </declare-styleable>
 

@@ -14,7 +14,10 @@
  */
 package com.google.blockly.android.demo;
 
+import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
+import android.view.View;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
@@ -26,7 +29,7 @@ import java.util.List;
 /**
  * Basic implementation of AbstractBlocklyActivity that demonstrates applying styles. This demo
  * uses an Activity style defined in the manifest XML. Alternatively, Activities can override
- * {@link #getStyleResId()} to change the style used in {@link #onCreateController()}.
+ * {@link #getStyleResId()} to change the style used in {@link #onCreate(Bundle)}.
  */
 public class StylesActivity extends AbstractBlocklyActivity {
     private static final String TAG = "StylesActivity";
@@ -69,5 +72,11 @@ public class StylesActivity extends AbstractBlocklyActivity {
         getController().addVariable("don");
         getController().addVariable("mike");
         getController().addVariable("raf");
+    }
+
+    @Override
+    protected View onCreateContentView(int parentId) {
+        View root = getLayoutInflater().inflate(R.layout.styled_content, null);
+        return root;
     }
 }
