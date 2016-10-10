@@ -49,7 +49,6 @@ import com.google.blockly.android.ui.DeleteVariableDialog;
 import com.google.blockly.android.ui.NameVariableDialog;
 import com.google.blockly.android.ui.TrashCanView;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.BlocklyUnifiedWorkspace;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -63,11 +62,12 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * TODO UPDATE
  * Base class for a Blockly activities that use a material design style tool bar, and optionally a
  * navigation menu.
  * <p/>
  * The default layout is filled with a workspace and with the toolbox and trash configured as
- * fly-out views (via the {@link BlocklyUnifiedWorkspace}).  Everything below the
+ * fly-out views.  Everything below the
  * {@link ActionBar} can be replaced by overriding {@link #onCreateContentView}.  After
  * {@link #onCreateContentView}, the base implementation of {@link #onCreateFragments()} looks for
  * the {@link WorkspaceFragment}, the {@link ToolboxFragment}, and the {@link TrashFragment} via
@@ -84,7 +84,7 @@ import java.util.List;
  * {@link #onConfigureZoomInButton()}, {@link #onConfigureZoomOutButton()}, and
  * {@link #onConfigureCenterViewButton()} will search for these views
  * and set the respective behavior.  By default, these buttons are provided by
- * {@link BlocklyUnifiedWorkspace} in {@link #onCreateContentView}.
+ * in {@link #onCreateContentView}.
  * <p/>
  * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
  * {@link #getToolboxContentsXmlPath()}, and {@link #onCreateBlockViewFactory}.  An initial

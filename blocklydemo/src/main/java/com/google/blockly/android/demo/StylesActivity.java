@@ -14,7 +14,10 @@
  */
 package com.google.blockly.android.demo;
 
+import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
+import android.view.View;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
@@ -68,5 +71,11 @@ public class StylesActivity extends AbstractBlocklyActivity {
         getController().addVariable("don");
         getController().addVariable("mike");
         getController().addVariable("raf");
+    }
+
+    @Override
+    protected View onCreateContentView(int parentId) {
+        View root = getLayoutInflater().inflate(R.layout.styled_content, null);
+        return root;
     }
 }
