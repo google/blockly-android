@@ -16,8 +16,10 @@
 package com.google.blockly.android.ui;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -25,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
@@ -72,15 +75,29 @@ public class BlockListView extends RecyclerView {
         this(context, null, 0);
     }
 
-    public BlockListView(Context context, AttributeSet attribs) {
-        this(context, attribs, 0);
+    public BlockListView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
     }
 
-    public BlockListView(Context context, AttributeSet attribs, int style) {
-        super(context, attribs, style);
+    public BlockListView(Context context, AttributeSet attrs, int style) {
+        super(context, attrs, style);
 
         setAdapter(mAdapter);
         addItemDecoration(new ItemSpacingDecoration(mAdapter));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        setLayoutManager(layoutManager);
+
+        TypedArray a = context.getTheme().obtainStyledAttributes(
+                attrs,
+                R.styleable.BlockDrawerFragment,
+                0, 0);
+
+        try {
+            int orientation = a.getInt(R.styleable.BlockDrawerFragment_scrollOrientation, VERTICAL);
+            layoutManager.setOrientation(orientation);
+        } finally {
+            a.recycle();
+        }
     }
 
     /**
