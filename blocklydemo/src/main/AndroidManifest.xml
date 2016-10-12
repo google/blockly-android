@@ -47,17 +47,6 @@
         </activity>
 
         <activity
-            android:name=".WebComparisonActivity"
-            android:label="@string/comparison_activity_name"
-            android:taskAffinity="com.google.blockly.demo.WebActivity"
-            android:windowSoftInputMode="stateHidden|adjustPan">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".SplitActivity"
             android:label="@string/split_activity_name"
             android:taskAffinity="com.google.blockly.demo.SplitActivity"

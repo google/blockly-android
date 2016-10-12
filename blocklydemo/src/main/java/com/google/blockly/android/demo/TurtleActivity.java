@@ -31,9 +31,6 @@ import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.util.JavascriptUtil;
 
 import java.io.IOException;
@@ -48,7 +45,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
     private static final String TAG = "TurtleActivity";
 
     public static final String SAVED_WORKSPACE_FILENAME = "turtle_workspace.xml";
-    static final List<String> TURTLE_BLOCK_DEFINITIONS = Arrays.asList(new String[]{
+    static final List<String> TURTLE_BLOCK_DEFINITIONS = Arrays.asList(
             "default/logic_blocks.json",
             "default/loop_blocks.json",
             "default/math_blocks.json",
@@ -56,10 +53,10 @@ public class TurtleActivity extends BlocklySectionsActivity {
             "default/colour_blocks.json",
             "default/text_blocks.json",
             "turtle/turtle_blocks.json"
-    });
-    static final List<String> TURTLE_BLOCK_GENERATORS = Arrays.asList(new String[]{
+    );
+    static final List<String> TURTLE_BLOCK_GENERATORS = Arrays.asList(
             "turtle/generators.js"
-    });
+    );
     private static final int MAX_LEVELS = 10;
     private static final String[] LEVEL_TOOLBOX = new String[MAX_LEVELS];
 
@@ -167,11 +164,6 @@ public class TurtleActivity extends BlocklySectionsActivity {
     protected String getToolboxContentsXmlPath() {
         // Expose a different set of blocks to the user at each level.
         return "turtle/" + LEVEL_TOOLBOX[getCurrentSectionIndex()];
-    }
-
-    @Override
-    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
-        return new VerticalBlockViewFactory(this, helper);
     }
 
     @Override

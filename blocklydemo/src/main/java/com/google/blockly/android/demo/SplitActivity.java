@@ -24,9 +24,6 @@ import android.widget.TextView;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
-import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,11 +113,6 @@ public class SplitActivity extends AbstractBlocklyActivity {
         List<String> paths = new ArrayList<String>(1);
         paths.add("turtle/generators.js");
         return paths;
-    }
-
-    @Override
-    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
-        return new VerticalBlockViewFactory(this, helper);
     }
 
     @NonNull
