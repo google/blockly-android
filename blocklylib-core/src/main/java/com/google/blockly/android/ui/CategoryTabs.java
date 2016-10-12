@@ -294,13 +294,10 @@ public class CategoryTabs extends RecyclerView {
         }
 
         @Override
-        public void onViewDetachedFromWindow(TabLabelHolder holder) {
+        public void onViewRecycled(TabLabelHolder holder) {
             holder.mRotator.setTag(null);  // Remove reference to holder.
             holder.mCategory = null;
             holder.mLabel.setOnClickListener(null);
-            super.onViewDetachedFromWindow(holder);
         }
-
-
     }
 }
