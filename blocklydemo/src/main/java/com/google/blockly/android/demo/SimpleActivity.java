@@ -19,9 +19,6 @@ import android.support.annotation.NonNull;
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
-import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +29,7 @@ import java.util.List;
 public class SimpleActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SimpleActivity";
 
-    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(new String[]{
+    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
             "default/list_blocks.json",
             "default/logic_blocks.json",
             "default/loop_blocks.json",
@@ -40,7 +37,7 @@ public class SimpleActivity extends AbstractBlocklyActivity {
             "default/text_blocks.json",
             "default/variable_blocks.json",
             "default/colour_blocks.json"
-    });
+    );
     private static final List<String> JAVASCRIPT_GENERATORS = Arrays.asList(new String[]{
         // Custom block generators go here. Default blocks are already included.
         // TODO(#99): Include Javascript defaults when other languages are supported.
@@ -65,11 +62,6 @@ public class SimpleActivity extends AbstractBlocklyActivity {
     @Override
     protected List<String> getGeneratorsJsPaths() {
         return JAVASCRIPT_GENERATORS;
-    }
-
-    @Override
-    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
-        return new VerticalBlockViewFactory(this, helper);
     }
 
     @NonNull

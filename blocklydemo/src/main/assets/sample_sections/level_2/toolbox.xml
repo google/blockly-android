@@ -61,15 +61,15 @@
         </block>
         <block type="math_arithmetic">
             <value name="A">
-                <shadow type="variables_get">
+                <block type="variables_get">
                     <field name="VAR">item</field>
-                </shadow>
+                </block>
             </value>
             <field name="OP">MULTIPLY</field>
             <value name="B">
-                <shadow type="variables_get">
+                <block type="variables_get">
                     <field name="VAR">zim</field>
-                </shadow>
+                </block>
             </value>
         </block>
         <block type="math_constant">

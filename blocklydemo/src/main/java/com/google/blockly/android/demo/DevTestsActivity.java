@@ -27,9 +27,6 @@ import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 
 import java.io.IOException;
@@ -47,7 +44,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     public static final String SAVED_WORKSPACE_FILENAME = "dev_tests_workspace.xml";
     private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
-            Arrays.asList(new String[] {
+            Arrays.asList(
                     "default/list_blocks.json",
                     "default/logic_blocks.json",
                     "default/loop_blocks.json",
@@ -56,7 +53,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
                     "default/variable_blocks.json",
                     "default/test_blocks.json",
                     "sample_sections/mock_block_definitions.json"
-            }));
+            ));
 
     private static int CARPET_SIZE = 1000;
 
@@ -185,11 +182,6 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         List<String> paths = new ArrayList<String>(1);
         paths.add("sample_sections/generators.js");
         return paths;
-    }
-
-    @Override
-    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
-        return new VerticalBlockViewFactory(this, helper);
     }
 
     @Override

@@ -58,6 +58,7 @@ import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -346,14 +347,32 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Constructs the {@link BlockViewFactory} used by all fragments in this activity.  The Blockly
+     * Constructs the {@link BlockViewFactory} used by all fragments in this activity. The Blockly
      * core library does not include a factory implementation, and the app developer will need to
      * include blockly vertical or another block rendering implementation.
+     * <p>
+     * The default implementation atempts to instantiates a VerticalBlockViewFactory, which included
+     * in the blocklylib-vertical library.  The project will need to include that library for this
+     * to work.
      *
      * @param helper The Workspace helper for this activity.
      * @return The {@link BlockViewFactory} used by all fragments in this activity.
      */
-    public abstract BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper);
+    public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
+        try {
+            Class<? extends BlockViewFactory> clazz =
+                    (Class<? extends BlockViewFactory>)Class.forName(
+                            "com.google.blockly.android.ui.vertical.VerticalBlockViewFactory");
+            return clazz.getConstructor(Context.class, WorkspaceHelper.class)
+                    .newInstance(this, helper);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(
+                    "Default BlockViewFactory not found. Did you include blocklylib-vertical?", e);
+        } catch (NoSuchMethodException | InstantiationException |
+                IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Unable to instantiate VerticalBlockViewFactory", e);
+        }
+    }
 
     /**
      *
