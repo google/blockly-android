@@ -145,7 +145,7 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     /**
      * @return The bounding box in view coordinates of the workspace region occupied by blocks.
      */
-    public Rect getBlocksBoundingBox() {
-        return mBlocksBoundingBox;
+    public void getBlocksBoundingBox(Rect outRect) {
+        outRect.set(mBlocksBoundingBox);
     }
 }
