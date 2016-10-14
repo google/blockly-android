@@ -18,6 +18,7 @@ package com.google.blockly.android.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.support.annotation.NonNull;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -74,6 +75,8 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private GestureDetector mTapGestureDetector;
     private InputMethodManager mImeManager;
 
+    private Rect mTempRect = new Rect();  // Used when calculating view-scaled block bounds.
+
     public VirtualWorkspaceView(Context context) {
         this(context, null);
     }
@@ -127,14 +130,13 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     public void resetView() {
         updateScaleStep(INIT_ZOOM_SCALES_INDEX);
 
-        final Rect blocksBoundingBox = mWorkspaceView.getBlocksBoundingBox();
+        final Rect blocksBoundingBox = getViewScaledBlockBounds();
         final int margin = mGridRenderer.getGridSpacing() / 2;
-        final int scrollToY = (int) (blocksBoundingBox.top * mViewScale) - margin;
+        final int scrollToY = blocksBoundingBox.top - margin;
         if (mWorkspaceView.getWorkspaceHelper().useRtl()) {
-            scrollTo((int) (blocksBoundingBox.right * mViewScale) - getMeasuredWidth() + margin,
-                    scrollToY);
+            scrollTo(blocksBoundingBox.right - getMeasuredWidth() + margin, scrollToY);
         } else {
-            scrollTo((int) (blocksBoundingBox.left * mViewScale) - margin, scrollToY);
+            scrollTo(blocksBoundingBox.left - margin, scrollToY);
         }
     }
 
@@ -308,22 +310,34 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     @Override
     public void scrollTo(int x, int y) {
-        int halfViewWidth = getMeasuredWidth() / 2;
-        int halfViewHeight = getMeasuredHeight() / 2;
+        // Clamp x and y to the scroll range that will allow for 1/2 the view (or more, for smaller
+        // views) being outside the range use by blocks. This matches the computations in
+        // computeHorizontalScrollOffset and computeVerticalScrollOffset, respectively.
+        Rect blocksBounds = getViewScaledBlockBounds();
+        int blocksWidth = blocksBounds.width();
+        int blocksHeight = blocksBounds.height();
 
-        // Clamp x and y to the scroll range that will allow for 1/2 view being outside the range
-        // use by blocks. This matches the computations in computeHorizontalScrollOffset and
-        // computeVerticalScrollOffset, respectively.
-        final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
+        int viewWidth = getMeasuredWidth();
+        int halfViewWidth = viewWidth / 2;
+        int viewHeight = getMeasuredHeight();
+        int halfViewHeight = viewHeight / 2;
 
-        final int xMin =
-                (int) (workspaceViewportBounds.left * mViewScale /* view-scaled virtual coords. */)
-                        - halfViewWidth;
-        final int xMax = (int) (workspaceViewportBounds.right * mViewScale) - halfViewWidth;
+        int horzMargin = halfViewWidth; // Default margin is half the scrollable view width.
+        if (blocksWidth < halfViewWidth) {
+            horzMargin = viewWidth - blocksWidth;
+        }
+
+        int vertMargin = halfViewHeight;
+        if (blocksHeight < halfViewHeight) {
+            vertMargin = viewHeight - blocksHeight;
+        }
+
+        final int xMin = blocksBounds.left - horzMargin;
+        final int xMax = blocksBounds.right + horzMargin - viewWidth;
         x = clampToRange(x, xMin, xMax);
 
-        final int yMin = (int) (workspaceViewportBounds.top * mViewScale) - halfViewHeight;
-        final int yMax = (int) (workspaceViewportBounds.bottom * mViewScale) - halfViewHeight;
+        final int yMin = blocksBounds.top - vertMargin;
+        final int yMax = blocksBounds.bottom + vertMargin - viewHeight;
         y = clampToRange(y, yMin, yMax);
 
         // Update and show scroll bars.
@@ -383,10 +397,16 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     @Override
     protected int computeHorizontalScrollRange() {
-        final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
+        final Rect viewScaledBlockBounds = getViewScaledBlockBounds();
         final int viewScaledWorkspaceRange =
-                (int) ((workspaceViewportBounds.right - workspaceViewportBounds.left) * mViewScale);
-        return  viewScaledWorkspaceRange + getMeasuredWidth();
+                viewScaledBlockBounds.right - viewScaledBlockBounds.left;
+        final int width = getMeasuredWidth();
+        int totalMargin = width;  // By default, leave a half screen width on left and right.
+        if (viewScaledWorkspaceRange < width / 2) {
+            // Make sure blocks can touch each edge.
+            totalMargin = 2 * (width - viewScaledWorkspaceRange);
+        }
+        return viewScaledWorkspaceRange + totalMargin;
     }
 
     /**
@@ -404,8 +424,6 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     @Override
     protected int computeHorizontalScrollExtent() {
-        // Range and offset are in view-scaled units, so the extent of the displayed area is simply
-        // the width of this view.
         return getMeasuredWidth();
     }
 
@@ -427,9 +445,8 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     @Override
     protected int computeHorizontalScrollOffset() {
-        final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
-        final int viewScaledWorkspaceLeft = (int) (workspaceViewportBounds.left * mViewScale);
-        return getScrollX() - (viewScaledWorkspaceLeft - getMeasuredWidth() / 2);
+        final Rect viewScaledBlockBounds = getViewScaledBlockBounds();
+        return getScrollX() - (viewScaledBlockBounds.left - computeHorizontalScrollExtent()) / 2;
     }
 
     /**
@@ -437,10 +454,16 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     @Override
     protected int computeVerticalScrollRange() {
-        final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
+        final Rect viewScaledBlockBounds = getViewScaledBlockBounds();
         final int viewScaledWorkspaceRange =
-                (int) ((workspaceViewportBounds.bottom - workspaceViewportBounds.top) * mViewScale);
-        return viewScaledWorkspaceRange + getMeasuredHeight();
+                viewScaledBlockBounds.bottom - viewScaledBlockBounds.top;
+        final int height = getMeasuredHeight();
+        int totalMargin = height;  // By default, leave a half screen height on top and bottom.
+        if (viewScaledWorkspaceRange < height / 2) {
+            // Make sure blocks can touch each edge.
+            totalMargin = 2 * (height - viewScaledWorkspaceRange);
+        }
+        return viewScaledWorkspaceRange + totalMargin;
     }
 
     /**
@@ -458,9 +481,8 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     @Override
     protected int computeVerticalScrollOffset() {
-        final Rect workspaceViewportBounds = mWorkspaceView.getBlocksBoundingBox();
-        final int viewScaledWorkspaceTop = (int) (workspaceViewportBounds.top * mViewScale);
-        return getScrollY() - (viewScaledWorkspaceTop - getMeasuredHeight() / 2);
+        final Rect viewScaledBlockBounds = getViewScaledBlockBounds();
+        return getScrollY() - (viewScaledBlockBounds.top - computeVerticalScrollExtent()) / 2;
     }
 
     private void updateScaleStep(int newScaleIndex) {
@@ -584,5 +606,15 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
             return true;
         }
+    }
+
+    @NonNull
+    private Rect getViewScaledBlockBounds() {
+        mWorkspaceView.getBlocksBoundingBox(mTempRect);
+        mTempRect.left = (int) Math.floor(mTempRect.left * mViewScale);
+        mTempRect.right = (int) Math.ceil(mTempRect.right * mViewScale);
+        mTempRect.top = (int) Math.floor(mTempRect.top * mViewScale);
+        mTempRect.bottom = (int) Math.ceil(mTempRect.bottom * mViewScale);
+        return mTempRect;
     }
 }
