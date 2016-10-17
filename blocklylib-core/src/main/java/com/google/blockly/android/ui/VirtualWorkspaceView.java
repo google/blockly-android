@@ -48,8 +48,11 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private static final float MIN_SCALE_TO_DRAW_GRID = 0.5f;
 
     // Allowed zoom scales.
-    private final float[] ZOOM_SCALES = new float[]{0.25f, 0.5f, 1.0f, 2.0f};
-    private final int INIT_ZOOM_SCALES_INDEX = 2;
+    private static final float[] ZOOM_SCALES = new float[]{0.25f, 0.5f, 1.0f, 2.0f};
+    private static final int INIT_ZOOM_SCALES_INDEX = 2;
+
+    protected boolean mScrollable = true;
+
     private final ViewPoint mPanningStart = new ViewPoint();
 
     private final WorkspaceGridRenderer mGridRenderer = new WorkspaceGridRenderer();
@@ -100,8 +103,8 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         mWorkspaceView.setPivotY(0);
 
         setWillNotDraw(false);
-        setHorizontalScrollBarEnabled(true);
-        setVerticalScrollBarEnabled(true);
+        setHorizontalScrollBarEnabled(mScrollable);
+        setVerticalScrollBarEnabled(mScrollable);
 
         mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
         mTapGestureDetector = new GestureDetector(getContext(), new TapGestureListener());
@@ -131,12 +134,46 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         updateScaleStep(INIT_ZOOM_SCALES_INDEX);
 
         final Rect blocksBoundingBox = getViewScaledBlockBounds();
-        final int margin = mGridRenderer.getGridSpacing() / 2;
-        final int scrollToY = blocksBoundingBox.top - margin;
-        if (mWorkspaceView.getWorkspaceHelper().useRtl()) {
-            scrollTo(blocksBoundingBox.right - getMeasuredWidth() + margin, scrollToY);
+        final boolean useRtl = mWorkspaceView.getWorkspaceHelper().useRtl();
+        if (mScrollable) {
+            final int margin = mGridRenderer.getGridSpacing() / 2;
+            final int scrollToY = blocksBoundingBox.top - margin;
+            if (useRtl) {
+                scrollTo(blocksBoundingBox.right - getMeasuredWidth() + margin, scrollToY);
+            } else {
+                scrollTo(blocksBoundingBox.left - margin, scrollToY);
+            }
         } else {
-            scrollTo(blocksBoundingBox.left - margin, scrollToY);
+            // Reset top leading corner to 0,0 when
+            scrollTo(useRtl ? -getMeasuredWidth() : 0, 0);
+        }
+    }
+
+    public boolean isScrollable() {
+        return mScrollable;
+    }
+
+    /**
+     * Configures whether the user can scroll the workspace by dragging.  If scrolling is disabled,
+     * the workspace will reset to 0,0 in the top right hand corner.
+     *
+     * @param scrollable Allow scrolling if true. Otherwise, disable it.
+     */
+    public void setScrollable(boolean scrollable) {
+        Log.d(TAG, "scrollable: " + scrollable);
+        if (scrollable == mScrollable) {
+            return;
+        }
+        mScrollable = scrollable;
+        setHorizontalScrollBarEnabled(mScrollable);
+        setVerticalScrollBarEnabled(mScrollable);
+        if (!mScrollable) {
+            // Reset scroll state.
+            mPanningPointerId = MotionEvent.INVALID_POINTER_ID;
+            mPanningStart.set(0,0);
+            mOriginalScrollX = 0;
+            mOriginalScrollY = 0;
+            resetView();
         }
     }
 
@@ -159,7 +196,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      * @return True if a zoom was changed, decreased. Otherwise false.
      */
     public boolean zoomOut() {
-        if (mCurrentZoomScaleIndex > 0) {
+        if (mScrollable && mCurrentZoomScaleIndex > 0) {
             updateScaleStep(mCurrentZoomScaleIndex - 1);
             return true;
         }
@@ -172,6 +209,13 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     public float getViewScale() {
         return mViewScale;
+    }
+
+    public Rect getVisibleBoundsInWorkspaceCoord(Rect outRect) {
+        int wsLeft = mWorkspaceView.getLeft();
+        int wsTop = mWorkspaceView.getTop();
+        //outRect.set(mWorkspaceView.);
+        return outRect;
     }
 
     @Override
@@ -196,13 +240,15 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
                 clearFocus();
                 mImeManager.hideSoftInputFromWindow(getWindowToken(), 0);
 
-                final int pointerIdx = MotionEventCompat.getActionIndex(event);
-                mPanningPointerId = MotionEventCompat.getPointerId(event, pointerIdx);
-                mPanningStart.set(
-                        (int) MotionEventCompat.getX(event, pointerIdx),
-                        (int) MotionEventCompat.getY(event, pointerIdx));
-                mOriginalScrollX = getScrollX();
-                mOriginalScrollY = getScrollY();
+                if (mScrollable) {
+                    final int pointerIdx = MotionEventCompat.getActionIndex(event);
+                    mPanningPointerId = MotionEventCompat.getPointerId(event, pointerIdx);
+                    mPanningStart.set(
+                            (int) MotionEventCompat.getX(event, pointerIdx),
+                            (int) MotionEventCompat.getY(event, pointerIdx));
+                    mOriginalScrollX = getScrollX();
+                    mOriginalScrollY = getScrollY();
+                }
                 return true;
             }
             case MotionEvent.ACTION_MOVE: {
@@ -310,6 +356,10 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      */
     @Override
     public void scrollTo(int x, int y) {
+        if (!mScrollable) {
+            return;
+        }
+
         // Clamp x and y to the scroll range that will allow for 1/2 the view (or more, for smaller
         // views) being outside the range use by blocks. This matches the computations in
         // computeHorizontalScrollOffset and computeVerticalScrollOffset, respectively.
@@ -505,6 +555,11 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
             mWorkspaceView.setScaleX(mViewScale);
             mWorkspaceView.setScaleY(mViewScale);
             mWorkspaceView.requestLayout();
+
+
+            // DO NOT SUBMIT  -=-  DO NOT SUBMIT  -=-  DO NOT SUBMIT  -=-  DO NOT SUBMIT  -=-  DO NOT SUBMIT
+            Rect blocksBounds = mWorkspaceView.getBlocksBoundingBox(new Rect());
+            Log.d(TAG, "Blocks bounds: " + blocksBounds);
         }
     }
 
@@ -514,6 +569,10 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     private static int clampToRange(int y, int min, int max) {
         return Math.min(max, Math.max(min, y));
+    }
+
+    public int getGridSpacing() {
+        return mGridRenderer.getGridSpacing();
     }
 
     private class TapGestureListener extends GestureDetector.SimpleOnGestureListener {

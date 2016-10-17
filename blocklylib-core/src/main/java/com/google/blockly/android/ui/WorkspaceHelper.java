@@ -20,12 +20,12 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewParent;
 
 import com.google.blockly.model.Block;
@@ -68,12 +68,13 @@ public class WorkspaceHelper {
     private static final int DEFAULT_MAX_SNAP_DISTANCE = 24;
 
     private final ViewPoint mVirtualWorkspaceViewOffset = new ViewPoint();
-    private final ViewPoint mTempScreenPosition = new ViewPoint();
     private final ViewPoint mTempViewPoint = new ViewPoint();
+    private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
     private final int[] mTempIntArray2 = new int[2];
     private final Context mContext;
 
     private WorkspaceView mWorkspaceView;
+    private VirtualWorkspaceView mVirtualWorkspaceView;
     private BlockViewFactory mViewFactory;
     private float mDensity;
     private boolean mRtl;
@@ -127,6 +128,7 @@ public class WorkspaceHelper {
      */
     public void setWorkspaceView(WorkspaceView workspaceView) {
         mWorkspaceView = workspaceView;
+        mVirtualWorkspaceView = (VirtualWorkspaceView) mWorkspaceView.getParent();
     }
 
     /**
@@ -256,9 +258,9 @@ public class WorkspaceHelper {
      * <em>top-right</em> corner of the view.
      *
      * @param view The view to find the position of.
-     * @param workspacePosition The Point to store the results in.
+     * @param outCoordinate The Point to store the results in.
      */
-    public void getWorkspaceCoordinates(View view, WorkspacePoint workspacePosition) {
+    public void getWorkspaceCoordinates(@NonNull View view, WorkspacePoint outCoordinate) {
         getVirtualViewCoordinates(view, mTempViewPoint);
         if (mRtl) {
             // In right-to-left mode, the Block's position is that of its top-RIGHT corner, but
@@ -266,7 +268,7 @@ public class WorkspaceHelper {
             // Adding the view's width to the lhs view coordinate gives us the rhs coordinate.
             mTempViewPoint.x += view.getMeasuredWidth();
         }
-        virtualViewToWorkspaceCoordinates(mTempViewPoint, workspacePosition);
+        virtualViewToWorkspaceCoordinates(mTempViewPoint, outCoordinate);
     }
 
     /**
@@ -478,17 +480,17 @@ public class WorkspaceHelper {
      * pixels.
      *
      * @param viewPosition The position to convert to workspace coordinates.
-     * @param workspacePosition The Point to store the results in.
+     * @param outCoordinate The Point to store the results in.
      */
-    void virtualViewToWorkspaceCoordinates(ViewPoint viewPosition,
-                                           WorkspacePoint workspacePosition) {
+    public void virtualViewToWorkspaceCoordinates(ViewPoint viewPosition,
+                                                  WorkspacePoint outCoordinate) {
         int workspaceX =
                 virtualViewToWorkspaceUnits(viewPosition.x + mVirtualWorkspaceViewOffset.x);
         if (mRtl) {
             workspaceX *= -1;
         }
-        workspacePosition.x = workspaceX;
-        workspacePosition.y =
+        outCoordinate.x = workspaceX;
+        outCoordinate.y =
                 virtualViewToWorkspaceUnits(viewPosition.y + mVirtualWorkspaceViewOffset.y);
     }
 
@@ -523,5 +525,24 @@ public class WorkspaceHelper {
         } else {
             mRtl = false;  // RTL not supported.
         }
+    }
+
+    /**
+     * Gets the visible bounds of the workspace, in workspace units.
+     *
+     * @param outRect The {@link Rect} in which to store the bounds values.
+     * @return {@code outRect}
+     */
+    public Rect getViewableWorkspaceBounds(Rect outRect) {
+        mTempViewPoint.set(0, 0);
+        virtualViewToWorkspaceCoordinates(mTempViewPoint, mTempWorkspacePoint);
+        outRect.left = mTempWorkspacePoint.x;
+        outRect.top = mTempWorkspacePoint.y;
+
+        mTempViewPoint.set(mVirtualWorkspaceView.getWidth(), mVirtualWorkspaceView.getHeight());
+        virtualViewToWorkspaceCoordinates(mTempViewPoint, mTempWorkspacePoint);
+        outRect.right = mTempWorkspacePoint.x;
+        outRect.bottom = mTempWorkspacePoint.y;
+        return outRect;
     }
 }

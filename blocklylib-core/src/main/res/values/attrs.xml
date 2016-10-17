@@ -29,6 +29,10 @@
         <attr name="dropdownItemLayout" format="reference"/>
     </declare-styleable>
 
+    <declare-styleable name="WorkspaceFragment">
+        <attr name="scrollable" format="boolean"/> <!-- Default true -->
+    </declare-styleable>
+
     <!-- Base class of ToolboxFragment and TrashFragment. -->
     <declare-styleable name="BlockDrawerFragment">
         <attr name="closeable" format="boolean"/> <!-- Default false -->
