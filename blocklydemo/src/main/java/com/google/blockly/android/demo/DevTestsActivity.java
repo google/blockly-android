@@ -59,6 +59,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     public static final String WORKSPACE_FOLDER_PREFIX = "sample_sections/level_";
 
+    protected MenuItem mScrollableMenuItem;
     protected MenuItem mLogEventsMenuItem;
 
     protected CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
@@ -69,6 +70,8 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean isShown = super.onCreateOptionsMenu(menu);
         if (isShown) {
+            mScrollableMenuItem = menu.findItem(R.id.scrollable_menuitem);
+            mScrollableMenuItem.setChecked(mWorkspaceFragment.getScrollable());
             mLogEventsMenuItem = menu.findItem(R.id.log_events_menuitem);
         }
         return isShown;
@@ -78,7 +81,9 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.log_events_menuitem) {
+        if (id == R.id.scrollable_menuitem) {
+            setWorkspaceScrolling(!mScrollableMenuItem.isChecked());
+        } else if (id == R.id.log_events_menuitem) {
             setLogEvents(!mLogEventsMenuItem.isChecked());
         } else if (id == R.id.action_airstrike) {
             airstrike();
@@ -107,6 +112,21 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
     }
 
+    /**
+     * Enables or disables scrolling on the workspace. This is test-only feature, in that we expect
+     * developers to set the scrollability once, and not change it while there may be blocks on the
+     * workspace. This does not guarantee all blocks will be visible, even if scrolling is disabled.
+     *
+     * @param allowScrolling
+     */
+    private void setWorkspaceScrolling(boolean allowScrolling) {
+        mWorkspaceFragment.setScrollable(allowScrolling);
+        mScrollableMenuItem.setChecked(allowScrolling);
+    }
+
+    /**
+     * @param logEvents Enable event logging if true. Otherwise, disable.
+     */
     private void setLogEvents(boolean logEvents) {
         if (logEvents) {
             mController.addCallback(mEventsCallback);

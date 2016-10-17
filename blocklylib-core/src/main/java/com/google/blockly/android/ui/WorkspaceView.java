@@ -17,6 +17,7 @@ package com.google.blockly.android.ui;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -145,7 +146,9 @@ public class WorkspaceView extends NonPropagatingViewGroup {
     /**
      * @return The bounding box in view coordinates of the workspace region occupied by blocks.
      */
-    public void getBlocksBoundingBox(Rect outRect) {
+    @NonNull
+    public Rect getBlocksBoundingBox(@NonNull Rect outRect) {
         outRect.set(mBlocksBoundingBox);
+        return outRect;
     }
 }
