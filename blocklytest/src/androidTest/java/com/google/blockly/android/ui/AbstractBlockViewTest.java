@@ -74,8 +74,8 @@ public class AbstractBlockViewTest extends MockitoAndroidTestCase {
     // Make a BlockView for the given Block and default mock objects otherwise.
     @NonNull
     private AbstractBlockView makeBlockView(Block block) {
-        return new AbstractBlockView(getContext(), mMockHelper, null, block, new ArrayList(),
-                mMockConnectionManager, null) {
+        return new AbstractBlockView<InputView>(getContext(), mMockHelper, mMockViewFactory, block,
+                new ArrayList<InputView>(), mMockConnectionManager, null) {
 
             @Override
             protected boolean hitTest(MotionEvent event) {

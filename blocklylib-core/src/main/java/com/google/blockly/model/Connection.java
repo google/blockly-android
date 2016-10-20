@@ -362,7 +362,7 @@ public class Connection implements Cloneable {
     }
 
     @VisibleForTesting
-    public void checkConnection(Connection target) {
+    void checkConnection(Connection target) {
         switch (canConnectWithReason(target)) {
             case CAN_CONNECT:
                 break;

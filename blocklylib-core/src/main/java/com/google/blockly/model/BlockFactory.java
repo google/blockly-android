@@ -22,10 +22,13 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.ColorUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -41,6 +44,9 @@ import java.util.List;
  */
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
+
+    /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
+    private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
 
     private Resources mResources;
     private final HashMap<String, Block> mBlockTemplates = new HashMap<>();
@@ -189,6 +195,374 @@ public class BlockFactory {
     }
 
     /**
+     * Generate a {@link Block} from JSON, including all inputs and fields within the block.
+     *
+     * @param type The type id of the block.
+     * @param json The JSON to generate the block from.
+     *
+     * @return The generated Block.
+     * @throws BlockLoadingException if the json is malformed.
+     */
+    public Block fromJson(String type, JSONObject json) throws BlockLoadingException {
+        if (TextUtils.isEmpty(type)) {
+            throw new IllegalArgumentException("Block type may not be null or empty.");
+        }
+        if (json == null) {
+            throw new IllegalArgumentException("Json may not be null.");
+        }
+        Block.Builder builder = new Block.Builder(type);
+
+        if (json.has("output") && json.has("previousStatement")) {
+            throw new BlockLoadingException(
+                    "Block cannot have both an output and a previous statement.");
+        }
+
+        // Parse any connections that are present.
+        if (json.has("output")) {
+            String[] checks = Input.getChecksFromJson(json, "output");
+            Connection output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, checks);
+            builder.setOutput(output);
+        } else if (json.has("previousStatement")) {
+            String[] checks = Input.getChecksFromJson(json, "previousStatement");
+            Connection previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, checks);
+            builder.setPrevious(previous);
+        }
+        // A block can have either an output connection or previous connection, but it can always
+        // have a next connection.
+        if (json.has("nextStatement")) {
+            String[] checks = Input.getChecksFromJson(json, "nextStatement");
+            Connection next = new Connection(Connection.CONNECTION_TYPE_NEXT, checks);
+            builder.setNext(next);
+        }
+        if (json.has("inputsInline")) {
+            try {
+                builder.setInputsInline(json.getBoolean("inputsInline"));
+            } catch (JSONException e) {
+                // Do nothing and it will remain false.
+            }
+        }
+
+        int blockColor = ColorUtils.DEFAULT_BLOCK_COLOR;
+        if (json.has("colour")) {
+            try {
+                String colourString = json.getString("colour");
+                blockColor = ColorUtils.parseColor(colourString, TEMP_IO_THREAD_FLOAT_ARRAY,
+                        ColorUtils.DEFAULT_BLOCK_COLOR);
+            } catch (JSONException e) {
+                // Won't get here. Checked above.
+            }
+        }
+        builder.setColor(blockColor);
+
+        ArrayList<Input> inputs = new ArrayList<>();
+        ArrayList<Field> fields = new ArrayList<>();
+        for (int i = 0; ; i++) {
+            String messageKey = "message" + i;
+            String argsKey = "args" + i;
+            String lastDummyAlignKey = "lastDummyAlign" + i;
+            if (!json.has(messageKey)) {
+                break;
+            }
+            String message = json.optString(messageKey);
+            JSONArray args = json.optJSONArray(argsKey);
+            if (args == null) {
+                // If there's no args for this message use an empty array.
+                args = new JSONArray();
+            }
+
+            if (message.matches("^%[a-zA-Z][a-zA-Z_0-9]*$")) {
+                // TODO(#83): load the message from resources.
+            }
+            // Split on all argument indices of the form "%N" where N is a number from 1 to
+            // the number of args without removing them.
+            List<String> tokens = Block.tokenizeMessage(message);
+            int indexCount = 0;
+            // Indices start at 1, make the array 1 bigger so we don't have to offset things
+            boolean[] seenIndices = new boolean[args.length() + 1];
+
+            for (String token : tokens) {
+                // Check if this token is an argument index of the form "%N"
+                if (token.matches("^%\\d+$")) {
+                    int index = Integer.parseInt(token.substring(1));
+                    if (index < 1 || index > args.length()) {
+                        throw new BlockLoadingException("Message index " + index
+                                + " is out of range.");
+                    }
+                    if (seenIndices[index]) {
+                        throw new BlockLoadingException(("Message index " + index
+                                + " is duplicated"));
+                    }
+                    seenIndices[index] = true;
+
+                    JSONObject element;
+                    try {
+                        element = args.getJSONObject(index - 1);
+                    } catch (JSONException e) {
+                        throw new BlockLoadingException("Error reading arg %" + index, e);
+                    }
+                    while (element != null) {
+                        String elementType = element.optString("type");
+                        if (TextUtils.isEmpty(elementType)) {
+                            throw new BlockLoadingException("No type for arg %" + index);
+                        }
+
+                        if (Field.isFieldType(elementType)) {
+                            fields.add(Field.fromJson(element));
+                            break;
+                        } else if (Input.isInputType(elementType)) {
+                            Input input = Input.fromJson(element);
+                            input.addAll(fields);
+                            fields.clear();
+                            inputs.add(input);
+                            break;
+                        } else {
+                            // Try getting the fallback block if it exists
+                            Log.w(TAG, "Unknown element type: " + elementType);
+                            element = element.optJSONObject("alt");
+                        }
+                    }
+                } else {
+                    token = token.replace("%%", "%").trim();
+                    if (!TextUtils.isEmpty(token)) {
+                        fields.add(new FieldLabel(null, token));
+                    }
+                }
+            }
+
+            // Verify every argument was used
+            for (int j = 1; j < seenIndices.length; j++) {
+                if (!seenIndices[j]) {
+                    throw new BlockLoadingException("Argument " + j + " was never used.");
+                }
+            }
+            // If there were leftover fields we need to add a dummy input to hold them.
+            if (fields.size() != 0) {
+                String align = json.optString(lastDummyAlignKey, Input.ALIGN_LEFT_STRING);
+                Input input = new Input.InputDummy(null, align);
+                input.addAll(fields);
+                inputs.add(input);
+                fields.clear();
+            }
+        }
+
+        builder.setInputs(inputs);
+        return builder.build();
+    }
+
+    /**
+     * Load a block and all of its children from XML.
+     *
+     * @param parser An XmlPullParser pointed at the start tag of this block.
+     *
+     * @return The loaded block.
+     *
+     * @throws XmlPullParserException
+     * @throws IOException
+     * @throws BlocklyParserException
+     */
+    public Block fromXml(XmlPullParser parser)
+            throws XmlPullParserException, IOException, BlocklyParserException {
+        String type = parser.getAttributeValue(null, "type");   // prototype name
+        String id = parser.getAttributeValue(null, "id");
+        if (type == null || type.isEmpty()) {
+            throw new BlocklyParserException("Block was missing a type.");
+        }
+        // If the id was empty the blockfactory will just generate one.
+
+        Block resultBlock = obtainBlock(type, id);
+        if (resultBlock == null) {
+            throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
+        }
+
+        String collapsedString = parser.getAttributeValue(null, "collapsed");
+        if (collapsedString != null) {
+            resultBlock.setCollapsed(Boolean.parseBoolean(collapsedString));
+        }
+
+        String deletableString = parser.getAttributeValue(null, "deletable");
+        if (deletableString != null) {
+            resultBlock.setDeletable(Boolean.parseBoolean(deletableString));
+        }
+
+        String disabledString = parser.getAttributeValue(null, "disabled");
+        if (disabledString != null) {
+            resultBlock.setDisabled(Boolean.parseBoolean(disabledString));
+        }
+
+        String editableString = parser.getAttributeValue(null, "editable");
+        if (editableString != null) {
+            resultBlock.setEditable(Boolean.parseBoolean(editableString));
+        }
+
+        String inputsInlineString = parser.getAttributeValue(null, "inline");
+        if (inputsInlineString != null) {
+            resultBlock.setInputsInline(Boolean.parseBoolean(inputsInlineString));
+        }
+
+        String movableString = parser.getAttributeValue(null, "movable");
+        if (movableString != null) {
+            resultBlock.setMovable(Boolean.parseBoolean(movableString));
+        }
+
+        // Set position.  Only if this is a top level block.
+        String x = parser.getAttributeValue(null, "x");
+        String y = parser.getAttributeValue(null, "y");
+        if (x != null && y != null) {
+            resultBlock.setPosition(Integer.parseInt(x), Integer.parseInt(y));
+        }
+
+        int eventType = parser.next();
+        String text = "";
+        String fieldName = "";
+        Block childBlock = null;
+        Block childShadow = null;
+        Input valueInput = null;
+        Input statementInput = null;
+
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            String tagname = parser.getName();
+            switch (eventType) {
+                case XmlPullParser.START_TAG:
+                    text = ""; // Ignore text from parent (or prior) block.
+                    if (tagname.equalsIgnoreCase("block")) {
+                        childBlock = fromXml(parser);
+                    } else if (tagname.equalsIgnoreCase("shadow")) {
+                        childShadow = fromXml(parser);
+                    } else if (tagname.equalsIgnoreCase("field")) {
+                        fieldName = parser.getAttributeValue(null, "name");
+                    } else if (tagname.equalsIgnoreCase("value")) {
+                        valueInput = resultBlock.getInputByName(
+                                parser.getAttributeValue(null, "name"));
+                        if (valueInput == null) {
+                            throw new BlocklyParserException("The value input was null at line "
+                                    + parser.getLineNumber() + "!");
+                        }
+                    } else if (tagname.equalsIgnoreCase("statement")) {
+                        statementInput = resultBlock.getInputByName(
+                                parser.getAttributeValue(null, "name"));
+                    } else if (tagname.equalsIgnoreCase("mutation")) {
+                        // TODO(fenichel): Handle mutations.
+                    }
+                    break;
+
+                case XmlPullParser.TEXT:
+                    text = parser.getText();
+                    break;
+
+                case XmlPullParser.END_TAG:
+                    Connection parentConnection = null;
+
+                    if (tagname.equalsIgnoreCase("block")) {
+                        if (resultBlock == null) {
+                            throw new BlocklyParserException(
+                                    "Created a null block. This should never happen.");
+                        }
+                        return resultBlock;
+                    } else if (tagname.equalsIgnoreCase("shadow")) {
+                        if (resultBlock == null) {
+                            throw new BlocklyParserException(
+                                    "Created a null block. This should never happen.");
+                        }
+                        try {
+                            resultBlock.setShadow(true);
+                        } catch (IllegalStateException e) {
+                            throw new BlocklyParserException(e);
+                        }
+                        return resultBlock;
+                    }else if (tagname.equalsIgnoreCase("field")) {
+                        Field toSet = resultBlock.getFieldByName(fieldName);
+                        if (toSet != null) {
+                            if (!toSet.setFromString(text)) {
+                                throw new BlocklyParserException(
+                                        "Failed to set a field's value from XML.");
+                            }
+                        }
+                    } else if (tagname.equalsIgnoreCase("comment")) {
+                        resultBlock.setComment(text);
+                    } else if (tagname.equalsIgnoreCase("value")) {
+                        if (valueInput != null) {
+                            parentConnection = valueInput.getConnection();
+                            if (parentConnection == null) {
+                                throw new BlocklyParserException("The input connection was null.");
+                            }
+                        } else {
+                            throw new BlocklyParserException(
+                                    "A value input was null.");
+                        }
+                    } else if (tagname.equalsIgnoreCase("statement")) {
+                        if (statementInput != null) {
+                            parentConnection = statementInput.getConnection();
+                            if (parentConnection == null) {
+                                throw new BlocklyParserException(
+                                        "The statement connection was null.");
+                            }
+                        } else {
+                            throw new BlocklyParserException(
+                                    "A statement input was null.");
+                        }
+                    } else if (tagname.equalsIgnoreCase("next")) {
+                        parentConnection = resultBlock.getNextConnection();
+                        if (parentConnection == null) {
+                            throw new BlocklyParserException("A next connection was null");
+                        }
+                    }
+                    // If we finished a parent connection (statement, value, or next)
+                    if (parentConnection != null) {
+                        // Connect its child if one exists
+                        if (childBlock != null) {
+                            Connection childConnection = childBlock.getPreviousConnection();
+                            if (childConnection == null) {
+                                childConnection = childBlock.getOutputConnection();
+                            }
+                            if (childConnection == null) {
+                                throw new BlocklyParserException(
+                                        "The child block's connection was null.");
+                            }
+                            if (parentConnection.isConnected()) {
+                                throw new BlocklyParserException("Duplicated " + tagname
+                                        + " in block.");
+                            }
+                            parentConnection.connect(childConnection);
+                        }
+                        // Then connect its shadow if one exists
+                        if (childShadow != null) {
+                            Connection shadowConnection = childShadow.getPreviousConnection();
+                            if (shadowConnection == null) {
+                                shadowConnection = childShadow.getOutputConnection();
+                            }
+                            if (shadowConnection == null) {
+                                throw new BlocklyParserException(
+                                        "The shadow block connection was null.");
+                            }
+                            if (parentConnection.getShadowConnection() != null) {
+                                throw new BlocklyParserException("Duplicated " + tagname
+                                        + " in block.");
+                            }
+                            parentConnection.setShadowConnection(shadowConnection);
+                            if (!parentConnection.isConnected()) {
+                                // If there was no standard block connect the shadow
+                                parentConnection.connect(shadowConnection);
+                            }
+                        }
+                        // And clear out all the references for this tag
+                        childBlock = null;
+                        childShadow = null;
+                        valueInput = null;
+                        statementInput = null;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+            eventType = parser.next();
+        }
+        // Should never reach here, since this is called from a workspace fromXml function.
+        throw new BlocklyParserException(
+                "Reached the end of Block.fromXml. This should never happen.");
+    }
+
+    /**
      * Removes all blocks from the factory.
      */
     public void clear() {
@@ -218,7 +592,7 @@ public class BlockFactory {
                 JSONObject block = blocks.getJSONObject(i);
                 String type = block.optString("type");
                 if (!TextUtils.isEmpty(type)) {
-                    mBlockTemplates.put(type, Block.fromJson(type, block));
+                    mBlockTemplates.put(type, fromJson(type, block));
                     ++blockAddedCount;
                 } else {
                     throw new BlockLoadingException(

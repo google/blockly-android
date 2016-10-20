@@ -265,7 +265,7 @@ public final class BlocklyXmlHelper {
                             throw new BlocklyParserException("Malformed XML; aborting.");
                         }
                         if (parser.getName().equalsIgnoreCase("block")) {
-                            result.add(Block.fromXml(parser, blockFactory));
+                            result.add(blockFactory.fromXml(parser));
                         } else if (parser.getName().equalsIgnoreCase("shadow")) {
                             throw new IllegalArgumentException(
                                     "Shadow blocks may not be top level blocks.");
