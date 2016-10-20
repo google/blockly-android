@@ -69,7 +69,7 @@ public class WorkspaceFragment extends Fragment {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.ToolboxFragment,
+                R.styleable.WorkspaceFragment,
                 0, 0);
         try {
             //noinspection ResourceType
