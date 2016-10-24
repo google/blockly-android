@@ -71,8 +71,11 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         boolean isShown = super.onCreateOptionsMenu(menu);
         if (isShown) {
             mScrollableMenuItem = menu.findItem(R.id.scrollable_menuitem);
-            mScrollableMenuItem.setChecked(mWorkspaceFragment.getScrollable());
             mLogEventsMenuItem = menu.findItem(R.id.log_events_menuitem);
+
+            if (mScrollableMenuItem != null) {
+                mScrollableMenuItem.setChecked(mWorkspaceFragment.getScrollable());
+            }
         }
         return isShown;
     }
