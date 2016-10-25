@@ -10,8 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <!-- Activity drawers listed below. -->
-    <!-- Drawers are added programmatically in
+    <!-- Drawers are appended programmatically in
       -  AbstractBlocklyActivity.onCreateAppNavigationDrawer()
       -->
 
