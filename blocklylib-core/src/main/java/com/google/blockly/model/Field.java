@@ -158,65 +158,6 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     }
 
     /**
-     * Create a new {@link Field} instance from JSON.  If the type is not recognized
-     * null will be returned. If the JSON is invalid or there is an error reading the data a
-     * {@link RuntimeException} will be thrown.
-     *
-     * @param json The JSON to generate the Field from.
-     *
-     * @return A Field of the appropriate type.
-     *
-     * @throws RuntimeException
-     */
-    public static Field fromJson(JSONObject json) throws BlockLoadingException {
-        String type = null;
-        try {
-            type = json.getString("type");
-        } catch (JSONException e) {
-            throw new BlockLoadingException("Error getting the field type.", e);
-        }
-
-        // If new fields are added here FIELD_TYPES should also be updated.
-        Field field = null;
-        switch (type) {
-            case TYPE_LABEL_STRING:
-                field = FieldLabel.fromJson(json);
-                break;
-            case TYPE_INPUT_STRING:
-                field = FieldInput.fromJson(json);
-                break;
-            case TYPE_ANGLE_STRING:
-                field = FieldAngle.fromJson(json);
-                break;
-            case TYPE_CHECKBOX_STRING:
-                field = FieldCheckbox.fromJson(json);
-                break;
-            case TYPE_COLOR_STRING:
-                field = FieldColor.fromJson(json);
-                break;
-            case TYPE_DATE_STRING:
-                field = FieldDate.fromJson(json);
-                break;
-            case TYPE_VARIABLE_STRING:
-                field = FieldVariable.fromJson(json);
-                break;
-            case TYPE_DROPDOWN_STRING:
-                field = FieldDropdown.fromJson(json);
-                break;
-            case TYPE_IMAGE_STRING:
-                field = FieldImage.fromJson(json);
-                break;
-            case TYPE_NUMBER_STRING:
-                field = FieldNumber.fromJson(json);
-                break;
-            default:
-                Log.w(TAG, "Unknown field type.");
-                break;
-        }
-        return field;
-    }
-
-    /**
      * Convert string representation of field type to internal integer Id.
      *
      * @param typeString The field type string, e.g., TYPE_LABEL_STRING ("field_label").

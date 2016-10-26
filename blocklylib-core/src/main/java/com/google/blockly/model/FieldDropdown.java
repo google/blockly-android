@@ -15,6 +15,9 @@
 
 package com.google.blockly.model;
 
+import android.database.Observable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.google.blockly.utils.BlockLoadingException;
@@ -24,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,19 +36,163 @@ import java.util.List;
 public final class FieldDropdown extends Field<FieldDropdown.Observer> {
     private static final String TAG = "FieldDropdown";
 
-    private List<Option> mOptions;
-    private int mCurrentSelection = 0;
+    /**
+     * An option for a block's dropdown field.
+     */
+    public static class Option {
+        public final String value;
+        public final String displayName;
+
+        public Option(String value, String displayName) {
+            if (TextUtils.isEmpty(value)) {
+                throw new IllegalArgumentException("Dropdown option value cannot be null or empty");
+            }
+            this.value = value;
+            this.displayName = TextUtils.isEmpty(displayName) ? value : displayName;
+        }
+    }
+
+    /**
+     * The list of all options for a {@link FieldDropdown}.
+     */
+    public static class Options extends Observable<OptionsObserver> {
+        public final List<Option> mOptionList = new ArrayList<>();
+
+        /**
+         * Constructs
+         *
+         * @param options The initial options for the new instance.
+         */
+        public Options(List<Option> options) {
+            mOptionList.addAll(options);
+        }
+
+        /**
+         * @return A clone of this {@code Options}, with the same list of {@link Option}s.
+         */
+        public Options clone() {
+            return new Options(mOptionList); // Creates a shallow copy of the list contents.
+        }
+
+        /**
+         * @return True if there are no {@link Option}s. Otherwise false.
+         */
+        public boolean isEmpty() {
+            return mOptionList.isEmpty();
+        }
+
+        /**
+         * @return The count of {@link Option}s in this list.
+         */
+        public int size() {
+            return mOptionList.size();
+        }
+
+        /**
+         * @param index The index of the {@link Option} to retrieve.
+         * @return The
+         */
+        public Option get(int index) {
+            if (index < 0 || mOptionList.size() <= index) {
+                throw new IllegalArgumentException("Index " + index + " is out of bounds. "
+                                                   + mOptionList.size() + "Options.");
+            }
+            return mOptionList.get(index);
+        }
+
+        /**
+         * Searches options for the first option that matches {@code value}.
+         *
+         * @param value The value string to match
+         * @return The index of the first matching value, or -1 if not found.
+         */
+        public int getIndexForValue(String value) {
+            int count = mOptionList.size();
+            for (int i = 0; i < count; ++i) {
+                Option option = mOptionList.get(i);
+                if (TextUtils.equals(value, option.value)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        /**
+         * Replaces the current {@link Option} list with {@code option}, and updates all observers.
+         *
+         * @param options The new of {@link Option}s to use.
+         */
+        public void updateOptions(List<Option> options) {
+            mOptionList.clear();
+            mOptionList.addAll(options);
+
+            for (OptionsObserver observer : mObservers) {
+                observer.onOptionsUpdated(this);
+            }
+        }
+
+        /**
+         * Updates the list of {@link Option}s from {@code source} into this instance, and updates
+         * all observers.
+         *
+         * @param source The {@link Options} with new of {@link Option}s to use.
+         */
+        public void copyFrom(Options source) {
+            updateOptions(source.mOptionList);
+        }
+    }
+
+    /**
+     * Interface to listen for changes that occur to an {@link Options} list.
+     */
+    public interface OptionsObserver {
+        void onOptionsUpdated(Options options);
+    }
+
+    private Options mOptions;
+    private Option mSelectedOption = null;
+    private int mSelectedIndex = 0;
+
+    private OptionsObserver mOptionsObserver = new OptionsObserver() {
+        @Override
+        public void onOptionsUpdated(Options options) {
+            if (options != mOptions) {
+                throw new IllegalStateException("Mismatched Options instance.");
+            }
+            if (mOptions.isEmpty()) {
+                mSelectedOption = null;
+                mSelectedIndex = -1;
+            } else if (mSelectedOption != null) {
+                setSelectedValue(mSelectedOption.value);
+            } else {
+                mSelectedIndex = 0;
+                mSelectedOption = mOptions.get(0);
+            }
+        }
+    };
 
     public FieldDropdown(String name) {
         super(name, TYPE_DROPDOWN);
-        mOptions = new ArrayList<>(0);
+        setOptions(new Options(Collections.<Option>emptyList()));
     }
 
-    public FieldDropdown(String name, List<Option> options) {
+    public FieldDropdown(String name, @Nullable Options options) {
         super(name, TYPE_DROPDOWN);
-        mOptions = (options != null) ? options : new ArrayList<Option>(0);
+        setOptions((options != null) ? options : new Options(Collections.<Option>emptyList()));
+        if (!options.isEmpty()) {
+            mSelectedIndex = 0;
+            mSelectedOption = mOptions.get(mSelectedIndex);
+        }
     }
 
+    /**
+     * Loads a FieldDropdown from JSON. This is usually used for the {@link BlockFactory}'s
+     * prototype instances.
+     *
+     * @param json The JSON representing the object.
+     * @return A new FieldDropdown instance.
+     * @throws BlockLoadingException
+     */
     public static FieldDropdown fromJson(JSONObject json) throws BlockLoadingException {
         String name = json.optString("name");
         if (TextUtils.isEmpty(name)) {
@@ -52,10 +200,10 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
         }
 
         JSONArray jsonOptions = json.optJSONArray("options");
-        ArrayList<Option> options = null;
+        ArrayList<Option> optionList = null;
         if (jsonOptions != null) {
             int count = jsonOptions == null ? 0 :jsonOptions.length();
-            options = new ArrayList<>(count);
+            optionList = new ArrayList<>(count);
 
             for (int i = 0; i < count; i++) {
                 JSONArray option = null;
@@ -71,20 +219,24 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
                         if (TextUtils.isEmpty(value)) {
                             throw new BlockLoadingException("Option values may not be empty");
                         }
-                        options.add(new Option(value, displayName));
+                        optionList.add(new Option(value, displayName));
                     } catch (JSONException e) {
                         throw new BlockLoadingException("Error reading option values.", e);
                     }
                 }
             }
         }
-        return new FieldDropdown(name, options);
+        return new FieldDropdown(name, new Options(optionList));
     }
 
+    /**
+     * @return A clone of this field, which shares the same options and is initialized to the same
+     *         selected value.
+     */
     @Override
     public FieldDropdown clone() {
-        FieldDropdown copy = new FieldDropdown(getName(), new ArrayList<>(mOptions));
-        copy.setSelectedIndex(mCurrentSelection);
+        FieldDropdown copy = new FieldDropdown(getName(), mOptions);
+        copy.setSelectedIndex(mSelectedIndex);
         return copy;
     }
 
@@ -95,50 +247,53 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
     }
 
     /**
-     * Sets the list of options. Each Pair in the list must have a display name as the first
-     * parameter and the value as the second parameter.
-     *
-     * @param options A list of options consisting of pairs of displayName/value.
+     * @return The list of options in this dropdown field.
      */
-    public void setOptions(List<Option> options) {
-        String previousValue = getSerializedValue();
-        mOptions = options;
-        setSelectedValue(previousValue);
+    public Options getOptions() {
+        return mOptions;
     }
 
-
     /**
-     * Set the list of options this field displays. The parameters must be two arrays of equal
-     * length.
+     * Sets the {@link FieldDropdown.Options} instance for this field.
      *
-     * @param values The values for the options.
-     * @param displayNames The names to display for the options.
+     * @param options An {@link FieldDropdown.Options} list, replacing the current options.
      */
-    public void setOptions(List<String> values, List<String> displayNames) {
-        if (values == null && displayNames == null) {
-            mOptions.clear();
+    public void setOptions(@NonNull Options options) {
+        if (mOptions == options) {
             return;
         }
-        if ((values == null && displayNames != null) || (displayNames == null && values != null)) {
-            throw new IllegalArgumentException("displayNames and values must both be non-null");
+        if (mOptions != null) {
+            mOptions.unregisterObserver(mOptionsObserver);
         }
 
-        final int count = values.size();
-        if (displayNames.size() != count) {
-            throw new IllegalArgumentException("displayNames and values must be the same length.");
+        mOptions = options;
+        mOptions.registerObserver(mOptionsObserver);
+
+        if (mOptions.isEmpty()) {
+            mSelectedIndex = -1;
+            mSelectedOption = null;
+        } else if (mSelectedOption == null) {
+            setSelectedIndex(0);
+        } else {
+            setSelectedValue(mSelectedOption.value);
         }
-        ArrayList<Option> options = new ArrayList<>(count);
-        for (int i = 0; i < count; ++i) {
-            options.add(new Option(values.get(i), displayNames.get(i)));
-        }
-        setOptions(options);
+    }
+
+    /**
+     * Sets the available options for this field.
+     *
+     * @param optionList A list of {@link FieldDropdown.Option}s, to initialize a new
+     *                   {@link FieldDropdown.Options} list.
+     */
+    public void setOptions(@NonNull List<FieldDropdown.Option> optionList) {
+        setOptions(new FieldDropdown.Options(optionList));
     }
 
     /**
      * @return The value of the currently selected option.
      */
     public String getSelectedValue() {
-        return mOptions.size() == 0 ? null : mOptions.get(mCurrentSelection).value;
+        return mSelectedOption == null ? null : mSelectedOption.value;
     }
 
     /**
@@ -146,25 +301,20 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
      * there are no options the index will be set to -1. If the value given is empty or does
      * not exist the index will be set to 0.
      *
-     * @param value The value of the option to select.
+     * @param newValue The value of the option to select.
      */
-    public void setSelectedValue(String value) {
-        if (mOptions.size() == 0) {
-            mCurrentSelection = -1;
-        } else if (TextUtils.isEmpty(value)) {
-            setSelectedIndex(0);
+    public void setSelectedValue(String newValue) {
+        if (mOptions.isEmpty()) {
+            int oldIndex = mSelectedIndex;
+            mSelectedIndex = -1;
+            mSelectedOption = null;
+            onSelectionChanged(this, oldIndex, mSelectedIndex);
         } else {
-            boolean found = false;
-            for (int i = 0; i < mOptions.size(); i++) {
-                if (TextUtils.equals(value, mOptions.get(i).value)) {
-                    setSelectedIndex(i);
-                    found = true;
-                    break;
-                }
+            int index = mOptions.getIndexForValue(newValue);
+            if (index == -1) {
+                index = 0;
             }
-            if (!found) {
-                setSelectedIndex(0);
-            }
+            setSelectedIndex(index);
         }
     }
 
@@ -172,14 +322,14 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
      * @return The display name of the currently selected option.
      */
     public String getSelectedDisplayName() {
-        return mOptions.size() == 0 ? null : mOptions.get(mCurrentSelection).displayName;
+        return mSelectedOption == null ? null : mSelectedOption.displayName;
     }
 
     /**
      * @return The index of the currently selected option.
      */
     public int getSelectedIndex() {
-        return mCurrentSelection;
+        return mSelectedIndex;
     }
 
     /**
@@ -195,9 +345,10 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
 
         // If value selected index has changed, update current selection and (if it exists) let
         // the observers know.
-        if (mCurrentSelection != index) {
-            int oldIndex = mCurrentSelection;
-            mCurrentSelection = index;
+        if (mSelectedIndex != index) {
+            int oldIndex = mSelectedIndex;
+            mSelectedIndex = index;
+            mSelectedOption = mOptions.get(mSelectedIndex);
             onSelectionChanged(this, oldIndex, index);
         }
     }
@@ -213,6 +364,9 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
         return list;
     }
 
+    /**
+     * @return The value string used by XML serialization, same as {@link #getSelectedValue()}.
+     */
     @Override
     public String getSerializedValue() {
         return getSelectedValue();
@@ -222,10 +376,6 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
         for (int i = 0; i < mObservers.size(); i++) {
             mObservers.get(i).onSelectionChanged(field, oldIndex, newIndex);
         }
-    }
-
-    public int getOptionCount() {
-        return mOptions == null ? 0 : mOptions.size();
     }
 
     /**
@@ -240,18 +390,5 @@ public final class FieldDropdown extends Field<FieldDropdown.Observer> {
          * @param newIndex The field's new selected index.
          */
         void onSelectionChanged(FieldDropdown field, int oldIndex, int newIndex);
-    }
-
-    public static class Option {
-        public final String value;
-        public final String displayName;
-
-        public Option(String value, String displayName) {
-            if (TextUtils.isEmpty(value)) {
-                throw new IllegalArgumentException("Dropdown option value cannot be null or empty");
-            }
-            this.value = value;
-            this.displayName = TextUtils.isEmpty(displayName) ? value : displayName;
-        }
     }
 }

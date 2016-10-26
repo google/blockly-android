@@ -18,93 +18,141 @@ import android.test.AndroidTestCase;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Tests for {@link FieldDropdown}.
  */
 public class FieldDropdownTest extends AndroidTestCase {
-    public void testFieldDropdown() {
-        String[] values = new String[] {"1", "2", "3"};
-        String[] displayNames = new String[] {"A", "B", "C"};
+    private final String FIELD_NAME = "FieldDropdown";
+    private final List<String> VALUES = Collections.unmodifiableList(
+            Arrays.asList("Value1", "Value2", "Value3"));
+    private final List<String> LABELS = Collections.unmodifiableList(
+            Arrays.asList("Label1", "Label2", "Label3"));
 
-        // Test creating a dropdown from two String[]s
-        FieldDropdown field = new FieldDropdown("fname");
-        field.setOptions(Arrays.asList(values), Arrays.asList(displayNames));
-        assertEquals(Field.TYPE_DROPDOWN, field.getType());
-        assertEquals("fname", field.getName());
-        assertEquals(0, field.getSelectedIndex());
-        List<String> fieldDisplayNames = field.getDisplayNames();
-        assertEquals(displayNames.length, field.getDisplayNames().size());
-        for (int i = 0; i < values.length; i++) {
-            field.setSelectedIndex(i);
-            assertEquals(values[i], field.getSerializedValue());
-            assertEquals(displayNames[i], field.getSelectedDisplayName());
-            assertEquals(displayNames[i], fieldDisplayNames.get(i));
+    FieldDropdown.Options mOptions;
+    FieldDropdown mDropDown;
+
+    public void setUp() {
+        List<FieldDropdown.Option> optionList = new ArrayList<>(VALUES.size());
+        for (int i = 0; i < VALUES.size(); ++i) {
+            optionList.add(new FieldDropdown.Option(VALUES.get(i), LABELS.get(i)));
         }
 
-        // Test creating it from a List<Option>
-        List<FieldDropdown.Option> options = new ArrayList<>(values.length);
-        for (int i = 0; i < values.length; i++) {
-            options.add(new FieldDropdown.Option(values[i], displayNames[i]));
+        mOptions = new FieldDropdown.Options(optionList);
+        mDropDown = new FieldDropdown(FIELD_NAME, mOptions);
+    }
+
+    public void testOptionsConstructorFromStrings() {
+        // Created above.
+        assertEquals(VALUES.size(), mOptions.size());
+        for (int i = 0; i < mOptions.size(); ++i) {
+            FieldDropdown.Option option = mOptions.get(i);
+            assertEquals(VALUES.get(i), option.value);
+            assertEquals(LABELS.get(i), option.displayName);
         }
-        field = new FieldDropdown("fname", options);
-        assertEquals(Field.TYPE_DROPDOWN, field.getType());
-        assertEquals("fname", field.getName());
-        assertEquals(0, field.getSelectedIndex());
-        fieldDisplayNames = field.getDisplayNames();
-        assertEquals(displayNames.length, field.getDisplayNames().size());
-        for (int i = 0; i < values.length; i++) {
-            field.setSelectedIndex(i);
-            assertEquals(values[i], field.getSerializedValue());
-            assertEquals(displayNames[i], field.getSelectedDisplayName());
-            assertEquals(displayNames[i], fieldDisplayNames.get(i));
+    }
+
+    public void testDropdownConstructor() {
+        assertEquals(Field.TYPE_DROPDOWN, mDropDown.getType());
+        assertEquals(FIELD_NAME, mDropDown.getName());
+        assertEquals(0, mDropDown.getSelectedIndex());
+        assertEquals(VALUES.size(), mDropDown.getOptions().size());
+
+        // The options may be shared, so identity
+        assertSame(mOptions, mDropDown.getOptions());
+    }
+
+    public void testSelectedByIndex() {
+        for (int i = 0; i < VALUES.size(); i++) {
+            mDropDown.setSelectedIndex(i);
+            assertEquals(i, mDropDown.getSelectedIndex());
+            assertEquals(VALUES.get(i), mDropDown.getSelectedValue());
+            assertEquals(VALUES.get(i), mDropDown.getSerializedValue());
+            assertEquals(LABELS.get(i), mDropDown.getSelectedDisplayName());
         }
-
-        // test changing the index
-        field.setSelectedIndex(1);
-        assertEquals(1, field.getSelectedIndex());
-        assertEquals(displayNames[1], field.getSelectedDisplayName());
-        assertEquals(values[1], field.getSerializedValue());
-
-        // test setting by value
-        field.setSelectedValue(values[2]);
-        assertEquals(2, field.getSelectedIndex());
-        assertEquals(displayNames[2], field.getSelectedDisplayName());
-        assertEquals(values[2], field.getSerializedValue());
-
-        // xml parsing
-        assertTrue(field.setFromString(values[1]));
-        assertEquals(1, field.getSelectedIndex());
-        assertEquals(displayNames[1], field.getSelectedDisplayName());
-        assertEquals(values[1], field.getSerializedValue());
-
-        // xml parsing; setting a non-existent value defaults to 0
-        assertTrue(field.setFromString(""));
-        assertEquals(0, field.getSelectedIndex());
-        assertEquals(displayNames[0], field.getSelectedDisplayName());
-        assertEquals(values[0], field.getSerializedValue());
 
         try {
             // test setting out of bounds
-            field.setSelectedIndex(5);
-            fail("Setting an index that doesn't exist should throw an exception.");
+            mDropDown.setSelectedIndex(VALUES.size() + 1);
+            fail("Setting an out-of-bounds index should throw an exception.");
         } catch (IllegalArgumentException e) {
             //expected
         }
+    }
+
+    public void testSetSelectedByValue() {
+        // Change initial value
+        mDropDown.setSelectedIndex(VALUES.size() - 1);
+
+        for (int i = 0; i < VALUES.size(); ++i) {
+            mDropDown.setSelectedValue(VALUES.get(i));
+            assertEquals(i, mDropDown.getSelectedIndex());
+            assertEquals(VALUES.get(i), mDropDown.getSelectedValue());
+            assertEquals(VALUES.get(i), mDropDown.getSerializedValue());
+            assertEquals(LABELS.get(i), mDropDown.getSelectedDisplayName());
+        }
 
         // setting a non-existent value defaults to 0
-        field.setSelectedValue("blah");
-        assertEquals(0, field.getSelectedIndex());
-        assertEquals(displayNames[0], field.getSelectedDisplayName());
-        assertEquals(values[0], field.getSerializedValue());
+        mDropDown.setSelectedValue("bad value");
+        assertEquals(0, mDropDown.getSelectedIndex());
+        assertEquals(LABELS.get(0), mDropDown.getSelectedDisplayName());
+        assertEquals(VALUES.get(0), mDropDown.getSerializedValue());
+    }
+
+    public void testSetFromString() {
+        assertTrue(mDropDown.setFromString(VALUES.get(1)));
+        assertEquals(1, mDropDown.getSelectedIndex());
+        assertEquals(LABELS.get(1), mDropDown.getSelectedDisplayName());
+        assertEquals(VALUES.get(1), mDropDown.getSerializedValue());
+
+        // Setting a non-existent value defaults to 0
+        mDropDown.setSelectedValue("bad value");
+        assertEquals(0, mDropDown.getSelectedIndex());
+        assertEquals(LABELS.get(0), mDropDown.getSelectedDisplayName());
+        assertEquals(VALUES.get(0), mDropDown.getSerializedValue());
+    }
+
+    public void testUpdateOptionsWithMatch() {
+        // Initialize to something other than 0;
+        mDropDown.setSelectedIndex(VALUES.size() / 2);
+        String oldSelectedValue = mDropDown.getSelectedValue();
+        int oldSelectedIndex = mDropDown.getSelectedIndex();
+
+        // Adding new options, such that selection index changes
+        List<FieldDropdown.Option> newOptions = Arrays.asList(
+                new FieldDropdown.Option("BEFORE", "Before"),
+                new FieldDropdown.Option(VALUES.get(0), LABELS.get(0)),
+                new FieldDropdown.Option(VALUES.get(1), LABELS.get(1)),
+                new FieldDropdown.Option(VALUES.get(2), LABELS.get(2)),
+                new FieldDropdown.Option("AFTER", "After")
+        );
+        mDropDown.getOptions().updateOptions(newOptions);
+
+        assertEquals(oldSelectedIndex + 1, mDropDown.getSelectedIndex());
+        assertEquals(oldSelectedValue, mDropDown.getSelectedValue());
+    }
+
+    public void testUpdateOptionsWithoutMatch() {
+        // Initialize to something other than 0;
+        mDropDown.setSelectedIndex(VALUES.size() - 1);
 
         // swap the values/display names and verify it was updated.
-        field.setOptions(Arrays.asList(displayNames), Arrays.asList(values));
-        for (int i = 0; i < values.length; i++) {
-            field.setSelectedIndex(i);
-            assertEquals(displayNames[i], field.getSerializedValue());
-            assertEquals(values[i], field.getSelectedDisplayName());
+        List<FieldDropdown.Option> newOptions = Arrays.asList(
+            new FieldDropdown.Option(LABELS.get(0), VALUES.get(0)),
+            new FieldDropdown.Option(LABELS.get(1), VALUES.get(1)),
+            new FieldDropdown.Option(LABELS.get(2), VALUES.get(2))
+        );
+        mDropDown.getOptions().updateOptions(newOptions);
+
+        // No matching value, so index should be 0;
+        assertEquals(0, mDropDown.getSelectedIndex());
+
+        for (int i = 1; i < VALUES.size(); i++) {
+            mDropDown.setSelectedIndex(i);
+            assertEquals(LABELS.get(i), mDropDown.getSerializedValue());
+            assertEquals(VALUES.get(i), mDropDown.getSelectedDisplayName());
         }
     }
 }
