@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.ColorUtils;
 
@@ -51,6 +52,14 @@ public class BlockFactory {
     private Resources mResources;
     private final HashMap<String, Block> mBlockTemplates = new HashMap<>();
     private final HashMap<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
+
+    /**
+     * The global list of dropdown options available to each field matching the
+     * {@link BlockTypeFieldName} key.
+     */
+    protected final HashMap<BlockTypeFieldName, WeakReference<FieldDropdown.Options>>
+            mDropDownOptions = new HashMap<>();
+
 
     /**
      * Create a factory with an initial set of blocks from json resources.
@@ -307,7 +316,7 @@ public class BlockFactory {
                         }
 
                         if (Field.isFieldType(elementType)) {
-                            fields.add(Field.fromJson(element));
+                            fields.add(loadFieldFromJson(type, element));
                             break;
                         } else if (Input.isInputType(elementType)) {
                             Input input = Input.fromJson(element);
@@ -347,6 +356,70 @@ public class BlockFactory {
 
         builder.setInputs(inputs);
         return builder.build();
+    }
+
+    /**
+     * Create a new {@link Field} instance from JSON.  If the type is not recognized
+     * null will be returned. If the JSON is invalid or there is an error reading the data a
+     * {@link RuntimeException} will be thrown.
+     *
+     * @param blockType The type id of the block within this field will be contained.
+     * @param json The JSON to generate the Field from.
+     *
+     * @return A Field of the appropriate type.
+     *
+     * @throws RuntimeException
+     */
+    public Field loadFieldFromJson(String blockType, JSONObject json) throws BlockLoadingException {
+        String type = null;
+        try {
+            type = json.getString("type");
+        } catch (JSONException e) {
+            throw new BlockLoadingException("Error getting the field type.", e);
+        }
+
+        // If new fields are added here FIELD_TYPES should also be updated.
+        Field field = null;
+        switch (type) {
+            case Field.TYPE_LABEL_STRING:
+                field = FieldLabel.fromJson(json);
+                break;
+            case Field.TYPE_INPUT_STRING:
+                field = FieldInput.fromJson(json);
+                break;
+            case Field.TYPE_ANGLE_STRING:
+                field = FieldAngle.fromJson(json);
+                break;
+            case Field.TYPE_CHECKBOX_STRING:
+                field = FieldCheckbox.fromJson(json);
+                break;
+            case Field.TYPE_COLOR_STRING:
+                field = FieldColor.fromJson(json);
+                break;
+            case Field.TYPE_DATE_STRING:
+                field = FieldDate.fromJson(json);
+                break;
+            case Field.TYPE_VARIABLE_STRING:
+                field = FieldVariable.fromJson(json);
+                break;
+            case Field.TYPE_DROPDOWN_STRING:
+                field = FieldDropdown.fromJson(json);
+                String fieldName = field.getName();
+                if (!TextUtils.isEmpty(blockType) && !TextUtils.isEmpty(fieldName)) {
+                    updateDropDownOptions(blockType, fieldName, ((FieldDropdown) field).getOptions());
+                }
+                break;
+            case Field.TYPE_IMAGE_STRING:
+                field = FieldImage.fromJson(json);
+                break;
+            case Field.TYPE_NUMBER_STRING:
+                field = FieldNumber.fromJson(json);
+                break;
+            default:
+                Log.w(TAG, "Unknown field type.");
+                break;
+        }
+        return field;
     }
 
     /**
@@ -560,6 +633,19 @@ public class BlockFactory {
         // Should never reach here, since this is called from a workspace fromXml function.
         throw new BlocklyParserException(
                 "Reached the end of Block.fromXml. This should never happen.");
+    }
+
+    public void updateDropDownOptions(String blockType, String fieldName,
+                                      FieldDropdown.Options options) {
+        BlockTypeFieldName key = new BlockTypeFieldName(blockType, fieldName);
+        WeakReference<FieldDropdown.Options> sharedOptionsRef = mDropDownOptions.get(key);
+        FieldDropdown.Options sharedOptions =
+                sharedOptionsRef == null ? null : sharedOptionsRef.get();
+        if (sharedOptions == null) {
+            mDropDownOptions.put(key, new WeakReference<>(options));
+        } else {
+            sharedOptions.copyFrom(options);
+        }
     }
 
     /**

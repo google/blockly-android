@@ -20,11 +20,14 @@ import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;
+import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldDropdown;
 
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,19 +40,21 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
 
     // Cannot mock final classes.
     private FieldDropdown mFieldDropdown;
-    private List<FieldDropdown.Option> mOptions = new ArrayList<>(3);
+    private FieldDropdown.Options mOptions;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        mOptions.add(new FieldDropdown.Option("Value1", "Label1"));
-        mOptions.add(new FieldDropdown.Option("Value2", "Label2"));
-        mOptions.add(new FieldDropdown.Option("Value3", "Label3"));
+        mOptions = new FieldDropdown.Options(Arrays.asList(
+                new FieldDropdown.Option("Value1", "Label1"),
+                new FieldDropdown.Option("Value2", "Label2"),
+                new FieldDropdown.Option("Value3", "Label3")));
+        mFieldDropdown = new FieldDropdown("FieldDropDown", mOptions);
 
-        mFieldDropdown = new FieldDropdown("FieldCheckbox", mOptions);
+        mFieldDropdown = new FieldDropdown("FieldDropDown", mOptions);
         assertNotNull(mFieldDropdown);
-        assertEquals(mOptions.size(), mFieldDropdown.getOptionCount());
+        assertEquals(mOptions.size(), mFieldDropdown.getOptions().size());
     }
 
     // Verify object instantiation.
