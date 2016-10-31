@@ -22,6 +22,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
@@ -36,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -142,25 +142,42 @@ public class CodeGeneratorService extends Service {
                             mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
                         } else {
                             String xml = request.getXml();
-                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                                // Prior to KitKat a different WebView was used that didn't handle
-                                // special characters passed in to it. We skip the encoding on
-                                // later versions to save time.
-                                try {
-                                    xml = URLEncoder.encode(xml, "UTF-8");
-                                } catch (UnsupportedEncodingException e) {
-                                    Log.e(TAG, "Error encoding", e);
-                                    return;
-                                }
-                                xml = xml.replace("+", "%20");
-                                mWebview.loadUrl("javascript:generateEscaped('" + xml + "');");
-                            } else {
-                                mWebview.loadUrl("javascript:generate('" + xml + "');");
+                            String codeGenerationURL = buildCodeGenerationUrl(xml);
+                            if (codeGenerationURL != null) {
+                                mWebview.loadUrl(codeGenerationURL);
                             }
                         }
                     }
                 });
             }
+        }
+    }
+
+    /**
+     * Builds the javascript: URL that invokes the code generation, given the XML string for the
+     * serialized blocks.
+     *
+     * @param xml
+     * @return The javascript: URL used to invoke code generation.
+     */
+    @Nullable
+    @VisibleForTesting
+    static String buildCodeGenerationUrl(String xml) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            // Prior to KitKat a different WebView was used that didn't handle
+            // special characters passed in to it. We skip the encoding on
+            // later versions to save time.
+            try {
+                String urlEncodedXml = URLEncoder.encode(xml, "UTF-8");
+                urlEncodedXml = urlEncodedXml.replace("+", "%20");
+                return "javascript:generateEscaped('" + urlEncodedXml + "');";
+            } catch (UnsupportedEncodingException e) {
+                Log.e(TAG, "Error encoding", e);
+                return null;
+            }
+        } else {
+            String jsEscapedXml = xml.replace("'", "\\'");
+            return "javascript:generate('" + jsEscapedXml + "');";
         }
     }
 

@@ -33,6 +33,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.test.MoreAsserts.assertNotEqual;
 import static com.google.blockly.utils.MoreAsserts.assertStringNotEmpty;
@@ -563,6 +565,22 @@ public class BlockTest extends AndroidTestCase {
 
         blockFromXml = fromXmlWithoutId(blockXml);
         assertFalse("Movable state set from XML.", blockFromXml.isMovable());
+    }
+
+    /**
+     * XML characters < , > and & need escaping when serialized.  Quote, apostrophe, and greater
+     * than do not need escaping in a XML text node.
+     */
+    public void testEscapeFieldData() {
+        Block block = mBlockFactory.obtainBlock("text", null);
+        block.getFieldByName("TEXT").setFromString(
+                "less than < greater than > ampersand & quote \" apostrophe ' end");
+
+        String xml = toXml(block);
+        Matcher matcher = Pattern.compile("less.*end").matcher(xml);
+        assertTrue(matcher.find());
+        assertEquals("less than &lt; greater than &gt; ampersand &amp; quote \" apostrophe ' end",
+                matcher.group());
     }
 
     private String toXml(Block block) {
