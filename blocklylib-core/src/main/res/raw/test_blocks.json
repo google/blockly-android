@@ -7,6 +7,33 @@
     "helpUrl": "http://www.example.com/"
   },
   {
+    "type": "text",
+    "message0": "%1 %2 %3",
+    "args0": [
+      {
+        "type": "field_image",
+        "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAKCAQAAAAqJXdxAAAAn0lEQVQI1z3OMa5BURSF4f/cQhAKjUQhuQmFNwGJEUi0RKN5rU7FHKhpjEH3TEMtkdBSCY1EIv8r7nFX9e29V7EBAOvu7RPjwmWGH/VuF8CyN9/OAdvqIXYLvtRaNjx9mMTDyo+NjAN1HNcl9ZQ5oQMM3dgDUqDo1l8DzvwmtZN7mnD+PkmLa+4mhrxVA9fRowBWmVBhFy5gYEjKMfz9AylsaRRgGzvZAAAAAElFTkSuQmCC",
+        "width": 12,
+        "height": 12,
+        "alt": "\u201C"
+      },
+      {
+        "type": "field_input",
+        "name": "TEXT",
+        "text": ""
+      },
+      {
+        "type": "field_image",
+        "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAKCAQAAAAqJXdxAAAAqUlEQVQI1z3KvUpCcRiA8ef9E4JNHhI0aFEacm1o0BsI0Slx8wa8gLauoDnoBhq7DcfWhggONDmJJgqCPA7neJ7p934EOOKOnM8Q7PDElo/4x4lFb2DmuUjcUzS3URnGib9qaPNbuXvBO3sGPHJDRG6fGVdMSeWDP2q99FQdFrz26Gu5Tq7dFMzUvbXy8KXeAj57cOklgA+u1B5AoslLtGIHQMaCVnwDnADZIFIrXsoXrgAAAABJRU5ErkJggg==",
+        "width": 12,
+        "height": 12,
+        "alt": "\u201D"
+      }
+    ],
+    "output": "String",
+    "colour": 160
+  },
+  {
     "type": "frankenblock",
     "message0": "text %1 %2 %3 %4 %5 %6 %7 %8 %9",
     "args0": [

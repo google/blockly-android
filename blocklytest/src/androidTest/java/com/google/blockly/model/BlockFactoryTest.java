@@ -62,7 +62,7 @@ public class BlockFactoryTest extends AndroidTestCase {
 
     public void testLoadBlocks() {
         List<Block> blocks = mBlockFactory.getAllBlocks();
-        assertEquals("BlockFactory failed to load all blocks.", 20, blocks.size());
+        assertEquals("BlockFactory failed to load all blocks.", 21, blocks.size());
     }
 
     public void testLoadFromXml() throws IOException, XmlPullParserException {
