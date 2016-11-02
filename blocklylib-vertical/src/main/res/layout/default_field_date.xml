@@ -21,6 +21,8 @@
         android:textSize="?blockTextSize"
         android:background="@drawable/edit_text_background_disabled"
         android:singleLine="true"
+        android:maxLines="1"
         android:padding="4dip"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:minWidth="@dimen/min_field_width"/>
