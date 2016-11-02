@@ -15,7 +15,6 @@
   -->
 <com.google.blockly.android.ui.fieldview.BasicFieldInputView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/field_input"
     style="@style/TextAppearance.AppCompat.Large"
     android:saveEnabled="false"
     android:textSize="?blockTextSize"
