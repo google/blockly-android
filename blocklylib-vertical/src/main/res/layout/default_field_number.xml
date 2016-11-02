@@ -14,17 +14,17 @@
   ~  limitations under the License.
   -->
 <com.google.blockly.android.ui.fieldview.BasicFieldNumberView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        style="@style/TextAppearance.AppCompat.Large"
-        android:background="@drawable/edit_text_background"
-        android:saveEnabled="false"
-        android:textSize="?blockTextSize"
-        android:singleLine="true"
-        android:maxLines="1"
-        android:paddingTop="4dip"
-        android:paddingBottom="4dip"
-        android:paddingLeft="8dip"
-        android:paddingRight="8dip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="@dimen/min_field_width"/>
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/TextAppearance.AppCompat.Large"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/edit_text_background"
+    android:maxLines="1"
+    android:minWidth="@dimen/min_field_width"
+    android:paddingTop="4dip"
+    android:paddingBottom="4dip"
+    android:paddingLeft="8dip"
+    android:paddingRight="8dip"
+    android:saveEnabled="false"
+    android:singleLine="true"
+    android:textSize="?blockTextSize"/>

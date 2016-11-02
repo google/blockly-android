@@ -14,12 +14,12 @@
   ~  limitations under the License.
   -->
 <com.google.blockly.android.ui.fieldview.BasicFieldLabelView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        style="@style/TextAppearance.AppCompat.Large"
-        android:saveEnabled="false"
-        android:textColor="@color/label_text"
-        android:textSize="?blockTextSize"
-        android:singleLine="true"
-        android:padding="4dip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/TextAppearance.AppCompat.Large"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="4dip"
+    android:saveEnabled="false"
+    android:singleLine="true"
+    android:textColor="@color/label_text"
+    android:textSize="?blockTextSize"/>
