@@ -16,7 +16,6 @@
 <com.google.blockly.android.ui.fieldview.BasicFieldVariableView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/field_dropdown"
     android:saveEnabled="false"
     app:itemLayout="@layout/default_spinner_closed_item"
     app:dropdownItemLayout="@layout/default_spinner_dropdown_item"
