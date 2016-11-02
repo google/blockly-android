@@ -21,10 +21,10 @@
     app:itemLayout="@layout/default_spinner_closed_item"
     app:dropdownItemLayout="@layout/default_spinner_dropdown_item"
     android:background="@drawable/dropdown_background"
-    android:singleLine="true"
     android:padding="4dip"
     android:paddingRight="@dimen/spinner_end_padding"
     android:paddingEnd="@dimen/spinner_end_padding"
     android:popupBackground="@drawable/rounded_rect_opaque_white"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"/>
+    android:layout_height="wrap_content"
+    android:minWidth="@dimen/min_field_width"/>

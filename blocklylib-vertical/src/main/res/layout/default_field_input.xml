@@ -23,9 +23,11 @@
     android:background="@drawable/edit_text_background"
     android:inputType="text"
     android:singleLine="true"
+    android:maxLines="1"
     android:paddingTop="4dip"
     android:paddingBottom="4dip"
     android:paddingLeft="8dip"
     android:paddingRight="8dip"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"/>
+    android:layout_height="wrap_content"
+    android:minWidth="@dimen/min_field_width"/>
