@@ -20,9 +20,7 @@ import android.database.DataSetObserver;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
-import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
@@ -40,9 +38,9 @@ import java.lang.annotation.RetentionPolicy;
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
 public class BasicFieldVariableView extends Spinner implements FieldView, VariableChangeView {
-    protected FieldVariable.Observer mFieldObserver = new FieldVariable.Observer() {
+    protected Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onVariableChanged(FieldVariable field, String oldVar, String newVar) {
+        public void onValueChanged(Field field, String oldValue, String newValue) {
             refreshSelection();
         }
     };

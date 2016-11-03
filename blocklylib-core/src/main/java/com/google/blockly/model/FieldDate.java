@@ -22,22 +22,21 @@ import android.util.Log;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlSerializer;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 /**
  * Adds a date picker to an Input. Dates must be in the format "YYYY-MM-DD"
  */
-public final class FieldDate extends Field<FieldDate.Observer> {
+public final class FieldDate extends Field {
     private static final String TAG = "FieldDate";
 
+    // Date format used for serialization.
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+
     private final Date mDate = new Date();
 
     public FieldDate(String name) {
@@ -108,7 +107,7 @@ public final class FieldDate extends Field<FieldDate.Observer> {
     /**
      * @return The string format for the date in this field.
      */
-    public String getDateString() {
+    public String getLocalizedDateString() {
         return DATE_FORMAT.format(mDate);
     }
 
@@ -120,33 +119,15 @@ public final class FieldDate extends Field<FieldDate.Observer> {
     public void setTime(long millis) {
         long oldTime = mDate.getTime();
         if (millis != oldTime) {
+            String oldValue = getSerializedValue();
             mDate.setTime(millis);
-            onDateChanged(oldTime, millis);
+            String newValue = getSerializedValue();
+            fireValueChanged(oldValue, newValue);
         }
     }
 
     @Override
     public String getSerializedValue() {
         return DATE_FORMAT.format(mDate);
-    }
-
-    private void onDateChanged(long oldMillis, long newMillis) {
-        for (int i = 0; i < mObservers.size(); i++) {
-            mObservers.get(i).onDateChanged(this, oldMillis, newMillis);
-        }
-    }
-
-    /**
-     * Observer for listening to changes to a date field.
-     */
-    public interface Observer {
-        /**
-         * Called when the field's date changed.
-         *
-         * @param field The field that changed.
-         * @param oldMillis The field's previous time in UTC millis since epoch.
-         * @param newMillis The field's new time in UTC millis since epoch.
-         */
-        void onDateChanged(Field field, long oldMillis, long newMillis);
     }
 }

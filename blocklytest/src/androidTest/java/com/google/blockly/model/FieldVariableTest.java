@@ -20,20 +20,44 @@ import android.test.AndroidTestCase;
  * Tests for {@link FieldVariable}.
  */
 public class FieldVariableTest extends AndroidTestCase {
-    public void testFieldVariable() {
-        FieldVariable field = new FieldVariable("fname", "varName");
-        assertEquals(Field.TYPE_VARIABLE, field.getType());
-        assertEquals("fname", field.getName());
-        assertEquals("varName", field.getVariable());
+    public static final String FIELD_NAME = "fname";
+    public static final String VARIABLE_NAME = "var";
 
-        field.setVariable("newVar");
-        assertEquals("newVar", field.getVariable());
+    FieldVariable mField = new FieldVariable(FIELD_NAME, VARIABLE_NAME);
 
-        // xml parsing
-        assertTrue(field.setFromString("newestVar"));
-        assertEquals("newestVar", field.getVariable());
-        assertFalse(field.setFromString(""));
+    public void setUp() {
+        mField = new FieldVariable(FIELD_NAME, VARIABLE_NAME);
+    }
 
-        assertNotSame(field, field.clone());
+    public void testConstructor() {
+        assertEquals(Field.TYPE_VARIABLE, mField.getType());
+        assertEquals(FIELD_NAME, mField.getName());
+        assertEquals(VARIABLE_NAME, mField.getVariable());
+    }
+
+    public void testSetVariable() {
+        mField.setVariable("newVar");
+        assertEquals("newVar", mField.getVariable());
+    }
+
+    public void testSetFromString() {
+        assertTrue(mField.setFromString("newestVar"));
+        assertEquals("newestVar", mField.getVariable());
+        assertFalse(mField.setFromString(""));
+        assertEquals("newestVar", mField.getVariable());
+    }
+
+    public void testClone() {
+        FieldVariable clone = mField.clone();
+        assertNotSame(mField, clone);
+        assertEquals(mField.getName(), clone.getName());
+        assertEquals(mField.getVariable(), clone.getVariable());
+    }
+
+    public void testObserverEvents() {
+        FieldTestHelper.testObserverEvent(mField,
+                /* New value */ "zip",
+                /* Expected old value */ VARIABLE_NAME,
+                /* Expected new value */ "zip");
     }
 }

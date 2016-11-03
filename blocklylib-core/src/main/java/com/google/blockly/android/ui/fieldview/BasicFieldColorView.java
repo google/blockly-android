@@ -41,10 +41,10 @@ public class BasicFieldColorView extends FrameLayout implements FieldView {
     @VisibleForTesting
     static final int ALPHA_OPAQUE = 0xFF000000;
 
-    private FieldColor.Observer mFieldObserver = new FieldColor.Observer() {
+    private Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onColorChanged(Field field, int oldColor, int newColor) {
-            setColor(newColor);
+        public void onValueChanged(Field field, String oldValue, String newValue) {
+            setColor(mColorField.getColor());
         }
     };
 

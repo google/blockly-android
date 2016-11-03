@@ -33,16 +33,20 @@ import java.net.URL;
  * Renders an image bitmap.
  */
 public class BasicFieldImageView extends ImageView implements FieldView {
-    protected final FieldImage.Observer mFieldObserver = new FieldImage.Observer() {
+    protected final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onImageChanged(FieldImage field, String newSource,
-                                   int newWidth, int newHeight) {
-
-            loadImageFromSource(newSource);
+        public void onValueChanged(Field field, String newValue, String oldValue) {
+            String source = mImageField.getSource();
+            if (source.equals(mImageSrc)) {
+                updateViewSize();
+            } else {
+                startLoadingImage();
+            }
         }
     };
 
     protected FieldImage mImageField;
+    protected String mImageSrc = null;
 
     /**
      * Constructs a new {@link BasicFieldImageView}.
@@ -73,7 +77,7 @@ public class BasicFieldImageView extends ImageView implements FieldView {
         }
         mImageField = imageField;
         if (mImageField != null) {
-            loadImageFromSource(mImageField.getSource());
+            startLoadingImage();
             mImageField.registerObserver(mFieldObserver);
         } else {
             // TODO(#44): Set image to default 'no image' default
@@ -94,10 +98,10 @@ public class BasicFieldImageView extends ImageView implements FieldView {
      * Asynchronously load and set image bitmap.
      * <p/>
      * If a bitmap cannot be read from the given source, a default bitmap is set instead.
-     *
-     * @param source The source URI of the image to load.
      */
-    protected void loadImageFromSource(String source) {
+    protected void startLoadingImage() {
+        final String source = mImageField.getSource();
+
         new AsyncTask<String, Void, Bitmap>() {
             @Override
             protected Bitmap doInBackground(String... strings) {
@@ -117,6 +121,8 @@ public class BasicFieldImageView extends ImageView implements FieldView {
             protected void onPostExecute(Bitmap bitmap) {
                 if (bitmap != null) {
                     setImageBitmap(bitmap);
+                    mImageSrc = source;
+                    updateViewSize();
                 } else {
                     // TODO(#44): identify and bundle as a resource a suitable default
                     // "cannot load" bitmap.
@@ -124,5 +130,11 @@ public class BasicFieldImageView extends ImageView implements FieldView {
                 requestLayout();
             }
         }.execute(source);
+    }
+
+    protected void updateViewSize() {
+        float density = getContext().getResources().getDisplayMetrics().density;
+        setMinimumWidth((int) Math.ceil(mImageField.getWidth() * density));
+        setMinimumHeight((int) Math.ceil(mImageField.getHeight() * density));
     }
 }

@@ -20,19 +20,43 @@ import android.test.AndroidTestCase;
  * Tests for {@link FieldInput}.
  */
 public class FieldInputTest extends AndroidTestCase {
-    public void testFieldInput() {
-        FieldInput field = new FieldInput("field name", "start text");
-        assertEquals(Field.TYPE_INPUT, field.getType());
-        assertEquals("field name", field.getName());
-        assertEquals("start text", field.getText());
+    static final String FIELD_NAME = "Robert";
+    static final String INITIAL_VALUE = "start text";
 
-        field.setText("new text");
-        assertEquals("new text", field.getText());
+    FieldInput mField;
 
-        // xml parsing
-        assertTrue(field.setFromString("newest text"));
-        assertEquals("newest text", field.getText());
+    public void setUp() {
+        mField = new FieldInput(FIELD_NAME, INITIAL_VALUE);
+    }
 
-        assertNotSame(field, field.clone());
+    public void testConstructor() {
+        assertEquals(Field.TYPE_INPUT, mField.getType());
+        assertEquals(FIELD_NAME, mField.getName());
+        assertEquals(INITIAL_VALUE, mField.getText());
+    }
+
+    public void testSetText() {
+        mField.setText("new text");
+        assertEquals("new text", mField.getText());
+    }
+
+    public void testSetFromString() {
+        assertTrue(mField.setFromString("newest text"));
+        assertEquals("newest text", mField.getText());
+    }
+
+    public void testClone() {
+        FieldInput clone = mField.clone();
+        assertNotSame(mField, clone);
+        assertEquals(mField.getName(), clone.getName());
+        assertEquals(mField.getText(), clone.getText());
+    }
+
+    public void testObserverEvents() {
+        FieldTestHelper.testObserverEvent(mField,
+                /* New value */ "asdf",
+                /* Expected old value */ INITIAL_VALUE,
+                /* Expected new value */ "asdf");
+        FieldTestHelper.testObserverNoEvent(mField);
     }
 }

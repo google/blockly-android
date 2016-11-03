@@ -20,14 +20,11 @@ import android.text.TextUtils;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlSerializer;
-
-import java.io.IOException;
 
 /**
  * Adds a toggleable checkbox to an Input.
  */
-public final class FieldCheckbox extends Field<FieldCheckbox.Observer> {
+public final class FieldCheckbox extends Field {
     private boolean mChecked;
 
     public FieldCheckbox(String name, boolean checked) {
@@ -51,7 +48,7 @@ public final class FieldCheckbox extends Field<FieldCheckbox.Observer> {
 
     @Override
     public boolean setFromString(String text) {
-        mChecked = Boolean.parseBoolean(text);
+        setChecked(Boolean.parseBoolean(text));
         return true;
     }
 
@@ -67,32 +64,15 @@ public final class FieldCheckbox extends Field<FieldCheckbox.Observer> {
      */
     public void setChecked(boolean checked) {
         if (mChecked != checked) {
+            String oldValue = getSerializedValue();
             mChecked = checked;
-            onCheckChanged(checked);
+            String newValue = getSerializedValue();
+            fireValueChanged(oldValue, newValue);
         }
     }
 
     @Override
     public String getSerializedValue() {
         return mChecked ? "TRUE" : "FALSE";
-    }
-
-    private void onCheckChanged(boolean newState) {
-        for (int i = 0; i < mObservers.size(); i++) {
-            mObservers.get(i).onCheckChanged(this, newState);
-        }
-    }
-
-    /**
-     * Observer for listening to changes to a checkbox field.
-     */
-    public interface Observer {
-        /**
-         * Called when the field's checked value changed.
-         *
-         * @param field The field that changed.
-         * @param newState The new state of the checkbox.
-         */
-        void onCheckChanged(FieldCheckbox field, boolean newState);
     }
 }

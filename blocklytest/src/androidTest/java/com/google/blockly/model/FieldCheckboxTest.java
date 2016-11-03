@@ -21,9 +21,9 @@ import android.test.AndroidTestCase;
  */
 public class FieldCheckboxTest extends AndroidTestCase {
     public void testFieldCheckbox() {
-        FieldCheckbox field = new FieldCheckbox("fname", true);
+        FieldCheckbox field = new FieldCheckbox("checkbox", true);
         assertEquals(Field.TYPE_CHECKBOX, field.getType());
-        assertEquals("fname", field.getName());
+        assertEquals("checkbox", field.getName());
         assertEquals(true, field.isChecked());
         field.setChecked(false);
         assertEquals(false, field.isChecked());
@@ -49,7 +49,36 @@ public class FieldCheckboxTest extends AndroidTestCase {
         field.setChecked(true);
         assertTrue(field.setFromString("t"));
         assertFalse(field.isChecked());
+    }
 
-        assertNotSame(field, field.clone());
+    public void testClone() {
+        FieldCheckbox field = new FieldCheckbox("checkbox", true);
+        FieldCheckbox clone = field.clone();
+
+        assertNotSame(field, clone);
+        assertEquals(field.getName(), field.getName());
+        assertEquals(field.isChecked(), clone.isChecked());
+
+        // Test with false
+        field = new FieldCheckbox("checkbox", false);
+        clone = field.clone();
+        assertEquals(field.isChecked(), clone.isChecked());
+    }
+
+    public void testObserverEvent() {
+        FieldTestHelper.testObserverEvent(new FieldCheckbox("CHECKBOX", true),
+                /* New value to assign */ "FALSE",
+                /* oldValue */ "TRUE",
+                /* newValue */ "FALSE");
+        FieldTestHelper.testObserverEvent(new FieldCheckbox("CHECKBOX", false),
+                /* New value to assign */ "TRUE",
+                /* oldValue */ "FALSE",
+                /* newValue */ "TRUE");
+
+        // No change assignments
+        FieldTestHelper.testObserverNoEvent(new FieldCheckbox("CHECKBOX", true));
+        FieldTestHelper.testObserverNoEvent(new FieldCheckbox("CHECKBOX", false));
+        FieldTestHelper.testObserverNoEvent(new FieldCheckbox("CHECKBOX", true), "TrUe");
+        FieldTestHelper.testObserverNoEvent(new FieldCheckbox("CHECKBOX", false), "ugly false");
     }
 }

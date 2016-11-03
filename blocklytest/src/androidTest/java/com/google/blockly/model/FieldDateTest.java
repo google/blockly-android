@@ -22,29 +22,53 @@ import java.util.Date;
  * Tests for {@link FieldDate}.
  */
 public class FieldDateTest extends AndroidTestCase {
-    public void testFieldDate() {
-        FieldDate field = new FieldDate("alphabet", "2015-09-14");
-        assertEquals(Field.TYPE_DATE, field.getType());
-        assertEquals("alphabet", field.getName());
-        assertEquals("2015-09-14", field.getDateString());
+    private static final String INITIAL_VALUE = "2015-09-14";
 
+    FieldDate mField;
+
+    public void setUp() {
+        mField = new FieldDate("alphabet", INITIAL_VALUE);
+    }
+
+    public void testConstructor() {
+        assertEquals(Field.TYPE_DATE, mField.getType());
+        assertEquals("alphabet", mField.getName());
+        assertEquals(INITIAL_VALUE, mField.getSerializedValue());
+    }
+
+    public void testSetDate() {
         Date date = new Date();
-        field.setDate(date);
-        assertEquals(date, field.getDate());
+        mField.setDate(date);
+        assertEquals(date, mField.getDate());
         date.setTime(date.getTime() + 86400000);
-        field.setTime(date.getTime());
-        assertEquals(date, field.getDate());
+        mField.setTime(date.getTime());
+        assertEquals(date, mField.getDate());
 
-        assertTrue(field.setFromString("2017-03-23"));
-        assertEquals("2017-03-23", field.getDateString());
+        assertTrue(mField.setFromString("2017-03-23"));
+        assertEquals("2017-03-23", mField.getLocalizedDateString());
+    }
 
-        // xml parsing
-        assertFalse(field.setFromString("today"));
-        assertFalse(field.setFromString("2017/03/03"));
-        assertFalse(field.setFromString(""));
+    public void testSetFromString() {
+        assertFalse(mField.setFromString("today"));
+        assertFalse(mField.setFromString("2017/03/03"));
+        assertFalse(mField.setFromString(""));
+    }
 
-        FieldDate clone = field.clone();
-        assertNotSame(field, clone);
-        assertNotSame(field.getDate(), clone.getDate());
+    public void testClone() {
+        FieldDate clone = mField.clone();
+        assertNotSame(mField, clone);
+        assertEquals(mField.getName(), clone.getName());
+        assertNotSame(mField.getDate(), clone.getDate());
+        assertEquals(mField.getDate(), clone.getDate());
+    }
+
+    public void testObserverEvents() {
+        FieldTestHelper.testObserverEvent(mField,
+                /* New value */ "2017-03-23",
+                /* Expected old value */ INITIAL_VALUE,
+                /* Expected new value */ "2017-03-23");
+
+        // No events if no change
+        FieldTestHelper.testObserverNoEvent(mField);
     }
 }

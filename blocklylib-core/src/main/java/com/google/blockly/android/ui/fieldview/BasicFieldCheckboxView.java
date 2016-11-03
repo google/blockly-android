@@ -27,13 +27,10 @@ import com.google.blockly.model.FieldCheckbox;
  * Renders a checkbox as part of a BlockView.
  */
 public class BasicFieldCheckboxView extends CheckBox implements FieldView {
-    protected final FieldCheckbox.Observer mFieldObserver
-            = new FieldCheckbox.Observer() {
+    protected final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onCheckChanged(FieldCheckbox field, boolean newState) {
-            if (isChecked() != newState) {
-                setChecked(newState);
-            }
+        public void onValueChanged(Field field, String oldStrValue, String newStrValue) {
+            setChecked(mCheckboxField.isChecked());
         }
     };
 
