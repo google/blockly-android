@@ -155,4 +155,13 @@ public class FieldDropdownTest extends AndroidTestCase {
             assertEquals(VALUES.get(i), mDropDown.getSelectedDisplayName());
         }
     }
+
+    public void testObserverEvents() {
+        FieldTestHelper.testObserverEvent(mDropDown,
+                /* New value */ VALUES.get(2),
+                /* Expected old value */ VALUES.get(0),
+                /* Expected new value */ VALUES.get(2));
+
+        FieldTestHelper.testObserverNoEvent(mDropDown);
+    }
 }

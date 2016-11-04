@@ -69,9 +69,9 @@ public class BasicFieldNumberView extends EditText implements FieldView {
         }
     };
 
-    private final FieldNumber.Observer mFieldObserver = new FieldNumber.Observer() {
+    private final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onValueChanged(FieldNumber field, double oldValue, double newValue) {
+        public void onValueChanged(Field field, String oldStrValue, String newStrValue) {
             if (mIsUpdatingField) {
                 return;
             }
@@ -81,24 +81,17 @@ public class BasicFieldNumberView extends EditText implements FieldView {
             }
             try {
                 CharSequence text = getText();
-                try {
-                    // Because numbers can have different string representations,
-                    // only overwrite if the parsed value differs.
-                    if (TextUtils.isEmpty(text)
-                            || Double.parseDouble(text.toString()) != newValue) {
-                        setText(field.getFormattedValue());
-                    }
-                } catch (NumberFormatException e) {
-                    setText(field.getFormattedValue());
+                Double value = mNumberField.getValue();
+
+                // Because numbers can have different string representations,
+                // only overwrite if the parsed value differs.
+                if (TextUtils.isEmpty(text)
+                        || Double.parseDouble(text.toString()) != value) {
+                    setText(mNumberField.getFormattedValue());
                 }
             } catch (NumberFormatException e) {
-                setText(field.getFormattedValue());
+                setText(mNumberField.getFormattedValue());
             }
-        }
-
-        @Override
-        public void onConstraintsChanged(FieldNumber field) {
-            updateInputMethod();
         }
     };
 

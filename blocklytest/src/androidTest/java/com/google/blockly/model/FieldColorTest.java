@@ -20,33 +20,66 @@ import android.test.AndroidTestCase;
  * Tests for {@link FieldColor}.
  */
 public class FieldColorTest extends AndroidTestCase {
-    public void testFieldColour() {
-        FieldColor field = new FieldColor("fname", 0xaa00aa);
-        assertEquals(Field.TYPE_COLOR, field.getType());
-        assertEquals("fname", field.getName());
-        assertEquals(0xaa00aa, field.getColor());
+    private static final int INITIAL_COLOR = 0xaabbcc;
+    private static final String INITIAL_COLOR_STRING = "#aabbcc";
 
-        field = new FieldColor("fname");
-        assertEquals("fname", field.getName());
-        assertEquals(FieldColor.DEFAULT_COLOR, field.getColor());
+    FieldColor mField;
 
-        field.setColor(0xb0bb1e);
-        assertEquals(0xb0bb1e, field.getColor());
+    public void setUp() {
+        mField = new FieldColor("fname", INITIAL_COLOR);
+    }
 
-        // xml parsing
-        assertTrue(field.setFromString("#ffcc66"));
-        assertEquals(0xffcc66, field.getColor());
-        assertTrue(field.setFromString("#00cc66"));
-        assertEquals(0x00cc66, field.getColor());
-        assertTrue(field.setFromString("#1000cc66"));
-        assertEquals(0x00cc66, field.getColor());
-        assertFalse(field.setFromString("This is not a color"));
-        // Color does not change
-        assertEquals(0x00cc66, field.getColor());
-        assertFalse(field.setFromString("#fc6"));
-        // Color does not change
-        assertEquals(0x00cc66, field.getColor());
+    public void testConstructors() {
+        assertEquals(Field.TYPE_COLOR, mField.getType());
+        assertEquals("fname", mField.getName());
+        assertEquals(INITIAL_COLOR, mField.getColor());
 
-        assertNotSame(field, field.clone());
+        mField = new FieldColor("fname");
+        assertEquals("fname", mField.getName());
+        assertEquals(FieldColor.DEFAULT_COLOR, mField.getColor());
+    }
+
+    public void testSetColor() {
+        mField.setColor(0xb0bb1e);
+        assertEquals(0xb0bb1e, mField.getColor());
+    }
+
+    public void testSetFromString() {
+        assertTrue(mField.setFromString("#ffcc66"));
+        assertEquals(0xffcc66, mField.getColor());
+        assertTrue(mField.setFromString("#00cc66"));
+        assertEquals(0x00cc66, mField.getColor());
+
+        // Ignore alpha channel
+        assertTrue(mField.setFromString("#1000cc66"));
+        assertEquals(0x00cc66, mField.getColor());
+
+        // Invalid color strings. Value should not change.
+        assertFalse(mField.setFromString("This is not a color"));
+        assertEquals(0x00cc66, mField.getColor());
+        assertFalse(mField.setFromString("#fc6"));
+        assertEquals(0x00cc66, mField.getColor());
+    }
+
+    public void testClone() {
+        FieldColor clone = mField.clone();
+        assertNotSame(mField, clone);
+        assertEquals(mField.getName(), clone.getName());
+        assertEquals(mField.getColor(), clone.getColor());
+    }
+
+    public void testObserverEvents() {
+        FieldTestHelper.testObserverEvent(new FieldColor("normal", INITIAL_COLOR),
+                /* New value */ "#ffcc66",
+                /* Expected old value */ INITIAL_COLOR_STRING,
+                /* Expected new value */ "#ffcc66");
+
+        // No Change
+        FieldTestHelper.testObserverNoEvent(
+                new FieldColor("normal", INITIAL_COLOR),
+                /* New value */ INITIAL_COLOR_STRING);
+        FieldTestHelper.testObserverNoEvent(
+                new FieldColor("normal", INITIAL_COLOR),
+                /* New value */ INITIAL_COLOR_STRING.toUpperCase());
     }
 }

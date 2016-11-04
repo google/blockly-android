@@ -20,16 +20,24 @@ import android.test.AndroidTestCase;
  * Tests for {@link FieldLabel}.
  */
 public class FieldLabelTest extends AndroidTestCase {
-    public void testFieldLabel() {
-        FieldLabel field = new FieldLabel("field name", "some text");
-        assertEquals(Field.TYPE_LABEL, field.getType());
-        assertEquals("field name", field.getName());
-        assertEquals("some text", field.getText());
+    public static final String FIELD_NAME = "mField name";
+    public static final String INITIAL_VALUE = "some text";
+    FieldLabel mField;
 
-        field = new FieldLabel("name", null);
-        assertEquals("name", field.getName());
-        assertEquals("", field.getText());
+    public void setUp() {
+        mField = new FieldLabel(FIELD_NAME, INITIAL_VALUE);
+    }
 
-        assertNotSame(field, field.clone());
+    public void testConstructor() {
+        assertEquals(Field.TYPE_LABEL, mField.getType());
+        assertEquals(FIELD_NAME, mField.getName());
+        assertEquals(INITIAL_VALUE, mField.getText());
+    }
+
+    public void testClone() {
+        FieldLabel clone = mField.clone();
+        assertNotSame(mField, clone);
+        assertEquals(mField.getName(), clone.getName());
+        assertEquals(mField.getText(), clone.getText());
     }
 }

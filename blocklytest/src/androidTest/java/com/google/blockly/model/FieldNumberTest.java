@@ -418,4 +418,16 @@ public class FieldNumberTest extends MockitoAndroidTestCase {
         mField.setFromString("1.23e-4");
         assertEquals(0.000123, mField.getValue());
     }
+
+    public void testObserverEvent() {
+        mField.setValue(789);
+        FieldTestHelper.testObserverEvent(mField,
+                /* New Value */ "42",
+                /* Expected old value */ "789",
+                /* Expected new value */ "42");
+
+        // No events if the value doesn't change.
+        FieldTestHelper.testObserverNoEvent(mField);
+        FieldTestHelper.testObserverNoEvent(mField, "42.0000000");
+    }
 }

@@ -18,12 +18,11 @@ package com.google.blockly.model;
 import android.text.TextUtils;
 
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlSerializer;
 
 /**
  * Adds an image to an Input.
  */
-public final class FieldImage extends Field<FieldImage.Observer> {
+public final class FieldImage extends Field {
     private String mSrc;
     private int mWidth;
     private int mHeight;
@@ -86,6 +85,10 @@ public final class FieldImage extends Field<FieldImage.Observer> {
 
     /**
      * Sets a new image to be shown.
+     * <p/>
+     * Changes will induce a {@link Field.Observer#onValueChanged}, even though FieldImages do not
+     * store a value.  This trigger updates to the matching Fieldview, but in might also generate a
+     * no-op {@link com.google.blockly.android.control.BlocklyEvent.ChangeEvent}.
      *
      * @param src A web address or Blockly reference to the image.
      * @param width The display width of the image in dips.
@@ -96,7 +99,8 @@ public final class FieldImage extends Field<FieldImage.Observer> {
             mSrc = src;
             mWidth = width;
             mHeight = height;
-            onImageChanged(src, width, height);
+
+            fireValueChanged("", "");
         }
     }
 
@@ -108,29 +112,5 @@ public final class FieldImage extends Field<FieldImage.Observer> {
     @Override
     public String getSerializedValue() {
         return ""; // Image fields do not have value.
-    }
-
-    private void onImageChanged(String newSource, int newWidth, int newHeight) {
-        for (int i = 0; i < mObservers.size(); i++) {
-            mObservers.get(i).onImageChanged(this, newSource, newWidth, newHeight);
-        }
-    }
-
-    /**
-     * Observer for listening to changes to an image field.
-     */
-    public interface Observer {
-        /**
-         * Called when the field's image source, width, or height was changed.
-         * <p>
-         * Note: Image fields are not expected to be user editable and are not serialized by
-         * Blockly's core library.
-         *
-         * @param field The field that changed.
-         * @param newSource The new source for the image.
-         * @param newWidth The new width of the image.
-         * @param newHeight The new height of the image.
-         */
-        void onImageChanged(FieldImage field, String newSource, int newWidth, int newHeight);
     }
 }

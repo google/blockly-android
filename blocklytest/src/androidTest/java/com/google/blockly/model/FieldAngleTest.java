@@ -20,42 +20,62 @@ import android.test.AndroidTestCase;
  * Tests for {@link FieldAngle}.
  */
 public class FieldAngleTest extends AndroidTestCase {
-    public void testFieldAngle() {
+    public void testConstructor() {
         FieldAngle field = new FieldAngle("name", 0);
         assertEquals(Field.TYPE_ANGLE, field.getType());
         assertEquals("name", field.getName());
-        assertEquals(0, field.getAngle());
+        assertEquals(0f, field.getAngle());
+    }
 
-        field = new FieldAngle("360", 360);
-        assertEquals("360", field.getName());
-        assertEquals(360, field.getAngle());
+    public void testWrapAround() {
+        FieldAngle field = new FieldAngle("name", 360);
+        assertEquals(0f, field.getAngle());
 
-        field = new FieldAngle("name", 720);
-        assertEquals(0, field.getAngle());
+        field.setAngle(720f);
+        assertEquals(0f, field.getAngle());
 
-        field = new FieldAngle("name", -180);
-        assertEquals(180, field.getAngle());
+        field.setAngle(-180f);
+        assertEquals(180f, field.getAngle());
 
-        field = new FieldAngle("name", 10000);
-        assertEquals(280, field.getAngle());
+        field.setAngle(10000f);
+        assertEquals(280f, field.getAngle());
 
-        field = new FieldAngle("name", -10000);
-        assertEquals(80, field.getAngle());
+        field.setAngle(-10000f);
+        assertEquals(80f, field.getAngle());
 
-        field.setAngle(360);
-        assertEquals(360, field.getAngle());
-        field.setAngle(27);
-        assertEquals(27, field.getAngle());
-        field.setAngle(-10001);
-        assertEquals(79, field.getAngle());
+        field.setAngle(27f);
+        assertEquals(27f, field.getAngle());
+
+        field.setAngle(-10001f);
+        assertEquals(79f, field.getAngle());
+    }
+
+    public void testParseValue() {
+        FieldAngle field = new FieldAngle("name", 0);
 
         // xml parsing
         assertTrue(field.setFromString("-180"));
-        assertEquals(180, field.getAngle());
+        assertEquals(180f, field.getAngle());
         assertTrue(field.setFromString("27"));
-        assertEquals(27, field.getAngle());
+        assertEquals(27f, field.getAngle());
         assertFalse(field.setFromString("this is not a number"));
+    }
+
+    public void testClone() {
+        FieldAngle field = new FieldAngle("name", 5);
+        FieldAngle clone = field.clone();
 
         assertNotSame(field, field.clone());
+        assertEquals(field.getName(), clone.getName());
+        assertEquals(field.getAngle(), clone.getAngle());
+    }
+
+    public void testObserverEvent() {
+        FieldTestHelper.testObserverEvent(new FieldAngle("ANGLE", 0),
+                /* New value to assign */ "15",
+                /* oldValue */ "0",
+                /* newValue */ "15");
+        FieldTestHelper.testObserverNoEvent(new FieldAngle("ANGLE", 0));
+        FieldTestHelper.testObserverNoEvent(new FieldAngle("ANGLE", 0), "360");
     }
 }

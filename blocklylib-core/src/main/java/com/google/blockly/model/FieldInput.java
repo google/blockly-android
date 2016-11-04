@@ -20,14 +20,11 @@ import android.text.TextUtils;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlSerializer;
-
-import java.io.IOException;
 
 /**
  * Adds an editable text input to an Input.
  */
-public final class FieldInput extends Field<FieldInput.Observer> {
+public final class FieldInput extends Field {
     private String mText;
 
     public FieldInput(String name, String text) {
@@ -71,32 +68,12 @@ public final class FieldInput extends Field<FieldInput.Observer> {
         if (!TextUtils.equals(text, mText)) {
             String oldText = mText;
             mText = text;
-            onTextChanged(oldText, text);
+            fireValueChanged(oldText, text);
         }
     }
 
     @Override
     public String getSerializedValue() {
         return mText == null ? "" : mText;
-    }
-
-    private void onTextChanged(String oldText, String newText) {
-        for (int i = 0; i < mObservers.size(); i++) {
-            mObservers.get(i).onTextChanged(this, oldText, newText);
-        }
-    }
-
-    /**
-     * Observer for listening to changes to an input field.
-     */
-    public interface Observer {
-        /**
-         * Called when the field's text changed.
-         *
-         * @param field The field that changed.
-         * @param oldText The field's previous text.
-         * @param newText The field's new text.
-         */
-        void onTextChanged(FieldInput field, String oldText, String newText);
     }
 }

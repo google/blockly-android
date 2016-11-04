@@ -30,10 +30,11 @@ import com.google.blockly.model.FieldAngle;
 public class BasicFieldAngleView extends TextView implements FieldView {
     private static final char DEGREE_SYMBOL = '\u00B0';
 
-    protected FieldAngle.Observer mFieldObserver = new FieldAngle.Observer() {
+    protected Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onAngleChanged(Field field, int oldAngle, int newAngle) {
-            String newAngleStr = Integer.toString(newAngle);
+        public void onValueChanged(Field angleField, String oldValue, String newValue) {
+            assert (angleField == mAngleField);
+
             CharSequence curDisplayText = getText();
             int len = curDisplayText.length();
 
@@ -41,8 +42,8 @@ public class BasicFieldAngleView extends TextView implements FieldView {
             if (len > 0 && curDisplayText.charAt(len - 1) == DEGREE_SYMBOL) {
                 curDisplayText = curDisplayText.subSequence(0, len - 1);
             }
-            if (!newAngleStr.contentEquals(curDisplayText)) {
-                setText(newAngleStr + DEGREE_SYMBOL);
+            if (!newValue.contentEquals(curDisplayText)) {
+                setText(newValue + DEGREE_SYMBOL);
             }
         }
     };
@@ -95,7 +96,8 @@ public class BasicFieldAngleView extends TextView implements FieldView {
         }
         mAngleField = angleField;
         if (mAngleField != null) {
-            setText(Integer.toString(mAngleField.getAngle()) + DEGREE_SYMBOL);
+            // TODO(#438): Degree symbol on the left in RTL modes
+            setText(Float.toString(mAngleField.getAngle()) + DEGREE_SYMBOL);
             mAngleField.registerObserver(mFieldObserver);
         } else {
             setText("");

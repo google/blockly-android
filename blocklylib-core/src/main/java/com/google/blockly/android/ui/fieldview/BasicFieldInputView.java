@@ -50,15 +50,15 @@ public class BasicFieldInputView extends EditText implements FieldView {
         }
     };
 
-    private final FieldInput.Observer mFieldObserver = new FieldInput.Observer() {
+    private final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onTextChanged(FieldInput field, String oldText, String newText) {
+        public void onValueChanged(Field field, String oldValue, String newValue) {
             if (field != mInputField) {
                 Log.w(TAG, "Received text change from unexpected field.");
                 return;
             }
-            if (!TextUtils.equals(newText, getText())) {
-                setText(newText);
+            if (!TextUtils.equals(newValue, getText())) {
+                setText(newValue);
             }
         }
     };

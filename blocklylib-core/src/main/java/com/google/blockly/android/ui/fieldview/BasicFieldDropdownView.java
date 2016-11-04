@@ -33,10 +33,10 @@ import java.util.List;
 public class BasicFieldDropdownView extends Spinner implements FieldView {
     private static final String TAG = "BasicFieldDropdownView";
 
-    private FieldDropdown.Observer mFieldObserver = new FieldDropdown.Observer() {
+    private Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onSelectionChanged(FieldDropdown field, int oldIndex, int newIndex) {
-            setSelection(newIndex);
+        public void onValueChanged(Field field, String oldValue, String newValue) {
+            setSelection(mDropdownField.getSelectedIndex());
         }
     };
 

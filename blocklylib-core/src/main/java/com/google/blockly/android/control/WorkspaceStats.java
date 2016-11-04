@@ -38,13 +38,13 @@ public class WorkspaceStats {
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
 
-    private final FieldVariable.Observer mVariableObserver =
-            new FieldVariable.Observer() {
+    private final Field.Observer mVariableObserver = new Field.Observer() {
         @Override
-        public void onVariableChanged(FieldVariable field, String oldVar, String newVar) {
+        public void onValueChanged(Field field, String oldVar, String newVar) {
+            FieldVariable varField = (FieldVariable) field;
             List<FieldVariable> list = mVariableReferences.get(oldVar);
             if (list != null) {
-                list.remove(field);
+                list.remove(varField);
             }
 
             if (newVar == null) {
@@ -56,7 +56,7 @@ public class WorkspaceStats {
                 mVariableReferences.put(newVar, list);
                 mVariableNameManager.addName(newVar);
             }
-            list.add(field);
+            list.add(varField);
         }
     };
     private final List<Connection> mTempConnecitons = new ArrayList<>();

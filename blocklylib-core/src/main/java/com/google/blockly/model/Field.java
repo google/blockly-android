@@ -17,12 +17,7 @@ package com.google.blockly.model;
 
 import android.database.Observable;
 import android.support.annotation.IntDef;
-import android.util.Log;
 
-import com.google.blockly.utils.BlockLoadingException;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
@@ -33,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
  * The base class for Fields in Blockly. A field is the smallest piece of a {@link Block} and is
  * wrapped by an {@link Input}.
  */
-public abstract class Field<T> extends Observable<T> implements Cloneable {
+public abstract class Field extends Observable<Field.Observer> implements Cloneable {
     private static final String TAG = "Field";
     public static final int TYPE_UNKNOWN = -1;
     public static final int TYPE_LABEL = 0;
@@ -63,6 +58,20 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
     public static final String TYPE_DROPDOWN_STRING = "field_dropdown";
     public static final String TYPE_IMAGE_STRING = "field_image";
     public static final String TYPE_NUMBER_STRING = "field_number";
+
+    /**
+     * Observer for listening to changes to a field.
+     */
+    public interface Observer {
+        /**
+         * Called when the field's text changed.
+         *
+         * @param field The field that changed.
+         * @param oldValue The field's previous value, in serialized string form.
+         * @param newValue The field's new value, in serialized string form.
+         */
+        void onValueChanged(Field field, String oldValue, String newValue);
+    }
 
     private final String mName;
     private final int mType;
@@ -196,6 +205,12 @@ public abstract class Field<T> extends Observable<T> implements Cloneable {
                 return TYPE_NUMBER;
             default:
                 return TYPE_UNKNOWN;
+        }
+    }
+
+    protected void fireValueChanged(String oldText, String newText) {
+        for (int i = 0; i < mObservers.size(); i++) {
+            mObservers.get(i).onValueChanged(this, oldText, newText);
         }
     }
 }

@@ -21,14 +21,11 @@ import android.text.TextUtils;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlSerializer;
-
-import java.io.IOException;
 
 /**
  * Adds a color picker to an Input.
  */
-public final class FieldColor extends Field<FieldColor.Observer> {
+public final class FieldColor extends Field {
     public static final int DEFAULT_COLOR = 0xff0000;  // Red
 
     private int mColor;
@@ -86,9 +83,10 @@ public final class FieldColor extends Field<FieldColor.Observer> {
     public void setColor(int color) {
         final int newColor = 0xFFFFFF & color;
         if (mColor != newColor) {
-            int oldColor = mColor;
+            String oldValue = getSerializedValue();
             mColor = newColor;
-            onColorChanged(oldColor, newColor);
+            String newValue = getSerializedValue();
+            fireValueChanged(oldValue, newValue);
         }
     }
 
@@ -96,25 +94,5 @@ public final class FieldColor extends Field<FieldColor.Observer> {
     public String getSerializedValue() {
         return String.format("#%02x%02x%02x",
                 Color.red(mColor), Color.green(mColor), Color.blue(mColor));
-    }
-
-    private void onColorChanged(int oldColor, int newColor) {
-        for (int i = 0; i < mObservers.size(); i++) {
-            mObservers.get(i).onColorChanged(this, oldColor, newColor);
-        }
-    }
-
-    /**
-     * Observer for listening to changes to a color field.
-     */
-    public interface Observer {
-        /**
-         * Called when the field's color changed.
-         *
-         * @param field The field that changed.
-         * @param oldColor The field's previous color.
-         * @param newColor The field's new color.
-         */
-        void onColorChanged(Field field, int oldColor, int newColor);
     }
 }

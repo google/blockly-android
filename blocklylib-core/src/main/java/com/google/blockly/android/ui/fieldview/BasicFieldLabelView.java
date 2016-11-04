@@ -26,10 +26,10 @@ import com.google.blockly.model.FieldLabel;
  * Renders text as part of a BlockView.
  */
 public class BasicFieldLabelView extends TextView implements FieldView {
-    protected final FieldLabel.Observer mFieldObserver = new FieldLabel.Observer() {
+    protected final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
-        public void onTextChanged(FieldLabel field, String oldText, String newText) {
-            setText(newText);
+        public void onValueChanged(Field field, String oldValue, String newValue) {
+            setText(newValue);
         }
     };
 
