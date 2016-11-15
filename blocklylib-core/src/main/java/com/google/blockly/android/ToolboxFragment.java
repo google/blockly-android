@@ -330,6 +330,13 @@ public class ToolboxFragment extends BlockDrawerFragment {
         outState.putBoolean(ARG_ROTATE_TABS, mRotateTabs);
     }
 
+    /**
+     * @return True if this {@code ToolboxFragment} displays tabs. Otherwise false.
+     */
+    public boolean hasTabs() {
+        return mCloseable || mCategoryTabs.getTabCount() > 1;
+    }
+
     protected CategoryTabs.LabelAdapter onCreateLabelAdapter() {
         return new DefaultTabsAdapter();
     }
@@ -350,7 +357,7 @@ public class ToolboxFragment extends BlockDrawerFragment {
      */
     protected void updateViews() {
         // If there is only one drawer and the drawer is not closeable, we don't need the tab.
-        if (!mCloseable && mCategoryTabs.getTabCount() <= 1) {
+        if (!hasTabs()) {
             mCategoryTabs.setVisibility(View.GONE);
         } else {
             mCategoryTabs.setVisibility(View.VISIBLE);
@@ -404,32 +411,38 @@ public class ToolboxFragment extends BlockDrawerFragment {
             buttonHorizontalPadding = buttonWidth;
         }
         int layoutDir = ViewCompat.getLayoutDirection(mRootView);
+        int spacingForTabs;
         switch (GravityCompat.getAbsoluteGravity(mTabEdge, layoutDir)) {
             case Gravity.LEFT:
-                mScrollablePadding.set(mCategoryTabs.getMeasuredWidth() + buttonHorizontalPadding,
-                        buttonVerticalPadding, 0, 0);
+                spacingForTabs = hasTabs() ? mCategoryTabs.getMeasuredWidth() : 0;  // Horizontal
+                mScrollablePadding.set(
+                        spacingForTabs + buttonHorizontalPadding, buttonVerticalPadding, 0, 0);
                 break;
             case Gravity.TOP:
+                spacingForTabs = hasTabs() ? mCategoryTabs.getMeasuredHeight() : 0;  // Vertical
                 if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
-                    mScrollablePadding.set(buttonHorizontalPadding,
-                            mCategoryTabs.getMeasuredHeight() + buttonVerticalPadding, 0, 0);
+                    mScrollablePadding.set(
+                            buttonHorizontalPadding, spacingForTabs + buttonVerticalPadding,
+                            0, 0);
                 } else {
-                    mScrollablePadding.set(0,
-                            mCategoryTabs.getMeasuredHeight() + buttonVerticalPadding,
+                    mScrollablePadding.set(
+                            0, spacingForTabs + buttonVerticalPadding,
                             buttonHorizontalPadding, 0);
                 }
                 break;
             case Gravity.RIGHT:
-                mScrollablePadding.set(0, buttonVerticalPadding,
-                        mCategoryTabs.getMeasuredWidth() + buttonHorizontalPadding, 0);
+                spacingForTabs = hasTabs() ? mCategoryTabs.getMeasuredWidth() : 0;  // Horizontal
+                mScrollablePadding.set(
+                        0, buttonVerticalPadding, spacingForTabs + buttonHorizontalPadding, 0);
                 break;
             case Gravity.BOTTOM:
+                spacingForTabs = hasTabs() ? mCategoryTabs.getMeasuredHeight() : 0;  // Vertical
                 if (layoutDir == ViewCompat.LAYOUT_DIRECTION_LTR) {
-                    mScrollablePadding.set(buttonHorizontalPadding, 0, 0,
-                            mCategoryTabs.getMeasuredHeight() + buttonVerticalPadding);
+                    mScrollablePadding.set(
+                            buttonHorizontalPadding, 0, 0, spacingForTabs + buttonVerticalPadding);
                 } else {
-                    mScrollablePadding.set(0, 0, buttonHorizontalPadding,
-                            mCategoryTabs.getMeasuredHeight() + buttonVerticalPadding);
+                    mScrollablePadding.set(
+                            0, 0, buttonHorizontalPadding, spacingForTabs + buttonVerticalPadding);
                 }
                 break;
         }
