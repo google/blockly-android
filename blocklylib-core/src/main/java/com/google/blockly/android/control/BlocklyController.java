@@ -37,6 +37,7 @@ import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.InputView;
 import com.google.blockly.android.ui.PendingDrag;
+import com.google.blockly.android.ui.ViewPoint;
 import com.google.blockly.android.ui.VirtualWorkspaceView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
@@ -145,7 +146,7 @@ public class BlocklyController {
             return new Runnable() {
                 @Override
                 public void run() {
-                    // extractBlockAsRoot() fires move event immediately.
+                    // extractBlockAsRoot() fires MoveEvent immediately.
                     extractBlockAsRoot(activeTouchedView.getBlock());
 
                     // Since this block was already on the workspace, the block's position should
@@ -153,7 +154,16 @@ public class BlocklyController {
                     BlockGroup bg = mHelper.getRootBlockGroup(activeTouchedView);
                     bg.bringToFront();
 
-                    pendingDrag.setDragGroup(bg);
+                    // Measure and layout the block group to get the correct touch offset.
+                    bg.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+                    bg.layout(0, 0, bg.getMeasuredWidth(), bg.getMeasuredHeight());
+
+                    ViewPoint touchOffset = new ViewPoint(
+                            (int) (activeTouchedView.getX()
+                                    + pendingDrag.getTouchDownViewOffsetX()),
+                            (int) (activeTouchedView.getY()
+                                    + pendingDrag.getTouchDownViewOffsetY()));
+                    pendingDrag.startDrag(bg, touchOffset);
                 }
             };
         }
