@@ -207,7 +207,7 @@ public final class PendingDrag {
      * @return The root {@link Block} of the drag group.
      */
     public Block getRootDraggedBlock() {
-        return mRootBlockView.getBlock();
+        return mRootBlockView == null ? null : mRootBlockView.getBlock();
     }
 
     /**

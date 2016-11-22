@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.ui;
 
+import android.content.ClipDescription;
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -24,6 +25,7 @@ import android.view.DragEvent;
 import android.view.MotionEvent;
 
 import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
@@ -68,14 +70,16 @@ public class DraggerTest extends BlocklyTestCase {
      */
     private static final long TIMEOUT = 1000L;
 
+    private Context mMockContext;
     private BlocklyController mMockController;
+    private BlockClipDataHelper mMockBlockClipDataHelper;
     private Workspace mMockWorkspace;
     private ConnectionManager mMockConnectionManager;
+
     private DragEvent mDragStartedEvent;
     private DragEvent mDragLocationEvent;
     private DragEvent mDropEvent;
-    private Context mMockContext;
-    
+
     private HandlerThread mThread;
     private Handler mHandler;
     private Throwable mExceptionInThread = null;
@@ -135,6 +139,7 @@ public class DraggerTest extends BlocklyTestCase {
         doReturn(mThread.getLooper()).when(mMockContext).getMainLooper();
 
         mMockController = mock(BlocklyController.class);
+        mMockBlockClipDataHelper = mock(BlockClipDataHelper.class);
         mMockWorkspace = mock(Workspace.class);
         mMockConnectionManager = mock(ConnectionManager.class);
         mDragStartedEvent = mock(DragEvent.class);
@@ -156,6 +161,17 @@ public class DraggerTest extends BlocklyTestCase {
                 stub(mMockController.getWorkspace()).toReturn(mMockWorkspace);
                 stub(mMockController.getWorkspaceHelper()).toReturn(mWorkspaceHelper);
                 stub(mMockController.getContext()).toReturn(mMockContext);
+                stub(mMockController.getClipDataHelper()).toReturn(mMockBlockClipDataHelper);
+
+                Mockito.when(mMockBlockClipDataHelper.getPendingDrag(any(DragEvent.class)))
+                        .then(new Answer<PendingDrag>() {
+                            @Override
+                            public PendingDrag answer(InvocationOnMock invocationOnMock)
+                                    throws Throwable
+                            {
+                                return mPendingDrag;
+                            }
+                        });
 
                 mDragger = new Dragger(mMockController);
                 mDragger.setWorkspaceView(mWorkspaceView);
@@ -175,13 +191,32 @@ public class DraggerTest extends BlocklyTestCase {
         mThread.getLooper().quit();
     }
 
-    /* This set of tests covers the full sequence of dragging operations.
-     * Because we're skipping layout, the connector locations will never be exactly perfect.
-     * Calling updateConnectorLocations puts all of the connections on a block at the
-     * workspace position of that block.
-     */
+    // This set of tests covers the full sequence of dragging operations.
+    // Because we're skipping layout, the connector locations will never be exactly perfect.
+    // Calling updateConnectorLocations puts all of the connections on a block at the
+    // workspace position of that block.
 
-    // Drag together two compatible blocks.
+    /** Drag events are not always block related.  Ignore other blocks. */
+    @Test
+    public void testIgnoreDragThatIsntBlocks() {
+        // Setup
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlock(
+                "simple_input_output", "first block");
+        mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
+
+        Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
+                .thenReturn(false);
+
+        setupDrag();
+        dragBlockToTarget();
+
+        Mockito.verify(mMockConnectionManager, never())
+                .findBestConnection(Matchers.same(mTouchedBlock), anyInt());
+        Mockito.verify(mMockController, never())
+                .connect(any(Connection.class), any(Connection.class));
+    }
+
+    /** Drag together two compatible blocks. */
     @Test
     public void testDragConnect() {
 
@@ -190,6 +225,8 @@ public class DraggerTest extends BlocklyTestCase {
                 "simple_input_output", "first block");
         mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
 
+        Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
+                .thenReturn(true);
         Mockito.when(
                 mMockConnectionManager.findBestConnection(Matchers.same(mTouchedBlock), anyInt()))
                 .thenReturn(Pair.create(mTouchedBlock.getOnlyValueInput().getConnection(),
@@ -205,7 +242,7 @@ public class DraggerTest extends BlocklyTestCase {
                 mTargetBlock.getOutputConnection());
     }
 
-    // Drag together two incompatible blocks.
+    /** Drag together two incompatible blocks. */
     @Test
     public void testDragNoConnect() {
         // Setup
@@ -213,6 +250,8 @@ public class DraggerTest extends BlocklyTestCase {
                 "simple_input_output", "first block");
         mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
 
+        Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
+                .thenReturn(true);
         Mockito.when(mMockConnectionManager.findBestConnection(any(Block.class), anyInt()))
                 .thenReturn(null);
 
@@ -234,6 +273,9 @@ public class DraggerTest extends BlocklyTestCase {
         Block draggedChild = mBlockFactory.obtainBlock("multiple_input_output", "third block");
         mDraggedBlock.getOnlyValueInput().getConnection().connect(
                 draggedChild.getOutputConnection());
+
+        Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
+                .thenReturn(true);
 
         ArrayList<Connection> draggedConnections = new ArrayList<>();
         mDraggedBlock.getAllConnectionsRecursive(draggedConnections);

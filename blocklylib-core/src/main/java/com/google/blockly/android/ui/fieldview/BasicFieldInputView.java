@@ -25,6 +25,9 @@ import android.util.Log;
 import android.view.DragEvent;
 import android.widget.EditText;
 
+import com.google.blockly.android.AbstractBlocklyActivity;
+import com.google.blockly.android.clipboard.BlockClipDataHelper;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldInput;
@@ -120,10 +123,12 @@ public class BasicFieldInputView extends EditText implements FieldView {
     @Override
     public boolean onDragEvent(DragEvent event) {
         // Don't let block groups be dropped into text fields.
-        if (event.getClipDescription() != null
-            && event.getClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)
-            && event.getClipDescription().getLabel().equals(
-                WorkspaceView.BLOCK_GROUP_CLIP_DATA_LABEL)) {
+        Context context = getContext();
+        BlocklyController controller = (context instanceof AbstractBlocklyActivity) ?
+                ((AbstractBlocklyActivity) context).getController() : null;
+        BlockClipDataHelper clipHelper =
+                (controller == null) ? null : controller.getClipDataHelper();
+        if (clipHelper != null && clipHelper.isBlockData(event.getClipDescription())) {
             return false;
         }
 
