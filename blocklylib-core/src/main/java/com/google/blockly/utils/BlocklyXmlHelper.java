@@ -196,32 +196,32 @@ public final class BlocklyXmlHelper {
     }
 
     /**
-     * Convenience function to serialize only one Block.
+     * Convenience function to serialize one stack of Blocks (a BlockGroup, effectively).
      *
-     * @param toSerialize A Block to serialize.
+     * @param rootBlock The root block of the stack to serialize.
      * @param os An OutputStream to which to write them.
      *
      * @throws BlocklySerializerException
      */
-    public static void writeOneBlockToXml(Block toSerialize, OutputStream os)
+    public static void writeBlockToXml(Block rootBlock, OutputStream os)
             throws BlocklySerializerException {
         List<Block> temp = new ArrayList<>();
-        temp.add(toSerialize);
+        temp.add(rootBlock);
         writeToXml(temp, os);
     }
 
     /**
-     * Convenience function to serialize only one Block.
+     * Convenience function to serialize one stack of Blocks (a BlockGroup, effectively).
      *
-     * @param toSerialize A Block to serialize.
+     * @param rootBlock The root block of the stack to serialize.
      * @return XML string for block and all descendant blocks.
      * @throws BlocklySerializerException
      */
-    public static String writeOneBlockToXml(Block toSerialize)
+    public static String writeBlockToXml(Block rootBlock)
             throws BlocklySerializerException {
         StringWriter sw = new StringWriter();
         List<Block> temp = new ArrayList<>();
-        temp.add(toSerialize);
+        temp.add(rootBlock);
         writeToXml(temp, sw);
         String xmlString = sw.toString();
         try {
