@@ -16,6 +16,7 @@
 package com.google.blockly.android.control;
 
 import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
 import com.google.blockly.android.test.R;
 import com.google.blockly.android.testui.TestableBlockGroup;
 import com.google.blockly.android.testui.TestableBlockViewFactory;

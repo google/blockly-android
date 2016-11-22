@@ -42,6 +42,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.google.blockly.android.clipboard.BlockClipDataHelper;
+import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
 import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
@@ -111,6 +113,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     protected WorkspaceHelper mWorkspaceHelper;
     protected BlockViewFactory mBlockViewFactory;
+    protected BlockClipDataHelper mClipDataHelper;
     protected WorkspaceFragment mWorkspaceFragment;
     protected ToolboxFragment mToolboxFragment;
     protected TrashFragment mTrashFragment;
@@ -322,8 +325,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
         mWorkspaceHelper = new WorkspaceHelper(this);
         mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
+        mClipDataHelper = onCreateClipDataHelper();
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
+                .setClipDataHelper(mClipDataHelper)
                 .setWorkspaceHelper(mWorkspaceHelper)
                 .setBlockViewFactory(mBlockViewFactory)
                 .setVariableCallback(getVariableCallback())
@@ -378,6 +383,27 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         } catch (InvocationTargetException e) {
             throw new RuntimeException("Unable to instantiate VerticalBlockViewFactory", e);
         }
+    }
+
+    /**
+     * During {@link #onCreate}, called to construct the {@link BlockClipDataHelper} for use by all
+     * Blockly components of this Activity. The instance will be passed to the controller and
+     * available via {@link BlocklyController#getClipDataHelper()}.
+     * <p/>
+     * By default, it constructs a {@link SingleMimeTypeClipDataHelper} with a MIME type derived
+     * from the application's package name. This assumes all Blockly workspaces in an app work with
+     * the same shared set of blocks, and blocks can be dragged/copied/pasted them, even if they are
+     * in different Activities. It also ensures blocks from other applications will be rejected.
+     * <p/>
+     * If your app uses different block sets for different workspaces, or you intend to interoperate
+     * with other applications, you will need to override this method with your own implementation.
+     *
+     * @return A new {@link BlockClipDataHelper}.
+     */
+    protected BlockClipDataHelper onCreateClipDataHelper() {
+        String packageName = getApplication().getPackageName();
+        String mimeType = "application/x-blockly-" + packageName + "+xml";
+        return new SingleMimeTypeClipDataHelper(mimeType, R.string.blockly_clipdata_label_default);
     }
 
     /**

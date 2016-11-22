@@ -41,7 +41,7 @@ import java.util.List;
  * {@link InputView}s are direct children, and handles most UI events and view hierarchy
  * coordination. The measurement, placement and drawing are left to the subclass to implement.
  */
-@SuppressLint("ViewConstructor")
+@SuppressLint("ViewConstructor")  // BlockViews should not be instantiated by layout XML.
 public abstract class AbstractBlockView<InputView extends com.google.blockly.android.ui.InputView>
         extends NonPropagatingViewGroup implements BlockView {
     protected final WorkspaceHelper mHelper;

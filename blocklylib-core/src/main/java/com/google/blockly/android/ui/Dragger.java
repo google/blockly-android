@@ -41,7 +41,6 @@ import com.google.blockly.model.WorkspacePoint;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Controller for dragging blocks and groups of blocks within a workspace.
