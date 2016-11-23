@@ -690,8 +690,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * This method finds and configures {@link R.id#blockly_trash_icon} from the view hierarchy as
-     * the button to open and close the {@link TrashFragment}, and a drop location for deleting
-     * blocks. If {@link R.id#blockly_trash_icon} is not found, it does nothing.
+     * the button to open and close the {@link TrashFragment}. If {@link R.id#blockly_trash_icon} is
+     * not found, it does nothing.
      * <p/>
      * This is called after {@link #mController} is initialized, but before any blocks are loaded
      * into the workspace.
@@ -710,7 +710,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                     }
                 });
             }
-            mController.setTrashIcon(trashIcon);
         }
     }
 

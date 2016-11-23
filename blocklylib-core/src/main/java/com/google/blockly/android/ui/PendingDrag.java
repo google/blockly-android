@@ -5,11 +5,15 @@ import android.support.annotation.Size;
 import android.support.v4.view.GestureDetectorCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 
+import com.google.blockly.android.BuildConfig;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
+
+import java.lang.ref.WeakReference;
 
 /**
  * {@code PendingDrag} collects all the information related to an in-progress drag of a
@@ -17,8 +21,7 @@ import com.google.blockly.model.WorkspacePoint;
  * which calls {@link #startDrag} to inform the Dragger how to complete the rest of the drag
  * behavior.
  */
-// TODO(#233): Rename to PendingGesture or similar
-public final class PendingDrag {
+public class PendingDrag {
     /**
      * This threshold is used to detect bad state from invalid MotionEvent streams.  There are cases
      * where an intercepting OnTouchListener never receives an appropriate ACTION_CANCEL or
@@ -65,6 +68,7 @@ public final class PendingDrag {
     private long mLatestEventTime;
     private boolean mAlive = true;
     private boolean mClicked;
+    private WeakReference<View> mDragInitiatorRef = new WeakReference<>(null);
 
     /**
      * Constructs a new PendingDrag that, if accepted by the DragHandler, begins with the
@@ -76,7 +80,9 @@ public final class PendingDrag {
      */
     PendingDrag(@NonNull BlocklyController controller,
                 @NonNull BlockView touchedView, @NonNull MotionEvent actionDown) {
-        assert (actionDown.getAction() == MotionEvent.ACTION_DOWN);
+        if (actionDown.getAction() != MotionEvent.ACTION_DOWN) {
+            throw new IllegalArgumentException();
+        }
 
         mController = controller;
         mHelper = controller.getWorkspaceHelper();
@@ -159,7 +165,10 @@ public final class PendingDrag {
      * @param touchOffset The touch offset from the top left corner of {@code dragGroup}, in view
      *                    pixels.
      */
-    public void startDrag(@NonNull BlockGroup dragGroup, ViewPoint touchOffset) {
+    public void startDrag(
+            @NonNull View dragInitiator,
+            @NonNull BlockGroup dragGroup,
+            @NonNull ViewPoint touchOffset) {
         if (dragGroup == null) {
             throw new IllegalArgumentException("DragGroup cannot be null");
         }
@@ -170,6 +179,7 @@ public final class PendingDrag {
             throw new IllegalArgumentException("Drag group must be root block in workspace");
         }
 
+        mDragInitiatorRef = new WeakReference<>(dragInitiator);
         mDragGroup = dragGroup;
 
         // Save reference to root block, so we know which block if dropped into another group
@@ -180,6 +190,10 @@ public final class PendingDrag {
 
         mOriginalBlockPosition.setFrom(dragGroup.getFirstBlock().getPosition());
         mDragTouchOffset = touchOffset;
+    }
+
+    public View getDragInitiator() {
+        return mDragInitiatorRef.get();
     }
 
     /**

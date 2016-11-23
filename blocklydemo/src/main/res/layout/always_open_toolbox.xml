@@ -70,15 +70,15 @@
                 android:padding="2dp"
                 android:src="@drawable/reset_view"/>
 
-            <ImageButton android:id="@+id/blockly_trash_icon"
+            <com.google.blockly.android.ui.TrashCanView
+                android:id="@+id/blockly_trash_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
                 android:background="@color/translucent"
-                android:padding="2dp"
-                android:src="@drawable/trash"/>
+                android:padding="2dp"/>
         </LinearLayout>
     </FrameLayout>
 </RelativeLayout>
