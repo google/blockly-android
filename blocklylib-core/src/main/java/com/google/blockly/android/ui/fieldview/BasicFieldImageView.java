@@ -19,7 +19,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
@@ -28,11 +30,18 @@ import com.google.blockly.model.FieldImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.regex.Pattern;
 
 /**
  * Renders an image bitmap.
  */
 public class BasicFieldImageView extends ImageView implements FieldView {
+    private static String TAG = "BasicFieldImageView";
+
+    private static final Pattern HTTP_URL_PATTERN = Pattern.compile("https?://.*");
+    private static final Pattern DATA_URL_PATTERN = Pattern.compile("data:(.*)");
+    private static final String FILE_ASSET_URL_PREFIX = "file:///android_assets/";
+
     protected final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field field, String newValue, String oldValue) {
@@ -101,34 +110,25 @@ public class BasicFieldImageView extends ImageView implements FieldView {
      */
     protected void startLoadingImage() {
         final String source = mImageField.getSource();
-        if(source.indexOf("file:///android_assets/") == 0) {
-            try {
-                InputStream stream = getContext().getApplicationContext().getAssets().open(source.substring(("file:///android_assets/").length()));
-                Bitmap bitmap = BitmapFactory.decodeStream(stream);
-                if (bitmap != null) {
-                    setImageBitmap(bitmap);
-                    mImageSrc = source;
-                    updateViewSize();
-                }
-                requestLayout();
-            }catch (IOException e){
-                requestLayout();
-            }
-            return;
-        }
+
+        // Do I/O in the background
         new AsyncTask<String, Void, Bitmap>() {
             @Override
             protected Bitmap doInBackground(String... strings) {
                 try {
-                    final InputStream stream = (InputStream) new URL(strings[0]).getContent();
-                    try {
-                        return BitmapFactory.decodeStream(stream);
-                    } finally {
-                        stream.close();
+                    InputStream stream = getStreamForSource(source);
+                    if (stream != null) {
+                        try {
+                            return BitmapFactory.decodeStream(stream);
+                        } finally {
+                            stream.close();
+                        }
                     }
-                } catch (IOException ex) {
-                    return null;
+                    Log.w(TAG, "Unable to load image \"" + source + "\"");
+                } catch (IOException e) {
+                    Log.w(TAG, "Unable to load image \"" + source + "\"", e);
                 }
+                return null;
             }
 
             @Override
@@ -144,6 +144,26 @@ public class BasicFieldImageView extends ImageView implements FieldView {
                 requestLayout();
             }
         }.execute(source);
+    }
+
+    @VisibleForTesting
+    InputStream getStreamForSource(String source) throws IOException {
+        if (HTTP_URL_PATTERN.matcher(source).matches()) {
+            return (InputStream) new URL(source).getContent();
+        } else if (DATA_URL_PATTERN.matcher(source).matches()) {
+            // TODO(#443): Add support for data: protocol on image URLs.
+            return null;  // Recognized but unsupported.
+        } else {
+            String assetPath;
+            if (source.startsWith(FILE_ASSET_URL_PREFIX)) {
+                assetPath = source.substring(FILE_ASSET_URL_PREFIX.length());
+            } else if (source.startsWith("/")) {
+                assetPath = source.substring(1);
+            } else {
+                assetPath = source;
+            }
+            return getContext().getAssets().open(assetPath);
+        }
     }
 
     protected void updateViewSize() {
