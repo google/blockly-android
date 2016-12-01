@@ -101,7 +101,21 @@ public class BasicFieldImageView extends ImageView implements FieldView {
      */
     protected void startLoadingImage() {
         final String source = mImageField.getSource();
-
+        if(source.indexOf("file:///android_assets/") == 0) {
+            try {
+                InputStream stream = getContext().getApplicationContext().getAssets().open(source.substring(("file:///android_assets/").length()));
+                Bitmap bitmap = BitmapFactory.decodeStream(stream);
+                if (bitmap != null) {
+                    setImageBitmap(bitmap);
+                    mImageSrc = source;
+                    updateViewSize();
+                }
+                requestLayout();
+            }catch (IOException e){
+                requestLayout();
+            }
+            return;
+        }
         new AsyncTask<String, Void, Bitmap>() {
             @Override
             protected Bitmap doInBackground(String... strings) {
