@@ -151,8 +151,8 @@ public class BasicFieldImageView extends ImageView implements FieldView {
         if (HTTP_URL_PATTERN.matcher(source).matches()) {
             return (InputStream) new URL(source).getContent();
         } else if (DATA_URL_PATTERN.matcher(source).matches()) {
-            // TODO(#443): Add support for data: protocol on image URLs.
-            return null;  // Recognized but unsupported.
+            String imageDataBytes = source.substring(source.indexOf(",")+1);
+            return new ByteArrayInputStream(Base64.decode(imageDataBytes.getBytes(), Base64.DEFAULT));
         } else {
             String assetPath;
             if (source.startsWith(FILE_ASSET_URL_PREFIX)) {
