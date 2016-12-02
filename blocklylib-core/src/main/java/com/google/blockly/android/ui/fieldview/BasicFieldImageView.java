@@ -21,12 +21,14 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldImage;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -151,8 +153,8 @@ public class BasicFieldImageView extends ImageView implements FieldView {
         if (HTTP_URL_PATTERN.matcher(source).matches()) {
             return (InputStream) new URL(source).getContent();
         } else if (DATA_URL_PATTERN.matcher(source).matches()) {
-            // TODO(#443): Add support for data: protocol on image URLs.
-            return null;  // Recognized but unsupported.
+            String imageDataBytes = source.substring(source.indexOf(",")+1);
+            return new ByteArrayInputStream(Base64.decode(imageDataBytes.getBytes(), Base64.DEFAULT));
         } else {
             String assetPath;
             if (source.startsWith(FILE_ASSET_URL_PREFIX)) {
