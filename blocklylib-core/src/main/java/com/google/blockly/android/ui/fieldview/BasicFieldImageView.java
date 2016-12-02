@@ -21,12 +21,14 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldImage;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
