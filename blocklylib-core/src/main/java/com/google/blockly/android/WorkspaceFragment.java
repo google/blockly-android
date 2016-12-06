@@ -53,8 +53,10 @@ public class WorkspaceFragment extends Fragment {
     private static final String TAG = "WorkspaceFragment";
 
     public static final boolean DEFAULT_SCROLLABLE = true;
+    public static final boolean DEFAULT_SCALABLE = true;
 
     public static final String ARG_SCROLLABLE = "WorkspaceFragment_scrollable";
+    public static final String ARG_SCALABLE = "WorkspaceFragment_scalable";
 
     private BlocklyController mController;
     private Workspace mWorkspace;
@@ -62,6 +64,7 @@ public class WorkspaceFragment extends Fragment {
     private WorkspaceView mWorkspaceView;
 
     private boolean mScrollable = true;
+    private boolean mScalable = true;
 
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
@@ -75,6 +78,8 @@ public class WorkspaceFragment extends Fragment {
             //noinspection ResourceType
             mScrollable =
                     a.getBoolean(R.styleable.WorkspaceFragment_scrollable, DEFAULT_SCROLLABLE);
+            mScalable =
+                    a.getBoolean(R.styleable.WorkspaceFragment_scalable, DEFAULT_SCALABLE);
         } finally {
             a.recycle();
         }
@@ -85,6 +90,7 @@ public class WorkspaceFragment extends Fragment {
             setArguments(args = new Bundle());
         }
         args.putBoolean(ARG_SCROLLABLE, mScrollable);
+        args.putBoolean(ARG_SCALABLE, mScalable);
     }
 
     @Override
@@ -98,6 +104,7 @@ public class WorkspaceFragment extends Fragment {
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
 
         mVirtualWorkspaceView.setScrollable(mScrollable);
+        mVirtualWorkspaceView.setScalable(mScalable);
 
         return rootView;
     }
