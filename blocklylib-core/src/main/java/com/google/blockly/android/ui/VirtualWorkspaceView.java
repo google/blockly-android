@@ -52,6 +52,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private static final int INIT_ZOOM_SCALES_INDEX = 2;
 
     protected boolean mScrollable = true;
+    protected boolean mScalable;
 
     private final ViewPoint mPanningStart = new ViewPoint();
 
@@ -106,7 +107,6 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         setHorizontalScrollBarEnabled(mScrollable);
         setVerticalScrollBarEnabled(mScrollable);
 
-        mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
         mTapGestureDetector = new GestureDetector(getContext(), new TapGestureListener());
         mGridRenderer.updateGridBitmap(mViewScale);
         mImeManager = (InputMethodManager) getContext()
@@ -178,6 +178,24 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     }
 
     /**
+     * Configures whether the user can scale the workspace by touch events.
+     *
+     * @param scalable Allow scalability if true. Otherwise, disable it.
+     */
+    public void setScalable(boolean scalable){
+        if(mScalable == scalable){
+            return;
+        }
+        mScalable = scalable;
+        if(scalable) {
+            mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
+        }else{
+            mScaleGestureDetector = null;
+            resetView();
+        }
+    }
+
+    /**
      * Zoom into (i.e., enlarge) the workspace.
      *
      * @return True if a zoom was changed, increased. Otherwise false.
@@ -219,11 +237,13 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mScaleGestureDetector.onTouchEvent(event);
-        if (mScaleGestureDetector.isInProgress()) {
-            // If the scale gesture detector is handling a scale-and-pan gesture, then exit here
-            // since otherwise we would also be generating dragging events below.
-            return true;
+        if(mScaleGestureDetector != null) {
+            mScaleGestureDetector.onTouchEvent(event);
+            if (mScaleGestureDetector.isInProgress()) {
+                // If the scale gesture detector is handling a scale-and-pan gesture, then exit here
+                // since otherwise we would also be generating dragging events below.
+                return true;
+            }
         }
 
         final int action = MotionEventCompat.getActionMasked(event);

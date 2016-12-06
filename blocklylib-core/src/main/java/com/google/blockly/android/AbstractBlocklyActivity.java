@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -334,10 +335,23 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .setTrashFragment(mTrashFragment)
                 .setToolboxFragment(mToolboxFragment, mDrawerLayout);
         mController = builder.build();
+
+        TypedArray a = getTheme().obtainStyledAttributes(
+                null,
+                R.styleable.BlocklyWorkspaceTheme,
+                0, 0);
+        boolean showZoomButtons = true;
+        try {
+            showZoomButtons = a.getBoolean(R.styleable.BlocklyWorkspaceTheme_showZoomButtons, true);
+        } finally {
+            a.recycle();
+        }
+
         onConfigureTrashIcon();
         onConfigureZoomInButton();
         onConfigureZoomOutButton();
         onConfigureCenterViewButton();
+        setZoomButtonVisibility(showZoomButtons);
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
                 && mController.onRestoreSnapshot(savedInstanceState);
@@ -680,6 +694,24 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 });
             }
             mController.setTrashIcon(trashIcon);
+        }
+    }
+
+    /**
+     * This method finds and set the visibility of {@link R.id#blockly_zoom_in_button} and
+     * {@link R.id#blockly_zoom_out_button}
+     * from the view hierarchy according
+     * <p/>
+     * @param visible
+     */
+    protected void setZoomButtonVisibility(boolean visible){
+        View button = findViewById(R.id.blockly_zoom_in_button);
+        if (button != null) {
+            button.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+        button = findViewById(R.id.blockly_zoom_out_button);
+        if (button != null) {
+            button.setVisibility(visible ? View.VISIBLE : View.GONE);
         }
     }
 
