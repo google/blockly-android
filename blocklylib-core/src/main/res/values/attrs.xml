@@ -22,7 +22,7 @@
         <attr name="maxScale" format="float|reference" />
         <!-- The default scaling to use in the workspace -->
         <attr name="defaultScale" format="float|reference" />
-        <attr name="showScaleToolbox" format="boolean" /> <!-- Default true -->
+        <attr name="showZoomButtons" format="boolean" /> <!-- Default true -->
     </declare-styleable>
 
     <declare-styleable name="BasicFieldDropdownView">
