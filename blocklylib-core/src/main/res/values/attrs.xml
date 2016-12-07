@@ -22,7 +22,6 @@
         <attr name="maxScale" format="float|reference" />
         <!-- The default scaling to use in the workspace -->
         <attr name="defaultScale" format="float|reference" />
-        <attr name="showZoomButtons" format="boolean" /> <!-- Default true -->
     </declare-styleable>
 
     <declare-styleable name="BasicFieldDropdownView">
@@ -31,8 +30,13 @@
     </declare-styleable>
 
     <declare-styleable name="WorkspaceFragment">
-        <attr name="scrollable" format="boolean"/> <!-- Default true -->
-        <attr name="scalable" format="boolean"/> <!-- Default true -->
+        <attr name="zoomBehavior">
+            <flag name="fixed" value="1"/> <!-- no scrollbar, no zoom, no buttons. -->
+            <flag name="scrollOnly" value="2"/> <!-- only scrollable, no buttons, no zoom. -->
+            <flag name="buttonsOnly" value="3"/> <!-- scrollable, zoomable with buttons, zoom-in/out buttons. -->
+            <flag name="zoomOnly" value="4"/> <!-- scrollable, zoomable, no buttons. -->
+            <flag name="zoomAndButtons" value="5"/> <!-- scrollable, zoomable, zoom-in/out buttons. Default. -->
+        </attr>
     </declare-styleable>
 
     <!-- Base class of ToolboxFragment and TrashFragment. -->

@@ -336,22 +336,11 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .setToolboxFragment(mToolboxFragment, mDrawerLayout);
         mController = builder.build();
 
-        TypedArray a = getTheme().obtainStyledAttributes(
-                null,
-                R.styleable.BlocklyWorkspaceTheme,
-                0, 0);
-        boolean showZoomButtons = true;
-        try {
-            showZoomButtons = a.getBoolean(R.styleable.BlocklyWorkspaceTheme_showZoomButtons, true);
-        } finally {
-            a.recycle();
-        }
-
         onConfigureTrashIcon();
         onConfigureZoomInButton();
         onConfigureZoomOutButton();
         onConfigureCenterViewButton();
-        setZoomButtonVisibility(showZoomButtons);
+        setZoomBehavior(mWorkspaceFragment.getZoomBehavior());
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
                 && mController.onRestoreSnapshot(savedInstanceState);
@@ -702,16 +691,21 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link R.id#blockly_zoom_out_button}
      * from the view hierarchy according
      * <p/>
-     * @param visible
+     * @param zoomBehavior
      */
-    protected void setZoomButtonVisibility(boolean visible){
+    protected void setZoomBehavior(int zoomBehavior){
         View button = findViewById(R.id.blockly_zoom_in_button);
+        int buttonVisibility = View.GONE;
+        if(zoomBehavior == WorkspaceFragment.ZOOM_BEHAVIOR_BUTTONS_ONLY
+                || zoomBehavior == WorkspaceFragment.ZOOM_BEHAVIOR_ZOOM_AND_BUTTONS){
+            buttonVisibility = View.VISIBLE;
+        }
         if (button != null) {
-            button.setVisibility(visible ? View.VISIBLE : View.GONE);
+            button.setVisibility(buttonVisibility);
         }
         button = findViewById(R.id.blockly_zoom_out_button);
         if (button != null) {
-            button.setVisibility(visible ? View.VISIBLE : View.GONE);
+            button.setVisibility(buttonVisibility);
         }
     }
 

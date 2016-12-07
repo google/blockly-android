@@ -28,6 +28,7 @@ import android.view.ScaleGestureDetector;
 import android.view.inputmethod.InputMethodManager;
 
 import com.google.blockly.android.R;
+import com.google.blockly.android.WorkspaceFragment;
 
 /**
  * Virtual view of a {@link WorkspaceView}.
@@ -52,7 +53,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
     private static final int INIT_ZOOM_SCALES_INDEX = 2;
 
     protected boolean mScrollable = true;
-    protected boolean mScalable;
+    protected boolean mScalable = true;
 
     private final ViewPoint mPanningStart = new ViewPoint();
 
@@ -107,6 +108,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         setHorizontalScrollBarEnabled(mScrollable);
         setVerticalScrollBarEnabled(mScrollable);
 
+        mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
         mTapGestureDetector = new GestureDetector(getContext(), new TapGestureListener());
         mGridRenderer.updateGridBitmap(mViewScale);
         mImeManager = (InputMethodManager) getContext()
@@ -159,6 +161,11 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         return mScrollable;
     }
 
+    public void setZoomBehavior(int zoomBehavior){
+        setScrollable(zoomBehavior > WorkspaceFragment.ZOOM_BEHAVIOR_FIXED);
+        setScalable(zoomBehavior > WorkspaceFragment.ZOOM_BEHAVIOR_BUTTONS_ONLY);
+    }
+
     /**
      * Configures whether the user can scroll the workspace by dragging.  If scrolling is disabled,
      * the workspace will reset to 0,0 in the top right hand corner.
@@ -187,10 +194,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
             return;
         }
         mScalable = scalable;
-        if(scalable) {
-            mScaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureListener());
-        }else{
-            mScaleGestureDetector = null;
+        if(!scalable) {
             resetView();
         }
     }
@@ -237,7 +241,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if(mScaleGestureDetector != null) {
+        if(mScalable && mScaleGestureDetector != null) {
             mScaleGestureDetector.onTouchEvent(event);
             if (mScaleGestureDetector.isInProgress()) {
                 // If the scale gesture detector is handling a scale-and-pan gesture, then exit here
