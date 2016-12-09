@@ -49,6 +49,7 @@
         <activity
             android:name=".DevTestsActivity"
             android:label="@string/dev_activity_name"
+            android:theme="@style/StylesDemoTheme"
             android:taskAffinity="com.google.blockly.demo.MainActivity"
             android:windowSoftInputMode="stateHidden|adjustPan">
             <intent-filter>

@@ -17,6 +17,8 @@
     <group android:checkableBehavior="all">
         <item android:id="@+id/scrollable_menuitem"
             android:title="@string/scrollable_menuitem" />
+        <item android:id="@+id/pinch_zoom_menuitem"
+            android:title="@string/pinch_zoom_menuitem" />
     </group>
     <group android:checkableBehavior="all">
         <item android:id="@+id/log_events_menuitem"

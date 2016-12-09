@@ -17,7 +17,6 @@ package com.google.blockly.android;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,6 +61,12 @@ public class WorkspaceFragment extends Fragment {
         mVirtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
+
+        if (mController != null) {
+            mVirtualWorkspaceView.setZoomBehavior(
+                    mController.getWorkspaceHelper().getZoomBehavior());
+        }
+
         return rootView;
     }
 
@@ -79,11 +84,10 @@ public class WorkspaceFragment extends Fragment {
         mController = controller;
         mWorkspace = (controller == null) ? null : mController.getWorkspace();
         mController.initWorkspaceView(mWorkspaceView);
-    }
 
-    public void setZoomBehavior(ZoomBehavior zoomBehavior){
         if (mVirtualWorkspaceView != null) {
-            mVirtualWorkspaceView.setZoomBehavior(zoomBehavior);
+            mVirtualWorkspaceView.setZoomBehavior(
+                    mController.getWorkspaceHelper().getZoomBehavior());
         }
     }
 

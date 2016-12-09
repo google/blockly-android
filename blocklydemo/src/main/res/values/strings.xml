@@ -27,6 +27,7 @@
     <string name="style_activity_name">Blockly Styles</string>
 
     <string name="scrollable_menuitem">Scrollable</string>
+    <string name="pinch_zoom_menuitem">Pinch Zoom</string>
     <string name="log_events_menuitem">Log Events</string>
 
     <string name="action_demo_android">Android</string>

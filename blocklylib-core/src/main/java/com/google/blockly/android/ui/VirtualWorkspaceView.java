@@ -28,7 +28,6 @@ import android.view.ScaleGestureDetector;
 import android.view.inputmethod.InputMethodManager;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.ZoomBehavior;
 
 /**
