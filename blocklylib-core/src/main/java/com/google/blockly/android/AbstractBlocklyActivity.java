@@ -21,11 +21,13 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -45,6 +47,7 @@ import android.widget.Toast;
 import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
+import com.google.blockly.android.ui.ClearWorkspaceDialog;
 import com.google.blockly.android.ui.DeleteVariableDialog;
 import com.google.blockly.android.ui.NameVariableDialog;
 import com.google.blockly.android.ui.WorkspaceHelper;
@@ -129,7 +132,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected CodeGeneratorService mCodeGeneratorService;
     protected boolean mBound = false;
 
-    /** Defines service binding callbacks. Passed to bindService(). */
+    /**
+     * Defines service binding callbacks. Passed to bindService().
+     */
     private final ServiceConnection mCodeGenerationConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -145,6 +150,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
             mCodeGeneratorService = null;
         }
     };
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -194,6 +203,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Opens or closes the navigation drawer.
+     *
      * @param open Opens the navigation drawer if true and closes it if false.
      */
     public void setNavDrawerOpened(boolean open) {
@@ -257,7 +267,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link #onInitBlankWorkspace()}.
      */
     public void onClearWorkspace() {
-        mController.resetWorkspace();
+        DialogFragment newFragment = new ClearWorkspaceDialog();
+        newFragment.show(getSupportFragmentManager(), "clear");
+        
+//        mController.resetWorkspace();
         onInitBlankWorkspace();
     }
 
@@ -298,11 +311,11 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      * Creates the Activity Views, Fragments, and BlocklyController via a sequence of calls to
      * <ul>
-     *     <li>{@link #onCreateActivityRootView}</li>
-     *     <li>{@link #onCreateFragments}</li>
-     *     <li>{@link #onCreateBlockViewFactory}</li>
-     *     <li>{@link #getBlockDefinitionsJsonPaths}</li>
-     *     <li>{@link #getToolboxContentsXmlPath}</li>
+     * <li>{@link #onCreateActivityRootView}</li>
+     * <li>{@link #onCreateFragments}</li>
+     * <li>{@link #onCreateBlockViewFactory}</li>
+     * <li>{@link #getBlockDefinitionsJsonPaths}</li>
+     * <li>{@link #getToolboxContentsXmlPath}</li>
      * </ul>
      * Subclasses should override those methods to configure the Blockly environment.
      * <p/>
@@ -362,7 +375,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
         try {
             Class<? extends BlockViewFactory> clazz =
-                    (Class<? extends BlockViewFactory>)Class.forName(
+                    (Class<? extends BlockViewFactory>) Class.forName(
                             "com.google.blockly.android.ui.vertical.VerticalBlockViewFactory");
             return clazz.getConstructor(Context.class, WorkspaceHelper.class)
                     .newInstance(this, helper);
@@ -376,7 +389,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     *
      * Returns true if the app should proceed to restore the blockly state from the
      * {@code savedInstanceState} Bundle. By default, it always returns true, but Activity
      * developers can override this method to add conditional logic.
@@ -403,7 +415,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * Hook for subclasses to initialize a new blank workspace. Initialization may include
      * configuring default variables or other setup.
      */
-    protected void onInitBlankWorkspace() {}
+    protected void onInitBlankWorkspace() {
+    }
 
     /**
      * @return The id of the menu resource used to populate the {@link ActionBar}.
@@ -512,8 +525,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * rename, delete). This can be used to provide UI for confirming a deletion or renaming a
      * variable.
      *
-     * @return A {@link com.google.blockly.android.control.BlocklyController.VariableCallback} for
-     *         handling variable updates from the controller.
+     * @return A {@link BlocklyController.VariableCallback} for
+     * handling variable updates from the controller.
      */
     protected BlocklyController.VariableCallback getVariableCallback() {
         if (mVariableCb == null) {
@@ -745,6 +758,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Runs the code generator. Called when user selects "Run" action.
+     *
      * @see #getCodeGenerationCallback()
      */
     protected void onRunCode() {
@@ -786,6 +800,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Reloads the block definitions and toolbox contents.
+     *
      * @see #getToolboxContentsXmlPath()
      */
     protected void reloadToolbox() {
@@ -802,6 +817,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Reloads the block definitions.
+     *
      * @see #getBlockDefinitionsJsonPaths()
      */
     protected void reloadBlockDefinitions() {
@@ -829,7 +845,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * @return True if the action consumed to close a previously open navigation menu. Otherwise
-     *         false.
+     * false.
      */
     protected boolean onBackToCloseNavMenu() {
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -841,7 +857,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * @return True if the action was handled to close a previously open (and closable) toolbox.
-     *         Otherwise false.
+     * Otherwise false.
      */
     protected boolean onBackToCloseToolbox() {
         return mToolboxFragment != null
@@ -851,12 +867,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * @return True if the action was handled to close a previously open (and closable) trash.
-     *         Otherwise false.
+     * Otherwise false.
      */
     protected boolean onBackToCloseTrash() {
         return mTrashFragment != null
                 && mTrashFragment.isCloseable()
                 && mTrashFragment.setOpened(false);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
     }
 
     private class DefaultVariableCallback extends BlocklyController.VariableCallback {
@@ -880,7 +901,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
 
         public DefaultVariableCallback(DeleteVariableDialog deleteVariableDialog,
-                NameVariableDialog nameVariableDialog) {
+                                       NameVariableDialog nameVariableDialog) {
             mDeleteDialog = deleteVariableDialog;
             mNameDialog = nameVariableDialog;
         }
