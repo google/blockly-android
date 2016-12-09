@@ -28,6 +28,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
 
+import com.google.blockly.android.ZoomBehavior;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -72,6 +73,7 @@ public class WorkspaceHelper {
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
     private final int[] mTempIntArray2 = new int[2];
     private final Context mContext;
+    private final ZoomBehavior mZoomBehavior;
 
     private WorkspaceView mWorkspaceView;
     private VirtualWorkspaceView mVirtualWorkspaceView;
@@ -86,6 +88,7 @@ public class WorkspaceHelper {
      */
     public WorkspaceHelper(Context context) {
         mContext = context;
+        mZoomBehavior = ZoomBehavior.loadFromTheme(context);
 
         final Resources res = mContext.getResources();
         mDensity = res.getDisplayMetrics().density;
@@ -514,20 +517,6 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Updates the current RTL state for the app.
-     *
-     * @param resources The context resources to get the RTL setting from.
-     */
-    private void updateRtl(Resources resources) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            mRtl = resources.getConfiguration().getLayoutDirection()
-                    == View.LAYOUT_DIRECTION_RTL;
-        } else {
-            mRtl = false;  // RTL not supported.
-        }
-    }
-
-    /**
      * Gets the visible bounds of the workspace, in workspace units.
      *
      * @param outRect The {@link Rect} in which to store the bounds values.
@@ -544,5 +533,26 @@ public class WorkspaceHelper {
         outRect.right = mTempWorkspacePoint.x;
         outRect.bottom = mTempWorkspacePoint.y;
         return outRect;
+    }
+
+    /**
+     * @return The ZoomBehavior for workspaces in this context.
+     */
+    public ZoomBehavior getZoomBehavior() {
+        return mZoomBehavior;
+    }
+
+    /**
+     * Updates the current RTL state for the app.
+     *
+     * @param resources The context resources to get the RTL setting from.
+     */
+    private void updateRtl(Resources resources) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            mRtl = resources.getConfiguration().getLayoutDirection()
+                    == View.LAYOUT_DIRECTION_RTL;
+        } else {
+            mRtl = false;  // RTL not supported.
+        }
     }
 }

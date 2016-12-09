@@ -24,6 +24,7 @@ import android.widget.ListAdapter;
 import android.widget.Toast;
 
 import com.google.blockly.android.BlocklySectionsActivity;
+import com.google.blockly.android.ZoomBehavior;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.control.BlocklyController;
@@ -60,6 +61,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public static final String WORKSPACE_FOLDER_PREFIX = "sample_sections/level_";
 
     protected MenuItem mScrollableMenuItem;
+    protected MenuItem mPinchZoomMenuItem;
     protected MenuItem mLogEventsMenuItem;
 
     protected CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
@@ -70,11 +72,19 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean isShown = super.onCreateOptionsMenu(menu);
         if (isShown) {
+            ZoomBehavior zb = mWorkspaceHelper.getZoomBehavior();
+
             mScrollableMenuItem = menu.findItem(R.id.scrollable_menuitem);
+            mPinchZoomMenuItem = menu.findItem(R.id.pinch_zoom_menuitem);
             mLogEventsMenuItem = menu.findItem(R.id.log_events_menuitem);
 
             if (mScrollableMenuItem != null) {
-                mScrollableMenuItem.setChecked(mWorkspaceFragment.getScrollable());
+                mScrollableMenuItem.setEnabled(false); // TODO: Dynamic Zoom Behavior
+                mScrollableMenuItem.setChecked(zb.isScrollEnabled());
+            }
+            if (mPinchZoomMenuItem != null) {
+                mPinchZoomMenuItem.setEnabled(false); // TODO: Dynamic Zoom Behavior
+                mPinchZoomMenuItem.setChecked(zb.isPinchZoomEnabled());
             }
         }
         return isShown;
@@ -84,9 +94,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.scrollable_menuitem) {
-            setWorkspaceScrolling(!mScrollableMenuItem.isChecked());
-        } else if (id == R.id.log_events_menuitem) {
+        if (id == R.id.log_events_menuitem) {
             setLogEvents(!mLogEventsMenuItem.isChecked());
         } else if (id == R.id.action_airstrike) {
             airstrike();
@@ -113,18 +121,6 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     @Override
     public void onSaveWorkspace() {
         saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
-    }
-
-    /**
-     * Enables or disables scrolling on the workspace. This is test-only feature, in that we expect
-     * developers to set the scrollability once, and not change it while there may be blocks on the
-     * workspace. This does not guarantee all blocks will be visible, even if scrolling is disabled.
-     *
-     * @param allowScrolling
-     */
-    private void setWorkspaceScrolling(boolean allowScrolling) {
-        mWorkspaceFragment.setScrollable(allowScrolling);
-        mScrollableMenuItem.setChecked(allowScrolling);
     }
 
     /**

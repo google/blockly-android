@@ -23,11 +23,20 @@
         <!-- The default scaling to use in the workspace -->
         <attr name="defaultScale" format="float|reference" />
         <attr name="zoomBehavior">
-            <flag name="fixed" value="1"/> <!-- no scrollbar, no zoom, no buttons. -->
-            <flag name="scrollOnly" value="2"/> <!-- only scrollable, no buttons, no zoom. -->
-            <flag name="buttonsOnly" value="3"/> <!-- scrollable, zoomable with buttons, zoom-in/out buttons. -->
-            <flag name="zoomOnly" value="4"/> <!-- scrollable, zoomable, no buttons. -->
-            <flag name="zoomAndButtons" value="5"/> <!-- scrollable, zoomable, zoom-in/out buttons. Default. -->
+            <!-- No scrollbar. No zoom. No buttons. -->
+            <flag name="fixed" value="1"/>
+
+            <!-- Only scrollable. No buttons. No zoom. -->
+            <flag name="scrollOnly" value="2"/>
+
+            <!-- Scrollable. Zoomable with buttons. Pinch disabled. -->
+            <flag name="zoomButtonsOnly" value="3"/>
+
+            <!-- Scrollable. Zoomable via pinch. No buttons. -->
+            <flag name="zoomPinchOnly" value="4"/>
+
+            <!-- Scrollable. Zoomable via either pinch or buttons. Default. -->
+            <flag name="zoomPinchAndButtons" value="5"/>
         </attr>
     </declare-styleable>
 
