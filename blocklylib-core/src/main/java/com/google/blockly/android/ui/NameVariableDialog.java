@@ -8,6 +8,7 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
@@ -19,13 +20,16 @@ public class NameVariableDialog extends DialogFragment {
     private String mVariable;
     private DialogInterface.OnClickListener mListener;
     private EditText mNameEditText;
+    private TextView mNameTextView;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceBundle) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View nameView = inflater.inflate(R.layout.name_variable_view, null);
         mNameEditText = (EditText) nameView.findViewById(R.id.name);
+        mNameTextView = (TextView) nameView.findViewById(R.id.description);
         mNameEditText.setText(mVariable);
+        mNameTextView.setText("Change name of " + mVariable);
 
         AlertDialog.Builder bob = new AlertDialog.Builder(getActivity());
         bob.setTitle(R.string.name_variable_title);
