@@ -115,6 +115,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected WorkspaceFragment mWorkspaceFragment;
     protected ToolboxFragment mToolboxFragment;
     protected TrashFragment mTrashFragment;
+    protected ZoomBehavior mZoomBehavior;
 
     // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
     protected View mNavigationDrawer;
@@ -322,6 +323,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         }
 
         mWorkspaceHelper = new WorkspaceHelper(this);
+        mZoomBehavior = new ZoomBehavior(this);
         mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
@@ -340,7 +342,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         onConfigureZoomInButton();
         onConfigureZoomOutButton();
         onConfigureCenterViewButton();
-        setZoomBehavior(mWorkspaceFragment.getZoomBehavior());
+        onConfigureZoomBehavior();
+        mWorkspaceFragment.setZoomBehavior(mZoomBehavior);
 
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
                 && mController.onRestoreSnapshot(savedInstanceState);
@@ -691,15 +694,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link R.id#blockly_zoom_out_button}
      * from the view hierarchy according
      * <p/>
-     * @param zoomBehavior
      */
-    protected void setZoomBehavior(int zoomBehavior){
+    protected void onConfigureZoomBehavior(){
         View button = findViewById(R.id.blockly_zoom_in_button);
-        int buttonVisibility = View.GONE;
-        if(zoomBehavior == WorkspaceFragment.ZOOM_BEHAVIOR_BUTTONS_ONLY
-                || zoomBehavior == WorkspaceFragment.ZOOM_BEHAVIOR_ZOOM_AND_BUTTONS){
-            buttonVisibility = View.VISIBLE;
-        }
+        int buttonVisibility = mZoomBehavior.isButtonEnabled()? View.VISIBLE : View.GONE;
         if (button != null) {
             button.setVisibility(buttonVisibility);
         }

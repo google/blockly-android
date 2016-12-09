@@ -29,6 +29,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.WorkspaceFragment;
+import com.google.blockly.android.ZoomBehavior;
 
 /**
  * Virtual view of a {@link WorkspaceView}.
@@ -161,9 +162,9 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         return mScrollable;
     }
 
-    public void setZoomBehavior(int zoomBehavior){
-        setScrollable(zoomBehavior > WorkspaceFragment.ZOOM_BEHAVIOR_FIXED);
-        setScalable(zoomBehavior > WorkspaceFragment.ZOOM_BEHAVIOR_BUTTONS_ONLY);
+    public void setZoomBehavior(ZoomBehavior zoomBehavior){
+        setScrollable(zoomBehavior.isScrollEnabled());
+        setScalable(zoomBehavior.isPinchZoomEnabled());
     }
 
     /**
@@ -172,7 +173,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      *
      * @param scrollable Allow scrolling if true. Otherwise, disable it.
      */
-    public void setScrollable(boolean scrollable) {
+    protected void setScrollable(boolean scrollable) {
         if (scrollable == mScrollable) {
             return;
         }
@@ -189,7 +190,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
      *
      * @param scalable Allow scalability if true. Otherwise, disable it.
      */
-    public void setScalable(boolean scalable){
+    protected void setScalable(boolean scalable){
         if(mScalable == scalable){
             return;
         }

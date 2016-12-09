@@ -15,11 +15,8 @@
 
 package com.google.blockly.android;
 
-import android.content.Context;
-import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,58 +42,16 @@ import com.google.blockly.model.Workspace;
  *     android:id="@+id/blockly_workspace"
  *     android:layout_width="match_parent"
  *     android:layout_height="match_parent"
- *     <b>blockly:scrollable</b>="true"
  *     /&gt;
  * </pre></blockquote>
  */
 public class WorkspaceFragment extends Fragment {
     private static final String TAG = "WorkspaceFragment";
 
-    //no scrollbar, no zoom, no buttons
-    public static final int ZOOM_BEHAVIOR_FIXED = 1;
-    //only scrollable, no buttons, no zoom
-    public static final int ZOOM_BEHAVIOR_SCROLL_ONLY = 2;
-    //scrollable, zoomable with buttons, zoom-in/out buttons
-    public static final int ZOOM_BEHAVIOR_BUTTONS_ONLY = 3;
-    //scrollable, zoomable, no buttons
-    public static final int ZOOM_BEHAVIOR_ZOOM_ONLY = 4;
-    //scrollable, zoomable, zoom-in/out buttons
-    public static final int ZOOM_BEHAVIOR_ZOOM_AND_BUTTONS = 5;
-
-    public static final String ARG_ZOOM_BEHAVIOR = "WorkspaceFragment_zoomBehavior";
-
-    public static final int DEFAULT_ZOOM_BEHAVIOR = ZOOM_BEHAVIOR_ZOOM_AND_BUTTONS;
-
     private BlocklyController mController;
     private Workspace mWorkspace;
     private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
-
-    private int mZoomBehavior = DEFAULT_ZOOM_BEHAVIOR;
-
-    @Override
-    public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
-        super.onInflate(context, attrs, savedInstanceState);
-
-        TypedArray a = context.getTheme().obtainStyledAttributes(
-                attrs,
-                R.styleable.WorkspaceFragment,
-                0, 0);
-        try {
-            //noinspection ResourceType
-            mZoomBehavior =
-                    a.getInt(R.styleable.WorkspaceFragment_zoomBehavior, DEFAULT_ZOOM_BEHAVIOR);
-        } finally {
-            a.recycle();
-        }
-
-        // Store values in arguments, so fragment resume works (no inflation during resume).
-        Bundle args = getArguments();
-        if (args == null) {
-            setArguments(args = new Bundle());
-        }
-        args.putInt(ARG_ZOOM_BEHAVIOR, mZoomBehavior);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -124,8 +79,11 @@ public class WorkspaceFragment extends Fragment {
         mController = controller;
         mWorkspace = (controller == null) ? null : mController.getWorkspace();
         mController.initWorkspaceView(mWorkspaceView);
+    }
+
+    public void setZoomBehavior(ZoomBehavior zoomBehavior){
         if (mVirtualWorkspaceView != null) {
-            mVirtualWorkspaceView.setZoomBehavior(mZoomBehavior);
+            mVirtualWorkspaceView.setZoomBehavior(zoomBehavior);
         }
     }
 
@@ -134,13 +92,6 @@ public class WorkspaceFragment extends Fragment {
      */
     public Workspace getWorkspace() {
         return mWorkspace;
-    }
-
-    /**
-     * @return The zoomBehavior (int) being used by this fragment.
-     */
-    public int getZoomBehavior() {
-        return mZoomBehavior;
     }
 
     /**
