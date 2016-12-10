@@ -278,6 +278,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             case Field.TYPE_ANGLE: {
                 BasicFieldAngleView fieldAngleView = new BasicFieldAngleView(mContext);
                 fieldAngleView.setField((FieldAngle) field);
+                fieldAngleView.setWorkspaceHelper(mHelper);
                 return fieldAngleView;
             }
             case Field.TYPE_CHECKBOX: {
