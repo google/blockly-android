@@ -1665,7 +1665,6 @@ public class BlocklyController {
         private DrawerLayout mToolboxDrawer;
         private TrashFragment mTrashFragment;
         private View mTrashIcon;
-        private AssetManager mAssetManager;
 
         // TODO: Should these be part of the style?
         private int mToolboxResId;
@@ -1713,12 +1712,6 @@ public class BlocklyController {
 
         public Builder setTrashIcon(View trashIcon) {
             mTrashIcon = trashIcon;
-            return this;
-        }
-
-        // TODO(#128): Remove. Use mContext.getAssets()
-        public Builder setAssetManager(AssetManager manager) {
-            mAssetManager = manager;
             return this;
         }
 
@@ -1875,7 +1868,7 @@ public class BlocklyController {
             for (int i = 0; i < mBlockDefAssets.size(); i++) {
                 String assetPath = mBlockDefAssets.get(i);
                 try {
-                    factory.addBlocks(mAssetManager.open(assetPath));
+                    factory.addBlocks(mContext.getAssets().open(assetPath));
                 } catch (IOException e) {
                     factory.clear();  // Clear partially loaded resources.
                     // Compile-time bundled assets are assumed to always be valid.
@@ -1892,9 +1885,9 @@ public class BlocklyController {
                 controller.loadToolboxContents(mToolboxResId);
             } else if (mToolboxXml != null) {
                 controller.loadToolboxContents(mToolboxXml);
-            } else if (mToolboxAssetId != null && mAssetManager != null) {
+            } else if (mToolboxAssetId != null && mContext.getAssets() != null) {
                 try {
-                    controller.loadToolboxContents(mAssetManager.open(mToolboxAssetId));
+                    controller.loadToolboxContents(mContext.getAssets().open(mToolboxAssetId));
                 } catch (IOException e) {
                     throw new IllegalArgumentException("Failed to load toolbox from assets "
                             + mToolboxAssetId, e);

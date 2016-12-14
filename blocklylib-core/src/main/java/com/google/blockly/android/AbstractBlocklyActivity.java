@@ -324,7 +324,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
-                .setAssetManager(getAssets())  // TODO(#128) Remove
                 .setWorkspaceHelper(mWorkspaceHelper)
                 .setBlockViewFactory(mBlockViewFactory)
                 .setVariableCallback(getVariableCallback())
