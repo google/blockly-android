@@ -13,8 +13,12 @@ import com.google.blockly.android.control.BlocklyController;
  * Default dialog window shown when clearing the workspace.
  */
 public class ClearWorkspaceDialog extends DialogFragment {
-    private BlocklyController mController;
     public boolean choice;
+    public interface NoticeDialogListener {
+        public void onDialogPositiveClick(DialogFragment dialog);
+        public void onDialogNegativeClick(DialogFragment dialog);
+    }
+    NoticeDialogListener mListener;
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceBundle) {
@@ -38,8 +42,17 @@ public class ClearWorkspaceDialog extends DialogFragment {
         return clear.create();
     }
 
-    public void setController(BlocklyController controller) {
-        mController = controller;
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        // Verify that the host activity implements the callback interface
+        try {
+            // Instantiate the NoticeDialogListener so we can send events to the host
+            mListener = (NoticeDialogListener) activity;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(activity.toString()
+                    + " must implement NoticeDialogListener");
+        }
     }
-
 }

@@ -269,7 +269,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     public void onClearWorkspace() {
         DialogFragment newFragment = new ClearWorkspaceDialog();
         newFragment.show(getSupportFragmentManager(), "clear");
-        
+        if ClearWorkspaceDialog
 //        mController.resetWorkspace();
         onInitBlankWorkspace();
     }
