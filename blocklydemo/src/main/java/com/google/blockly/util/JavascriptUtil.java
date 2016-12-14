@@ -24,6 +24,7 @@ public class JavascriptUtil {
      * quotes, double quotes, and escape characters.
      */
     public static String makeJsString(String str) {
+        // TODO(#17): More complete character escaping.
         String escapedStr = str.replace("\\", "\\\\")
                 .replace("/", "\\/")
                 .replace("\'", "\\\'")
