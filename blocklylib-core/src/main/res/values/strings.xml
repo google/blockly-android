@@ -36,5 +36,10 @@
     <string name="name_variable_message">New variable name</string>
     <string name="name_variable_positive">OK</string>
     <string name="name_variable_negative">Cancel</string>
+    <!-- Message shown when clearing the workspace. -->
+    <string name="workspace_clear_title">Clear Workspace</string>
+    <string name="workspace_clear_message">Are you sure you want to clear the workspace?</string>
+    <string name="workspace_clear_positive">Clear</string>
+    <string name="workspace_clear_negative">Cancel</string>
 
 </resources>
