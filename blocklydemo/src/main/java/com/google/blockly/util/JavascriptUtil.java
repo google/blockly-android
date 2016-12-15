@@ -24,10 +24,8 @@ public class JavascriptUtil {
      * quotes, double quotes, and escape characters.
      */
     public static String makeJsString(String str) {
-        // TODO(#17): More complete character escaping: unicode characters to hex, octal, or \u.
-        String escapedStr = str.replace("\\", "\\\\")  // Must escape backslashes
-
-                // first.
+        // TODO(#17): More complete character escaping: unicode characters to hex, octal, or \\u.
+        String escapedStr = str.replace("\\", "\\\\")  // Must escape backslashes first.
                 .replace("</", "<\\/")  // See: http://stackoverflow.com/a/6117915
                 .replace("\'", "\\\'")
                 .replace("\"", "\\\"")
