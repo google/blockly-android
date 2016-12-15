@@ -98,7 +98,7 @@ import java.util.List;
  * can be reloaded by calling  {@link #reloadToolbox()}, which triggers another call to
  * {@link #getToolboxContentsXmlPath()}.
  */
-public abstract class AbstractBlocklyActivity extends AppCompatActivity {
+public abstract class AbstractBlocklyActivity extends AppCompatActivity implements ClearWorkspaceDialog.NoticeDialogListener {
     /**
      * Per the design guidelines, you should show the drawer on launch until the user manually
      * expands it. This shared preference tracks this.
