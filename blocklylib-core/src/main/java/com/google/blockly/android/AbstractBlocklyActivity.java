@@ -274,6 +274,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity implemen
     // User touched the dialog's positive button
     @Override
     public void onDialogPositiveClick(DialogFragment dialog) {
+        //Reset the workspace using BlocklyController.resetWorkspace
         mController.resetWorkspace();
         onInitBlankWorkspace();
     }
@@ -281,7 +282,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity implemen
     // User touched the dialog's negative button
     @Override
     public void onDialogNegativeClick(DialogFragment dialog) {
-
+        //Do nothing
     }
 
     /**

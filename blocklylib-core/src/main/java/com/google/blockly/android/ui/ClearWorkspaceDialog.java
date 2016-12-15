@@ -21,20 +21,21 @@ public class ClearWorkspaceDialog extends DialogFragment {
     NoticeDialogListener mListener;
 
     @Override
+    //Override onAttach with listener added
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        // Verify that the host activity implements the callback interface
         try {
-            // Instantiate the NoticeDialogListener so we can send events to the host
+            // Instantiate NoticeDialogListener
             mListener = (NoticeDialogListener) activity;
         } catch (ClassCastException e) {
-            // The activity doesn't implement the interface, throw exception
+            // Throw exception if activity doesn't implement the interface
             throw new ClassCastException(activity.toString()
                     + " must implement NoticeDialogListener");
         }
     }
 
     @Override
+    //Override default dialog constructor with custom strings
     public Dialog onCreateDialog(Bundle savedInstanceBundle) {
 
         AlertDialog.Builder clear = new AlertDialog.Builder(getActivity());
@@ -43,6 +44,7 @@ public class ClearWorkspaceDialog extends DialogFragment {
         clear.setPositiveButton(R.string.workspace_clear_positive,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int i) {
+                        //Feed back response to listener
                         mListener.onDialogPositiveClick(ClearWorkspaceDialog.this);
                     }
                 });
@@ -50,6 +52,7 @@ public class ClearWorkspaceDialog extends DialogFragment {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int i) {
+                        //Feed back response to listener
                         mListener.onDialogNegativeClick(ClearWorkspaceDialog.this);
                     }
                 });
