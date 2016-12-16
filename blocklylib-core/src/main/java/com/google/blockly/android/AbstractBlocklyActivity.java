@@ -70,16 +70,16 @@ import java.util.List;
  * fly-out views.  Everything below the
  * {@link ActionBar} can be replaced by overriding {@link #onCreateContentView}.  After
  * {@link #onCreateContentView}, the base implementation of {@link #onCreateFragments()} looks for
- * the {@link WorkspaceFragment}, the {@link ToolboxFragment}, and the {@link TrashFragment} via
- * fragment ids {@link R.id#blockly_workspace}, {@link R.id#blockly_toolbox}, and
- * {@link R.id#blockly_trash}, respectively. If overriding {@link #onCreateContentView} without
- * {@code unified_blockly_workspace.xml} or those fragment ids, override
- * {@link #onCreateFragments()}, appropriately.
+ * the {@link WorkspaceFragment}, the toolbox's {@link FlyoutFragment}, and the trash's
+ * {@link FlyoutFragment} via fragment ids {@link R.id#blockly_workspace},
+ * {@link R.id#blockly_toolbox}, and {@link R.id#blockly_trash}, respectively. If overriding
+ * {@link #onCreateContentView} without {@code unified_blockly_workspace.xml} or those fragment ids,
+ * override {@link #onCreateFragments()}, appropriately.
  * <p/>
  * The activity can also contain a few buttons to control the workspace.
  * {@link R.id#blockly_zoom_in_button} and {@link R.id#blockly_zoom_out_button} control the
  * workspace zoom scale, and {@link R.id#blockly_center_view_button} will reset it.
- * {@link R.id#blockly_trash_icon} will toggle a closeable {@link TrashFragment}, and also act as
+ * {@link R.id#blockly_trash_icon} will toggle a closeable {@link FlyoutFragment}, and also act as
  * a block drop target to delete blocks.  The methods {@link #onConfigureTrashIcon()},
  * {@link #onConfigureZoomInButton()}, {@link #onConfigureZoomOutButton()}, and
  * {@link #onConfigureCenterViewButton()} will search for these views
@@ -113,8 +113,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected BlockViewFactory mBlockViewFactory;
     protected BlockClipDataHelper mClipDataHelper;
     protected WorkspaceFragment mWorkspaceFragment;
-    protected ToolboxFragment mToolboxFragment;
-    protected TrashFragment mTrashFragment;
+    protected FlyoutFragment mFlyoutFragment;
+    protected FlyoutFragment mTrashFragment;
+    protected View mToolboxView;
+    protected CategoryFragment mCategoryFragment;
 
     // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
     protected View mNavigationDrawer;
@@ -315,7 +317,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .addBlockDefinitionsFromAssets(getBlockDefinitionsJsonPaths())
                 .setToolboxConfigurationAsset(getToolboxContentsXmlPath())
                 .setTrashFragment(mTrashFragment)
-                .setToolboxFragment(mToolboxFragment, mDrawerLayout);
+                .setToolboxFragment(mFlyoutFragment, mCategoryFragment); // TODO flyout and categories
         mController = builder.build();
 
         onConfigureTrashIcon();
@@ -405,7 +407,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void onLoadInitialWorkspace() {
         onInitBlankWorkspace();
-        mToolboxFragment.closeBlocksDrawer();
+        mFlyoutFragment.closeBlocksDrawer();
     }
 
     /**
@@ -622,9 +624,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      * Creates the Views and Fragments before the BlocklyController is constructed.  Override to
      * load a custom View hierarchy.  Responsible for assigning
-     * {@link #mWorkspaceFragment}, and optionally, {@link #mToolboxFragment} and
+     * {@link #mWorkspaceFragment}, and optionally, {@link #mFlyoutFragment} and
      * {@link #mTrashFragment}. This base implementation attempts to acquire references to the
-     * {@link #mToolboxFragment} and {@link #mTrashFragment} using the layout ids
+     * {@link #mFlyoutFragment} and {@link #mTrashFragment} using the layout ids
      * {@link R.id#} and {@link R.id#blockly_trash}, respectively. Subclasses may leave these
      * {@code null} if the views are not present in the UI.
      * <p>
@@ -634,10 +636,13 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         mWorkspaceFragment = (WorkspaceFragment)
                 fragmentManager.findFragmentById(R.id.blockly_workspace);
-        mToolboxFragment =
-                (ToolboxFragment) fragmentManager.findFragmentById(R.id.blockly_toolbox);
-        mTrashFragment = (TrashFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
-        mToolboxFragment.setTrashFragment(mTrashFragment);
+        mToolboxView = findViewById(R.id.blockly_toolbox);
+        mFlyoutFragment =
+                (FlyoutFragment) fragmentManager.findFragmentById(R.id.blockly_flyout);
+        mCategoryFragment = (CategoryFragment) fragmentManager
+                .findFragmentById(R.id.blockly_categories);
+
+        mTrashFragment = (FlyoutFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
 
         if (mTrashFragment != null) {
             // TODO(#14): Make trash list a drop location.
@@ -646,28 +651,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * This method finds and configures {@link R.id#blockly_trash_icon} from the view hierarchy as
-     * the button to open and close the {@link TrashFragment}, and assigns the BlocklyController if
-     * it is a {@link TrashCanView}. If {@link R.id#blockly_trash_icon} is not found, it does
-     * nothing.
+     * the button to open and close the trash, and a drop location for deleting
+     * blocks. If {@link R.id#blockly_trash_icon} is not found, it does nothing.
      * <p/>
      * This is called after {@link #mController} is initialized, but before any blocks are loaded
      * into the workspace.
      */
     protected void onConfigureTrashIcon() {
-        View trashIcon = findViewById(R.id.blockly_trash_icon);
-        if (trashIcon instanceof TrashCanView) {
-            ((TrashCanView) trashIcon).setBlocklyController(mController);
-        }
-        if (mTrashFragment != null && trashIcon != null && mTrashFragment.isCloseable()) {
-            mTrashFragment.setOpened(false);
-
-            trashIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Toggle opened state.
-                    mTrashFragment.setOpened(!mTrashFragment.isOpened());
-                }
-            });
+        TrashCanView trashIcon = (TrashCanView) findViewById(R.id.blockly_trash_icon);
+        if (mController != null && trashIcon != null) {
+            mController.setTrashIcon(trashIcon);
         }
     }
 
@@ -827,9 +820,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      *         Otherwise false.
      */
     protected boolean onBackToCloseToolbox() {
-        return mToolboxFragment != null
-                && mToolboxFragment.isCloseable()
-                && mToolboxFragment.closeBlocksDrawer();
+        return mFlyoutFragment != null
+                && mFlyoutFragment.isCloseable()
+                && mCategoryFragment.isVisible()
+                && mFlyoutFragment.closeBlocksDrawer();
     }
 
     /**
@@ -837,9 +831,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      *         Otherwise false.
      */
     protected boolean onBackToCloseTrash() {
-        return mTrashFragment != null
-                && mTrashFragment.isCloseable()
-                && mTrashFragment.setOpened(false);
+        return mController.closeFlyouts();
     }
 
     private class DefaultVariableCallback extends BlocklyController.VariableCallback {

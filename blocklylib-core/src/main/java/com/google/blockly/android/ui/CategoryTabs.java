@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -28,13 +29,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.google.blockly.android.R;
-import com.google.blockly.model.ToolboxCategory;
+import com.google.blockly.model.FlyoutCategory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@code CategoryTabs} view shows the list of available {@link ToolboxCategory}s as tabs.
+ * A {@code CategoryTabs} view shows the list of available {@link FlyoutCategory}s as tabs.
  * <p/>
  * The view can be configured in either {@link #HORIZONTAL} (default) or {@link #VERTICAL}
  * orientation. If there is not enough space, the tabs will scroll in the same direction.
@@ -45,12 +46,8 @@ import java.util.List;
 public class CategoryTabs extends RecyclerView {
     public static final String TAG = "CategoryTabs";
 
-    public static final int HORIZONTAL = LinearLayoutManager.HORIZONTAL;
-    public static final int VERTICAL = LinearLayoutManager.VERTICAL;
-
-    public abstract static class Callback {
-        public void onCategorySelected(ToolboxCategory category) {}
-    }
+    public static final int HORIZONTAL = OrientationHelper.HORIZONTAL;
+    public static final int VERTICAL = OrientationHelper.VERTICAL;
 
     public abstract static class LabelAdapter {
         /**
@@ -60,13 +57,13 @@ public class CategoryTabs extends RecyclerView {
         public abstract View onCreateLabel();
 
         /**
-         * Bind a {@link ToolboxCategory} to a label view, with any appropriate styling.
+         * Bind a {@link FlyoutCategory} to a label view, with any appropriate styling.
          *
          * @param labelView The tab's label view.
          * @param category The category to bind to.
          * @param position The position of the category in the list of tabs.
          */
-        public abstract void onBindLabel(View labelView, ToolboxCategory category, int position);
+        public abstract void onBindLabel(View labelView, FlyoutCategory category, int position);
 
         /**
          * Called when a label is bound or when clicking results in a selection change. Responsible
@@ -81,21 +78,22 @@ public class CategoryTabs extends RecyclerView {
          * @param isSelected the new selection state.
          */
         public void onSelectionChanged(
-                View labelView, ToolboxCategory category, int position, boolean isSelected) {
+                View labelView, FlyoutCategory category, int position, boolean isSelected) {
             labelView.setSelected(isSelected);
         }
     }
 
     private final LinearLayoutManager mLayoutManager;
     private final CategoryAdapter mAdapter;
-    protected final List<ToolboxCategory> mCategories = new ArrayList<>();
+    protected final List<FlyoutCategory> mCategories = new ArrayList<>();
 
     protected @Rotation.Enum int mLabelRotation = Rotation.NONE;
     protected boolean mTapSelectedDeselects = false;
 
     private LabelAdapter mLabelAdapter;
     protected @Nullable Callback mCallback;
-    protected @Nullable ToolboxCategory mCurrentCategory;
+    protected @Nullable
+    FlyoutCategory mCurrentCategory;
 
     public CategoryTabs(Context context) {
         this(context, null, 0);
@@ -175,11 +173,11 @@ public class CategoryTabs extends RecyclerView {
     }
 
     /**
-     * Sets the list of {@link ToolboxCategory}s used to populate the tab labels.
+     * Sets the list of {@link FlyoutCategory}s used to populate the tab labels.
      *
-     * @param categories The list of {@link ToolboxCategory}s used to populate the tab labels.
+     * @param categories The list of {@link FlyoutCategory}s used to populate the tab labels.
      */
-    public void setCategories(List<ToolboxCategory> categories) {
+    public void setCategories(List<FlyoutCategory> categories) {
         mCategories.clear();
         mCategories.addAll(categories);
         mAdapter.notifyDataSetChanged();
@@ -191,7 +189,7 @@ public class CategoryTabs extends RecyclerView {
      *
      * @param category
      */
-    public void setSelectedCategory(@Nullable ToolboxCategory category) {
+    public void setSelectedCategory(@Nullable FlyoutCategory category) {
         if (mCurrentCategory == category) {
             return;
         }
@@ -216,29 +214,24 @@ public class CategoryTabs extends RecyclerView {
         }
     }
 
+    /**
+     * @return The currently highlighted category or null.
+     */
+    public FlyoutCategory getSelectedCategory() {
+        return mCurrentCategory;
+    }
+
     public int getTabCount() {
         return mCategories.size();
     }
 
-    private void onCategoryClicked(ToolboxCategory category) {
-        if (category == mCurrentCategory) {
-            if (mTapSelectedDeselects) {
-                setSelectedCategory(null);
-                mCallback.onCategorySelected(null);
-            } // else don't update or call callback
-        } else {
-            setSelectedCategory(category);
-            mCallback.onCategorySelected(category);
-        }
-    }
-
-    private void fireOnCategorySelected(ToolboxCategory category) {
+    private void onCategoryClicked(FlyoutCategory category) {
         if (mCallback != null) {
-            mCallback.onCategorySelected(category);
+            mCallback.onCategoryClicked(category);
         }
     }
 
-    private TabLabelHolder getTabLabelHolder(ToolboxCategory category) {
+    private TabLabelHolder getTabLabelHolder(FlyoutCategory category) {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; ++i) {
             View child = getChildAt(i);
@@ -250,6 +243,14 @@ public class CategoryTabs extends RecyclerView {
         return null;
     }
 
+
+    /**
+     * Callback for when the user clicks on a category.
+     */
+    public abstract static class Callback {
+        public abstract void onCategoryClicked(FlyoutCategory category);
+    }
+
     /**
      * ViewHolder for the display name of a category in the toolbox.
      */
@@ -257,7 +258,7 @@ public class CategoryTabs extends RecyclerView {
         public final RotatedViewGroup mRotator;
         public final View mLabel;
 
-        public ToolboxCategory mCategory;
+        public FlyoutCategory mCategory;
 
         TabLabelHolder(View label) {
             super(new RotatedViewGroup(label.getContext()));
@@ -283,7 +284,7 @@ public class CategoryTabs extends RecyclerView {
 
         @Override
         public void onBindViewHolder(TabLabelHolder holder, int tabPosition) {
-            final ToolboxCategory category = mCategories.get(tabPosition);
+            final FlyoutCategory category = mCategories.get(tabPosition);
             boolean isSelected = (category == mCurrentCategory);
             // These may throw a NPE, but that is an illegal state checked above.
             mLabelAdapter.onBindLabel(holder.mLabel, category, tabPosition);
@@ -319,11 +320,11 @@ public class CategoryTabs extends RecyclerView {
          * the text {@link R.string#blockly_toolbox_default_category_name} ("Blocks" in English).
          *
          * @param labelView The view used as the label.
-         * @param category The {@link ToolboxCategory}.
+         * @param category The {@link FlyoutCategory}.
          * @param position The ordering position of the tab.
          */
         @Override
-        public void onBindLabel(View labelView, ToolboxCategory category, int position) {
+        public void onBindLabel(View labelView, FlyoutCategory category, int position) {
             String labelText = category.getCategoryName();
             if (TextUtils.isEmpty(labelText)) {
                 labelText = getContext().getString(R.string.blockly_toolbox_default_category_name);

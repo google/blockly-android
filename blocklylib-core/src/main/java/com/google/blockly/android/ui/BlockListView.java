@@ -143,7 +143,6 @@ public class BlockListView extends RecyclerView {
     public void setContents(List<Block> blocks) {
         mBlocks.clear();
         mBlocks.addAll(blocks);
-
         mAdapter.notifyDataSetChanged();
     }
 

@@ -12,23 +12,38 @@
         android:layout_height="match_parent"
         />
 
-    <fragment android:name="com.google.blockly.android.TrashFragment"
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
         android:id="@+id/blockly_trash"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_toEndOf="@+id/blockly_toolbox"
         blockly:closeable="true"
-        blockly:scrollOrientation="vertical"
+        blockly:scrollOrientation="horizontal"
         tools:ignore="MissingPrefix"
         android:layout_toRightOf="@id/blockly_toolbox"/>
 
-    <fragment android:name="com.google.blockly.android.ToolboxFragment"
-              android:id="@id/blockly_toolbox"
-              android:layout_width="wrap_content"
-              android:layout_height="match_parent"
-              tools:ignore="MissingPrefix"
-        />
+    <LinearLayout
+        android:id="@id/blockly_toolbox"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+        <fragment android:name="com.google.blockly.android.CategoryFragment"
+                  android:id="@+id/blockly_categories"
+                  android:layout_width="wrap_content"
+                  android:layout_height="match_parent"
+                  blockly:labelRotation="start"
+                  blockly:scrollOrientation="vertical"
+                  tools:ignore="MissingPrefix" />
+        <fragment android:name="com.google.blockly.android.FlyoutFragment"
+                  android:id="@+id/blockly_flyout"
+                  android:layout_width="wrap_content"
+                  android:layout_height="match_parent"
+                  blockly:scrollOrientation="vertical"
+                  tools:ignore="MissingPrefix"
+            />
+    </LinearLayout>
+
 
     <LinearLayout android:id="@+id/blockly_overlay_buttons"
         android:layout_width="wrap_content"

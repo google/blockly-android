@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.blockly.android.ui.CategoryView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:blockly="http://schemas.android.com/apk/res-auto"
+    android:layout_height="match_parent"
+    android:layout_width="wrap_content">
+    <com.google.blockly.android.ui.CategoryTabs
+        android:id="@+id/category_tabs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        blockly:labelRotation="start"
+        blockly:scrollOrientation="vertical"/>
+</com.google.blockly.android.ui.CategoryView>
