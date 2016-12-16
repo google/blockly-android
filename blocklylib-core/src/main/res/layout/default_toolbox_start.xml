@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.blockly.android.ui.ToolboxView
+<com.google.blockly.android.ui.FlyoutView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:blockly="http://schemas.android.com/apk/res-auto"
     android:id="@+id/toolbox_view"
@@ -44,4 +44,4 @@
             />
     </LinearLayout>
 
-</com.google.blockly.android.ui.ToolboxView>
+</com.google.blockly.android.ui.FlyoutView>

@@ -15,57 +15,36 @@
 
 package com.google.blockly.android;
 
-import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Color;
-import android.graphics.Rect;
 import android.os.Bundle;
-import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
-import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockListView;
 import com.google.blockly.android.ui.CategoryTabs;
-import com.google.blockly.android.ui.Rotation;
 import com.google.blockly.android.ui.BlockDrawerFragment;
-import com.google.blockly.android.ui.ToolboxView;
+import com.google.blockly.android.ui.FlyoutView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.ToolboxCategory;
 import com.google.blockly.model.WorkspacePoint;
-import com.google.blockly.utils.ColorUtils;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A tabbed drawer UI to show the available {@link Block}s one can drag into the workspace. The
  * available blocks are divided into drawers by {@link ToolboxCategory}s. Assign the categories
  * using {@link #setContents(ToolboxCategory)}. This top level category can contain either a list of
- * blocks or a list of subcategories, but not both. If it has blocks, the {@code ToolboxFragment}
+ * blocks or a list of subcategories, but not both. If it has blocks, the {@code FlyoutFragment}
  * renders as a single tab/group. If it has subcategories, it will render each subcategory with its
  * own tab. If there is only one category (top level or subcategory) and the fragment is not
  * closeable, no tab will render with the list of blocks.
  * <p/>
- * The look of the {@code ToolboxFragment} is highly configurable. It inherits from
+ * The look of the {@code FlyoutFragment} is highly configurable. It inherits from
  * {@link BlockDrawerFragment}, including the {@code closeable} and {@code scrollOrientation}
  * attributes. Additionally, it supports configuration for which edge the tab is bound to, and
  * whether to rotate the tab labels when attached to vertical edges.
@@ -75,7 +54,7 @@ import java.util.List;
  * &lt;fragment
  *     xmlns:android="http://schemas.android.com/apk/res/android"
  *     xmlns:blockly="http://schemas.android.com/apk/res-auto"
- *     android:name="com.google.blockly.ToolboxFragment"
+ *     android:name="com.google.blockly.FlyoutFragment"
  *     android:id="@+id/blockly_toolbox"
  *     android:layout_width="wrap_content"
  *     android:layout_height="match_parent"
@@ -96,16 +75,6 @@ import java.util.List;
  * rotate counter-clockwise on the left edge, and clockwise on the right edge. Top and bottom edge
  * tabs will never rotate.
  * <p/>
- * {@code blockly:tabEdge} takes the following values:
- * <table>
- *     <tr><th>XML attribute {@code blockly:tabEdge}</th><th>Fragment argument {@link #ARG_TAB_EDGE}</th></tr>
- *     <tr><td>{@code top}</td><td>{@link Gravity#TOP}</td><td>The top edge, with tabs justified to the start.  The default.</td></tr>
- *     <tr><td>{@code bottom}</td><td>{@link Gravity#BOTTOM}</td><td>The bottom edge, justified to the start.</td></tr>
- *     <tr><td>{@code left}</td><td>{@link Gravity#LEFT}</td><td>Left edge, justified to the top.</td></tr>
- *     <tr><td>{@code right}</td><td>{@link Gravity#RIGHT}</td><td>Right edge, justified to the top.</td></tr>
- *     <tr><td>{@code start}</td><td>{@link GravityCompat#START}</td><td>Starting edge (left in left-to-right), justified to the top.</td></tr>
- *     <tr><td>{@code end}</td><td>{@link GravityCompat#END}</td><td>Ending edge (right in left-to-right), justified to the top.</td></tr>
- * </table>
  * If there are more tabs than space allows, the tabs will be scrollable by dragging along the edge.
  * If this behavior is required, make sure the space is not draggable by other views, such as a
  * DrawerLayout.
@@ -118,10 +87,10 @@ import java.util.List;
  * @attr ref com.google.blockly.R.styleable#ToolboxFragment_rotateTabs
  */
 // TODO(#9): Attribute and arguments to set the tab background.
-public class ToolboxFragment extends Fragment {
-    private static final String TAG = "ToolboxFragment";
+public class FlyoutFragment extends Fragment {
+    private static final String TAG = "FlyoutFragment";
 
-    protected ToolboxView mToolboxView;
+    protected FlyoutView mFlyoutView;
     protected BlocklyController mController;
     protected WorkspaceHelper mHelper;
 
@@ -132,7 +101,7 @@ public class ToolboxFragment extends Fragment {
             Block copy = blockInList.deepCopy();
             copy.setPosition(initialBlockPosition.x, initialBlockPosition.y);
             BlockGroup copyView = mController.addRootBlock(copy);
-            if (mToolboxView.isCloseable()) {
+            if (mFlyoutView.isCloseable()) {
                 closeBlocksDrawer();
             }
             return copyView;
@@ -143,9 +112,9 @@ public class ToolboxFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         // TODO replace with lookup in onFinishInflate
-        mToolboxView = onCreateToolboxView(inflater, savedInstanceState);
+        mFlyoutView = onCreateToolboxView(inflater, savedInstanceState);
 
-        mToolboxView.setOnActionClickListener(new ToolboxView.OnActionClickListener() {
+        mFlyoutView.setOnActionClickListener(new FlyoutView.OnActionClickListener() {
             @Override
             public void onActionClicked(View v, ToolboxCategory category) {
                 if (category.isVariableCategory() && mController != null) {
@@ -154,18 +123,18 @@ public class ToolboxFragment extends Fragment {
             }
         });
 
-        mToolboxView.setCategoryTabsCallback(new CategoryTabs.Callback() {
+        mFlyoutView.setCategoryTabsCallback(new CategoryTabs.Callback() {
             @Override
             public void onCategorySelected(ToolboxCategory category) {
-                mToolboxView.setCurrentCategory(category);
+                mFlyoutView.setCurrentCategory(category);
             }
         });
-        return mToolboxView;
+        return mFlyoutView;
     }
 
     /**
-     * Connects the {@link ToolboxFragment} to the application's {@link BlocklyController}. It is
-     * called by {@link BlocklyController#setToolboxFragment(ToolboxFragment)} and should not be
+     * Connects the {@link FlyoutFragment} to the application's {@link BlocklyController}. It is
+     * called by {@link BlocklyController#setToolboxFragment(FlyoutFragment)} and should not be
      * called by the application developer.
      *
      * @param controller The application's {@link BlocklyController}.
@@ -173,28 +142,28 @@ public class ToolboxFragment extends Fragment {
     public void setController(BlocklyController controller) {
         if (mController != null && mController.getToolboxFragment() != this) {
             throw new IllegalStateException("Call BlockController.setToolboxFragment(..) instead of"
-                    + " ToolboxFragment.setController(..).");
+                    + " FlyoutFragment.setController(..).");
         }
 
         mController = controller;
         if (mController == null) {
-            mToolboxView.reset();
+            mFlyoutView.reset();
         }
-        mToolboxView.init(mController, mDragHandler);
-        BlockListView blv = mToolboxView.getBlockListView();
+        mFlyoutView.init(mController, mDragHandler);
+        BlockListView blv = mFlyoutView.getBlockListView();
         blv.init(mController, mDragHandler);
     }
 
     /**
      * Sets the top level category used to populate the toolbox. This top level category can contain
      * either a list of blocks or a list of subcategories, but not both. If it has blocks, the
-     * {@code ToolboxFragment} renders as a single tab/group. If it has subcategories, it will
+     * {@code FlyoutFragment} renders as a single tab/group. If it has subcategories, it will
      * render each subcategory with its own tab.
      *
      * @param topLevelCategory The top-level category in the toolbox.
      */
     public void setContents(final ToolboxCategory topLevelCategory) {
-        mToolboxView.setContents(topLevelCategory);
+        mFlyoutView.setContents(topLevelCategory);
     }
 
     /**
@@ -206,11 +175,11 @@ public class ToolboxFragment extends Fragment {
      */
     // TODO(#80): Add mBlockList animation hooks for subclasses.
     public void setCurrentCategory(@Nullable ToolboxCategory category) {
-        mToolboxView.setCurrentCategory(category);
+        mFlyoutView.setCurrentCategory(category);
     }
 
     public boolean isCloseable() {
-        return mToolboxView.isCloseable();
+        return mFlyoutView.isCloseable();
     }
 
     /**
@@ -220,11 +189,11 @@ public class ToolboxFragment extends Fragment {
      */
     // TODO(#80): Add mBlockList animation hooks for subclasses.
     public boolean closeBlocksDrawer() {
-        return mToolboxView.setCurrentCategory(null);
+        return mFlyoutView.setCurrentCategory(null);
     }
 
     /**
-     * Create the {@link ToolboxView} to be used as the base view for this class. Typically, this
+     * Create the {@link FlyoutView} to be used as the base view for this class. Typically, this
      * just needs to inflate the appropriate layout and return it, but custom configuration may
      * also be done.
      *
@@ -232,8 +201,8 @@ public class ToolboxFragment extends Fragment {
      * @param savedInstanceState Any saved state for the fragment.
      * @return
      */
-    protected ToolboxView onCreateToolboxView(LayoutInflater inflater, Bundle savedInstanceState) {
-        mToolboxView = (ToolboxView) inflater.inflate(R.layout.default_toolbox_start, null);
-        return mToolboxView;
+    protected FlyoutView onCreateToolboxView(LayoutInflater inflater, Bundle savedInstanceState) {
+        mFlyoutView = (FlyoutView) inflater.inflate(R.layout.default_toolbox_start, null);
+        return mFlyoutView;
     }
 }

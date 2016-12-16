@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * View wrapper for toolbox components.
  */
-public class ToolboxView extends RelativeLayout {
+public class FlyoutView extends RelativeLayout {
     protected BlockListView mBlockListView;
     protected CategoryTabs mCategoryTabs;
     protected Button mActionButton;
@@ -36,15 +36,15 @@ public class ToolboxView extends RelativeLayout {
     // The current state of the toolbox being closeable or not.
     private boolean mCloseable = mPreferCloseable;
 
-    public ToolboxView(Context context) {
+    public FlyoutView(Context context) {
         super(context);
     }
 
-    public ToolboxView(Context context, AttributeSet attrs) {
+    public FlyoutView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public ToolboxView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public FlyoutView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,

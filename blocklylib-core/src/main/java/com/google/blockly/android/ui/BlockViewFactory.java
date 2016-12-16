@@ -20,7 +20,7 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.SpinnerAdapter;
 
-import com.google.blockly.android.ToolboxFragment;
+import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.android.TrashFragment;
 import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.control.ConnectionManager;
@@ -202,7 +202,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     /**
      * This returns the view constructed to represent a {@link Block}.  Each block is only allowed
      * one view instance among the views managed by this factory (including
-     * {@link WorkspaceFragment}, {@link ToolboxFragment}, and {@link TrashFragment}). Views are
+     * {@link WorkspaceFragment}, {@link FlyoutFragment}, and {@link TrashFragment}). Views are
      * constructed in {@link #buildBlockViewTree}, either directly or via recursion.  If the block
      * view has not been constructed, this method will return null.
      * <p/>

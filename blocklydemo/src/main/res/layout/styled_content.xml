@@ -17,27 +17,36 @@
               android:layout_width="wrap_content"
               android:layout_height="match_parent"
               android:layout_alignParentEnd="true"
-              android:layout_above="@+id/blockly_toolbox"
+              android:layout_above="@+id/blockly_categories"
               blockly:closeable="true"
               blockly:scrollOrientation="vertical"
               tools:ignore="MissingPrefix"
               android:layout_alignParentRight="true"/>
 
-    <fragment android:name="com.google.blockly.android.demo.HorizontalToolboxFragment"
-              android:id="@id/blockly_toolbox"
+    <fragment android:name="com.google.blockly.android.CategoryFragment"
+              android:id="@id/blockly_categories"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:layout_alignParentBottom="true"
               android:layout_alignParentStart="true"
+              blockly:scrollOrientation="horizontal"
               tools:ignore="MissingPrefix"
               android:layout_alignParentLeft="true"/>
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
+              android:id="@+id/blockly_toolbox"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_above="@id/blockly_categories"
+              android:layout_alignParentStart="true"
+              android:layout_alignParentLeft="true"/>
+
 
     <LinearLayout android:id="@+id/blockly_overlay_buttons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@id/blockly_toolbox"
         android:orientation="vertical">
 
         <ImageButton android:id="@+id/blockly_zoom_in_button"

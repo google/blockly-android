@@ -23,7 +23,7 @@
         tools:ignore="MissingPrefix"
         android:layout_toRightOf="@id/blockly_toolbox"/>
 
-    <fragment android:name="com.google.blockly.android.ToolboxFragment"
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
               android:id="@id/blockly_toolbox"
               android:layout_width="wrap_content"
               android:layout_height="match_parent"

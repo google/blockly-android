@@ -18,7 +18,7 @@ package com.google.blockly.model;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.blockly.android.ToolboxFragment;
+import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.utils.ColorUtils;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -31,7 +31,7 @@ import java.util.List;
 
 /**
  * A category of a toolbox, which holds zero or more blocks and zero or more subcategories.
- * {@link ToolboxFragment} is responsible for displaying this.
+ * {@link FlyoutFragment} is responsible for displaying this.
  */
 public class ToolboxCategory {
     private static final String TAG = "ToolboxCategory";
