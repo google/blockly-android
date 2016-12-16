@@ -72,7 +72,7 @@ public class WorkspaceFragment extends Fragment {
 
     /**
      * Sets the controller to use in this fragment for instantiating views. This should be the same
-     * controller used for an associated {@link ToolboxFragment} or {@link TrashFragment}.
+     * controller used for any associated {@link FlyoutFragment FlyoutFragments}.
      *
      * @param controller The controller backing this fragment.
      */

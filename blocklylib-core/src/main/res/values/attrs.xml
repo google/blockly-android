@@ -49,7 +49,7 @@
 
     </declare-styleable>
 
-    <!-- Base class of ToolboxFragment and TrashFragment. -->
+    <!-- Styles for flyouts. TODO RENAME. -->
     <declare-styleable name="BlockDrawerFragment">
         <attr name="closeable" format="boolean"/> <!-- Default false -->
 
@@ -59,8 +59,6 @@
             <flag name="vertical" value="1"/> <!-- SCROLL_VERTICAL. -->
         </attr>
     </declare-styleable>
-
-    <declare-styleable name="TrashFragment" parent="BlockDrawerFragment" />
 
     <declare-styleable name="CategoryTabs">
         <attr name="labelRotation">

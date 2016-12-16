@@ -25,7 +25,8 @@ import android.util.AttributeSet;
 import com.google.blockly.android.R;
 
 /**
- * Base class for ToolboxFragment and TrashFragment. Manages the closeable and scroll direction
+ * TODO: DELETE THIS CLASS
+ * Base class for FlyoutFragment. Manages the closeable and scroll direction
  * configuration arguments through the {@code closeable} and {@code scrollOrientation} attributes.
  * <p/>
  * {@code blockly:closeable} is a simple boolean. It can also be set via the fragment argument

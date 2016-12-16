@@ -51,8 +51,9 @@ public class Workspace {
     private final WorkspaceStats mStats =
             new WorkspaceStats(mVariableNameManager, mProcedureManager,
                     mConnectionManager);
-    private final List<Block> mDeletedBlocks = new LinkedList<>();
-    private ToolboxCategory mToolboxCategory;
+
+    private FlyoutCategory mFlyoutCategory;
+    private FlyoutCategory mTrashCategory = new FlyoutCategory();
 
     /**
      * Create a workspace.
@@ -124,20 +125,20 @@ public class Workspace {
      */
     // TODO(#56): Make sure the block doesn't have a parent.
     public void addBlockToTrash(Block block) {
-        mDeletedBlocks.add(0, block);
+        mTrashCategory.addBlock(0, block);
     }
 
     /**
-     * Moves {@code trashedBlock} out of {@link #mDeletedBlocks} and into {@link #mRootBlocks}.
+     * Moves {@code trashedBlock} out of {@link #mTrashCategory} and into {@link #mRootBlocks}.
      *
      * @param trashedBlock The {@link Block} to move.
      * @throws IllegalArgumentException When {@code trashedBlock} is not found in
-     *         {@link #mDeletedBlocks}.
+     *         {@link #mTrashCategory}.
      */
     public void addBlockFromTrash(Block trashedBlock) {
-        boolean foundBlock = mDeletedBlocks.remove(trashedBlock);
+        boolean foundBlock = mTrashCategory.removeBlock(trashedBlock);
         if (!foundBlock) {
-            throw new IllegalArgumentException("trashedBlock not found in mDeletedBlocks");
+            throw new IllegalArgumentException("trashedBlock not found in mTrashCategory");
         }
         mRootBlocks.add(trashedBlock);
     }
@@ -166,7 +167,17 @@ public class Workspace {
      * @param source The source of the set of blocks or block groups to show in the toolbox.
      */
     public void loadToolboxContents(InputStream source) {
-        mToolboxCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
+        mFlyoutCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
+    }
+
+    /**
+     * Set up the trash from an input stream. The trash is loaded like a toolbox and can have a
+     * name, color, and set of blocks to start with. Unlike a toolbox it may not have subcategories.
+     *
+     * @param source The source to initialize the trash.
+     */
+    public void loadTrashConfiguration(InputStream source) {
+        mTrashCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
     }
 
     /**
@@ -177,6 +188,17 @@ public class Workspace {
     public void loadToolboxContents(String toolboxXml) {
         loadToolboxContents(new ByteArrayInputStream(toolboxXml.getBytes()));
     }
+
+    /**
+     * Set up the trash from an input stream. The trash is loaded like a toolbox and can have a
+     * name, color, and set of blocks to start with. Unlike a toolbox it may not have subcategories.
+     *
+     * @param trashXml The xml of the flyout to configure the trash.
+     */
+    public void loadTrashConfiguration(String trashXml) {
+        loadTrashConfiguration(new ByteArrayInputStream(trashXml.getBytes()));
+    }
+
 
     /**
      * Reads the workspace in from a XML stream. This will clear the workspace and replace it with
@@ -299,19 +321,19 @@ public class Workspace {
         mBlockFactory.clearPriorBlockReferences();
         mRootBlocks.clear();
         mStats.clear();
-        mDeletedBlocks.clear();
+        mTrashCategory.clear();
     }
 
     public boolean hasDeletedBlocks() {
-        return !mDeletedBlocks.isEmpty();
+        return !mTrashCategory.getBlocks().isEmpty();
     }
 
-    public ToolboxCategory getToolboxContents() {
-        return mToolboxCategory;
+    public FlyoutCategory getToolboxContents() {
+        return mFlyoutCategory;
     }
 
-    public List<Block> getTrashContents() {
-        return mDeletedBlocks;
+    public FlyoutCategory getTrashCategory() {
+        return mTrashCategory;
     }
 
 
