@@ -19,7 +19,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.support.annotation.NonNull;
-import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -250,7 +249,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
             }
         }
 
-        final int action = MotionEventCompat.getActionMasked(event);
+        final int action = event.getActionMasked();
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
@@ -258,11 +257,11 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
                 mImeManager.hideSoftInputFromWindow(getWindowToken(), 0);
 
                 if (mScrollable) {
-                    final int pointerIdx = MotionEventCompat.getActionIndex(event);
-                    mPanningPointerId = MotionEventCompat.getPointerId(event, pointerIdx);
+                    final int pointerIdx = event.getActionIndex();
+                    mPanningPointerId = event.getPointerId(pointerIdx);
                     mPanningStart.set(
-                            (int) MotionEventCompat.getX(event, pointerIdx),
-                            (int) MotionEventCompat.getY(event, pointerIdx));
+                            (int) event.getX(pointerIdx),
+                            (int) event.getY(pointerIdx));
                     mOriginalScrollX = getScrollX();
                     mOriginalScrollY = getScrollY();
                 }
@@ -271,7 +270,7 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
             case MotionEvent.ACTION_MOVE: {
                 if (mPanningPointerId != MotionEvent.INVALID_POINTER_ID) {
                     final int pointerIdx =
-                            MotionEventCompat.findPointerIndex(event, mPanningPointerId);
+                            event.findPointerIndex(mPanningPointerId);
                     if (pointerIdx == -1) {
                         // TODO: (#319) remove when we clean up multi-touch handling.
                         Log.w(TAG, "Got an invalid pointer idx for the panning pointer.");
@@ -279,9 +278,9 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
                     }
                     scrollTo(
                             mOriginalScrollX + mPanningStart.x -
-                                    (int) MotionEventCompat.getX(event, pointerIdx),
+                                    (int) event.getX(pointerIdx),
                             mOriginalScrollY + mPanningStart.y -
-                                    (int) MotionEventCompat.getY(event, pointerIdx));
+                                    (int) event.getY(pointerIdx));
                     return true;
                 } else {
                     return false;
@@ -289,8 +288,8 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
             }
             case MotionEvent.ACTION_POINTER_UP: {
                 // Some pointer went up - check whether it was the one used for panning.
-                final int pointerIdx = MotionEventCompat.getActionIndex(event);
-                final int pointerId = MotionEventCompat.getPointerId(event, pointerIdx);
+                final int pointerIdx = event.getActionIndex();
+                final int pointerId = event.getPointerId(pointerIdx);
                 if (pointerId != mPanningPointerId) {
                     return false;
                 }

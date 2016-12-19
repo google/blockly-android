@@ -3,7 +3,6 @@ package com.google.blockly.android.ui;
 import android.support.annotation.NonNull;
 import android.support.annotation.Size;
 import android.support.v4.view.GestureDetectorCompat;
-import android.support.v4.view.MotionEventCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
@@ -85,11 +84,10 @@ public final class PendingDrag {
 
         mTouchedView = touchedView;
 
-        mPointerId = MotionEventCompat.getPointerId(
-                actionDown, MotionEventCompat.getActionIndex(actionDown));
-        int pointerIdx = MotionEventCompat.findPointerIndex(actionDown, mPointerId);
-        mTouchDownBlockX = (int) MotionEventCompat.getX(actionDown, pointerIdx);
-        mTouchDownBlockY = (int) MotionEventCompat.getY(actionDown, pointerIdx);
+        mPointerId = actionDown.getPointerId(actionDown.getActionIndex());
+        int pointerIdx = actionDown.findPointerIndex(mPointerId);
+        mTouchDownBlockX = (int) actionDown.getX(pointerIdx);
+        mTouchDownBlockY = (int) actionDown.getY(pointerIdx);
 
         touchedView.getTouchLocationOnScreen(actionDown, mTouchDownScreen);
         mHelper.screenToWorkspaceCoordinates(mTouchDownScreen, mTouchDownWorkspace);
@@ -245,8 +243,7 @@ public final class PendingDrag {
             return false;
         }
 
-        final int pointerId = MotionEventCompat.getPointerId(
-                event, MotionEventCompat.getActionIndex(event));
+        final int pointerId = event.getPointerId(event.getActionIndex());
         long curEventTime = event.getEventTime();
         long deltaMs = curEventTime - mLatestEventTime;
         if (deltaMs < MAX_MOTION_EVENT_MILLISECONDS_DELTA) {
