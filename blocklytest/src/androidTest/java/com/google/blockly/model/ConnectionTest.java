@@ -16,10 +16,17 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import static org.junit.Assert.assertEquals;
+
 /**
  * Tests for {@link Connection}.
  */
-public class ConnectionTest extends AndroidTestCase {
+public class ConnectionTest {
     private Connection input;
     private Connection output;
     private Connection previous;
@@ -30,6 +37,10 @@ public class ConnectionTest extends AndroidTestCase {
     private Connection shadowNext;
     private Block.Builder blockBuilder;
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Before
     public void setUp() {
 
         blockBuilder = new Block.Builder("dummyBlock");
@@ -61,7 +72,7 @@ public class ConnectionTest extends AndroidTestCase {
         blockBuilder.setShadow(false);
     }
 
-
+    @Test
     public void testCanConnectWithReason() {
         assertEquals(Connection.REASON_TARGET_NULL, input.canConnectWithReason(null));
         assertEquals(Connection.REASON_TARGET_NULL, input.canConnectWithReason(
@@ -71,6 +82,7 @@ public class ConnectionTest extends AndroidTestCase {
         assertEquals(Connection.REASON_SELF_CONNECTION, input.canConnectWithReason(input));
     }
 
+    @Test
     public void testCanConnectWithReasonDisconnect() {
         assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(output));
         Connection conn = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
@@ -79,6 +91,7 @@ public class ConnectionTest extends AndroidTestCase {
         assertEquals(Connection.REASON_MUST_DISCONNECT, input.canConnectWithReason(output));
     }
 
+    @Test
     public void testCanConnectWithReasonType() {
         assertEquals(Connection.REASON_WRONG_TYPE, input.canConnectWithReason(previous));
         assertEquals(Connection.REASON_WRONG_TYPE, input.canConnectWithReason(next));
@@ -93,7 +106,7 @@ public class ConnectionTest extends AndroidTestCase {
         assertEquals(Connection.REASON_WRONG_TYPE, next.canConnectWithReason(output));
     }
 
-
+    @Test
     public void testCanConnectWithReasonChecks() {
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, new String[]{"String", "int"});
         input.setBlock(blockBuilder.build());
@@ -116,6 +129,7 @@ public class ConnectionTest extends AndroidTestCase {
         assertEquals(Connection.REASON_CHECKS_FAILED, input.canConnectWithReason(output));
     }
 
+    @Test
     public void testCanConnectWithReason_shadows() {
         // Verify a shadow can connect
         assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(shadowOutput));
@@ -130,99 +144,95 @@ public class ConnectionTest extends AndroidTestCase {
         assertEquals(Connection.REASON_MUST_DISCONNECT, next.canConnectWithReason(previous));
     }
 
-    public void testCheckConnection_failure() {
-        try {
-            input.checkConnection(input);
-            fail("Connections cannot connect to themselves!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
+    @Test
+    public void testCheckConnection_failOnInputCannotConnectToSelf() {
+        thrown.expect(IllegalArgumentException.class);
+        input.checkConnection(input);
+    }
 
+    @Test
+    public void testCheckConnection_failsOnInputCannotConnectToInput() {
+        thrown.expect(IllegalArgumentException.class);
         Connection input2 = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         input2.setBlock(blockBuilder.build());
-        try {
-            input.checkConnection(input2);
-            fail("Input cannot connect to input!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            input.checkConnection(previous);
-            fail("Input cannot connect to previous!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            input.checkConnection(next);
-            fail("Input cannot connect to next!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
 
+        input.checkConnection(input2);
+    }
+
+    @Test
+    public void testCheckConnection_failOnInputCannotConnectionToPrevious() {
+        thrown.expect(IllegalArgumentException.class);
+        input.checkConnection(previous);
+    }
+
+    @Test
+    public void testCheckConnection_failOnInputCannotConnectToNext() {
+        thrown.expect(IllegalArgumentException.class);
+        input.checkConnection(next);
+    }
+
+    @Test
+    public void testCheckConnection_failOnOutputCannotConnectToBlock() {
+        thrown.expect(IllegalArgumentException.class);
         Connection output2 = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
         output2.setBlock(blockBuilder.build());
-        try {
-            output.checkConnection(output2);
-            fail("Output cannot connect to output!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            output.checkConnection(previous);
-            fail("Output cannot connect to previous!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            output.checkConnection(next);
-            fail("Output cannot connect to next!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
+        output.checkConnection(output2);
+    }
+
+    @Test
+    public void testCheckConnection_failOnOutputCannotConnectToPrevious() {
+        thrown.expect(IllegalArgumentException.class);
+        output.checkConnection(previous);
+    }
+
+    @Test
+    public void testCheckConnection_failOnOutputCannotConnectToNext() {
+        thrown.expect(IllegalArgumentException.class);
+        output.checkConnection(next);
+    }
+
+    @Test
+    public void testCheckConnection_failOnPreviousCannotConnectToPrevious() {
+        thrown.expect(IllegalArgumentException.class);
 
         Connection previous2 = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
         previous2.setBlock(blockBuilder.build());
-        try {
-            previous.checkConnection(previous2);
-            fail("Previous cannot connect to previous!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            previous.checkConnection(input);
-            fail("Previous cannot connect to input!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            previous.checkConnection(output);
-            fail("Previous cannot connect to output!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-
-        Connection next2 = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
-        next2.setBlock(blockBuilder.build());
-        try {
-            next.checkConnection(next2);
-            fail("Next cannot connect to next!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            next.checkConnection(input);
-            fail("Next cannot connect to input!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            next.checkConnection(output);
-            fail("Next cannot connect to output");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
+        previous.checkConnection(previous2);
     }
 
+    @Test
+    public void testCheckConnection_failOnPreviousCannotConnectToInput() {
+        thrown.expect(IllegalArgumentException.class);
+        previous.checkConnection(input);
+    }
+
+    @Test
+    public void testCheckConnection_failOnPreviousCannotConnectToOutput() {
+        thrown.expect(IllegalArgumentException.class);
+        previous.checkConnection(output);
+    }
+
+    @Test
+    public void testCheckConnection_failOnNextCannotConnectToNext() {
+        thrown.expect(IllegalArgumentException.class);
+        Connection next2 = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
+        next2.setBlock(blockBuilder.build());
+        next.checkConnection(next2);
+    }
+
+    @Test
+    public void testCheckConnection_failOnNextCannotConnectToInput() {
+        thrown.expect(IllegalArgumentException.class);
+        next.checkConnection(input);
+    }
+
+    @Test
+    public void testCheckConnection_failOnNextCannotConnectToOutput() {
+        thrown.expect(IllegalArgumentException.class);
+        next.checkConnection(output);
+    }
+
+    @Test
     public void testCheckConnection_okay() {
         previous.checkConnection(next);
         next.checkConnection(previous);
@@ -245,49 +255,47 @@ public class ConnectionTest extends AndroidTestCase {
         shadowOutput.checkConnection(input);
     }
 
-    public void testCheckConnection_shadowFailures() {
-        // shadows hit the same checks as normal blocks.
-        // Do light verification to guard against that changing
-        try {
-            shadowInput.checkConnection(shadowInput);
-            fail("Connections cannot connect to themselves!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
+    // shadows hit the same checks as normal blocks.
+    // Do light verification to guard against that changing
 
-        try {
-            input.checkConnection(shadowInput);
-            fail("Input cannot connect to input!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            input.checkConnection(shadowPrevious);
-            fail("Input cannot connect to previous!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
+    @Test
+    public void testCheckConnection_failOnShadowInputCannotConnectToSelf() {
+        thrown.expect(IllegalArgumentException.class);
+        shadowInput.checkConnection(shadowInput);
+    }
+
+    @Test
+    public void testCheckConnection_failOnInputCannotConnectToShadowInput() {
+        thrown.expect(IllegalArgumentException.class);
+        input.checkConnection(shadowInput);
+    }
+
+    @Test
+    public void testCheckConnection_failOnInputCannotConnectToShadowPrevious() {
+        thrown.expect(IllegalArgumentException.class);
+        input.checkConnection(shadowPrevious);
+    }
+
+    @Test
+    public void testCheckConnection_failOnShadowInputCannotConnectToShadowInput() {
+        thrown.expect(IllegalArgumentException.class);
 
         Connection shadowInput2 = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         blockBuilder.setShadow(true);
         shadowInput2.setBlock(blockBuilder.build());
-        try {
-            shadowInput.checkConnection(shadowInput2);
-            fail("Input cannot connect to input!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            shadowInput.checkConnection(shadowNext);
-            fail("Input cannot connect to next!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-        try {
-            shadowInput.checkConnection(shadowPrevious);
-            fail("Input cannot connect to previous!");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
+
+        shadowInput.checkConnection(shadowInput2);
+    }
+
+    @Test
+    public void testCheckConnection_failOnShadowInputCannotConnectToShadowNext() {
+        thrown.expect(IllegalArgumentException.class);
+        shadowInput.checkConnection(shadowNext);
+    }
+
+    @Test
+    public void testCheckConnection_failOnShadowInputCannotConnectToShadowPrevious() {
+        thrown.expect(IllegalArgumentException.class);
+        shadowInput.checkConnection(shadowPrevious);
     }
 }
