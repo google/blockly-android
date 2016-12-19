@@ -22,7 +22,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
-import android.support.v4.view.MotionEventCompat;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -306,11 +305,10 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
 
     @Override
     public void getTouchLocationOnScreen(MotionEvent event, @Size(2) int[] locationOut) {
-        int pointerId =
-                MotionEventCompat.getPointerId(event, MotionEventCompat.getActionIndex(event));
-        int pointerIdx = MotionEventCompat.findPointerIndex(event, pointerId);
-        float offsetX =  MotionEventCompat.getX(event, pointerIdx);
-        float offsetY = MotionEventCompat.getY(event, pointerIdx);
+        int pointerId = event.getPointerId(event.getActionIndex());
+        int pointerIdx = event.findPointerIndex(pointerId);
+        float offsetX =  event.getX(pointerIdx);
+        float offsetY = event.getY(pointerIdx);
 
         // Get local screen coordinates.
         getLocationOnScreen(locationOut);

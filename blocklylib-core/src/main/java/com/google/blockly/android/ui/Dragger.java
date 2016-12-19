@@ -22,7 +22,6 @@ import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.support.annotation.VisibleForTesting;
-import android.support.v4.view.MotionEventCompat;
 import android.util.Log;
 import android.util.Pair;
 import android.view.DragEvent;
@@ -419,7 +418,7 @@ public class Dragger {
         }
         mWithinOnTouchBlockImpl = true;
 
-        final int action = MotionEventCompat.getActionMasked(event);
+        final int action = event.getActionMasked();
 
         boolean matchesPending = false;
         if (mPendingDrag != null) {
