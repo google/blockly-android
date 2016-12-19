@@ -934,18 +934,18 @@ public class BlocklyController {
         for (int i = 0; i < rootBlocks.size(); ++i) {
             unlinkViews(rootBlocks.get(i));
         }
-        List<Block> trashBlocks = mWorkspace.getTrashContents();
-        for (int i = 0; i < trashBlocks.size(); i++) {
-            unlinkViews(trashBlocks.get(i));
-        }
+//        List<Block> trashBlocks = mWorkspace.getTrashContents();
+//        for (int i = 0; i < trashBlocks.size(); i++) {
+//            unlinkViews(trashBlocks.get(i));
+//        }
         mWorkspace.resetWorkspace();
         if (mWorkspaceView != null) {
             mWorkspaceView.removeAllViews();
             initBlockViews();
         }
-        if (mTrashFragment != null) {
-            mTrashFragment.setContents(mWorkspace.getTrashContents());
-        }
+//        if (mTrashFragment != null) {
+//            mTrashFragment.setContents(mWorkspace.getTrashContents());
+//        }
     }
 
     /**
@@ -1913,13 +1913,23 @@ public class BlocklyController {
     public abstract static class VariableCallback {
 
         /**
+         * Sent when the user tries to clear the workspace. If true is returned the workspace is cleared.
+         *
+         * @param variable
+         * @return True to allow the clear, false to prevent it.
+         */
+        public boolean onClearWorkspace(String variable)  {
+            return true;
+        }
+
+        /**
          * Sent when the user tries to remove a variable. If true is returned the variable and
          * any blocks referencing it will be deleted.
          *
          * @param variable The variable being deleted.
          * @return True to allow the delete, false to prevent it.
          */
-        public boolean onDeleteVariable(String variable) {
+        public boolean onDeleteVariable(String variable)  {
             return true;
         }
 
