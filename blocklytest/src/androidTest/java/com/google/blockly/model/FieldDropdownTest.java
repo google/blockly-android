@@ -14,26 +14,37 @@
  */
 package com.google.blockly.model;
 
-import android.test.AndroidTestCase;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests for {@link FieldDropdown}.
  */
-public class FieldDropdownTest extends AndroidTestCase {
+public class FieldDropdownTest {
     private final String FIELD_NAME = "FieldDropdown";
     private final List<String> VALUES = Collections.unmodifiableList(
             Arrays.asList("Value1", "Value2", "Value3"));
     private final List<String> LABELS = Collections.unmodifiableList(
             Arrays.asList("Label1", "Label2", "Label3"));
 
-    FieldDropdown.Options mOptions;
-    FieldDropdown mDropDown;
+    private FieldDropdown.Options mOptions;
+    private FieldDropdown mDropDown;
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Before
     public void setUp() {
         List<FieldDropdown.Option> optionList = new ArrayList<>(VALUES.size());
         for (int i = 0; i < VALUES.size(); ++i) {
@@ -44,6 +55,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         mDropDown = new FieldDropdown(FIELD_NAME, mOptions);
     }
 
+    @Test
     public void testOptionsConstructorFromStrings() {
         // Created above.
         assertEquals(VALUES.size(), mOptions.size());
@@ -54,6 +66,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testDropdownConstructor() {
         assertEquals(Field.TYPE_DROPDOWN, mDropDown.getType());
         assertEquals(FIELD_NAME, mDropDown.getName());
@@ -64,6 +77,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         assertSame(mOptions, mDropDown.getOptions());
     }
 
+    @Test
     public void testSelectedByIndex() {
         for (int i = 0; i < VALUES.size(); i++) {
             mDropDown.setSelectedIndex(i);
@@ -73,15 +87,11 @@ public class FieldDropdownTest extends AndroidTestCase {
             assertEquals(LABELS.get(i), mDropDown.getSelectedDisplayName());
         }
 
-        try {
-            // test setting out of bounds
-            mDropDown.setSelectedIndex(VALUES.size() + 1);
-            fail("Setting an out-of-bounds index should throw an exception.");
-        } catch (IllegalArgumentException e) {
-            //expected
-        }
+        thrown.expect(IllegalArgumentException.class);
+        mDropDown.setSelectedIndex(VALUES.size() + 1);
     }
 
+    @Test
     public void testSetSelectedByValue() {
         // Change initial value
         mDropDown.setSelectedIndex(VALUES.size() - 1);
@@ -101,6 +111,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         assertEquals(VALUES.get(0), mDropDown.getSerializedValue());
     }
 
+    @Test
     public void testSetFromString() {
         assertTrue(mDropDown.setFromString(VALUES.get(1)));
         assertEquals(1, mDropDown.getSelectedIndex());
@@ -114,6 +125,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         assertEquals(VALUES.get(0), mDropDown.getSerializedValue());
     }
 
+    @Test
     public void testUpdateOptionsWithMatch() {
         // Initialize to something other than 0;
         mDropDown.setSelectedIndex(VALUES.size() / 2);
@@ -134,6 +146,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         assertEquals(oldSelectedValue, mDropDown.getSelectedValue());
     }
 
+    @Test
     public void testUpdateOptionsWithoutMatch() {
         // Initialize to something other than 0;
         mDropDown.setSelectedIndex(VALUES.size() - 1);
@@ -156,6 +169,7 @@ public class FieldDropdownTest extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testObserverEvents() {
         FieldTestHelper.testObserverEvent(mDropDown,
                 /* New value */ VALUES.get(2),

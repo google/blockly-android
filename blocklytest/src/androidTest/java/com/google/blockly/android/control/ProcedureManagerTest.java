@@ -15,26 +15,31 @@
 
 package com.google.blockly.android.control;
 
-import android.test.AndroidTestCase;
-
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.Input;
 
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
 import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link ProcedureManager}.
  */
-public class ProcedureManagerTest extends AndroidTestCase {
+public class ProcedureManagerTest {
     private static final String PROCEDURE_NAME = "procedure name";
 
     private ProcedureManager mProcedureManager;
     private Block mProcedureDefinition;
     private Block mProcedureReference;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
         mProcedureManager = new ProcedureManager();
 
@@ -51,6 +56,10 @@ public class ProcedureManagerTest extends AndroidTestCase {
                 .build();
     }
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Test
     public void testAddProcedureDefinition() {
         mProcedureManager.addDefinition(mProcedureDefinition);
         assertTrue(mProcedureManager.containsDefinition(mProcedureDefinition));
@@ -58,15 +67,12 @@ public class ProcedureManagerTest extends AndroidTestCase {
         assertEquals(0, mProcedureManager.getReferences(PROCEDURE_NAME).size());
     }
 
+    @Test
     public void testAddProcedureDefinitionTwice() {
         mProcedureManager.addDefinition(mProcedureDefinition);
 
-        try {
-            mProcedureManager.addDefinition(mProcedureDefinition);
-            fail("Adding the same block twice should be an error");
-        } catch (IllegalStateException expected) {
-            // expected
-        }
+        thrown.expect(IllegalStateException.class);
+        mProcedureManager.addDefinition(mProcedureDefinition);
 
         // Adding two block definitions with the same name should change the name of the new
         // block.
@@ -78,6 +84,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
                         .getText()));
     }
 
+    @Test
     public void testAddProcedureReference() {
         mProcedureManager.addDefinition(mProcedureDefinition);
 
@@ -85,6 +92,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
         assertTrue(mProcedureManager.hasReferences(mProcedureDefinition));
     }
 
+    @Test
     // Remove definition should also remove all references.
     public void testRemoveProcedureDefinition() {
         mProcedureManager.addDefinition(mProcedureDefinition);
@@ -106,6 +114,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
         assertFalse(mProcedureManager.hasReferences(mProcedureDefinition));
     }
 
+    @Test
     public void testRemoveProcedureReference() {
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
@@ -114,6 +123,7 @@ public class ProcedureManagerTest extends AndroidTestCase {
         assertFalse(mProcedureManager.hasReferences(mProcedureReference));
     }
 
+    @Test
     public void testMissingNames() {
         mProcedureDefinition = new Block.Builder(
                 ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test")
@@ -122,37 +132,25 @@ public class ProcedureManagerTest extends AndroidTestCase {
                 ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test")
                 .build();
 
-        try {
-            mProcedureManager.addDefinition(mProcedureDefinition);
-            fail("Expected an exception when defining a procedure with no name field.");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
+        thrown.expect(IllegalArgumentException.class);
+        mProcedureManager.addDefinition(mProcedureDefinition);
     }
 
-    public void testNoDefinition() {
-        try {
-            mProcedureManager.addReference(mProcedureReference);
-            fail("Expected an exception when referencing a procedure with no definition.");
-        } catch (IllegalStateException expected) {
-            // expected
-        }
-
-        try {
-            mProcedureManager.removeDefinition(mProcedureDefinition);
-            fail("Expected an exception when removing a block with no definition.");
-        } catch (IllegalStateException expected) {
-            // expected
-        }
-
+    @Test
+    public void testAddReferenceToUndefined() {
+        thrown.expect(IllegalStateException.class);
+        mProcedureManager.addReference(mProcedureReference);
     }
 
+    @Test
+    public void testRemoveNoUndefined() {
+        thrown.expect(IllegalStateException.class);
+        mProcedureManager.removeDefinition(mProcedureDefinition);
+    }
+
+    @Test
     public void testNoReference() {
-        try {
-            mProcedureManager.removeReference(mProcedureReference);
-            fail("Expected an exception when removing a nonexistent procedure reference.");
-        } catch (IllegalStateException expected) {
-            // expected
-        }
+        thrown.expect(IllegalStateException.class);
+        mProcedureManager.removeReference(mProcedureReference);
     }
 }
