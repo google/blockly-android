@@ -43,7 +43,6 @@ public class BlockFactoryTest extends AndroidTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
-        // TODO(#84): Move test_blocks.json to the testapp's resources.
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
     }
 
