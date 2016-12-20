@@ -17,6 +17,7 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 
@@ -33,7 +34,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Tests for {@link Workspace}.
  */
-public class WorkspaceTest {
+public class WorkspaceTest extends BlocklyTestCase {
 
     private static final String WORKSPACE_XML_START =
             "<xml xmlns=\"http://www.w3.org/1999/xhtml\">";
@@ -51,6 +52,7 @@ public class WorkspaceTest {
 
     @Before
     public void setUp() throws Exception {
+        configureForUIThread();
         Context context = InstrumentationRegistry.getContext();
         BlocklyController.Builder builder = new BlocklyController.Builder(context);
         builder.addBlockDefinitions(R.raw.test_blocks);

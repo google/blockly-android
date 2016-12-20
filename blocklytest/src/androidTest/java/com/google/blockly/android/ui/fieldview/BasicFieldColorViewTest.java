@@ -17,22 +17,29 @@ package com.google.blockly.android.ui.fieldview;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.test.ActivityInstrumentationTestCase2;
+import android.support.test.rule.ActivityTestRule;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 
 import com.google.blockly.android.BlocklyTestActivity;
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.model.FieldColor;
 
-import org.mockito.MockitoAnnotations;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link BasicFieldColorView}.
  */
-public class BasicFieldColorViewTest
-        extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
+public class BasicFieldColorViewTest extends BlocklyTestCase {
 
     private static final int LAYOUT_HEIGHT = 1000;
     private static final int LAYOUT_WIDTH = 1000;
@@ -44,16 +51,14 @@ public class BasicFieldColorViewTest
     private FieldColor mFieldColor;
     private BlocklyTestActivity mActivity;
 
-    public BasicFieldColorViewTest() {
-        super(BlocklyTestActivity.class);
-    }
+    @Rule
+    public final ActivityTestRule<BlocklyTestActivity> mActivityRule =
+        new ActivityTestRule<>(BlocklyTestActivity.class);
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        MockitoAnnotations.initMocks(this);
-
-        mActivity = getActivity();
+    @Before
+    public void setUp() throws Exception {
+        configureForUIThread();
+        mActivity = mActivityRule.getActivity();
 
         mLayout = new RelativeLayout(mActivity);
         mLayout.layout(0, 0, LAYOUT_WIDTH, LAYOUT_HEIGHT);
@@ -65,6 +70,7 @@ public class BasicFieldColorViewTest
     }
 
     // Verify that clicking on the field view opens popup window.
+    @Test
     public void testPopupWindowProperties() {
         mFieldColorView.performClick();
         final PopupWindow popupWindow = mFieldColorView.getColorPopupWindow();
@@ -76,6 +82,7 @@ public class BasicFieldColorViewTest
     }
 
     // Verify that clicking on popup window selects a color.
+    @Test
     public void testPopupWindowChangeColor() {
         mFieldColorView.performClick();
         final PopupWindow popupWindow = mFieldColorView.getColorPopupWindow();
@@ -102,6 +109,7 @@ public class BasicFieldColorViewTest
     }
 
     // Verify that changing color in the field updates the UI.
+    @Test
     public void testFieldUpdatesView() {
         mFieldColor.setColor(0);
         assertEquals(BasicFieldColorView.ALPHA_OPAQUE,

@@ -16,10 +16,17 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+
 /**
  * Tests for {@link FieldImage}.
  */
-public class FieldImageTest extends AndroidTestCase {
+public class FieldImageTest {
     static final String FIELD_NAME = "whatever";
     static final String SOURCE = "https://www.gstatic.com/codesite/ph/images/star_on.gif";
     static final int WIDTH = 15;
@@ -28,10 +35,12 @@ public class FieldImageTest extends AndroidTestCase {
 
     FieldImage mField;
 
+    @Before
     public void setUp() {
         mField = new FieldImage(FIELD_NAME, SOURCE, WIDTH, HEIGHT, ALT_TEXT);
     }
 
+    @Test
     public void testFieldImage() {
         assertEquals(Field.TYPE_IMAGE, mField.getType());
         assertEquals(FIELD_NAME, mField.getName());
@@ -41,6 +50,7 @@ public class FieldImageTest extends AndroidTestCase {
         assertEquals(ALT_TEXT, mField.getAltText());
     }
 
+    @Test
     public void testClone() {
         FieldImage clone = mField.clone();
         assertNotSame(mField, clone);
@@ -51,6 +61,7 @@ public class FieldImageTest extends AndroidTestCase {
         assertEquals(mField.getAltText(), clone.getAltText());
     }
 
+    @Test
     public void testObserverEvents() {
         final int[] eventCount = {0};
         mField.registerObserver(new Field.Observer() {

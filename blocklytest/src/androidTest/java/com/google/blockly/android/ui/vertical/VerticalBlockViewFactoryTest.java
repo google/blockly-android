@@ -16,9 +16,9 @@
 package com.google.blockly.android.ui.vertical;
 
 import android.support.annotation.NonNull;
+import android.support.test.InstrumentationRegistry;
 import android.test.suitebuilder.annotation.SmallTest;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.BlockGroup;
@@ -26,36 +26,38 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 
-import org.mockito.Mock;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 
 /**
  * Tests for {@link VerticalBlockViewFactory}.
  */
 @SmallTest
-public class VerticalBlockViewFactoryTest extends MockitoAndroidTestCase {
+public class VerticalBlockViewFactoryTest {
 
     private BlockFactory mBlockFactory;
     private VerticalBlockViewFactory mViewFactory;
-
     private BlockGroup mBlockGroup;
-
-    @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
-
-    @Mock
     private ConnectionManager mMockConnectionManager;
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
-        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        mViewFactory = new VerticalBlockViewFactory(getContext(), mMockWorkspaceHelper);
+    @Before
+     public void setUp() throws Exception {
+        mMockWorkspaceHelper = mock(WorkspaceHelper.class);
+        mMockConnectionManager = mock(ConnectionManager.class);
+        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        mViewFactory = new VerticalBlockViewFactory(InstrumentationRegistry.getContext(), mMockWorkspaceHelper);
         mBlockGroup = mViewFactory.buildBlockGroup();
     }
 
     // Verify construction of a BlockView for a Block with inputs.
+    @Test
     public void testBuildBlockViewWithInputs() {
         final Block block = mBlockFactory.obtainBlock(
                 "test_block_one_input_each_type", "TestBlock");

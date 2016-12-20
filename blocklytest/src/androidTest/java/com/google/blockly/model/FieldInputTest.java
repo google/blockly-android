@@ -16,35 +16,47 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests for {@link FieldInput}.
  */
-public class FieldInputTest extends AndroidTestCase {
+public class FieldInputTest {
     static final String FIELD_NAME = "Robert";
     static final String INITIAL_VALUE = "start text";
 
     FieldInput mField;
 
+    @Before
     public void setUp() {
         mField = new FieldInput(FIELD_NAME, INITIAL_VALUE);
     }
 
+    @Test
     public void testConstructor() {
         assertEquals(Field.TYPE_INPUT, mField.getType());
         assertEquals(FIELD_NAME, mField.getName());
         assertEquals(INITIAL_VALUE, mField.getText());
     }
 
+    @Test
     public void testSetText() {
         mField.setText("new text");
         assertEquals("new text", mField.getText());
     }
 
+    @Test
     public void testSetFromString() {
         assertTrue(mField.setFromString("newest text"));
         assertEquals("newest text", mField.getText());
     }
 
+    @Test
     public void testClone() {
         FieldInput clone = mField.clone();
         assertNotSame(mField, clone);
@@ -52,6 +64,7 @@ public class FieldInputTest extends AndroidTestCase {
         assertEquals(mField.getText(), clone.getText());
     }
 
+    @Test
     public void testObserverEvents() {
         FieldTestHelper.testObserverEvent(mField,
                 /* New value */ "asdf",

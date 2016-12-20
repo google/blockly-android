@@ -20,23 +20,29 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldVariable;
 
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.AdditionalAnswers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+
 /**
  * Tests for {@link BasicFieldVariableView}.
  */
-public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
+public class BasicFieldVariableViewTest {
     /**
      * Default timeout of 1 second, which should be plenty for all FieldVariableView actions.
      * Anything longer is an error.  However, to step through this code with a debugger, use
@@ -44,7 +50,6 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
      */
     private static final long TIMEOUT = 1000L;
 
-    @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
 
     private FieldVariable mFieldVariable;
@@ -58,17 +63,16 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
     private Handler mHandler;
     private Throwable mExceptionInThread = null;
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
+    @Before
+     public void setUp() throws Exception {
+        mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mThread = new HandlerThread("DraggerTest");
         mThread.start();
         mLooper = mThread.getLooper();
         mHandler = new Handler(mLooper);
 
-        mMockContext = Mockito.mock(Context.class, AdditionalAnswers.delegatesTo(getContext()));
-        Mockito.doReturn(mLooper).when(mMockContext).getMainLooper();
+        mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(InstrumentationRegistry.getContext()));
+        doReturn(mLooper).when(mMockContext).getMainLooper();
 
         mFieldVariable = new FieldVariable("field", "var2");
 
@@ -77,11 +81,12 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
         mNameManager.addName(mFieldVariable.getVariable());
         mNameManager.addName("var3");
 
-        mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(getContext(), mNameManager,
+        mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(InstrumentationRegistry.getContext(), mNameManager,
                 android.R.layout.simple_spinner_item);
     }
 
     // Verify object instantiation.
+    @Test
     public void testInstantiation() {
         final BasicFieldVariableView[] view = new BasicFieldVariableView[1];
         runAndSync(new Runnable() {
@@ -99,6 +104,7 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
     // Verify update of field when an item is selected from the dropdown.
     // TODO(#69): need tests (using Espresso?) to confirm that user interaction has the same
     //            effect as calling BasicFieldVariableView.setSelection().
+    @Test
     public void testUpdateFieldFromView() {
         final BasicFieldVariableView view = makeFieldVariableView();
 
@@ -131,6 +137,7 @@ public class BasicFieldVariableViewTest extends MockitoAndroidTestCase {
     }
 
     // Test update of view if variable selection changes.
+    @Test
     public void testUpdateViewFromField() {
         final BasicFieldVariableView view = makeFieldVariableView();
 

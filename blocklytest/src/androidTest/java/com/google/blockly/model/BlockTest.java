@@ -15,12 +15,15 @@
 
 package com.google.blockly.model;
 
+import android.support.test.InstrumentationRegistry;
 import android.test.AndroidTestCase;
 
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
 
+import org.junit.Before;
+import org.junit.Test;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
@@ -38,26 +41,33 @@ import java.util.regex.Pattern;
 
 import static android.test.MoreAsserts.assertNotEqual;
 import static com.google.blockly.utils.MoreAsserts.assertStringNotEmpty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link Block}.
  */
-public class BlockTest extends AndroidTestCase {
+public class BlockTest {
     private XmlPullParserFactory xmlPullParserFactory;
     private BlockFactory mBlockFactory;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
-        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
     }
 
+    @Test
     public void testEmptyBlockHasId() {
         Block block = new Block.Builder("test_block").build();
         assertStringNotEmpty("Block id cannot be empty.", block.getId());
     }
 
+    @Test
     public void testCopyBlockDoesNotCopyId() {
         Block original = new Block.Builder("test_block").build();
         Block copy = original.deepCopy();
@@ -67,6 +77,7 @@ public class BlockTest extends AndroidTestCase {
                 original.getId(), copy.getId());
     }
 
+    @Test
     public void testCopyBlockCopiesChildren() {
         Block original = mBlockFactory.obtainBlock("simple_input_output", "1");
         Block original2 = mBlockFactory.obtainBlock("simple_input_output", "2");
@@ -84,6 +95,7 @@ public class BlockTest extends AndroidTestCase {
                 copy.getOnlyValueInput().getConnection().getShadowBlock());
     }
 
+    @Test
     public void testMessageTokenizer() {
         String testMessage = "%%5 should have %1 %12 6 tokens %999 in the end";
         List<String> tokens = Block.tokenizeMessage(testMessage);
@@ -116,8 +128,9 @@ public class BlockTest extends AndroidTestCase {
         assertListsMatch(expected, tokens);
     }
 
+    @Test
     public void testSerializeBlock() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
         block.setPosition(37, 13);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -145,8 +158,9 @@ public class BlockTest extends AndroidTestCase {
                 + BlockTestStrings.BLOCK_END, os.toString());
     }
 
+    @Test
     public void testSerializeInputsInline() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
         block.setPosition(37, 13);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -171,8 +185,9 @@ public class BlockTest extends AndroidTestCase {
         assertEquals(BlockTestStrings.EMPTY_BLOCK_INLINE_TRUE, os.toString());
     }
 
+    @Test
     public void testSerializeShadowBlock() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
         block.setPosition(37, 13);
         block.setShadow(true);
@@ -184,8 +199,9 @@ public class BlockTest extends AndroidTestCase {
         assertEquals(BlockTestStrings.EMPTY_SHADOW_WITH_POSITION, os.toString());
     }
 
+    @Test
     public void testSerializeValue() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("frankenblock", "364");
         block.setPosition(37, 13);
 
@@ -205,8 +221,9 @@ public class BlockTest extends AndroidTestCase {
         assertEquals(expected, os.toString());
     }
 
+    @Test
     public void testSerializeShadowValue() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("frankenblock", "364");
         block.setPosition(37, 13);
 
@@ -250,8 +267,9 @@ public class BlockTest extends AndroidTestCase {
         assertEquals(expected, os.toString());
     }
 
+    @Test
     public void testSerializeStatement() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("frankenblock", "364");
         block.setPosition(37, 13);
 
@@ -276,6 +294,7 @@ public class BlockTest extends AndroidTestCase {
         assertEquals(expected, os.toString());
     }
 
+    @Test
     public void testGetAllConnections() {
         Block block = mBlockFactory.obtainBlock("frankenblock", null);
         List<Connection> allConnections = block.getAllConnections();
@@ -299,8 +318,9 @@ public class BlockTest extends AndroidTestCase {
         assertEquals(9, allConnections.size());
     }
 
+    @Test
     public void testGetOnlyValueInput() {
-        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         // No inputs.
         assertNull(bf.obtainBlock("statement_no_input", null).getOnlyValueInput());
 
@@ -339,6 +359,7 @@ public class BlockTest extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testGetLastUnconnectedInputConnectionOneInputAtEnd() {
         // Two simple input blocks
         ArrayList<Block> blocks = new ArrayList<>();
@@ -353,6 +374,7 @@ public class BlockTest extends AndroidTestCase {
                 second.getOnlyValueInput().getConnection());
     }
 
+    @Test
     public void testGetLastUnconnectedInputConnectionMultipleInputs() {
         ArrayList<Block> blocks = new ArrayList<>();
         Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
@@ -367,6 +389,7 @@ public class BlockTest extends AndroidTestCase {
         assertNull(first.getLastUnconnectedInputConnection());
     }
 
+    @Test
     public void testGetLastUnconnectedInputConnectionNoInput() {
         ArrayList<Block> blocks = new ArrayList<>();
         Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
@@ -381,6 +404,7 @@ public class BlockTest extends AndroidTestCase {
         assertNull(first.getLastUnconnectedInputConnection());
     }
 
+    @Test
     public void testGetLastUnconnectedInputConnectionShadowAtEnd() {
         // Two simple input blocks
         ArrayList<Block> blocks = new ArrayList<>();
@@ -399,6 +423,7 @@ public class BlockTest extends AndroidTestCase {
                 second.getOnlyValueInput().getConnection());
     }
 
+    @Test
     public void testLastBlockInSequence_blockLacksNext() {
         Block block = mBlockFactory.obtainBlock("statement_input_no_next", "block");
 
@@ -409,6 +434,7 @@ public class BlockTest extends AndroidTestCase {
         assertSame(block, block.getLastBlockInSequence());
     }
 
+    @Test
     public void testLastBlockInSequence_noBlockConnected() {
         Block block = mBlockFactory.obtainBlock("statement_value_input", "block");
 
@@ -419,6 +445,7 @@ public class BlockTest extends AndroidTestCase {
         assertSame(block, block.getLastBlockInSequence());
     }
 
+    @Test
     public void testLastBlockInSequence_lastBlockUnconnected() {
         Block first = mBlockFactory.obtainBlock("statement_no_input", "first block");
         Block second = mBlockFactory.obtainBlock("statement_no_input", "second block");
@@ -434,6 +461,7 @@ public class BlockTest extends AndroidTestCase {
         assertSame(third, first.getLastBlockInSequence());
     }
 
+    @Test
     public void testLastBlockInSequence_lastBlockNoNext() {
         Block first = mBlockFactory.obtainBlock("statement_no_input", "first block");
         Block second = mBlockFactory.obtainBlock("statement_no_input", "second block");
@@ -449,6 +477,7 @@ public class BlockTest extends AndroidTestCase {
         assertSame(third, first.getLastBlockInSequence());
     }
 
+    @Test
     public void testLastBlockInSequence_lastBlockShadow() {
         Block first = mBlockFactory.obtainBlock("statement_no_input", "first block");
         Block second = mBlockFactory.obtainBlock("statement_no_input", "second block");
@@ -461,10 +490,12 @@ public class BlockTest extends AndroidTestCase {
         assertSame(second, first.getLastBlockInSequence());
     }
 
+    @Test
     public void testBlockIdSerializedDeserialized() {
         Block block = mBlockFactory.obtainBlock("statement_no_input", "123");
     }
 
+    @Test
     public void testCollapsed() {
         Block block = new Block.Builder("statement_no_input").build();
         assertFalse("By default, blocks are not collapsed.", block.isCollapsed());
@@ -486,6 +517,7 @@ public class BlockTest extends AndroidTestCase {
         assertTrue("Collapsed state set from XML.", blockFromXml.isCollapsed());
     }
 
+    @Test
     public void testDeletable() {
         Block block = new Block.Builder("statement_no_input").build();
         assertTrue("By default, blocks are deletable.", block.isDeletable());
@@ -506,6 +538,7 @@ public class BlockTest extends AndroidTestCase {
         assertFalse("Deletable state set from XML.", blockFromXml.isDeletable());
     }
 
+    @Test
     public void testDisabled() {
         Block block = new Block.Builder("statement_no_input").build();
         assertFalse("By default, blocks are not disabled.", block.isDisabled());
@@ -527,6 +560,7 @@ public class BlockTest extends AndroidTestCase {
         assertTrue("Disabled state set from XML.", blockFromXml.isDisabled());
     }
 
+    @Test
     public void testEditable() {
         Block block = new Block.Builder("statement_no_input").build();
         assertTrue("By default, blocks are editable.", block.isEditable());
@@ -547,6 +581,7 @@ public class BlockTest extends AndroidTestCase {
         assertFalse("Editable state set from XML.", blockFromXml.isEditable());
     }
 
+    @Test
     public void testMovable() {
         Block block = new Block.Builder("statement_no_input").build();
         assertTrue("By default, blocks are editable.", block.isMovable());
@@ -571,6 +606,7 @@ public class BlockTest extends AndroidTestCase {
      * XML characters < , > and & need escaping when serialized.  Quote, apostrophe, and greater
      * than do not need escaping in a XML text node.
      */
+    @Test
     public void testEscapeFieldData() {
         Block block = mBlockFactory.obtainBlock("text", null);
         block.getFieldByName("TEXT").setFromString(

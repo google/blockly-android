@@ -16,36 +16,35 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
-import android.support.v4.util.SimpleArrayMap;
+import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldDropdown;
 
-import org.mockito.Mock;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link BasicFieldDropdownView}.
  */
-public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
+public class BasicFieldDropdownViewTest {
 
-    @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
 
     // Cannot mock final classes.
     private FieldDropdown mFieldDropdown;
     private FieldDropdown.Options mOptions;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-
+        mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mOptions = new FieldDropdown.Options(Arrays.asList(
                 new FieldDropdown.Option("Value1", "Label1"),
                 new FieldDropdown.Option("Value2", "Label2"),
@@ -57,6 +56,7 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify object instantiation.
+    @Test
     public void testInstantiation() {
         mFieldDropdown.setSelectedIndex(2);
         final BasicFieldDropdownView view = makeFieldDropdownView();
@@ -69,6 +69,7 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
     // Verify update of field when an item is selected from the dropdown.
     // TODO(#69): Make tests (using Espresso?) to confirm that user interaction has the same
     //            effect as calling FieldDropdown.setSelection().
+    @Test
     public void testUpdateFieldFromView() {
         final BasicFieldDropdownView view = makeFieldDropdownView();
 
@@ -86,6 +87,7 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
     }
 
     // Test update of view if field selection changes.
+    @Test
     public void testUpdateViewFromField() {
         final BasicFieldDropdownView view = makeFieldDropdownView();
 
@@ -104,7 +106,7 @@ public class BasicFieldDropdownViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     protected BasicFieldDropdownView makeFieldDropdownView() {
-        BasicFieldDropdownView dropdown = new BasicFieldDropdownView(getContext());
+        BasicFieldDropdownView dropdown = new BasicFieldDropdownView(InstrumentationRegistry.getContext());
         dropdown.setField(mFieldDropdown);
         return dropdown;
     }

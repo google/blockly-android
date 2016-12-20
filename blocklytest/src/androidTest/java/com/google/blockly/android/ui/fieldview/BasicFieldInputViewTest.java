@@ -16,36 +16,41 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
+import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldInput;
 
-import org.mockito.Mock;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link BasicFieldInputView}.
  */
-public class BasicFieldInputViewTest extends MockitoAndroidTestCase {
+public class BasicFieldInputViewTest {
 
     private static final String INIT_TEXT_VALUE = "someTextToInitializeInput";
     private static final String SET_TEXT_VALUE = "differentTextToSet";
 
-    @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
 
     // Cannot mock final classes.
     private FieldInput mFieldInput;
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
+    @Before
+     public void setUp() throws Exception {
+        mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mFieldInput = new FieldInput("FieldInput", INIT_TEXT_VALUE);
         assertNotNull(mFieldInput);
     }
 
     // Verify object instantiation.
+    @Test
     public void testInstantiation() {
         final BasicFieldInputView view = makeFieldInputView();
         assertSame(mFieldInput, view.getField());
@@ -53,6 +58,7 @@ public class BasicFieldInputViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify setting text in the view propagates to the field.
+    @Test
     public void testViewUpdatesField() {
         final BasicFieldInputView view = makeFieldInputView();
         view.setText(SET_TEXT_VALUE);
@@ -60,6 +66,7 @@ public class BasicFieldInputViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify setting text in the field propagates to the view.
+    @Test
     public void testFieldUpdatesView() {
         final BasicFieldInputView view = makeFieldInputView();
 
@@ -69,7 +76,7 @@ public class BasicFieldInputViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     private BasicFieldInputView makeFieldInputView() {
-        BasicFieldInputView view = new BasicFieldInputView(getContext());
+        BasicFieldInputView view = new BasicFieldInputView(InstrumentationRegistry.getContext());
         view.onFinishInflate(); // This must be called to register the text change watcher.
         view.setField(mFieldInput);
         return view;

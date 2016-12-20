@@ -1,6 +1,6 @@
 package com.google.blockly.model;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
+import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.control.BlocklyEvent;
 import com.google.blockly.android.test.R;
@@ -8,13 +8,18 @@ import com.google.blockly.utils.BlocklyXmlHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mockito.Mock;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 /**
  * Unit tests for {@link BlocklyEvent} classes.
  */
-public class BlocklyEventTest extends MockitoAndroidTestCase {
+public class BlocklyEventTest {
     private static final String BLOCK_TYPE = "controls_whileUntil";
     private static final String BLOCK_ID = "block";
     private static final String FIELD_NAME = "MODE";
@@ -25,17 +30,15 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
     private static final WorkspacePoint NEW_POSITION =
             new WorkspacePoint(NEW_POSITION_X, NEW_POSITION_Y);
 
-    @Mock Workspace mMockWorkspace;
+    private Workspace mMockWorkspace;
+    private BlockFactory mBlockFactory;
+    private Block mBlock;
+    private Field mField;
 
-    BlockFactory mBlockFactory;
-    Block mBlock;
-    Field mField;
-
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-
-        mBlockFactory = new BlockFactory(getContext(),
+        mMockWorkspace = mock(Workspace.class);
+        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
         mBlock = mBlockFactory.obtainBlock(BLOCK_TYPE, BLOCK_ID);
         mField = mBlock.getFieldByName(FIELD_NAME);
@@ -45,6 +48,7 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
         Mockito.when(mMockWorkspace.getId()).thenReturn(WORKSPACE_ID);
     }
 
+    @Test
     public void testChangeEvent_collapsedState() throws JSONException {
         boolean newValue = mBlock.isCollapsed();
         boolean oldValue = !newValue;
@@ -55,6 +59,7 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
                         newValue ? "true" : "false");
     }
 
+    @Test
     public void testChangeEvent_commentText() throws JSONException {
         String oldValue = "old comment";
         String newValue = "new comment";
@@ -63,6 +68,7 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
         testChangeEvent(BlocklyEvent.ELEMENT_COMMENT, event, oldValue, newValue);
     }
 
+    @Test
     public void testChangeEvent_disabledState() throws JSONException {
         boolean newValue = mBlock.isDisabled();
         boolean oldValue = !newValue;
@@ -73,6 +79,7 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
                 newValue ? "true" : "false");
     }
 
+    @Test
     public void testChangeEvent_fieldValue() throws JSONException {
         String oldValue = "UNTIL";
         String newValue = "WHILE";
@@ -82,6 +89,7 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
         testChangeEvent(BlocklyEvent.ELEMENT_FIELD, event, oldValue, newValue);
     }
 
+    @Test
     public void testChangeEvent_inlineState() throws JSONException {
         boolean newValue = mBlock.getInputsInline();
         boolean oldValue = !newValue;
@@ -92,6 +100,7 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
                 newValue ? "true" : "false");
     }
 
+    @Test
     public void testChangeEvent_mutation() throws JSONException {
         String oldValue = "old mutation";
         String newValue = "new mutation";
@@ -131,6 +140,7 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testCreateEvent() throws JSONException {
         BlocklyEvent.CreateEvent event = new BlocklyEvent.CreateEvent(mMockWorkspace, mBlock);
 

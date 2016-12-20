@@ -16,54 +16,49 @@
 package com.google.blockly.android.ui;
 
 import android.support.annotation.NonNull;
+import android.support.test.InstrumentationRegistry;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.view.MotionEvent;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 
-import org.mockito.Mock;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
+
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 
 /**
  * Tests for {@link AbstractBlockView}.
  */
 @SmallTest
-public class AbstractBlockViewTest extends MockitoAndroidTestCase {
+public class AbstractBlockViewTest {
 
-    private BlockFactory mBlockFactory;
     private Block mEmptyBlock;
 
-    @Mock
     private ConnectionManager mMockConnectionManager;
-
-    @Mock
-    private WorkspaceView mMockWorkspaceView;
-
-
-    @Mock
     private WorkspaceHelper mMockHelper;
-
-    @Mock
     private BlockViewFactory mMockViewFactory;
 
-    @Mock
-    private BlockGroup mMockBlockGroup;
+    @Before
+     public void setUp() throws Exception {
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+        mMockConnectionManager = mock(ConnectionManager.class);
+        mMockHelper = mock(WorkspaceHelper.class);
+        mMockViewFactory = mock(BlockViewFactory.class);
 
-        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         mEmptyBlock = mBlockFactory.obtainBlock("empty_block", "fake_id");
     }
 
     // Verify correct object state after construction.
+    @Test
     public void testConstructor() {
         final BlockView blockView = makeBlockView(mEmptyBlock);
 
@@ -74,7 +69,7 @@ public class AbstractBlockViewTest extends MockitoAndroidTestCase {
     // Make a BlockView for the given Block and default mock objects otherwise.
     @NonNull
     private AbstractBlockView makeBlockView(Block block) {
-        return new AbstractBlockView<InputView>(getContext(), mMockHelper, mMockViewFactory, block,
+        return new AbstractBlockView<InputView>(InstrumentationRegistry.getContext(), mMockHelper, mMockViewFactory, block,
                 new ArrayList<InputView>(), mMockConnectionManager, null) {
 
             @Override

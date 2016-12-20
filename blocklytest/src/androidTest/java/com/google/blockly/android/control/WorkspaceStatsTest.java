@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.control;
 
+import android.support.test.InstrumentationRegistry;
 import android.test.InstrumentationTestCase;
 
 import com.google.blockly.model.Block;
@@ -24,24 +25,30 @@ import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link WorkspaceStats}.
  */
-public class WorkspaceStatsTest extends InstrumentationTestCase {
+public class WorkspaceStatsTest {
     private WorkspaceStats mStats;
     private Input mFieldInput;
     private Input mVariableFieldsInput;
     private ConnectionManager mConnectionManager;
     private ProcedureManager mMockProcedureManager;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
         System.setProperty(
                 "dexmaker.dexcache",
-                getInstrumentation().getTargetContext().getCacheDir().getPath());
+                InstrumentationRegistry.getTargetContext().getCacheDir().getPath());
         mMockProcedureManager = mock(ProcedureManager.class);
         mFieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
         Field field = new FieldInput("name", "nameid");
@@ -61,6 +68,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
                 new NameManager.VariableNameManager(), mMockProcedureManager, mConnectionManager);
     }
 
+    @Test
     public void testCollectProcedureStats() {
         Block.Builder blockBuilder = new Block.Builder(
                 ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test");
@@ -79,6 +87,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         verify(mMockProcedureManager).addReference(procedureReference);
     }
 
+    @Test
     public void testCollectVariableStats() {
         Block.Builder blockBuilder = new Block.Builder("test");
 
@@ -95,6 +104,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
                 mStats.getVariableReferences().get("variable name").get(0));
     }
 
+    @Test
     public void testCollectConnectionStatsRecursive() {
         // Make sure we're only recursing on next and input connections, not output or previous.
         Block.Builder blockBuilder = new Block.Builder("first block");
@@ -132,6 +142,7 @@ public class WorkspaceStatsTest extends InstrumentationTestCase {
         assertEquals(1, mConnectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size());
     }
 
+    @Test
     public void testRemoveConnection() {
         // TODO(fenichel): Implement in next CL.
     }

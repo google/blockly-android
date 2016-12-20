@@ -15,27 +15,33 @@
 
 package com.google.blockly.android.control;
 
-import android.test.AndroidTestCase;
-
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link ConnectionManager}
  */
-public class ConnectionManagerTest extends AndroidTestCase {
+public class ConnectionManagerTest {
     private ConnectionManager manager;
 
-    @Override
+    @Before
     public void setUp() {
         manager = new ConnectionManager();
     }
 
+    @Test
     public void testAdd() {
         Connection conn = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
         manager.addConnection(conn);
@@ -54,6 +60,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).contains(conn));
     }
 
+    @Test
     public void testMoveTo() {
         int offsetX = 10;
         int offsetY = -10;
@@ -81,6 +88,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertEquals(moveY + offsetY, conn.getPosition().y);
     }
 
+    @Test
     public void testIsConnectionAllowed() {
         // Two connections of opposite types near each other
         Connection one = createConnection(5 /* x */, 10 /* y */, Connection.CONNECTION_TYPE_INPUT,
@@ -117,6 +125,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertTrue(manager.isConnectionAllowed(five, seven, 1000.0, true));
     }
 
+    @Test
     public void testIsConnectionAllowedNext() {
         Connection one = createConnection(0, 0, Connection.CONNECTION_TYPE_NEXT, false);
         one.setInput(new Input.InputValue("test input", "" /* align */, null /* checks */));
@@ -143,6 +152,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
     }
 
     // Test YSortedList
+    @Test
     public void testFindPosition() {
         ConnectionManager.YSortedList list =
                 manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
@@ -158,6 +168,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
     }
 
     // Test YSortedList
+    @Test
     public void testFind() {
         ConnectionManager.YSortedList previous = manager.getConnections(
                 Connection.CONNECTION_TYPE_PREVIOUS);
@@ -176,6 +187,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertEquals(-1, previous.findConnection(conn));
     }
 
+    @Test
     public void testOrdered() {
         ConnectionManager.YSortedList list = manager.getConnections(
                 Connection.CONNECTION_TYPE_PREVIOUS);
@@ -212,6 +224,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
     }
 
     // Test YSortedList
+    @Test
     public void testSearchForClosest() {
         ConnectionManager.YSortedList list =
                 manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
@@ -244,6 +257,7 @@ public class ConnectionManagerTest extends AndroidTestCase {
         assertEquals(5, result.getPosition().y);
     }
 
+    @Test
     public void testGetNeighbours() {
 
         ConnectionManager.YSortedList list =
