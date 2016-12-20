@@ -3,6 +3,7 @@ package com.google.blockly.model;
 import com.google.blockly.android.MockitoAndroidTestCase;
 
 import com.google.blockly.android.control.BlocklyEvent;
+import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import org.json.JSONException;
@@ -35,7 +36,7 @@ public class BlocklyEventTest extends MockitoAndroidTestCase {
         super.setUp();
 
         mBlockFactory = new BlockFactory(getContext(),
-                new int[]{com.google.blockly.android.R.raw.test_blocks});
+                new int[]{R.raw.test_blocks});
         mBlock = mBlockFactory.obtainBlock(BLOCK_TYPE, BLOCK_ID);
         mField = mBlock.getFieldByName(FIELD_NAME);
         mBlock.setPosition(NEW_POSITION_X, NEW_POSITION_Y);

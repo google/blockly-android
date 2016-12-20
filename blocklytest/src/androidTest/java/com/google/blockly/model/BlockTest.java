@@ -17,7 +17,7 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
-import com.google.blockly.android.R;
+import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
 

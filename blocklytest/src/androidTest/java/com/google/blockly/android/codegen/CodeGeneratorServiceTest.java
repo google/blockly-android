@@ -3,6 +3,7 @@ package com.google.blockly.android.codegen;
 import android.os.Build;
 import android.test.AndroidTestCase;
 
+import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
@@ -22,7 +23,7 @@ public class CodeGeneratorServiceTest extends AndroidTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         mBlockFactory = new BlockFactory(getContext(),
-                new int[]{com.google.blockly.android.R.raw.test_blocks});
+                new int[]{R.raw.test_blocks});
     }
 
     /**

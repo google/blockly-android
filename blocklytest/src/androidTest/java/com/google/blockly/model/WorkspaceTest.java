@@ -17,8 +17,8 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.test.R;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,7 +52,6 @@ public class WorkspaceTest {
     @Before
     public void setUp() throws Exception {
         Context context = InstrumentationRegistry.getContext();
-        // TODO(#84): Move test_blocks.json to the test app's resources.
         BlocklyController.Builder builder = new BlocklyController.Builder(context);
         builder.addBlockDefinitions(R.raw.test_blocks);
         BlocklyController controller = builder.build();
