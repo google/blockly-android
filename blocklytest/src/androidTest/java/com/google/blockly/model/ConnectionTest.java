@@ -147,12 +147,15 @@ public class ConnectionTest {
     @Test
     public void testCheckConnection_failOnInputCannotConnectToSelf() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Connections cannot connect to themselves!");
         input.checkConnection(input);
     }
 
     @Test
     public void testCheckConnection_failsOnInputCannotConnectToInput() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Input cannot connect to input!");
+
         Connection input2 = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         input2.setBlock(blockBuilder.build());
 
@@ -162,18 +165,22 @@ public class ConnectionTest {
     @Test
     public void testCheckConnection_failOnInputCannotConnectionToPrevious() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Input cannot connect to previous!");
         input.checkConnection(previous);
     }
 
     @Test
     public void testCheckConnection_failOnInputCannotConnectToNext() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Input cannot connect to next!");
         input.checkConnection(next);
     }
 
     @Test
     public void testCheckConnection_failOnOutputCannotConnectToBlock() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Output cannot connect to output!");
+
         Connection output2 = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
         output2.setBlock(blockBuilder.build());
         output.checkConnection(output2);
@@ -182,18 +189,21 @@ public class ConnectionTest {
     @Test
     public void testCheckConnection_failOnOutputCannotConnectToPrevious() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Output cannot connect to previous!");
         output.checkConnection(previous);
     }
 
     @Test
     public void testCheckConnection_failOnOutputCannotConnectToNext() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Output cannot connect to next!");
         output.checkConnection(next);
     }
 
     @Test
     public void testCheckConnection_failOnPreviousCannotConnectToPrevious() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Previous cannot connect to previous!");
 
         Connection previous2 = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
         previous2.setBlock(blockBuilder.build());
@@ -203,18 +213,22 @@ public class ConnectionTest {
     @Test
     public void testCheckConnection_failOnPreviousCannotConnectToInput() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Previous cannot connect to input!");
         previous.checkConnection(input);
     }
 
     @Test
     public void testCheckConnection_failOnPreviousCannotConnectToOutput() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Previous cannot connect to output!");
         previous.checkConnection(output);
     }
 
     @Test
     public void testCheckConnection_failOnNextCannotConnectToNext() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Next cannot connect to next!");
+
         Connection next2 = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
         next2.setBlock(blockBuilder.build());
         next.checkConnection(next2);
@@ -223,12 +237,14 @@ public class ConnectionTest {
     @Test
     public void testCheckConnection_failOnNextCannotConnectToInput() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Next cannot connect to input!");
         next.checkConnection(input);
     }
 
     @Test
     public void testCheckConnection_failOnNextCannotConnectToOutput() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Next cannot connect to output");
         next.checkConnection(output);
     }
 
@@ -261,24 +277,28 @@ public class ConnectionTest {
     @Test
     public void testCheckConnection_failOnShadowInputCannotConnectToSelf() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Connections cannot connect to themselves!");
         shadowInput.checkConnection(shadowInput);
     }
 
     @Test
     public void testCheckConnection_failOnInputCannotConnectToShadowInput() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Input cannot connect to input!");
         input.checkConnection(shadowInput);
     }
 
     @Test
     public void testCheckConnection_failOnInputCannotConnectToShadowPrevious() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Input cannot connect to previous!");
         input.checkConnection(shadowPrevious);
     }
 
     @Test
     public void testCheckConnection_failOnShadowInputCannotConnectToShadowInput() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Input cannot connect to input!");
 
         Connection shadowInput2 = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         blockBuilder.setShadow(true);
@@ -290,12 +310,14 @@ public class ConnectionTest {
     @Test
     public void testCheckConnection_failOnShadowInputCannotConnectToShadowNext() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Input cannot connect to next!");
         shadowInput.checkConnection(shadowNext);
     }
 
     @Test
     public void testCheckConnection_failOnShadowInputCannotConnectToShadowPrevious() {
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Input cannot connect to previous!");
         shadowInput.checkConnection(shadowPrevious);
     }
 }

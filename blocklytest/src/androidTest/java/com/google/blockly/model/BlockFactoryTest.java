@@ -88,7 +88,8 @@ public class BlockFactoryTest {
 
     @Test
     public void testBlocksRequireType() throws IOException, XmlPullParserException {
-        parseBlockFromXmlFailure(BlockTestStrings.NO_BLOCK_TYPE);
+        parseBlockFromXmlFailure(BlockTestStrings.NO_BLOCK_TYPE,
+            "Block without a type must fail to load.");
     }
 
     @Test
@@ -117,19 +118,22 @@ public class BlockFactoryTest {
     @Test
     public void testBlockWithNoOutputInteriorFails() throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "2",
-            BlockTestStrings.VALUE_NO_OUTPUT));
+            BlockTestStrings.VALUE_NO_OUTPUT),
+            "A <value> child block without an output must fail to load.");
     }
 
     @Test
     public void testBlockWithBadlyNamedInteriorFails() throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "4",
-            BlockTestStrings.VALUE_BAD_NAME));
+            BlockTestStrings.VALUE_BAD_NAME),
+            "A block without a recognized type id must fail to load.");
     }
 
     @Test
     public void testBlockMultipleValuesForSameInputFails() throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "5",
-            BlockTestStrings.VALUE_REPEATED));
+            BlockTestStrings.VALUE_REPEATED),
+            "An input <value> with multiple blocks must fail to load.");
     }
 
     @Test
@@ -172,13 +176,15 @@ public class BlockFactoryTest {
     @Test
     public void testBlockWithNoConnectionOnChildBlockFails() throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "13",
-            BlockTestStrings.STATEMENT_BAD_CHILD));
+            BlockTestStrings.STATEMENT_BAD_CHILD),
+            "A statement <value> child without a previous connection must fail to load.");
     }
 
     @Test
     public void testCreateBlockWithBadStatmentNameFails() throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "14",
-            BlockTestStrings.STATEMENT_BAD_NAME));
+            BlockTestStrings.STATEMENT_BAD_NAME),
+            "A block without a recognized type id must fail to load.");
     }
 
     @Test
@@ -285,13 +291,15 @@ public class BlockFactoryTest {
     @Test
     public void testLoadFromXmlShadowBlockWithShadowChildFails() throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "6",
-            BlockTestStrings.VALUE_NESTED_SHADOW_BLOCK));
+            BlockTestStrings.VALUE_NESTED_SHADOW_BLOCK),
+            "A <shadow> containing a normal <block> must fail to load.");
     }
 
     @Test
     public void testLoadFromXmlBlockWithVariableCannotBeShadowBlock() throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "7",
-                BlockTestStrings.VALUE_SHADOW_VARIABLE));
+                BlockTestStrings.VALUE_SHADOW_VARIABLE),
+                "A <shadow> containing a variable field (at any depth) must fail to load.");
     }
 
     @Test
@@ -339,6 +347,7 @@ public class BlockFactoryTest {
         assertNotNull("Failed to create the frankenblock.", frankenblock);
 
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Cannot create two bblocks with the same id");
         mBlockFactory.obtainBlock("frankenblock", "123");
     }
 
@@ -348,6 +357,8 @@ public class BlockFactoryTest {
         assertNotNull("Failed to create the frankenblock.", frankenblock);
 
         thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage("Expected error when requesting a block with " +
+            "matching UUID but different prototype");
         mBlockFactory.obtainBlock("empty_block", "123");
     }
 
@@ -367,12 +378,13 @@ public class BlockFactoryTest {
         return loaded;
     }
 
-    private void parseBlockFromXmlFailure(String testString)
+    private void parseBlockFromXmlFailure(String testString, String messageIfDoesNotFail)
             throws IOException, XmlPullParserException {
 
         XmlPullParser parser = getXmlPullParser(testString, "block");
 
         thrown.expect(BlocklyParserException.class);
+        thrown.reportMissingExceptionWithMessage(messageIfDoesNotFail);
         mBlockFactory.fromXml(parser);
     }
 
