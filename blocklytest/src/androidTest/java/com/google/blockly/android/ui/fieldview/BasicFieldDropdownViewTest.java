@@ -18,6 +18,7 @@ package com.google.blockly.android.ui.fieldview;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldDropdown;
 
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link BasicFieldDropdownView}.
  */
-public class BasicFieldDropdownViewTest {
+public class BasicFieldDropdownViewTest extends BlocklyTestCase {
 
     private WorkspaceHelper mMockWorkspaceHelper;
 
@@ -44,6 +45,7 @@ public class BasicFieldDropdownViewTest {
 
     @Before
     public void setUp() throws Exception {
+        configureForUIThread();
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mOptions = new FieldDropdown.Options(Arrays.asList(
                 new FieldDropdown.Option("Value1", "Label1"),

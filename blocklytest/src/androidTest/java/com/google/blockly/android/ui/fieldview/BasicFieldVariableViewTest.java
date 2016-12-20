@@ -22,6 +22,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldVariable;
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link BasicFieldVariableView}.
  */
-public class BasicFieldVariableViewTest {
+public class BasicFieldVariableViewTest extends BlocklyTestCase {
     /**
      * Default timeout of 1 second, which should be plenty for all FieldVariableView actions.
      * Anything longer is an error.  However, to step through this code with a debugger, use
@@ -64,7 +65,8 @@ public class BasicFieldVariableViewTest {
     private Throwable mExceptionInThread = null;
 
     @Before
-     public void setUp() throws Exception {
+    public void setUp() throws Exception {
+        configureForUIThread();
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mThread = new HandlerThread("DraggerTest");
         mThread.start();
