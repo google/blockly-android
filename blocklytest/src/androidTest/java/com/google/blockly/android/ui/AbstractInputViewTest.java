@@ -16,43 +16,53 @@
 package com.google.blockly.android.ui;
 
 import android.support.annotation.NonNull;
+import android.support.test.InstrumentationRegistry;
 import android.test.suitebuilder.annotation.SmallTest;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
 import com.google.blockly.android.R;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Input;
 
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+
 /**
  * Tests for {@link AbstractInputView}.
  */
 @SmallTest
-public class AbstractInputViewTest extends MockitoAndroidTestCase {
+public class AbstractInputViewTest {
 
     private Input mDummyInput;
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Mock
     private WorkspaceHelper mMockWorkspaceHelper;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-
         // Use the BlockFactory to make sure we have real inputs.
-        BlockFactory factory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory factory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         Block block = factory.obtainBlock("test_block_one_input_each_type", "fake_id");
         mDummyInput = block.getInputs().get(0);
         assertEquals(Input.TYPE_DUMMY, mDummyInput.getType());
     }
 
     // Verify correct object state after construction.
+    @Test
     public void testConstructor() {
         final AbstractInputView inputView = makeDefaultInputView();
 
@@ -62,6 +72,7 @@ public class AbstractInputViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify child view can be set.
+    @Test
     public void testSetChildView() {
         final AbstractInputView inputView = makeDefaultInputView();
         assertEquals(0, inputView.getChildCount());
@@ -73,6 +84,7 @@ public class AbstractInputViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify child view can be set, unset, then set again.
+    @Test
     public void testUnsetChildView() {
         final AbstractInputView inputView = makeDefaultInputView();
 
@@ -88,25 +100,21 @@ public class AbstractInputViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify exception is thrown when calling setChildView repeatedly without disconnectBlockGroup.
+    @Test
     public void testSetChildViewMustUnset() {
         final AbstractInputView inputView = makeDefaultInputView();
 
         final BlockGroup mockView = Mockito.mock(BlockGroup.class);
         inputView.setConnectedBlockGroup(mockView);
 
-        try {
-            inputView.setConnectedBlockGroup(mockView);
-        } catch (IllegalStateException expected) {
-            return;
-        }
-
-        fail("Expected IllegalStateException not thrown.");
+        thrown.expect(IllegalStateException.class);
+        inputView.setConnectedBlockGroup(mockView);
     }
 
     @NonNull
     private AbstractInputView makeDefaultInputView() {
         return new AbstractInputView(
-                getContext(), mMockWorkspaceHelper, mDummyInput, new ArrayList<FieldView>()) {
+                InstrumentationRegistry.getContext(), mMockWorkspaceHelper, mDummyInput, new ArrayList<FieldView>()) {
 
             @Override
             protected void onLayout(boolean changed, int l, int t, int r, int b) {
