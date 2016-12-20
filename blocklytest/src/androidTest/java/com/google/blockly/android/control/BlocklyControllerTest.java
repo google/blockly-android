@@ -15,7 +15,7 @@
 
 package com.google.blockly.android.control;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
 import com.google.blockly.android.testui.TestableBlockGroup;
 import com.google.blockly.android.testui.TestableBlockViewFactory;
@@ -32,13 +32,24 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Workspace;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link BlocklyController}.
  */
-public class BlocklyControllerTest extends MockitoAndroidTestCase {
+public class BlocklyControllerTest extends BlocklyTestCase {
     // Controller under test.
     BlocklyController mController;
     BlockFactory mBlockFactory;
@@ -63,10 +74,10 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
 
     MockVariableCallback mVariableCallback = new MockVariableCallback();
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-
+        configureForThemes();
+        configureForUIThread();
         mHelper = new WorkspaceHelper(getContext());
         mViewFactory = new TestableBlockViewFactory(getContext(), mHelper);
         mController = new BlocklyController.Builder(getContext())
@@ -83,6 +94,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mWorkspaceView = new WorkspaceView(getContext());
     }
 
+    @Test
     public void testAddRootBlock() {
         assertTrue(mEventsFired.isEmpty());
 
@@ -95,6 +107,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertEquals(mEventsFired.get(0).getBlockId(), block.getId());
     }
 
+    @Test
     public void testTrashRootBlock() {
         Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
         mController.addRootBlock(block);
@@ -108,6 +121,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertEquals(block.getId(), mEventsFired.get(0).getBlockId());
     }
 
+    @Test
     public void testTrashRootBlockNotDeletable() {
         Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
         block.setDeletable(false);
@@ -120,6 +134,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertEquals(0, mEventsFired.size());
     }
 
+    @Test
     public void testTrashRootBlockIgnoringDeletable() {
         Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
         block.setDeletable(false);
@@ -134,6 +149,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertEquals(block.getId(), mEventsFired.get(0).getBlockId());
     }
 
+    @Test
     public void testAddBlockFromTrash() {
         Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
         mController.addRootBlock(block);
@@ -148,10 +164,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertEquals(mEventsFired.get(0).getBlockId(), block.getId());
     }
 
+    @Test
     public void testConnect_outputToInput_headless() {
         testConnect_outputToInput(false);
     }
 
+    @Test
     public void testConnect_outputToInput_withViews() {
         testConnect_outputToInput(true);
     }
@@ -219,10 +237,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_outputToInputBumpNoInput_headless() {
         testConnect_outputToInputBumpNoInput(false);
     }
 
+    @Test
     public void testConnect_outputToInputBumpNoInput_withViews() {
         testConnect_outputToInputBumpNoInput(true);
     }
@@ -277,10 +297,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_outputToInputBumpMultipleInputs_headless() {
         testConnect_outputToInputBumpMultipleInputs(false);
     }
 
+    @Test
     public void testConnect_outputToInputBumpMultipleInputs_withViews() {
         testConnect_outputToInputBumpMultipleInputs(true);
     }
@@ -331,10 +353,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_outputToInputShadowSplice_headless() {
         testConnect_outputToInputShadowSplice(false);
     }
 
+    @Test
     public void testConnect_outputToInputShadowSplice_withViews() {
         testConnect_outputToInputShadowSplice(true);
     }
@@ -389,10 +413,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_outputToInputSplice_headless() {
         testConnect_outputToInputSplice(false);
     }
 
+    @Test
     public void testConnect_outputToInputSplice_withViews() {
         testConnect_outputToInputSplice(true);
     }
@@ -437,10 +463,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_previousToNext_headless() {
         testConnect_previousToNext(false);
     }
 
+    @Test
     public void testConnect_previousToNext_withViews() {
         testConnect_previousToNext(true);
     }
@@ -506,10 +534,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_previousToNextSplice_headless() {
         testConnect_previousToNextSplice(false);
     }
 
+    @Test
     public void testConnect_previousToNextSplice_withViews() {
         testConnect_previousToNextSplice(true);
     }
@@ -558,10 +588,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_previousToNextBumpRemainder_headless() {
         testConnect_previousToNextBumpRemainder(false);
     }
 
+    @Test
     public void testConnect_previousToNextBumpRemainder_withViews() {
         testConnect_previousToNextBumpRemainder(true);
     }
@@ -630,10 +662,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
     }
 
 
+    @Test
     public void testConnect_previousToNextShadowSplice_headless() {
         testConnect_previousToNextShadowSplice(false);
     }
 
+    @Test
     public void testConnect_previousToNextShadowSplice_withViews() {
         testConnect_previousToNextShadowSplice(true);
     }
@@ -704,10 +738,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_previousToStatement_headless() {
         testConnect_previousToStatement(false);
     }
 
+    @Test
     public void testConnect_previousToStatement_withViews() {
         testConnect_previousToStatement(true);
     }
@@ -766,10 +802,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_previousToStatementSpliceRemainder_headless() {
         testConnect_previousToStatementSpliceRemainder(false);
     }
 
+    @Test
     public void testConnect_previousToStatementSpliceRemainder_withViews() {
         testConnect_previousToStatementSpliceRemainder(true);
     }
@@ -824,10 +862,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_previousToStatemenBumpRemainder_headless() {
         testConnect_previousToStatementBumpRemainder(false);
     }
 
+    @Test
     public void testConnect_previousToStatemenBumpRemainder_withViews() {
         testConnect_previousToStatementBumpRemainder(true);
     }
@@ -880,10 +920,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testConnect_previousToStatementShadowSplice_headless() {
         testConnect_previousToStatementShadowSplice(false);
     }
 
+    @Test
     public void testConnect_previousToStatementShadowSplice_withViews() {
         testConnect_previousToStatementShadowSplice(true);
     }
@@ -944,10 +986,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         mController.extractBlockAsRoot(tail);
     }
 
+    @Test
     public void testExtractAsRootBlock_alreadyRoot_headless() {
         testExtractAsRootBlock_alreadyRoot(false);
     }
 
+    @Test
     public void testExtractAsRootBlock_alreadyRoot_withViews() {
         testExtractAsRootBlock_alreadyRoot(true);
     }
@@ -978,10 +1022,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testExtractBlockAsRoot_fromInput_headless() {
         testExtractBlockAsRoot_fromInput(false);
     }
 
+    @Test
     public void testExtractBlockAsRoot_fromInput_withViews() {
         testExtractBlockAsRoot_fromInput(true);
     }
@@ -1021,10 +1067,12 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testExtractBlockAsRoot_fromNext_headless() {
         testExtractBlockAsRoot_fromNext(false);
     }
 
+    @Test
     public void testExtractBlockAsRoot_fromNext_withViews() {
         testExtractBlockAsRoot_fromNext(true);
     }
@@ -1070,6 +1118,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         }
     }
 
+    @Test
     public void testVariableCallback_onCreate() {
         NameManager.VariableNameManager nameManager =
                 (NameManager.VariableNameManager) mController.getWorkspace()
@@ -1097,6 +1146,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertTrue(nameManager.contains("var2"));
     }
 
+    @Test
     public void testVariableCallback_onRename() {
         NameManager.VariableNameManager nameManager =
                 (NameManager.VariableNameManager) mController.getWorkspace()
@@ -1129,6 +1179,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertEquals(2, nameManager.size());
     }
 
+    @Test
     public void testVariableCallback_onRemove() {
         NameManager.VariableNameManager nameManager =
                 (NameManager.VariableNameManager) mController.getWorkspace()
@@ -1158,6 +1209,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertEquals(0, nameManager.size());
     }
 
+    @Test
     public void testRemoveVariable() {
         mController.addVariable("var1");
         mController.addVariable("var2");
@@ -1245,6 +1297,7 @@ public class BlocklyControllerTest extends MockitoAndroidTestCase {
         assertNull(block);
     }
 
+    @Test
     public void testLoadWorkspaceContents_andReset() {
         mController.initWorkspaceView(mWorkspaceView);
         assertEquals(0, mWorkspace.getRootBlocks().size());

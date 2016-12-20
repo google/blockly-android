@@ -15,16 +15,19 @@
 
 package com.google.blockly.android.ui.fieldview;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
-import com.google.blockly.android.ui.WorkspaceHelper;
+import android.support.test.InstrumentationRegistry;
+
 import com.google.blockly.model.FieldLabel;
 
-import org.mockito.Mock;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 /**
  * Tests for {@link BasicFieldLabelView}.
  */
-public class BasicFieldLabelViewTest extends MockitoAndroidTestCase {
+public class BasicFieldLabelViewTest {
 
     private static final String INIT_TEXT_VALUE = "someTextToInitializeLabel";
 
@@ -32,10 +35,11 @@ public class BasicFieldLabelViewTest extends MockitoAndroidTestCase {
     private FieldLabel mFieldLabel;
 
     // Verify object instantiation.
+    @Test
     public void testInstantiation() {
         mFieldLabel = new FieldLabel("FieldLabel", INIT_TEXT_VALUE);
 
-        final BasicFieldLabelView view = new BasicFieldLabelView(getContext());
+        final BasicFieldLabelView view = new BasicFieldLabelView(InstrumentationRegistry.getContext());
         view.setField(mFieldLabel);
         assertSame(mFieldLabel, view.getField());
         assertEquals(INIT_TEXT_VALUE, view.getText().toString());  // Fails without .toString()

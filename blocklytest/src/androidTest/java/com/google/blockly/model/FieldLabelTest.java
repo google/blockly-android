@@ -16,24 +16,33 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+
 /**
  * Tests for {@link FieldLabel}.
  */
-public class FieldLabelTest extends AndroidTestCase {
+public class FieldLabelTest {
     public static final String FIELD_NAME = "mField name";
     public static final String INITIAL_VALUE = "some text";
     FieldLabel mField;
 
+    @Before
     public void setUp() {
         mField = new FieldLabel(FIELD_NAME, INITIAL_VALUE);
     }
 
+    @Test
     public void testConstructor() {
         assertEquals(Field.TYPE_LABEL, mField.getType());
         assertEquals(FIELD_NAME, mField.getName());
         assertEquals(INITIAL_VALUE, mField.getText());
     }
 
+    @Test
     public void testClone() {
         FieldLabel clone = mField.clone();
         assertNotSame(mField, clone);

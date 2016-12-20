@@ -1,7 +1,7 @@
 package com.google.blockly.android.codegen;
 
 import android.os.Build;
-import android.test.AndroidTestCase;
+import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
@@ -10,19 +10,23 @@ import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for CodeGeneratorService
  */
-public class CodeGeneratorServiceTest extends AndroidTestCase {
+public class CodeGeneratorServiceTest {
     private BlockFactory mBlockFactory;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        mBlockFactory = new BlockFactory(getContext(),
+    @Before
+    public void setUp() throws Exception {
+        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
     }
 
@@ -32,6 +36,7 @@ public class CodeGeneratorServiceTest extends AndroidTestCase {
      * all characters must be escaped correctly. Chromium is relaxed enough, we only really care
      * about the quote character.
      */
+    @Test
     public void testEscapeFieldDataForChromium() {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             return;  // See testEscapeFieldDataForAndroidWebView()
@@ -55,6 +60,7 @@ public class CodeGeneratorServiceTest extends AndroidTestCase {
      * all characters must be escaped correctly. The pre-Chromium WebView requires a fully escaped
      * URL, using %20 for spaces (not +'s).
      */
+    @Test
     public void testEscapeFieldDataForAndroidWebView() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {
             return;  // See testEscapeFieldDataForChromium()

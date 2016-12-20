@@ -16,19 +16,29 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests for {@link FieldColor}.
  */
-public class FieldColorTest extends AndroidTestCase {
+public class FieldColorTest {
     private static final int INITIAL_COLOR = 0xaabbcc;
     private static final String INITIAL_COLOR_STRING = "#aabbcc";
 
     FieldColor mField;
 
+    @Before
     public void setUp() {
         mField = new FieldColor("fname", INITIAL_COLOR);
     }
 
+    @Test
     public void testConstructors() {
         assertEquals(Field.TYPE_COLOR, mField.getType());
         assertEquals("fname", mField.getName());
@@ -39,11 +49,13 @@ public class FieldColorTest extends AndroidTestCase {
         assertEquals(FieldColor.DEFAULT_COLOR, mField.getColor());
     }
 
+    @Test
     public void testSetColor() {
         mField.setColor(0xb0bb1e);
         assertEquals(0xb0bb1e, mField.getColor());
     }
 
+    @Test
     public void testSetFromString() {
         assertTrue(mField.setFromString("#ffcc66"));
         assertEquals(0xffcc66, mField.getColor());
@@ -61,6 +73,7 @@ public class FieldColorTest extends AndroidTestCase {
         assertEquals(0x00cc66, mField.getColor());
     }
 
+    @Test
     public void testClone() {
         FieldColor clone = mField.clone();
         assertNotSame(mField, clone);
@@ -68,6 +81,7 @@ public class FieldColorTest extends AndroidTestCase {
         assertEquals(mField.getColor(), clone.getColor());
     }
 
+    @Test
     public void testObserverEvents() {
         FieldTestHelper.testObserverEvent(new FieldColor("normal", INITIAL_COLOR),
                 /* New value */ "#ffcc66",

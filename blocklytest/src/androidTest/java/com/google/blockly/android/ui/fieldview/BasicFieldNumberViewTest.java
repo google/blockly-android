@@ -15,11 +15,9 @@
 
 package com.google.blockly.android.ui.fieldview;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
-
 /**
  * Tests for {@link BasicFieldNumberView}.
  */
-public class BasicFieldNumberViewTest extends MockitoAndroidTestCase {
+public class BasicFieldNumberViewTest {
     // TODO(#168): Write some tests, particularly on order of character input.
 }

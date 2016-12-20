@@ -16,7 +16,8 @@
 package com.google.blockly.android.ui;
 
 import android.app.Instrumentation;
-import android.test.ActivityInstrumentationTestCase2;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.ActivityTestRule;
 import android.view.View;
 import android.view.ViewParent;
 
@@ -27,15 +28,21 @@ import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 
-import org.mockito.Mock;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.MockitoAnnotations;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 
 /**
  * {@link BlockView} tests in the context of an attached Activity.
  */
-public class BlockViewInActivityTest
-        extends ActivityInstrumentationTestCase2<TestWorkspaceViewActivity> {
+public class BlockViewInActivityTest {
     private TestWorkspaceViewActivity mActivity;
     private Instrumentation mInstrumentation;
     private BlockFactory mBlockFactory;
@@ -51,17 +58,17 @@ public class BlockViewInActivityTest
     private BlockView mChildInputBlockView;
     private BlockView mChildStatementBlockView;
 
-    @Mock
     private ConnectionManager mMockConnectionManager;
 
-    public BlockViewInActivityTest() {
-        super(TestWorkspaceViewActivity.class);
-    }
+    @Rule
+    public ActivityTestRule<TestWorkspaceViewActivity> mActivityRule =
+        new ActivityTestRule<>(TestWorkspaceViewActivity.class);
 
-    @Override
+    @Before
     public void setUp() {
-        mActivity = getActivity();
-        mInstrumentation = getInstrumentation();
+        mMockConnectionManager = mock(ConnectionManager.class);
+        mActivity = mActivityRule.getActivity();
+        mInstrumentation = InstrumentationRegistry.getInstrumentation();
 
         // To solve some issue with Dexmaker.  This allows us to use mockito.
         System.setProperty("dexmaker.dexcache", mActivity.getCacheDir().getPath());
@@ -96,6 +103,7 @@ public class BlockViewInActivityTest
     }
 
     /** Tests that pressed {@link View} state does not propagate to child BlockViews. */
+    @Test
     public void testActivatedStateDoesNotAffectChildren() {
         mActivity.runOnUiThread(new Runnable() {
             @Override
@@ -132,6 +140,7 @@ public class BlockViewInActivityTest
     }
 
     /** Tests that pressed {@link View} state does not propagate to child BlockViews. */
+    @Test
     public void testPressedStateDoesNotAffectChildren() {
         mActivity.runOnUiThread(new Runnable() {
             @Override
@@ -168,6 +177,7 @@ public class BlockViewInActivityTest
     }
 
     /** Tests that focused {@link View} state does not propagate to child BlockViews. */
+    @Test
     public void testFocusedStateDoesNotAffectChildren() {
         mActivity.runOnUiThread(new Runnable() {
             @Override
@@ -204,6 +214,7 @@ public class BlockViewInActivityTest
     }
 
     /** Tests that selected {@link View} state does not propagate to child BlockViews. */
+    @Test
     public void testSelectedStateDoesNotAffectChildren() {
         mActivity.runOnUiThread(new Runnable() {
             @Override

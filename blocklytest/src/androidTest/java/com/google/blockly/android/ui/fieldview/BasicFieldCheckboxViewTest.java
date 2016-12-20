@@ -16,27 +16,32 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
+import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
-import com.google.blockly.android.ui.WorkspaceHelper;
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.model.FieldCheckbox;
 
-import org.mockito.Mock;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link BasicFieldCheckboxView}.
  */
-public class BasicFieldCheckboxViewTest extends MockitoAndroidTestCase {
+public class BasicFieldCheckboxViewTest extends BlocklyTestCase {
     private FieldCheckbox mFieldCheckbox;
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
+    @Before
+     public void setUp() throws Exception {
+        configureForUIThread();
         mFieldCheckbox = new FieldCheckbox("FieldCheckbox", false);
     }
 
     // Verify field object gets updated when view is checked/unchecked.
+    @Test
     public void testFieldUpdatesFromView() {
         final BasicFieldCheckboxView view = makeFieldCheckboxView();
         assertFalse(mFieldCheckbox.isChecked());
@@ -50,6 +55,7 @@ public class BasicFieldCheckboxViewTest extends MockitoAndroidTestCase {
     }
 
     // Verify that view gets updated if field changes.
+    @Test
     public void testViewUpdatesFromField() {
         final BasicFieldCheckboxView view = makeFieldCheckboxView();
         assertEquals(mFieldCheckbox.isChecked(), view.isChecked());
@@ -66,7 +72,7 @@ public class BasicFieldCheckboxViewTest extends MockitoAndroidTestCase {
 
     @NonNull
     private BasicFieldCheckboxView makeFieldCheckboxView() {
-        BasicFieldCheckboxView view = new BasicFieldCheckboxView(getContext());
+        BasicFieldCheckboxView view = new BasicFieldCheckboxView(InstrumentationRegistry.getContext());
         view.setField(mFieldCheckbox);
         return view;
     }

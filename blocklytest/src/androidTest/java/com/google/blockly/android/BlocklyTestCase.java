@@ -17,39 +17,38 @@ package com.google.blockly.android;
 
 import android.content.Context;
 import android.os.Looper;
+import android.support.test.InstrumentationRegistry;
 import android.test.AndroidTestCase;
 import android.view.ContextThemeWrapper;
 
 import com.google.blockly.android.ui.vertical.R;
 
+import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
 /**
  * Base class for Android tests with Mockito.
  */
-public class MockitoAndroidTestCase extends AndroidTestCase {
+public class BlocklyTestCase {
 
-    Context mThemeContext;
+    private Context mThemeContext;
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+    protected void configureForThemes() {
+        mThemeContext = new ContextThemeWrapper(getContext(), R.style.BlocklyVerticalTheme);
+        // To solve some issue with Dexmaker.  This allows us to use mockito.
+        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+    }
 
+    protected void configureForUIThread() throws Exception {
         // Espresso support requires AndroidJUnitRunner, and that doesn't run tests on in the main
         // thread (and thus, not in a Looper).  Adding a Looper allows normal unit tests to run
         // correctly.
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
-
-        mThemeContext = new ContextThemeWrapper(getContext(), R.style.BlocklyVerticalTheme);
-        // To solve some issue with Dexmaker.  This allows us to use mockito.
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        MockitoAnnotations.initMocks(this);
     }
 
-    @Override
-    public Context getContext() {
-        return mThemeContext != null ? mThemeContext : super.getContext();
+    protected Context getContext() {
+        return mThemeContext != null ? mThemeContext : InstrumentationRegistry.getContext();
     }
 }

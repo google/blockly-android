@@ -15,21 +15,26 @@
 
 package com.google.blockly.android.control;
 
-import android.test.AndroidTestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 import static android.test.MoreAsserts.assertNotEqual;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link NameManager}.
  */
-public class NameManagerTest extends AndroidTestCase {
+public class NameManagerTest {
     private NameManager mNameManager;
 
-    @Override
-    public void setUp() throws Exception {
+    @Before
+     public void setUp() throws Exception {
         mNameManager = new NameManager.ProcedureNameManager();
     }
 
+    @Test
     public void testGenerateUniqueName() throws Exception {
         String name1 = mNameManager.generateUniqueName("string", true /* addName */);
         assertNotEqual(name1, mNameManager.generateUniqueName("string", true /* addName */));
@@ -41,6 +46,7 @@ public class NameManagerTest extends AndroidTestCase {
         assertEquals("223", mNameManager.generateUniqueName("222", true /* addName */));
     }
 
+    @Test
     public void testCaseInsensitive() {
         String name1 = mNameManager.generateUniqueName("string", true /* addName */);
         String name2 = mNameManager.generateUniqueName("String", true /* addName */);
@@ -48,6 +54,7 @@ public class NameManagerTest extends AndroidTestCase {
         assertNotEqual(name1.toLowerCase(), name2.toLowerCase());
     }
 
+    @Test
     public void testListFunctions() {
         mNameManager.addName("foo");
         assertEquals(1, mNameManager.getUsedNames().size());
@@ -61,6 +68,7 @@ public class NameManagerTest extends AndroidTestCase {
         assertTrue(mNameManager.getUsedNames().isEmpty());
     }
 
+    @Test
     public void testGenerateVariableName() {
         NameManager.VariableNameManager nameManager = new NameManager.VariableNameManager();
         assertEquals("i", nameManager.generateVariableName(false /* addName */));
@@ -79,6 +87,7 @@ public class NameManagerTest extends AndroidTestCase {
         assertEquals("k2", nameManager.generateVariableName(true /* addName */));
     }
 
+    @Test
     public void testRemove() {
         mNameManager.addName("foo");
         assertTrue(mNameManager.contains("FOO"));

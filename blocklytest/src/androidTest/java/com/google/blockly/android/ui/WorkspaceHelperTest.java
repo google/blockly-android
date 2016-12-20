@@ -14,7 +14,10 @@
  */
 
 package com.google.blockly.android.ui;
-import com.google.blockly.android.MockitoAndroidTestCase;
+
+import android.support.test.InstrumentationRegistry;
+
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
@@ -22,30 +25,34 @@ import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 
-import org.mockito.Mock;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+
 /**
  * Tests for the {@link WorkspaceHelper}.
  */
-public class WorkspaceHelperTest extends MockitoAndroidTestCase {
+public class WorkspaceHelperTest extends BlocklyTestCase {
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private BlockViewFactory mViewFactory;
     private BlockFactory mBlockFactory;
 
-    @Mock
     private ConnectionManager mockConnectionManager;
-    @Mock
     private BlockTouchHandler mockTouchHandler;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-
+        configureForThemes();
+        mockConnectionManager = mock(ConnectionManager.class);
+        mockTouchHandler = mock(BlockTouchHandler.class);
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
         mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
@@ -53,6 +60,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
     }
 
     // test getParentBlockGroup
+    @Test
     public void testGetNearestParentBlockGroup() throws InterruptedException {
         final List<Block> blocks = new ArrayList<>();
         Block root = mBlockFactory.obtainBlock("statement_no_input", null);
@@ -92,6 +100,7 @@ public class WorkspaceHelperTest extends MockitoAndroidTestCase {
 
 
     // test getDraggableBlockGroup
+    @Test
     public void testGetRootBlockGroup() throws InterruptedException {
         final List<Block> blocks = new ArrayList<>();
         Block root = mBlockFactory.obtainBlock("statement_statement_input", null);

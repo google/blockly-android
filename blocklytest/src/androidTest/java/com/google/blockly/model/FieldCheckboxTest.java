@@ -16,10 +16,18 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests for {@link FieldCheckbox}.
  */
-public class FieldCheckboxTest extends AndroidTestCase {
+public class FieldCheckboxTest {
+    @Test
     public void testFieldCheckbox() {
         FieldCheckbox field = new FieldCheckbox("checkbox", true);
         assertEquals(Field.TYPE_CHECKBOX, field.getType());
@@ -51,6 +59,7 @@ public class FieldCheckboxTest extends AndroidTestCase {
         assertFalse(field.isChecked());
     }
 
+    @Test
     public void testClone() {
         FieldCheckbox field = new FieldCheckbox("checkbox", true);
         FieldCheckbox clone = field.clone();
@@ -65,6 +74,7 @@ public class FieldCheckboxTest extends AndroidTestCase {
         assertEquals(field.isChecked(), clone.isChecked());
     }
 
+    @Test
     public void testObserverEvent() {
         FieldTestHelper.testObserverEvent(new FieldCheckbox("CHECKBOX", true),
                 /* New value to assign */ "FALSE",

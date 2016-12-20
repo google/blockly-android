@@ -29,14 +29,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link AbstractInputView}.
@@ -45,15 +44,14 @@ import static org.junit.Assert.assertSame;
 public class AbstractInputViewTest {
 
     private Input mDummyInput;
+    private WorkspaceHelper mMockWorkspaceHelper;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Mock
-    private WorkspaceHelper mMockWorkspaceHelper;
-
     @Before
     public void setUp() throws Exception {
+        mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         // Use the BlockFactory to make sure we have real inputs.
         BlockFactory factory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
@@ -78,7 +76,7 @@ public class AbstractInputViewTest {
         final AbstractInputView inputView = makeDefaultInputView();
         assertEquals(0, inputView.getChildCount());
 
-        final BlockGroup mockGroup = Mockito.mock(BlockGroup.class);
+        final BlockGroup mockGroup = mock(BlockGroup.class);
         inputView.setConnectedBlockGroup(mockGroup);
         assertSame(mockGroup, inputView.getConnectedBlockGroup());
         assertEquals(1, inputView.getChildCount());
@@ -89,7 +87,7 @@ public class AbstractInputViewTest {
     public void testUnsetChildView() {
         final AbstractInputView inputView = makeDefaultInputView();
 
-        final BlockGroup mockGroup = Mockito.mock(BlockGroup.class);
+        final BlockGroup mockGroup = mock(BlockGroup.class);
         inputView.setConnectedBlockGroup(mockGroup);
         inputView.setConnectedBlockGroup(null);
         assertNull(inputView.getConnectedBlockGroup());
@@ -105,7 +103,7 @@ public class AbstractInputViewTest {
     public void testSetChildViewMustUnset() {
         final AbstractInputView inputView = makeDefaultInputView();
 
-        final BlockGroup mockView = Mockito.mock(BlockGroup.class);
+        final BlockGroup mockView = mock(BlockGroup.class);
         inputView.setConnectedBlockGroup(mockView);
 
         thrown.expect(IllegalStateException.class);

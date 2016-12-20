@@ -1,32 +1,35 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.android.MockitoAndroidTestCase;
-
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.AdditionalAnswers;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
 /**
  * Tests for {@link BasicFieldImageView}.
  */
-public class BasicFieldImageViewTest extends MockitoAndroidTestCase {
+public class BasicFieldImageViewTest {
     Context mMockContext;
 
     BasicFieldImageView mImageFieldView;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-
-        mMockContext = Mockito.mock(Context.class, AdditionalAnswers.delegatesTo(getContext()));
+        mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(InstrumentationRegistry.getContext()));
 
         mImageFieldView = new BasicFieldImageView(mMockContext);
     }
 
+    @Test
     public void testImageSourceFromAssets() throws IOException {
         InputStream in = null;
         try {

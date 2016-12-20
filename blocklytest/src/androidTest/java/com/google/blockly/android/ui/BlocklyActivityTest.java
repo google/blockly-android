@@ -16,30 +16,38 @@ package com.google.blockly.android.ui;
 
 import android.app.Instrumentation;
 import android.content.pm.ActivityInfo;
-import android.test.ActivityInstrumentationTestCase2;
-import android.widget.ImageButton;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.ActivityTestRule;
 
 import com.google.blockly.android.BlocklyTestActivity;
 import com.google.blockly.android.R;
 
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Test Activity lifecycle events using {@link BlocklyTestActivity}.
  */
-public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<BlocklyTestActivity> {
-    private BlocklyTestActivity mActivity;
+public class BlocklyActivityTest {
     private Instrumentation mInstrumentation;
+    private BlocklyTestActivity mActivity;
 
-    public BlocklyActivityTest() {
-        super(BlocklyTestActivity.class);
-    }
+    @Rule
+    public ActivityTestRule<BlocklyTestActivity> mActivityRule =
+        new ActivityTestRule<>(BlocklyTestActivity.class);
 
-    @Override
+    @Before
     public void setUp() {
-        mActivity = getActivity();
-        mInstrumentation = getInstrumentation();
+        mInstrumentation = InstrumentationRegistry.getInstrumentation();
+        mActivity = mActivityRule.getActivity();
     }
 
     // Test switching around device orientation to make sure there are no crashes.
+    @Test
     public void testSwitchDeviceOrientation() {
         mInstrumentation.waitForIdleSync();
         mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -57,6 +65,7 @@ public class BlocklyActivityTest extends ActivityInstrumentationTestCase2<Blockl
     }
 
     // Test zooming into workspace, then out, then reset.
+    @Test
     public void testZoomInOutReset() {
         mInstrumentation.waitForIdleSync();
         final WorkspaceView workspaceView = (WorkspaceView) mActivity.findViewById(R.id.workspace);

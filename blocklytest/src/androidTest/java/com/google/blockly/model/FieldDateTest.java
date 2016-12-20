@@ -16,26 +16,37 @@ package com.google.blockly.model;
 
 import android.test.AndroidTestCase;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link FieldDate}.
  */
-public class FieldDateTest extends AndroidTestCase {
+public class FieldDateTest {
     private static final String INITIAL_VALUE = "2015-09-14";
 
     FieldDate mField;
 
+    @Before
     public void setUp() {
         mField = new FieldDate("alphabet", INITIAL_VALUE);
     }
 
+    @Test
     public void testConstructor() {
         assertEquals(Field.TYPE_DATE, mField.getType());
         assertEquals("alphabet", mField.getName());
         assertEquals(INITIAL_VALUE, mField.getSerializedValue());
     }
 
+    @Test
     public void testSetDate() {
         Date date = new Date();
         mField.setDate(date);
@@ -48,12 +59,14 @@ public class FieldDateTest extends AndroidTestCase {
         assertEquals("2017-03-23", mField.getLocalizedDateString());
     }
 
+    @Test
     public void testSetFromString() {
         assertFalse(mField.setFromString("today"));
         assertFalse(mField.setFromString("2017/03/03"));
         assertFalse(mField.setFromString(""));
     }
 
+    @Test
     public void testClone() {
         FieldDate clone = mField.clone();
         assertNotSame(mField, clone);
@@ -62,6 +75,7 @@ public class FieldDateTest extends AndroidTestCase {
         assertEquals(mField.getDate(), clone.getDate());
     }
 
+    @Test
     public void testObserverEvents() {
         FieldTestHelper.testObserverEvent(mField,
                 /* New value */ "2017-03-23",
