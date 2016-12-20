@@ -19,7 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.test.suitebuilder.annotation.SmallTest;
 
-import com.google.blockly.android.R;
+import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -55,7 +55,8 @@ public class AbstractInputViewTest {
     @Before
     public void setUp() throws Exception {
         // Use the BlockFactory to make sure we have real inputs.
-        BlockFactory factory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory factory = new BlockFactory(InstrumentationRegistry.getContext(),
+                new int[]{R.raw.test_blocks});
         Block block = factory.obtainBlock("test_block_one_input_each_type", "fake_id");
         mDummyInput = block.getInputs().get(0);
         assertEquals(Input.TYPE_DUMMY, mDummyInput.getType());

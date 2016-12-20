@@ -16,7 +16,7 @@
 package com.google.blockly.android.control;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
-import com.google.blockly.android.R;
+import com.google.blockly.android.test.R;
 import com.google.blockly.android.testui.TestableBlockGroup;
 import com.google.blockly.android.testui.TestableBlockViewFactory;
 import com.google.blockly.android.ui.AbstractBlockView;

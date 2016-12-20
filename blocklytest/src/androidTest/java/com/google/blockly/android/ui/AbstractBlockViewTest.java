@@ -20,8 +20,8 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.view.MotionEvent;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
-import com.google.blockly.android.R;
 import com.google.blockly.android.control.ConnectionManager;
+import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 

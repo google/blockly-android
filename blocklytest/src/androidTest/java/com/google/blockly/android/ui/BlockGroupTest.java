@@ -16,8 +16,8 @@
 package com.google.blockly.android.ui;
 
 import com.google.blockly.android.MockitoAndroidTestCase;
-import com.google.blockly.android.R;
 import com.google.blockly.android.control.ConnectionManager;
+import com.google.blockly.android.test.R;
 import com.google.blockly.model.BlockFactory;
 
 import org.mockito.Mock;

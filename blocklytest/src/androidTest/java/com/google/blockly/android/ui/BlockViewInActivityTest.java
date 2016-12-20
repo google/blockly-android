@@ -20,10 +20,10 @@ import android.test.ActivityInstrumentationTestCase2;
 import android.view.View;
 import android.view.ViewParent;
 
-import com.google.blockly.android.R;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.TestWorkspaceViewActivity;
 import com.google.blockly.android.control.ConnectionManager;
+import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 
