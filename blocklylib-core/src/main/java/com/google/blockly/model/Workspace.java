@@ -236,11 +236,9 @@ public class Workspace {
      * @return The list of fields that are using the given variable.
      */
     public List<FieldVariable> getVariableRefs(String variable) {
-        List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
+        List<FieldVariable> refs = mStats.getVariableReference(variable);
         List<FieldVariable> copy = new ArrayList<>(refs == null ? 0 : refs.size());
-        if (refs != null) {
-            copy.addAll(refs);
-        }
+        copy.addAll(refs);
         return copy;
     }
 
@@ -251,8 +249,7 @@ public class Workspace {
      * @return The number of times that variable appears in this workspace.
      */
     public int getVariableRefCount(String variable) {
-        List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
-        return refs == null ? 0 : refs.size();
+        return mStats.getVariableReference(variable).size();
     }
 
     /**
@@ -264,12 +261,12 @@ public class Workspace {
      * @return A list of all blocks referencing the given variable.
      */
     public List<Block> getBlocksWithVariable(String variable, List<Block> resultList) {
-        List<FieldVariable> refs = mStats.getVariableReferences().get(variable);
+        List<FieldVariable> refs = mStats.getVariableReference(variable);
         if (resultList == null) {
             resultList = new ArrayList<>();
         }
-        for (int i = 0; i < refs.size(); i++) {
-            Block block = refs.get(i).getBlock();
+        for(FieldVariable field : refs) {
+            Block block = field.getBlock();
             if (!resultList.contains(block)) {
                 resultList.add(block);
             }

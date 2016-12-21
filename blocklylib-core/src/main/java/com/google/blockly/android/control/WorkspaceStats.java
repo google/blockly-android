@@ -72,8 +72,10 @@ public class WorkspaceStats {
         return mVariableNameManager;
     }
 
-    public SimpleArrayMap<String, List<FieldVariable>> getVariableReferences() {
-        return mVariableReferences;
+    public List<FieldVariable> getVariableReference(String variable) {
+        return mVariableReferences.containsKey(variable) ?
+            mVariableReferences.get(variable) :
+            new ArrayList<FieldVariable>();
     }
 
     /**
