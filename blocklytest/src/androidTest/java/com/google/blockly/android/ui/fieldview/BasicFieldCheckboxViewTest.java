@@ -24,9 +24,7 @@ import com.google.blockly.model.FieldCheckbox;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link BasicFieldCheckboxView}.
@@ -44,30 +42,30 @@ public class BasicFieldCheckboxViewTest extends BlocklyTestCase {
     @Test
     public void testFieldUpdatesFromView() {
         final BasicFieldCheckboxView view = makeFieldCheckboxView();
-        assertFalse(mFieldCheckbox.isChecked());
-        assertEquals(mFieldCheckbox.isChecked(), view.isChecked());
+        assertThat(mFieldCheckbox.isChecked()).isFalse();
+        assertThat(view.isChecked()).isEqualTo(mFieldCheckbox.isChecked());
 
         view.performClick();
-        assertTrue(mFieldCheckbox.isChecked());
+        assertThat(mFieldCheckbox.isChecked()).isTrue();
 
         view.performClick();
-        assertFalse(mFieldCheckbox.isChecked());
+        assertThat(mFieldCheckbox.isChecked()).isFalse();
     }
 
     // Verify that view gets updated if field changes.
     @Test
     public void testViewUpdatesFromField() {
         final BasicFieldCheckboxView view = makeFieldCheckboxView();
-        assertEquals(mFieldCheckbox.isChecked(), view.isChecked());
+        assertThat(view.isChecked()).isEqualTo(mFieldCheckbox.isChecked());
 
         mFieldCheckbox.setChecked(true);
-        assertTrue(view.isChecked());
+        assertThat(view.isChecked()).isTrue();
 
         mFieldCheckbox.setChecked(false);
-        assertFalse(view.isChecked());
+        assertThat(view.isChecked()).isFalse();
 
         mFieldCheckbox.setChecked(false);
-        assertFalse(view.isChecked());
+        assertThat(view.isChecked()).isFalse();
     }
 
     @NonNull

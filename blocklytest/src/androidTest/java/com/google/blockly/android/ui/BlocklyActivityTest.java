@@ -26,8 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test Activity lifecycle events using {@link BlocklyTestActivity}.
@@ -75,9 +74,9 @@ public class BlocklyActivityTest {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
+                assertThat(virtualWorkspaceView.getViewScale()).isWithin(1e-5f).of(1.0f);
                 mActivity.getController().zoomIn();
-                assertTrue(virtualWorkspaceView.getViewScale() > 1.0f);
+                assertThat(virtualWorkspaceView.getViewScale() > 1.0f).isTrue();
             }
         });
 
@@ -85,7 +84,7 @@ public class BlocklyActivityTest {
             @Override
             public void run() {
                 mActivity.getController().zoomOut();
-                assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
+                assertThat(virtualWorkspaceView.getViewScale()).isWithin(1e-5f).of(1.0f);
             }
         });
 
@@ -93,7 +92,7 @@ public class BlocklyActivityTest {
             @Override
             public void run() {
                 mActivity.getController().zoomOut();
-                assertTrue(virtualWorkspaceView.getViewScale() < 1.0f);
+                assertThat(virtualWorkspaceView.getViewScale() < 1.0f).isTrue();
             }
         });
 
@@ -101,7 +100,7 @@ public class BlocklyActivityTest {
             @Override
             public void run() {
                 mActivity.getController().recenterWorkspace();
-                assertEquals(1.0f, virtualWorkspaceView.getViewScale(), 1e-5);
+                assertThat(virtualWorkspaceView.getViewScale()).isWithin(1e-5f).of(1.0f);
             }
         });
         mInstrumentation.waitForIdleSync();

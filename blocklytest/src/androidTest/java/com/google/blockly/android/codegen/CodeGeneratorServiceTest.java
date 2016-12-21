@@ -16,7 +16,7 @@ import org.junit.Test;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Unit tests for CodeGeneratorService
@@ -50,9 +50,9 @@ public class CodeGeneratorServiceTest {
 
         Matcher matcher = Pattern.compile("javascript:generate\\('(.*)'\\);",
                 Pattern.DOTALL | Pattern.MULTILINE).matcher(url);
-        assertTrue(matcher.matches());
+        assertThat(matcher.matches()).isTrue();
         String jsString = matcher.group(1);
-        assertTrue(jsString.contains("apostrophe \\' end"));
+        assertThat(jsString.contains("apostrophe \\' end")).isTrue();
     }
 
     /**
@@ -73,9 +73,9 @@ public class CodeGeneratorServiceTest {
         String url = CodeGeneratorService.buildCodeGenerationUrl(xml);
 
         Matcher matcher = Pattern.compile("javascript:generateEscaped\\('(.*)'\\);").matcher(url);
-        assertTrue(matcher.matches());
+        assertThat(matcher.matches()).isTrue();
         String jsString = matcher.group(1);
-        assertTrue(jsString.contains("apostrophe%20%27%20end"));
+        assertThat(jsString.contains("apostrophe%20%27%20end")).isTrue();
     }
 
     private String toXml(Block block) {

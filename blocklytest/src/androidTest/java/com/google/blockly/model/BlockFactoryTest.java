@@ -34,13 +34,8 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.google.blockly.utils.MoreAsserts.assertStringNotEmpty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Tests for {@link BlockFactory}.
@@ -65,25 +60,24 @@ public class BlockFactoryTest {
         JSONObject blockDefinitionJson = new JSONObject(BlockTestStrings.TEST_JSON_STRING);
         Block block = mBlockFactory.fromJson("test_block", blockDefinitionJson);
 
-        assertNotNull("Block was null after initializing from JSON", block);
-        assertEquals("Type not set correctly", "test_block", block.getType());
+        assertWithMessage("Block was null after initializing from JSON").that(block).isNotNull();
+        assertWithMessage("Type not set correctly").that(block.getType()).isEqualTo("test_block");
         assertStringNotEmpty("Block id cannot be empty.", block.getId());
-        assertEquals("Wrong number of inputs", 2, block.getInputs().size());
-        assertEquals("Wrong number of fields in first input",
-                9, block.getInputs().get(0).getFields().size());
+        assertWithMessage("Wrong number of inputs").that(block.getInputs().size()).isEqualTo(2);
+        assertWithMessage("Wrong number of fields in first input").that(block.getInputs().get(0).getFields().size()).isEqualTo(9);
     }
 
     @Test
     public void testLoadBlocks() {
         List<Block> blocks = mBlockFactory.getAllBlocks();
-        assertEquals("BlockFactory failed to load all blocks.", 21, blocks.size());
+        assertWithMessage("BlockFactory failed to load all blocks.").that(blocks.size()).isEqualTo(21);
     }
 
     @Test
     public void testSuccessfulLoadFromXml() throws IOException, XmlPullParserException {
         Block loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK);
-        assertEquals("frankenblock", loaded.getType());
-        assertEquals(new WorkspacePoint(37, 13), loaded.getPosition());
+        assertThat(loaded.getType()).isEqualTo("frankenblock");
+        assertThat(loaded.getPosition()).isEqualTo(new WorkspacePoint(37, 13));
     }
 
     @Test
@@ -152,7 +146,7 @@ public class BlockFactoryTest {
     public void testBlockWithGoodFields() throws IOException, XmlPullParserException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "8",
             BlockTestStrings.FIELD_HAS_NAME));
-        assertEquals("item", ((FieldInput) loaded.getFieldByName("text_input")).getText());
+        assertThat(((FieldInput) loaded.getFieldByName("text_input")).getText()).isEqualTo("item");
     }
 
     @Test
@@ -202,37 +196,37 @@ public class BlockFactoryTest {
     @Test
     public void testLoadFromXmlInlineTagAtStart() throws IOException, XmlPullParserException {
         Block inlineAtStart = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_BEGINNING);
-        assertTrue(inlineAtStart.getInputsInline());
-        assertTrue(inlineAtStart.getInputsInlineModified());
+        assertThat(inlineAtStart.getInputsInline()).isTrue();
+        assertThat(inlineAtStart.getInputsInlineModified()).isTrue();
     }
 
     @Test
     public void testLoadFromXmlInlineTagAtEnd() throws IOException, XmlPullParserException {
         Block inlineAtEnd = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_END);
-        assertTrue(inlineAtEnd.getInputsInline());
-        assertTrue(inlineAtEnd.getInputsInlineModified());
+        assertThat(inlineAtEnd.getInputsInline()).isTrue();
+        assertThat(inlineAtEnd.getInputsInlineModified()).isTrue();
     }
 
     @Test
     public void testLoadFromXmlInlineTagFalse() throws IOException, XmlPullParserException {
         Block inlineFalseBlock = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_FALSE);
-        assertFalse(inlineFalseBlock.getInputsInline());
-        assertTrue(inlineFalseBlock.getInputsInlineModified());
+        assertThat(inlineFalseBlock.getInputsInline()).isFalse();
+        assertThat(inlineFalseBlock.getInputsInlineModified()).isTrue();
     }
 
     @Test
     public void testLoadXmlWithNoInlineTag() throws IOException, XmlPullParserException {
         Block blockNoInline = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK);
-        assertFalse(blockNoInline.getInputsInline());
-        assertFalse(blockNoInline.getInputsInlineModified());
+        assertThat(blockNoInline.getInputsInline()).isFalse();
+        assertThat(blockNoInline.getInputsInlineModified()).isFalse();
     }
 
     @Test
     public void testLoadFromXmlSimpleShadow() throws IOException, XmlPullParserException {
         Block loaded = parseShadowFromXml(BlockTestStrings.SIMPLE_SHADOW);
-        assertEquals("math_number", loaded.getType());
-        assertEquals(new WorkspacePoint(37, 13), loaded.getPosition());
-        assertTrue(loaded.isShadow());
+        assertThat(loaded.getType()).isEqualTo("math_number");
+        assertThat(loaded.getPosition()).isEqualTo(new WorkspacePoint(37, 13));
+        assertThat(loaded.isShadow()).isTrue();
     }
 
     @Test
@@ -240,8 +234,8 @@ public class BlockFactoryTest {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "1",
             BlockTestStrings.VALUE_SHADOW));
         Connection conn = loaded.getInputByName("value_input").getConnection();
-        assertEquals(conn.getTargetBlock(), conn.getShadowBlock());
-        assertTrue(conn.getShadowBlock().isShadow());
+        assertThat(conn.getShadowBlock()).isEqualTo(conn.getTargetBlock());
+        assertThat(conn.getShadowBlock().isShadow()).isTrue();
     }
 
     @Test
@@ -249,10 +243,10 @@ public class BlockFactoryTest {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "2",
             BlockTestStrings.VALUE_SHADOW_GOOD));
         Connection conn = loaded.getInputByName("value_input").getConnection();
-        assertEquals("VALUE_REAL", conn.getTargetBlock().getId());
-        assertFalse(conn.getTargetBlock().isShadow());
-        assertEquals("VALUE_SHADOW", conn.getShadowBlock().getId());
-        assertTrue(conn.getShadowBlock().isShadow());
+        assertThat(conn.getTargetBlock().getId()).isEqualTo("VALUE_REAL");
+        assertThat(conn.getTargetBlock().isShadow()).isFalse();
+        assertThat(conn.getShadowBlock().getId()).isEqualTo("VALUE_SHADOW");
+        assertThat(conn.getShadowBlock().isShadow()).isTrue();
     }
 
     @Test
@@ -260,8 +254,8 @@ public class BlockFactoryTest {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "3",
             BlockTestStrings.STATEMENT_SHADOW));
         Connection conn = loaded.getInputByName("NAME").getConnection();
-        assertEquals(conn.getTargetBlock(), conn.getShadowBlock());
-        assertTrue(conn.getShadowBlock().isShadow());
+        assertThat(conn.getShadowBlock()).isEqualTo(conn.getTargetBlock());
+        assertThat(conn.getShadowBlock().isShadow()).isTrue();
     }
 
     @Test
@@ -269,10 +263,10 @@ public class BlockFactoryTest {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "4",
             BlockTestStrings.STATEMENT_SHADOW_GOOD));
         Connection conn = loaded.getInputByName("NAME").getConnection();
-        assertEquals("STATEMENT_REAL", conn.getTargetBlock().getId());
-        assertFalse(conn.getTargetBlock().isShadow());
-        assertEquals("STATEMENT_SHADOW", conn.getShadowBlock().getId());
-        assertTrue(conn.getShadowBlock().isShadow());
+        assertThat(conn.getTargetBlock().getId()).isEqualTo("STATEMENT_REAL");
+        assertThat(conn.getTargetBlock().isShadow()).isFalse();
+        assertThat(conn.getShadowBlock().getId()).isEqualTo("STATEMENT_SHADOW");
+        assertThat(conn.getShadowBlock().isShadow()).isTrue();
     }
 
     @Test
@@ -280,12 +274,12 @@ public class BlockFactoryTest {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "5",
             BlockTestStrings.VALUE_NESTED_SHADOW));
         Connection conn = loaded.getInputByName("value_input").getConnection();
-        assertEquals(conn.getTargetBlock(), conn.getShadowBlock());
+        assertThat(conn.getShadowBlock()).isEqualTo(conn.getTargetBlock());
         Block shadow1 = conn.getShadowBlock();
-        assertEquals("SHADOW1", shadow1.getId());
+        assertThat(shadow1.getId()).isEqualTo("SHADOW1");
         conn = shadow1.getOnlyValueInput().getConnection();
-        assertEquals(conn.getTargetBlock(), conn.getShadowBlock());
-        assertEquals("SHADOW2", conn.getShadowBlock().getId());
+        assertThat(conn.getShadowBlock()).isEqualTo(conn.getTargetBlock());
+        assertThat(conn.getShadowBlock().getId()).isEqualTo("SHADOW2");
     }
 
     @Test
@@ -305,46 +299,39 @@ public class BlockFactoryTest {
     @Test
     public void testObtainBlock() {
         Block emptyBlock = mBlockFactory.obtainBlock("empty_block", null);
-        assertNotNull("Failed to create the empty block.", emptyBlock);
-        assertEquals("Empty block has the wrong type", "empty_block", emptyBlock.getType());
+        assertWithMessage("Failed to create the empty block.").that(emptyBlock).isNotNull();
+        assertWithMessage("Empty block has the wrong type").that(emptyBlock.getType()).isEqualTo("empty_block");
 
         Block frankenblock = mBlockFactory.obtainBlock("frankenblock", null);
-        assertNotNull("Failed to create the frankenblock.", frankenblock);
+        assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
         List<Input> inputs = frankenblock.getInputs();
-        assertEquals("Frankenblock has the wrong number of inputs", 3, inputs.size());
-        assertTrue("First input should be a value input.",
-                inputs.get(0) instanceof Input.InputValue);
-        assertTrue("Second input should be a statement input.",
-                inputs.get(1) instanceof Input.InputStatement);
-        assertTrue("Third input should be a dummy input.",
-                inputs.get(2) instanceof Input.InputDummy);
+        assertWithMessage("Frankenblock has the wrong number of inputs").that(inputs.size()).isEqualTo(3);
+        assertWithMessage("First input should be a value input.").that(inputs.get(0) instanceof Input.InputValue).isTrue();
+        assertWithMessage("Second input should be a statement input.").that(inputs.get(1) instanceof Input.InputStatement).isTrue();
+        assertWithMessage("Third input should be a dummy input.").that(inputs.get(2) instanceof Input.InputDummy).isTrue();
 
-        assertNotNull(frankenblock.getFieldByName("angle"));
+        assertThat(frankenblock.getFieldByName("angle")).isNotNull();
     }
 
     @Test
     public void testObtainBlock_repeatedWithoutUuid() {
         Block frankenblock = mBlockFactory.obtainBlock("frankenblock", null);
-        assertNotNull("Failed to create the frankenblock.", frankenblock);
+        assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
         Block frankencopy = mBlockFactory.obtainBlock("frankenblock", null);
-        assertNotSame("Obtained blocks should be distinct objects when uuid is null.",
-                frankenblock, frankencopy);
+        assertWithMessage("Obtained blocks should be distinct objects when uuid is null.").that(frankencopy).isNotSameAs(frankenblock);
 
-        assertNotSame("Obtained blocks should not share connections.",
-                frankenblock.getNextConnection(), frankencopy.getNextConnection());
-        assertNotSame("Obtained blocks should not share connections.",
-                frankenblock.getPreviousConnection(), frankencopy.getPreviousConnection());
-        assertNull(frankenblock.getOutputConnection());
-        assertNotSame("Obtained blocks should not share inputs.",
-                frankenblock.getInputs().get(0), frankencopy.getInputs().get(0));
+        assertWithMessage("Obtained blocks should not share connections.").that(frankencopy.getNextConnection()).isNotSameAs(frankenblock.getNextConnection());
+        assertWithMessage("Obtained blocks should not share connections.").that(frankencopy.getPreviousConnection()).isNotSameAs(frankenblock.getPreviousConnection());
+        assertThat(frankenblock.getOutputConnection()).isNull();
+        assertWithMessage("Obtained blocks should not share inputs.").that(frankencopy.getInputs().get(0)).isNotSameAs(frankenblock.getInputs().get(0));
     }
 
     @Test
     public void testObtainBlock_repeatedWithUuid() {
         Block frankenblock = mBlockFactory.obtainBlock("frankenblock", "123");
-        assertNotNull("Failed to create the frankenblock.", frankenblock);
+        assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
         thrown.expect(IllegalArgumentException.class);
         thrown.reportMissingExceptionWithMessage("Cannot create two bblocks with the same id");
@@ -354,7 +341,7 @@ public class BlockFactoryTest {
     @Test
     public void testObtainBlock_repeatedWithUuidMismatchingPrototype() {
         Block frankenblock = mBlockFactory.obtainBlock("frankenblock", "123");
-        assertNotNull("Failed to create the frankenblock.", frankenblock);
+        assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
         thrown.expect(IllegalArgumentException.class);
         thrown.reportMissingExceptionWithMessage("Expected error when requesting a block with " +
@@ -366,7 +353,7 @@ public class BlockFactoryTest {
             throws IOException, XmlPullParserException {
         XmlPullParser parser = getXmlPullParser(testString, "block");
         Block loaded = mBlockFactory.fromXml(parser);
-        assertNotNull(loaded);
+        assertThat(loaded).isNotNull();
         return loaded;
     }
 
@@ -374,7 +361,7 @@ public class BlockFactoryTest {
             throws IOException, XmlPullParserException {
         XmlPullParser parser = getXmlPullParser(testString, "shadow");
         Block loaded = mBlockFactory.fromXml(parser);
-        assertNotNull(loaded);
+        assertThat(loaded).isNotNull();
         return loaded;
     }
 

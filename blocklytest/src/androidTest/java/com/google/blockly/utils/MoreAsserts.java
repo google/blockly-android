@@ -1,14 +1,13 @@
 package com.google.blockly.utils;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Aseerts used by Blockly's test code.
  */
 public class MoreAsserts {
     public static void assertStringNotEmpty(String mesg, String str) {
-        assertNotNull(mesg + " Found null string.", str);
-        assertNotEquals(mesg + " Found empty string.", str.length(), 0);
+        assertWithMessage(mesg + " Found null string").that(str).isNotNull();
+        assertWithMessage(mesg + " Found empty string").that(str).isNotEmpty();
     }
 }

@@ -32,9 +32,7 @@ import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -57,7 +55,7 @@ public class AbstractInputViewTest {
                 new int[]{R.raw.test_blocks});
         Block block = factory.obtainBlock("test_block_one_input_each_type", "fake_id");
         mDummyInput = block.getInputs().get(0);
-        assertEquals(Input.TYPE_DUMMY, mDummyInput.getType());
+        assertThat(mDummyInput.getType()).isEqualTo(Input.TYPE_DUMMY);
     }
 
     // Verify correct object state after construction.
@@ -66,20 +64,20 @@ public class AbstractInputViewTest {
         final AbstractInputView inputView = makeDefaultInputView();
 
         // Verify Input and InputView are linked both ways.
-        assertSame(mDummyInput, inputView.getInput());
-        assertSame(inputView, mDummyInput.getView());
+        assertThat(mDummyInput).isSameAs(inputView.getInput());
+        assertThat(inputView).isSameAs(mDummyInput.getView());
     }
 
     // Verify child view can be set.
     @Test
     public void testSetChildView() {
         final AbstractInputView inputView = makeDefaultInputView();
-        assertEquals(0, inputView.getChildCount());
+        assertThat(inputView.getChildCount()).isEqualTo(0);
 
         final BlockGroup mockGroup = mock(BlockGroup.class);
         inputView.setConnectedBlockGroup(mockGroup);
-        assertSame(mockGroup, inputView.getConnectedBlockGroup());
-        assertEquals(1, inputView.getChildCount());
+        assertThat(mockGroup).isSameAs(inputView.getConnectedBlockGroup());
+        assertThat(inputView.getChildCount()).isEqualTo(1);
     }
 
     // Verify child view can be set, unset, then set again.
@@ -90,12 +88,12 @@ public class AbstractInputViewTest {
         final BlockGroup mockGroup = mock(BlockGroup.class);
         inputView.setConnectedBlockGroup(mockGroup);
         inputView.setConnectedBlockGroup(null);
-        assertNull(inputView.getConnectedBlockGroup());
-        assertEquals(0, inputView.getChildCount());
+        assertThat(inputView.getConnectedBlockGroup()).isNull();
+        assertThat(inputView.getChildCount()).isEqualTo(0);
 
         inputView.setConnectedBlockGroup(mockGroup);
-        assertSame(mockGroup, inputView.getConnectedBlockGroup());
-        assertEquals(1, inputView.getChildCount());
+        assertThat(mockGroup).isSameAs(inputView.getConnectedBlockGroup());
+        assertThat(inputView.getChildCount()).isEqualTo(1);
     }
 
     // Verify exception is thrown when calling setChildView repeatedly without disconnectBlockGroup.

@@ -19,7 +19,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link Connection}.
@@ -72,74 +72,74 @@ public class ConnectionTest {
 
     @Test
     public void testCanConnectWithReason() {
-        assertEquals(Connection.REASON_TARGET_NULL, input.canConnectWithReason(null));
-        assertEquals(Connection.REASON_TARGET_NULL, input.canConnectWithReason(
-                new Connection(Connection.CONNECTION_TYPE_OUTPUT, null)));
+        assertThat(input.canConnectWithReason(null)).isEqualTo(Connection.REASON_TARGET_NULL);
+        assertThat(input.canConnectWithReason(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null)))
+            .isEqualTo(Connection.REASON_TARGET_NULL);
 
-        assertEquals(Connection.REASON_SELF_CONNECTION, input.canConnectWithReason(input));
-        assertEquals(Connection.REASON_SELF_CONNECTION, input.canConnectWithReason(input));
+        assertThat(input.canConnectWithReason(input)).isEqualTo(Connection.REASON_SELF_CONNECTION);
+        assertThat(input.canConnectWithReason(input)).isEqualTo(Connection.REASON_SELF_CONNECTION);
     }
 
     @Test
     public void testCanConnectWithReasonDisconnect() {
-        assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(output));
+        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
         Connection conn = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
         conn.setBlock(blockBuilder.build());
         input.connect(conn);
-        assertEquals(Connection.REASON_MUST_DISCONNECT, input.canConnectWithReason(output));
+        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.REASON_MUST_DISCONNECT);
     }
 
     @Test
     public void testCanConnectWithReasonType() {
-        assertEquals(Connection.REASON_WRONG_TYPE, input.canConnectWithReason(previous));
-        assertEquals(Connection.REASON_WRONG_TYPE, input.canConnectWithReason(next));
+        assertThat(input.canConnectWithReason(previous)).isEqualTo(Connection.REASON_WRONG_TYPE);
+        assertThat(input.canConnectWithReason(next)).isEqualTo(Connection.REASON_WRONG_TYPE);
 
-        assertEquals(Connection.REASON_WRONG_TYPE, output.canConnectWithReason(previous));
-        assertEquals(Connection.REASON_WRONG_TYPE, output.canConnectWithReason(next));
+        assertThat(output.canConnectWithReason(previous)).isEqualTo(Connection.REASON_WRONG_TYPE);
+        assertThat(output.canConnectWithReason(next)).isEqualTo(Connection.REASON_WRONG_TYPE);
 
-        assertEquals(Connection.REASON_WRONG_TYPE, previous.canConnectWithReason(input));
-        assertEquals(Connection.REASON_WRONG_TYPE, previous.canConnectWithReason(output));
+        assertThat(previous.canConnectWithReason(input)).isEqualTo(Connection.REASON_WRONG_TYPE);
+        assertThat(previous.canConnectWithReason(output)).isEqualTo(Connection.REASON_WRONG_TYPE);
 
-        assertEquals(Connection.REASON_WRONG_TYPE, next.canConnectWithReason(input));
-        assertEquals(Connection.REASON_WRONG_TYPE, next.canConnectWithReason(output));
+        assertThat(next.canConnectWithReason(input)).isEqualTo(Connection.REASON_WRONG_TYPE);
+        assertThat(next.canConnectWithReason(output)).isEqualTo(Connection.REASON_WRONG_TYPE);
     }
 
     @Test
     public void testCanConnectWithReasonChecks() {
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, new String[]{"String", "int"});
         input.setBlock(blockBuilder.build());
-        assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(output));
+        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
 
         output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, new String[]{"int"});
         output.setBlock(blockBuilder.build());
-        assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(output));
+        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
 
         output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, new String[]{"String"});
         output.setBlock(blockBuilder.build());
-        assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(output));
+        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
 
         output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, new String[]{"String", "int"});
         output.setBlock(blockBuilder.build());
-        assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(output));
+        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
 
         output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, new String[]{"Some other type"});
         output.setBlock(blockBuilder.build());
-        assertEquals(Connection.REASON_CHECKS_FAILED, input.canConnectWithReason(output));
+        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.REASON_CHECKS_FAILED);
     }
 
     @Test
     public void testCanConnectWithReason_shadows() {
         // Verify a shadow can connect
-        assertEquals(Connection.CAN_CONNECT, input.canConnectWithReason(shadowOutput));
+        assertThat(input.canConnectWithReason(shadowOutput)).isEqualTo(Connection.CAN_CONNECT);
         input.connect(output);
         // Verify a shadow and non shadow can't be connected at the same time
-        assertEquals(Connection.REASON_MUST_DISCONNECT, input.canConnectWithReason(shadowOutput));
+        assertThat(input.canConnectWithReason(shadowOutput)).isEqualTo(Connection.REASON_MUST_DISCONNECT);
         input.disconnect();
         input.connect(shadowOutput);
 
         // Veryify a normal connection can't be made after a shadow connection
         next.connect(shadowPrevious);
-        assertEquals(Connection.REASON_MUST_DISCONNECT, next.canConnectWithReason(previous));
+        assertThat(next.canConnectWithReason(previous)).isEqualTo(Connection.REASON_MUST_DISCONNECT);
     }
 
     @Test

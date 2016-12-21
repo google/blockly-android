@@ -16,10 +16,7 @@ package com.google.blockly.model;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link FieldCheckbox}.
@@ -28,33 +25,33 @@ public class FieldCheckboxTest {
     @Test
     public void testFieldCheckbox() {
         FieldCheckbox field = new FieldCheckbox("checkbox", true);
-        assertEquals(Field.TYPE_CHECKBOX, field.getType());
-        assertEquals("checkbox", field.getName());
-        assertEquals(true, field.isChecked());
+        assertThat(field.getType()).isEqualTo(Field.TYPE_CHECKBOX);
+        assertThat(field.getName()).isEqualTo("checkbox");
+        assertThat(field.isChecked()).isEqualTo(true);
         field.setChecked(false);
-        assertEquals(false, field.isChecked());
+        assertThat(field.isChecked()).isEqualTo(false);
 
         field = new FieldCheckbox("fname", false);
-        assertEquals(false, field.isChecked());
+        assertThat(field.isChecked()).isEqualTo(false);
         field.setChecked(true);
-        assertEquals(true, field.isChecked());
+        assertThat(field.isChecked()).isEqualTo(true);
 
-        assertTrue(field.setFromString("false"));
-        assertFalse(field.isChecked());
+        assertThat(field.setFromString("false")).isTrue();
+        assertThat(field.isChecked()).isFalse();
 
-        assertTrue(field.setFromString("true"));
-        assertTrue(field.setFromString("TRUE"));
-        assertTrue(field.setFromString("True"));
-        assertTrue(field.isChecked());
+        assertThat(field.setFromString("true")).isTrue();
+        assertThat(field.setFromString("TRUE")).isTrue();
+        assertThat(field.setFromString("True")).isTrue();
+        assertThat(field.isChecked()).isTrue();
 
         // xml parsing
         // Boolean.parseBoolean checks the lowercased value against "true" and returns false
         // otherwise.
-        assertTrue(field.setFromString("This is not a boolean"));
-        assertFalse(field.isChecked());
+        assertThat(field.setFromString("This is not a boolean")).isTrue();
+        assertThat(field.isChecked()).isFalse();
         field.setChecked(true);
-        assertTrue(field.setFromString("t"));
-        assertFalse(field.isChecked());
+        assertThat(field.setFromString("t")).isTrue();
+        assertThat(field.isChecked()).isFalse();
     }
 
     @Test
@@ -62,14 +59,14 @@ public class FieldCheckboxTest {
         FieldCheckbox field = new FieldCheckbox("checkbox", true);
         FieldCheckbox clone = field.clone();
 
-        assertNotSame(field, clone);
-        assertEquals(field.getName(), field.getName());
-        assertEquals(field.isChecked(), clone.isChecked());
+        assertThat(field).isNotSameAs(clone);
+        assertThat(field.getName()).isEqualTo(field.getName());
+        assertThat(clone.isChecked()).isEqualTo(field.isChecked());
 
         // Test with false
         field = new FieldCheckbox("checkbox", false);
         clone = field.clone();
-        assertEquals(field.isChecked(), clone.isChecked());
+        assertThat(clone.isChecked()).isEqualTo(field.isChecked());
     }
 
     @Test

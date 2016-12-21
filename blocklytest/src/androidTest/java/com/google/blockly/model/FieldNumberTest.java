@@ -20,9 +20,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Tests for {@link FieldNumber}.
@@ -42,20 +41,20 @@ public class FieldNumberTest {
 
     @Test
     public void testConstructor() {
-        assertEquals(FIELD_NAME, mField.getName());
-        assertEquals(Field.TYPE_NUMBER, mField.getType(), 0d);
+        assertThat(mField.getName()).isEqualTo(FIELD_NAME);
+        assertThat(mField.getType()).isEqualTo(Field.TYPE_NUMBER);
     }
 
     @Test
     public void testConstraintDefaults() {
         // Before assignment
-        assertTrue(Double.isNaN(mField.getMinimumValue()));
-        assertTrue(Double.isNaN(mField.getMaximumValue()));
-        assertTrue(Double.isNaN(mField.getPrecision()));
+        assertThat(Double.isNaN(mField.getMinimumValue())).isTrue();
+        assertThat(Double.isNaN(mField.getMaximumValue())).isTrue();
+        assertThat(Double.isNaN(mField.getPrecision())).isTrue();
 
-        assertFalse(mField.hasMaximum());
-        assertFalse(mField.hasMinimum());
-        assertFalse(mField.hasPrecision());
+        assertThat(mField.hasMaximum()).isFalse();
+        assertThat(mField.hasMinimum()).isFalse();
+        assertThat(mField.hasPrecision()).isFalse();
     }
 
     @Test
@@ -65,75 +64,75 @@ public class FieldNumberTest {
         final double PRECISION = 0.1;
 
         mField.setConstraints(MIN, MAX, PRECISION);
-        assertEquals(MIN, mField.getMinimumValue(), 0d);
-        assertEquals(MAX, mField.getMaximumValue(), 0d);
-        assertEquals(PRECISION, mField.getPrecision(), 0d);
-        assertTrue(mField.hasPrecision());
+        assertThat(mField.getMinimumValue()).isEqualTo(MIN);
+        assertThat(mField.getMaximumValue()).isEqualTo(MAX);
+        assertThat(mField.getPrecision()).isEqualTo(PRECISION);
+        assertThat(mField.hasPrecision()).isTrue();
 
         // Normal assignments
         mField.setValue(3.0);
-        assertEquals(3.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(3.0);
         mField.setValue(0.2);
-        assertEquals(0.2, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.2);
         mField.setValue(0.09);
-        assertEquals("Rounded 0.09 to precision.", 0.1, mField.getValue(), 0d);
+        assertWithMessage("Rounded 0.09 to precision.").that(mField.getValue()).isEqualTo(0.1);
         mField.setValue(0.0);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
         mField.setValue(-0.1);
-        assertEquals(-0.1, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-0.1);
         mField.setValue(-0.1);
-        assertEquals(-0.1, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-0.1);
         mField.setValue(-0.29);
-        assertEquals(-0.3, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-0.3);
 
         mField.setValue(MIN + PRECISION);
-        assertTrue(MIN < mField.getValue());
+        assertThat(MIN < mField.getValue()).isTrue();
         mField.setValue(MAX - PRECISION);
-        assertTrue(mField.getValue() < MAX);
+        assertThat(mField.getValue() < MAX).isTrue();
 
         mField.setValue(MIN);
-        assertEquals(MIN, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(MIN);
         mField.setValue(MAX);
-        assertEquals(MAX, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(MAX);
 
         mField.setValue(MIN - PRECISION);
-        assertEquals(MIN, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(MIN);
         mField.setValue(MAX + PRECISION);
-        assertEquals(MAX, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(MAX);
 
         mField.setValue(MIN - 1e100);
-        assertEquals(MIN, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(MIN);
         mField.setValue(MAX + 1e100);
-        assertEquals(MAX, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(MAX);
     }
 
     @Test
     public void testSetConstraints_SpecialValues() {
         mField.setConstraints(Double.NaN, 1.0, 0.1);
-        assertTrue(Double.isNaN(mField.getMinimumValue()));
-        assertFalse(mField.hasMinimum());
-        assertTrue(mField.hasMaximum());
+        assertThat(Double.isNaN(mField.getMinimumValue())).isTrue();
+        assertThat(mField.hasMinimum()).isFalse();
+        assertThat(mField.hasMaximum()).isTrue();
 
         mField.setConstraints(Double.NEGATIVE_INFINITY, 1.0, 0.1);
-        assertTrue(Double.isNaN(mField.getMinimumValue()));
-        assertFalse(mField.hasMinimum());
-        assertTrue(mField.hasMaximum());
+        assertThat(Double.isNaN(mField.getMinimumValue())).isTrue();
+        assertThat(mField.hasMinimum()).isFalse();
+        assertThat(mField.hasMaximum()).isTrue();
 
         mField.setConstraints(-1.0, Double.NaN, 0.1);
-        assertTrue(Double.isNaN(mField.getMaximumValue()));
-        assertTrue(mField.hasMinimum());
-        assertFalse(mField.hasMaximum());
+        assertThat(Double.isNaN(mField.getMaximumValue())).isTrue();
+        assertThat(mField.hasMinimum()).isTrue();
+        assertThat(mField.hasMaximum()).isFalse();
 
         mField.setConstraints(-1.0, Double.POSITIVE_INFINITY, 0.1);
-        assertTrue(Double.isNaN(mField.getMaximumValue()));
-        assertTrue(mField.hasMinimum());
-        assertFalse(mField.hasMaximum());
+        assertThat(Double.isNaN(mField.getMaximumValue())).isTrue();
+        assertThat(mField.hasMinimum()).isTrue();
+        assertThat(mField.hasMaximum()).isFalse();
 
         mField.setConstraints(-1.0, 1.0, Double.NaN);
-        assertTrue(Double.isNaN(mField.getPrecision()));
-        assertTrue(mField.hasMinimum());
-        assertTrue(mField.hasMaximum());
-        assertFalse(mField.hasPrecision());
+        assertThat(Double.isNaN(mField.getPrecision())).isTrue();
+        assertThat(mField.hasMinimum()).isTrue();
+        assertThat(mField.hasMaximum()).isTrue();
+        assertThat(mField.hasPrecision()).isFalse();
     }
 
     @Test
@@ -179,68 +178,68 @@ public class FieldNumberTest {
         final double PRECISION = 0.25;  // Two significant digits
         mField.setConstraints(MIN, MAX, PRECISION);
 
-        assertFalse(mField.isInteger());
+        assertThat(mField.isInteger()).isFalse();
 
         // Exact values
         mField.setValue(0.0);
-        assertEquals(0.0, mField.getValue(), 0d);
-        assertEquals("0", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(0.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("0");
 
         mField.setValue(0.25);
-        assertEquals(0.25, mField.getValue(), 0d);
-        assertEquals("0.25", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(0.25);
+        assertThat(mField.getFormattedValue()).isEqualTo("0.25");
 
         mField.setValue(1.0);
-        assertEquals(1.0, mField.getValue(), 0d);
-        assertEquals("1", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(1.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("1");
 
         mField.setValue(1.25);
-        assertEquals(1.25, mField.getValue(), 0d);
-        assertEquals("1.25", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(1.25);
+        assertThat(mField.getFormattedValue()).isEqualTo("1.25");
 
         mField.setValue(2.50);
-        assertEquals(2.5, mField.getValue(), 0d);
-        assertEquals("2.5", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(2.5);
+        assertThat(mField.getFormattedValue()).isEqualTo("2.5");
 
         mField.setValue(25);
-        assertEquals(25.0, mField.getValue(), 0d);
-        assertEquals("25", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(25.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("25");
 
         mField.setValue(-0.25);
-        assertEquals(-0.25, mField.getValue(), 0d);
-        assertEquals("-0.25", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-0.25);
+        assertThat(mField.getFormattedValue()).isEqualTo("-0.25");
 
         mField.setValue(-1.0);
-        assertEquals(-1.0, mField.getValue(), 0d);
-        assertEquals("-1", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-1.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-1");
 
         mField.setValue(-1.25);
-        assertEquals(-1.25, mField.getValue(), 0d);
-        assertEquals("-1.25", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-1.25);
+        assertThat(mField.getFormattedValue()).isEqualTo("-1.25");
 
         mField.setValue(-2.50);
-        assertEquals(-2.5, mField.getValue(), 0d);
-        assertEquals("-2.5", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-2.5);
+        assertThat(mField.getFormattedValue()).isEqualTo("-2.5");
 
         mField.setValue(-25);
-        assertEquals(-25.0, mField.getValue(), 0d);
-        assertEquals("-25", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-25.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-25");
 
         // Rounded Values
         mField.setValue(0.2);
-        assertEquals(0.25, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.25);
 
         mField.setValue(0.9);
-        assertEquals(1.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(1.0);
 
         mField.setValue(1.1);
-        assertEquals(1.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(1.0);
 
         mField.setValue(1.2);
-        assertEquals(1.25, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(1.25);
 
         mField.setValue(1.3);
-        assertEquals(1.25, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(1.25);
     }
 
     @Test
@@ -250,95 +249,95 @@ public class FieldNumberTest {
         final double PRECISION = 1;
         mField.setConstraints(MIN, MAX, PRECISION);
 
-        assertTrue(mField.isInteger());
+        assertThat(mField.isInteger()).isTrue();
 
         // Exact values
         mField.setValue(0.0);
 
         // Exact values
         mField.setValue(0.0);
-        assertEquals(0.0, mField.getValue(), 0d);
-        assertEquals("0", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(0.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("0");
 
         mField.setValue(1.0);
-        assertEquals(1.0, mField.getValue(), 0d);
-        assertEquals("1", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(1.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("1");
 
         mField.setValue(2.0);
-        assertEquals(2.0, mField.getValue(), 0d);
-        assertEquals("2", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(2.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("2");
 
         mField.setValue(7.0);
-        assertEquals(7.0, mField.getValue(), 0d);
-        assertEquals("7", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(7.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("7");
 
         mField.setValue(10.0);
-        assertEquals(10.0, mField.getValue(), 0d);
-        assertEquals("10", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(10.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("10");
 
         mField.setValue(100.0);
-        assertEquals(100.0, mField.getValue(), 0d);
-        assertEquals("100", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(100.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("100");
 
         mField.setValue(1000000.0);
-        assertEquals(1000000.0, mField.getValue(), 0d);
-        assertEquals("1000000", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(1000000.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("1000000");
 
         mField.setValue(-1.0);
-        assertEquals(-1.0, mField.getValue(), 0d);
-        assertEquals("-1", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-1.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-1");
 
         mField.setValue(-2.0);
-        assertEquals(-2.0, mField.getValue(), 0d);
-        assertEquals("-2", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-2.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-2");
 
         mField.setValue(-7.0);
-        assertEquals(-7.0, mField.getValue(), 0d);
-        assertEquals("-7", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-7.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-7");
 
         mField.setValue(-10.0);
-        assertEquals(-10.0, mField.getValue(), 0d);
-        assertEquals("-10", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-10.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-10");
 
         mField.setValue(-100.0);
-        assertEquals(-100.0, mField.getValue(), 0d);
-        assertEquals("-100", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-100.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-100");
 
         mField.setValue(-1000000.0);
-        assertEquals(-1000000.0, mField.getValue(), 0d);
-        assertEquals("-1000000", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-1000000.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-1000000");
 
 
         // Rounded Values
         mField.setValue(0.2);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
 
         mField.setValue(0.499999);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
 
         mField.setValue(0.5);
-        assertEquals(1.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(1.0);
 
         mField.setValue(1.1);
-        assertEquals(1.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(1.0);
 
         mField.setValue(99.9999);
-        assertEquals(100.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(100.0);
 
         mField.setValue(-0.2);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
 
         mField.setValue(-0.5);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
 
         mField.setValue(-0.501);
-        assertEquals(-1.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-1.0);
 
         mField.setValue(-1.1);
-        assertEquals(-1.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-1.0);
 
         mField.setValue(-99.9999);
-        assertEquals(-100.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-100.0);
     }
 
     @Test
@@ -348,60 +347,60 @@ public class FieldNumberTest {
         final double PRECISION = 2;
         mField.setConstraints(MIN, MAX, PRECISION);
 
-        assertTrue(mField.isInteger());
+        assertThat(mField.isInteger()).isTrue();
 
         // Exact values
         mField.setValue(0.0);
-        assertEquals(0.0, mField.getValue(), 0d);
-        assertEquals("0", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(0.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("0");
 
         mField.setValue(2.0);
-        assertEquals(2.0, mField.getValue(), 0d);
-        assertEquals("2", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(2.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("2");
 
         mField.setValue(8.0);
-        assertEquals(8.0, mField.getValue(), 0d);
-        assertEquals("8", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(8.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("8");
 
         mField.setValue(10.0);
-        assertEquals(10.0, mField.getValue(), 0d);
-        assertEquals("10", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(10.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("10");
 
         mField.setValue(-2.0);
-        assertEquals(-2.0, mField.getValue(), 0d);
-        assertEquals("-2", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-2.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-2");
 
         mField.setValue(-8.0);
-        assertEquals(-8.0, mField.getValue(), 0d);
-        assertEquals("-8", mField.getFormattedValue());
+        assertThat(mField.getValue()).isEqualTo(-8.0);
+        assertThat(mField.getFormattedValue()).isEqualTo("-8");
 
         // Rounded Values
         mField.setValue(0.2);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
 
         mField.setValue(1.9);
-        assertEquals(2.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(2.0);
 
         mField.setValue(0.999);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
 
         mField.setValue(1.0);
-        assertEquals(2.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(2.0);
 
         mField.setValue(3.0);
-        assertEquals(4.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(4.0);
 
         mField.setValue(-0.2);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
 
         mField.setValue(-1.9);
-        assertEquals(-2.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-2.0);
 
         mField.setValue(-1.0);
-        assertEquals(0.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0);
 
         mField.setValue(-1.001);
-        assertEquals(-2.0, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-2.0);
     }
 
     @Test
@@ -412,19 +411,19 @@ public class FieldNumberTest {
         mField.setConstraints(MIN, MAX, PRECISION);
 
         mField.setFromString("123e4");
-        assertEquals(1230000d, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(1230000d);
 
         mField.setFromString("1.23e4");
-        assertEquals(12300d, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(12300d);
 
         mField.setFromString("-1.23e4");
-        assertEquals(-12300d, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(-12300d);
 
         mField.setFromString("123e-4");
-        assertEquals(0.0123, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.0123);
 
         mField.setFromString("1.23e-4");
-        assertEquals(0.000123, mField.getValue(), 0d);
+        assertThat(mField.getValue()).isEqualTo(0.000123);
     }
 
     @Test

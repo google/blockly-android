@@ -26,9 +26,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link ConnectionManager}
@@ -45,19 +43,19 @@ public class ConnectionManagerTest {
     public void testAdd() {
         Connection conn = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
         manager.addConnection(conn);
-        assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn)).isTrue();
 
         conn = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
         manager.addConnection(conn);
-        assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_NEXT).contains(conn));
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_NEXT).contains(conn)).isTrue();
 
         conn = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         manager.addConnection(conn);
-        assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_INPUT).contains(conn));
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_INPUT).contains(conn)).isTrue();
 
         conn = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
         manager.addConnection(conn);
-        assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).contains(conn));
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).contains(conn)).isTrue();
     }
 
     @Test
@@ -71,10 +69,10 @@ public class ConnectionManagerTest {
         int moveX = 15;
         int moveY = 20;
         manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
-        assertEquals(moveX + offsetX, conn.getPosition().x);
-        assertEquals(moveY + offsetY, conn.getPosition().y);
+        assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
+        assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
         // Connection should still be in the list
-        assertTrue(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn)).isTrue();
 
         manager.removeConnection(conn);
         conn.setDragMode(true);
@@ -83,9 +81,9 @@ public class ConnectionManagerTest {
         moveX = 10;
         moveY = 100;
         manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
-        assertFalse(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn));
-        assertEquals(moveX + offsetX, conn.getPosition().x);
-        assertEquals(moveY + offsetY, conn.getPosition().y);
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn)).isFalse();
+        assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
+        assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
     }
 
     @Test
@@ -96,33 +94,33 @@ public class ConnectionManagerTest {
         Connection two = createConnection(10 /* x */, 15 /* y */, Connection.CONNECTION_TYPE_OUTPUT,
                 false);
 
-        assertTrue(manager.isConnectionAllowed(one, two, 20.0, false));
+        assertThat(manager.isConnectionAllowed(one, two, 20.0, false)).isTrue();
         // Move connections farther apart
         two.setPosition(100, 100);
-        assertFalse(manager.isConnectionAllowed(one, two, 20.0, false));
+        assertThat(manager.isConnectionAllowed(one, two, 20.0, false)).isFalse();
 
         // Don't offer to connect an already connected left (male) value plug to
         // an available right (female) value plug.
         Connection three = createConnection(0, 0, Connection.CONNECTION_TYPE_OUTPUT, false);
-        assertTrue(manager.isConnectionAllowed(one, three, 20.0, false));
+        assertThat(manager.isConnectionAllowed(one, three, 20.0, false)).isTrue();
         Connection four = createConnection(0, 0, Connection.CONNECTION_TYPE_INPUT, false);
         three.connect(four);
-        assertFalse(manager.isConnectionAllowed(one, three, 20.0, false));
+        assertThat(manager.isConnectionAllowed(one, three, 20.0, false)).isFalse();
 
         // Don't connect two connections on the same block
         two.setBlock(one.getBlock());
-        assertFalse(manager.isConnectionAllowed(one, two, 1000.0, false));
+        assertThat(manager.isConnectionAllowed(one, two, 1000.0, false)).isFalse();
 
         Connection five = createConnection(0, 0, Connection.CONNECTION_TYPE_INPUT, true);
         Connection six = createConnection(0, 0, Connection.CONNECTION_TYPE_OUTPUT, true);
         Connection seven = createConnection(0, 0, Connection.CONNECTION_TYPE_OUTPUT, false);
 
         // Verify that shadows can be parents of other shadows
-        assertTrue(manager.isConnectionAllowed(five, six, 1000.0, false));
+        assertThat(manager.isConnectionAllowed(five, six, 1000.0, false)).isTrue();
         // But not parents of non-shadows
-        assertFalse(manager.isConnectionAllowed(five, seven, 1000.0, false));
+        assertThat(manager.isConnectionAllowed(five, seven, 1000.0, false)).isFalse();
         // Unless shadow parents are explicitly allowed
-        assertTrue(manager.isConnectionAllowed(five, seven, 1000.0, true));
+        assertThat(manager.isConnectionAllowed(five, seven, 1000.0, true)).isTrue();
     }
 
     @Test
@@ -135,20 +133,20 @@ public class ConnectionManagerTest {
 
         // Don't offer to connect the bottom of a statement block to one that's already connected.
         Connection three = createConnection(0, 0, Connection.CONNECTION_TYPE_PREVIOUS, false);
-        assertTrue(manager.isConnectionAllowed(one, three, 20.0, false));
+        assertThat(manager.isConnectionAllowed(one, three, 20.0, false)).isTrue();
         three.connect(two);
-        assertFalse(manager.isConnectionAllowed(one, three, 20.0, false));
+        assertThat(manager.isConnectionAllowed(one, three, 20.0, false)).isFalse();
 
         Connection four = createConnection(0, 0, Connection.CONNECTION_TYPE_NEXT, true);
         Connection five = createConnection(0, 0, Connection.CONNECTION_TYPE_PREVIOUS, true);
         Connection six = createConnection(0, 0, Connection.CONNECTION_TYPE_PREVIOUS, false);
 
         // Verify that shadows can be parents of other shadows
-        assertTrue(manager.isConnectionAllowed(four, five, 1000.0, false));
+        assertThat(manager.isConnectionAllowed(four, five, 1000.0, false)).isTrue();
         // But not parents of non-shadows
-        assertFalse(manager.isConnectionAllowed(four, six, 1000.0, false));
+        assertThat(manager.isConnectionAllowed(four, six, 1000.0, false)).isFalse();
         // Unless shadow parents are explicitly allowed
-        assertTrue(manager.isConnectionAllowed(four, six, 1000.0, true));
+        assertThat(manager.isConnectionAllowed(four, six, 1000.0, true)).isTrue();
     }
 
     // Test YSortedList
@@ -162,9 +160,9 @@ public class ConnectionManagerTest {
         list.addConnection(createConnection(0, 4, Connection.CONNECTION_TYPE_PREVIOUS, false));
         list.addConnection(createConnection(0, 5, Connection.CONNECTION_TYPE_PREVIOUS, false));
 
-        assertEquals(5, list.size());
+        assertThat(list.size()).isEqualTo(5);
         Connection conn = createConnection(0, 3, Connection.CONNECTION_TYPE_PREVIOUS, false);
-        assertEquals(3, list.findPositionForConnection(conn));
+        assertThat(list.findPositionForConnection(conn)).isEqualTo(3);
     }
 
     // Test YSortedList
@@ -181,10 +179,10 @@ public class ConnectionManagerTest {
 
         Connection conn = createConnection(3, 3, Connection.CONNECTION_TYPE_PREVIOUS, false);
         previous.addConnection(conn);
-        assertEquals(conn, previous.get(previous.findConnection(conn)));
+        assertThat(previous.get(previous.findConnection(conn))).isEqualTo(conn);
 
         conn = createConnection(3, 3, Connection.CONNECTION_TYPE_PREVIOUS, false);
-        assertEquals(-1, previous.findConnection(conn));
+        assertThat(previous.findConnection(conn)).isEqualTo(-1);
     }
 
     @Test
@@ -197,7 +195,7 @@ public class ConnectionManagerTest {
         }
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(i, list.get(i).getPosition().y);
+            assertThat(list.get(i).getPosition().y).isEqualTo(i);
         }
 
         // quasi-random
@@ -219,7 +217,7 @@ public class ConnectionManagerTest {
         }
 
         for (int i = 1; i < xCoords.length; i++) {
-            assertTrue(list.get(i).getPosition().y >= list.get(i - 1).getPosition().y);
+            assertThat(list.get(i).getPosition().y >= list.get(i - 1).getPosition().y).isTrue();
         }
     }
 
@@ -230,10 +228,10 @@ public class ConnectionManagerTest {
                 manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
 
         // search an empty list
-        assertEquals(null, searchList(list, 10 /* x */, 10 /* y */, 100 /* radius */));
+        assertThat(searchList(list, 10 /* x */, 10 /* y */, 100 /* radius */)).isNull();
 
         list.addConnection(createConnection(100, 0, Connection.CONNECTION_TYPE_PREVIOUS, false));
-        assertEquals(null, searchList(list, 0, 0, 5));
+        assertThat(searchList(list, 0, 0, 5)).isNull();
         list.clear();
 
         for (int i = 0; i < 10; i++) {
@@ -243,18 +241,18 @@ public class ConnectionManagerTest {
         // should be at 0, 9
         Connection last = list.get(list.size() - 1);
         // correct connection is last in list; many connections in radius
-        assertEquals(last, searchList(list, 0, 10, 15));
+        assertThat(searchList(list, 0, 10, 15)).isEqualTo(last);
         // Nothing nearby.
-        assertEquals(null, searchList(list, 100, 100, 3));
+        assertThat(searchList(list, 100, 100, 3)).isNull();
         // first in list, exact match
-        assertEquals(list.get(0), searchList(list, 0, 0, 0));
+        assertThat(searchList(list, 0, 0, 0)).isEqualTo(list.get(0));
 
         list.addConnection(createConnection(6, 6, Connection.CONNECTION_TYPE_PREVIOUS, false));
         list.addConnection(createConnection(5, 5, Connection.CONNECTION_TYPE_PREVIOUS, false));
 
         Connection result = searchList(list, 4, 6, 3);
-        assertEquals(5, result.getPosition().x);
-        assertEquals(5, result.getPosition().y);
+        assertThat(result.getPosition().x).isEqualTo(5);
+        assertThat(result.getPosition().y).isEqualTo(5);
     }
 
     @Test
@@ -264,7 +262,7 @@ public class ConnectionManagerTest {
                 manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
 
         // Search an empty list
-        assertTrue(getNeighbourHelper(list, 10 /* x */, 10 /* y */, 100 /* radius */).isEmpty());
+        assertThat(getNeighbourHelper(list, 10 /* x */, 10 /* y */, 100 /* radius */).isEmpty()).isTrue();
 
         // Make a list
         for (int i = 0; i < 10; i++) {
@@ -273,36 +271,36 @@ public class ConnectionManagerTest {
 
         // Test block belongs at beginning
         List<Connection> result = getNeighbourHelper(list, 0, 0, 4);
-        assertEquals(5, result.size());
+        assertThat(result.size()).isEqualTo(5);
         for (int i = 0; i < result.size(); i++) {
-            assertTrue(result.contains(list.get(i)));
+            assertThat(result.contains(list.get(i))).isTrue();
         }
 
         // Test block belongs at middle
         result = getNeighbourHelper(list, 0, 4, 2);
-        assertEquals(5, result.size());
+        assertThat(result.size()).isEqualTo(5);
         for (int i = 0; i < result.size(); i++) {
-            assertTrue(result.contains(list.get(i + 2)));
+            assertThat(result.contains(list.get(i + 2))).isTrue();
         }
 
         // Test block belongs at end
         result = getNeighbourHelper(list, 0, 9, 4);
-        assertEquals(5, result.size());
+        assertThat(result.size()).isEqualTo(5);
         for (int i = 0; i < result.size(); i++) {
-            assertTrue(result.contains(list.get(i + 5)));
+            assertThat(result.contains(list.get(i + 5))).isTrue();
         }
 
         // Test block has no neighbours due to being out of range in the x direction
         result = getNeighbourHelper(list, 10, 9, 4);
-        assertTrue(result.isEmpty());
+        assertThat(result.isEmpty()).isTrue();
 
         // Test block has no neighbours due to being out of range in the y direction
         result = getNeighbourHelper(list, 0, 19, 4);
-        assertTrue(result.isEmpty());
+        assertThat(result.isEmpty()).isTrue();
 
         // Test block has no neighbours due to being out of range diagonally
         result = getNeighbourHelper(list, -2, -2, 2);
-        assertTrue(result.isEmpty());
+        assertThat(result.isEmpty()).isTrue();
     }
 
     private List<Connection> getNeighbourHelper(ConnectionManager.YSortedList list, int x, int y,

@@ -27,10 +27,7 @@ import org.junit.rules.ExpectedException;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link ProcedureManager}.
@@ -65,9 +62,9 @@ public class ProcedureManagerTest {
     @Test
     public void testAddProcedureDefinition() {
         mProcedureManager.addDefinition(mProcedureDefinition);
-        assertTrue(mProcedureManager.containsDefinition(mProcedureDefinition));
-        assertNotNull(mProcedureManager.getReferences(PROCEDURE_NAME));
-        assertEquals(0, mProcedureManager.getReferences(PROCEDURE_NAME).size());
+        assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isTrue();
+        assertThat(mProcedureManager.getReferences(PROCEDURE_NAME)).isNotNull();
+        assertThat(mProcedureManager.getReferences(PROCEDURE_NAME).size()).isEqualTo(0);
     }
 
     @Test
@@ -82,9 +79,9 @@ public class ProcedureManagerTest {
         Block secondProcedureDefinition = (new Block.Builder(mProcedureDefinition)).build();
 
         mProcedureManager.addDefinition(secondProcedureDefinition);
-        assertFalse(PROCEDURE_NAME.equalsIgnoreCase(
+        assertThat(PROCEDURE_NAME.equalsIgnoreCase(
                 ((FieldInput) secondProcedureDefinition.getFieldByName("name"))
-                        .getText()));
+                        .getText())).isFalse();
     }
 
     @Test
@@ -92,29 +89,29 @@ public class ProcedureManagerTest {
         mProcedureManager.addDefinition(mProcedureDefinition);
 
         mProcedureManager.addReference(mProcedureReference);
-        assertTrue(mProcedureManager.hasReferences(mProcedureDefinition));
+        assertThat(mProcedureManager.hasReferences(mProcedureDefinition)).isTrue();
     }
 
     @Test
     // Remove definition should also remove all references.
     public void testRemoveProcedureDefinition() {
         mProcedureManager.addDefinition(mProcedureDefinition);
-        assertTrue(mProcedureManager.containsDefinition(mProcedureDefinition));
+        assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isTrue();
 
         mProcedureManager.removeDefinition(mProcedureDefinition);
-        assertFalse(mProcedureManager.containsDefinition(mProcedureDefinition));
-        assertFalse(mProcedureManager.hasReferences(mProcedureDefinition));
+        assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isFalse();
+        assertThat(mProcedureManager.hasReferences(mProcedureDefinition)).isFalse();
 
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
         List<Block> references =
                 mProcedureManager.removeDefinition(mProcedureDefinition);
-        assertNotNull(references);
-        assertEquals(1, references.size());
-        assertEquals(mProcedureReference, references.get(0));
+        assertThat(references).isNotNull();
+        assertThat(references.size()).isEqualTo(1);
+        assertThat(references.get(0)).isEqualTo(mProcedureReference);
 
-        assertFalse(mProcedureManager.containsDefinition(mProcedureDefinition));
-        assertFalse(mProcedureManager.hasReferences(mProcedureDefinition));
+        assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isFalse();
+        assertThat(mProcedureManager.hasReferences(mProcedureDefinition)).isFalse();
     }
 
     @Test
@@ -123,7 +120,7 @@ public class ProcedureManagerTest {
         mProcedureManager.addReference(mProcedureReference);
 
         mProcedureManager.removeReference(mProcedureReference);
-        assertFalse(mProcedureManager.hasReferences(mProcedureReference));
+        assertThat(mProcedureManager.hasReferences(mProcedureReference)).isFalse();
     }
 
     @Test

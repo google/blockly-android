@@ -16,10 +16,7 @@ package com.google.blockly.model;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link FieldAngle}.
@@ -28,33 +25,33 @@ public class FieldAngleTest {
     @Test
     public void testConstructor() {
         FieldAngle field = new FieldAngle("name", 0);
-        assertEquals(Field.TYPE_ANGLE, field.getType());
-        assertEquals("name", field.getName());
-        assertEquals(0f, field.getAngle(), 0d);
+        assertThat(field.getType()).isEqualTo(Field.TYPE_ANGLE);
+        assertThat(field.getName()).isEqualTo("name");
+        assertThat(field.getAngle()).isEqualTo(0f);
     }
 
     @Test
     public void testWrapAround() {
         FieldAngle field = new FieldAngle("name", 360);
-        assertEquals(0f, field.getAngle(), 0d);
+        assertThat(field.getAngle()).isEqualTo(0f);
 
         field.setAngle(720f);
-        assertEquals(0f, field.getAngle(), 0d);
+        assertThat(field.getAngle()).isEqualTo(0f);
 
         field.setAngle(-180f);
-        assertEquals(180f, field.getAngle(), 0d);
+        assertThat(field.getAngle()).isEqualTo(180f);
 
         field.setAngle(10000f);
-        assertEquals(280f, field.getAngle(), 0d);
+        assertThat(field.getAngle()).isEqualTo(280f);
 
         field.setAngle(-10000f);
-        assertEquals(80f, field.getAngle(), 0d);
+        assertThat(field.getAngle()).isEqualTo(80f);
 
         field.setAngle(27f);
-        assertEquals(27f, field.getAngle(), 0d);
+        assertThat(field.getAngle()).isEqualTo(27f);
 
         field.setAngle(-10001f);
-        assertEquals(79f, field.getAngle(), 0d);
+        assertThat(field.getAngle()).isEqualTo(79f);
     }
 
     @Test
@@ -62,11 +59,11 @@ public class FieldAngleTest {
         FieldAngle field = new FieldAngle("name", 0);
 
         // xml parsing
-        assertTrue(field.setFromString("-180"));
-        assertEquals(180f, field.getAngle(), 0d);
-        assertTrue(field.setFromString("27"));
-        assertEquals(27f, field.getAngle(), 0d);
-        assertFalse(field.setFromString("this is not a number"));
+        assertThat(field.setFromString("-180")).isTrue();
+        assertThat(field.getAngle()).isEqualTo(180f);
+        assertThat(field.setFromString("27")).isTrue();
+        assertThat(field.getAngle()).isEqualTo(27f);
+        assertThat(field.setFromString("this is not a number")).isFalse();
     }
 
     @Test
@@ -74,9 +71,9 @@ public class FieldAngleTest {
         FieldAngle field = new FieldAngle("name", 5);
         FieldAngle clone = field.clone();
 
-        assertNotSame(field, field.clone());
-        assertEquals(field.getName(), clone.getName());
-        assertEquals(field.getAngle(), clone.getAngle(), 0d);
+        assertThat(field).isNotSameAs(field.clone());
+        assertThat(clone.getName()).isEqualTo(field.getName());
+        assertThat(clone.getAngle()).isEqualTo(field.getAngle());
     }
 
     @Test

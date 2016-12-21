@@ -30,8 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -86,14 +85,9 @@ public class WorkspaceHelperTest extends BlocklyTestCase {
 
         TestUtils.createViews(blocks, mViewFactory, mockConnectionManager, mWorkspaceView);
 
-        assertSame(mWorkspaceHelper.getParentBlockGroup(root),
-                mWorkspaceHelper.getParentBlockGroup(cur));
-
-        assertNotSame(mWorkspaceHelper.getParentBlockGroup(blocks.get(0)),
-                mWorkspaceHelper.getParentBlockGroup(blocks.get(1)));
-
-        assertNotSame(mWorkspaceHelper.getParentBlockGroup(root),
-                mWorkspaceHelper.getParentBlockGroup(hasOutput));
+        assertThat(mWorkspaceHelper.getParentBlockGroup(root)).isSameAs(mWorkspaceHelper.getParentBlockGroup(cur));
+        assertThat(mWorkspaceHelper.getParentBlockGroup(blocks.get(0))).isNotSameAs(mWorkspaceHelper.getParentBlockGroup(blocks.get(1)));
+        assertThat(mWorkspaceHelper.getParentBlockGroup(root)).isNotSameAs(mWorkspaceHelper.getParentBlockGroup(hasOutput));
     }
 
 
@@ -122,14 +116,9 @@ public class WorkspaceHelperTest extends BlocklyTestCase {
 
         TestUtils.createViews(blocks, mViewFactory, mockConnectionManager, mWorkspaceView);
 
-        assertSame(mWorkspaceHelper.getRootBlockGroup(root),
-                mWorkspaceHelper.getRootBlockGroup(cur));
-
-        assertSame(mWorkspaceHelper.getRootBlockGroup(root),
-                mWorkspaceHelper.getRootBlockGroup(finalBlock));
-
-        assertNotSame(Arrays.toString(blocks.toArray()),
-                mWorkspaceHelper.getRootBlockGroup(blocks.get(0)),
-                mWorkspaceHelper.getRootBlockGroup(blocks.get(1)));
+        assertThat(mWorkspaceHelper.getRootBlockGroup(root)).isSameAs(mWorkspaceHelper.getRootBlockGroup(cur));
+        assertThat(mWorkspaceHelper.getRootBlockGroup(root)).isSameAs(mWorkspaceHelper.getRootBlockGroup(finalBlock));
+        assertThat(Arrays.toString(blocks.toArray())).isNotSameAs(mWorkspaceHelper.getRootBlockGroup(blocks.get(0)));
+        assertThat(Arrays.toString(blocks.toArray())).isNotSameAs(mWorkspaceHelper.getRootBlockGroup(blocks.get(1)));
     }
  }

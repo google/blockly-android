@@ -19,10 +19,7 @@ import org.junit.Test;
 
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link FieldDate}.
@@ -39,38 +36,38 @@ public class FieldDateTest {
 
     @Test
     public void testConstructor() {
-        assertEquals(Field.TYPE_DATE, mField.getType());
-        assertEquals("alphabet", mField.getName());
-        assertEquals(INITIAL_VALUE, mField.getSerializedValue());
+        assertThat(mField.getType()).isEqualTo(Field.TYPE_DATE);
+        assertThat(mField.getName()).isEqualTo("alphabet");
+        assertThat(mField.getSerializedValue()).isEqualTo(INITIAL_VALUE);
     }
 
     @Test
     public void testSetDate() {
         Date date = new Date();
         mField.setDate(date);
-        assertEquals(date, mField.getDate());
+        assertThat(mField.getDate()).isEqualTo(date);
         date.setTime(date.getTime() + 86400000);
         mField.setTime(date.getTime());
-        assertEquals(date, mField.getDate());
+        assertThat(mField.getDate()).isEqualTo(date);
 
-        assertTrue(mField.setFromString("2017-03-23"));
-        assertEquals("2017-03-23", mField.getLocalizedDateString());
+        assertThat(mField.setFromString("2017-03-23")).isTrue();
+        assertThat(mField.getLocalizedDateString()).isEqualTo("2017-03-23");
     }
 
     @Test
     public void testSetFromString() {
-        assertFalse(mField.setFromString("today"));
-        assertFalse(mField.setFromString("2017/03/03"));
-        assertFalse(mField.setFromString(""));
+        assertThat(mField.setFromString("today")).isFalse();
+        assertThat(mField.setFromString("2017/03/03")).isFalse();
+        assertThat(mField.setFromString("")).isFalse();
     }
 
     @Test
     public void testClone() {
         FieldDate clone = mField.clone();
-        assertNotSame(mField, clone);
-        assertEquals(mField.getName(), clone.getName());
-        assertNotSame(mField.getDate(), clone.getDate());
-        assertEquals(mField.getDate(), clone.getDate());
+        assertThat(mField).isNotSameAs(clone);
+        assertThat(clone.getName()).isEqualTo(mField.getName());
+        assertThat(mField.getDate()).isNotSameAs(clone.getDate());
+        assertThat(clone.getDate()).isEqualTo(mField.getDate());
     }
 
     @Test
