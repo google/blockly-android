@@ -98,10 +98,14 @@ public class WorkspaceStatsTest {
         assertTrue(mStats.getVariableNameManager().contains("variable name"));
         assertFalse(mStats.getVariableNameManager().contains("field name"));
 
-        assertEquals(1, mStats.getVariableReferences().size());
-        assertEquals(2, mStats.getVariableReferences().get("variable name").size());
+        assertEquals(2, mStats.getVariableReference("variable name").size());
         assertEquals(variableReference.getFieldByName("field name"),
-                mStats.getVariableReferences().get("variable name").get(0));
+                mStats.getVariableReference("variable name").get(0));
+    }
+
+    @Test
+    public void testVariableReferencesNeverNull() {
+        assertNotNull(mStats.getVariableReference("not a reference"));
     }
 
     @Test

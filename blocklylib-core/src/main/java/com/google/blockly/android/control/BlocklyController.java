@@ -1050,10 +1050,7 @@ public class BlocklyController {
         newVariable = addVariableImpl(newVariable, true);
         List<FieldVariable> varRefs = mWorkspace.getVariableRefs(variable);
         if (varRefs != null) {
-            int count = varRefs.size();
-
-            for (int i = 0; i < count; i++) {
-                FieldVariable field = varRefs.get(i);
+            for (FieldVariable field : varRefs) {
                 field.setVariable(newVariable);
                 BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
                         .newFieldValueEvent(getWorkspace(), field.getBlock(), field,
