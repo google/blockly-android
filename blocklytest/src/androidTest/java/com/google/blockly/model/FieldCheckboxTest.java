@@ -14,8 +14,6 @@
  */
 package com.google.blockly.model;
 
-import android.test.AndroidTestCase;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

@@ -18,13 +18,9 @@ package com.google.blockly.android;
 import android.content.Context;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
-import android.test.AndroidTestCase;
 import android.view.ContextThemeWrapper;
 
 import com.google.blockly.android.ui.vertical.R;
-
-import org.junit.Before;
-import org.mockito.MockitoAnnotations;
 
 /**
  * Base class for Android tests with Mockito.

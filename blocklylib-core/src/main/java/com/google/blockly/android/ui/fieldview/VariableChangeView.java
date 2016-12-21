@@ -15,13 +15,13 @@
 
 package com.google.blockly.android.ui.fieldview;
 
-import android.view.View;
+import com.google.blockly.android.control.BlocklyController;
 
 
 /**
  * Views that allow the user to request changes to the list of variables should implement this
- * interface. The {@link com.google.blockly.android.control.BlocklyController} maintains a
- * {@link VariableRequestCallback} for handling UI requests.
+ * interface. The {@link BlocklyController} maintains a {@link VariableRequestCallback} for handling
+ * UI requests.
  */
 public interface VariableChangeView {
     /**
@@ -31,5 +31,5 @@ public interface VariableChangeView {
      *
      * @param requestCallback The callback to notify when the user has selected an action.
      */
-    public void setVariableRequestCallback(VariableRequestCallback requestCallback);
+    void setVariableRequestCallback(VariableRequestCallback requestCallback);
 }

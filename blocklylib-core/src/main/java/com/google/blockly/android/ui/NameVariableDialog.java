@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.control.BlocklyController;
 
 /**
  * Default dialog window shown when creating or renaming a variable in the workspace.

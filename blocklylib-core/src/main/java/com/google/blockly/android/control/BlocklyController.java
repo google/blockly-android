@@ -17,7 +17,6 @@ package com.google.blockly.android.control;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
