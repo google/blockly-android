@@ -916,14 +916,14 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
         @Override
         public boolean onRenameVariable(String variable, String newName) {
-            mNameDialog.setVariable(variable, mRenameCallback);
+            mNameDialog.setVariable(variable, mRenameCallback, true);
             mNameDialog.show(getSupportFragmentManager(), "RenameVariable");
             return false;
         }
 
         @Override
         public boolean onCreateVariable(String variable) {
-            mNameDialog.setVariable(variable, mCreateCallback);
+            mNameDialog.setVariable(variable, mCreateCallback, false);
             mNameDialog.show(getSupportFragmentManager(), "CreateVariable");
             return false;
         }

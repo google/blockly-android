@@ -8,9 +8,9 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.control.BlocklyController;
 
 /**
  * Default dialog window shown when creating or renaming a variable in the workspace.
@@ -19,6 +19,7 @@ public class NameVariableDialog extends DialogFragment {
     private String mVariable;
     private DialogInterface.OnClickListener mListener;
     private EditText mNameEditText;
+    private boolean mIsRename;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceBundle) {
@@ -26,6 +27,12 @@ public class NameVariableDialog extends DialogFragment {
         View nameView = inflater.inflate(R.layout.name_variable_view, null);
         mNameEditText = (EditText) nameView.findViewById(R.id.name);
         mNameEditText.setText(mVariable);
+
+        if (mIsRename) {
+            TextView description = (TextView) nameView.findViewById(R.id.description);
+            description.setText(
+                String.format(getString(R.string.rename_variable_message), mVariable));
+        }
 
         AlertDialog.Builder bob = new AlertDialog.Builder(getActivity());
         bob.setTitle(R.string.name_variable_title);
@@ -35,11 +42,12 @@ public class NameVariableDialog extends DialogFragment {
         return bob.create();
     }
 
-    public void setVariable(String variable, final Callback clickListener) {
+    public void setVariable(String variable, final Callback clickListener, boolean isRename) {
         if (clickListener == null) {
             throw new IllegalArgumentException("Must have a listener to perform an action.");
         }
         mVariable = variable;
+        mIsRename = isRename;
         mListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
