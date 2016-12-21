@@ -14,8 +14,6 @@
  */
 package com.google.blockly.model;
 
-import android.test.AndroidTestCase;
-
 import org.junit.Before;
 import org.junit.Test;
 

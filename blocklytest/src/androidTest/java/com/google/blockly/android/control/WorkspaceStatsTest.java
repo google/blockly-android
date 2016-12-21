@@ -16,7 +16,6 @@
 package com.google.blockly.android.control;
 
 import android.support.test.InstrumentationRegistry;
-import android.test.InstrumentationTestCase;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;

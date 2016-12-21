@@ -1,7 +1,5 @@
 package com.google.blockly.utils;
 
-import junit.framework.Assert;
-
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 

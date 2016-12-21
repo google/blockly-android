@@ -15,8 +15,6 @@
 
 package com.google.blockly.android.ui;
 
-import android.support.test.InstrumentationRegistry;
-
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.control.ConnectionManager;
