@@ -34,6 +34,7 @@
     <!-- Message shown when creating or renaming a variable. -->
     <string name="name_variable_title">Variable name</string>
     <string name="name_variable_message">New variable name</string>
+    <string name="rename_variable_message">Rename variable from: %s</string>
     <string name="name_variable_positive">OK</string>
     <string name="name_variable_negative">Cancel</string>
 
