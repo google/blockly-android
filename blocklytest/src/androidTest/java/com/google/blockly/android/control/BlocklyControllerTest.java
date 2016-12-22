@@ -1205,6 +1205,36 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     }
 
     @Test
+    public void testCreateVariableDoesNotChangeCase() {
+        String name = "NEW VAR NAME";
+
+        String finalName = mController.addVariable(name);
+
+        assertThat(finalName).isEqualTo(name);
+    }
+
+    @Test
+    public void testRenameVariableDoesNotChangeCase() {
+        String oldName = "oldName";
+        String newName = "TEST";
+
+        String finalName = mController.renameVariable(oldName, newName);
+
+        assertThat(finalName).isEqualTo(newName);
+    }
+
+    @Test
+    public void testCreateVariableDoesNotAllowDuplicateNamesWithDifferentCases() {
+        String name1 = "FIRST VAR";
+        String name2 = "first var";
+
+        String finalName1 = mController.addVariable(name1);
+        String finalName2 = mController.addVariable(name2);
+
+        assertThat(finalName1.toLowerCase()).isNotEqualTo(finalName2.toLowerCase());
+    }
+
+    @Test
     public void testRemoveVariable() {
         mController.addVariable("var1");
         mController.addVariable("var2");

@@ -44,6 +44,11 @@ public class NameManagerTest {
     }
 
     @Test
+    public void testGenerateUniqueNameCaseInsensitive() {
+        assertThat(mNameManager.generateUniqueName("FOO", true /* addName */)).isEqualTo("FOO");
+    }
+
+    @Test
     public void testCaseInsensitive() {
         String name1 = mNameManager.generateUniqueName("string", true /* addName */);
         String name2 = mNameManager.generateUniqueName("String", true /* addName */);
