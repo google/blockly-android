@@ -73,7 +73,8 @@ public class ConnectionTest {
     @Test
     public void testCanConnectWithReason() {
         assertThat(input.canConnectWithReason(null)).isEqualTo(Connection.REASON_TARGET_NULL);
-        assertThat(input.canConnectWithReason(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null)))
+        assertThat(input.canConnectWithReason(
+            new Connection(Connection.CONNECTION_TYPE_OUTPUT, null)))
             .isEqualTo(Connection.REASON_TARGET_NULL);
 
         assertThat(input.canConnectWithReason(input)).isEqualTo(Connection.REASON_SELF_CONNECTION);
@@ -133,13 +134,15 @@ public class ConnectionTest {
         assertThat(input.canConnectWithReason(shadowOutput)).isEqualTo(Connection.CAN_CONNECT);
         input.connect(output);
         // Verify a shadow and non shadow can't be connected at the same time
-        assertThat(input.canConnectWithReason(shadowOutput)).isEqualTo(Connection.REASON_MUST_DISCONNECT);
+        assertThat(input.canConnectWithReason(shadowOutput))
+            .isEqualTo(Connection.REASON_MUST_DISCONNECT);
         input.disconnect();
         input.connect(shadowOutput);
 
         // Veryify a normal connection can't be made after a shadow connection
         next.connect(shadowPrevious);
-        assertThat(next.canConnectWithReason(previous)).isEqualTo(Connection.REASON_MUST_DISCONNECT);
+        assertThat(next.canConnectWithReason(previous))
+            .isEqualTo(Connection.REASON_MUST_DISCONNECT);
     }
 
     @Test

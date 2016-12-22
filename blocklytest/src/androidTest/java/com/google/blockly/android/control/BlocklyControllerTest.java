@@ -782,7 +782,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
         if (withViews) {
             assertThat(mHelper.getView(shadow)).isNotNull();
-            assertThat(mHelper.getRootBlockGroup(target)).isSameAs(mHelper.getRootBlockGroup(shadow));
+            assertThat(mHelper.getRootBlockGroup(target))
+                .isSameAs(mHelper.getRootBlockGroup(shadow));
         }
 
         // Reconnect the source and make sure the shadow goes away
@@ -793,7 +794,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
         if (withViews) {
             assertThat(mHelper.getView(shadow)).isNull();
-            assertThat(mHelper.getRootBlockGroup(target)).isSameAs(mHelper.getRootBlockGroup(source));
+            assertThat(mHelper.getRootBlockGroup(target))
+                .isSameAs(mHelper.getRootBlockGroup(source));
         }
     }
 
@@ -908,10 +910,11 @@ public class BlocklyControllerTest extends BlocklyTestCase {
             assertThat(targetRootGroup).isNotSameAs(tailRootGroup);
             assertThat(tailRootGroup).isSameAs(mHelper.getParentBlockGroup(tail));
             assertThat(targetRootGroup).isSameAs(mHelper.getRootBlockGroup(source));
-            assertThat(sourceGroup.getParent()).isSameAs(target.getInputByName("statement input").getView());
+            assertThat(sourceGroup.getParent())
+                .isSameAs(target.getInputByName("statement input").getView());
             assertThat(sourceView).isSameAs(sourceGroup.getChildAt(0));
             assertThat(mHelper.getMaxSnapDistance() <=
-                    source.getPreviousConnection().distanceFrom(tail.getPreviousConnection())).isTrue();
+                source.getPreviousConnection().distanceFrom(tail.getPreviousConnection())).isTrue();
         }
     }
 
@@ -959,7 +962,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         assertThat(mWorkspace.isRootBlock(target)).isTrue();
         assertThat(mWorkspace.isRootBlock(tail)).isFalse();
         assertThat(mWorkspace.isRootBlock(source)).isFalse();
-        assertThat(statementConnection).isSameAs(source.getPreviousConnection().getTargetConnection());
+        assertThat(statementConnection)
+            .isSameAs(source.getPreviousConnection().getTargetConnection());
         assertThat(source).isSameAs(tail.getPreviousBlock());
         assertThat(shadow.getParentBlock()).isNull();
 
@@ -970,7 +974,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
             assertThat(targetRootGroup).isSameAs(mHelper.getRootBlockGroup(tail));
             assertThat(sourceGroup).isSameAs(mHelper.getParentBlockGroup(tail));
             assertThat(targetRootGroup).isSameAs(mHelper.getRootBlockGroup(source));
-            assertThat(sourceGroup.getParent()).isSameAs(target.getInputByName("statement input").getView());
+            assertThat(sourceGroup.getParent())
+                .isSameAs(target.getInputByName("statement input").getView());
             assertThat(sourceView).isSameAs(sourceGroup.getChildAt(0));
             assertThat(mHelper.getView(tail)).isSameAs(sourceGroup.getChildAt(1));
 

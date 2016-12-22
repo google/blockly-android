@@ -52,7 +52,8 @@ public class BasicFieldInputViewTest {
     public void testInstantiation() {
         final BasicFieldInputView view = makeFieldInputView();
         assertThat(mFieldInput).isSameAs(view.getField());
-        assertThat(view.getText().toString()).isEqualTo(INIT_TEXT_VALUE);  // Fails without .toString()
+        // Fails without .toString()
+        assertThat(view.getText().toString()).isEqualTo(INIT_TEXT_VALUE);
     }
 
     // Verify setting text in the view propagates to the field.
@@ -69,7 +70,8 @@ public class BasicFieldInputViewTest {
         final BasicFieldInputView view = makeFieldInputView();
 
         mFieldInput.setText(SET_TEXT_VALUE);
-        assertThat(view.getText().toString()).isEqualTo(SET_TEXT_VALUE);  // Fails without .toString()
+        // Fails without .toString()
+        assertThat(view.getText().toString()).isEqualTo(SET_TEXT_VALUE);
     }
 
     @NonNull

@@ -41,7 +41,8 @@ public class NameVariableDialogTest extends BlocklyTestCase {
   public void dialogShowsOldVariableNameWhenRenaming() throws Exception {
     String variableName = "oldVariableName";
 
-    mNameVariableDialogFragment.setVariable(variableName, mock(NameVariableDialog.Callback.class), true);
+    mNameVariableDialogFragment.setVariable(variableName,
+        mock(NameVariableDialog.Callback.class), true);
     mNameVariableDialogFragment.show(mActivity.getSupportFragmentManager(), "RenameFragment");
     onView(withId(R.id.description)).check(matches(withText(new StringContains(variableName))));
   }

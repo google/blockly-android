@@ -64,13 +64,15 @@ public class BlockFactoryTest {
         assertWithMessage("Type not set correctly").that(block.getType()).isEqualTo("test_block");
         assertStringNotEmpty("Block id cannot be empty.", block.getId());
         assertWithMessage("Wrong number of inputs").that(block.getInputs().size()).isEqualTo(2);
-        assertWithMessage("Wrong number of fields in first input").that(block.getInputs().get(0).getFields().size()).isEqualTo(9);
+        assertWithMessage("Wrong number of fields in first input").that(block.getInputs().get(0)
+            .getFields().size()).isEqualTo(9);
     }
 
     @Test
     public void testLoadBlocks() {
         List<Block> blocks = mBlockFactory.getAllBlocks();
-        assertWithMessage("BlockFactory failed to load all blocks.").that(blocks.size()).isEqualTo(21);
+        assertWithMessage("BlockFactory failed to load all blocks.").that(blocks.size())
+            .isEqualTo(21);
     }
 
     @Test
@@ -124,7 +126,8 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testBlockMultipleValuesForSameInputFails() throws IOException, XmlPullParserException {
+    public void testBlockMultipleValuesForSameInputFails()
+        throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "5",
             BlockTestStrings.VALUE_REPEATED),
             "An input <value> with multiple blocks must fail to load.");
@@ -168,7 +171,8 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testBlockWithNoConnectionOnChildBlockFails() throws IOException, XmlPullParserException {
+    public void testBlockWithNoConnectionOnChildBlockFails()
+        throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "13",
             BlockTestStrings.STATEMENT_BAD_CHILD),
             "A statement <value> child without a previous connection must fail to load.");
@@ -188,7 +192,8 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testCreateBlockWithStatementWithNullChildBlock() throws IOException, XmlPullParserException {
+    public void testCreateBlockWithStatementWithNullChildBlock()
+        throws IOException, XmlPullParserException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "12",
                 BlockTestStrings.STATEMENT_NO_CHILD));
     }
@@ -239,7 +244,8 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowWithBlockInValue() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlShadowWithBlockInValue()
+        throws IOException, XmlPullParserException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "2",
             BlockTestStrings.VALUE_SHADOW_GOOD));
         Connection conn = loaded.getInputByName("value_input").getConnection();
@@ -259,7 +265,8 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowWithBlockInStatement() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlShadowWithBlockInStatement()
+        throws IOException, XmlPullParserException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "4",
             BlockTestStrings.STATEMENT_SHADOW_GOOD));
         Connection conn = loaded.getInputByName("NAME").getConnection();
@@ -283,14 +290,16 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowBlockWithShadowChildFails() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlShadowBlockWithShadowChildFails()
+        throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "6",
             BlockTestStrings.VALUE_NESTED_SHADOW_BLOCK),
             "A <shadow> containing a normal <block> must fail to load.");
     }
 
     @Test
-    public void testLoadFromXmlBlockWithVariableCannotBeShadowBlock() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlBlockWithVariableCannotBeShadowBlock()
+        throws IOException, XmlPullParserException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "7",
                 BlockTestStrings.VALUE_SHADOW_VARIABLE),
                 "A <shadow> containing a variable field (at any depth) must fail to load.");
@@ -300,16 +309,21 @@ public class BlockFactoryTest {
     public void testObtainBlock() {
         Block emptyBlock = mBlockFactory.obtainBlock("empty_block", null);
         assertWithMessage("Failed to create the empty block.").that(emptyBlock).isNotNull();
-        assertWithMessage("Empty block has the wrong type").that(emptyBlock.getType()).isEqualTo("empty_block");
+        assertWithMessage("Empty block has the wrong type").that(emptyBlock.getType())
+            .isEqualTo("empty_block");
 
         Block frankenblock = mBlockFactory.obtainBlock("frankenblock", null);
         assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
         List<Input> inputs = frankenblock.getInputs();
-        assertWithMessage("Frankenblock has the wrong number of inputs").that(inputs.size()).isEqualTo(3);
-        assertWithMessage("First input should be a value input.").that(inputs.get(0) instanceof Input.InputValue).isTrue();
-        assertWithMessage("Second input should be a statement input.").that(inputs.get(1) instanceof Input.InputStatement).isTrue();
-        assertWithMessage("Third input should be a dummy input.").that(inputs.get(2) instanceof Input.InputDummy).isTrue();
+        assertWithMessage("Frankenblock has the wrong number of inputs").that(inputs.size())
+            .isEqualTo(3);
+        assertWithMessage("First input should be a value input.")
+            .that(inputs.get(0) instanceof Input.InputValue).isTrue();
+        assertWithMessage("Second input should be a statement input.")
+            .that(inputs.get(1) instanceof Input.InputStatement).isTrue();
+        assertWithMessage("Third input should be a dummy input.")
+            .that(inputs.get(2) instanceof Input.InputDummy).isTrue();
 
         assertThat(frankenblock.getFieldByName("angle")).isNotNull();
     }
@@ -320,12 +334,17 @@ public class BlockFactoryTest {
         assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
         Block frankencopy = mBlockFactory.obtainBlock("frankenblock", null);
-        assertWithMessage("Obtained blocks should be distinct objects when uuid is null.").that(frankencopy).isNotSameAs(frankenblock);
+        assertWithMessage("Obtained blocks should be distinct objects when uuid is null.")
+            .that(frankencopy).isNotSameAs(frankenblock);
 
-        assertWithMessage("Obtained blocks should not share connections.").that(frankencopy.getNextConnection()).isNotSameAs(frankenblock.getNextConnection());
-        assertWithMessage("Obtained blocks should not share connections.").that(frankencopy.getPreviousConnection()).isNotSameAs(frankenblock.getPreviousConnection());
+        assertWithMessage("Obtained blocks should not share connections.")
+            .that(frankencopy.getNextConnection()).isNotSameAs(frankenblock.getNextConnection());
+        assertWithMessage("Obtained blocks should not share connections.")
+            .that(frankencopy.getPreviousConnection())
+            .isNotSameAs(frankenblock.getPreviousConnection());
         assertThat(frankenblock.getOutputConnection()).isNull();
-        assertWithMessage("Obtained blocks should not share inputs.").that(frankencopy.getInputs().get(0)).isNotSameAs(frankenblock.getInputs().get(0));
+        assertWithMessage("Obtained blocks should not share inputs.")
+            .that(frankencopy.getInputs().get(0)).isNotSameAs(frankenblock.getInputs().get(0));
     }
 
     @Test

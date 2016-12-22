@@ -64,14 +64,16 @@ public class WorkspaceTest extends BlocklyTestCase {
     @Test
     public void testSimpleXmlParsing() {
         mWorkspace.loadWorkspaceContents(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK));
-        assertWithMessage("Workspace should have one block").that(mWorkspace.getRootBlocks()).hasSize(1);
+        assertWithMessage("Workspace should have one block")
+            .that(mWorkspace.getRootBlocks()).hasSize(1);
     }
 
     @Test
     public void testEmptyXmlParsing() {
         // Normal end tag.
         mWorkspace.loadWorkspaceContents(assembleWorkspace(""));
-        assertWithMessage("Workspace should be empty").that(mWorkspace.getRootBlocks()).hasSize(0);
+        assertWithMessage("Workspace should be empty")
+            .that(mWorkspace.getRootBlocks()).hasSize(0);
 
         // Abbreviated end tag.
         mWorkspace.loadWorkspaceContents(new ByteArrayInputStream(EMPTY_WORKSPACE.getBytes()));
