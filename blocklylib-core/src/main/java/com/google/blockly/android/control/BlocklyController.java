@@ -948,6 +948,16 @@ public class BlocklyController {
     }
 
     /**
+     * Removes all blocks from the {@link WorkspaceView} and puts them in the trash.
+     */
+    public void trashAllBlocks() {
+        List<Block> rootBlocks = new ArrayList<>(mWorkspace.getRootBlocks());
+        for (Block block: rootBlocks) {
+            trashRootBlockImpl(block, true);
+        }
+    }
+
+    /**
      * Adds the provided block as a root block.  If a {@link WorkspaceView} is attached, it will
      * also update the view, creating a new {@link BlockGroup} if not provided.
      * <p/>

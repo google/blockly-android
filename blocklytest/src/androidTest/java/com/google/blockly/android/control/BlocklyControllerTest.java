@@ -1295,7 +1295,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     @Test
     public void testLoadWorkspaceContents_andReset() {
         mController.initWorkspaceView(mWorkspaceView);
-        assertThat(mWorkspace.getRootBlocks().size()).isEqualTo(0);
+        assertThat(mWorkspace.getRootBlocks()).hasSize(0);
         assertThat(mWorkspaceView.getChildCount()).isEqualTo(0);
 
         mController.loadWorkspaceContents(
@@ -1303,12 +1303,33 @@ public class BlocklyControllerTest extends BlocklyTestCase {
                 BlockTestStrings.EMPTY_BLOCK_WITH_POSITION.replace(
                         BlockTestStrings.EMPTY_BLOCK_ID,
                         BlockTestStrings.EMPTY_BLOCK_ID + '2'));
-        assertThat(mWorkspace.getRootBlocks().size()).isEqualTo(2);
+        assertThat(mWorkspace.getRootBlocks()).hasSize(2);
         assertThat(mWorkspaceView.getChildCount()).isEqualTo(2);
 
         mController.resetWorkspace();
-        assertThat(mWorkspace.getRootBlocks().size()).isEqualTo(0);
+        assertThat(mWorkspace.getRootBlocks()).hasSize(0);
         assertThat(mWorkspaceView.getChildCount()).isEqualTo(0);
+    }
+
+    @Test
+    public void testLoadWorkspaceContents_andTrashAllBlocks() {
+        mController.initWorkspaceView(mWorkspaceView);
+        assertThat(mWorkspace.getRootBlocks()).hasSize(0);
+        assertThat(mWorkspace.getTrashContents()).hasSize(0);
+
+        mController.loadWorkspaceContents(
+            BlockTestStrings.EMPTY_BLOCK_WITH_POSITION +
+                BlockTestStrings.EMPTY_BLOCK_WITH_POSITION.replace(
+                    BlockTestStrings.EMPTY_BLOCK_ID,
+                    BlockTestStrings.EMPTY_BLOCK_ID + '2'));
+        assertThat(mWorkspace.getRootBlocks()).hasSize(2);
+        assertThat(mWorkspace.getTrashContents()).hasSize(0);
+
+        mController.trashAllBlocks();
+        assertThat(mWorkspace.getRootBlocks()).hasSize(0);
+        assertThat(mWorkspace.getTrashContents()).hasSize(2);
+
+
     }
 
     /**
