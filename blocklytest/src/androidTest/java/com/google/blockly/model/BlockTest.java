@@ -17,6 +17,7 @@ package com.google.blockly.model;
 
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
@@ -46,14 +47,14 @@ import static com.google.common.truth.Truth.assertWithMessage;
 /**
  * Tests for {@link Block}.
  */
-public class BlockTest {
+public class BlockTest extends BlocklyTestCase {
     private XmlPullParserFactory xmlPullParserFactory;
     private BlockFactory mBlockFactory;
 
     @Before
     public void setUp() throws Exception {
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
-        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
     }
 
     @Test
@@ -84,8 +85,10 @@ public class BlockTest {
 
         Block copy = original.deepCopy();
         assertThat(original).isNotSameAs(copy);
-        assertThat(original.getOnlyValueInput().getConnection().getTargetBlock()).isNotSameAs(copy.getOnlyValueInput().getConnection().getTargetBlock());
-        assertThat(original.getOnlyValueInput().getConnection().getShadowBlock()).isNotSameAs(copy.getOnlyValueInput().getConnection().getShadowBlock());
+        assertThat(original.getOnlyValueInput().getConnection().getTargetBlock())
+                .isNotSameAs(copy.getOnlyValueInput().getConnection().getTargetBlock());
+        assertThat(original.getOnlyValueInput().getConnection().getShadowBlock())
+                .isNotSameAs(copy.getOnlyValueInput().getConnection().getShadowBlock());
     }
 
     @Test
@@ -98,18 +101,24 @@ public class BlockTest {
 
         testMessage = "This has no args %%5";
         tokens = Block.tokenizeMessage(testMessage);
-        assertWithMessage("Should have 1 token: " + tokens.toString()).that(tokens.size()).isEqualTo(1);
-        assertWithMessage("Only token should be the original string: " + tokens.toString()).that(tokens.get(0)).isEqualTo(testMessage);
+        assertWithMessage("Should have 1 token: " + tokens.toString())
+                .that(tokens.size()).isEqualTo(1);
+        assertWithMessage("Only token should be the original string: " + tokens.toString())
+                .that(tokens.get(0)).isEqualTo(testMessage);
 
         testMessage = "%1";
         tokens = Block.tokenizeMessage(testMessage);
-        assertWithMessage("Should have 1 token: " + tokens.toString()).that(tokens.size()).isEqualTo(1);
-        assertWithMessage("Only token should be the original string: " + tokens.toString()).that(tokens.get(0)).isEqualTo(testMessage);
+        assertWithMessage("Should have 1 token: " + tokens.toString())
+                .that(tokens.size()).isEqualTo(1);
+        assertWithMessage("Only token should be the original string: " + tokens.toString())
+                .that(tokens.get(0)).isEqualTo(testMessage);
 
         testMessage = "%Hello";
         tokens = Block.tokenizeMessage(testMessage);
-        assertWithMessage("Should have 1 token: " + tokens.toString()).that(tokens.size()).isEqualTo(1);
-        assertWithMessage("Only token should be the original string: " + tokens.toString()).that(tokens.get(0)).isEqualTo(testMessage);
+        assertWithMessage("Should have 1 token: " + tokens.toString())
+                .that(tokens.size()).isEqualTo(1);
+        assertWithMessage("Only token should be the original string: " + tokens.toString())
+                .that(tokens.get(0)).isEqualTo(testMessage);
 
 
         testMessage = "%Hello%1World%";
@@ -120,7 +129,7 @@ public class BlockTest {
 
     @Test
     public void testSerializeBlock() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
         block.setPosition(37, 13);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -151,7 +160,7 @@ public class BlockTest {
 
     @Test
     public void testSerializeInputsInline() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
         block.setPosition(37, 13);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -178,7 +187,7 @@ public class BlockTest {
 
     @Test
     public void testSerializeShadowBlock() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("empty_block", BlockTestStrings.EMPTY_BLOCK_ID);
         block.setPosition(37, 13);
         block.setShadow(true);
@@ -192,7 +201,7 @@ public class BlockTest {
 
     @Test
     public void testSerializeValue() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("frankenblock", "364");
         block.setPosition(37, 13);
 
@@ -214,7 +223,7 @@ public class BlockTest {
 
     @Test
     public void testSerializeShadowValue() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("frankenblock", "364");
         block.setPosition(37, 13);
 
@@ -260,7 +269,7 @@ public class BlockTest {
 
     @Test
     public void testSerializeStatement() throws BlocklySerializerException, IOException {
-        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtainBlock("frankenblock", "364");
         block.setPosition(37, 13);
 
@@ -311,7 +320,7 @@ public class BlockTest {
 
     @Test
     public void testGetOnlyValueInput() {
-        BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         // No inputs.
         assertThat(bf.obtainBlock("statement_no_input", null).getOnlyValueInput()).isNull();
 
@@ -331,7 +340,9 @@ public class BlockTest {
         assertThat(underTest.getInputByName("TIMES")).isSameAs(underTest.getOnlyValueInput());
     }
 
-    private XmlSerializer getXmlSerializer(ByteArrayOutputStream os) throws BlocklySerializerException {
+    private XmlSerializer getXmlSerializer(ByteArrayOutputStream os)
+            throws BlocklySerializerException
+    {
         XmlSerializer serializer;
         try {
             xmlPullParserFactory.setNamespaceAware(true);
@@ -344,9 +355,11 @@ public class BlockTest {
     }
 
     private void assertListsMatch(List<String> expected, List<String> actual) {
-        assertWithMessage("Wrong number of items in the list.").that(actual.size()).isEqualTo(expected.size());
+        assertWithMessage("Wrong number of items in the list.")
+                .that(actual.size()).isEqualTo(expected.size());
         for (int i = 0; i < expected.size(); i++) {
-            assertWithMessage("Item " + i + " does not match.").that(actual.get(i)).isEqualTo(expected.get(i));
+            assertWithMessage("Item " + i + " does not match.")
+                    .that(actual.get(i)).isEqualTo(expected.get(i));
         }
     }
 
@@ -359,8 +372,10 @@ public class BlockTest {
         first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
         blocks.add(first);
 
-        assertThat(second.getLastUnconnectedInputConnection()).isSameAs(second.getOnlyValueInput().getConnection());
-        assertThat(first.getLastUnconnectedInputConnection()).isSameAs(second.getOnlyValueInput().getConnection());
+        assertThat(second.getLastUnconnectedInputConnection())
+                .isSameAs(second.getOnlyValueInput().getConnection());
+        assertThat(first.getLastUnconnectedInputConnection())
+                .isSameAs(second.getOnlyValueInput().getConnection());
     }
 
     @Test
@@ -406,8 +421,10 @@ public class BlockTest {
         secondConn.connect(shadow.getOutputConnection());
         blocks.add(first);
 
-        assertThat(second.getLastUnconnectedInputConnection()).isSameAs(second.getOnlyValueInput().getConnection());
-        assertThat(first.getLastUnconnectedInputConnection()).isSameAs(second.getOnlyValueInput().getConnection());
+        assertThat(second.getLastUnconnectedInputConnection())
+                .isSameAs(second.getOnlyValueInput().getConnection());
+        assertThat(first.getLastUnconnectedInputConnection())
+                .isSameAs(second.getOnlyValueInput().getConnection());
     }
 
     @Test
@@ -485,106 +502,135 @@ public class BlockTest {
     @Test
     public void testCollapsed() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertWithMessage("By default, blocks are not collapsed.").that(block.isCollapsed()).isFalse();
+        assertWithMessage("By default, blocks are not collapsed.")
+                .that(block.isCollapsed()).isFalse();
 
         String blockXml = toXml(block);
-        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("collapsed")).isFalse();
+        assertWithMessage("Default state is not stored in XML")
+                .that(blockXml.contains("collapsed")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("By default, blocks loaded from XML are not collapsed.").that(blockFromXml.isCollapsed()).isFalse();
+        assertWithMessage("By default, blocks loaded from XML are not collapsed.")
+                .that(blockFromXml.isCollapsed()).isFalse();
 
         block.setCollapsed(true);
         assertWithMessage("Collapsed state can change.").that(block.isCollapsed()).isTrue();
 
         blockXml = toXml(block);
-        assertWithMessage("Collapsed state is stored in XML.").that(blockXml.contains("collapsed=\"true\"")).isTrue();
+        assertWithMessage("Collapsed state is stored in XML.")
+                .that(blockXml.contains("collapsed=\"true\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("Collapsed state set from XML.").that(blockFromXml.isCollapsed()).isTrue();
+        assertWithMessage("Collapsed state set from XML.")
+                .that(blockFromXml.isCollapsed()).isTrue();
     }
 
     @Test
     public void testDeletable() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertWithMessage("By default, blocks are deletable.").that(block.isDeletable()).isTrue();
+        assertWithMessage("By default, blocks are deletable.")
+                .that(block.isDeletable()).isTrue();
 
         String blockXml = toXml(block);
-        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("deletable")).isFalse();
+        assertWithMessage("Default state is not stored in XML")
+                .that(blockXml.contains("deletable")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("By default, blocks loaded from XML are deletable.").that(blockFromXml.isDeletable()).isTrue();
+        assertWithMessage("By default, blocks loaded from XML are deletable.")
+                .that(blockFromXml.isDeletable()).isTrue();
 
         block.setDeletable(false);
-        assertWithMessage("Deletable state can change.").that(block.isDeletable()).isFalse();
+        assertWithMessage("Deletable state can change.")
+                .that(block.isDeletable()).isFalse();
 
         blockXml = toXml(block);
-        assertWithMessage("Deletable state is stored in XML").that(blockXml.contains("deletable=\"false\"")).isTrue();
+        assertWithMessage("Deletable state is stored in XML")
+                .that(blockXml.contains("deletable=\"false\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("Deletable state set from XML.").that(blockFromXml.isDeletable()).isFalse();
+        assertWithMessage("Deletable state set from XML.")
+                .that(blockFromXml.isDeletable()).isFalse();
     }
 
     @Test
     public void testDisabled() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertWithMessage("By default, blocks are not disabled.").that(block.isDisabled()).isFalse();
+        assertWithMessage("By default, blocks are not disabled.")
+                .that(block.isDisabled()).isFalse();
 
         String blockXml = toXml(block);
-        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("disabled")).isFalse();
+        assertWithMessage("Default state is not stored in XML")
+                .that(blockXml.contains("disabled")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("By default, blocks loaded from XML are not disabled.").that(blockFromXml.isDisabled()).isFalse();
+        assertWithMessage("By default, blocks loaded from XML are not disabled.")
+                .that(blockFromXml.isDisabled()).isFalse();
 
         block.setDisabled(true);
-        assertWithMessage("Disabled state can change.").that(block.isDisabled()).isTrue();
+        assertWithMessage("Disabled state can change.")
+                .that(block.isDisabled()).isTrue();
 
         blockXml = toXml(block);
-        assertWithMessage("Disabled state is stored in XML.").that(blockXml.contains("disabled=\"true\"")).isTrue();
+        assertWithMessage("Disabled state is stored in XML.")
+                .that(blockXml.contains("disabled=\"true\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("Disabled state set from XML.").that(blockFromXml.isDisabled()).isTrue();
+        assertWithMessage("Disabled state set from XML.")
+                .that(blockFromXml.isDisabled()).isTrue();
     }
 
     @Test
     public void testEditable() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertWithMessage("By default, blocks are editable.").that(block.isEditable()).isTrue();
+        assertWithMessage("By default, blocks are editable.")
+                .that(block.isEditable()).isTrue();
 
         String blockXml = toXml(block);
-        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("editable")).isFalse();
+        assertWithMessage("Default state is not stored in XML")
+                .that(blockXml.contains("editable")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("By default, blocks loaded from XML are editable.").that(blockFromXml.isEditable()).isTrue();
+        assertWithMessage("By default, blocks loaded from XML are editable.")
+                .that(blockFromXml.isEditable()).isTrue();
 
         block.setEditable(false);
-        assertWithMessage("Editable state can change.").that(block.isEditable()).isFalse();
+        assertWithMessage("Editable state can change.")
+                .that(block.isEditable()).isFalse();
 
         blockXml = toXml(block);
-        assertWithMessage("Editable state is stored in XML").that(blockXml.contains("editable=\"false\"")).isTrue();
+        assertWithMessage("Editable state is stored in XML")
+                .that(blockXml.contains("editable=\"false\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("Editable state set from XML.").that(blockFromXml.isEditable()).isFalse();
+        assertWithMessage("Editable state set from XML.")
+                .that(blockFromXml.isEditable()).isFalse();
     }
 
     @Test
     public void testMovable() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertWithMessage("By default, blocks are editable.").that(block.isMovable()).isTrue();
+        assertWithMessage("By default, blocks are editable.")
+                .that(block.isMovable()).isTrue();
 
         String blockXml = toXml(block);
-        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("movable")).isFalse();
+        assertWithMessage("Default state is not stored in XML")
+                .that(blockXml.contains("movable")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("By default, blocks loaded from XML are movable.").that(blockFromXml.isMovable()).isTrue();
+        assertWithMessage("By default, blocks loaded from XML are movable.")
+                .that(blockFromXml.isMovable()).isTrue();
 
         block.setMovable(false);
-        assertWithMessage("Movable state can change.").that(block.isMovable()).isFalse();
+        assertWithMessage("Movable state can change.")
+                .that(block.isMovable()).isFalse();
 
         blockXml = toXml(block);
-        assertWithMessage("Movable state is stored in XML").that(blockXml.contains("movable=\"false\"")).isTrue();
+        assertWithMessage("Movable state is stored in XML")
+                .that(blockXml.contains("movable=\"false\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("Movable state set from XML.").that(blockFromXml.isMovable()).isFalse();
+        assertWithMessage("Movable state set from XML.")
+                .that(blockFromXml.isMovable()).isFalse();
     }
 
     /**
@@ -600,7 +646,8 @@ public class BlockTest {
         String xml = toXml(block);
         Matcher matcher = Pattern.compile("less.*end").matcher(xml);
         assertThat(matcher.find()).isTrue();
-        assertThat(matcher.group()).isEqualTo("less than &lt; greater than &gt; ampersand &amp; quote \" apostrophe ' end");
+        assertThat(matcher.group()).isEqualTo(
+                "less than &lt; greater than &gt; ampersand &amp; quote \" apostrophe ' end");
     }
 
     private String toXml(Block block) {

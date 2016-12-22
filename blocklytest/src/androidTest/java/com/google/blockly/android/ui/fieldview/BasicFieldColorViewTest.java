@@ -97,8 +97,10 @@ public class BasicFieldColorViewTest extends BlocklyTestCase {
 
         // Verify both field and field view background have been set to correct color.
         final int expectedColour = 0xffffff;
-        assertThat(mFieldColor.getColor()).isEqualTo(expectedColour);  // setColour() masks out alpha.
-        assertThat(((ColorDrawable) mFieldColorView.getBackground()).getColor()).isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | expectedColour);
+        assertThat(mFieldColor.getColor())
+                .isEqualTo(expectedColour);  // setColour() masks out alpha.
+        assertThat(((ColorDrawable) mFieldColorView.getBackground()).getColor())
+                .isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | expectedColour);
 
         // Popup window should have disappeared.
         assertThat(popupWindow.isShowing()).isFalse();
@@ -108,18 +110,23 @@ public class BasicFieldColorViewTest extends BlocklyTestCase {
     @Test
     public void testFieldUpdatesView() {
         mFieldColor.setColor(0);
-        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor()).isEqualTo(BasicFieldColorView.ALPHA_OPAQUE);
+        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor())
+                .isEqualTo(BasicFieldColorView.ALPHA_OPAQUE);
 
         mFieldColor.setColor(Color.RED);
-        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor()).isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | Color.RED);
+        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor())
+                .isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | Color.RED);
 
         mFieldColor.setColor(Color.GREEN);
-        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor()).isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | Color.GREEN);
+        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor())
+                .isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | Color.GREEN);
 
         mFieldColor.setColor(Color.BLUE);
-        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor()).isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | Color.BLUE);
+        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor())
+                .isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | Color.BLUE);
 
         mFieldColor.setColor(Color.WHITE);
-        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor()).isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | Color.WHITE);
+        assertThat(((ColorDrawable)mFieldColorView.getBackground()).getColor())
+                .isEqualTo(BasicFieldColorView.ALPHA_OPAQUE | Color.WHITE);
     }
 }

@@ -71,8 +71,8 @@ public class WorkspaceView extends NonPropagatingViewGroup {
             blockGroup.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
 
             // Determine this BlockGroup's bounds in view coordinates and extend boundaries
-            // accordingly. Do NOT use mHelper.workspaceToVirtualViewCoordinates below, since we want the
-            // bounding box independent of scroll offset.
+            // accordingly. Do NOT use mHelper.workspaceToVirtualViewCoordinates below, since we
+            // want the bounding box independent of scroll offset.
             mHelper.workspaceToVirtualViewDelta(blockGroup.getFirstBlockPosition(), mTemp);
             if (mHelper.useRtl()) {
                 mTemp.x -= blockGroup.getMeasuredWidth();

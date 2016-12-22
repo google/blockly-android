@@ -340,8 +340,8 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                     + "instantiated.");
         }
         if (mVariableAdapter == null) {
-            mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(mContext, mVariableNameManager,
-                    android.R.layout.simple_spinner_item);
+            mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(
+                    mContext, mVariableNameManager, android.R.layout.simple_spinner_item);
         }
         return mVariableAdapter;
     }

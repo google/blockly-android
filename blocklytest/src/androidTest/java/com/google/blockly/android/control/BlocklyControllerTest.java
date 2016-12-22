@@ -287,8 +287,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
             assertThat(targetGroup).isNotSameAs(tailGroup);
 
             // Check that tail has been bumped far enough away.
-            assertThat(mHelper.getMaxSnapDistance() <=
-                    tail.getOutputConnection().distanceFrom(source.getOutputConnection())).isTrue();
+            double connectionDist =
+                    tail.getOutputConnection().distanceFrom(source.getOutputConnection());
+            assertThat(connectionDist).named("bumped connection distance")
+                    .isGreaterThan((double) mHelper.getMaxSnapDistance());
         }
     }
 
@@ -343,8 +345,11 @@ public class BlocklyControllerTest extends BlocklyTestCase {
             assertThat(targetGroup).isSameAs(mHelper.getRootBlockGroup(source));
             assertThat(tailGroup).isSameAs(mHelper.getRootBlockGroup(tail));
             assertThat(targetGroup).isNotSameAs(tailGroup);
-            assertThat(mHelper.getMaxSnapDistance() <=
-                    source.getOutputConnection().distanceFrom(tail.getOutputConnection())).isTrue();
+
+            double connectionDist =
+                    source.getOutputConnection().distanceFrom(tail.getOutputConnection());
+            assertThat(connectionDist).named("bumped connection distance")
+                    .isGreaterThan((double) mHelper.getMaxSnapDistance());
         }
     }
 
@@ -651,8 +656,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
             assertThat(tailView2).isSameAs(tailRootGroup.getChildAt(1));
 
             // Check that tail has been bumped far enough away.
-            assertThat(mHelper.getMaxSnapDistance() <=
-                    tail1.getPreviousConnection().distanceFrom(target.getNextConnection())).isTrue();
+            double connectionDistance =
+                    tail1.getPreviousConnection().distanceFrom(target.getNextConnection());
+            assertThat(connectionDistance).named("bumped connection distance")
+                    .isGreaterThan((double) mHelper.getMaxSnapDistance());
         }
     }
 
@@ -782,7 +789,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
         if (withViews) {
             assertThat(mHelper.getView(shadow)).isNotNull();
-            assertThat(mHelper.getRootBlockGroup(target)).isSameAs(mHelper.getRootBlockGroup(shadow));
+            assertThat(mHelper.getRootBlockGroup(target))
+                    .isSameAs(mHelper.getRootBlockGroup(shadow));
         }
 
         // Reconnect the source and make sure the shadow goes away
@@ -793,7 +801,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
         if (withViews) {
             assertThat(mHelper.getView(shadow)).isNull();
-            assertThat(mHelper.getRootBlockGroup(target)).isSameAs(mHelper.getRootBlockGroup(source));
+            assertThat(mHelper.getRootBlockGroup(target))
+                    .isSameAs(mHelper.getRootBlockGroup(source));
         }
     }
 
@@ -908,10 +917,14 @@ public class BlocklyControllerTest extends BlocklyTestCase {
             assertThat(targetRootGroup).isNotSameAs(tailRootGroup);
             assertThat(tailRootGroup).isSameAs(mHelper.getParentBlockGroup(tail));
             assertThat(targetRootGroup).isSameAs(mHelper.getRootBlockGroup(source));
-            assertThat(sourceGroup.getParent()).isSameAs(target.getInputByName("statement input").getView());
+            assertThat(sourceGroup.getParent())
+                    .isSameAs(target.getInputByName("statement input").getView());
             assertThat(sourceView).isSameAs(sourceGroup.getChildAt(0));
-            assertThat(mHelper.getMaxSnapDistance() <=
-                    source.getPreviousConnection().distanceFrom(tail.getPreviousConnection())).isTrue();
+
+            double connectionDist =
+                    source.getPreviousConnection().distanceFrom(tail.getPreviousConnection());
+            assertThat(connectionDist).named("bumped connection distance")
+                    .isGreaterThan((double) mHelper.getMaxSnapDistance());
         }
     }
 
@@ -959,7 +972,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         assertThat(mWorkspace.isRootBlock(target)).isTrue();
         assertThat(mWorkspace.isRootBlock(tail)).isFalse();
         assertThat(mWorkspace.isRootBlock(source)).isFalse();
-        assertThat(statementConnection).isSameAs(source.getPreviousConnection().getTargetConnection());
+        assertThat(statementConnection)
+                .isSameAs(source.getPreviousConnection().getTargetConnection());
         assertThat(source).isSameAs(tail.getPreviousBlock());
         assertThat(shadow.getParentBlock()).isNull();
 
@@ -970,7 +984,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
             assertThat(targetRootGroup).isSameAs(mHelper.getRootBlockGroup(tail));
             assertThat(sourceGroup).isSameAs(mHelper.getParentBlockGroup(tail));
             assertThat(targetRootGroup).isSameAs(mHelper.getRootBlockGroup(source));
-            assertThat(sourceGroup.getParent()).isSameAs(target.getInputByName("statement input").getView());
+            assertThat(sourceGroup.getParent())
+                    .isSameAs(target.getInputByName("statement input").getView());
             assertThat(sourceView).isSameAs(sourceGroup.getChildAt(0));
             assertThat(mHelper.getView(tail)).isSameAs(sourceGroup.getChildAt(1));
 

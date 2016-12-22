@@ -1188,7 +1188,8 @@ public class BlocklyController {
             // If lastBlock doesn't have a next bump instead.
             if (lastBlock.getNextConnection() == null) {
                 // Nothing to connect to.  Bump and add to root.
-                addRootBlockImpl(remainderBlock, mHelper.getParentBlockGroup(remainderBlock), false);
+                addRootBlockImpl(
+                        remainderBlock, mHelper.getParentBlockGroup(remainderBlock), false);
 
                 bumpBlockImpl(parentStatementConnection, remainderBlock.getPreviousConnection());
             } else {

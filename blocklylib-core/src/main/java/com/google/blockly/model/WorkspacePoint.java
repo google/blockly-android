@@ -56,7 +56,9 @@ public class WorkspacePoint extends Point {
         y = other.y;
     }
 
-    public static final Parcelable.Creator<WorkspacePoint> CREATOR = new Parcelable.Creator<WorkspacePoint>() {
+    public static final Parcelable.Creator<WorkspacePoint> CREATOR =
+            new Parcelable.Creator<WorkspacePoint>()
+    {
         /**
          * Return a new point from the data in the specified parcel.
          */

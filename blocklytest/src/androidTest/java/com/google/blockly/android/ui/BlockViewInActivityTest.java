@@ -19,7 +19,6 @@ import android.app.Instrumentation;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.view.View;
-import android.view.ViewParent;
 
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.TestWorkspaceViewActivity;
@@ -33,6 +32,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
+import static com.google.blockly.utils.ViewSubject.view;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -111,9 +112,12 @@ public class BlockViewInActivityTest {
         mInstrumentation.waitForIdleSync();
 
         // Preconditions
-        assertThat(isDescendentOf(mFieldView, (View) mViewFactory.getView(mRootBlock))).isTrue();
-        assertThat(isDescendentOf((View) mChildInputBlockView, (View) mHelper.getView(mRootBlock))).isTrue();
-        assertThat(isDescendentOf((View) mChildStatementBlockView, (View) mHelper.getView(mRootBlock))).isTrue();
+        assertAbout(view()).that(mFieldView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
+        assertAbout(view()).that((View) mChildInputBlockView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
+        assertAbout(view()).that((View) mChildStatementBlockView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
 
         assertThat(((View) mRootView).isActivated()).isFalse();
         assertThat(((View) mFieldView).isActivated()).isFalse();
@@ -147,9 +151,12 @@ public class BlockViewInActivityTest {
         mInstrumentation.waitForIdleSync();
 
         // Preconditions
-        assertThat(isDescendentOf(mFieldView, (View) mHelper.getView(mRootBlock))).isTrue();
-        assertThat(isDescendentOf((View) mChildInputBlockView, (View) mHelper.getView(mRootBlock))).isTrue();
-        assertThat(isDescendentOf((View) mChildStatementBlockView, (View) mHelper.getView(mRootBlock))).isTrue();
+        assertAbout(view()).that(mFieldView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
+        assertAbout(view()).that((View) mChildInputBlockView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
+        assertAbout(view()).that((View) mChildStatementBlockView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
 
         assertThat(((View) mRootView).isPressed()).isFalse();
         assertThat(((View) mFieldView).isPressed()).isFalse();
@@ -183,9 +190,12 @@ public class BlockViewInActivityTest {
         mInstrumentation.waitForIdleSync();
 
         // Preconditions
-        assertThat(isDescendentOf(mFieldView, (View) mHelper.getView(mRootBlock))).isTrue();
-        assertThat(isDescendentOf((View) mChildInputBlockView, (View) mHelper.getView(mRootBlock))).isTrue();
-        assertThat(isDescendentOf((View) mChildStatementBlockView, (View) mHelper.getView(mRootBlock))).isTrue();
+        assertAbout(view()).that(mFieldView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
+        assertAbout(view()).that((View) mChildInputBlockView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
+        assertAbout(view()).that((View) mChildStatementBlockView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
 
         assertThat(((View) mRootView).isFocused()).isFalse();
         assertThat(mFieldView.isFocused()).isFalse();
@@ -219,9 +229,12 @@ public class BlockViewInActivityTest {
         mInstrumentation.waitForIdleSync();
 
         // Preconditions
-        assertThat(isDescendentOf(mFieldView, (View) mHelper.getView(mRootBlock))).isTrue();
-        assertThat(isDescendentOf((View) mChildInputBlockView, (View) mHelper.getView(mRootBlock))).isTrue();
-        assertThat(isDescendentOf((View) mChildStatementBlockView, (View) mHelper.getView(mRootBlock))).isTrue();
+        assertAbout(view()).that(mFieldView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
+        assertAbout(view()).that((View) mChildInputBlockView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
+        assertAbout(view()).that((View) mChildStatementBlockView)
+                .isDescendantOf(mViewFactory.getView(mRootBlock));
 
         assertThat(((View) mRootView).isSelected()).isFalse();
         assertThat(mFieldView.isSelected()).isFalse();
@@ -241,19 +254,5 @@ public class BlockViewInActivityTest {
         assertThat(mFieldView.isSelected()).isFalse();
         assertThat(((View) mChildInputBlockView).isSelected()).isFalse();
         assertThat(((View) mChildStatementBlockView).isSelected()).isFalse();
-    }
-
-    private static boolean isDescendentOf(View child, View ancestor) {
-        assertThat(child).isNotNull();
-        assertThat(ancestor).isNotNull();
-
-        ViewParent parent = child.getParent();
-        while (parent != null && parent instanceof View) {
-            if (ancestor == parent) {
-                return true;
-            }
-            parent = ((View) parent).getParent();
-        }
-        return false;
     }
 }

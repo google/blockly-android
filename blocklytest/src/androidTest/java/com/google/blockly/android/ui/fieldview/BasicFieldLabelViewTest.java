@@ -17,6 +17,7 @@ package com.google.blockly.android.ui.fieldview;
 
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.model.FieldLabel;
 
 import org.junit.Test;
@@ -26,7 +27,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link BasicFieldLabelView}.
  */
-public class BasicFieldLabelViewTest {
+public class BasicFieldLabelViewTest extends BlocklyTestCase {
 
     private static final String INIT_TEXT_VALUE = "someTextToInitializeLabel";
 
@@ -38,9 +39,10 @@ public class BasicFieldLabelViewTest {
     public void testInstantiation() {
         mFieldLabel = new FieldLabel("FieldLabel", INIT_TEXT_VALUE);
 
-        final BasicFieldLabelView view = new BasicFieldLabelView(InstrumentationRegistry.getContext());
+        final BasicFieldLabelView view = new BasicFieldLabelView(getContext());
         view.setField(mFieldLabel);
         assertThat(mFieldLabel).isSameAs(view.getField());
-        assertThat(view.getText().toString()).isEqualTo(INIT_TEXT_VALUE);  // Fails without .toString()
+        assertThat(view.getText().toString())
+                .isEqualTo(INIT_TEXT_VALUE);  // Fails without .toString()
     }
 }

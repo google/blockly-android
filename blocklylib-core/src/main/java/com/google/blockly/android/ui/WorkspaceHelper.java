@@ -179,6 +179,7 @@ public class WorkspaceHelper {
     /**
      * @return The maximum distance a block can snap to match a connection, in workspace units.
      */
+    // TODO(#477): Return floating point.
     public int getMaxSnapDistance() {
         // TODO(#62): Adapt to WorkspaceView zoom, if connected.
         return DEFAULT_MAX_SNAP_DISTANCE;

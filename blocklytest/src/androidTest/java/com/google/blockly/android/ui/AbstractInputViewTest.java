@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.test.suitebuilder.annotation.SmallTest;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.mock;
  * Tests for {@link AbstractInputView}.
  */
 @SmallTest
-public class AbstractInputViewTest {
+public class AbstractInputViewTest extends BlocklyTestCase {
 
     private Input mDummyInput;
     private WorkspaceHelper mMockWorkspaceHelper;
@@ -111,7 +112,7 @@ public class AbstractInputViewTest {
     @NonNull
     private AbstractInputView makeDefaultInputView() {
         return new AbstractInputView(
-                InstrumentationRegistry.getContext(), mMockWorkspaceHelper, mDummyInput, new ArrayList<FieldView>()) {
+                getContext(), mMockWorkspaceHelper, mDummyInput, new ArrayList<FieldView>()) {
 
             @Override
             protected void onLayout(boolean changed, int l, int t, int r, int b) {

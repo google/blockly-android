@@ -190,7 +190,8 @@ public class DraggerTest extends BlocklyTestCase {
                 "simple_input_output", "first block");
         mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
 
-        Mockito.when(mMockConnectionManager.findBestConnection(Matchers.same(mTouchedBlock), anyInt()))
+        Mockito.when(
+                mMockConnectionManager.findBestConnection(Matchers.same(mTouchedBlock), anyInt()))
                 .thenReturn(Pair.create(mTouchedBlock.getOnlyValueInput().getConnection(),
                         mTargetBlock.getOutputConnection()));
 
@@ -356,15 +357,17 @@ public class DraggerTest extends BlocklyTestCase {
                 long time = mDragStartTime + 10L;
                 MotionEvent me =
                         MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 30, -10, 0);
-                assertWithMessage("Events that initiate drags must be claimed").that(
-                        mDragger.onTouchBlockImpl(
-                                Dragger.DRAG_MODE_SLOPPY, mDragHandler, mTouchedView, me, false)).isTrue();
+                assertWithMessage("Events that initiate drags must be claimed")
+                        .that(mDragger.onTouchBlockImpl(
+                                Dragger.DRAG_MODE_SLOPPY, mDragHandler, mTouchedView, me, false))
+                        .isTrue();
             }
         }, TIMEOUT);
 
         // Allow mDragGroupCreator to run.
         await(mDragGroupCreatorLatch, TIMEOUT);
-        assertWithMessage("Dragger must call Runnable to construct draggable BlockGroup").that(mDragGroupCreatorCallCount).isEqualTo(1);
+        assertWithMessage("Dragger must call Runnable to construct draggable BlockGroup")
+                .that(mDragGroupCreatorCallCount).isEqualTo(1);
 
         runAndSync(new Runnable() {
             @Override

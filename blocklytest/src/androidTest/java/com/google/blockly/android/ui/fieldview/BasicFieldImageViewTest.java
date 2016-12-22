@@ -3,6 +3,8 @@ package com.google.blockly.android.ui.fieldview;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
@@ -16,14 +18,14 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link BasicFieldImageView}.
  */
-public class BasicFieldImageViewTest {
+public class BasicFieldImageViewTest extends BlocklyTestCase {
     Context mMockContext;
 
     BasicFieldImageView mImageFieldView;
 
     @Before
     public void setUp() throws Exception {
-        mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(InstrumentationRegistry.getContext()));
+        mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(getContext()));
 
         mImageFieldView = new BasicFieldImageView(mMockContext);
     }

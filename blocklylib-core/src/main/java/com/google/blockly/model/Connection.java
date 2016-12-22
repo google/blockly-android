@@ -54,6 +54,7 @@ public class Connection implements Cloneable {
      * a block.
      */
     public static final int CONNECTION_TYPE_OUTPUT = 3;
+
     public static final int CAN_CONNECT = 0;
     public static final int REASON_SELF_CONNECTION = 1;
     public static final int REASON_WRONG_TYPE = 2;
@@ -72,6 +73,7 @@ public class Connection implements Cloneable {
     @ConnectionType
     private final int mConnectionType;
     private final String[] mConnectionChecks;
+
     /**
      * Position of the connection in the workspace, used by the connection manager. The position is
      * not a part of the serialized model, and is only updated when connected to a view.

@@ -132,8 +132,9 @@ public class Dragger {
         @Override
         public void run() {
             Log.d(TAG, (mPendingDrag == null ? "\tnot pending" :
-                    (mPendingDrag.getDragGroup()==null ? "\tpending: touched = " + mPendingDrag.getTouchedBlockView()
-                    : "\tdragging: " + mPendingDrag.getDragGroup())));
+                    (mPendingDrag.getDragGroup()==null ?
+                            "\tpending: touched = " + mPendingDrag.getTouchedBlockView()
+                            : "\tdragging: " + mPendingDrag.getDragGroup())));
         }
     } : null;
 
@@ -191,8 +192,8 @@ public class Dragger {
                         // Otherwise fall through
                     case DragEvent.ACTION_DROP:
                         // Finalize dragging and reset dragging state flags.
-                        // These state flags are still used in the initial phase of figuring out if a
-                        // drag has started.
+                        // These state flags are still used in the initial phase of figuring out if
+                        // a drag has started.
                         int finishBehavior;
                         if (touchingTrashView(event)) {
                             if (dropInTrash()) {
@@ -595,7 +596,9 @@ public class Dragger {
         mTrashView.getLocationOnScreen(mTempScreenCoord1);
         mTrashView.getHitRect(mTrashRect);
 
-        mTrashRect.offset((mTempScreenCoord1[0] - mTrashRect.left), (mTempScreenCoord1[1] - mTrashRect.top));
+        mTrashRect.offset(
+                (mTempScreenCoord1[0] - mTrashRect.left),
+                (mTempScreenCoord1[1] - mTrashRect.top));
         // Get the touch location on the screen
         mTempViewPoint.set((int) event.getX(), (int) event.getY());
         mHelper.virtualViewToScreenCoordinates(mTempViewPoint, mTempViewPoint);

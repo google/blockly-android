@@ -64,7 +64,8 @@ public class WorkspaceTest extends BlocklyTestCase {
     @Test
     public void testSimpleXmlParsing() {
         mWorkspace.loadWorkspaceContents(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK));
-        assertWithMessage("Workspace should have one block").that(mWorkspace.getRootBlocks()).hasSize(1);
+        assertWithMessage("Workspace should have one block")
+                .that(mWorkspace.getRootBlocks()).hasSize(1);
     }
 
     @Test
