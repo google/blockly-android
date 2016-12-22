@@ -2,6 +2,9 @@ package com.google.blockly.model;
 
 import org.junit.Assert;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
+
 /**
  * Helper methods for testing fields.
  */
@@ -26,9 +29,9 @@ public class FieldTestHelper {
             @Override
             public void onValueChanged(Field eventField, String oldValue, String newValue) {
                 observerOneCount[0]++;
-                Assert.assertSame(field, eventField);
-                Assert.assertEquals(expectedOldValue, oldValue);
-                Assert.assertEquals(expectedNewValue, newValue);
+                assertThat(field).isSameAs(eventField);
+                assertThat(oldValue).isEqualTo(expectedOldValue);
+                assertThat(newValue).isEqualTo(expectedNewValue);
 
             }
         });
@@ -40,8 +43,8 @@ public class FieldTestHelper {
         });
 
         field.setFromString(newValue);
-        Assert.assertEquals("Exactly one observation per Observer", 1, observerOneCount[0]);
-        Assert.assertEquals("Exactly one observation per Observer", 1, observerTwoCount[0]);
+        assertWithMessage("Exactly one observation per Observer").that(observerOneCount[0]).isEqualTo(1);
+        assertWithMessage("Exactly one observation per Observer").that(observerTwoCount[0]).isEqualTo(1);
     }
 
     /**

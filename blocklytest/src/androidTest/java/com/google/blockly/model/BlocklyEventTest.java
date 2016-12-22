@@ -12,8 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -113,15 +112,15 @@ public class BlocklyEventTest {
                                  BlocklyEvent.ChangeEvent event,
                                  String oldValue, String newValue)
             throws JSONException {
-        assertSame(event.getTypeId(), BlocklyEvent.TYPE_CHANGE);
-        assertSame(event.getTypeName(), BlocklyEvent.TYPENAME_CHANGE);
-        assertEquals(WORKSPACE_ID, event.getWorkspaceId());
+        assertThat(event.getTypeId()).isSameAs(BlocklyEvent.TYPE_CHANGE);
+        assertThat(event.getTypeName()).isSameAs(BlocklyEvent.TYPENAME_CHANGE);
+        assertThat(event.getWorkspaceId()).isEqualTo(WORKSPACE_ID);
         // Group id is assigned by the BlocklyController, not tested here.
-        assertEquals(element, event.getElement());
-        assertEquals(oldValue, event.getOldValue());
-        assertEquals(newValue, event.getNewValue());
+        assertThat(event.getElement()).isEqualTo(element);
+        assertThat(event.getOldValue()).isEqualTo(oldValue);
+        assertThat(event.getNewValue()).isEqualTo(newValue);
         if (element == BlocklyEvent.ELEMENT_FIELD) {
-            assertEquals(FIELD_NAME, event.getFieldName());
+            assertThat(event.getFieldName()).isEqualTo(FIELD_NAME);
         }
 
         String serialized = event.toJsonString();
@@ -129,14 +128,14 @@ public class BlocklyEventTest {
 
         BlocklyEvent.ChangeEvent deserializedEvent =
                 (BlocklyEvent.ChangeEvent) BlocklyEvent.fromJson(json);
-        assertEquals(event.getTypeName(), deserializedEvent.getTypeName());
+        assertThat(deserializedEvent.getTypeName()).isEqualTo(event.getTypeName());
         // Workspace ids are not serialized.
         // Group id is assigned by the BlocklyController, not tested here.
-        assertEquals(element, deserializedEvent.getElement());
-        assertEquals(BLOCK_ID, deserializedEvent.getBlockId());
-        assertEquals(newValue, deserializedEvent.getNewValue());
+        assertThat(deserializedEvent.getElement()).isEqualTo(element);
+        assertThat(deserializedEvent.getBlockId()).isEqualTo(BLOCK_ID);
+        assertThat(deserializedEvent.getNewValue()).isEqualTo(newValue);
         if (element == BlocklyEvent.ELEMENT_FIELD) {
-            assertEquals(FIELD_NAME, deserializedEvent.getFieldName());
+            assertThat(deserializedEvent.getFieldName()).isEqualTo(FIELD_NAME);
         }
     }
 
@@ -144,30 +143,30 @@ public class BlocklyEventTest {
     public void testCreateEvent() throws JSONException {
         BlocklyEvent.CreateEvent event = new BlocklyEvent.CreateEvent(mMockWorkspace, mBlock);
 
-        assertSame(event.getTypeId(), BlocklyEvent.TYPE_CREATE);
-        assertSame(event.getTypeName(), BlocklyEvent.TYPENAME_CREATE);
-        assertEquals(WORKSPACE_ID, event.getWorkspaceId());
+        assertThat(event.getTypeId()).isSameAs(BlocklyEvent.TYPE_CREATE);
+        assertThat(event.getTypeName()).isSameAs(BlocklyEvent.TYPENAME_CREATE);
+        assertThat(event.getWorkspaceId()).isEqualTo(WORKSPACE_ID);
         // Group id is assigned by the BlocklyController, not tested here.
-        assertEquals(1, event.getIds().size());
-        assertEquals(BLOCK_ID, event.getIds().get(0));
+        assertThat(event.getIds().size()).isEqualTo(1);
+        assertThat(event.getIds().get(0)).isEqualTo(BLOCK_ID);
 
         String serialized = event.toJsonString();
         JSONObject json = new JSONObject(serialized);
 
         BlocklyEvent.CreateEvent deserializedEvent =
                 (BlocklyEvent.CreateEvent) BlocklyEvent.fromJson(json);
-        assertEquals(event.getTypeName(), deserializedEvent.getTypeName());
+        assertThat(deserializedEvent.getTypeName()).isEqualTo(event.getTypeName());
         // Workspace ids are not serialized.
         // Group id is assigned by the BlocklyController, not tested here.
-        assertEquals(BLOCK_ID, deserializedEvent.getBlockId());
-        assertEquals(1, deserializedEvent.getIds().size());
-        assertEquals(BLOCK_ID, deserializedEvent.getIds().get(0));
+        assertThat(deserializedEvent.getBlockId()).isEqualTo(BLOCK_ID);
+        assertThat(deserializedEvent.getIds().size()).isEqualTo(1);
+        assertThat(deserializedEvent.getIds().get(0)).isEqualTo(BLOCK_ID);
 
         mBlockFactory.clearPriorBlockReferences(); // Prevent duplicate block id errors.
         Block deserializedBlock =
                 BlocklyXmlHelper.loadOneBlockFromXml(deserializedEvent.getXml(), mBlockFactory);
-        assertEquals(BLOCK_ID, deserializedBlock.getId());
-        assertEquals(BLOCK_TYPE, mBlock.getType());
-        assertEquals(NEW_POSITION, mBlock.getPosition());
+        assertThat(deserializedBlock.getId()).isEqualTo(BLOCK_ID);
+        assertThat(mBlock.getType()).isEqualTo(BLOCK_TYPE);
+        assertThat(mBlock.getPosition()).isEqualTo(NEW_POSITION);
     }
 }

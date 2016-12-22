@@ -17,9 +17,7 @@ package com.google.blockly.model;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link FieldInput}.
@@ -37,29 +35,29 @@ public class FieldInputTest {
 
     @Test
     public void testConstructor() {
-        assertEquals(Field.TYPE_INPUT, mField.getType());
-        assertEquals(FIELD_NAME, mField.getName());
-        assertEquals(INITIAL_VALUE, mField.getText());
+        assertThat(mField.getType()).isEqualTo(Field.TYPE_INPUT);
+        assertThat(mField.getName()).isEqualTo(FIELD_NAME);
+        assertThat(mField.getText()).isEqualTo(INITIAL_VALUE);
     }
 
     @Test
     public void testSetText() {
         mField.setText("new text");
-        assertEquals("new text", mField.getText());
+        assertThat(mField.getText()).isEqualTo("new text");
     }
 
     @Test
     public void testSetFromString() {
-        assertTrue(mField.setFromString("newest text"));
-        assertEquals("newest text", mField.getText());
+        assertThat(mField.setFromString("newest text")).isTrue();
+        assertThat(mField.getText()).isEqualTo("newest text");
     }
 
     @Test
     public void testClone() {
         FieldInput clone = mField.clone();
-        assertNotSame(mField, clone);
-        assertEquals(mField.getName(), clone.getName());
-        assertEquals(mField.getText(), clone.getText());
+        assertThat(mField).isNotSameAs(clone);
+        assertThat(clone.getName()).isEqualTo(mField.getName());
+        assertThat(clone.getText()).isEqualTo(mField.getText());
     }
 
     @Test

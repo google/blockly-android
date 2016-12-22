@@ -46,10 +46,8 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -238,7 +236,7 @@ public class DraggerTest extends BlocklyTestCase {
 
         ArrayList<Connection> draggedConnections = new ArrayList<>();
         mDraggedBlock.getAllConnectionsRecursive(draggedConnections);
-        assertEquals(5, draggedConnections.size());
+        assertThat(draggedConnections.size()).isEqualTo(5);
 
         final ArrayList<Connection> removedConnections = new ArrayList<>();
         final ArrayList<Connection> addedConnections = new ArrayList<>();
@@ -260,26 +258,26 @@ public class DraggerTest extends BlocklyTestCase {
         setupDrag();
         dragTouch();
 
-        assertEquals(0, addedConnections.size());
-        assertEquals(0, removedConnections.size());
+        assertThat(addedConnections.size()).isEqualTo(0);
+        assertThat(removedConnections.size()).isEqualTo(0);
 
         dragMove();
 
-        assertEquals(draggedConnections.size(), removedConnections.size());
-        assertEquals(0, addedConnections.size());
+        assertThat(removedConnections.size()).isEqualTo(draggedConnections.size());
+        assertThat(addedConnections.size()).isEqualTo(0);
         for (Connection conn : draggedConnections) {
-            assertTrue(removedConnections.contains(conn));
-            assertTrue(conn.inDragMode());
+            assertThat(removedConnections.contains(conn)).isTrue();
+            assertThat(conn.inDragMode()).isTrue();
         }
 
         // Complete the drag.
         dragRelease();
 
-        assertEquals(draggedConnections.size(), removedConnections.size());
-        assertEquals(draggedConnections.size(), addedConnections.size());
+        assertThat(removedConnections.size()).isEqualTo(draggedConnections.size());
+        assertThat(addedConnections.size()).isEqualTo(draggedConnections.size());
         for (Connection conn : draggedConnections) {
-            assertTrue(addedConnections.contains(conn));
-            assertFalse(conn.inDragMode());
+            assertThat(addedConnections.contains(conn)).isTrue();
+            assertThat(conn.inDragMode()).isFalse();
         }
     }
 
@@ -358,16 +356,15 @@ public class DraggerTest extends BlocklyTestCase {
                 long time = mDragStartTime + 10L;
                 MotionEvent me =
                         MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 30, -10, 0);
-                assertTrue("Events that initiate drags must be claimed",
+                assertWithMessage("Events that initiate drags must be claimed").that(
                         mDragger.onTouchBlockImpl(
-                                Dragger.DRAG_MODE_SLOPPY, mDragHandler, mTouchedView, me, false));
+                                Dragger.DRAG_MODE_SLOPPY, mDragHandler, mTouchedView, me, false)).isTrue();
             }
         }, TIMEOUT);
 
         // Allow mDragGroupCreator to run.
         await(mDragGroupCreatorLatch, TIMEOUT);
-        assertEquals("Dragger must call Runnable to construct draggable BlockGroup", 1,
-                mDragGroupCreatorCallCount);
+        assertWithMessage("Dragger must call Runnable to construct draggable BlockGroup").that(mDragGroupCreatorCallCount).isEqualTo(1);
 
         runAndSync(new Runnable() {
             @Override
@@ -403,7 +400,7 @@ public class DraggerTest extends BlocklyTestCase {
     }
 
     private void runAndSync(final Runnable runnable, long timeoutMilliseconds) {
-        assertNull(mExceptionInThread);
+        assertThat(mExceptionInThread).isNull();
 
         final CountDownLatch latch = new CountDownLatch(1);
         mHandler.post(new Runnable() {

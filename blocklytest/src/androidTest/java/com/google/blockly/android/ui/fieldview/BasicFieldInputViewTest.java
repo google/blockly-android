@@ -24,9 +24,7 @@ import com.google.blockly.model.FieldInput;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -46,15 +44,15 @@ public class BasicFieldInputViewTest {
      public void setUp() throws Exception {
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mFieldInput = new FieldInput("FieldInput", INIT_TEXT_VALUE);
-        assertNotNull(mFieldInput);
+        assertThat(mFieldInput).isNotNull();
     }
 
     // Verify object instantiation.
     @Test
     public void testInstantiation() {
         final BasicFieldInputView view = makeFieldInputView();
-        assertSame(mFieldInput, view.getField());
-        assertEquals(INIT_TEXT_VALUE, view.getText().toString());  // Fails without .toString()
+        assertThat(mFieldInput).isSameAs(view.getField());
+        assertThat(view.getText().toString()).isEqualTo(INIT_TEXT_VALUE);  // Fails without .toString()
     }
 
     // Verify setting text in the view propagates to the field.
@@ -62,7 +60,7 @@ public class BasicFieldInputViewTest {
     public void testViewUpdatesField() {
         final BasicFieldInputView view = makeFieldInputView();
         view.setText(SET_TEXT_VALUE);
-        assertEquals(SET_TEXT_VALUE, mFieldInput.getText());
+        assertThat(mFieldInput.getText()).isEqualTo(SET_TEXT_VALUE);
     }
 
     // Verify setting text in the field propagates to the view.
@@ -71,7 +69,7 @@ public class BasicFieldInputViewTest {
         final BasicFieldInputView view = makeFieldInputView();
 
         mFieldInput.setText(SET_TEXT_VALUE);
-        assertEquals(SET_TEXT_VALUE, view.getText().toString());  // Fails without .toString()
+        assertThat(view.getText().toString()).isEqualTo(SET_TEXT_VALUE);  // Fails without .toString()
     }
 
     @NonNull

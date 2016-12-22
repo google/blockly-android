@@ -27,14 +27,9 @@ import com.google.blockly.model.Input;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 
 /**
  * Tests for {@link WorkspaceStats}.
@@ -97,17 +92,17 @@ public class WorkspaceStatsTest {
         Block variableReference = blockBuilder.build();
         mStats.collectStats(variableReference, false);
 
-        assertTrue(mStats.getVariableNameManager().contains("variable name"));
-        assertFalse(mStats.getVariableNameManager().contains("field name"));
+        assertThat(mStats.getVariableNameManager().contains("variable name")).isTrue();
+        assertThat(mStats.getVariableNameManager().contains("field name")).isFalse();
 
-        assertEquals(2, mStats.getVariableReference("variable name").size());
-        assertEquals(variableReference.getFieldByName("field name"),
-                mStats.getVariableReference("variable name").get(0));
+        assertThat(mStats.getVariableReference("variable name").size()).isEqualTo(2);
+        assertThat(mStats.getVariableReference("variable name").get(0))
+            .isEqualTo(variableReference.getFieldByName("field name"));
     }
 
     @Test
     public void testVariableReferencesNeverNull() {
-        assertNotNull(mStats.getVariableReference("not a reference"));
+        assertThat(mStats.getVariableReference("not a reference")).isNotNull();
     }
 
     @Test
@@ -139,13 +134,12 @@ public class WorkspaceStatsTest {
         thirdBlock.getPreviousConnection().connect(secondBlock.getNextConnection());
 
         mStats.collectStats(secondBlock, true);
-        assertTrue(mStats.getVariableNameManager().contains("third block variable name"));
-        assertFalse(mStats.getVariableNameManager().contains("variable name"));
-        assertTrue(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty());
-        assertTrue(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty());
-        assertEquals(2,
-                mConnectionManager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).size());
-        assertEquals(1, mConnectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size());
+        assertThat(mStats.getVariableNameManager().contains("third block variable name")).isTrue();
+        assertThat(mStats.getVariableNameManager().contains("variable name")).isFalse();
+        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty()).isTrue();
+        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty()).isTrue();
+        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).size()).isEqualTo(2);
+        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size()).isEqualTo(1);
     }
 
     @Test

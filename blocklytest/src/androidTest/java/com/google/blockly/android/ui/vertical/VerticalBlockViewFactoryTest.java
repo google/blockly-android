@@ -29,11 +29,8 @@ import com.google.blockly.model.BlockFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-
 
 /**
  * Tests for {@link VerticalBlockViewFactory}.
@@ -62,21 +59,20 @@ public class VerticalBlockViewFactoryTest {
         final Block block = mBlockFactory.obtainBlock(
                 "test_block_one_input_each_type", "TestBlock");
         final BlockView blockView = makeBlockView(block);
-        assertNotNull(block);
+        assertThat(block).isNotNull();
 
-        assertSame(block, blockView.getBlock());
+        assertThat(block).isSameAs(blockView.getBlock());
 
         // One InputView per Input?
-        assertEquals(3, blockView.getInputViewCount());
+        assertThat(blockView.getInputViewCount()).isEqualTo(3);
 
         for (int inputIdx = 0; inputIdx < 3; ++inputIdx) {
             // Each InputView points to an Input?
-            assertNotNull(blockView.getInputView(inputIdx).getInput());
+            assertThat(blockView.getInputView(inputIdx).getInput()).isNotNull();
             // Each InputView is a child of the BlockView?
-            assertSame(blockView.getInputView(inputIdx), blockView.getChildAt(inputIdx));
+            assertThat(blockView.getInputView(inputIdx)).isSameAs(blockView.getChildAt(inputIdx));
             // Each input view points to the correct Input?
-            assertSame(block.getInputs().get(inputIdx),
-                    blockView.getInputView(inputIdx).getInput());
+            assertThat(block.getInputs().get(inputIdx)).isSameAs(blockView.getInputView(inputIdx).getInput());
         }
     }
 

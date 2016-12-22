@@ -17,10 +17,7 @@ package com.google.blockly.model;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link FieldVariable}.
@@ -38,31 +35,31 @@ public class FieldVariableTest {
 
     @Test
     public void testConstructor() {
-        assertEquals(Field.TYPE_VARIABLE, mField.getType());
-        assertEquals(FIELD_NAME, mField.getName());
-        assertEquals(VARIABLE_NAME, mField.getVariable());
+        assertThat(mField.getType()).isEqualTo(Field.TYPE_VARIABLE);
+        assertThat(mField.getName()).isEqualTo(FIELD_NAME);
+        assertThat(mField.getVariable()).isEqualTo(VARIABLE_NAME);
     }
 
     @Test
     public void testSetVariable() {
         mField.setVariable("newVar");
-        assertEquals("newVar", mField.getVariable());
+        assertThat( mField.getVariable()).isEqualTo("newVar");
     }
 
     @Test
     public void testSetFromString() {
-        assertTrue(mField.setFromString("newestVar"));
-        assertEquals("newestVar", mField.getVariable());
-        assertFalse(mField.setFromString(""));
-        assertEquals("newestVar", mField.getVariable());
+        assertThat(mField.setFromString("newestVar")).isTrue();
+        assertThat(mField.getVariable()).isEqualTo("newestVar");
+        assertThat(mField.setFromString("")).isFalse();
+        assertThat(mField.getVariable()).isEqualTo("newestVar");
     }
 
     @Test
     public void testClone() {
         FieldVariable clone = mField.clone();
-        assertNotSame(mField, clone);
-        assertEquals(mField.getName(), clone.getName());
-        assertEquals(mField.getVariable(), clone.getVariable());
+        assertThat(mField).isNotSameAs(clone);
+        assertThat(clone.getName()).isEqualTo(mField.getName());
+        assertThat(clone.getVariable()).isEqualTo(mField.getVariable());
     }
 
     @Test

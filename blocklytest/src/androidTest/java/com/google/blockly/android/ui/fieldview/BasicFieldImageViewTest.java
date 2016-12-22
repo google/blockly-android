@@ -10,8 +10,7 @@ import org.mockito.AdditionalAnswers;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -49,7 +48,7 @@ public class BasicFieldImageViewTest {
     }
 
     private void assertNotEmpty(InputStream in) throws IOException {
-        assertNotNull(in);
-        assertTrue(in.available() > 0);
+        assertThat(in).isNotNull();
+        assertThat(in.available() > 0).isTrue();
     }
 }

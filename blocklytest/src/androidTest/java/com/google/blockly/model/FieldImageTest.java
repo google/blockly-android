@@ -17,9 +17,7 @@ package com.google.blockly.model;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link FieldImage}.
@@ -40,23 +38,23 @@ public class FieldImageTest {
 
     @Test
     public void testFieldImage() {
-        assertEquals(Field.TYPE_IMAGE, mField.getType());
-        assertEquals(FIELD_NAME, mField.getName());
-        assertEquals(SOURCE, mField.getSource());
-        assertEquals(WIDTH, mField.getWidth());
-        assertEquals(HEIGHT, mField.getHeight());
-        assertEquals(ALT_TEXT, mField.getAltText());
+        assertThat(mField.getType()).isEqualTo(Field.TYPE_IMAGE);
+        assertThat(mField.getName()).isEqualTo(FIELD_NAME);
+        assertThat(mField.getSource()).isEqualTo(SOURCE);
+        assertThat(mField.getWidth()).isEqualTo(WIDTH);
+        assertThat(mField.getHeight()).isEqualTo(HEIGHT);
+        assertThat(mField.getAltText()).isEqualTo(ALT_TEXT);
     }
 
     @Test
     public void testClone() {
         FieldImage clone = mField.clone();
-        assertNotSame(mField, clone);
-        assertEquals(mField.getName(), clone.getName());
-        assertEquals(mField.getSource(), clone.getSource());
-        assertEquals(mField.getWidth(), clone.getWidth());
-        assertEquals(mField.getHeight(), clone.getHeight());
-        assertEquals(mField.getAltText(), clone.getAltText());
+        assertThat(mField).isNotSameAs(clone);
+        assertThat(clone.getName()).isEqualTo(mField.getName());
+        assertThat(clone.getSource()).isEqualTo(mField.getSource());
+        assertThat(clone.getWidth()).isEqualTo(mField.getWidth());
+        assertThat(clone.getHeight()).isEqualTo(mField.getHeight());
+        assertThat(clone.getAltText()).isEqualTo(mField.getAltText());
     }
 
     @Test
@@ -65,17 +63,17 @@ public class FieldImageTest {
         mField.registerObserver(new Field.Observer() {
             @Override
             public void onValueChanged(Field field, String oldValue, String newValue) {
-                assertSame(mField, field);
+                assertThat(mField).isSameAs(field);
                 eventCount[0] += 1;
             }
         });
 
         // Same source, new metadata
         mField.setImage(SOURCE, 101, 202);
-        assertEquals(1, eventCount[0]);
+        assertThat(eventCount[0]).isEqualTo(1);
 
         // New source
         mField.setImage(SOURCE + "2", 101, 202);
-        assertEquals(2, eventCount[0]);
+        assertThat(eventCount[0]).isEqualTo(2);
     }
 }

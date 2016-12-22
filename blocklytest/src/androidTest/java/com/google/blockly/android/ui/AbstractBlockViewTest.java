@@ -30,9 +30,8 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-
 
 /**
  * Tests for {@link AbstractBlockView}.
@@ -63,7 +62,7 @@ public class AbstractBlockViewTest {
         final BlockView blockView = makeBlockView(mEmptyBlock);
 
         // Verify Block and BlockView are linked both ways.
-        assertSame(mEmptyBlock, blockView.getBlock());
+        assertThat(mEmptyBlock).isSameAs(blockView.getBlock());
     }
 
     // Make a BlockView for the given Block and default mock objects otherwise.

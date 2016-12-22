@@ -40,12 +40,8 @@ import java.util.regex.Pattern;
 
 import static android.test.MoreAsserts.assertNotEqual;
 import static com.google.blockly.utils.MoreAsserts.assertStringNotEmpty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Tests for {@link Block}.
@@ -87,11 +83,9 @@ public class BlockTest {
                 .setShadowConnection(originalShadow.getOutputConnection());
 
         Block copy = original.deepCopy();
-        assertNotSame(original, copy);
-        assertNotSame(original.getOnlyValueInput().getConnection().getTargetBlock(),
-                copy.getOnlyValueInput().getConnection().getTargetBlock());
-        assertNotSame(original.getOnlyValueInput().getConnection().getShadowBlock(),
-                copy.getOnlyValueInput().getConnection().getShadowBlock());
+        assertThat(original).isNotSameAs(copy);
+        assertThat(original.getOnlyValueInput().getConnection().getTargetBlock()).isNotSameAs(copy.getOnlyValueInput().getConnection().getTargetBlock());
+        assertThat(original.getOnlyValueInput().getConnection().getShadowBlock()).isNotSameAs(copy.getOnlyValueInput().getConnection().getShadowBlock());
     }
 
     @Test
@@ -104,21 +98,18 @@ public class BlockTest {
 
         testMessage = "This has no args %%5";
         tokens = Block.tokenizeMessage(testMessage);
-        assertEquals("Should have 1 token: " + tokens.toString(), 1, tokens.size());
-        assertEquals("Only token should be the original string: " + tokens.toString(),
-                testMessage, tokens.get(0));
+        assertWithMessage("Should have 1 token: " + tokens.toString()).that(tokens.size()).isEqualTo(1);
+        assertWithMessage("Only token should be the original string: " + tokens.toString()).that(tokens.get(0)).isEqualTo(testMessage);
 
         testMessage = "%1";
         tokens = Block.tokenizeMessage(testMessage);
-        assertEquals("Should have 1 token: " + tokens.toString(), 1, tokens.size());
-        assertEquals("Only token should be the original string: " + tokens.toString(),
-                testMessage, tokens.get(0));
+        assertWithMessage("Should have 1 token: " + tokens.toString()).that(tokens.size()).isEqualTo(1);
+        assertWithMessage("Only token should be the original string: " + tokens.toString()).that(tokens.get(0)).isEqualTo(testMessage);
 
         testMessage = "%Hello";
         tokens = Block.tokenizeMessage(testMessage);
-        assertEquals("Should have 1 token: " + tokens.toString(), 1, tokens.size());
-        assertEquals("Only token should be the original string: " + tokens.toString(),
-                testMessage, tokens.get(0));
+        assertWithMessage("Should have 1 token: " + tokens.toString()).that(tokens.size()).isEqualTo(1);
+        assertWithMessage("Only token should be the original string: " + tokens.toString()).that(tokens.get(0)).isEqualTo(testMessage);
 
 
         testMessage = "%Hello%1World%";
@@ -137,14 +128,14 @@ public class BlockTest {
 
         block.serialize(serializer, true);
         serializer.flush();
-        assertEquals(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION, os.toString());
+        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION);
 
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
 
         block.serialize(serializer, false);
         serializer.flush();
-        assertEquals(BlockTestStrings.EMPTY_BLOCK_NO_POSITION, os.toString());
+        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_NO_POSITION);
 
         block = bf.obtainBlock("frankenblock", "frankenblock1");
         os = new ByteArrayOutputStream();
@@ -152,9 +143,10 @@ public class BlockTest {
 
         block.serialize(serializer, false);
         serializer.flush();
-        assertEquals(BlockTestStrings.blockStart("block", "frankenblock", "frankenblock1", null)
+        assertThat(os.toString()).isEqualTo(
+            BlockTestStrings.blockStart("block", "frankenblock", "frankenblock1", null)
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
-                + BlockTestStrings.BLOCK_END, os.toString());
+                + BlockTestStrings.BLOCK_END);
     }
 
     @Test
@@ -167,21 +159,21 @@ public class BlockTest {
 
         block.serialize(serializer, true);
         serializer.flush();
-        assertEquals(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION, os.toString());
+        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION);
 
         block.setInputsInline(false);
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
         block.serialize(serializer, true);
         serializer.flush();
-        assertEquals(BlockTestStrings.EMPTY_BLOCK_INLINE_FALSE, os.toString());
+        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_INLINE_FALSE);
 
         block.setInputsInline(true);
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
         block.serialize(serializer, true);
         serializer.flush();
-        assertEquals(BlockTestStrings.EMPTY_BLOCK_INLINE_TRUE, os.toString());
+        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_INLINE_TRUE);
     }
 
     @Test
@@ -195,7 +187,7 @@ public class BlockTest {
 
         block.serialize(serializer, true);
         serializer.flush();
-        assertEquals(BlockTestStrings.EMPTY_SHADOW_WITH_POSITION, os.toString());
+        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_SHADOW_WITH_POSITION);
     }
 
     @Test
@@ -217,7 +209,7 @@ public class BlockTest {
                 + BlockTestStrings.VALUE_GOOD
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END;
-        assertEquals(expected, os.toString());
+        assertThat(os.toString()).isEqualTo(expected);
     }
 
     @Test
@@ -242,7 +234,7 @@ public class BlockTest {
                 + BlockTestStrings.VALUE_SHADOW_GOOD
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END;
-        assertEquals(expected, os.toString());
+        assertThat(os.toString()).isEqualTo(expected);
 
         block = bf.obtainBlock("frankenblock", "777");
         block.setPosition(37, 13);
@@ -263,7 +255,7 @@ public class BlockTest {
                 + BlockTestStrings.VALUE_NESTED_SHADOW
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES
                 + BlockTestStrings.BLOCK_END;
-        assertEquals(expected, os.toString());
+        assertThat(os.toString()).isEqualTo(expected);
     }
 
     @Test
@@ -290,19 +282,19 @@ public class BlockTest {
                 + "</statement>"
                 + BlockTestStrings.FRANKENBLOCK_DEFAULT_VALUES_END
                 + BlockTestStrings.BLOCK_END;
-        assertEquals(expected, os.toString());
+        assertThat(os.toString()).isEqualTo(expected);
     }
 
     @Test
     public void testGetAllConnections() {
         Block block = mBlockFactory.obtainBlock("frankenblock", null);
         List<Connection> allConnections = block.getAllConnections();
-        assertEquals(4, allConnections.size());
+        assertThat(allConnections.size()).isEqualTo(4);
 
         block = mBlockFactory.obtainBlock("frankenblock", null);
         allConnections.clear();
         block.getAllConnections(allConnections);
-        assertEquals(4, allConnections.size());
+        assertThat(allConnections.size()).isEqualTo(4);
 
         allConnections.clear();
 
@@ -314,29 +306,29 @@ public class BlockTest {
         block.getInputs().get(1).getConnection().connect(smb.getPreviousConnection());
 
         block.getAllConnectionsRecursive(allConnections);
-        assertEquals(9, allConnections.size());
+        assertThat(allConnections.size()).isEqualTo(9);
     }
 
     @Test
     public void testGetOnlyValueInput() {
         BlockFactory bf = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
         // No inputs.
-        assertNull(bf.obtainBlock("statement_no_input", null).getOnlyValueInput());
+        assertThat(bf.obtainBlock("statement_no_input", null).getOnlyValueInput()).isNull();
 
         // One value input.
         Block underTest = bf.obtainBlock("statement_value_input", null);
-        assertSame(underTest.getInputByName("value"), underTest.getOnlyValueInput());
+        assertThat(underTest.getInputByName("value")).isSameAs(underTest.getOnlyValueInput());
 
         // Statement input, no value inputs.
-        assertNull(bf.obtainBlock("statement_statement_input", null).getOnlyValueInput());
+        assertThat(bf.obtainBlock("statement_statement_input", null).getOnlyValueInput()).isNull();
 
         // Multiple value inputs.
-        assertNull(bf.obtainBlock("statement_multiple_value_input", null)
+        assertThat(bf.obtainBlock("statement_multiple_value_input", null)
                 .getOnlyValueInput());
 
         // Statement input, dummy input and value input.
         underTest = bf.obtainBlock("controls_repeat_ext", null);
-        assertSame(underTest.getInputByName("TIMES"), underTest.getOnlyValueInput());
+        assertThat(underTest.getInputByName("TIMES")).isSameAs(underTest.getOnlyValueInput());
     }
 
     private XmlSerializer getXmlSerializer(ByteArrayOutputStream os) throws BlocklySerializerException {
@@ -352,9 +344,9 @@ public class BlockTest {
     }
 
     private void assertListsMatch(List<String> expected, List<String> actual) {
-        assertEquals("Wrong number of items in the list.", expected.size(), actual.size());
+        assertWithMessage("Wrong number of items in the list.").that(actual.size()).isEqualTo(expected.size());
         for (int i = 0; i < expected.size(); i++) {
-            assertEquals("Item " + i + " does not match.", expected.get(i), actual.get(i));
+            assertWithMessage("Item " + i + " does not match.").that(actual.get(i)).isEqualTo(expected.get(i));
         }
     }
 
@@ -367,10 +359,8 @@ public class BlockTest {
         first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
         blocks.add(first);
 
-        assertSame(second.getLastUnconnectedInputConnection(),
-                second.getOnlyValueInput().getConnection());
-        assertSame(first.getLastUnconnectedInputConnection(),
-                second.getOnlyValueInput().getConnection());
+        assertThat(second.getLastUnconnectedInputConnection()).isSameAs(second.getOnlyValueInput().getConnection());
+        assertThat(first.getLastUnconnectedInputConnection()).isSameAs(second.getOnlyValueInput().getConnection());
     }
 
     @Test
@@ -383,9 +373,9 @@ public class BlockTest {
         second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
         blocks.add(first);
 
-        assertNull(third.getLastUnconnectedInputConnection());
-        assertNull(second.getLastUnconnectedInputConnection());
-        assertNull(first.getLastUnconnectedInputConnection());
+        assertThat(third.getLastUnconnectedInputConnection()).isNull();
+        assertThat(second.getLastUnconnectedInputConnection()).isNull();
+        assertThat(first.getLastUnconnectedInputConnection()).isNull();
     }
 
     @Test
@@ -398,9 +388,9 @@ public class BlockTest {
         second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
         blocks.add(first);
 
-        assertNull(third.getLastUnconnectedInputConnection());
-        assertNull(second.getLastUnconnectedInputConnection());
-        assertNull(first.getLastUnconnectedInputConnection());
+        assertThat(third.getLastUnconnectedInputConnection()).isNull();
+        assertThat(second.getLastUnconnectedInputConnection()).isNull();
+        assertThat(first.getLastUnconnectedInputConnection()).isNull();
     }
 
     @Test
@@ -416,10 +406,8 @@ public class BlockTest {
         secondConn.connect(shadow.getOutputConnection());
         blocks.add(first);
 
-        assertSame(second.getLastUnconnectedInputConnection(),
-                second.getOnlyValueInput().getConnection());
-        assertSame(first.getLastUnconnectedInputConnection(),
-                second.getOnlyValueInput().getConnection());
+        assertThat(second.getLastUnconnectedInputConnection()).isSameAs(second.getOnlyValueInput().getConnection());
+        assertThat(first.getLastUnconnectedInputConnection()).isSameAs(second.getOnlyValueInput().getConnection());
     }
 
     @Test
@@ -430,7 +418,7 @@ public class BlockTest {
         Block value = mBlockFactory.obtainBlock("output_no_input", "value");
         block.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
-        assertSame(block, block.getLastBlockInSequence());
+        assertThat(block).isSameAs(block.getLastBlockInSequence());
     }
 
     @Test
@@ -441,7 +429,7 @@ public class BlockTest {
         Block value = mBlockFactory.obtainBlock("output_no_input", "value");
         block.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
-        assertSame(block, block.getLastBlockInSequence());
+        assertThat(block).isSameAs(block.getLastBlockInSequence());
     }
 
     @Test
@@ -457,7 +445,7 @@ public class BlockTest {
         second.getNextConnection().connect(third.getPreviousConnection());
         third.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
-        assertSame(third, first.getLastBlockInSequence());
+        assertThat(third).isSameAs(first.getLastBlockInSequence());
     }
 
     @Test
@@ -473,7 +461,7 @@ public class BlockTest {
         second.getNextConnection().connect(third.getPreviousConnection());
         third.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
-        assertSame(third, first.getLastBlockInSequence());
+        assertThat(third).isSameAs(first.getLastBlockInSequence());
     }
 
     @Test
@@ -486,7 +474,7 @@ public class BlockTest {
         second.getNextConnection().setShadowConnection(shadow.getPreviousConnection());
         second.getNextConnection().connect(shadow.getPreviousConnection());
 
-        assertSame(second, first.getLastBlockInSequence());
+        assertThat(second).isSameAs(first.getLastBlockInSequence());
     }
 
     @Test
@@ -497,108 +485,106 @@ public class BlockTest {
     @Test
     public void testCollapsed() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertFalse("By default, blocks are not collapsed.", block.isCollapsed());
+        assertWithMessage("By default, blocks are not collapsed.").that(block.isCollapsed()).isFalse();
 
         String blockXml = toXml(block);
-        assertFalse("Default state is not stored in XML", blockXml.contains("collapsed"));
+        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("collapsed")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertFalse("By default, blocks loaded from XML are not collapsed.",
-                blockFromXml.isCollapsed());
+        assertWithMessage("By default, blocks loaded from XML are not collapsed.").that(blockFromXml.isCollapsed()).isFalse();
 
         block.setCollapsed(true);
-        assertTrue("Collapsed state can change.", block.isCollapsed());
+        assertWithMessage("Collapsed state can change.").that(block.isCollapsed()).isTrue();
 
         blockXml = toXml(block);
-        assertTrue("Collapsed state is stored in XML.", blockXml.contains("collapsed=\"true\""));
+        assertWithMessage("Collapsed state is stored in XML.").that(blockXml.contains("collapsed=\"true\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertTrue("Collapsed state set from XML.", blockFromXml.isCollapsed());
+        assertWithMessage("Collapsed state set from XML.").that(blockFromXml.isCollapsed()).isTrue();
     }
 
     @Test
     public void testDeletable() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertTrue("By default, blocks are deletable.", block.isDeletable());
+        assertWithMessage("By default, blocks are deletable.").that(block.isDeletable()).isTrue();
 
         String blockXml = toXml(block);
-        assertFalse("Default state is not stored in XML", blockXml.contains("deletable"));
+        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("deletable")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertTrue("By default, blocks loaded from XML are deletable.", blockFromXml.isDeletable());
+        assertWithMessage("By default, blocks loaded from XML are deletable.").that(blockFromXml.isDeletable()).isTrue();
 
         block.setDeletable(false);
-        assertFalse("Deletable state can change.", block.isDeletable());
+        assertWithMessage("Deletable state can change.").that(block.isDeletable()).isFalse();
 
         blockXml = toXml(block);
-        assertTrue("Deletable state is stored in XML", blockXml.contains("deletable=\"false\""));
+        assertWithMessage("Deletable state is stored in XML").that(blockXml.contains("deletable=\"false\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertFalse("Deletable state set from XML.", blockFromXml.isDeletable());
+        assertWithMessage("Deletable state set from XML.").that(blockFromXml.isDeletable()).isFalse();
     }
 
     @Test
     public void testDisabled() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertFalse("By default, blocks are not disabled.", block.isDisabled());
+        assertWithMessage("By default, blocks are not disabled.").that(block.isDisabled()).isFalse();
 
         String blockXml = toXml(block);
-        assertFalse("Default state is not stored in XML", blockXml.contains("disabled"));
+        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("disabled")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertFalse("By default, blocks loaded from XML are not disabled.",
-                blockFromXml.isDisabled());
+        assertWithMessage("By default, blocks loaded from XML are not disabled.").that(blockFromXml.isDisabled()).isFalse();
 
         block.setDisabled(true);
-        assertTrue("Disabled state can change.", block.isDisabled());
+        assertWithMessage("Disabled state can change.").that(block.isDisabled()).isTrue();
 
         blockXml = toXml(block);
-        assertTrue("Disabled state is stored in XML.", blockXml.contains("disabled=\"true\""));
+        assertWithMessage("Disabled state is stored in XML.").that(blockXml.contains("disabled=\"true\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertTrue("Disabled state set from XML.", blockFromXml.isDisabled());
+        assertWithMessage("Disabled state set from XML.").that(blockFromXml.isDisabled()).isTrue();
     }
 
     @Test
     public void testEditable() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertTrue("By default, blocks are editable.", block.isEditable());
+        assertWithMessage("By default, blocks are editable.").that(block.isEditable()).isTrue();
 
         String blockXml = toXml(block);
-        assertFalse("Default state is not stored in XML", blockXml.contains("editable"));
+        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("editable")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertTrue("By default, blocks loaded from XML are editable.", blockFromXml.isEditable());
+        assertWithMessage("By default, blocks loaded from XML are editable.").that(blockFromXml.isEditable()).isTrue();
 
         block.setEditable(false);
-        assertFalse("Editable state can change.", block.isEditable());
+        assertWithMessage("Editable state can change.").that(block.isEditable()).isFalse();
 
         blockXml = toXml(block);
-        assertTrue("Editable state is stored in XML", blockXml.contains("editable=\"false\""));
+        assertWithMessage("Editable state is stored in XML").that(blockXml.contains("editable=\"false\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertFalse("Editable state set from XML.", blockFromXml.isEditable());
+        assertWithMessage("Editable state set from XML.").that(blockFromXml.isEditable()).isFalse();
     }
 
     @Test
     public void testMovable() {
         Block block = new Block.Builder("statement_no_input").build();
-        assertTrue("By default, blocks are editable.", block.isMovable());
+        assertWithMessage("By default, blocks are editable.").that(block.isMovable()).isTrue();
 
         String blockXml = toXml(block);
-        assertFalse("Default state is not stored in XML", blockXml.contains("movable"));
+        assertWithMessage("Default state is not stored in XML").that(blockXml.contains("movable")).isFalse();
 
         Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertTrue("By default, blocks loaded from XML are movable.", blockFromXml.isMovable());
+        assertWithMessage("By default, blocks loaded from XML are movable.").that(blockFromXml.isMovable()).isTrue();
 
         block.setMovable(false);
-        assertFalse("Movable state can change.", block.isMovable());
+        assertWithMessage("Movable state can change.").that(block.isMovable()).isFalse();
 
         blockXml = toXml(block);
-        assertTrue("Movable state is stored in XML", blockXml.contains("movable=\"false\""));
+        assertWithMessage("Movable state is stored in XML").that(blockXml.contains("movable=\"false\"")).isTrue();
 
         blockFromXml = fromXmlWithoutId(blockXml);
-        assertFalse("Movable state set from XML.", blockFromXml.isMovable());
+        assertWithMessage("Movable state set from XML.").that(blockFromXml.isMovable()).isFalse();
     }
 
     /**
@@ -613,9 +599,8 @@ public class BlockTest {
 
         String xml = toXml(block);
         Matcher matcher = Pattern.compile("less.*end").matcher(xml);
-        assertTrue(matcher.find());
-        assertEquals("less than &lt; greater than &gt; ampersand &amp; quote \" apostrophe ' end",
-                matcher.group());
+        assertThat(matcher.find()).isTrue();
+        assertThat(matcher.group()).isEqualTo("less than &lt; greater than &gt; ampersand &amp; quote \" apostrophe ' end");
     }
 
     private String toXml(Block block) {

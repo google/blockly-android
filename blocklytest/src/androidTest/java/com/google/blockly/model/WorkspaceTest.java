@@ -29,7 +29,8 @@ import org.junit.rules.ExpectedException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Tests for {@link Workspace}.
@@ -63,18 +64,18 @@ public class WorkspaceTest extends BlocklyTestCase {
     @Test
     public void testSimpleXmlParsing() {
         mWorkspace.loadWorkspaceContents(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK));
-        assertEquals("Workspace should have one block", 1, mWorkspace.getRootBlocks().size());
+        assertWithMessage("Workspace should have one block").that(mWorkspace.getRootBlocks()).hasSize(1);
     }
 
     @Test
     public void testEmptyXmlParsing() {
         // Normal end tag.
         mWorkspace.loadWorkspaceContents(assembleWorkspace(""));
-        assertEquals("Workspace should be empty", 0, mWorkspace.getRootBlocks().size());
+        assertWithMessage("Workspace should be empty").that(mWorkspace.getRootBlocks()).hasSize(0);
 
         // Abbreviated end tag.
         mWorkspace.loadWorkspaceContents(new ByteArrayInputStream(EMPTY_WORKSPACE.getBytes()));
-        assertEquals("Workspace should be empty", 0, mWorkspace.getRootBlocks().size());
+        assertWithMessage("Workspace should be empty").that(mWorkspace.getRootBlocks()).hasSize(0);
     }
 
     @Test
@@ -87,7 +88,7 @@ public class WorkspaceTest extends BlocklyTestCase {
     public void testSerialization() throws BlocklySerializerException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         mWorkspace.serializeToXml(os);
-        assertEquals(EMPTY_WORKSPACE, os.toString());
+        assertThat(os.toString()).isEqualTo(EMPTY_WORKSPACE);
     }
 
     private static ByteArrayInputStream assembleWorkspace(String interior) {

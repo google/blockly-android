@@ -34,9 +34,7 @@ import org.mockito.AdditionalAnswers;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -98,9 +96,9 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
             }
         }, TIMEOUT);
 
-        assertSame(mFieldVariable, view[0].getField());
-        assertEquals(mVariables.length + 2, view[0].getCount());
-        assertEquals(mFieldVariable.getVariable(), (String) (view[0].getSelectedItem()));
+        assertThat(mFieldVariable).isSameAs(view[0].getField());
+        assertThat(view[0].getCount()).isEqualTo(mVariables.length + 2);
+        assertThat((String) (view[0].getSelectedItem())).isEqualTo(mFieldVariable.getVariable());
     }
 
     // Verify update of field when an item is selected from the dropdown.
@@ -116,8 +114,8 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
                 view.setSelection(2);
             }
         }, TIMEOUT);
-        assertEquals(mVariables[2], mFieldVariable.getVariable());
-        assertEquals(view.getSelectedItem().toString(), mFieldVariable.getVariable());
+        assertThat(mFieldVariable.getVariable()).isEqualTo(mVariables[2]);
+        assertThat(mFieldVariable.getVariable()).isEqualTo(view.getSelectedItem().toString());
 
         runAndSync(new Runnable() {
             @Override
@@ -125,8 +123,8 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
                 view.setSelection(0);
             }
         }, TIMEOUT);
-        assertEquals(mVariables[0], mFieldVariable.getVariable());
-        assertEquals(view.getSelectedItem().toString(), mFieldVariable.getVariable());
+        assertThat(mFieldVariable.getVariable()).isEqualTo(mVariables[0]);
+        assertThat(mFieldVariable.getVariable()).isEqualTo(view.getSelectedItem().toString());
 
         runAndSync(new Runnable() {
             @Override
@@ -134,8 +132,8 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
                 view.setSelection(1);
             }
         }, TIMEOUT);
-        assertEquals(mVariables[1], mFieldVariable.getVariable());
-        assertEquals(view.getSelectedItem().toString(), mFieldVariable.getVariable());
+        assertThat(mFieldVariable.getVariable()).isEqualTo(mVariables[1]);
+        assertThat(mFieldVariable.getVariable()).isEqualTo(view.getSelectedItem().toString());
     }
 
     // Test update of view if variable selection changes.
@@ -150,7 +148,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
                 mFieldVariable.setVariable(mVariables[0]);
             }
         }, TIMEOUT);
-        assertEquals(mVariables[0], view.getSelectedItem().toString());
+        assertThat(view.getSelectedItem().toString()).isEqualTo(mVariables[0]);
 
         runAndSync(new Runnable() {
             @Override
@@ -158,7 +156,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
                 mFieldVariable.setVariable(mVariables[1]);
             }
         }, TIMEOUT);
-        assertEquals(mVariables[1], view.getSelectedItem().toString());
+        assertThat(view.getSelectedItem().toString()).isEqualTo(mVariables[1]);
 
         runAndSync(new Runnable() {
             @Override
@@ -166,7 +164,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
                 mFieldVariable.setVariable(mVariables[2]);
             }
         }, TIMEOUT);
-        assertEquals(mVariables[2], view.getSelectedItem().toString());
+        assertThat(view.getSelectedItem().toString()).isEqualTo(mVariables[2]);
     }
 
     @NonNull
@@ -178,7 +176,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
     }
 
     private void runAndSync(final Runnable runnable, long timeoutMilliseconds) {
-        assertNull(mExceptionInThread);
+        assertThat(mExceptionInThread).isNull();
 
         final CountDownLatch latch = new CountDownLatch(1);
         mHandler.post(new Runnable() {

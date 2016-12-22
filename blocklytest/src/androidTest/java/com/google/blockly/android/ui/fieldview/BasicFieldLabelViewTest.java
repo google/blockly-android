@@ -21,8 +21,7 @@ import com.google.blockly.model.FieldLabel;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link BasicFieldLabelView}.
@@ -41,7 +40,7 @@ public class BasicFieldLabelViewTest {
 
         final BasicFieldLabelView view = new BasicFieldLabelView(InstrumentationRegistry.getContext());
         view.setField(mFieldLabel);
-        assertSame(mFieldLabel, view.getField());
-        assertEquals(INIT_TEXT_VALUE, view.getText().toString());  // Fails without .toString()
+        assertThat(mFieldLabel).isSameAs(view.getField());
+        assertThat(view.getText().toString()).isEqualTo(INIT_TEXT_VALUE);  // Fails without .toString()
     }
 }
