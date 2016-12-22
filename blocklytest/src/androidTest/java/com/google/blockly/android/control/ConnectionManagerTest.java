@@ -43,19 +43,23 @@ public class ConnectionManagerTest {
     public void testAdd() {
         Connection conn = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
         manager.addConnection(conn);
-        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn)).isTrue();
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn))
+            .isTrue();
 
         conn = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
         manager.addConnection(conn);
-        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_NEXT).contains(conn)).isTrue();
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_NEXT).contains(conn))
+            .isTrue();
 
         conn = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         manager.addConnection(conn);
-        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_INPUT).contains(conn)).isTrue();
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_INPUT).contains(conn))
+            .isTrue();
 
         conn = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
         manager.addConnection(conn);
-        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).contains(conn)).isTrue();
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).contains(conn))
+            .isTrue();
     }
 
     @Test
@@ -72,7 +76,8 @@ public class ConnectionManagerTest {
         assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
         assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
         // Connection should still be in the list
-        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn)).isTrue();
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn))
+            .isTrue();
 
         manager.removeConnection(conn);
         conn.setDragMode(true);
@@ -81,7 +86,8 @@ public class ConnectionManagerTest {
         moveX = 10;
         moveY = 100;
         manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
-        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn)).isFalse();
+        assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn))
+            .isFalse();
         assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
         assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
     }
@@ -212,8 +218,8 @@ public class ConnectionManagerTest {
                 -23, 5, -2, -13, -9, 48, 74, -97, -11, 35, -79, -16, -77, 83, -57, -53, 35, -44,
                 100, -27, -15, 5, 39, 33, -19, -20, -95};
         for (int i = 0; i < xCoords.length; i++) {
-            list.addConnection(createConnection(xCoords[i], yCoords[i], Connection.CONNECTION_TYPE_PREVIOUS,
-                    false));
+            list.addConnection(createConnection(xCoords[i], yCoords[i],
+                Connection.CONNECTION_TYPE_PREVIOUS, false));
         }
 
         for (int i = 1; i < xCoords.length; i++) {
@@ -262,7 +268,8 @@ public class ConnectionManagerTest {
                 manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
 
         // Search an empty list
-        assertThat(getNeighbourHelper(list, 10 /* x */, 10 /* y */, 100 /* radius */).isEmpty()).isTrue();
+        assertThat(getNeighbourHelper(list, 10 /* x */, 10 /* y */, 100 /* radius */).isEmpty())
+            .isTrue();
 
         // Make a list
         for (int i = 0; i < 10; i++) {
@@ -306,7 +313,8 @@ public class ConnectionManagerTest {
     private List<Connection> getNeighbourHelper(ConnectionManager.YSortedList list, int x, int y,
                                                 int radius) {
         List<Connection> result = new ArrayList<>();
-        list.getNeighbours(createConnection(x, y, Connection.CONNECTION_TYPE_NEXT, false), radius, result);
+        list.getNeighbours(
+            createConnection(x, y, Connection.CONNECTION_TYPE_NEXT, false), radius, result);
         return result;
     }
 

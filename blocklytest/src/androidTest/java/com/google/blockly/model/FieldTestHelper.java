@@ -43,8 +43,10 @@ public class FieldTestHelper {
         });
 
         field.setFromString(newValue);
-        assertWithMessage("Exactly one observation per Observer").that(observerOneCount[0]).isEqualTo(1);
-        assertWithMessage("Exactly one observation per Observer").that(observerTwoCount[0]).isEqualTo(1);
+        assertWithMessage("Exactly one observation per Observer")
+            .that(observerOneCount[0]).isEqualTo(1);
+        assertWithMessage("Exactly one observation per Observer")
+            .that(observerTwoCount[0]).isEqualTo(1);
     }
 
     /**

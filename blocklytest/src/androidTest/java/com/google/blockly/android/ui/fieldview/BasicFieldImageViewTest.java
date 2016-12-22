@@ -23,7 +23,8 @@ public class BasicFieldImageViewTest {
 
     @Before
     public void setUp() throws Exception {
-        mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(InstrumentationRegistry.getContext()));
+        mMockContext = mock(Context.class,
+            AdditionalAnswers.delegatesTo(InstrumentationRegistry.getContext()));
 
         mImageFieldView = new BasicFieldImageView(mMockContext);
     }

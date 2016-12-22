@@ -52,7 +52,8 @@ public class AbstractBlockViewTest {
         mMockHelper = mock(WorkspaceHelper.class);
         mMockViewFactory = mock(BlockViewFactory.class);
 
-        BlockFactory mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
+        BlockFactory mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
+            new int[]{R.raw.test_blocks});
         mEmptyBlock = mBlockFactory.obtainBlock("empty_block", "fake_id");
     }
 
@@ -68,8 +69,8 @@ public class AbstractBlockViewTest {
     // Make a BlockView for the given Block and default mock objects otherwise.
     @NonNull
     private AbstractBlockView makeBlockView(Block block) {
-        return new AbstractBlockView<InputView>(InstrumentationRegistry.getContext(), mMockHelper, mMockViewFactory, block,
-                new ArrayList<InputView>(), mMockConnectionManager, null) {
+        return new AbstractBlockView<InputView>(InstrumentationRegistry.getContext(), mMockHelper,
+            mMockViewFactory, block, new ArrayList<InputView>(), mMockConnectionManager, null) {
 
             @Override
             protected boolean hitTest(MotionEvent event) {

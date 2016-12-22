@@ -70,7 +70,8 @@ public class BasicFieldCheckboxViewTest extends BlocklyTestCase {
 
     @NonNull
     private BasicFieldCheckboxView makeFieldCheckboxView() {
-        BasicFieldCheckboxView view = new BasicFieldCheckboxView(InstrumentationRegistry.getContext());
+        BasicFieldCheckboxView view = new BasicFieldCheckboxView(InstrumentationRegistry
+            .getContext());
         view.setField(mFieldCheckbox);
         return view;
     }

@@ -38,9 +38,11 @@ public class BasicFieldLabelViewTest {
     public void testInstantiation() {
         mFieldLabel = new FieldLabel("FieldLabel", INIT_TEXT_VALUE);
 
-        final BasicFieldLabelView view = new BasicFieldLabelView(InstrumentationRegistry.getContext());
+        final BasicFieldLabelView view =
+            new BasicFieldLabelView(InstrumentationRegistry.getContext());
         view.setField(mFieldLabel);
         assertThat(mFieldLabel).isSameAs(view.getField());
-        assertThat(view.getText().toString()).isEqualTo(INIT_TEXT_VALUE);  // Fails without .toString()
+        // Fails without .toString()
+        assertThat(view.getText().toString()).isEqualTo(INIT_TEXT_VALUE);
     }
 }

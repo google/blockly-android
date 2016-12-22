@@ -110,8 +110,8 @@ public class AbstractInputViewTest {
 
     @NonNull
     private AbstractInputView makeDefaultInputView() {
-        return new AbstractInputView(
-                InstrumentationRegistry.getContext(), mMockWorkspaceHelper, mDummyInput, new ArrayList<FieldView>()) {
+        return new AbstractInputView(InstrumentationRegistry.getContext(), mMockWorkspaceHelper,
+            mDummyInput, new ArrayList<FieldView>()) {
 
             @Override
             protected void onLayout(boolean changed, int l, int t, int r, int b) {

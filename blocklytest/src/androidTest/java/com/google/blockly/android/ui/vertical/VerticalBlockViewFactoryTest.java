@@ -48,8 +48,10 @@ public class VerticalBlockViewFactoryTest {
      public void setUp() throws Exception {
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mMockConnectionManager = mock(ConnectionManager.class);
-        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
-        mViewFactory = new VerticalBlockViewFactory(InstrumentationRegistry.getContext(), mMockWorkspaceHelper);
+        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
+            new int[]{R.raw.test_blocks});
+        mViewFactory = new VerticalBlockViewFactory(InstrumentationRegistry.getContext(),
+            mMockWorkspaceHelper);
         mBlockGroup = mViewFactory.buildBlockGroup();
     }
 
@@ -72,7 +74,8 @@ public class VerticalBlockViewFactoryTest {
             // Each InputView is a child of the BlockView?
             assertThat(blockView.getInputView(inputIdx)).isSameAs(blockView.getChildAt(inputIdx));
             // Each input view points to the correct Input?
-            assertThat(block.getInputs().get(inputIdx)).isSameAs(blockView.getInputView(inputIdx).getInput());
+            assertThat(block.getInputs().get(inputIdx))
+                .isSameAs(blockView.getInputView(inputIdx).getInput());
         }
     }
 
