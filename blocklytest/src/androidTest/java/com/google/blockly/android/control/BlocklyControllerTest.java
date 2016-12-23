@@ -1328,8 +1328,6 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         mController.trashAllBlocks();
         assertThat(mWorkspace.getRootBlocks()).hasSize(0);
         assertThat(mWorkspace.getTrashContents()).hasSize(2);
-
-
     }
 
     /**
