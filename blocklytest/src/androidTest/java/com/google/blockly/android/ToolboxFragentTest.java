@@ -35,7 +35,9 @@ public class ToolboxFragentTest extends BlocklyTestCase {
         mToolboxFragment = new ToolboxFragment();
 
         mActivity = mActivityRule.getActivity();
-        mActivity.getSupportFragmentManager().beginTransaction().add(mToolboxFragment, "Toolbox").commit();
+        mActivity.getSupportFragmentManager().beginTransaction()
+            .add(mToolboxFragment, "Toolbox")
+            .commit();
     }
 
     @Test
