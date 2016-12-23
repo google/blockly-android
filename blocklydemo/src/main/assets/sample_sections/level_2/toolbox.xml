@@ -42,7 +42,7 @@
             <field name="NOTE">60</field>
         </block>
     </category>
-    <category name="Variables">
+    <category name="Variables" custom="VARIABLE">
         <block type="variables_set"></block>
         <block type="variables_get"></block>
     </category>

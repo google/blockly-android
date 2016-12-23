@@ -27,7 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
-import com.google.blockly.android.ToolboxFragment;
+import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.android.TrashFragment;
 import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.ui.Dragger;
@@ -111,7 +111,7 @@ public class BlocklyController {
     private WorkspaceFragment mWorkspaceFragment = null;
     private TrashFragment mTrashFragment = null;
     private View mTrashIcon = null;
-    private ToolboxFragment mToolboxFragment = null;
+    private FlyoutFragment mFlyoutFragment = null;
     private Dragger mDragger;
     private VariableCallback mVariableCallback = null;
 
@@ -125,7 +125,7 @@ public class BlocklyController {
             if (mTrashFragment.isOpened() && mTrashFragment.isCloseable()) {
                 mTrashFragment.setOpened(false);
             }
-            mToolboxFragment.closeBlocksDrawer();
+            mFlyoutFragment.closeBlocksDrawer();
         }
     };
 
@@ -239,34 +239,34 @@ public class BlocklyController {
     }
 
     /**
-     * Connects a {@link ToolboxFragment} to this controller, so the user can drag new blocks into
+     * Connects a {@link FlyoutFragment} to this controller, so the user can drag new blocks into
      * the attached {@link WorkspaceFragment}.
      *
-     * @param toolboxFragment The toolbox to connect to.
+     * @param flyoutFragment The toolbox to connect to.
      */
-    public void setToolboxFragment(@Nullable ToolboxFragment toolboxFragment) {
-        if (toolboxFragment == mToolboxFragment) {
+    public void setToolboxFragment(@Nullable FlyoutFragment flyoutFragment) {
+        if (flyoutFragment == mFlyoutFragment) {
             return;
         }
 
-        if (mToolboxFragment != null) {
+        if (mFlyoutFragment != null) {
             // Reset old fragment.
-            mToolboxFragment.setController(null);
+            mFlyoutFragment.setController(null);
         }
 
-        mToolboxFragment = toolboxFragment;
+        mFlyoutFragment = flyoutFragment;
 
-        if (mToolboxFragment != null) {
-            mToolboxFragment.setController(this);
+        if (mFlyoutFragment != null) {
+            mFlyoutFragment.setController(this);
             updateToolbox();
         }
     }
 
     /**
-     * @return The currently attached {@link ToolboxFragment}.
+     * @return The currently attached {@link FlyoutFragment}.
      */
-    public ToolboxFragment getToolboxFragment() {
-        return mToolboxFragment;
+    public FlyoutFragment getToolboxFragment() {
+        return mFlyoutFragment;
     }
 
     /**
@@ -1463,8 +1463,8 @@ public class BlocklyController {
      * Populates the toolbox fragments with the current toolbox contents.
      */
     private void updateToolbox() {
-        if (mToolboxFragment != null) {
-            mToolboxFragment.setContents(mWorkspace.getToolboxContents());
+        if (mFlyoutFragment != null) {
+            mFlyoutFragment.setContents(mWorkspace.getToolboxContents());
         }
     }
 
@@ -1668,7 +1668,7 @@ public class BlocklyController {
         private BlockViewFactory mViewFactory;
         private VariableCallback mVariableCallback;
         private WorkspaceFragment mWorkspaceFragment;
-        private ToolboxFragment mToolboxFragment;
+        private FlyoutFragment mFlyoutFragment;
         private DrawerLayout mToolboxDrawer;
         private TrashFragment mTrashFragment;
         private View mTrashIcon;
@@ -1706,8 +1706,8 @@ public class BlocklyController {
             return this;
         }
 
-        public Builder setToolboxFragment(ToolboxFragment toolbox, DrawerLayout toolboxDrawer) {
-            mToolboxFragment = toolbox;
+        public Builder setToolboxFragment(FlyoutFragment toolbox, DrawerLayout toolboxDrawer) {
+            mFlyoutFragment = toolbox;
             mToolboxDrawer = toolboxDrawer;
             return this;
         }
@@ -1855,7 +1855,7 @@ public class BlocklyController {
          */
         public BlocklyController build() {
             if (mViewFactory == null && (mWorkspaceFragment != null || mTrashFragment != null
-                    || mToolboxFragment != null || mToolboxDrawer != null)) {
+                    || mFlyoutFragment != null || mToolboxDrawer != null)) {
                 throw new IllegalStateException(
                         "BlockViewFactory cannot be null when using Fragments.");
             }
@@ -1904,7 +1904,7 @@ public class BlocklyController {
             // Any of the following may be null and result in a no-op.
             controller.setWorkspaceFragment(mWorkspaceFragment);
             controller.setTrashFragment(mTrashFragment);
-            controller.setToolboxFragment(mToolboxFragment);
+            controller.setToolboxFragment(mFlyoutFragment);
             controller.setTrashIcon(mTrashIcon);
             controller.setVariableCallback(mVariableCallback);
 

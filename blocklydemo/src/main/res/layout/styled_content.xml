@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:blockly="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <fragment android:name="com.google.blockly.android.WorkspaceFragment"
         android:id="@+id/blockly_workspace"
@@ -11,21 +13,40 @@
         />
 
     <fragment android:name="com.google.blockly.android.TrashFragment"
-        android:id="@+id/blockly_trash"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        blockly:closeable="true"
-        blockly:scrollOrientation="vertical"
-        tools:ignore="MissingPrefix"
-        />
+              android:id="@+id/blockly_trash"
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:layout_alignParentEnd="true"
+              android:layout_above="@+id/blockly_categories"
+              blockly:closeable="true"
+              blockly:scrollOrientation="vertical"
+              tools:ignore="MissingPrefix"
+              android:layout_alignParentRight="true"/>
+
+    <fragment android:name="com.google.blockly.android.CategoryFragment"
+              android:id="@id/blockly_categories"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_alignParentBottom="true"
+              android:layout_alignParentStart="true"
+              blockly:scrollOrientation="horizontal"
+              tools:ignore="MissingPrefix"
+              android:layout_alignParentLeft="true"/>
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
+              android:id="@+id/blockly_toolbox"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_above="@id/blockly_categories"
+              android:layout_alignParentStart="true"
+              android:layout_alignParentLeft="true"/>
+
 
     <LinearLayout android:id="@+id/blockly_overlay_buttons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@id/blockly_toolbox"
         android:orientation="vertical">
 
         <ImageButton android:id="@+id/blockly_zoom_in_button"
@@ -62,16 +83,4 @@
             android:padding="2dp"
             android:src="@drawable/trash"/>
     </LinearLayout>
-
-    <fragment android:name="com.google.blockly.android.ToolboxFragment"
-        android:id="@+id/blockly_toolbox"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        blockly:closeable="true"
-        blockly:scrollOrientation="vertical"
-        blockly:tabEdge="start"
-        blockly:rotateTabs="true"
-        tools:ignore="MissingPrefix"
-        />
-
-</merge>
+</RelativeLayout>

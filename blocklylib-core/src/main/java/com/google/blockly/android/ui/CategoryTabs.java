@@ -20,9 +20,12 @@ import android.content.res.TypedArray;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.google.blockly.android.R;
 import com.google.blockly.model.ToolboxCategory;
@@ -109,14 +112,17 @@ public class CategoryTabs extends RecyclerView {
         setLayoutManager(mLayoutManager);
         mAdapter = new CategoryAdapter();
         setAdapter(mAdapter);
+        setLabelAdapter(new DefaultTabsAdapter());
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.ToolboxFragment,
+                R.styleable.CategoryTabs,
                 0, 0);
         try {
             //noinspection ResourceType
             mLabelRotation = a.getInt(R.styleable.CategoryTabs_labelRotation, mLabelRotation);
+            int orientation = a.getInt(R.styleable.CategoryTabs_tabOrientation, VERTICAL);
+            mLayoutManager.setOrientation(orientation);
         } finally {
             a.recycle();
         }
@@ -299,5 +305,31 @@ public class CategoryTabs extends RecyclerView {
             holder.mCategory = null;
             holder.mLabel.setOnClickListener(null);
         }
+    }
+    /** Manages TextView labels derived from {@link R.layout#default_toolbox_tab}. */
+    protected class DefaultTabsAdapter extends CategoryTabs.LabelAdapter {
+        @Override
+        public View onCreateLabel() {
+            return (TextView) LayoutInflater.from(getContext())
+                    .inflate(R.layout.default_toolbox_tab, null);
+        }
+
+        /**
+         * Assigns the category name to the {@link TextView}. Tabs without labels will be assigned
+         * the text {@link R.string#blockly_toolbox_default_category_name} ("Blocks" in English).
+         *
+         * @param labelView The view used as the label.
+         * @param category The {@link ToolboxCategory}.
+         * @param position The ordering position of the tab.
+         */
+        @Override
+        public void onBindLabel(View labelView, ToolboxCategory category, int position) {
+            String labelText = category.getCategoryName();
+            if (TextUtils.isEmpty(labelText)) {
+                labelText = getContext().getString(R.string.blockly_toolbox_default_category_name);
+            }
+            ((TextView) labelView).setText(labelText);
+        }
+
     }
 }
