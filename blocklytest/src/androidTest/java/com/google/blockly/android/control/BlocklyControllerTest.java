@@ -1225,13 +1225,16 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     @Test
     public void testCreateVariableDoesNotAllowDuplicateNamesWithDifferentCases() {
-        String name1 = "FIRST VAR";
-        String name2 = "first var";
+        String name1 = "VAR";
+        String name2 = "var";
 
         String finalName1 = mController.addVariable(name1);
         String finalName2 = mController.addVariable(name2);
 
-        assertThat(finalName1.toLowerCase()).isNotEqualTo(finalName2.toLowerCase());
+        assertWithMessage("Second similar variable name (matching all but case) was renamed.")
+            .that(finalName2).isNotEqualTo(name2);
+        assertWithMessage("Renamed second variable does not match first variable.")
+            .that(finalName1.toLowerCase()).isNotEqualTo(finalName2.toLowerCase());
     }
 
     @Test
