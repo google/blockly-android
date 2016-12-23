@@ -19,7 +19,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.google.common.truth.Truth.assertThat;
+import static com.google.blockly.model.Connection.CAN_CONNECT;
+import static com.google.blockly.model.Connection.CONNECTION_TYPE_OUTPUT;
+import static com.google.blockly.model.Connection.REASON_CHECKS_FAILED;
+import static com.google.blockly.model.Connection.REASON_MUST_DISCONNECT;
+import static com.google.blockly.model.Connection.REASON_SELF_CONNECTION;
+import static com.google.blockly.model.Connection.REASON_TARGET_NULL;
+import static com.google.blockly.model.Connection.REASON_WRONG_TYPE;
+
+import static com.google.blockly.utils.ConnectionSubject.assertThat;
+
 
 /**
  * Tests for {@link Connection}.
@@ -40,12 +49,11 @@ public class ConnectionTest {
 
     @Before
     public void setUp() {
-
         blockBuilder = new Block.Builder("dummyBlock");
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         input.setBlock(blockBuilder.build());
 
-        output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
+        output = new Connection(CONNECTION_TYPE_OUTPUT, null);
         output.setBlock(blockBuilder.build());
 
         previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
@@ -58,7 +66,7 @@ public class ConnectionTest {
         shadowInput = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         shadowInput.setBlock(blockBuilder.build());
 
-        shadowOutput = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
+        shadowOutput = new Connection(CONNECTION_TYPE_OUTPUT, null);
         shadowOutput.setBlock(blockBuilder.build());
 
         shadowPrevious = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
@@ -72,74 +80,75 @@ public class ConnectionTest {
 
     @Test
     public void testCanConnectWithReason() {
-        assertThat(input.canConnectWithReason(null)).isEqualTo(Connection.REASON_TARGET_NULL);
-        assertThat(input.canConnectWithReason(new Connection(Connection.CONNECTION_TYPE_OUTPUT, null)))
-            .isEqualTo(Connection.REASON_TARGET_NULL);
+        assertThat(input).connectingTo(null).returnsReason(REASON_TARGET_NULL);
+        assertThat(input)
+                .connectingTo(new Connection(CONNECTION_TYPE_OUTPUT, null))
+                .returnsReason(REASON_TARGET_NULL);
 
-        assertThat(input.canConnectWithReason(input)).isEqualTo(Connection.REASON_SELF_CONNECTION);
-        assertThat(input.canConnectWithReason(input)).isEqualTo(Connection.REASON_SELF_CONNECTION);
+        assertThat(input).connectingTo(input).returnsReason(REASON_SELF_CONNECTION);
     }
 
     @Test
     public void testCanConnectWithReasonDisconnect() {
-        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
-        Connection conn = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
+        assertThat(input).connectingTo(output).isSuccessful();
+
+        Connection conn = new Connection(CONNECTION_TYPE_OUTPUT, null);
         conn.setBlock(blockBuilder.build());
         input.connect(conn);
-        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.REASON_MUST_DISCONNECT);
+        assertThat(input).connectingTo(output).returnsReason(REASON_MUST_DISCONNECT);
     }
 
     @Test
-    public void testCanConnectWithReasonType() {
-        assertThat(input.canConnectWithReason(previous)).isEqualTo(Connection.REASON_WRONG_TYPE);
-        assertThat(input.canConnectWithReason(next)).isEqualTo(Connection.REASON_WRONG_TYPE);
+    public void testCanConnectWithReasonWrongType() {
+        assertThat(input).connectingTo(previous).returnsReason(REASON_WRONG_TYPE);
+        assertThat(input).connectingTo(next).returnsReason(REASON_WRONG_TYPE);
 
-        assertThat(output.canConnectWithReason(previous)).isEqualTo(Connection.REASON_WRONG_TYPE);
-        assertThat(output.canConnectWithReason(next)).isEqualTo(Connection.REASON_WRONG_TYPE);
+        assertThat(output).connectingTo(previous).returnsReason(REASON_WRONG_TYPE);
+        assertThat(output).connectingTo(next).returnsReason(REASON_WRONG_TYPE);
 
-        assertThat(previous.canConnectWithReason(input)).isEqualTo(Connection.REASON_WRONG_TYPE);
-        assertThat(previous.canConnectWithReason(output)).isEqualTo(Connection.REASON_WRONG_TYPE);
+        assertThat(previous).connectingTo(input).returnsReason(REASON_WRONG_TYPE);
+        assertThat(previous).connectingTo(output).returnsReason(REASON_WRONG_TYPE);
 
-        assertThat(next.canConnectWithReason(input)).isEqualTo(Connection.REASON_WRONG_TYPE);
-        assertThat(next.canConnectWithReason(output)).isEqualTo(Connection.REASON_WRONG_TYPE);
+        assertThat(next).connectingTo(input).returnsReason(REASON_WRONG_TYPE);
+        assertThat(next).connectingTo(output).returnsReason(REASON_WRONG_TYPE);
     }
 
     @Test
     public void testCanConnectWithReasonChecks() {
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, new String[]{"String", "int"});
         input.setBlock(blockBuilder.build());
-        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
+        assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
 
-        output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, new String[]{"int"});
+        output = new Connection(CONNECTION_TYPE_OUTPUT, new String[]{"int"});
         output.setBlock(blockBuilder.build());
-        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
+        assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
 
-        output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, new String[]{"String"});
+        output = new Connection(CONNECTION_TYPE_OUTPUT, new String[]{"String"});
         output.setBlock(blockBuilder.build());
-        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
+        assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
 
-        output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, new String[]{"String", "int"});
+        output = new Connection(CONNECTION_TYPE_OUTPUT, new String[]{"String", "int"});
         output.setBlock(blockBuilder.build());
-        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.CAN_CONNECT);
+        assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
 
-        output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, new String[]{"Some other type"});
+        output = new Connection(CONNECTION_TYPE_OUTPUT, new String[]{"Some other type"});
         output.setBlock(blockBuilder.build());
-        assertThat(input.canConnectWithReason(output)).isEqualTo(Connection.REASON_CHECKS_FAILED);
+        assertThat(input).connectingTo(output).returnsReason(REASON_CHECKS_FAILED);
     }
 
     @Test
     public void testCanConnectWithReason_shadows() {
         // Verify a shadow can connect
-        assertThat(input.canConnectWithReason(shadowOutput)).isEqualTo(Connection.CAN_CONNECT);
+        assertThat(input).connectingTo(shadowOutput).isSuccessful();
         input.connect(output);
         // Verify a shadow and non shadow can't be connected at the same time
-        assertThat(input.canConnectWithReason(shadowOutput)).isEqualTo(Connection.REASON_MUST_DISCONNECT);
+        assertThat(input).connectingTo(shadowOutput).returnsReason(REASON_MUST_DISCONNECT);
         input.disconnect();
         input.connect(shadowOutput);
 
         // Veryify a normal connection can't be made after a shadow connection
         next.connect(shadowPrevious);
-        assertThat(next.canConnectWithReason(previous)).isEqualTo(Connection.REASON_MUST_DISCONNECT);
+        assertThat(next).connectingTo(previous).returnsReason(REASON_MUST_DISCONNECT);
     }
 
     @Test
@@ -179,7 +188,7 @@ public class ConnectionTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.reportMissingExceptionWithMessage("Output cannot connect to output!");
 
-        Connection output2 = new Connection(Connection.CONNECTION_TYPE_OUTPUT, null);
+        Connection output2 = new Connection(CONNECTION_TYPE_OUTPUT, null);
         output2.setBlock(blockBuilder.build());
         output.checkConnection(output2);
     }

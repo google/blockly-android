@@ -136,10 +136,14 @@ public class WorkspaceStatsTest {
         mStats.collectStats(secondBlock, true);
         assertThat(mStats.getVariableNameManager().contains("third block variable name")).isTrue();
         assertThat(mStats.getVariableNameManager().contains("variable name")).isFalse();
-        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty()).isTrue();
-        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty()).isTrue();
-        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).size()).isEqualTo(2);
-        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size()).isEqualTo(1);
+        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty())
+                .isTrue();
+        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty())
+                .isTrue();
+        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).size())
+                .isEqualTo(2);
+        assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size())
+                .isEqualTo(1);
     }
 
     @Test

@@ -218,7 +218,8 @@ public class BasicFieldVariableView extends Spinner implements FieldView, Variab
         }
 
         /**
-         * Retrieves the index for the given variable name, creating a new variable if it is not found.
+         * Retrieves the index for the given variable name, creating a new variable if it is not
+         * found.
          *
          * @param variableName The name of the variable to retrieve.
          * @return The index of the variable.
@@ -279,8 +280,8 @@ public class BasicFieldVariableView extends Spinner implements FieldView, Variab
         int getVariableAction(int index) {
             int count = super.getCount();
             if (index >= count + 2 || index < 0) {
-                throw new IndexOutOfBoundsException("There is no item at index " + index + ". Count is "
-                        + count);
+                throw new IndexOutOfBoundsException("There is no item at index " + index + "."
+                        + " Count is " + count);
             }
             if (index < count) {
                 return ACTION_SELECT_VARIABLE;

@@ -56,7 +56,9 @@ public class ViewPoint extends Point {
         y = other.y;
     }
 
-    public static final Parcelable.Creator<ViewPoint> CREATOR = new Parcelable.Creator<ViewPoint>() {
+    public static final Parcelable.Creator<ViewPoint> CREATOR
+            = new Parcelable.Creator<ViewPoint>()
+    {
         /**
          * Return a new point from the data in the specified parcel.
          */

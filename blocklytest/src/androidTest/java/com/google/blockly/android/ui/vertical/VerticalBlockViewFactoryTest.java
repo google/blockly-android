@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.test.suitebuilder.annotation.SmallTest;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.BlockGroup;
@@ -36,7 +37,7 @@ import static org.mockito.Mockito.mock;
  * Tests for {@link VerticalBlockViewFactory}.
  */
 @SmallTest
-public class VerticalBlockViewFactoryTest {
+public class VerticalBlockViewFactoryTest extends BlocklyTestCase {
 
     private BlockFactory mBlockFactory;
     private VerticalBlockViewFactory mViewFactory;
@@ -48,8 +49,8 @@ public class VerticalBlockViewFactoryTest {
      public void setUp() throws Exception {
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mMockConnectionManager = mock(ConnectionManager.class);
-        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(), new int[]{R.raw.test_blocks});
-        mViewFactory = new VerticalBlockViewFactory(InstrumentationRegistry.getContext(), mMockWorkspaceHelper);
+        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        mViewFactory = new VerticalBlockViewFactory(getContext(), mMockWorkspaceHelper);
         mBlockGroup = mViewFactory.buildBlockGroup();
     }
 
@@ -72,7 +73,8 @@ public class VerticalBlockViewFactoryTest {
             // Each InputView is a child of the BlockView?
             assertThat(blockView.getInputView(inputIdx)).isSameAs(blockView.getChildAt(inputIdx));
             // Each input view points to the correct Input?
-            assertThat(block.getInputs().get(inputIdx)).isSameAs(blockView.getInputView(inputIdx).getInput());
+            assertThat(block.getInputs().get(inputIdx))
+                    .isSameAs(blockView.getInputView(inputIdx).getInput());
         }
     }
 

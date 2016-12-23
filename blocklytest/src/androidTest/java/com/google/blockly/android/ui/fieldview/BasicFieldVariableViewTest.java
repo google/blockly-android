@@ -71,7 +71,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
         mLooper = mThread.getLooper();
         mHandler = new Handler(mLooper);
 
-        mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(InstrumentationRegistry.getContext()));
+        mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(getContext()));
         doReturn(mLooper).when(mMockContext).getMainLooper();
 
         mFieldVariable = new FieldVariable("field", "var2");
@@ -81,8 +81,8 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
         mNameManager.addName(mFieldVariable.getVariable());
         mNameManager.addName("var3");
 
-        mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(InstrumentationRegistry.getContext(), mNameManager,
-                android.R.layout.simple_spinner_item);
+        mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(
+                getContext(), mNameManager, android.R.layout.simple_spinner_item);
     }
 
     // Verify object instantiation.

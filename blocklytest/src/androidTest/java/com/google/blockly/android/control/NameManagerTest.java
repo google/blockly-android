@@ -34,7 +34,8 @@ public class NameManagerTest {
     @Test
     public void testGenerateUniqueName() throws Exception {
         String name1 = mNameManager.generateUniqueName("string", true /* addName */);
-        assertThat(mNameManager.generateUniqueName("string", true /* addName */)).isNotEqualTo(name1);
+        assertThat(mNameManager.generateUniqueName("string", true /* addName */))
+                .isNotEqualTo(name1);
 
         assertThat(mNameManager.generateUniqueName("foo", true /* addName */)).isEqualTo("foo");
         assertThat(mNameManager.generateUniqueName("foo", true /* addName */)).isEqualTo("foo2");
