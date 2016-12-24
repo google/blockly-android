@@ -129,6 +129,11 @@ public class ToolboxFragment extends BlockDrawerFragment {
 
     public static final int DEFAULT_TAB_EDGE = Gravity.TOP;
     public static final boolean DEFAULT_ROTATE_TABS = true;
+    private TrashFragment mTrashFragment = null;
+
+    public void setTrashFragment(TrashFragment trashFragment) {
+        this.mTrashFragment = trashFragment;
+    }
 
     /** Subset of Gravity to identify the edge the category tabs should be bound to. */
     @IntDef(flag=true, value={
@@ -294,6 +299,10 @@ public class ToolboxFragment extends BlockDrawerFragment {
         if (category == null) {
             closeBlocksDrawer();
             return;
+        }
+
+        if(mTrashFragment != null) {
+            mTrashFragment.setOpened(false);
         }
 
         mCategoryTabs.setSelectedCategory(category);

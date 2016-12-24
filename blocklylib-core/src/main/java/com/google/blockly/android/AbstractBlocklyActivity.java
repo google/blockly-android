@@ -656,6 +656,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mToolboxFragment =
                 (ToolboxFragment) fragmentManager.findFragmentById(R.id.blockly_toolbox);
         mTrashFragment = (TrashFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
+        mToolboxFragment.setTrashFragment(mTrashFragment);
 
         if (mTrashFragment != null) {
             // TODO(#14): Make trash list a drop location.
