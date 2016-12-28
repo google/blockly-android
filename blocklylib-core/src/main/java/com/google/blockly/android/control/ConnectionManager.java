@@ -124,7 +124,7 @@ public class ConnectionManager {
      * @param newX The x location to move to.
      * @param newY The y location to move to.
      */
-    private void moveConnectionTo(Connection conn, int newX, int newY) {
+    private void moveConnectionTo(Connection conn, float newX, float newY) {
         // Avoid list traversals if it's not actually moving.
         if (conn.getPosition().equals(newX, newY)) {
             return;
@@ -297,7 +297,7 @@ public class ConnectionManager {
         }
 
         private boolean isInYRange(int index, int baseY, double maxRadius) {
-            int curY = mConnections.get(index).getPosition().y;
+            float curY = mConnections.get(index).getPosition().y;
             return (Math.abs(curY - baseY) <= maxRadius);
         }
 
@@ -322,7 +322,7 @@ public class ConnectionManager {
                 return -1;
             }
 
-            int yPos = conn.getPosition().y;
+            float yPos = conn.getPosition().y;
             // Walk forward and back on the y axis looking for the connection.
             // When found, splice it out of the array.
             int pointerMin = bestGuess;
@@ -358,10 +358,10 @@ public class ConnectionManager {
             }
             int pointerMin = 0;
             int pointerMax = mConnections.size();
-            int yPos = conn.getPosition().y;
+            float yPos = conn.getPosition().y;
             while (pointerMin < pointerMax) {
                 int pointerMid = (pointerMin + pointerMax) / 2;
-                int pointerY = mConnections.get(pointerMid).getPosition().y;
+                float pointerY = mConnections.get(pointerMid).getPosition().y;
                 if (pointerY < yPos) {
                     pointerMin = pointerMid + 1;
                 } else if (pointerY > yPos) {
@@ -381,7 +381,7 @@ public class ConnectionManager {
                 return null;
             }
 
-            int baseY = conn.getPosition().y;
+            int baseY = (int) (conn.getPosition().y);
             // findPositionForConnection finds an index for insertion, which is always after any
             // block with the same y index.  We want to search both forward and back, so search
             // on both sides of the index.
@@ -421,7 +421,7 @@ public class ConnectionManager {
                 return;
             }
 
-            int baseY = conn.getPosition().y;
+            int baseY = (int) (conn.getPosition().y);
             // findPositionForConnection finds an index for insertion, which is always after any
             // block with the same y index.  We want to search both forward and back, so search
             // on both sides of the index.

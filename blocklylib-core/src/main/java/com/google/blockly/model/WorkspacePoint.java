@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -26,7 +27,7 @@ import android.os.Parcelable;
  * coordinate in a given context, i.e., it prevents accidental use of workspace coordinates instead
  * of view coordinates, and vice versa.
  */
-public class WorkspacePoint extends Point {
+public class WorkspacePoint extends PointF {
     /**
      * Delegate default constructor.
      */
@@ -42,9 +43,23 @@ public class WorkspacePoint extends Point {
     }
 
     /**
-     * Create from x, y coordinates.
+     * Create from generic {@link PointF}.
+     */
+    public WorkspacePoint(PointF pointf) {
+        super(pointf.x, pointf.y);
+    }
+
+    /**
+     * Create from x, y int coordinates.
      */
     public WorkspacePoint(int x, int y) {
+        super(x, y);
+    }
+
+    /**
+     * Create from x, y float coordinates.
+     */
+    public WorkspacePoint(float x, float y) {
         super(x, y);
     }
 

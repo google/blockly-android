@@ -78,21 +78,21 @@ public class BlockTestStrings {
 
     public static final String EMPTY_BLOCK_ID = "EMPTY_BLOCK_ID";
     public static final String EMPTY_BLOCK_WITH_POSITION =
-            "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" x=\"37\" y=\"13\" />";
+            "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" x=\"37.0\" y=\"13.0\" />";
     public static final String EMPTY_BLOCK_INLINE_FALSE =
             "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" "
-                   + "x=\"37\" y=\"13\" inline=\"false\" />";
+                   + "x=\"37.0\" y=\"13.0\" inline=\"false\" />";
     public static final String EMPTY_BLOCK_INLINE_TRUE =
             "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" "
-                    + "x=\"37\" y=\"13\" inline=\"true\" />";
+                    + "x=\"37.0\" y=\"13.0\" inline=\"true\" />";
     public static final String EMPTY_SHADOW_WITH_POSITION =
-            "<shadow type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" x=\"37\" y=\"13\" />";
+            "<shadow type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" x=\"37.0\" y=\"13.0\" />";
     public static final String EMPTY_BLOCK_NO_POSITION =
             "<block type=\"empty_block\" id=\"" + EMPTY_BLOCK_ID + "\" />";
 
     public static final String BLOCK_END = "</block>";
     public static final String SIMPLE_BLOCK =
-            "<block type=\"frankenblock\" id=\"SIMPLE_BLOCK\" x=\"37\" y=\"13\">"
+            "<block type=\"frankenblock\" id=\"SIMPLE_BLOCK\" x=\"37.0\" y=\"13.0\">"
             + "<field name=\"text_input\">item</field>"
             + "</block>";
     public static final String SIMPLE_SHADOW =

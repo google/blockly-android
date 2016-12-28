@@ -484,7 +484,7 @@ public class BlockFactory {
         String x = parser.getAttributeValue(null, "x");
         String y = parser.getAttributeValue(null, "y");
         if (x != null && y != null) {
-            resultBlock.setPosition(Integer.parseInt(x), Integer.parseInt(y));
+            resultBlock.setPosition(Float.parseFloat(x), Float.parseFloat(y));
         }
 
         int eventType = parser.next();

@@ -331,7 +331,7 @@ public class Block {
      * @param x The workspace x position.
      * @param y The workspace y position.
      */
-    public void setPosition(int x, int y) {
+    public void setPosition(float x, float y) {
         mPosition.x = x;
         mPosition.y = y;
     }
@@ -536,8 +536,8 @@ public class Block {
 
         // The position of the block only needs to be saved if it is a top level block.
         if (rootBlock) {
-            serializer.attribute(null, "x", Integer.toString(mPosition.x))
-                    .attribute(null, "y", Integer.toString(mPosition.y));
+            serializer.attribute(null, "x", Float.toString(mPosition.x))
+                    .attribute(null, "y", Float.toString(mPosition.y));
         }
 
         if (isCollapsed()) {
