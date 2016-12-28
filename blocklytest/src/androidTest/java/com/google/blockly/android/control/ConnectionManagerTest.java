@@ -74,8 +74,8 @@ public class ConnectionManagerTest {
         int moveX = 15;
         int moveY = 20;
         manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
-        assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
-        assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
+        assertThat(conn.getPosition().x).isEqualTo((float) (moveX + offsetX));
+        assertThat(conn.getPosition().y).isEqualTo((float) (moveY + offsetY));
         // Connection should still be in the list
         assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn))
                 .isTrue();
@@ -89,8 +89,8 @@ public class ConnectionManagerTest {
         manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
         assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn))
                 .isFalse();
-        assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
-        assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
+        assertThat(conn.getPosition().x).isEqualTo((float) (moveX + offsetX));
+        assertThat(conn.getPosition().y).isEqualTo((float) (moveY + offsetY));
     }
 
     @Test
@@ -219,8 +219,8 @@ public class ConnectionManagerTest {
                     /* shadow */ false));
         }
 
-        for (int i = 0; i < 10; i++) {
-            assertThat(list.get(i).getPosition().y).isEqualTo(i);
+        for (int i = 0; i < 10.0; i++) {
+            assertThat(list.get(i).getPosition().y).isEqualTo((float) i);
         }
 
         // quasi-random
@@ -281,8 +281,8 @@ public class ConnectionManagerTest {
                 Connection.CONNECTION_TYPE_PREVIOUS, /* shadow */ false));
 
         Connection result = searchList(list, 4, 6, 3);
-        assertThat(result.getPosition().x).isEqualTo(5);
-        assertThat(result.getPosition().y).isEqualTo(5);
+        assertThat(result.getPosition().x).isEqualTo(5f);
+        assertThat(result.getPosition().y).isEqualTo(5f);
     }
 
     @Test

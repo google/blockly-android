@@ -583,8 +583,8 @@ public abstract class BlocklyEvent {
         @Nullable
         private String mOldInputName;
         private boolean mHasOldPosition;
-        private int mOldPositionX;
-        private int mOldPositionY;
+        private float mOldPositionX;
+        private float mOldPositionY;
 
         // New values are recorded
         @Nullable
@@ -592,8 +592,8 @@ public abstract class BlocklyEvent {
         @Nullable
         private String mNewInputName;
         private boolean mHasNewPosition;
-        private int mNewPositionX;
-        private int mNewPositionY;
+        private float mNewPositionX;
+        private float mNewPositionY;
 
         /**
          * Constructs a {@link MoveEvent} signifying the movement of a block on the workspace.

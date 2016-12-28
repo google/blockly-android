@@ -653,8 +653,8 @@ public class Dragger {
 
         WorkspacePoint touchDownWorkspace = mPendingDrag.getTouchDownWorkspaceCoordinates();
         // Subtract original drag location from current location to get delta
-        int workspaceDeltaX = curDragPositionWorkspace.x - touchDownWorkspace.x;
-        int workspaceDeltaY = curDragPositionWorkspace.y - touchDownWorkspace.y;
+        float workspaceDeltaX = curDragPositionWorkspace.x - touchDownWorkspace.x;
+        float workspaceDeltaY = curDragPositionWorkspace.y - touchDownWorkspace.y;
 
         WorkspacePoint blockOrigPosition = mPendingDrag.getOriginalBlockPosition();
         mPendingDrag.getRootDraggedBlock().setPosition(blockOrigPosition.x + workspaceDeltaX,
