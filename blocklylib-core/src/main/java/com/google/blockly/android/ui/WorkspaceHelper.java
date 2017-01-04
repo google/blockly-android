@@ -529,7 +529,7 @@ public class WorkspaceHelper {
         outRect.left = mTempWorkspacePoint.x;
         outRect.top = mTempWorkspacePoint.y;
 
-        mTempViewPoint.set(mVirtualWorkspaceView.getWidth(), mVirtualWorkspaceView.getHeight());
+        mTempViewPoint.set(mWorkspaceView.getWidth(), mWorkspaceView.getHeight());
         virtualViewToWorkspaceCoordinates(mTempViewPoint, mTempWorkspacePoint);
         outRect.right = mTempWorkspacePoint.x;
         outRect.bottom = mTempWorkspacePoint.y;
