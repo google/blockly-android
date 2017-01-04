@@ -433,7 +433,7 @@ public abstract class BlocklyEvent {
         public CreateEvent(@NonNull Workspace workspace, @NonNull Block block) {
             super(TYPE_CREATE, workspace.getId(), null, block.getId());
             try {
-                mXml = BlocklyXmlHelper.writeOneBlockToXml(block);
+                mXml = BlocklyXmlHelper.writeBlockToXml(block);
             } catch (BlocklySerializerException e) {
                 throw new IllegalArgumentException("Invalid block for event serialization");
             }
@@ -508,7 +508,7 @@ public abstract class BlocklyEvent {
         DeleteEvent(@NonNull Workspace workspace, @NonNull Block block) {
             super(TYPE_DELETE, workspace.getId(), null, block.getId());
             try {
-                mOldXml = BlocklyXmlHelper.writeOneBlockToXml(block);
+                mOldXml = BlocklyXmlHelper.writeBlockToXml(block);
             } catch (BlocklySerializerException e) {
                 throw new IllegalArgumentException("Invalid block for event serialization");
             }

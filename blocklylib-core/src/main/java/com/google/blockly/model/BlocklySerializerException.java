@@ -15,10 +15,12 @@
 
 package com.google.blockly.model;
 
+import java.io.IOException;
+
 /**
- * An exception that is thrown when there is an error serializing a blockly Workspace to XML.
+ * An exception that is thrown when there is an error serializing a Blockly Workspace to XML.
  */
-public class BlocklySerializerException extends Throwable {
+public class BlocklySerializerException extends IOException {
     public BlocklySerializerException(String message) {
         super(message);
     }
