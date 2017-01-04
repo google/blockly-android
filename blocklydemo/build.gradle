@@ -16,13 +16,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 25
     buildToolsVersion '23.0.3'
 
     defaultConfig {
         applicationId "com.google.blockly.demo"
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
     }
@@ -36,6 +36,6 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.3.+'
+    compile 'com.android.support:appcompat-v7:25.1.0'
     compile project(':blocklylib-vertical')
 }
