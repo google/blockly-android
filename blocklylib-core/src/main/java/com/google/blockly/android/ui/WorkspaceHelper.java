@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -520,10 +521,10 @@ public class WorkspaceHelper {
     /**
      * Gets the visible bounds of the workspace, in workspace units.
      *
-     * @param outRect The {@link Rect} in which to store the bounds values.
+     * @param outRect The {@link RectF} in which to store the bounds values.
      * @return {@code outRect}
      */
-    public Rect getViewableWorkspaceBounds(Rect outRect) {
+    public RectF getViewableWorkspaceBounds(RectF outRect) {
         mTempViewPoint.set(0, 0);
         virtualViewToWorkspaceCoordinates(mTempViewPoint, mTempWorkspacePoint);
         outRect.left = (int) mTempWorkspacePoint.x;

@@ -64,18 +64,18 @@ public class ConnectionManagerTest {
 
     @Test
     public void testMoveTo() {
-        int offsetX = 10;
-        int offsetY = -10;
+        float offsetX = 10;
+        float offsetY = -10;
         WorkspacePoint offset = new WorkspacePoint(offsetX, offsetY);
         Connection conn = createConnection(/* x */ 0, /* y */ 0,
                 Connection.CONNECTION_TYPE_PREVIOUS, /* shadow */ false);
         manager.addConnection(conn);
         // Move to this position + the given offset.
-        int moveX = 15;
-        int moveY = 20;
+        float moveX = 15;
+        float moveY = 20;
         manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
-        assertThat(conn.getPosition().x).isEqualTo((float) (moveX + offsetX));
-        assertThat(conn.getPosition().y).isEqualTo((float) (moveY + offsetY));
+        assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
+        assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
         // Connection should still be in the list
         assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn))
                 .isTrue();
@@ -89,8 +89,8 @@ public class ConnectionManagerTest {
         manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
         assertThat(manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS).contains(conn))
                 .isFalse();
-        assertThat(conn.getPosition().x).isEqualTo((float) (moveX + offsetX));
-        assertThat(conn.getPosition().y).isEqualTo((float) (moveY + offsetY));
+        assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
+        assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
     }
 
     @Test
@@ -219,7 +219,7 @@ public class ConnectionManagerTest {
                     /* shadow */ false));
         }
 
-        for (int i = 0; i < 10.0; i++) {
+        for (int i = 0; i < 10; i++) {
             assertThat(list.get(i).getPosition().y).isEqualTo((float) i);
         }
 
@@ -351,7 +351,7 @@ public class ConnectionManagerTest {
                 radius);
     }
 
-    private Connection createConnection(int x, int y, int type, boolean shadow) {
+    private Connection createConnection(float x, float y, int type, boolean shadow) {
         Connection conn = new Connection(type, null);
         conn.setPosition(x, y);
         conn.setBlock(new Block.Builder("test").setShadow(shadow).build());

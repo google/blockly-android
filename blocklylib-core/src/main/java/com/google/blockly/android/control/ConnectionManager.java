@@ -225,7 +225,7 @@ public class ConnectionManager {
      * @return A pair of connections, where the first is a connection on {@code block} and the
      *     second is the closest compatible connection.
      */
-    public Pair<Connection, Connection> findBestConnection(Block block, int radiusConnectionWS) {
+    public Pair<Connection, Connection> findBestConnection(Block block, float radiusConnectionWS) {
         // Find the connection that is closest to any connection on the block.
         Connection potentialBlockConnection = null;
         Connection potentialCompatibleConnection = null;
@@ -296,7 +296,7 @@ public class ConnectionManager {
             mConnections.clear();
         }
 
-        private boolean isInYRange(int index, int baseY, double maxRadius) {
+        private boolean isInYRange(int index, float baseY, double maxRadius) {
             float curY = mConnections.get(index).getPosition().y;
             return (Math.abs(curY - baseY) <= maxRadius);
         }
@@ -381,7 +381,7 @@ public class ConnectionManager {
                 return null;
             }
 
-            int baseY = (int) (conn.getPosition().y);
+            float baseY = conn.getPosition().y;
             // findPositionForConnection finds an index for insertion, which is always after any
             // block with the same y index.  We want to search both forward and back, so search
             // on both sides of the index.
@@ -421,7 +421,7 @@ public class ConnectionManager {
                 return;
             }
 
-            int baseY = (int) (conn.getPosition().y);
+            float baseY = conn.getPosition().y;
             // findPositionForConnection finds an index for insertion, which is always after any
             // block with the same y index.  We want to search both forward and back, so search
             // on both sides of the index.
