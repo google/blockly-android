@@ -64,15 +64,15 @@ public class ConnectionManagerTest {
 
     @Test
     public void testMoveTo() {
-        int offsetX = 10;
-        int offsetY = -10;
+        float offsetX = 10;
+        float offsetY = -10;
         WorkspacePoint offset = new WorkspacePoint(offsetX, offsetY);
         Connection conn = createConnection(/* x */ 0, /* y */ 0,
                 Connection.CONNECTION_TYPE_PREVIOUS, /* shadow */ false);
         manager.addConnection(conn);
         // Move to this position + the given offset.
-        int moveX = 15;
-        int moveY = 20;
+        float moveX = 15;
+        float moveY = 20;
         manager.moveConnectionTo(conn, new WorkspacePoint(moveX, moveY), offset);
         assertThat(conn.getPosition().x).isEqualTo(moveX + offsetX);
         assertThat(conn.getPosition().y).isEqualTo(moveY + offsetY);
@@ -220,7 +220,7 @@ public class ConnectionManagerTest {
         }
 
         for (int i = 0; i < 10; i++) {
-            assertThat(list.get(i).getPosition().y).isEqualTo(i);
+            assertThat(list.get(i).getPosition().y).isEqualTo((float) i);
         }
 
         // quasi-random
@@ -281,8 +281,8 @@ public class ConnectionManagerTest {
                 Connection.CONNECTION_TYPE_PREVIOUS, /* shadow */ false));
 
         Connection result = searchList(list, 4, 6, 3);
-        assertThat(result.getPosition().x).isEqualTo(5);
-        assertThat(result.getPosition().y).isEqualTo(5);
+        assertThat(result.getPosition().x).isEqualTo(5f);
+        assertThat(result.getPosition().y).isEqualTo(5f);
     }
 
     @Test
@@ -351,7 +351,7 @@ public class ConnectionManagerTest {
                 radius);
     }
 
-    private Connection createConnection(int x, int y, int type, boolean shadow) {
+    private Connection createConnection(float x, float y, int type, boolean shadow) {
         Connection conn = new Connection(type, null);
         conn.setPosition(x, y);
         conn.setBlock(new Block.Builder("test").setShadow(shadow).build());

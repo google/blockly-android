@@ -1533,9 +1533,9 @@ public class BlocklyController {
         BlockGroup impingingBlockGroup = mHelper.getRootBlockGroup(rootBlock);
 
         int maxSnapDistance = mHelper.getMaxSnapDistance();
-        int dx = (staticConnection.getPosition().x + maxSnapDistance)
+        float dx = (staticConnection.getPosition().x + maxSnapDistance)
                 - impingingConnection.getPosition().x;
-        int dy = (staticConnection.getPosition().y + maxSnapDistance)
+        float dy = (staticConnection.getPosition().y + maxSnapDistance)
                 - impingingConnection.getPosition().y;
         rootBlock.setPosition(rootBlock.getPosition().x + dx, rootBlock.getPosition().y + dy);
 

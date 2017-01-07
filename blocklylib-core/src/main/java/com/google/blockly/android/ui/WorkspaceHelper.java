@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -195,7 +196,7 @@ public class WorkspaceHelper {
      *
      * @return The value in virtual view units.
      */
-    public int workspaceToVirtualViewUnits(int workspaceValue) {
+    public int workspaceToVirtualViewUnits(float workspaceValue) {
         return (int) (mDensity * workspaceValue);
     }
 
@@ -441,7 +442,7 @@ public class WorkspaceHelper {
      */
     public void workspaceToVirtualViewCoordinates(WorkspacePoint workspacePosition,
                                                   ViewPoint viewPosition) {
-        int workspaceX = workspacePosition.x;
+        float workspaceX = workspacePosition.x;
         if (mRtl) {
             workspaceX *= -1;
         }
@@ -520,19 +521,19 @@ public class WorkspaceHelper {
     /**
      * Gets the visible bounds of the workspace, in workspace units.
      *
-     * @param outRect The {@link Rect} in which to store the bounds values.
+     * @param outRect The {@link RectF} in which to store the bounds values.
      * @return {@code outRect}
      */
-    public Rect getViewableWorkspaceBounds(Rect outRect) {
+    public RectF getViewableWorkspaceBounds(RectF outRect) {
         mTempViewPoint.set(0, 0);
         virtualViewToWorkspaceCoordinates(mTempViewPoint, mTempWorkspacePoint);
-        outRect.left = mTempWorkspacePoint.x;
-        outRect.top = mTempWorkspacePoint.y;
+        outRect.left = (int) mTempWorkspacePoint.x;
+        outRect.top = (int) mTempWorkspacePoint.y;
 
         mTempViewPoint.set(mWorkspaceView.getWidth(), mWorkspaceView.getHeight());
         virtualViewToWorkspaceCoordinates(mTempViewPoint, mTempWorkspacePoint);
-        outRect.right = mTempWorkspacePoint.x;
-        outRect.bottom = mTempWorkspacePoint.y;
+        outRect.right = (int) mTempWorkspacePoint.x;
+        outRect.bottom = (int) mTempWorkspacePoint.y;
         return outRect;
     }
 

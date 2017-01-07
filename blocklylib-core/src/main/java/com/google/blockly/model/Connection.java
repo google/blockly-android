@@ -264,7 +264,7 @@ public class Connection implements Cloneable {
      * @param x The x position in workspace coordinates.
      * @param y The y position in workspace coordinates.
      */
-    public void setPosition(int x, int y) {
+    public void setPosition(float x, float y) {
         mPosition.x = x;
         mPosition.y = y;
     }
@@ -277,8 +277,8 @@ public class Connection implements Cloneable {
      * @return The distance between connections.
      */
     public double distanceFrom(Connection other) {
-        int xDiff = mPosition.x - other.getPosition().x;
-        int yDiff = mPosition.y - other.getPosition().y;
+        float xDiff = mPosition.x - other.getPosition().x;
+        float yDiff = mPosition.y - other.getPosition().y;
         return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
     }
 
