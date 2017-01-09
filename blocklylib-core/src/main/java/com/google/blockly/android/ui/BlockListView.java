@@ -166,7 +166,8 @@ public class BlockListView extends RecyclerView {
      * pan, and scale.
      *
      * @param pendingDrag The {@link PendingDrag} for the gesture.
-     * @return The {@link BlockGroup} return by {@link OnDragListBlock#getDraggableBlockGroup}.
+     * @return The pair of {@link BlockGroup} and the view relative touch point returned by
+     *         {@link OnDragListBlock#getDraggableBlockGroup}.
      */
     @NonNull
     protected Pair<BlockGroup, ViewPoint> getWorkspaceBlockGroupForTouch(PendingDrag pendingDrag) {

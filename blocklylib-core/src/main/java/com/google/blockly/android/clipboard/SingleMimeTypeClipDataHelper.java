@@ -24,14 +24,13 @@ import android.view.DragEvent;
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.PendingDrag;
-import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.IOException;
 
 /**
- * Implements ClipDataTransformer with a single support MIME type.  Uses intent extras as the
+ * Implements ClipDataTransformer with a single supported MIME type.  Uses intent extras as the
  * in-transit storage format.
  */
 public class SingleMimeTypeClipDataHelper implements BlockClipDataHelper {
@@ -48,37 +47,31 @@ public class SingleMimeTypeClipDataHelper implements BlockClipDataHelper {
      */
     public static BlockClipDataHelper getDefault(Context context) {
         String mimeType = "application/x-blockly-" + context.getPackageName() + "+xml";
-        return new SingleMimeTypeClipDataHelper(mimeType, R.string.blockly_clipdata_label_default);
 
+        // TODO(#): Singular vs plural ("block" vs "blocks")
+        String label = context.getResources().getString(R.string.blockly_clipdata_label_default);
+
+        return new SingleMimeTypeClipDataHelper(mimeType, label);
     }
 
     protected final String mMimeType;
-    protected final int mClipLabelRes;  // TODO(#): Singular vs plural ("block" vs "blocks")
-
-    protected BlocklyController mController;
-    protected WorkspaceHelper mViewHelper;
-    protected Context mContext;
-    protected String mClipLabel;
+    protected final String mClipLabel;
 
     /**
      * Constructs a new {@link SingleMimeTypeClipDataHelper} with the provided MIME string and
      * user visible (accessibility, etc.) clip label string.
      *
      * @param mimeType The MIME type the new instance use for encoding and decoding.
-     * @param clipLabelRes The resource id of the label to apply to {@link ClipData}s.
+     * @param clipLabel The human readable label to apply to {@link ClipData}s.
      */
-    public SingleMimeTypeClipDataHelper(String mimeType, int clipLabelRes) {
+    public SingleMimeTypeClipDataHelper(String mimeType, String clipLabel) {
         mMimeType = mimeType;
-        mClipLabelRes = clipLabelRes;
+        mClipLabel = clipLabel;
     }
 
     @Override
     public void setController(BlocklyController controller) {
-        mController = controller;
-        mViewHelper = controller.getWorkspaceHelper();
-
-        mContext = mController.getContext();
-        mClipLabel = mContext.getResources().getString(mClipLabelRes);
+        // Unused, but may be used in the future to access the WorkspaceHelper and drag shadow size.
     }
 
     @Override

@@ -16,7 +16,6 @@
 package com.google.blockly.android.ui;
 
 import android.content.ClipData;
-import android.content.ClipDescription;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -611,7 +610,7 @@ public class Dragger {
                                     pendingDrag,
                                     flags);
                         } catch (IOException e) {
-                            // Serialization failed in ClipDataHelper.
+                            Log.w(TAG, "Serialization failed in ClipDataHelper.");
                             mPendingDrag = null;
                         }
                     } else {

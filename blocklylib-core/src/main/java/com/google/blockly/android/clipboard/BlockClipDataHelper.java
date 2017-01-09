@@ -49,7 +49,7 @@ public interface BlockClipDataHelper {
      * Constructs a new populated {@link ClipData} using the information from a {@link PendingDrag}.
      *
      * @param pendingDrag The source of clip
-     * @return A new {@link ClipData} representing the drag and dragged {@link BlockGroup}.
+     * @return A new {@link ClipData} representing the dragged or copied {@link BlockGroup}.
      */
     ClipData buildDragClipData(PendingDrag pendingDrag) throws IOException;
 
