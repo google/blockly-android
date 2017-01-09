@@ -212,7 +212,6 @@ public class BlocklyController {
 
         // mHelper, mModelFactory, and mViewFactory must be initialized before mClipHelper.
         mClipHelper = clipHelper;
-        mClipHelper.setController(this);
 
         mWorkspace = new Workspace(mContext, this, mModelFactory);
         mConnectionManager = mWorkspace.getConnectionManager();

@@ -39,13 +39,6 @@ import java.io.IOException;
  */
 public interface BlockClipDataHelper {
     /**
-     * Sets the {@link BlocklyController} for this instance. Called during the controller's
-     * initialization.  The controller provides access to critical classes, such as the
-     * {@link WorkspaceHelper}, {@link BlockFactory}, and {@link BlockViewFactory}
-     */
-    void setController(BlocklyController controller);
-
-    /**
      * Constructs a new populated {@link ClipData} using the information from a {@link PendingDrag}.
      *
      * @param pendingDrag The source of clip

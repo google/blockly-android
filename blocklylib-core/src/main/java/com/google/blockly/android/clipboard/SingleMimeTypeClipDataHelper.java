@@ -70,11 +70,6 @@ public class SingleMimeTypeClipDataHelper implements BlockClipDataHelper {
     }
 
     @Override
-    public void setController(BlocklyController controller) {
-        // Unused, but may be used in the future to access the WorkspaceHelper and drag shadow size.
-    }
-
-    @Override
     public ClipData buildDragClipData(PendingDrag drag) throws IOException {
         Block root = drag.getRootDraggedBlock();
         String xml = BlocklyXmlHelper.writeBlockToXml(root);
@@ -94,7 +89,8 @@ public class SingleMimeTypeClipDataHelper implements BlockClipDataHelper {
      */
     @Override
     public boolean isBlockData(ClipDescription descript) {
-        return descript != null && descript.filterMimeTypes(mMimeType).length > 0;
+        String[] mimeTypes =(descript == null) ? null : descript.filterMimeTypes(mMimeType);
+        return mimeTypes != null && mimeTypes.length > 0;
     }
 
     /**
