@@ -392,8 +392,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * <p/>
      * By default, it constructs a {@link SingleMimeTypeClipDataHelper} with a MIME type derived
      * from the application's package name. This assumes all Blockly workspaces in an app work with
-     * the same shared set of blocks, and blocks can be dragged/copied/pasted them, even if they are
-     * in different Activities. It also ensures blocks from other applications will be rejected.
+     * the same shared set of blocks, and blocks can be dragged/copied/pasted between them, even if
+     * they are in different Activities. It also ensures blocks from other applications will be
+     * rejected.
      * <p/>
      * If your app uses different block sets for different workspaces, or you intend to interoperate
      * with other applications, you will need to override this method with your own implementation.

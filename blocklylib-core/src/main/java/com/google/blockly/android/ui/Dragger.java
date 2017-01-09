@@ -731,6 +731,7 @@ public class Dragger {
             mSizeY = dragGroup.getHeight();
         }
 
+        @Override
         public void onProvideShadowMetrics(Point shadowSize, Point shadowTouchPoint) {
             shadowSize.set(
                     (int) Math.ceil(mSizeX * mZoomScale),

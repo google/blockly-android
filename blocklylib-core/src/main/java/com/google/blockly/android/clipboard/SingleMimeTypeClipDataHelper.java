@@ -88,7 +88,8 @@ public class SingleMimeTypeClipDataHelper implements BlockClipDataHelper {
 
         Intent intent = new Intent();
         intent.putExtra(EXTRA_BLOCKLY_XML, xml);
-        // TODO(#): Encode shadow size/offset/zoom info for remote drop targets.
+
+        // TODO(#489): Encode shadow size/offset/zoom info for remote drop targets.
         ClipData.Item item = new ClipData.Item(intent);
 
         return new ClipData(mClipLabel, new String[] {mMimeType}, item);

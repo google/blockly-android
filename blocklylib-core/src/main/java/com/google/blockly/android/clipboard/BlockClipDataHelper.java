@@ -47,7 +47,6 @@ public interface BlockClipDataHelper {
 
     /**
      * Constructs a new populated {@link ClipData} using the information from a {@link PendingDrag}.
-     * It also sets the PendingDrag as the backing local state.
      *
      * @param pendingDrag The source of clip
      * @return A new {@link ClipData} representing the drag and dragged {@link BlockGroup}.
@@ -64,7 +63,7 @@ public interface BlockClipDataHelper {
     boolean isBlockData(ClipDescription clipDescrip);
 
     /**
-     * Extracts a PendingDrag from a {@link DragEvent}. Assumes the {@link #isBlockData} has been
+     * Extracts a PendingDrag from a {@link DragEvent}. Assumes that {@link #isBlockData} has been
      * called and returned {@link true}.
      *
      * @param event A block drag event.
