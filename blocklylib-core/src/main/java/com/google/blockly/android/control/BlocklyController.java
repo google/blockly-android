@@ -30,6 +30,8 @@ import android.view.ViewParent;
 import com.google.blockly.android.ToolboxFragment;
 import com.google.blockly.android.TrashFragment;
 import com.google.blockly.android.WorkspaceFragment;
+import com.google.blockly.android.clipboard.BlockClipDataHelper;
+import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
 import com.google.blockly.android.ui.Dragger;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockTouchHandler;
@@ -37,6 +39,7 @@ import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.InputView;
 import com.google.blockly.android.ui.PendingDrag;
+import com.google.blockly.android.ui.ViewPoint;
 import com.google.blockly.android.ui.VirtualWorkspaceView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
@@ -98,6 +101,7 @@ public class BlocklyController {
     private final BlockFactory mModelFactory;
     private final BlockViewFactory mViewFactory;
     private final WorkspaceHelper mHelper;
+    private final BlockClipDataHelper mClipHelper;
 
     private final Workspace mWorkspace;
     private final ConnectionManager mConnectionManager;
@@ -145,7 +149,7 @@ public class BlocklyController {
             return new Runnable() {
                 @Override
                 public void run() {
-                    // extractBlockAsRoot() fires move event immediately.
+                    // extractBlockAsRoot() fires MoveEvent immediately.
                     extractBlockAsRoot(activeTouchedView.getBlock());
 
                     // Since this block was already on the workspace, the block's position should
@@ -153,7 +157,16 @@ public class BlocklyController {
                     BlockGroup bg = mHelper.getRootBlockGroup(activeTouchedView);
                     bg.bringToFront();
 
-                    pendingDrag.setDragGroup(bg);
+                    // Measure and layout the block group to get the correct touch offset.
+                    bg.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+                    bg.layout(0, 0, bg.getMeasuredWidth(), bg.getMeasuredHeight());
+
+                    ViewPoint touchOffset = new ViewPoint(
+                            (int) (activeTouchedView.getX()
+                                    + pendingDrag.getTouchDownViewOffsetX()),
+                            (int) (activeTouchedView.getY()
+                                    + pendingDrag.getTouchDownViewOffsetY()));
+                    pendingDrag.startDrag(bg, touchOffset);
                 }
             };
         }
@@ -177,7 +190,7 @@ public class BlocklyController {
      * @param blockViewFactory Factory used to construct block views for this app.
      */
     private BlocklyController(Context context, BlockFactory blockModelFactory,
-                              WorkspaceHelper workspaceHelper,
+                              WorkspaceHelper workspaceHelper, BlockClipDataHelper clipHelper,
                               @Nullable BlockViewFactory blockViewFactory) {
 
         if (context == null) {
@@ -189,10 +202,16 @@ public class BlocklyController {
         if (workspaceHelper == null) {
             throw new IllegalArgumentException("WorkspaceHelper may not be null.");
         }
+        if (clipHelper == null) {
+            throw new IllegalArgumentException("BlockClipDataHelper may not be null.");
+        }
         mContext = context;
         mModelFactory = blockModelFactory;
         mHelper = workspaceHelper;
         mViewFactory = blockViewFactory;
+
+        // mHelper, mModelFactory, and mViewFactory must be initialized before mClipHelper.
+        mClipHelper = clipHelper;
 
         mWorkspace = new Workspace(mContext, this, mModelFactory);
         mConnectionManager = mWorkspace.getConnectionManager();
@@ -473,6 +492,10 @@ public class BlocklyController {
 
     public WorkspaceHelper getWorkspaceHelper() {
         return mHelper;
+    }
+
+    public BlockClipDataHelper getClipDataHelper() {
+        return mClipHelper;
     }
 
     public void addCallback(EventsCallback listener) {
@@ -1665,6 +1688,7 @@ public class BlocklyController {
     public static class Builder {
         private Context mContext;
         private WorkspaceHelper mWorkspaceHelper;
+        private BlockClipDataHelper mClipHelper;
         private BlockViewFactory mViewFactory;
         private VariableCallback mVariableCallback;
         private WorkspaceFragment mWorkspaceFragment;
@@ -1688,6 +1712,11 @@ public class BlocklyController {
 
         public Builder setWorkspaceHelper(WorkspaceHelper workspaceHelper) {
             mWorkspaceHelper = workspaceHelper;
+            return this;
+        }
+
+        public Builder setClipDataHelper(BlockClipDataHelper clipHelper) {
+            mClipHelper = clipHelper;
             return this;
         }
 
@@ -1863,6 +1892,12 @@ public class BlocklyController {
             if (mWorkspaceHelper == null) {
                 mWorkspaceHelper = new WorkspaceHelper(mContext);
             }
+
+            BlockClipDataHelper blockClipDataHelper = mClipHelper;
+            if (blockClipDataHelper == null) {
+                blockClipDataHelper = SingleMimeTypeClipDataHelper.getDefault(mContext);
+            }
+
             BlockFactory factory = new BlockFactory(mContext, null);
             for (int i = 0; i < mBlockDefResources.size(); i++) {
                 try {
@@ -1887,7 +1922,7 @@ public class BlocklyController {
                 factory.addBlockTemplate(mBlockDefs.get(i));
             }
             BlocklyController controller = new BlocklyController(
-                    mContext, factory, mWorkspaceHelper, mViewFactory);
+                    mContext, factory, mWorkspaceHelper, blockClipDataHelper, mViewFactory);
             if (mToolboxResId != 0) {
                 controller.loadToolboxContents(mToolboxResId);
             } else if (mToolboxXml != null) {

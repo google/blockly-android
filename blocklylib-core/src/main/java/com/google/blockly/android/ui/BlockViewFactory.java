@@ -17,6 +17,7 @@ package com.google.blockly.android.ui;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.v13.view.ViewCompat;
 import android.view.View;
 import android.widget.SpinnerAdapter;
 
@@ -356,5 +357,17 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected final void unregisterView(BlockView blockView) {
         Block block = blockView.getBlock();
         mBlockIdToView.remove(block.getId());
+    }
+
+    /**
+     * Constructs the drag and drop flags used by {@link ViewCompat#startDragAndDrop}.
+     */
+    public int getDragAndDropFlags() {
+        int flags = 0;
+        if (android.os.Build.VERSION.SDK_INT >= 24) {
+            flags |= 0x00000100;  // View.DRAG_FLAG_GLOBAL
+            flags |= 0x00000200;  // View.DRAG_FLAG_OPAQUE
+        }
+        return flags;
     }
 }

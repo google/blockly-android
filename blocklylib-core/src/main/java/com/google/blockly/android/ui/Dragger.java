@@ -16,19 +16,24 @@
 package com.google.blockly.android.ui;
 
 import android.content.ClipData;
+import android.graphics.Canvas;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.support.annotation.VisibleForTesting;
+import android.support.v13.view.ViewCompat;
 import android.util.Log;
 import android.util.Pair;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewParent;
 
+import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
@@ -36,6 +41,7 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
@@ -75,7 +81,7 @@ public class Dragger {
          * {@link Dragger} is designed to catch these calls and forcibly crash.  Just don't do it.
          * <p/>
          * When the {@link Runnable} is called, it should proceed with the {@code Block} and
-         * {@code BlockView} manipulations, and call {@link PendingDrag#setDragGroup(BlockGroup)} to
+         * {@code BlockView} manipulations, and call {@link PendingDrag#startDrag} to
          * assign the draggable {@link BlockGroup}, which must contain a root block on the
          * {@link Workspace} and be added to the {@link WorkspaceView}.
          * <p/>
@@ -117,7 +123,8 @@ public class Dragger {
 
     private Handler mMainHandler;
     private final BlocklyController mController;
-    private final WorkspaceHelper mHelper;
+    private final WorkspaceHelper mViewHelper;
+    private final BlockClipDataHelper mClipHelper;
     private final Workspace mWorkspace;
     private final ConnectionManager mConnectionManager;
 
@@ -164,6 +171,16 @@ public class Dragger {
                 mMainHandler.post(mLogPending);
             }
 
+            // ClipDescription is always null on DRAG_ENDED.
+            if (action != DragEvent.ACTION_DRAG_ENDED &&
+                    !mClipHelper.isBlockData(event.getClipDescription()))
+            {
+                if (LOG_DRAG_EVENTS) {
+                    Log.d(TAG, "onDrag: Not a block.");
+                }
+                return false;
+            }
+
             if (mPendingDrag != null && mPendingDrag.isDragging()) {
                 switch (action) {
                     case DragEvent.ACTION_DRAG_STARTED:
@@ -173,6 +190,12 @@ public class Dragger {
 
                         BlockView rootDraggedBlockView = mPendingDrag.getRootDraggedBlockView();
                         if(rootDraggedBlockView.getBlock().isMovable()) {
+                            BlockGroup dragGroup = mPendingDrag.getDragGroup();
+                            if (dragGroup.getParent() == mWorkspaceView) {
+                                // Hide the view on the workspace
+                                mPendingDrag.getDragGroup().setVisibility(View.INVISIBLE);
+                            }
+
                             // TODO(#35): This might be better described as "selected".
                             ((View) rootDraggedBlockView).setPressed(true);
                             return true;    // We want to keep listening for drag events
@@ -221,7 +244,8 @@ public class Dragger {
     public Dragger(BlocklyController blocklyController) {
         mController = blocklyController;
         mWorkspace = blocklyController.getWorkspace();
-        mHelper = blocklyController.getWorkspaceHelper();
+        mViewHelper = blocklyController.getWorkspaceHelper();
+        mClipHelper = blocklyController.getClipDataHelper();
         mConnectionManager = mWorkspace.getConnectionManager();
 
         mMainHandler = new Handler();
@@ -319,7 +343,7 @@ public class Dragger {
         Pair<Connection, Connection> connectionCandidate =
                 findBestConnection(mPendingDrag.getRootDraggedBlock());
         if (connectionCandidate != null) {
-            mHighlightedBlockView = mHelper.getView(connectionCandidate.second.getBlock());
+            mHighlightedBlockView = mViewHelper.getView(connectionCandidate.second.getBlock());
             mHighlightedBlockView.setHighlightedConnection(connectionCandidate.second);
         }
 
@@ -329,7 +353,7 @@ public class Dragger {
     /**
      * Attempts to connect a dropped drag group with nearby connections
      */
-    void maybeConnectDragGroup() {
+    private void maybeConnectDragGroup() {
         Block dragRoot = mPendingDrag.getRootDraggedBlock();
 
         // Maybe snap to connections.
@@ -373,6 +397,13 @@ public class Dragger {
         }
 
         if (mPendingDrag != null) {
+            BlockGroup dragGroup = mPendingDrag.getDragGroup();
+            if (dragGroup != null) {
+                // Restore visibility at the end of the drag.
+                dragGroup.setVisibility(View.VISIBLE);
+            }
+
+
             BlockView blockView = mPendingDrag.getRootDraggedBlockView();
             if (blockView != null) {
                 ((View) blockView).setPressed(false);
@@ -559,16 +590,29 @@ public class Dragger {
                     if (dragStarted) {
                         mPendingDrag = pendingDrag;
                         final BlockGroup dragGroup = mPendingDrag.getDragGroup();
-                        if (dragGroup.getParent() != mWorkspaceView) {
+                        ViewParent parent = dragGroup.getParent();
+                        // TODO(#): Allow unparented BlockGroups (new blocks from Toolbox, etc.)
+                        if (parent != mWorkspaceView) {
                             throw new IllegalStateException("dragGroup is root in WorkspaceView");
                         }
 
-                        Block rootBlock = dragGroup.getFirstBlock();
-                        removeDraggedConnectionsFromConnectionManager(rootBlock);
-                        ClipData clipData = ClipData.newPlainText(
-                                WorkspaceView.BLOCK_GROUP_CLIP_DATA_LABEL, "");
-                        dragGroup.startDrag(clipData,
-                                new View.DragShadowBuilder(), null, 0);
+                        try {
+                            ClipData clipData = mClipHelper.buildDragClipData(pendingDrag);
+
+                            Block rootBlock = dragGroup.getFirstBlock();
+                            removeDraggedConnectionsFromConnectionManager(rootBlock);
+                            int flags = mViewHelper.getBlockViewFactory().getDragAndDropFlags();
+
+                            ViewCompat.startDragAndDrop(
+                                    dragGroup,
+                                    clipData,
+                                    new DragShadowBuilder(pendingDrag, mViewHelper),
+                                    pendingDrag,
+                                    flags);
+                        } catch (IOException e) {
+                            Log.w(TAG, "Serialization failed in ClipDataHelper.");
+                            mPendingDrag = null;
+                        }
                     } else {
                         mPendingDrag = null;
                     }
@@ -601,7 +645,7 @@ public class Dragger {
                 (mTempScreenCoord1[1] - mTrashRect.top));
         // Get the touch location on the screen
         mTempViewPoint.set((int) event.getX(), (int) event.getY());
-        mHelper.virtualViewToScreenCoordinates(mTempViewPoint, mTempViewPoint);
+        mViewHelper.virtualViewToScreenCoordinates(mTempViewPoint, mTempViewPoint);
 
         // Check if the touch location was on the trash
         return mTrashRect.contains(mTempViewPoint.x, mTempViewPoint.y);
@@ -649,7 +693,7 @@ public class Dragger {
         ViewPoint curDragLocationPixels = mTempViewPoint;
         curDragLocationPixels.set((int) event.getX(), (int) event.getY());
         WorkspacePoint curDragPositionWorkspace = mTempWorkspacePoint;
-        mHelper.virtualViewToWorkspaceCoordinates(curDragLocationPixels, curDragPositionWorkspace);
+        mViewHelper.virtualViewToWorkspaceCoordinates(curDragLocationPixels, curDragPositionWorkspace);
 
         WorkspacePoint touchDownWorkspace = mPendingDrag.getTouchDownWorkspaceCoordinates();
         // Subtract original drag location from current location to get delta
@@ -663,6 +707,44 @@ public class Dragger {
     }
 
     private Pair<Connection, Connection> findBestConnection(Block block) {
-        return mConnectionManager.findBestConnection(block, mHelper.getMaxSnapDistance());
+        return mConnectionManager.findBestConnection(block, mViewHelper.getMaxSnapDistance());
+    }
+
+    private static class DragShadowBuilder extends View.DragShadowBuilder {
+        private PendingDrag mPendingDrag;
+        private int mSizeX, mSizeY;
+        private float mZoomScale;
+
+        DragShadowBuilder(PendingDrag pendingDrag, WorkspaceHelper helper) {
+            super(pendingDrag.getDragGroup());
+            mPendingDrag = pendingDrag;
+            mZoomScale = helper.getWorkspaceZoomScale();
+
+            BlockGroup dragGroup = pendingDrag.getDragGroup();
+            mSizeX = dragGroup.getWidth();
+            if (mSizeX == 0) {
+                dragGroup.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+                dragGroup.layout(0, 0, dragGroup.getMeasuredWidth(), dragGroup.getMeasuredHeight());
+                mSizeX = dragGroup.getWidth();
+            }
+            mSizeY = dragGroup.getHeight();
+        }
+
+        @Override
+        public void onProvideShadowMetrics(Point shadowSize, Point shadowTouchPoint) {
+            shadowSize.set(
+                    (int) Math.ceil(mSizeX * mZoomScale),
+                    (int) Math.ceil(mSizeY * mZoomScale));
+            ViewPoint dragTouchOffset = mPendingDrag.getDragTouchOffset();
+            shadowTouchPoint.set(
+                    (int) Math.ceil(dragTouchOffset.x * mZoomScale),
+                    (int) Math.ceil(dragTouchOffset.y * mZoomScale));
+        }
+
+        @Override
+        public void onDrawShadow(Canvas canvas) {
+            canvas.scale(mZoomScale, mZoomScale);
+            super.onDrawShadow(canvas);
+        }
     }
 }

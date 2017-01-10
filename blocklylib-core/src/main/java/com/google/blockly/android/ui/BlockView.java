@@ -44,14 +44,14 @@ public interface BlockView {
     /** @see View#getParent() */
     ViewParent getParent();
 
+    /** @see View#getX() */
+    float getX();
+
+    /** @see View#getY() */
+    float getY();
+
     /** @see View#getWidth() */
     int getWidth();
-
-    /**
-     * @see View#getLocationOnScreen(int[])
-     * @param location an array of two integers in which to hold the coordinates
-     */
-    void getLocationOnScreen(@Size(2) int[] location);
 
     /**
      * @return The closest view tree ancestor that is a BlockGroup.
