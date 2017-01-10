@@ -20,6 +20,7 @@ import android.view.View;
 
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.model.Block;
 
 /**
  * An {@link android.view.View.OnDragListener} that is aware of dragged blocks and will trash the
@@ -55,6 +56,9 @@ public class OnDragToTrashListener implements View.OnDragListener {
         // Ignore ClipDescription, immediately look for PendingDrag, because the block must be local
         // (this Activity) in order to trash it.
         PendingDrag drag = mClipHelper.getPendingDrag(event);
-        return drag != null && drag.getDragInitiator() instanceof WorkspaceView;
+        Block rootBlock = drag == null ? null : drag.getRootDraggedBlock();
+        boolean isInWorkspace = drag != null && drag.getDragInitiator() instanceof WorkspaceView;
+        boolean isDeletable = rootBlock != null && rootBlock.isDeletable();
+        return isInWorkspace && isDeletable;
     }
 }

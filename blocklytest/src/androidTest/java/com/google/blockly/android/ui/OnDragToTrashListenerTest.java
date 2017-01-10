@@ -31,6 +31,8 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
     @Mock
     WorkspaceView mMockWorkspaceView;
     @Mock
+    Block mDeletableBlock;
+    @Mock
     PendingDrag mMockToolboxDrag;
     @Mock
     PendingDrag mMockWorkspaceDrag;
@@ -54,6 +56,13 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
     @Mock
     DragEvent mOtherDragEvent;
 
+    @Mock
+    Block mUnDeletableBlock;
+    @Mock
+    PendingDrag mUnDeletableBlockDrag;
+    @Mock
+    DragEvent mUnDeletableBlockDragEvent;
+
     /** Test instance. */
     OnDragToTrashListener mOnDragToTrashListener;
 
@@ -67,7 +76,11 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
                 .toReturn(mMockClipDataHelper);
 
         Mockito.when(mMockToolboxDrag.getDragInitiator()).thenReturn(mMockToolbox);
+        Mockito.when(mMockToolboxDrag.getRootDraggedBlock()).thenReturn(mDeletableBlock);
         Mockito.when(mMockWorkspaceDrag.getDragInitiator()).thenReturn(mMockWorkspaceView);
+        Mockito.when(mMockWorkspaceDrag.getRootDraggedBlock()).thenReturn(mDeletableBlock);
+        Mockito.when(mDeletableBlock.isDeletable()).thenReturn(true);
+        Mockito.when(mUnDeletableBlock.isDeletable()).thenReturn(false);
 
         mockDragEvent(mBlockDragStartFromToolbox,
                 DragEvent.ACTION_DRAG_STARTED,
@@ -100,6 +113,8 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
 
         mockDragEvent(mRemoteBlockDragEvent, DragEvent.ACTION_DRAG_STARTED, true, null);
         mockDragEvent(mOtherDragEvent, DragEvent.ACTION_DRAG_STARTED, false, null);
+        mockDragEvent(mUnDeletableBlockDragEvent, DragEvent.ACTION_DRAG_STARTED, true,
+                mUnDeletableBlockDrag);
 
         mOnDragToTrashListener = new OnDragToTrashListener(mMockController);
     }
@@ -121,6 +136,8 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
                 .that(mOnDragToTrashListener.isTrashableBlock(mBlockDragEnded)).isFalse();
         assertWithMessage("Blocks from other activities (no local state) are not trashable.")
                 .that(mOnDragToTrashListener.isTrashableBlock(mRemoteBlockDragEvent)).isFalse();
+        assertWithMessage("DragEvents that are not recognized blocks are not trashable.")
+                .that(mOnDragToTrashListener.isTrashableBlock(mOtherDragEvent)).isFalse();
         assertWithMessage("DragEvents that are not recognized blocks are not trashable.")
                 .that(mOnDragToTrashListener.isTrashableBlock(mOtherDragEvent)).isFalse();
     }
@@ -157,6 +174,8 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
                 .that(mOnDragToTrashListener.onDrag(null, mRemoteBlockDragEvent)).isFalse();
         assertWithMessage("DragEvents that are not recognized blocks are not trashable.")
                 .that(mOnDragToTrashListener.onDrag(null, mOtherDragEvent)).isFalse();
+        assertWithMessage("DragEvents that are not recognized blocks are not trashable.")
+                .that(mOnDragToTrashListener.onDrag(null, mUnDeletableBlockDragEvent)).isFalse();
         Mockito.verify(mMockController, Mockito.never())
                 .trashRootBlock(Mockito.any(Block.class));
     }
@@ -173,6 +192,5 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
                 .thenReturn(isBlock);
         Mockito.when(mMockClipDataHelper.getPendingDrag(event))
                 .thenReturn(pending);
-
     }
 }

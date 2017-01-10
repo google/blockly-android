@@ -17,28 +17,42 @@ package com.google.blockly.android.ui;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 
+import java.lang.annotation.Retention;
+
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 /**
  * Drop target view for deleting blocks via a drag gesture, with animation.
  * <p/>
  * This view has two layout attributes, {@code closedIcon} and {@code openedIcon}. Each is a
  * reference to a drawable resource for one of the two trash states, closed (default/idle state) and
- * opened (pending drop during drag).
+ * opened (pending drop during drag).  The TrashCanView assumes both drawables are the same size, so
+ * the overall view will not change size when the state changes.
  */
-public class TrashCanView extends FrameLayout {
-    protected ImageView mDefaultView;
-    protected ImageView mOnHoverView;
+public class TrashCanView extends ImageView {
+    private static final String TAG = "TrashCanView";
+
+    @Retention(SOURCE)
+    @IntDef({STATE_DEFAULT, STATE_ON_HOVER})
+    public @interface HoverState {}
+    private static final int STATE_DEFAULT = 0;
+    private static final int STATE_ON_HOVER = 1;
+
+    protected int mState = STATE_DEFAULT;
+    protected Drawable mDefaultDrawable;
+    protected Drawable mOnHoverDrawable;
 
     public TrashCanView(Context context) {
         this(context, null, 0);
@@ -84,22 +98,27 @@ public class TrashCanView extends FrameLayout {
                 int action = event.getAction();
                 boolean result = super.onDrag(v, event); // Whether the dragged block trashable.
                 if (action == DragEvent.ACTION_DRAG_ENDED) {
-                    resetView();
+                    setState(STATE_DEFAULT);
                 } else  if (result) {
                     switch (action) {
                         case DragEvent.ACTION_DRAG_ENTERED:
-                            mOnHoverView.setVisibility(View.VISIBLE);
-                            mDefaultView.setVisibility(View.INVISIBLE);
+                            setState(STATE_ON_HOVER);
                             break;
                         case DragEvent.ACTION_DROP:
                         case DragEvent.ACTION_DRAG_EXITED:
-                            resetView();
+                            setState(STATE_DEFAULT);
                             break;
                     }
                 }
                 return result;
             }
         });
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        setState(STATE_DEFAULT);
     }
 
     /**
@@ -119,7 +138,10 @@ public class TrashCanView extends FrameLayout {
      * @param drawable Default drawable.
      */
     public void setDefaultIcon(Drawable drawable) {
-        mDefaultView.setImageDrawable(drawable);
+        mDefaultDrawable = drawable;
+        if (mState == STATE_DEFAULT) {
+            setImageDrawable(mDefaultDrawable);
+        }
     }
 
     /**
@@ -139,23 +161,13 @@ public class TrashCanView extends FrameLayout {
      * @param drawable
      */
     public void setOnHoverIcon(Drawable drawable) {
-        mOnHoverView.setImageDrawable(drawable);
+        mOnHoverDrawable = drawable;
+        if (mState == STATE_ON_HOVER) {
+            setImageDrawable(mOnHoverDrawable);
+        }
     }
 
     private void buildUI() {
-        setMeasureAllChildren(true);
-
-        mDefaultView = new ImageView(getContext());
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        addView(mDefaultView, lp);
-
-        mOnHoverView = new ImageView(getContext());
-        mOnHoverView.setVisibility(View.INVISIBLE);
-        lp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        addView(mOnHoverView, lp);
-
         final Context context = getContext();
         if (context instanceof AbstractBlocklyActivity) {
             // If this view was inflated, the BlocklyController may not be ready quite yet.
@@ -167,8 +179,18 @@ public class TrashCanView extends FrameLayout {
             });
         }
     }
-    private void resetView() {
-        mOnHoverView.setVisibility(View.INVISIBLE);
-        mDefaultView.setVisibility(View.VISIBLE);
+    public void setState(@HoverState int state) {
+        mState = state;
+        switch (state) {
+            default:
+                Log.w(TAG, "Invalid state: " + state);
+                // continue to default
+            case STATE_DEFAULT:
+                setImageDrawable(mDefaultDrawable);
+                break;
+            case STATE_ON_HOVER:
+                setImageDrawable(mOnHoverDrawable);
+                break;
+        }
     }
 }
