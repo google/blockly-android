@@ -25,7 +25,6 @@ import android.view.DragEvent;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 
@@ -64,7 +63,6 @@ public class TrashCanView extends ImageView {
 
     public TrashCanView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        buildUI();
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
@@ -82,13 +80,14 @@ public class TrashCanView extends ImageView {
     }
 
     /**
-     * Assigns the active {@link BlocklyController} for this TrashView.
+     * From the provided {@link BlocklyController}, configures the {@link OnDragToTrashListener}.
      *
      * @param controller
      */
     public void setBlocklyController(BlocklyController controller) {
         if (controller == null) {
             setOnDragListener(null);
+            setOnClickListener(null);
             return;
         }
 
@@ -167,18 +166,6 @@ public class TrashCanView extends ImageView {
         }
     }
 
-    private void buildUI() {
-        final Context context = getContext();
-        if (context instanceof AbstractBlocklyActivity) {
-            // If this view was inflated, the BlocklyController may not be ready quite yet.
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    setBlocklyController(((AbstractBlocklyActivity) context).getController());
-                }
-            });
-        }
-    }
     public void setState(@HoverState int state) {
         mState = state;
         switch (state) {

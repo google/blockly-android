@@ -49,6 +49,7 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DeleteVariableDialog;
 import com.google.blockly.android.ui.NameVariableDialog;
+import com.google.blockly.android.ui.TrashCanView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.BlocklyUnifiedWorkspace;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
@@ -690,26 +691,28 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * This method finds and configures {@link R.id#blockly_trash_icon} from the view hierarchy as
-     * the button to open and close the {@link TrashFragment}. If {@link R.id#blockly_trash_icon} is
-     * not found, it does nothing.
+     * the button to open and close the {@link TrashFragment}, and assigns the BlocklyController if
+     * it is a {@link TrashCanView}. If {@link R.id#blockly_trash_icon} is not found, it does
+     * nothing.
      * <p/>
      * This is called after {@link #mController} is initialized, but before any blocks are loaded
      * into the workspace.
      */
     protected void onConfigureTrashIcon() {
         View trashIcon = findViewById(R.id.blockly_trash_icon);
-        if (mTrashFragment != null && trashIcon != null) {
-            if (mTrashFragment.isCloseable()) {
-                mTrashFragment.setOpened(false);
+        if (trashIcon instanceof TrashCanView) {
+            ((TrashCanView) trashIcon).setBlocklyController(mController);
+        }
+        if (mTrashFragment != null && trashIcon != null && mTrashFragment.isCloseable()) {
+            mTrashFragment.setOpened(false);
 
-                trashIcon.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // Toggle opened state.
-                        mTrashFragment.setOpened(!mTrashFragment.isOpened());
-                    }
-                });
-            }
+            trashIcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Toggle opened state.
+                    mTrashFragment.setOpened(!mTrashFragment.isOpened());
+                }
+            });
         }
     }
 
