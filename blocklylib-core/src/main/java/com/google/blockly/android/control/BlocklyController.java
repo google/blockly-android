@@ -166,7 +166,7 @@ public class BlocklyController {
                                     + pendingDrag.getTouchDownViewOffsetX()),
                             (int) (activeTouchedView.getY()
                                     + pendingDrag.getTouchDownViewOffsetY()));
-                    pendingDrag.startDrag(bg, touchOffset);
+                    pendingDrag.startDrag(mWorkspaceView, bg, touchOffset);
                 }
             };
         }
@@ -322,7 +322,6 @@ public class BlocklyController {
             return; // no-op
         }
         mTrashIcon = trashIcon;
-        mDragger.setTrashView(mTrashIcon);
     }
 
     /**
@@ -774,6 +773,7 @@ public class BlocklyController {
      * @param block The block to remove, possibly with descendants attached.
      * @return True if the block was removed, false otherwise.
      */
+    // TODO(#493): Sound Effect.
     public boolean trashRootBlock(Block block) {
         checkPendingEventsEmpty();
         boolean rootFoundAndRemoved = trashRootBlockImpl(block, true);
@@ -1940,7 +1940,6 @@ public class BlocklyController {
             controller.setWorkspaceFragment(mWorkspaceFragment);
             controller.setTrashFragment(mTrashFragment);
             controller.setToolboxFragment(mToolboxFragment);
-            controller.setTrashIcon(mTrashIcon);
             controller.setVariableCallback(mVariableCallback);
 
             return controller;

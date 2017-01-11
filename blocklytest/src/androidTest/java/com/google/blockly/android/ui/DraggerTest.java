@@ -118,7 +118,7 @@ public class DraggerTest extends BlocklyTestCase {
         @Override
         public void run() {
             ++mDragGroupCreatorCallCount;
-            mPendingDrag.startDrag(mDragGroup, new ViewPoint());
+            mPendingDrag.startDrag(mWorkspaceView, mDragGroup, new ViewPoint());
             mDragGroupCreatorLatch.countDown();
         }
     };

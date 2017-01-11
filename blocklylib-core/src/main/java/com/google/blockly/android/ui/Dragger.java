@@ -18,7 +18,6 @@ package com.google.blockly.android.ui;
 import android.content.ClipData;
 import android.graphics.Canvas;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -113,8 +112,6 @@ public class Dragger {
     private final ArrayList<Connection> mDraggedConnections = new ArrayList<>();
     // For use in bumping neighbours; instance variable only to avoid repeated allocation.
     private final ArrayList<Connection> mTempConnections = new ArrayList<>();
-    // Rect for finding the bounding box of the trash can view.
-    private final Rect mTrashRect = new Rect();
     // For use in getting location on screen.
     private final int[] mTempScreenCoord1 = new int[2];
     private final int[] mTempScreenCoord2 = new int[2];
@@ -148,8 +145,6 @@ public class Dragger {
     // Which {@link BlockView} was touched, and possibly may be being dragged.
     private WorkspaceView mWorkspaceView;
     private BlockView mHighlightedBlockView;
-    // The view for the trash can.
-    private View mTrashView;
     //The square of the required touch slop before starting a drag, precomputed to avoid
     // square root operations at runtime.
     private float mTouchSlopSquared = 0.0f;
@@ -217,18 +212,8 @@ public class Dragger {
                         // Finalize dragging and reset dragging state flags.
                         // These state flags are still used in the initial phase of figuring out if
                         // a drag has started.
-                        int finishBehavior;
-                        if (touchingTrashView(event)) {
-                            if (dropInTrash()) {
-                                finishBehavior = FINISH_BEHAVIOR_DELETED;
-                            } else {
-                                finishBehavior = FINISH_BEHAVIOR_REVERT;
-                            }
-                        } else {
-                            maybeConnectDragGroup();
-                            finishBehavior = FINISH_BEHAVIOR_DROP;
-                        }
-                        finishDragging(finishBehavior);
+                        maybeConnectDragGroup();
+                        finishDragging(FINISH_BEHAVIOR_DROP);
                         return true;    // The drop succeeded.
                     default:
                         break;
@@ -414,11 +399,6 @@ public class Dragger {
 
     public void setWorkspaceView(WorkspaceView view) {
         mWorkspaceView = view;
-    }
-
-    // TODO(#210): Generalize this to other possible block drop targets.
-    public void setTrashView(View trashView) {
-        mTrashView = trashView;
     }
 
     /**
@@ -621,46 +601,6 @@ public class Dragger {
         }
 
         return foundDragGroup;
-    }
-
-    /**
-     * Check whether the given event occurred on top of the trash can button.  Should be called from
-     * {@link WorkspaceView}.
-     *
-     * @param event The event whose location should be checked, with position in WorkspaceView
-     * coordinates.
-     * @return Whether the event was on top of the trash can button.
-     */
-    // TODO(#210): Generalize this to other possible block drop targets.
-    private boolean touchingTrashView(DragEvent event) {
-        if (mTrashView == null) {
-            return false;
-        }
-
-        mTrashView.getLocationOnScreen(mTempScreenCoord1);
-        mTrashView.getHitRect(mTrashRect);
-
-        mTrashRect.offset(
-                (mTempScreenCoord1[0] - mTrashRect.left),
-                (mTempScreenCoord1[1] - mTrashRect.top));
-        // Get the touch location on the screen
-        mTempViewPoint.set((int) event.getX(), (int) event.getY());
-        mViewHelper.virtualViewToScreenCoordinates(mTempViewPoint, mTempViewPoint);
-
-        // Check if the touch location was on the trash
-        return mTrashRect.contains(mTempViewPoint.x, mTempViewPoint.y);
-    }
-
-    /**
-     * Ends a drag in the trash can, clearing state and deleting blocks as needed.
-     */
-    private boolean dropInTrash() {
-        if (mHighlightedBlockView != null) {
-            mHighlightedBlockView.setHighlightedConnection(null);
-            mHighlightedBlockView = null;
-        }
-        mDraggedConnections.clear();
-        return mController.trashRootBlock(mPendingDrag.getRootDraggedBlock());
     }
 
     /**

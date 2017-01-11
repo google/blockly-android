@@ -88,4 +88,9 @@
             <flag name="end" value="0x00000011"/> <!-- RTL adaptive clockwise -->
         </attr>
     </declare-styleable>
+
+    <declare-styleable name="TrashCanView">
+        <attr name="defaultIcon" format="reference"/>
+        <attr name="onHoverIcon" format="reference"/>
+    </declare-styleable>
 </resources>
