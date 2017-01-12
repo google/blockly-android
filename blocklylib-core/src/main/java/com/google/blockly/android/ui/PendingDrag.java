@@ -7,7 +7,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.google.blockly.android.BuildConfig;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Workspace;

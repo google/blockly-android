@@ -19,13 +19,9 @@ import android.content.ClipData;
 import android.content.ClipDescription;
 import android.view.DragEvent;
 
-import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.PendingDrag;
-import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.BlockFactory;
 
 import java.io.IOException;
 

@@ -38,7 +38,6 @@ import java.util.UUID;
  */
 public class Workspace {
     private static final String TAG = "Workspace";
-    private static final boolean DEBUG = true;
 
     private final Context mContext;
     private final BlocklyController mController;
@@ -54,8 +53,6 @@ public class Workspace {
                     mConnectionManager);
     private final List<Block> mDeletedBlocks = new LinkedList<>();
     private ToolboxCategory mToolboxCategory;
-
-    private List<Connection> mTempConnections = new ArrayList<>();
 
     /**
      * Create a workspace.
