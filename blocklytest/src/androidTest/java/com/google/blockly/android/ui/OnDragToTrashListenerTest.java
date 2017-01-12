@@ -121,11 +121,6 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
 
     @Test
     public void testIsTrashableBlock() {
-        assertWithMessage(
-                "Cannot remove a block that is not yet on the workspace (drag from toolbox)")
-                .that(mOnDragToTrashListener.isTrashableBlock(mBlockDragStartFromToolbox))
-                .isFalse();
-
         assertThat(mOnDragToTrashListener.isTrashableBlock(mBlockDragStartFromWorkspace)).isTrue();
         assertThat(mOnDragToTrashListener.isTrashableBlock(mBlockDragEntered)).isTrue();
         assertThat(mOnDragToTrashListener.isTrashableBlock(mBlockDragLocation)).isTrue();
@@ -168,8 +163,6 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
 
     @Test
     public void testOnDrag_invalid() {
-        assertWithMessage("Cannot remove a block that is not yet on the workspace (drag from toolbox)")
-                .that(mOnDragToTrashListener.onDrag(null, mBlockDragStartFromToolbox)).isFalse();
         assertWithMessage("Blocks from other activities (no local state) are not trashable.")
                 .that(mOnDragToTrashListener.onDrag(null, mRemoteBlockDragEvent)).isFalse();
         assertWithMessage("DragEvents that are not recognized blocks are not trashable.")
