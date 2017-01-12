@@ -366,7 +366,6 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         int flags = 0;
         if (android.os.Build.VERSION.SDK_INT >= 24) {
             flags |= 0x00000100;  // View.DRAG_FLAG_GLOBAL
-            flags |= 0x00000200;  // View.DRAG_FLAG_OPAQUE
         }
         return flags;
     }
