@@ -16,7 +16,6 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.support.annotation.NonNull;
-import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.ui.WorkspaceHelper;

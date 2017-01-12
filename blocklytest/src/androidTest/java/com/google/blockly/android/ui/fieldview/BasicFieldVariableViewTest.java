@@ -20,7 +20,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.NameManager;

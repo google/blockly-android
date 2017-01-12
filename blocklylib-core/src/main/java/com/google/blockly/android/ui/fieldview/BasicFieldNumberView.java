@@ -15,7 +15,6 @@
 
 package com.google.blockly.android.ui.fieldview;
 
-import android.content.ClipDescription;
 import android.content.Context;
 import android.graphics.Rect;
 import android.text.Editable;
@@ -31,7 +30,6 @@ import android.widget.EditText;
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldNumber;
 

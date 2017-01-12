@@ -16,7 +16,6 @@
 package com.google.blockly.android.ui;
 
 import android.support.annotation.NonNull;
-import android.support.test.InstrumentationRegistry;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.view.MotionEvent;
 

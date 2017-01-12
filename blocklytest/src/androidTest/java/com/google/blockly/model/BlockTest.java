@@ -15,8 +15,6 @@
 
 package com.google.blockly.model;
 
-import android.support.test.InstrumentationRegistry;
-
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlocklyXmlHelper;

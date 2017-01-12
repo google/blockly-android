@@ -22,7 +22,6 @@ import android.content.Intent;
 import android.view.DragEvent;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.model.Block;
 import com.google.blockly.utils.BlocklyXmlHelper;

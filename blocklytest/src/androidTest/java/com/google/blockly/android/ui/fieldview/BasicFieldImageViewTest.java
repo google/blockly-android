@@ -1,7 +1,6 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
 
