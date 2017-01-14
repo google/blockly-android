@@ -7,7 +7,7 @@
 
     <application>
         <service
-            android:name=".codegen.CodeGeneratorService"
+            android:name=".codegen.BlocklyGeneratorService"
             android:exported="false"/>
     </application>
 
