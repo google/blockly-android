@@ -15,14 +15,11 @@
 
 package com.google.blockly.android;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -44,6 +41,7 @@ import android.widget.Toast;
 
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
+import com.google.blockly.android.codegen.BlocklyGenerator;
 import com.google.blockly.android.codegen.BlocklyGeneratorService;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
@@ -57,7 +55,6 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
-import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -128,27 +125,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     private boolean mUserLearnedDrawer;
 
     protected BlocklyController mController;
-
-    // TODO(#282): Wrap service binding into a self-contained, reusable class.
-    protected CodeGeneratorService mCodeGeneratorService;
-    protected boolean mBound = false;
-
-    /** Defines service binding callbacks. Passed to bindService(). */
-    private final ServiceConnection mCodeGenerationConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            CodeGeneratorService.CodeGeneratorBinder binder =
-                    (CodeGeneratorService.CodeGeneratorBinder) service;
-            mCodeGeneratorService = binder.getService();
-            mBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
-            mCodeGeneratorService = null;
-        }
-    };
+    protected BlocklyGenerator mBlocklyGenerator;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -327,6 +304,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mWorkspaceHelper = new WorkspaceHelper(this);
         mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
         mClipDataHelper = onCreateClipDataHelper();
+        mBlocklyGenerator = new BlocklyGenerator(
+            getBlockDefinitionsJsonPaths(), getGeneratorsJsPaths());
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
                 .setClipDataHelper(mClipDataHelper)
@@ -447,7 +426,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Intent intent = new Intent(this, BlocklyGeneratorService.class);
-        bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+        bindService(intent, mBlocklyGenerator.getCodeGenerationService(), Context.BIND_AUTO_CREATE);
 
         if (mNavigationDrawer != null) {
             // Read in the flag indicating whether or not the user has demonstrated awareness of the
@@ -474,7 +453,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        unbindService(mCodeGenerationConnection);
+        unbindService(mBlocklyGenerator.getCodeGenerationService());
     }
 
     /**
@@ -788,20 +767,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void onRunCode() {
         try {
-            if (mWorkspaceFragment.getWorkspace().getRootBlocks().size() == 0) {
-                Log.i(TAG, "No blocks in workspace. Skipping run request.");
-                return;
-            }
-            if (mBound) {
-                final StringOutputStream serialized = new StringOutputStream();
-                mWorkspaceFragment.getWorkspace().serializeToXml(serialized);
-
-                mCodeGeneratorService.requestCodeGeneration(
-                        new CodeGenerationRequest(serialized.toString(),
-                                getCodeGenerationCallback(),
-                                getBlockDefinitionsJsonPaths(),
-                                getGeneratorsJsPaths()));
-            }
+            mBlocklyGenerator.requestCodeGeneration(mWorkspaceFragment,
+                getCodeGenerationCallback());
         } catch (BlocklySerializerException e) {
             Log.wtf(TAG, e);
             Toast.makeText(getApplicationContext(), "Code generation failed.",

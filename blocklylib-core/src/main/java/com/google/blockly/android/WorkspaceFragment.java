@@ -104,4 +104,8 @@ public class WorkspaceFragment extends Fragment {
     public WorkspaceView getWorkspaceView() {
         return mWorkspaceView;
     }
+
+    public boolean hasBlocks() {
+        return getWorkspace().getRootBlocks().size() > 0;
+    }
 }
