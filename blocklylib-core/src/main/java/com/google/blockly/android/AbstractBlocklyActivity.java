@@ -304,8 +304,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mWorkspaceHelper = new WorkspaceHelper(this);
         mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
         mClipDataHelper = onCreateClipDataHelper();
-        mCodeGeneratorManager = new CodeGeneratorManager(
-            getBlockDefinitionsJsonPaths(), getGeneratorsJsPaths());
+        mCodeGeneratorManager = new CodeGeneratorManager(this);
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
                 .setClipDataHelper(mClipDataHelper)
@@ -425,8 +424,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Intent intent = new Intent(this, CodeGeneratorService.class);
-        bindService(intent, mCodeGeneratorManager.getCodeGenerationService(), Context.BIND_AUTO_CREATE);
+        mCodeGeneratorManager.onResume();
 
         if (mNavigationDrawer != null) {
             // Read in the flag indicating whether or not the user has demonstrated awareness of the
@@ -453,7 +451,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        unbindService(mCodeGeneratorManager.getCodeGenerationService());
+        mCodeGeneratorManager.onPause();
     }
 
     /**
@@ -763,11 +761,19 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Runs the code generator. Called when user selects "Run" action.
+     *
+     * Gets the latest block definitions and generator code by calling
+     * {@link #getBlockDefinitionsJsonPaths()} and {@link #getGeneratorsJsPaths()} just before
+     * invoking generation.
+     *
      * @see #getCodeGenerationCallback()
      */
     protected void onRunCode() {
         try {
-            mCodeGeneratorManager.requestCodeGeneration(mWorkspaceFragment,
+            mCodeGeneratorManager.requestCodeGeneration(
+                getBlockDefinitionsJsonPaths(),
+                getGeneratorsJsPaths(),
+                mWorkspaceFragment.getWorkspace(),
                 getCodeGenerationCallback());
         } catch (BlocklySerializerException e) {
             Log.wtf(TAG, e);

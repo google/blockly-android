@@ -1,13 +1,15 @@
 package com.google.blockly.android.codegen;
 
 import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.codegen.CodeGenerationRequest.CodeGeneratorCallback;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.StringOutputStream;
 
 import java.util.List;
@@ -18,16 +20,13 @@ import java.util.List;
 public class CodeGeneratorManager {
     private static final String TAG = "CodeGeneratorManager";
 
+    private final Context mContext;
     private final ServiceConnection mCodeGenerationConnection;
-    private final List<String> mBlockDefinitionsJsonPaths;
-    private final List<String> mGeneratorsJsPaths;
 
     private CodeGeneratorService mGeneratorService;
 
-    public CodeGeneratorManager(List<String> blockDefinitionsJsonPaths,
-                                List<String> generatorsJsPaths) {
-        this.mBlockDefinitionsJsonPaths = blockDefinitionsJsonPaths;
-        this.mGeneratorsJsPaths = generatorsJsPaths;
+    public CodeGeneratorManager(Context context) {
+        this.mContext = context;
 
         this.mCodeGenerationConnection = new ServiceConnection() {
             @Override
@@ -43,32 +42,39 @@ public class CodeGeneratorManager {
         };
     }
 
-    public ServiceConnection getCodeGenerationService() {
-        return mCodeGenerationConnection;
+    public void onResume() {
+        Intent intent = new Intent(mContext, CodeGeneratorService.class);
+        mContext.bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    public void onPause() {
+        mContext.unbindService(mCodeGenerationConnection);
     }
 
     /**
      * Calls the Service to request code generation for the workspace passed in.
      *
-     * @param workspaceFragment the workspace to request code generation for.
+     * @param workspace the workspace to request code generation for.
      * @param codeGenerationCallback the callback to call with the generated code.
      * @throws BlocklySerializerException if the workspace cannot be serialized to XML.
      */
-    public void requestCodeGeneration(WorkspaceFragment workspaceFragment,
+    public void requestCodeGeneration(List<String> blockDefinitionsJsonPaths,
+                                      List<String> generatorsJsPaths,
+                                      Workspace workspace,
                                       CodeGeneratorCallback codeGenerationCallback)
         throws BlocklySerializerException {
 
-        if (workspaceFragment.hasBlocks()) {
+        if (workspace.hasBlocks()) {
             if (isBound()) {
                 final StringOutputStream serialized = new StringOutputStream();
-                workspaceFragment.getWorkspace().serializeToXml(serialized);
+                workspace.serializeToXml(serialized);
 
                 mGeneratorService.requestCodeGeneration(
                     new CodeGenerationRequest(
                         serialized.toString(),
                         codeGenerationCallback,
-                        mBlockDefinitionsJsonPaths,
-                        mGeneratorsJsPaths)
+                        blockDefinitionsJsonPaths,
+                        generatorsJsPaths)
                 );
             } else {
                 Log.i(TAG, "Generator not bound to service. Skipping run request.");
