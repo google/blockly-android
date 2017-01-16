@@ -18,7 +18,7 @@ package com.google.blockly.android.codegen;
 import java.util.List;
 
 /**
- * Container for the information needed to generate code through the {@link BlocklyGeneratorService}.
+ * Container for the information needed to generate code through the {@link CodeGeneratorService}.
  */
 public class CodeGenerationRequest {
     private final CodeGeneratorCallback mCallback;

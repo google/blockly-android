@@ -47,8 +47,8 @@ import java.util.List;
  * Background service that uses a WebView to statically load the Web Blockly libraries and use them
  * to generate code.
  */
-public class BlocklyGeneratorService extends Service {
-    private static final String TAG = "BlocklyGeneratorService";
+public class CodeGeneratorService extends Service {
+    private static final String TAG = "CodeGeneratorService";
     private static final String BLOCKLY_COMPILER_PAGE =
             "file:///android_asset/background_compiler.html";
 
@@ -252,8 +252,8 @@ public class BlocklyGeneratorService extends Service {
     }
 
     public class CodeGeneratorBinder extends Binder {
-        public BlocklyGeneratorService getService() {
-            return BlocklyGeneratorService.this;
+        public CodeGeneratorService getService() {
+            return CodeGeneratorService.this;
         }
     }
 

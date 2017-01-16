@@ -13,7 +13,7 @@ import com.google.blockly.utils.StringOutputStream;
 import java.util.List;
 
 /**
- * Client Side class responsible for connecting to the {@link BlocklyGeneratorService}.
+ * Client Side class responsible for connecting to the {@link CodeGeneratorService}.
  */
 public class BlocklyGenerator {
     private static final String TAG = "BlocklyGenerator";
@@ -22,7 +22,7 @@ public class BlocklyGenerator {
     private final List<String> mBlockDefinitionsJsonPaths;
     private final List<String> mGeneratorsJsPaths;
 
-    private BlocklyGeneratorService mGeneratorService;
+    private CodeGeneratorService mGeneratorService;
 
     public BlocklyGenerator(List<String> blockDefinitionsJsonPaths,
                             List<String> generatorsJsPaths) {
@@ -33,7 +33,7 @@ public class BlocklyGenerator {
             @Override
             public void onServiceConnected(ComponentName className, IBinder binder) {
                 mGeneratorService =
-                    ((BlocklyGeneratorService.CodeGeneratorBinder) binder).getService();
+                    ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
             }
 
             @Override

@@ -19,9 +19,9 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Unit tests for BlocklyGeneratorService
+ * Unit tests for CodeGeneratorService
  */
-public class BlocklyGeneratorServiceTest {
+public class CodeGeneratorServiceTest {
     private BlockFactory mBlockFactory;
 
     @Before
@@ -46,7 +46,7 @@ public class BlocklyGeneratorServiceTest {
         block.getFieldByName("TEXT").setFromString("apostrophe ' end");
 
         String xml = toXml(block);
-        String url = BlocklyGeneratorService.buildCodeGenerationUrl(xml);
+        String url = CodeGeneratorService.buildCodeGenerationUrl(xml);
 
         Matcher matcher = Pattern.compile("javascript:generate\\('(.*)'\\);",
                 Pattern.DOTALL | Pattern.MULTILINE).matcher(url);
@@ -70,7 +70,7 @@ public class BlocklyGeneratorServiceTest {
         block.getFieldByName("TEXT").setFromString("apostrophe ' end");
 
         String xml = toXml(block);
-        String url = BlocklyGeneratorService.buildCodeGenerationUrl(xml);
+        String url = CodeGeneratorService.buildCodeGenerationUrl(xml);
 
         Matcher matcher = Pattern.compile("javascript:generateEscaped\\('(.*)'\\);").matcher(url);
         assertThat(matcher.matches()).isTrue();

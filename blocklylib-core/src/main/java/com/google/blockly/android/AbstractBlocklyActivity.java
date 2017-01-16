@@ -41,8 +41,8 @@ import android.widget.Toast;
 
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
+import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.codegen.BlocklyGenerator;
-import com.google.blockly.android.codegen.BlocklyGeneratorService;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DeleteVariableDialog;
@@ -425,7 +425,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Intent intent = new Intent(this, BlocklyGeneratorService.class);
+        Intent intent = new Intent(this, CodeGeneratorService.class);
         bindService(intent, mBlocklyGenerator.getCodeGenerationService(), Context.BIND_AUTO_CREATE);
 
         if (mNavigationDrawer != null) {
