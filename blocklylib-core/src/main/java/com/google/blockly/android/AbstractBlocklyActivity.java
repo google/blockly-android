@@ -42,7 +42,7 @@ import android.widget.Toast;
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
 import com.google.blockly.android.codegen.CodeGeneratorService;
-import com.google.blockly.android.codegen.BlocklyGenerator;
+import com.google.blockly.android.codegen.CodeGeneratorManager;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DeleteVariableDialog;
@@ -125,7 +125,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     private boolean mUserLearnedDrawer;
 
     protected BlocklyController mController;
-    protected BlocklyGenerator mBlocklyGenerator;
+    protected CodeGeneratorManager mCodeGeneratorManager;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -304,7 +304,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         mWorkspaceHelper = new WorkspaceHelper(this);
         mBlockViewFactory = onCreateBlockViewFactory(mWorkspaceHelper);
         mClipDataHelper = onCreateClipDataHelper();
-        mBlocklyGenerator = new BlocklyGenerator(
+        mCodeGeneratorManager = new CodeGeneratorManager(
             getBlockDefinitionsJsonPaths(), getGeneratorsJsPaths());
 
         BlocklyController.Builder builder = new BlocklyController.Builder(this)
@@ -426,7 +426,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Intent intent = new Intent(this, CodeGeneratorService.class);
-        bindService(intent, mBlocklyGenerator.getCodeGenerationService(), Context.BIND_AUTO_CREATE);
+        bindService(intent, mCodeGeneratorManager.getCodeGenerationService(), Context.BIND_AUTO_CREATE);
 
         if (mNavigationDrawer != null) {
             // Read in the flag indicating whether or not the user has demonstrated awareness of the
@@ -453,7 +453,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        unbindService(mBlocklyGenerator.getCodeGenerationService());
+        unbindService(mCodeGeneratorManager.getCodeGenerationService());
     }
 
     /**
@@ -767,7 +767,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void onRunCode() {
         try {
-            mBlocklyGenerator.requestCodeGeneration(mWorkspaceFragment,
+            mCodeGeneratorManager.requestCodeGeneration(mWorkspaceFragment,
                 getCodeGenerationCallback());
         } catch (BlocklySerializerException e) {
             Log.wtf(TAG, e);

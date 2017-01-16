@@ -15,8 +15,8 @@ import java.util.List;
 /**
  * Client Side class responsible for connecting to the {@link CodeGeneratorService}.
  */
-public class BlocklyGenerator {
-    private static final String TAG = "BlocklyGenerator";
+public class CodeGeneratorManager {
+    private static final String TAG = "CodeGeneratorManager";
 
     private final ServiceConnection mCodeGenerationConnection;
     private final List<String> mBlockDefinitionsJsonPaths;
@@ -24,8 +24,8 @@ public class BlocklyGenerator {
 
     private CodeGeneratorService mGeneratorService;
 
-    public BlocklyGenerator(List<String> blockDefinitionsJsonPaths,
-                            List<String> generatorsJsPaths) {
+    public CodeGeneratorManager(List<String> blockDefinitionsJsonPaths,
+                                List<String> generatorsJsPaths) {
         this.mBlockDefinitionsJsonPaths = blockDefinitionsJsonPaths;
         this.mGeneratorsJsPaths = generatorsJsPaths;
 
