@@ -322,4 +322,11 @@ public class Workspace {
     public boolean isRootBlock(Block block) {
         return mRootBlocks.contains(block);
     }
+
+    /**
+     * @return if the workspace currently has any blocks.
+     */
+    public boolean hasBlocks() {
+        return getRootBlocks().size() > 0;
+    }
 }
