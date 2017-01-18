@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.blockly.android.codegen.CodeGenerationRequest.CodeGeneratorCallback;
 import com.google.blockly.model.BlocklySerializerException;
@@ -56,26 +57,31 @@ public class CodeGeneratorManager {
      *
      * @param workspace the workspace to request code generation for.
      * @param codeGenerationCallback the callback to call with the generated code.
-     * @throws BlocklySerializerException if the workspace cannot be serialized to XML.
      */
     public void requestCodeGeneration(List<String> blockDefinitionsJsonPaths,
                                       List<String> generatorsJsPaths,
                                       Workspace workspace,
-                                      CodeGeneratorCallback codeGenerationCallback)
-        throws BlocklySerializerException {
+                                      CodeGeneratorCallback codeGenerationCallback) {
 
         if (workspace.hasBlocks()) {
             if (isBound()) {
-                final StringOutputStream serialized = new StringOutputStream();
-                workspace.serializeToXml(serialized);
+                try {
+                    final StringOutputStream serialized = new StringOutputStream();
+                    workspace.serializeToXml(serialized);
 
-                mGeneratorService.requestCodeGeneration(
-                    new CodeGenerationRequest(
-                        serialized.toString(),
-                        codeGenerationCallback,
-                        blockDefinitionsJsonPaths,
-                        generatorsJsPaths)
-                );
+                    mGeneratorService.requestCodeGeneration(
+                        new CodeGenerationRequest(
+                            serialized.toString(),
+                            codeGenerationCallback,
+                            blockDefinitionsJsonPaths,
+                            generatorsJsPaths)
+                    );
+                } catch (BlocklySerializerException e) {
+                    Log.wtf(TAG, e);
+                    Toast.makeText(mContext, "Code generation failed.",
+                        Toast.LENGTH_LONG).show();
+
+                }
             } else {
                 Log.i(TAG, "Generator not bound to service. Skipping run request.");
             }
