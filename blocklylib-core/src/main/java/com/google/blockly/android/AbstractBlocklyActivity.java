@@ -769,18 +769,11 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @see #getCodeGenerationCallback()
      */
     protected void onRunCode() {
-        try {
-            mCodeGeneratorManager.requestCodeGeneration(
-                getBlockDefinitionsJsonPaths(),
-                getGeneratorsJsPaths(),
-                mWorkspaceFragment.getWorkspace(),
-                getCodeGenerationCallback());
-        } catch (BlocklySerializerException e) {
-            Log.wtf(TAG, e);
-            Toast.makeText(getApplicationContext(), "Code generation failed.",
-                    Toast.LENGTH_LONG).show();
-
-        }
+        mCodeGeneratorManager.requestCodeGeneration(
+            getBlockDefinitionsJsonPaths(),
+            getGeneratorsJsPaths(),
+            mWorkspaceFragment.getWorkspace(),
+            getCodeGenerationCallback());
     }
 
     /**
