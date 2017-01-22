@@ -74,6 +74,9 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     protected final ViewPoint mTempConnectionPosition = new ViewPoint();
     protected final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
+    // Keeps track of if the current set of touch events had started on this block
+    protected boolean mHasHit = false;
+
     // Currently highlighted connection.
     @Nullable protected Connection mHighlightedConnection = null;
 
@@ -370,7 +373,30 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      * @return True if the coordinate of the motion event is on the visible, non-transparent part of
      * this view; false otherwise.
      */
-    protected abstract boolean hitTest(MotionEvent event);
+    protected boolean hitTest(MotionEvent event) {
+        int action = event.getAction();
+
+        if (mHasHit && action == MotionEvent.ACTION_MOVE) {
+            // Action started on the block.
+            return true;
+        }
+
+        if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+            // Action has finished
+            boolean wasHit = mHasHit;
+            mHasHit = false;
+            return wasHit;
+        }
+
+        final int eventX = (int) event.getX();
+        final int eventY = (int) event.getY();
+
+        return isInHorizontalRangeOfBlock(eventX) && coordinatesAreOnBlock(eventX, eventY);
+    }
+
+    protected abstract boolean isInHorizontalRangeOfBlock(int x);
+
+    protected abstract boolean coordinatesAreOnBlock(int x, int y);
 
     /**
      * This is a developer testing function subclasses can call to draw dots at the model's location

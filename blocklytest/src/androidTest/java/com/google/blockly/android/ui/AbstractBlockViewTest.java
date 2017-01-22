@@ -77,6 +77,16 @@ public class AbstractBlockViewTest extends BlocklyTestCase {
             }
 
             @Override
+            protected boolean isInHorizontalRangeOfBlock(int x) {
+                return false;
+            }
+
+            @Override
+            protected boolean coordinatesAreOnBlock(int x, int y) {
+                return false;
+            }
+
+            @Override
             public int getNextBlockVerticalOffset() {
                 return 0;
             }
