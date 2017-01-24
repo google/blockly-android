@@ -75,7 +75,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     protected final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
     // Keeps track of if the current set of touch events had started on this block
-    protected boolean mHasHit = false;
+    private boolean mHasHit = false;
 
     // Currently highlighted connection.
     @Nullable protected Connection mHighlightedConnection = null;
@@ -361,8 +361,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     }
 
     /**
-     * Test whether a {@link MotionEvent} event is (approximately) hitting a visible part of this
-     * view.
+     * Test whether a {@link MotionEvent} event that has happened on this view is (approximately)
+     * hitting a visible part of this view.
      * <p/>
      * This is used to determine whether the event should be handled by this view, e.g., to activate
      * dragging or to open a context menu. Since the actual block interactions are implemented at
@@ -391,11 +391,17 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         final int eventX = (int) event.getX();
         final int eventY = (int) event.getY();
 
-        return isInHorizontalRangeOfBlock(eventX) && coordinatesAreOnBlock(eventX, eventY);
+        mHasHit = coordinatesAreOnBlock(eventX, eventY);
+        return mHasHit;
     }
 
-    protected abstract boolean isInHorizontalRangeOfBlock(int x);
-
+    /**
+     * Checks if the coordinates (relative to this view) exist on a visible part of this view.
+     *
+     * @param x the x coordinate relative to this view.
+     * @param y the y coordinate relative to this view.
+     * @return true if the coordinates are on a visible part of this view.
+     */
     protected abstract boolean coordinatesAreOnBlock(int x, int y);
 
     /**

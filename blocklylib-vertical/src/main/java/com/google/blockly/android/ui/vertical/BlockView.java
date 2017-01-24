@@ -231,10 +231,29 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     /**
-     * @return if the event has occurred in the horizontal range of the block.
+     * @return true if coordinates provided are on this block or it's inputs.
      */
     @Override
-    protected boolean isInHorizontalRangeOfBlock(int x) {
+    protected boolean coordinatesAreOnBlock(int x, int y) {
+        if (!isInHorizontalRangeOfBlock(x)) {
+            return false;
+        }
+
+        for (InputView inputView : mInputViews) {
+            if (inputView.isOnFields(
+                x - getXOffset(mHelper.useRtl(), inputView),
+                y - inputView.getTop())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return if the event has occurred in the horizontal range of the block.
+     */
+    private boolean isInHorizontalRangeOfBlock(int x) {
         int blockEnd;
         int blockBegin;
 
@@ -247,23 +266,6 @@ public class BlockView extends AbstractBlockView<InputView> {
         }
 
         return x > blockBegin && x < blockEnd;
-    }
-
-    /**
-     * @return true if coordinates provided are on this block or it's inputs.
-     */
-    @Override
-    protected boolean coordinatesAreOnBlock(int x, int y) {
-        for (InputView inputView : mInputViews) {
-            if (inputView.isOnFields(
-                x - getXOffset(mHelper.useRtl(), inputView),
-                y - inputView.getTop())) {
-                mHasHit = true;
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
