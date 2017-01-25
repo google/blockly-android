@@ -74,6 +74,9 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     protected final ViewPoint mTempConnectionPosition = new ViewPoint();
     protected final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
+    // Keeps track of if the current set of touch events had started on this block
+    private boolean mHasHit = false;
+
     // Currently highlighted connection.
     @Nullable protected Connection mHighlightedConnection = null;
 
@@ -358,8 +361,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     }
 
     /**
-     * Test whether a {@link MotionEvent} event is (approximately) hitting a visible part of this
-     * view.
+     * Test whether a {@link MotionEvent} event that has happened on this view is (approximately)
+     * hitting a visible part of this view.
      * <p/>
      * This is used to determine whether the event should be handled by this view, e.g., to activate
      * dragging or to open a context menu. Since the actual block interactions are implemented at
@@ -370,7 +373,36 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      * @return True if the coordinate of the motion event is on the visible, non-transparent part of
      * this view; false otherwise.
      */
-    protected abstract boolean hitTest(MotionEvent event);
+    protected boolean hitTest(MotionEvent event) {
+        int action = event.getAction();
+
+        if (mHasHit && action == MotionEvent.ACTION_MOVE) {
+            // Action started on the block.
+            return true;
+        }
+
+        if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+            // Action has finished
+            boolean wasHit = mHasHit;
+            mHasHit = false;
+            return wasHit;
+        }
+
+        final int eventX = (int) event.getX();
+        final int eventY = (int) event.getY();
+
+        mHasHit = coordinatesAreOnBlock(eventX, eventY);
+        return mHasHit;
+    }
+
+    /**
+     * Checks if the coordinates (relative to this view) exist on a visible part of this view.
+     *
+     * @param x the x coordinate relative to this view.
+     * @param y the y coordinate relative to this view.
+     * @return true if the coordinates are on a visible part of this view.
+     */
+    protected abstract boolean coordinatesAreOnBlock(int x, int y);
 
     /**
      * This is a developer testing function subclasses can call to draw dots at the model's location

@@ -84,9 +84,6 @@ public class BlockView extends AbstractBlockView<InputView> {
     private final boolean mUseHat;
     private int mBlockTopPadding;
 
-    // Keeps track of if the current set of touch events had started on this block
-    private boolean mHasHit = false;
-
     private final Rect tempRect = new Rect(); // Only use in main thread functions.
 
     /**
@@ -234,75 +231,53 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     /**
-     * Test whether a {@link MotionEvent} event is (approximately) hitting a visible part of this
-     * view.
-     * <p/>
-     * This is used to determine whether the event should be handled by this view, e.g., to activate
-     * dragging or to open a context menu. Since the actual block interactions are implemented at
-     * the {@link WorkspaceView} level, there is no need to store the event data in this class.
-     *
-     * @param event The {@link MotionEvent} to check.
-     *
-     * @return True if the coordinate of the motion event is on the visible, non-transparent part of
-     * this view; false otherwise.
+     * @return true if coordinates provided are on this block or it's inputs.
      */
-    // TODO(#143): Move some of this to AbstractBlockView (state, subviews, etc.)
     @Override
-    protected boolean hitTest(MotionEvent event) {
-        int action = event.getAction();
-        if (mHasHit && action == MotionEvent.ACTION_MOVE) {
-            // Events that started in this block continue to count as being in this block
-            return true;
+    protected boolean coordinatesAreOnBlock(int x, int y) {
+        if (!isInHorizontalRangeOfBlock(x)) {
+            return false;
         }
-        if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
-            boolean wasHit = mHasHit;
-            mHasHit = false;
-            return wasHit;
-        }
-        final int eventX = (int) event.getX();
-        final int eventY = (int) event.getY();
 
-        // Do the exact same thing for RTL and LTR, with reversed left and right block bounds. Note
-        // that the bounds of each InputView include any connected child blocks, so in RTL mode,
-        // the left-hand side of the input fields must be obtained from the right-hand side of the
-        // input and the field layout width.
-        if (mHelper.useRtl()) {
-            // First check whether event is in the general horizontal range of the block outline
-            // (minus children) and exit if it is not.
-            final int blockEnd = mBlockViewSize.x - mOutputConnectorMargin;
-            final int blockBegin = blockEnd - mBlockContentWidth;
-            if (eventX < blockBegin || eventX > blockEnd) {
-                return false;
-            }
-
-            // In the ballpark - now check whether event is on a field of any of this block's
-            // inputs. If it is, then the event belongs to this BlockView, otherwise it does not.
-            for (int i = 0; i < mInputViews.size(); ++i) {
-                final InputView inputView = mInputViews.get(i);
-                if (inputView.isOnFields(
-                        eventX - (inputView.getRight() - inputView.getFieldLayoutWidth()),
-                        eventY - inputView.getTop())) {
-                    mHasHit = true;
-                    return true;
-                }
-            }
-        } else {
-            final int blockBegin = mOutputConnectorMargin;
-            final int blockEnd = mBlockContentWidth;
-            if (eventX < blockBegin || eventX > blockEnd) {
-                return false;
-            }
-
-            for (int i = 0; i < mInputViews.size(); ++i) {
-                final InputView inputView = mInputViews.get(i);
-                if (inputView.isOnFields(
-                        eventX - inputView.getLeft(), eventY - inputView.getTop())) {
-                    mHasHit = true;
-                    return true;
-                }
+        for (InputView inputView : mInputViews) {
+            if (inputView.isOnFields(
+                x - getXOffset(mHelper.useRtl(), inputView),
+                y - inputView.getTop())) {
+                return true;
             }
         }
+
         return false;
+    }
+
+    /**
+     * @return if the event has occurred in the horizontal range of the block.
+     */
+    private boolean isInHorizontalRangeOfBlock(int x) {
+        int blockEnd;
+        int blockBegin;
+
+        if (mHelper.useRtl()) {
+            blockEnd = mBlockViewSize.x - mOutputConnectorMargin;
+            blockBegin = blockEnd - mBlockContentWidth;
+        } else {
+            blockEnd = mBlockContentWidth;
+            blockBegin = mOutputConnectorMargin;
+        }
+
+        return x > blockBegin && x < blockEnd;
+    }
+
+    /**
+     * The bounds of each InputView include any connected child blocks, so in RTL mode,
+     * the left-hand side of the input fields must be obtained from the right-hand side of the
+     * input and the field layout width.
+     */
+    private int getXOffset(boolean useRtl, InputView inputView) {
+        if (useRtl) {
+            return inputView.getRight() - inputView.getFieldLayoutWidth();
+        }
+        return inputView.getLeft();
     }
 
     /**
