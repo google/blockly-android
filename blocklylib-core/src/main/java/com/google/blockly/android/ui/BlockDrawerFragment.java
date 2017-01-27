@@ -64,13 +64,13 @@ public abstract class BlockDrawerFragment extends Fragment {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.BlockDrawerFragment,
+                R.styleable.BlocklyFlyout,
                 0, 0);
         try {
-            setCloseable(a.getBoolean(R.styleable.BlockDrawerFragment_closeable,
+            setCloseable(a.getBoolean(R.styleable.BlocklyFlyout_closeable,
                     mCloseable));
             setScrollOrientation(
-                    a.getInt(R.styleable.BlockDrawerFragment_scrollOrientation,
+                    a.getInt(R.styleable.BlocklyFlyout_scrollOrientation,
                     mScrollOrientation));
         } finally {
             a.recycle();

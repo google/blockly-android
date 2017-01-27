@@ -28,6 +28,7 @@ import android.view.ViewGroup;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.android.ui.CategoryView;
+import com.google.blockly.android.ui.Rotation;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FlyoutCategory;
 
@@ -46,6 +47,7 @@ public class CategoryFragment extends Fragment {
     protected BlocklyController mController;
 
     protected int mScrollOrientation = OrientationHelper.VERTICAL;
+    protected @Rotation.Enum int mLabelRotation = Rotation.NONE;
 
 
     @Override
@@ -53,12 +55,14 @@ public class CategoryFragment extends Fragment {
         super.onInflate(context, attrs, savedInstanceState);
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.BlockDrawerFragment,
+                R.styleable.BlocklyCategory,
                 0, 0);
 
         try {
-            mScrollOrientation = a.getInt(R.styleable.BlockDrawerFragment_scrollOrientation,
+            mScrollOrientation = a.getInt(R.styleable.BlocklyCategory_scrollOrientation,
                     mScrollOrientation);
+            //noinspection ResourceType
+            mLabelRotation = a.getInt(R.styleable.BlocklyCategory_labelRotation, mLabelRotation);
         } finally {
             a.recycle();
         }
@@ -67,7 +71,11 @@ public class CategoryFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        mCategoryView = (CategoryView) inflater.inflate(R.layout.default_category_start, null);
+        int layout = mScrollOrientation == OrientationHelper.VERTICAL
+                ? R.layout.default_category_start : R.layout.default_category_horizontal;
+        mCategoryView = (CategoryView) inflater.inflate(layout, null);
+        mCategoryView.setLabelRotation(mLabelRotation);
+        mCategoryView.setScrollOrientation(mScrollOrientation);
         return mCategoryView;
     }
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016 Google Inc. All Rights Reserved.
+ *  Copyright 2017 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -22,7 +22,7 @@ import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.android.ui.FlyoutView;
-import com.google.blockly.android.ui.TrashCanView;
+import com.google.blockly.android.ui.OnDragToTrashListener;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.FlyoutCategory;
 import com.google.blockly.model.WorkspacePoint;
@@ -30,26 +30,31 @@ import com.google.blockly.model.WorkspacePoint;
 import java.util.List;
 
 /**
- * Provides helper classes to the BlocklyController for defining the behavior of the toolbox
- * and trash.
+ * Provides control logic for the toolbox and trash in a workspace.
  */
 public class FlyoutController {
     private static final String TAG = "FlyoutController";
-        // Whether we default to a closable toolbox when categories are present.
-    protected boolean mToolboxPreferCloseable = true;
-    protected boolean mToolboxIsCloseable = mToolboxPreferCloseable;
+    /// Whether the toolbox is currently closeable, depending on configuration.
+    protected boolean mToolboxIsCloseable = true;
+    /// The fragment for displaying toolbox categories
     protected CategoryFragment mCategoryFragment;
+    /// The fragment for displaying blocks in the current category
     protected FlyoutFragment mToolboxFlyout;
+    /// The root of the toolbox tree, containing either blocks or subcategories (not both).
     protected FlyoutCategory mToolboxRoot;
 
+    /// Whether the trash is closeable, depending on configuration.
     protected boolean mTrashIsCloseable = true;
+    /// The fragment for displaying blocks in the trash.
     protected FlyoutFragment mTrashFlyout;
+    /// The category backing the trash's list of blocks.
     protected FlyoutCategory mTrashCategory;
-    protected View mTrashIcon;
 
+    /// Main controller for any actions that require wider state changes.
     protected BlocklyController mController;
 
-    protected FlyoutView.Callback mToolboxViewCallback = new FlyoutView.Callback() {
+    /// Callbacks for user actions on the toolbox's flyout
+    protected FlyoutView.Callback mToolboxFlyoutCallback = new FlyoutView.Callback() {
         @Override
         public void onActionClicked(View v, String action, FlyoutCategory category) {
             // TODO (#503): Switch to using the view's tag to determine behavior
@@ -64,40 +69,29 @@ public class FlyoutController {
             Block copy = blockInList.deepCopy();
             copy.setPosition(initialBlockPosition.x, initialBlockPosition.y);
             BlockGroup copyView = mController.addRootBlock(copy);
-            if (mToolboxFlyout.isCloseable()) {
-                mToolboxFlyout.closeBlocksDrawer();
-                if (mCategoryFragment != null) {
-                    mCategoryFragment.setCurrentCategory(null);
-                }
-            }
+            closeToolbox();
             return copyView;
         }
     };
 
+    /// Callbacks for user actions on the list of categories in the Toolbox
     protected CategoryTabs.Callback mTabsCallback = new CategoryTabs.Callback() {
         @Override
         public void onCategoryClicked(FlyoutCategory category) {
             FlyoutCategory currCategory = mCategoryFragment.getCurrentCategory();
             if (category == currCategory) {
                 // Clicked the open category, close it if closeable.
-                if (isToolboxCloseable()) {
-                    // deselect the category
-                    mCategoryFragment.setCurrentCategory(null);
-                    // close the drawer
-                    mToolboxFlyout.closeBlocksDrawer();
-                }
+                closeToolbox();
             } else {
-                mCategoryFragment.setCurrentCategory(category);
-                mToolboxFlyout.setCurrentCategory(category);
-                if (mTrashIsCloseable && mTrashFlyout != null) {
-                    mTrashFlyout.closeBlocksDrawer();
-                }
+                setToolboxCategory(category);
+                closeTrash();
             }
 
         }
     };
 
 
+    /// Callbacks for user actions on the trash's flyout
     protected FlyoutView.Callback mTrashFlyoutCallback = new FlyoutView.Callback() {
         @Override
         public void onActionClicked(View v, String action, FlyoutCategory category) {
@@ -111,24 +105,21 @@ public class FlyoutController {
             copy.setPosition(initialBlockPosition.x, initialBlockPosition.y);
             BlockGroup copyView = mController.addRootBlock(copy);
             mTrashCategory.removeBlock(blockInList);
-            if (mTrashFlyout.isCloseable()) {
-                mTrashFlyout.closeBlocksDrawer();
-            }
+            closeTrash();
             return copyView;
         }
     };
 
+    /// Opens/closes the trash in response to clicks on the trash icon.
     protected View.OnClickListener mTrashClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             // Toggle opened state.
             if (mTrashFlyout.isOpen()) {
-                mTrashFlyout.closeBlocksDrawer();
+                closeTrash();
             } else {
                 mTrashFlyout.setCurrentCategory(mTrashCategory);
-                if (mToolboxIsCloseable && mToolboxFlyout != null) {
-                    mToolboxFlyout.closeBlocksDrawer();
-                }
+                closeToolbox();
             }
         }
     };
@@ -137,36 +128,39 @@ public class FlyoutController {
         mController = controller;
     }
 
+    /**
+     * Sets the fragments used by a toolbox. At minimum a flyout is needed. If a category fragment
+     * is provided it will be used to switch between categories and open/close the flyout if it
+     * is closeable.
+     *
+     * @param categoryFragment The fragment for displaying category tabs.
+     * @param toolboxFlyout The fragment for displaying blocks in a category.
+     */
     public void setToolboxFragments(CategoryFragment categoryFragment,
             FlyoutFragment toolboxFlyout) {
         mCategoryFragment = categoryFragment;
         mToolboxFlyout = toolboxFlyout;
         if (mToolboxFlyout == null) {
-            throw new IllegalArgumentException("Must have a flyout to manage the Toolbox.");
+            return;
         }
 
         if (mCategoryFragment != null) {
             mCategoryFragment.setCategoryCallback(mTabsCallback);
         }
-        mToolboxPreferCloseable = mToolboxFlyout.isCloseable();
-        mToolboxFlyout.init(mController, mToolboxViewCallback);
+        mToolboxIsCloseable = mToolboxFlyout.isCloseable();
         if (mToolboxRoot != null) {
             setToolboxRoot(mToolboxRoot);
         }
+        mToolboxFlyout.init(mController, mToolboxFlyoutCallback);
+        updateToolbox();
     }
 
-    public void setController(BlocklyController controller) {
-        mController = controller;
-        if (mController != null) {
-            if (mToolboxFlyout != null) {
-                mToolboxFlyout.init(mController, mTrashFlyoutCallback);
-            }
-            if (mTrashFlyout != null) {
-                mTrashFlyout.init(controller, mTrashFlyoutCallback);
-            }
-        }
-    }
-
+    /**
+     * Sets the root of the toolbox tree. This will be used to populate the category and toolbox
+     * flyout.
+     *
+     * @param root The root category for the toolbox.
+     */
     public void setToolboxRoot(FlyoutCategory root) {
         mToolboxRoot = root;
         if (mToolboxRoot == null) {
@@ -179,50 +173,35 @@ public class FlyoutController {
             // TODO reset fragments
             return;
         }
-        List<FlyoutCategory> subCats = root.getSubcategories();
-        List<Block> topBlocks = root.getBlocks();
-        if (subCats.size() > 0 && topBlocks.size() > 0) {
-            throw new IllegalArgumentException(
-                    "Toolbox root cannot have both blocks and subcategories.");
-        }
-        if (root.getSubcategories().size() == 0) {
-            mToolboxIsCloseable = false;
-            if (mCategoryFragment != null) {
-                mCategoryFragment.setContents(null);
-                mCategoryFragment.getView().setVisibility(View.GONE);
-            }
-        } else {
-            mToolboxIsCloseable = mToolboxPreferCloseable;
-            if (mCategoryFragment != null) {
-                mCategoryFragment.setContents(root);
-                mCategoryFragment.getView().setVisibility(View.VISIBLE);
-            }
-        }
-        if (mToolboxIsCloseable && mToolboxFlyout != null) {
-            mToolboxFlyout.closeBlocksDrawer();
-        }
+        updateToolbox();
     }
 
+    /**
+     * Closes the trash and toolbox if they're open and closeable.
+     *
+     * @return True if either flyout was closed, false otherwise.
+     */
     public boolean closeFlyouts() {
-        boolean didClose = false;
-        if (isTrashCloseable() && mTrashFlyout != null) {
-            didClose = mTrashFlyout.closeBlocksDrawer();
-        }
-        if (isToolboxCloseable() && mToolboxFlyout != null) {
-            didClose |= mToolboxFlyout.closeBlocksDrawer();
-        }
-        return didClose;
+        return closeTrash() || closeToolbox();
     }
 
+    /**
+     * @return True if the toolbox's flyout may be closed.
+     */
     public boolean isToolboxCloseable() {
-        return mToolboxIsCloseable && mCategoryFragment != null
-                && mToolboxRoot.getSubcategories().size() > 0;
+        return mToolboxIsCloseable && mCategoryFragment != null;
     }
 
+    /**
+     * @return True if the trash's flyout may be closed.
+     */
     public boolean isTrashCloseable() {
         return mTrashIsCloseable;
     }
 
+    /**
+     * @param trashFragment The flyout to use for displaying blocks in the trash.
+     */
     public void setTrashFragment(FlyoutFragment trashFragment) {
         mTrashFlyout = trashFragment;
         if (trashFragment != null) {
@@ -231,6 +210,9 @@ public class FlyoutController {
         }
     }
 
+    /**
+     * @param trashContents The category with the set of blocks for display in the trash.
+     */
     public void setTrashContents(FlyoutCategory trashContents) {
         mTrashCategory = trashContents;
         if (mTrashFlyout != null) {
@@ -238,13 +220,75 @@ public class FlyoutController {
         }
     }
 
-    public void setTrashIcon(TrashCanView trashIcon) {
-        mTrashIcon = trashIcon;
-        if (mTrashFlyout.isCloseable()) {
-            mTrashFlyout.closeBlocksDrawer();
-
-            trashIcon.setOnClickListener(mTrashClickListener);
-            trashIcon.setBlocklyController(mController);
+    /**
+     * @param trashIcon The view for toggling the trash.
+     */
+    public void setTrashIcon(View trashIcon) {
+        if (trashIcon == null) {
+            return;
         }
+        // The trash icon is always a drop target.
+        trashIcon.setOnDragListener(new OnDragToTrashListener(mController));
+        if (mTrashFlyout.isCloseable()) {
+            closeTrash();
+            // But we only need a click listener if the trash can be closed.
+            trashIcon.setOnClickListener(mTrashClickListener);
+        }
+    }
+
+    /**
+     * Updates the contents of toolbox and ensures it's open if it's not closeable.
+     */
+    private void updateToolbox() {
+        if (mToolboxRoot == null) {
+            return;
+        }
+        List<FlyoutCategory> subCats = mToolboxRoot.getSubcategories();
+        List<Block> topBlocks = mToolboxRoot.getBlocks();
+        if (subCats.size() > 0 && topBlocks.size() > 0) {
+            throw new IllegalArgumentException(
+                    "Toolbox root cannot have both blocks and subcategories.");
+        }
+        if (mToolboxRoot.getSubcategories().size() == 0) {
+            FlyoutCategory newRoot = new FlyoutCategory();
+            newRoot.addSubcategory(mToolboxRoot);
+            mToolboxRoot = newRoot;
+        }
+        if (mCategoryFragment != null) {
+            mCategoryFragment.setContents(mToolboxRoot);
+        }
+        if (!mToolboxIsCloseable) {
+            setToolboxCategory(mToolboxRoot.getSubcategories().get(0));
+        } else {
+            closeToolbox();
+        }
+    }
+
+    private void setToolboxCategory(FlyoutCategory category) {
+        if (mToolboxFlyout != null) {
+            mToolboxFlyout.setCurrentCategory(category);
+        }
+        if (mCategoryFragment != null) {
+            mCategoryFragment.setCurrentCategory(category);
+        }
+    }
+
+    private boolean closeToolbox() {
+        boolean didClose = false;
+        if (isToolboxCloseable() && mToolboxFlyout != null) {
+            didClose = mToolboxFlyout.closeBlocksDrawer();
+            if (mCategoryFragment != null) {
+                mCategoryFragment.setCurrentCategory(null);
+            }
+        }
+        return didClose;
+    }
+
+    private boolean closeTrash() {
+        boolean didClose = false;
+        if (isTrashCloseable() && mTrashFlyout != null) {
+            didClose = mTrashFlyout.closeBlocksDrawer();
+        }
+        return didClose;
     }
 }

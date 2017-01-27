@@ -40,6 +40,6 @@
         android:layout_alignParentLeft="true"
         android:layout_below="@id/list_wrapper"
         blockly:labelRotation="none"
-        blockly:tabOrientation="horizontal"/>
+        blockly:scrollOrientation="horizontal"/>
 
 </com.google.blockly.android.ui.FlyoutView>

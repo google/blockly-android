@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.OrientationHelper;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -35,6 +36,8 @@ public class CategoryView extends RelativeLayout {
     private boolean mPreferCloseable = true;
     // The current state of the toolbox being closeable or not.
     private boolean mCloseable = mPreferCloseable;
+    private int mScrollOrientation = OrientationHelper.VERTICAL;
+    private @Rotation.Enum int mLabelRotation = Rotation.NONE;
     private CategoryTabs.Callback mCallback;
 
     public CategoryView(Context context) {
@@ -49,11 +52,11 @@ public class CategoryView extends RelativeLayout {
         super(context, attrs, defStyleAttr);
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.BlockDrawerFragment,
+                R.styleable.BlocklyFlyout,
                 0, 0);
 
         try {
-            mPreferCloseable = a.getBoolean(R.styleable.BlockDrawerFragment_closeable, mCloseable);
+            mPreferCloseable = a.getBoolean(R.styleable.BlocklyFlyout_closeable, mCloseable);
             mCloseable = mPreferCloseable;
         } finally {
             a.recycle();
@@ -65,6 +68,8 @@ public class CategoryView extends RelativeLayout {
         super.onFinishInflate();
         mCategoryTabs = (CategoryTabs) findViewById(R.id.category_tabs);
         mCategoryTabs.setCallback(mCallback);
+        mCategoryTabs.setOrientation(mScrollOrientation);
+        mCategoryTabs.setLabelRotation(mLabelRotation);
     }
 
     public void setCallback(CategoryTabs.Callback callback) {
@@ -111,9 +116,7 @@ public class CategoryView extends RelativeLayout {
         }
         mCurrentCategory = category;
         mCategoryTabs.setSelectedCategory(category);
-        if (category != null) {
-            updateCategoryColors(category);
-        }
+        updateCategoryColors(category);
     }
 
     public FlyoutCategory getCurrentCategory() {
@@ -124,8 +127,22 @@ public class CategoryView extends RelativeLayout {
         return mCloseable;
     }
 
+    public void setScrollOrientation(int orientation) {
+        mScrollOrientation = orientation;
+        if (mCategoryTabs != null) {
+            mCategoryTabs.setOrientation(orientation);
+        }
+    }
+
+    public void setLabelRotation(int rotation) {
+        mLabelRotation = rotation;
+        if (mCategoryTabs != null) {
+            mCategoryTabs.setLabelRotation(mLabelRotation);
+        }
+    }
+
     protected void updateCategoryColors(FlyoutCategory curCategory) {
-        Integer maybeColor = curCategory.getColor();
+        Integer maybeColor = curCategory == null ? null : curCategory.getColor();
         int bgColor = DEFAULT_CATEGORIES_BACKGROUND_COLOR;
         if (maybeColor != null) {
             bgColor = getBackgroundColor(maybeColor);

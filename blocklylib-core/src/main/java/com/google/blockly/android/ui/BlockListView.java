@@ -90,11 +90,11 @@ public class BlockListView extends RecyclerView {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.BlockDrawerFragment,
+                R.styleable.BlocklyFlyout,
                 0, 0);
 
         try {
-            int orientation = a.getInt(R.styleable.BlockDrawerFragment_scrollOrientation, VERTICAL);
+            int orientation = a.getInt(R.styleable.BlocklyFlyout_scrollOrientation, VERTICAL);
             layoutManager.setOrientation(orientation);
         } finally {
             a.recycle();

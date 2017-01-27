@@ -38,7 +38,6 @@ import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.InputView;
 import com.google.blockly.android.ui.PendingDrag;
-import com.google.blockly.android.ui.TrashCanView;
 import com.google.blockly.android.ui.ViewPoint;
 import com.google.blockly.android.ui.VirtualWorkspaceView;
 import com.google.blockly.android.ui.WorkspaceHelper;
@@ -62,7 +61,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Controller to coordinate the state among all the major Blockly components: Workspace, Toolbar,
+ * Controller to coordinate the state among all the major Blockly components: Workspace, Toolbox,
  * Trash, models, and views.
  *
  * Note: Only public methods should call {@link #firePendingEvents()} and only Impl methods should
@@ -113,12 +112,9 @@ public class BlocklyController {
     private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
     private WorkspaceFragment mWorkspaceFragment = null;
-    private FlyoutFragment mTrashFragment = null;
-    private TrashCanView mTrashIcon = null;
-    private FlyoutFragment mFlyoutFragment = null;
-    private CategoryFragment mCategoryFragment = null;
     private Dragger mDragger;
     private VariableCallback mVariableCallback = null;
+
     private FlyoutController mFlyoutController = new FlyoutController(this);
 
     // For use in bumping neighbors; instance variable only to avoid repeated allocation.
@@ -237,7 +233,7 @@ public class BlocklyController {
     /**
      * Connects a WorkspaceFragment to this controller.
      *
-     * @param workspaceFragment
+     * @param workspaceFragment The fragment that contains the main workspace.
      */
     public void setWorkspaceFragment(@Nullable WorkspaceFragment workspaceFragment) {
         if (workspaceFragment != null && mViewFactory == null) {
@@ -260,23 +256,16 @@ public class BlocklyController {
      * Connects a {@link FlyoutFragment} and optional {@link CategoryFragment} to this controller,
      * so the user can drag new blocks into the attached {@link WorkspaceFragment}.
      *
-     * @param flyoutFragment The flyout to connect to for displaying blocks.
-     * @param categoryFragment The set of block categories the user can select in the toolbox.
+     * @param flyoutFragment The flyout for displaying toolbox blocks.
+     * @param categoryFragment Optional fragment for displaying toolbox categories.
      */
-    public void setToolboxFragments(@Nullable FlyoutFragment flyoutFragment,
+    public void setToolboxFragments(FlyoutFragment flyoutFragment,
             @Nullable CategoryFragment categoryFragment) {
-        if (flyoutFragment == mFlyoutFragment && categoryFragment == mCategoryFragment) {
-            return;
+        if (flyoutFragment != null && mViewFactory == null) {
+            throw new IllegalStateException("Cannot set fragments without a BlockViewFactory.");
         }
         mFlyoutController.setToolboxFragments(categoryFragment, flyoutFragment);
         mFlyoutController.setToolboxRoot(mWorkspace.getToolboxContents());
-    }
-
-    /**
-     * @return The currently attached {@link FlyoutFragment}.
-     */
-    public FlyoutFragment getToolboxFragment() {
-        return mFlyoutFragment;
     }
 
     /**
@@ -288,26 +277,17 @@ public class BlocklyController {
         if (trashFragment != null && mViewFactory == null) {
             throw new IllegalStateException("Cannot set fragments without a BlockViewFactory.");
         }
-
-        if (trashFragment == mTrashFragment) {
-            return;  // No-op
-        }
-        mTrashFragment = trashFragment;
-        mFlyoutController.setTrashFragment(mTrashFragment);
+        mFlyoutController.setTrashFragment(trashFragment);
         mFlyoutController.setTrashContents(mWorkspace.getTrashCategory());
     }
 
     /**
-     * Assigns the view used for dropping blocks into the trash.
+     * Assigns the view used for opening/closing the trash.
      *
      * @param trashIcon The trash icon for dropping blocks.
      */
-    public void setTrashIcon(TrashCanView trashIcon) {
-        if (trashIcon == mTrashIcon) {
-            return; // no-op
-        }
-        mTrashIcon = trashIcon;
-        mFlyoutController.setTrashIcon(mTrashIcon);
+    public void setTrashIcon(View trashIcon) {
+        mFlyoutController.setTrashIcon(trashIcon);
     }
 
     /**
@@ -318,13 +298,6 @@ public class BlocklyController {
      */
     public void setVariableCallback(VariableCallback variableCallback) {
         mVariableCallback = variableCallback;
-    }
-
-    /**
-     * @return The currently attached trash {@link FlyoutFragment}.
-     */
-    public FlyoutFragment getTrashFragment() {
-        return mTrashFragment;
     }
 
     /**
@@ -483,19 +456,35 @@ public class BlocklyController {
         return mClipHelper;
     }
 
+    /**
+     * Closes any open flyouts if they are closeable.
+     *
+     * @return True if any flyouts were closed.
+     */
     public boolean closeFlyouts() {
         return mFlyoutController.closeFlyouts();
     }
 
-    public void addCallback(EventsCallback listener) {
-        if (!mListeners.contains(listener)) {
-            mListeners.add(listener);
-            mEventCallbackMask |= listener.getTypesBitmask();
+    /**
+     * Registers a callback for Blockly events.
+     *
+     * @param callback The callback to add.
+     */
+    public void addCallback(EventsCallback callback) {
+        if (!mListeners.contains(callback)) {
+            mListeners.add(callback);
+            mEventCallbackMask |= callback.getTypesBitmask();
         }
     }
 
-    public boolean removeListener(EventsCallback listener) {
-        boolean found = mListeners.remove(listener);
+    /**
+     * Removes an events callback.
+     *
+     * @param callback The callback to remove.
+     * @return True if the callback was found and removed.
+     */
+    public boolean removeCallback(EventsCallback callback) {
+        boolean found = mListeners.remove(callback);
         if (found) {
             recalculateListenerEventMask();
         }
@@ -1678,7 +1667,7 @@ public class BlocklyController {
         private FlyoutFragment mFlyoutFragment;
         private CategoryFragment mCategoryFragment;
         private FlyoutFragment mTrashFragment;
-        private TrashCanView mTrashIcon;
+        private View mTrashIcon;
 
         // TODO: Should these be part of the style?
         private int mToolboxResId;
@@ -1718,18 +1707,41 @@ public class BlocklyController {
             return this;
         }
 
+        /**
+         * Sets the fragments used for the toolbox, including the flyout with blocks and the
+         * category tabs.
+         *
+         * @param toolbox The FlyoutFragment to use to display blocks in the current category.
+         * @param categoryFragment The CategoryFragment for displaying the list of categories.
+         * @return this
+         */
         public Builder setToolboxFragment(FlyoutFragment toolbox, CategoryFragment categoryFragment) {
             mFlyoutFragment = toolbox;
             mCategoryFragment = categoryFragment;
             return this;
         }
 
+        /**
+         * Sets the FlyoutFragment to be used for the trash. This must be a different fragment than
+         * the toolbox fragment.
+         *
+         * @param trash The FlyoutFragment to use to display blocks in the trash.
+         * @return this
+         */
         public Builder setTrashFragment(FlyoutFragment trash) {
             mTrashFragment = trash;
             return this;
         }
 
-        public Builder setTrashIcon(TrashCanView trashIcon) {
+        /**
+         * Sets a View to use as a drop target and click target for opening/closing
+         * the trash. Since the icon may not be inflated yet this can be added after creating the
+         * controller with {@link BlocklyController#setTrashIcon(View)}.
+         *
+         * @param trashIcon The view to use for opening/closing the trash.
+         * @return this
+         */
+        public Builder setTrashIcon(View trashIcon) {
             mTrashIcon = trashIcon;
             return this;
         }

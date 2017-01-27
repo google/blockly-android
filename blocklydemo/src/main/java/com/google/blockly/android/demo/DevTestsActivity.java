@@ -130,7 +130,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         if (logEvents) {
             mController.addCallback(mEventsCallback);
         } else {
-            mController.removeListener(mEventsCallback);
+            mController.removeCallback(mEventsCallback);
         }
         mLogEventsMenuItem.setChecked(logEvents);
     }
