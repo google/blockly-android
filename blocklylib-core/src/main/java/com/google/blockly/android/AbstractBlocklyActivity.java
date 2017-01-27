@@ -88,7 +88,7 @@ import java.util.List;
  * <p/>
  * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
  * {@link #getToolboxContentsXmlPath()}, and {@link #onCreateBlockViewFactory}.  An initial
- * workspace can be defined by overriding {@link #getStartingWorkspacePath()}.
+ * workspace can be loaded during {@link #onLoadInitialWorkspace()}.
  * <p/>
  * The block definitions can be updated at any time by calling {@link #reloadBlockDefinitions()},
  * which triggers another call to {@link #getBlockDefinitionsJsonPaths()}.  Similarly, The toolbox
@@ -492,28 +492,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     @NonNull
     abstract protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback();
-
-    /**
-     * Returns the asset path to the initial workspace to load.  If null, no workspace file will be
-     * loaded.
-     *
-     * @return The asset path to the initial workspace to load.
-     */
-    @Nullable
-    protected String getStartingWorkspacePath() {
-        return null;
-    }
-
-    /**
-     * Returns a style to override the application's theme with when rendering Blockly. If 0 is
-     * returned the activity or application's theme will be used, with attributes defaulting to
-     * those in {@link R.style#BlocklyTheme}.
-     *
-     * @return A style that inherits from {@link R.style#BlocklyTheme} or 0.
-     */
-    protected int getStyleResId() {
-        return 0;
-    }
 
     /**
      * Returns a callback for handling user requests to change the list of variables (create,

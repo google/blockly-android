@@ -25,8 +25,7 @@ import java.util.List;
 
 /**
  * Basic implementation of AbstractBlocklyActivity that demonstrates applying styles. This demo
- * uses an Activity style defined in the manifest XML. Alternatively, Activities can override
- * {@link #getStyleResId()} to change the style used in {@link #onCreateController()}.
+ * uses an Activity style defined in the manifest XML.
  */
 public class StylesActivity extends AbstractBlocklyActivity {
     private static final String TAG = "StylesActivity";

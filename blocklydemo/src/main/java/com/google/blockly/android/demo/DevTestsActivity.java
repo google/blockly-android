@@ -190,11 +190,6 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         return BLOCK_DEFINITIONS;
     }
 
-    @Override
-    protected String getStartingWorkspacePath() {
-        return "default/demo_workspace.xml";
-    }
-
     @NonNull
     @Override
     protected List<String> getGeneratorsJsPaths() {
