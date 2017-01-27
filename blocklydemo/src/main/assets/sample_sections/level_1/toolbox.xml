@@ -13,41 +13,39 @@
   ~  limitations under the License.
   -->
 <toolbox xmlns="http://www.w3.org/1999/xhtml">
-    <category name="Blocks">
-        <block type="controls_repeat_ext">
-            <value name="TIMES">
-                <shadow type="math_number">
-                    <field name="NUM">10</field>
-                </shadow>
-            </value>
-        </block>
-        <block type="controls_whileUntil">
-            <field name="MODE">UNTIL</field>
-        </block>
+    <block type="controls_repeat_ext">
+        <value name="TIMES">
+            <shadow type="math_number">
+                <field name="NUM">10</field>
+            </shadow>
+        </value>
+    </block>
+    <block type="controls_whileUntil">
+        <field name="MODE">UNTIL</field>
+    </block>
 
-        <block type="simple_input_output"></block>
-        <block type="multiple_input_output"></block>
-        <block type="statement_no_input"></block>
-        <block type="statement_value_input"></block>
-        <block type="statement_multiple_value_input"></block>
-        <block type="statement_statement_input"></block>
-        <block type="output_no_input"></block>
-        <block type="statement_no_next"></block>
+    <block type="simple_input_output"></block>
+    <block type="multiple_input_output"></block>
+    <block type="statement_no_input"></block>
+    <block type="statement_value_input"></block>
+    <block type="statement_multiple_value_input"></block>
+    <block type="statement_statement_input"></block>
+    <block type="output_no_input"></block>
+    <block type="statement_no_next"></block>
 
-        <block type="test_number">
-            <field name="NUM">10</field>
-        </block>
-        <block type="test_integer">
-            <field name="NUM">10</field>
-        </block>
-        <block type="test_number_hundredths">
-            <field name="NUM">0.25</field>
-        </block>
-        <block type="test_integer_bounded">
-            <field name="NOTE">60</field>
-        </block>
+    <block type="test_number">
+        <field name="NUM">10</field>
+    </block>
+    <block type="test_integer">
+        <field name="NUM">10</field>
+    </block>
+    <block type="test_number_hundredths">
+        <field name="NUM">0.25</field>
+    </block>
+    <block type="test_integer_bounded">
+        <field name="NOTE">60</field>
+    </block>
 
-        <block type="variables_set"></block>
-        <block type="variables_get"></block>
-    </category>
+    <block type="variables_set"></block>
+    <block type="variables_get"></block>
 </toolbox>

@@ -7,42 +7,42 @@
     android:layout_height="match_parent">
 
     <fragment android:name="com.google.blockly.android.WorkspaceFragment"
-        android:id="@+id/blockly_workspace"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+              android:id="@+id/blockly_workspace"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:layout_toEndOf="@+id/blockly_categories"
+              android:layout_toRightOf="@id/blockly_categories"/>
 
     <fragment android:name="com.google.blockly.android.FlyoutFragment"
-        android:id="@+id/blockly_trash"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/blockly_toolbox"
-        blockly:closeable="true"
-        blockly:scrollOrientation="horizontal"
-        tools:ignore="MissingPrefix"
-        android:layout_toRightOf="@id/blockly_toolbox"/>
+              android:id="@+id/blockly_trash"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_alignParentBottom="true"
+              android:layout_toEndOf="@id/blockly_categories"
+              android:layout_toRightOf="@id/blockly_categories"
+              blockly:scrollOrientation="horizontal"
+              blockly:closeable="true"
+              tools:ignore="MissingPrefix"/>
 
-    <LinearLayout
-        android:id="@id/blockly_toolbox"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
-        <fragment android:name="com.google.blockly.android.CategoryFragment"
-                  android:id="@+id/blockly_categories"
-                  android:layout_width="wrap_content"
-                  android:layout_height="match_parent"
-                  blockly:labelRotation="start"
-                  blockly:scrollOrientation="vertical"
-                  tools:ignore="MissingPrefix" />
-        <fragment android:name="com.google.blockly.android.FlyoutFragment"
-                  android:id="@+id/blockly_flyout"
-                  android:layout_width="wrap_content"
-                  android:layout_height="match_parent"
-                  blockly:scrollOrientation="vertical"
-                  tools:ignore="MissingPrefix"
-            />
-    </LinearLayout>
+
+    <fragment android:name="com.google.blockly.android.CategoryFragment"
+              android:id="@id/blockly_categories"
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:layout_alignParentStart="true"
+              android:layout_alignParentLeft="true"
+              blockly:labelRotation="start"
+              blockly:scrollOrientation="vertical"
+              tools:ignore="MissingPrefix"/>
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
+              android:id="@+id/blockly_flyout"
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:layout_toEndOf="@id/blockly_categories"
+              android:layout_toRightOf="@id/blockly_categories"
+              blockly:scrollOrientation="vertical"
+              blockly:closeable="true"
+              tools:ignore="MissingPrefix"/>
 
 
     <LinearLayout android:id="@+id/blockly_overlay_buttons"

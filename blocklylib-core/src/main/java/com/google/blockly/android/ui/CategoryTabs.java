@@ -114,12 +114,12 @@ public class CategoryTabs extends RecyclerView {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.CategoryTabs,
+                R.styleable.BlocklyCategory,
                 0, 0);
         try {
             //noinspection ResourceType
-            mLabelRotation = a.getInt(R.styleable.CategoryTabs_labelRotation, mLabelRotation);
-            int orientation = a.getInt(R.styleable.CategoryTabs_tabOrientation, VERTICAL);
+            mLabelRotation = a.getInt(R.styleable.BlocklyCategory_labelRotation, mLabelRotation);
+            int orientation = a.getInt(R.styleable.BlocklyCategory_scrollOrientation, VERTICAL);
             mLayoutManager.setOrientation(orientation);
         } finally {
             a.recycle();

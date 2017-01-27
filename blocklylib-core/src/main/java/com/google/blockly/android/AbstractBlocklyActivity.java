@@ -115,7 +115,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected WorkspaceFragment mWorkspaceFragment;
     protected FlyoutFragment mFlyoutFragment;
     protected FlyoutFragment mTrashFragment;
-    protected View mToolboxView;
     protected CategoryFragment mCategoryFragment;
 
     // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
@@ -407,7 +406,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void onLoadInitialWorkspace() {
         onInitBlankWorkspace();
-        mFlyoutFragment.closeBlocksDrawer();
+        mController.closeFlyouts();
     }
 
     /**
@@ -658,7 +657,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         mWorkspaceFragment = (WorkspaceFragment)
                 fragmentManager.findFragmentById(R.id.blockly_workspace);
-        mToolboxView = findViewById(R.id.blockly_toolbox);
         mFlyoutFragment =
                 (FlyoutFragment) fragmentManager.findFragmentById(R.id.blockly_flyout);
         mCategoryFragment = (CategoryFragment) fragmentManager
@@ -680,7 +678,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * into the workspace.
      */
     protected void onConfigureTrashIcon() {
-        TrashCanView trashIcon = (TrashCanView) findViewById(R.id.blockly_trash_icon);
+        View trashIcon = findViewById(R.id.blockly_trash_icon);
         if (mController != null && trashIcon != null) {
             mController.setTrashIcon(trashIcon);
         }

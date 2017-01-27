@@ -15,6 +15,7 @@
 
 package com.google.blockly.model;
 
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -53,22 +54,44 @@ public class FlyoutCategory {
         mCallback = callback;
     }
 
+    /**
+     * @return The user visible name of this category.
+     */
     public String getCategoryName() {
         return mCategoryName;
     }
 
+    /**
+     * @return The custome type of this category.
+     */
     public String getCustomType() {
         return mCustomType;
     }
 
+    /**
+     * Convenience method for checking if this category has the custom "VARIABLE" type.
+     *
+     * @return True if this category has the custom type "VARIABLE"
+     */
     public boolean isVariableCategory() {
         return mIsVariableCategory;
     }
 
+    /**
+     * Convenience method for checking if this category has the custom "FUNCTION" type.
+     *
+     * @return True if this category has the custom type "FUNCTION"
+     */
     public boolean isFunctionCategory() {
         return mIsFunctionCategory;
     }
 
+    /**
+     * Gets the list of blocks in this category. The list should not be modified directly, instead
+     * {@link #addBlock(Block)} and {@link #removeBlock(Block)} should be used.
+     *
+     * @return The list of blocks in this category.
+     */
     public List<Block> getBlocks() {
         return mBlocks;
     }
@@ -133,8 +156,14 @@ public class FlyoutCategory {
         }
         mBlocks.clear();
         mSubcategories.clear();
+        if (mCallback != null) {
+            mCallback.onCategoryCleared();
+        }
     }
 
+    /**
+     * @return True if this category contains no blocks or subcategories, false otherwise.
+     */
     public boolean isEmpty() {
         return mSubcategories.isEmpty() && mBlocks.isEmpty();
     }
@@ -150,10 +179,6 @@ public class FlyoutCategory {
         for (int i = 0; i < mSubcategories.size(); i++) {
             mSubcategories.get(i).getAllBlocksRecursive(blocks);
         }
-    }
-
-    private void addSubcategory(FlyoutCategory subcategory) {
-        mSubcategories.add(subcategory);
     }
 
     /**
@@ -210,9 +235,37 @@ public class FlyoutCategory {
         return result;
     }
 
+    /**
+     * @param subcategory The category to add under this category.
+     */
+    public void addSubcategory(FlyoutCategory subcategory) {
+        mSubcategories.add(subcategory);
+    }
+
+
+    /**
+     * Callback class for listening to changes to this category.
+     */
     public abstract static class Callback {
+        /**
+         * Called when a block is added to this category.
+         *
+         * @param index The index the block was added at.
+         * @param block The block that was added.
+         */
         public void onBlockAdded(int index, Block block) {}
+
+        /**
+         * Called when a block is removed from this category.
+         *
+         * @param index The index the block was previously at.
+         * @param block The block that was removed.
+         */
         public void onBlockRemoved(int index, Block block) {}
+
+        /**
+         * Called when the category is cleared, which removes all its subcategories and blocks.
+         */
         public void onCategoryCleared() {}
     }
 }

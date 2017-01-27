@@ -29,22 +29,20 @@ import android.view.ViewGroup;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.FlyoutController;
-import com.google.blockly.android.ui.BlockDrawerFragment;
 import com.google.blockly.android.ui.FlyoutView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.FlyoutCategory;
 
 /**
- * A tabbed drawer UI to show a set of {@link Block}s one can drag into the workspace. The
- * available blocks are divided into drawers by {@link FlyoutCategory}s with this fragment
- * displaying a single drawer. Set the blocks currently being shown by using
+ * A drawer UI to show a set of {@link Block Blocks} one can drag into the workspace. The
+ * available blocks are provided by a {@link FlyoutCategory}, with this fragment
+ * displaying a single set of blocks. Set the blocks currently being shown by using
  * {@link #setCurrentCategory(FlyoutCategory)}.
  * <p/>
  * This Fragment is often used with {@link CategoryFragment} which displays a list of tabs built
  * from a root category. The fragments don't interact directly, so the
- * {@link FlyoutController} handles most of the
- * interactions.
+ * {@link FlyoutController} handles most of the behavior logic.
  * <p/>
  * The behavior of the {@code FlyoutFragment} is configurable in xml. {@code closeable} and
  * {@code scrollOrientation} attributes may be set to affect the display and behavior of this
@@ -59,7 +57,7 @@ import com.google.blockly.model.FlyoutCategory;
  *     android:id="@+id/blockly_toolbox"
  *     android:layout_width="wrap_content"
  *     android:layout_height="match_parent"
- *     <b>blockly:closeable</b>="true"
+ *     <b>blockly:closeable</b>="false"
  *     <b>blockly:scrollOrientation</b>="vertical"
  *     /&gt;
  * </pre></blockquote>
@@ -89,8 +87,7 @@ public class FlyoutFragment extends Fragment {
     protected BlocklyController mController;
     protected WorkspaceHelper mHelper;
 
-    protected boolean mPreferCloseable = true;
-    protected boolean mCloseable = mPreferCloseable;
+    protected boolean mCloseable = true;
     protected int mScrollOrientation = OrientationHelper.VERTICAL;
 
     protected FlyoutView.Callback mViewCallback = null;
@@ -100,13 +97,13 @@ public class FlyoutFragment extends Fragment {
         super.onInflate(context, attrs, savedInstanceState);
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.BlockDrawerFragment,
+                R.styleable.BlocklyFlyout,
                 0, 0);
 
         try {
-            mCloseable = a.getBoolean(R.styleable.BlockDrawerFragment_closeable,
-                    mPreferCloseable);
-            mScrollOrientation = a.getInt(R.styleable.BlockDrawerFragment_scrollOrientation,
+            mCloseable = a.getBoolean(R.styleable.BlocklyFlyout_closeable,
+                    mCloseable);
+            mScrollOrientation = a.getInt(R.styleable.BlocklyFlyout_scrollOrientation,
                     mScrollOrientation);
         } finally {
             a.recycle();
@@ -154,9 +151,8 @@ public class FlyoutFragment extends Fragment {
      * @param callback The callback that will handle user actions in the flyout.
      */
     public void init(BlocklyController controller, FlyoutView.Callback callback) {
-        if (mController != null && mController.getToolboxFragment() != this) {
-            throw new IllegalStateException("Call BlockController.setToolboxFragment(..) instead of"
-                    + " FlyoutFragment.setController(..).");
+        if (mController != null) {
+            throw new IllegalStateException("This flyout is already initialized!");
         }
 
         mController = controller;
