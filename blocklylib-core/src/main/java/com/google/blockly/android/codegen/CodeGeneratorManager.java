@@ -1,10 +1,6 @@
 package com.google.blockly.android.codegen;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -22,34 +18,25 @@ public class CodeGeneratorManager {
     private static final String TAG = "CodeGeneratorManager";
 
     private final Context mContext;
-    private final ServiceConnection mCodeGenerationConnection;
-
-    private CodeGeneratorService mGeneratorService;
+    private final LazyServiceConnection mCodeGenerationConnection;
 
     public CodeGeneratorManager(Context context) {
         this.mContext = context;
-
-        this.mCodeGenerationConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName className, IBinder binder) {
-                mGeneratorService =
-                    ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName arg0) {
-                mGeneratorService = null;
-            }
-        };
+        this.mCodeGenerationConnection = new LazyServiceConnection(context);
     }
 
+    /**
+     * Resumes the underlying code generation connection.
+     */
     public void onResume() {
-        Intent intent = new Intent(mContext, CodeGeneratorService.class);
-        mContext.bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+        mCodeGenerationConnection.onResume();
     }
 
+    /**
+     * Pauses the underlying code generation connection.
+     */
     public void onPause() {
-        mContext.unbindService(mCodeGenerationConnection);
+        mCodeGenerationConnection.onPause();
     }
 
     /**
@@ -64,33 +51,24 @@ public class CodeGeneratorManager {
                                       CodeGeneratorCallback codeGenerationCallback) {
 
         if (workspace.hasBlocks()) {
-            if (isBound()) {
-                try {
-                    final StringOutputStream serialized = new StringOutputStream();
-                    workspace.serializeToXml(serialized);
+            try {
+                final StringOutputStream serialized = new StringOutputStream();
+                workspace.serializeToXml(serialized);
+                CodeGenerationRequest codeGenerationRequest =
+                    new CodeGenerationRequest(
+                        serialized.toString(),
+                        codeGenerationCallback,
+                        blockDefinitionsJsonPaths,
+                        generatorsJsPaths);
+                mCodeGenerationConnection.requestCodeGeneration(codeGenerationRequest);
+            } catch (BlocklySerializerException e) {
+                Log.wtf(TAG, e);
+                Toast.makeText(mContext, "Code generation failed.",
+                    Toast.LENGTH_LONG).show();
 
-                    mGeneratorService.requestCodeGeneration(
-                        new CodeGenerationRequest(
-                            serialized.toString(),
-                            codeGenerationCallback,
-                            blockDefinitionsJsonPaths,
-                            generatorsJsPaths)
-                    );
-                } catch (BlocklySerializerException e) {
-                    Log.wtf(TAG, e);
-                    Toast.makeText(mContext, "Code generation failed.",
-                        Toast.LENGTH_LONG).show();
-
-                }
-            } else {
-                Log.i(TAG, "Generator not bound to service. Skipping run request.");
             }
         } else {
             Log.i(TAG, "No blocks in workspace. Skipping run request.");
         }
-    }
-
-    private boolean isBound() {
-        return mGeneratorService != null;
     }
 }
