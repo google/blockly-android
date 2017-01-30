@@ -1,74 +1,91 @@
 package com.google.blockly.android.codegen;
 
+import android.content.ComponentName;
 import android.content.Context;
-import android.util.Log;
-import android.widget.Toast;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 
-import com.google.blockly.android.codegen.CodeGenerationRequest.CodeGeneratorCallback;
-import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.Workspace;
-import com.google.blockly.utils.StringOutputStream;
-
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Client Side class responsible for connecting to the {@link CodeGeneratorService}.
+ *
+ * A connection to the service is only made the first time code generation is requested.
  */
 public class CodeGeneratorManager {
     private static final String TAG = "CodeGeneratorManager";
 
     private final Context mContext;
-    private final LazyServiceConnection mCodeGenerationConnection;
+    private final Queue<CodeGenerationRequest> mStoredRequests;
+
+    private ServiceConnection mCodeGenerationConnection;
+    private CodeGeneratorService mGeneratorService;
 
     public CodeGeneratorManager(Context context) {
         this.mContext = context;
-        this.mCodeGenerationConnection = new LazyServiceConnection(context);
+        this.mStoredRequests = new LinkedList<>();
     }
 
     /**
      * Resumes the underlying code generation connection.
      */
     public void onResume() {
-        mCodeGenerationConnection.onResume();
+        Intent intent = new Intent(mContext, CodeGeneratorService.class);
+        if (mCodeGenerationConnection != null) {
+            mContext.bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     /**
      * Pauses the underlying code generation connection.
      */
     public void onPause() {
-        mCodeGenerationConnection.onPause();
+        if (mCodeGenerationConnection != null) {
+            mContext.unbindService(mCodeGenerationConnection);
+        }
     }
 
     /**
      * Calls the Service to request code generation for the workspace passed in.
      *
-     * @param workspace the workspace to request code generation for.
-     * @param codeGenerationCallback the callback to call with the generated code.
+     * @param codeGenerationRequest the request to generate code.
      */
-    public void requestCodeGeneration(List<String> blockDefinitionsJsonPaths,
-                                      List<String> generatorsJsPaths,
-                                      Workspace workspace,
-                                      CodeGeneratorCallback codeGenerationCallback) {
-
-        if (workspace.hasBlocks()) {
-            try {
-                final StringOutputStream serialized = new StringOutputStream();
-                workspace.serializeToXml(serialized);
-                CodeGenerationRequest codeGenerationRequest =
-                    new CodeGenerationRequest(
-                        serialized.toString(),
-                        codeGenerationCallback,
-                        blockDefinitionsJsonPaths,
-                        generatorsJsPaths);
-                mCodeGenerationConnection.requestCodeGeneration(codeGenerationRequest);
-            } catch (BlocklySerializerException e) {
-                Log.wtf(TAG, e);
-                Toast.makeText(mContext, "Code generation failed.",
-                    Toast.LENGTH_LONG).show();
-
-            }
+    public void requestCodeGeneration(CodeGenerationRequest codeGenerationRequest) {
+        if (isBound()) {
+            executeCodeGenerationRequest(codeGenerationRequest);
         } else {
-            Log.i(TAG, "No blocks in workspace. Skipping run request.");
+            mStoredRequests.add(codeGenerationRequest);
+            connectToService();
+        }
+    }
+
+    private boolean isBound() {
+        return mGeneratorService != null;
+    }
+
+    private void connectToService() {
+        this.mCodeGenerationConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className, IBinder binder) {
+                mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
+                while (!mStoredRequests.isEmpty()) {
+                    executeCodeGenerationRequest(mStoredRequests.poll());
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mGeneratorService = null;
+            }
+        };
+
+    }
+
+    private void executeCodeGenerationRequest(CodeGenerationRequest request) {
+        if (request != null) {
+            mGeneratorService.requestCodeGeneration(request);
         }
     }
 }
