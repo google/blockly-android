@@ -422,7 +422,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mCodeGeneratorManager.onResume();
 
         if (mNavigationDrawer != null) {
             // Read in the flag indicating whether or not the user has demonstrated awareness of the

@@ -20,29 +20,34 @@ public class CodeGeneratorManager {
     private final Context mContext;
     private final Queue<CodeGenerationRequest> mStoredRequests;
 
-    private ServiceConnection mCodeGenerationConnection;
+    private final ServiceConnection mCodeGenerationConnection;
     private CodeGeneratorService mGeneratorService;
 
     public CodeGeneratorManager(Context context) {
         this.mContext = context;
         this.mStoredRequests = new LinkedList<>();
+
+        this.mCodeGenerationConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className, IBinder binder) {
+                mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
+                while (!mStoredRequests.isEmpty()) {
+                    executeCodeGenerationRequest(mStoredRequests.poll());
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mGeneratorService = null;
+            }
+        };
     }
 
     /**
-     * Resumes the underlying code generation connection.
-     */
-    public void onResume() {
-        Intent intent = new Intent(mContext, CodeGeneratorService.class);
-        if (mCodeGenerationConnection != null) {
-            mContext.bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
-        }
-    }
-
-    /**
-     * Pauses the underlying code generation connection.
+     * Unbind the underlying service (if it is bound).
      */
     public void onPause() {
-        if (mCodeGenerationConnection != null) {
+        if (isBound()) {
             mContext.unbindService(mCodeGenerationConnection);
         }
     }
@@ -66,21 +71,8 @@ public class CodeGeneratorManager {
     }
 
     private void connectToService() {
-        this.mCodeGenerationConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName className, IBinder binder) {
-                mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
-                while (!mStoredRequests.isEmpty()) {
-                    executeCodeGenerationRequest(mStoredRequests.poll());
-                }
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName arg0) {
-                mGeneratorService = null;
-            }
-        };
-
+        Intent intent = new Intent(mContext, CodeGeneratorService.class);
+        mContext.bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void executeCodeGenerationRequest(CodeGenerationRequest request) {
