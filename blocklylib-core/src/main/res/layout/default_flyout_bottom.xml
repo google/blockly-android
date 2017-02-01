@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.blockly.android.ui.FlyoutView
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:blockly="http://schemas.android.com/apk/res-auto"
     android:id="@+id/toolbox_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/blockly_toolbox_bg"
-    blockly:closeable="true">
+    android:background="@color/blockly_toolbox_bg">
     <Button
         android:visibility="gone"
         android:id="@+id/action_button"
@@ -26,4 +24,4 @@
         android:layout_toEndOf="@id/action_button"
         android:layout_toRightOf="@id/action_button"/>
 
-</com.google.blockly.android.ui.FlyoutView>
+</RelativeLayout>

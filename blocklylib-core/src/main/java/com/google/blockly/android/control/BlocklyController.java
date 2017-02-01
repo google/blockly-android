@@ -26,7 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
-import com.google.blockly.android.CategoryFragment;
+import com.google.blockly.android.CategorySelectorFragment;
 import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
@@ -253,14 +253,14 @@ public class BlocklyController {
     }
 
     /**
-     * Connects a {@link FlyoutFragment} and optional {@link CategoryFragment} to this controller,
+     * Connects a {@link FlyoutFragment} and optional {@link CategorySelectorFragment} to this controller,
      * so the user can drag new blocks into the attached {@link WorkspaceFragment}.
      *
      * @param flyoutFragment The flyout for displaying toolbox blocks.
      * @param categoryFragment Optional fragment for displaying toolbox categories.
      */
     public void setToolboxFragments(FlyoutFragment flyoutFragment,
-            @Nullable CategoryFragment categoryFragment) {
+            @Nullable CategorySelectorFragment categoryFragment) {
         if (flyoutFragment != null && mViewFactory == null) {
             throw new IllegalStateException("Cannot set fragments without a BlockViewFactory.");
         }
@@ -1665,7 +1665,7 @@ public class BlocklyController {
         private VariableCallback mVariableCallback;
         private WorkspaceFragment mWorkspaceFragment;
         private FlyoutFragment mFlyoutFragment;
-        private CategoryFragment mCategoryFragment;
+        private CategorySelectorFragment mCategoryFragment;
         private FlyoutFragment mTrashFragment;
         private View mTrashIcon;
 
@@ -1712,10 +1712,10 @@ public class BlocklyController {
          * category tabs.
          *
          * @param toolbox The FlyoutFragment to use to display blocks in the current category.
-         * @param categoryFragment The CategoryFragment for displaying the list of categories.
+         * @param categoryFragment The CategorySelectorFragment for displaying the list of categories.
          * @return this
          */
-        public Builder setToolboxFragment(FlyoutFragment toolbox, CategoryFragment categoryFragment) {
+        public Builder setToolboxFragment(FlyoutFragment toolbox, CategorySelectorFragment categoryFragment) {
             mFlyoutFragment = toolbox;
             mCategoryFragment = categoryFragment;
             return this;

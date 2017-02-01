@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:orientation="vertical">
-        <fragment android:name="com.google.blockly.android.CategoryFragment"
+        <fragment android:name="com.google.blockly.android.CategorySelectorFragment"
                   android:id="@+id/blockly_categories"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2016 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -17,22 +17,28 @@ package com.google.blockly.android;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.RelativeLayout;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.FlyoutController;
-import com.google.blockly.android.ui.FlyoutView;
+import com.google.blockly.android.ui.BlockListHelper;
+import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.utils.ColorUtils;
 
 /**
  * A drawer UI to show a set of {@link Block Blocks} one can drag into the workspace. The
@@ -40,9 +46,9 @@ import com.google.blockly.model.FlyoutCategory;
  * displaying a single set of blocks. Set the blocks currently being shown by using
  * {@link #setCurrentCategory(FlyoutCategory)}.
  * <p/>
- * This Fragment is often used with {@link CategoryFragment} which displays a list of tabs built
- * from a root category. The fragments don't interact directly, so the
- * {@link FlyoutController} handles most of the behavior logic.
+ * This Fragment is often used with {@link CategorySelectorFragment} which displays a list of tabs built
+ * from a root category. The fragments don't interact directly, but the
+ * {@link FlyoutController} can be used to handle the interaction between these components.
  * <p/>
  * The behavior of the {@code FlyoutFragment} is configurable in xml. {@code closeable} and
  * {@code scrollOrientation} attributes may be set to affect the display and behavior of this
@@ -77,20 +83,31 @@ import com.google.blockly.model.FlyoutCategory;
  * @attr ref com.google.blockly.R.styleable#ToolboxFragment_rotateTabs
  */
 // TODO(#9): Attribute and arguments to set the tab background.
+// TODO (#510): Create an interface for the {@link BlocklyController} to interact with this fragment
 public class FlyoutFragment extends Fragment {
     private static final String TAG = "FlyoutFragment";
+
+    public static final int DEFAULT_BLOCKS_BACKGROUND_ALPHA = 0xBB;
+    public static final int DEFAULT_BLOCKS_BACKGROUND_COLOR = Color.LTGRAY;
+    protected static final float BLOCKS_BACKGROUND_LIGHTNESS = 0.75f;
 
     protected static final String ARG_CLOSEABLE = "BlockDrawerFragment_closeable";
     protected static final String ARG_SCROLL_ORIENTATION = "BlockDrawerFragment_scrollOrientation";
 
-    protected FlyoutView mFlyoutView;
+    protected int mBgAlpha = DEFAULT_BLOCKS_BACKGROUND_ALPHA;
+    protected int mBgColor = DEFAULT_BLOCKS_BACKGROUND_COLOR;
+
+    protected View mFlyoutView;
+    protected Button mActionButton;
     protected BlocklyController mController;
     protected WorkspaceHelper mHelper;
 
     protected boolean mCloseable = true;
     protected int mScrollOrientation = OrientationHelper.VERTICAL;
 
-    protected FlyoutView.Callback mViewCallback = null;
+    protected FlyoutCallback mViewCallback = null;
+    protected BlockListHelper mBlockListHelper;
+    protected final ColorDrawable mBgDrawable = new ColorDrawable(mBgColor);
 
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
@@ -126,8 +143,24 @@ public class FlyoutFragment extends Fragment {
 
         int layout = mScrollOrientation == OrientationHelper.VERTICAL
                 ? R.layout.default_flyout_start : R.layout.default_flyout_bottom;
-        mFlyoutView = (FlyoutView) inflater.inflate(layout, null);
-        mFlyoutView.setLayoutManager(createLinearLayoutManager());
+        mFlyoutView = inflater.inflate(layout, null);
+
+        // TODO (#503): Refactor action button into category list
+        mActionButton = (Button) mFlyoutView.findViewById(R.id.action_button);
+        mActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mViewCallback != null) {
+                    // TODO (#503): replace action name with v.getTag()
+                    mViewCallback.onActionClicked(v, null /*action name*/,
+                            mBlockListHelper.getCurrentCategory());
+                }
+            }
+        });
+
+        RecyclerView recyclerView = (RecyclerView) mFlyoutView.findViewById(R.id.block_list_view);
+        mBlockListHelper = new BlockListHelper(recyclerView, getContext());
+        mBlockListHelper.setScrollOrientation(mScrollOrientation);
         return mFlyoutView;
     }
 
@@ -145,12 +178,13 @@ public class FlyoutFragment extends Fragment {
 
     /**
      * Connects the {@link FlyoutFragment} to the application's drag and click handling. It is
-     * called by {@link BlocklyController#setToolboxFragments(FlyoutFragment, CategoryFragment)}
+     * called by
+     * {@link BlocklyController#setToolboxFragments(FlyoutFragment, CategorySelectorFragment)}
      * and should not be called by the application developer.
      *
      * @param callback The callback that will handle user actions in the flyout.
      */
-    public void init(BlocklyController controller, FlyoutView.Callback callback) {
+    public void init(BlocklyController controller, FlyoutCallback callback) {
         if (mController != null) {
             throw new IllegalStateException("This flyout is already initialized!");
         }
@@ -158,30 +192,42 @@ public class FlyoutFragment extends Fragment {
         mController = controller;
         mViewCallback = callback;
         if (mController == null) {
-            mFlyoutView.reset();
+            mBlockListHelper.reset();
         }
-        mFlyoutView.init(controller, callback);
+        mBlockListHelper.init(controller, callback);
     }
 
     /**
-     * Sets the Toolbox's current {@link FlyoutCategory}, including opening or closing the drawer.
+     * Sets the Flyout's current {@link FlyoutCategory}, including opening or closing the drawer.
      * In closeable toolboxes, {@code null} {@code category} is equivalent to closing the drawer.
      * Otherwise, the drawer will be rendered empty.
      *
      * @param category The {@link FlyoutCategory} with blocks to display.
      */
-    // TODO(#80): Add animation hooks for subclasses.
     public void setCurrentCategory(@Nullable FlyoutCategory category) {
-        mFlyoutView.setCurrentCategory(category);
-        boolean close = isCloseable() && category == null;
-        mFlyoutView.setVisibility(close ? View.GONE : View.VISIBLE);
+        mBlockListHelper.setCurrentCategory(category);
+        updateCategoryColors(category);
+        // TODO (#503): Refactor action button into category list
+        if (category != null && category.isVariableCategory()) {
+            mActionButton.setVisibility(View.VISIBLE);
+            // Note: tag not currently used, but "CREATE_VARIABLE" is the key used by web
+            mActionButton.setTag("CREATE_VARIABLE");
+        } else {
+            mActionButton.setVisibility(View.GONE);
+        }
+        // TODO(#80): Add animation hooks for subclasses.
+        if (category == null) {
+            mFlyoutView.setVisibility(View.GONE);
+        } else {
+            mFlyoutView.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
      * @return The currently set category.
      */
     public FlyoutCategory getCurrentCategory() {
-        return mFlyoutView.getCurrentCategory();
+        return mBlockListHelper.getCurrentCategory();
     }
 
     /**
@@ -234,14 +280,29 @@ public class FlyoutFragment extends Fragment {
     }
 
     /**
-     * @return {@link LinearLayoutManager} configured in the correct direction.
+     * Sets the background color for the flyout's view based on the category.
+     *
+     * @param curCategory The category to set the color from or null.
      */
-    protected LinearLayoutManager createLinearLayoutManager() {
-        // While it would be nice to see the customized LinearLayoutManager here, its use reveals
-        // a double bind error in RecyclerView, that crashes when binding a BlockGroup that has an
-        // existing parent.
-        LinearLayoutManager layout = new LinearLayoutManager(getContext());
-        layout.setOrientation(mScrollOrientation);
-        return layout;
+    protected void updateCategoryColors(FlyoutCategory curCategory) {
+        Integer maybeColor = curCategory == null ? null : curCategory.getColor();
+        int bgColor = mBgColor;
+        if (maybeColor != null) {
+            bgColor = getBackgroundColor(maybeColor);
+        }
+
+        mBgDrawable.setColor(bgColor);
+        mBgDrawable.setAlpha(mBgAlpha);
+        mFlyoutView.setBackground(mBgDrawable);
+    }
+
+    /**
+     * Adjusts a color to make it appropriate for a background behind blocks of that color.
+     *
+     * @param categoryColor The color to adjust for the background.
+     * @return A color appropriate for the background behind blocks.
+     */
+    protected int getBackgroundColor(int categoryColor) {
+        return ColorUtils.blendRGB(categoryColor, Color.WHITE, BLOCKS_BACKGROUND_LIGHTNESS);
     }
 }
