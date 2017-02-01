@@ -16,13 +16,11 @@
 package com.google.blockly.android;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -30,7 +28,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,13 +38,11 @@ import android.widget.Toast;
 
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
-import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.codegen.CodeGeneratorManager;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DeleteVariableDialog;
 import com.google.blockly.android.ui.NameVariableDialog;
-import com.google.blockly.android.ui.TrashCanView;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.model.Block;
@@ -62,7 +57,6 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * TODO UPDATE
  * Base class for a Blockly activities that use a material design style tool bar, and optionally a
  * navigation menu.
  * <p/>
@@ -70,11 +64,12 @@ import java.util.List;
  * fly-out views.  Everything below the
  * {@link ActionBar} can be replaced by overriding {@link #onCreateContentView}.  After
  * {@link #onCreateContentView}, the base implementation of {@link #onCreateFragments()} looks for
- * the {@link WorkspaceFragment}, the toolbox's {@link FlyoutFragment}, and the trash's
- * {@link FlyoutFragment} via fragment ids {@link R.id#blockly_workspace},
- * {@link R.id#blockly_toolbox}, and {@link R.id#blockly_trash}, respectively. If overriding
- * {@link #onCreateContentView} without {@code unified_blockly_workspace.xml} or those fragment ids,
- * override {@link #onCreateFragments()}, appropriately.
+ * the {@link WorkspaceFragment}, the toolbox's {@link FlyoutFragment} and
+ * {@link CategorySelectorFragment}, and the trash's {@link FlyoutFragment} via fragment ids
+ * {@link R.id#blockly_workspace}, {@link R.id#blockly_flyout}, {@link R.id#blockly_categories}, and
+ * {@link R.id#blockly_trash}. If overriding {@link #onCreateContentView} without
+ * {@code unified_blockly_workspace.xml} or those fragment ids, override
+ * {@link #onCreateFragments()}, appropriately.
  * <p/>
  * The activity can also contain a few buttons to control the workspace.
  * {@link R.id#blockly_zoom_in_button} and {@link R.id#blockly_zoom_out_button} control the
@@ -113,9 +108,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected BlockViewFactory mBlockViewFactory;
     protected BlockClipDataHelper mClipDataHelper;
     protected WorkspaceFragment mWorkspaceFragment;
-    protected FlyoutFragment mFlyoutFragment;
+    protected FlyoutFragment mToolboxFlyoutFragment;
     protected FlyoutFragment mTrashFragment;
-    protected CategoryFragment mCategoryFragment;
+    protected CategorySelectorFragment mCategoryFragment;
 
     // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
     protected View mNavigationDrawer;
@@ -266,13 +261,12 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * the toolbox, then the trash, before allowing the system to back out of the activity.
      *
      * @see #onBackToCloseNavMenu()
-     * @see #onBackToCloseToolbox()
-     * @see #onBackToCloseTrash()
+     * @see #onBackToCloseFlyouts()
      */
     @Override
     public void onBackPressed() {
         // Try to close any open drawer / toolbox before backing out of the Activity.
-        if (!onBackToCloseNavMenu() && !onBackToCloseToolbox() && !onBackToCloseTrash()) {
+        if (!onBackToCloseNavMenu() && !onBackToCloseFlyouts()) {
             super.onBackPressed();
         }
     }
@@ -316,7 +310,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .addBlockDefinitionsFromAssets(getBlockDefinitionsJsonPaths())
                 .setToolboxConfigurationAsset(getToolboxContentsXmlPath())
                 .setTrashFragment(mTrashFragment)
-                .setToolboxFragment(mFlyoutFragment, mCategoryFragment); // TODO flyout and categories
+                .setToolboxFragment(mToolboxFlyoutFragment, mCategoryFragment);
         mController = builder.build();
 
         onConfigureTrashIcon();
@@ -623,9 +617,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      * Creates the Views and Fragments before the BlocklyController is constructed.  Override to
      * load a custom View hierarchy.  Responsible for assigning
-     * {@link #mWorkspaceFragment}, and optionally, {@link #mFlyoutFragment} and
+     * {@link #mWorkspaceFragment}, and optionally, {@link #mToolboxFlyoutFragment} and
      * {@link #mTrashFragment}. This base implementation attempts to acquire references to the
-     * {@link #mFlyoutFragment} and {@link #mTrashFragment} using the layout ids
+     * {@link #mToolboxFlyoutFragment} and {@link #mTrashFragment} using the layout ids
      * {@link R.id#} and {@link R.id#blockly_trash}, respectively. Subclasses may leave these
      * {@code null} if the views are not present in the UI.
      * <p>
@@ -635,9 +629,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         mWorkspaceFragment = (WorkspaceFragment)
                 fragmentManager.findFragmentById(R.id.blockly_workspace);
-        mFlyoutFragment =
+        mToolboxFlyoutFragment =
                 (FlyoutFragment) fragmentManager.findFragmentById(R.id.blockly_flyout);
-        mCategoryFragment = (CategoryFragment) fragmentManager
+        mCategoryFragment = (CategorySelectorFragment) fragmentManager
                 .findFragmentById(R.id.blockly_categories);
 
         mTrashFragment = (FlyoutFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
@@ -814,21 +808,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * @return True if the action was handled to close a previously open (and closable) toolbox.
+     * @return True if the action was handled to close a previously open (and closable) flyout.
      *         Otherwise false.
      */
-    protected boolean onBackToCloseToolbox() {
-        return mFlyoutFragment != null
-                && mFlyoutFragment.isCloseable()
-                && mCategoryFragment.isVisible()
-                && mFlyoutFragment.closeBlocksDrawer();
-    }
-
-    /**
-     * @return True if the action was handled to close a previously open (and closable) trash.
-     *         Otherwise false.
-     */
-    protected boolean onBackToCloseTrash() {
+    protected boolean onBackToCloseFlyouts() {
         return mController.closeFlyouts();
     }
 

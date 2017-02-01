@@ -5,6 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="match_parent">
+    <!-- This layout creates an always open toolbox at the top while leaving the
+        trash at the bottom. -->
 
     <fragment android:name="com.google.blockly.android.WorkspaceFragment"
               android:id="@+id/blockly_workspace"
@@ -28,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:orientation="vertical">
-        <fragment android:name="com.google.blockly.android.CategoryFragment"
+        <fragment android:name="com.google.blockly.android.CategorySelectorFragment"
                   android:id="@+id/blockly_categories"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
