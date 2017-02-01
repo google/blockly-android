@@ -49,40 +49,6 @@ public class CategoryTabs extends RecyclerView {
     public static final int HORIZONTAL = OrientationHelper.HORIZONTAL;
     public static final int VERTICAL = OrientationHelper.VERTICAL;
 
-    public abstract static class LabelAdapter {
-        /**
-         * Create a label view for a tab. This view will later be assigned an
-         * {@link View.OnClickListener} to handle tab selection and deselection.
-         */
-        public abstract View onCreateLabel();
-
-        /**
-         * Bind a {@link FlyoutCategory} to a label view, with any appropriate styling.
-         *
-         * @param labelView The tab's label view.
-         * @param category The category to bind to.
-         * @param position The position of the category in the list of tabs.
-         */
-        public abstract void onBindLabel(View labelView, FlyoutCategory category, int position);
-
-        /**
-         * Called when a label is bound or when clicking results in a selection change. Responsible
-         * for updating the view to reflect the new state, including applying the category name.
-         * <p/>
-         * By default, it calls {@link View#setSelected(boolean)}. Many views and/or styles will
-         * handle this appropriately.
-         *
-         * @param labelView The tab's label view.
-         * @param category The category to bind to.
-         * @param position The position of the category in the list of tabs.
-         * @param isSelected the new selection state.
-         */
-        public void onSelectionChanged(
-                View labelView, FlyoutCategory category, int position, boolean isSelected) {
-            labelView.setSelected(isSelected);
-        }
-    }
-
     private final LinearLayoutManager mLayoutManager;
     private final CategoryAdapter mAdapter;
     protected final List<FlyoutCategory> mCategories = new ArrayList<>();
@@ -243,31 +209,6 @@ public class CategoryTabs extends RecyclerView {
         return null;
     }
 
-
-    /**
-     * Callback for when the user clicks on a category.
-     */
-    public abstract static class Callback {
-        public abstract void onCategoryClicked(FlyoutCategory category);
-    }
-
-    /**
-     * ViewHolder for the display name of a category in the toolbox.
-     */
-    private static class TabLabelHolder extends RecyclerView.ViewHolder {
-        public final RotatedViewGroup mRotator;
-        public final View mLabel;
-
-        public FlyoutCategory mCategory;
-
-        TabLabelHolder(View label) {
-            super(new RotatedViewGroup(label.getContext()));
-            mRotator = (RotatedViewGroup) itemView;
-            mLabel = label;
-            mRotator.addView(mLabel);
-        }
-    }
-
     private class CategoryAdapter extends RecyclerView.Adapter<TabLabelHolder> {
         @Override
         public int getItemCount() {
@@ -307,6 +248,7 @@ public class CategoryTabs extends RecyclerView {
             holder.mLabel.setOnClickListener(null);
         }
     }
+
     /** Manages TextView labels derived from {@link R.layout#default_toolbox_tab}. */
     protected class DefaultTabsAdapter extends CategoryTabs.LabelAdapter {
         @Override
@@ -332,5 +274,63 @@ public class CategoryTabs extends RecyclerView {
             ((TextView) labelView).setText(labelText);
         }
 
+    }
+
+    public abstract static class LabelAdapter {
+        /**
+         * Create a label view for a tab. This view will later be assigned an
+         * {@link View.OnClickListener} to handle tab selection and deselection.
+         */
+        public abstract View onCreateLabel();
+
+        /**
+         * Bind a {@link FlyoutCategory} to a label view, with any appropriate styling.
+         *
+         * @param labelView The tab's label view.
+         * @param category The category to bind to.
+         * @param position The position of the category in the list of tabs.
+         */
+        public abstract void onBindLabel(View labelView, FlyoutCategory category, int position);
+
+        /**
+         * Called when a label is bound or when clicking results in a selection change. Responsible
+         * for updating the view to reflect the new state, including applying the category name.
+         * <p/>
+         * By default, it calls {@link View#setSelected(boolean)}. Many views and/or styles will
+         * handle this appropriately.
+         *
+         * @param labelView The tab's label view.
+         * @param category The category to bind to.
+         * @param position The position of the category in the list of tabs.
+         * @param isSelected the new selection state.
+         */
+        public void onSelectionChanged(
+                View labelView, FlyoutCategory category, int position, boolean isSelected) {
+            labelView.setSelected(isSelected);
+        }
+    }
+
+    /**
+     * Callback for when the user clicks on a category.
+     */
+    public abstract static class Callback {
+        public abstract void onCategoryClicked(FlyoutCategory category);
+    }
+
+    /**
+     * ViewHolder for the display name of a category in the toolbox.
+     */
+    private static class TabLabelHolder extends RecyclerView.ViewHolder {
+        public final RotatedViewGroup mRotator;
+        public final View mLabel;
+
+        public FlyoutCategory mCategory;
+
+        TabLabelHolder(View label) {
+            super(new RotatedViewGroup(label.getContext()));
+            mRotator = (RotatedViewGroup) itemView;
+            mLabel = label;
+            mRotator.addView(mLabel);
+        }
     }
 }

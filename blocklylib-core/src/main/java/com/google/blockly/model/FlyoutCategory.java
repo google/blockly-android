@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A category of a toolbox, which holds zero or more blocks and zero or more subcategories.
+ * A category of a toolbox, which holds zero or more blocks or zero or more subcategories. Not both.
  * {@link FlyoutFragment} is responsible for displaying this.
  */
 public class FlyoutCategory {

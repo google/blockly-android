@@ -37,10 +37,11 @@ import com.google.blockly.model.FlyoutCategory;
  * {@link #setContents(FlyoutCategory)}. Interaction with other fragments is not handled by this
  * class and should be done by registering a callback with
  * {@link #setCategoryCallback(CategoryTabs.Callback)}.
+ *
  */
-
-public class CategoryFragment extends Fragment {
-    private static final String TAG = "CategoryFragment";
+// TODO (#510): Create an interface for the {@link BlocklyController} to interact with this fragment
+public class CategorySelectorFragment extends Fragment {
+    private static final String TAG = "CategorySelectorFragment";
 
     protected CategoryView mCategoryView;
     protected WorkspaceHelper mHelper;

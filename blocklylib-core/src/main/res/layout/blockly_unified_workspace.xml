@@ -25,7 +25,7 @@
               tools:ignore="MissingPrefix"/>
 
 
-    <fragment android:name="com.google.blockly.android.CategoryFragment"
+    <fragment android:name="com.google.blockly.android.CategorySelectorFragment"
               android:id="@id/blockly_categories"
               android:layout_width="wrap_content"
               android:layout_height="match_parent"

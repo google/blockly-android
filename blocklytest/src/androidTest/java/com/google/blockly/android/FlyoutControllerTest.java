@@ -19,7 +19,7 @@ public class FlyoutControllerTest extends BlocklyTestCase {
     private FlyoutController mFlyoutController;
     private FlyoutFragment mToolboxFlyout;
     private FlyoutFragment mTrashFlyout;
-    private CategoryFragment mCategoryFragment;
+    private CategorySelectorFragment mCategoryFragment;
     private BlocklyTestActivity mActivity;
 
     @Rule
@@ -33,7 +33,7 @@ public class FlyoutControllerTest extends BlocklyTestCase {
         mFlyoutController = new FlyoutController(mMockController);
 
         mToolboxFlyout = mock(FlyoutFragment.class);
-        mCategoryFragment = mock(CategoryFragment.class);
+        mCategoryFragment = mock(CategorySelectorFragment.class);
         mTrashFlyout = mock(FlyoutFragment.class);
         mFlyoutController.setToolboxFragments(mCategoryFragment, mToolboxFlyout);
         mFlyoutController.setTrashFragment(mTrashFlyout);
