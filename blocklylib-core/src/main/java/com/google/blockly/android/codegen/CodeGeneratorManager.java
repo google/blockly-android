@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.util.Log;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -23,6 +24,9 @@ public class CodeGeneratorManager {
     private final ServiceConnection mCodeGenerationConnection;
     private CodeGeneratorService mGeneratorService;
 
+    private boolean mResumed = false;
+    private boolean mIsConnecting = false;
+
     public CodeGeneratorManager(Context context) {
         this.mContext = context;
         this.mStoredRequests = new LinkedList<>();
@@ -30,9 +34,15 @@ public class CodeGeneratorManager {
         this.mCodeGenerationConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName className, IBinder binder) {
-                mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
-                while (!mStoredRequests.isEmpty()) {
-                    executeCodeGenerationRequest(mStoredRequests.poll());
+                if (!mResumed) {
+                    mContext.unbindService(mCodeGenerationConnection);
+                } else {
+                    mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
+                    mIsConnecting = false;
+
+                    while (!mStoredRequests.isEmpty()) {
+                        executeCodeGenerationRequest(mStoredRequests.poll());
+                    }
                 }
             }
 
@@ -50,6 +60,16 @@ public class CodeGeneratorManager {
         if (isBound()) {
             mContext.unbindService(mCodeGenerationConnection);
         }
+        mResumed = false;
+    }
+
+    /**
+     * Inform this class that it is ok to bind to the service and remove any stored requests as
+     * the service won't be bound until a new request comes in.
+     */
+    public void onResume() {
+        mResumed = true;
+        mStoredRequests.clear();
     }
 
     /**
@@ -59,10 +79,16 @@ public class CodeGeneratorManager {
      */
     public void requestCodeGeneration(CodeGenerationRequest codeGenerationRequest) {
         if (isBound()) {
+            if(!mResumed) {
+                Log.w(TAG, "Code generation called while paused. Request ignored.");
+                return;
+            }
             executeCodeGenerationRequest(codeGenerationRequest);
         } else {
             mStoredRequests.add(codeGenerationRequest);
-            connectToService();
+            if (!mIsConnecting) {
+                connectToService();
+            }
         }
     }
 
@@ -71,6 +97,7 @@ public class CodeGeneratorManager {
     }
 
     private void connectToService() {
+        mIsConnecting = true;
         Intent intent = new Intent(mContext, CodeGeneratorService.class);
         mContext.bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
     }
