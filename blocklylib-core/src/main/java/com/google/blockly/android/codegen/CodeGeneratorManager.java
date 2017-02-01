@@ -57,10 +57,10 @@ public class CodeGeneratorManager {
      * Unbind the underlying service (if it is bound).
      */
     public void onPause() {
+        mResumed = false;
         if (isBound()) {
             mContext.unbindService(mCodeGenerationConnection);
         }
-        mResumed = false;
     }
 
     /**
