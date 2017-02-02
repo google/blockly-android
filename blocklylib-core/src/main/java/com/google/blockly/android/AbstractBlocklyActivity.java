@@ -16,13 +16,11 @@
 package com.google.blockly.android;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -30,7 +28,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,15 +38,12 @@ import android.widget.Toast;
 
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
-import com.google.blockly.android.codegen.CodeGeneratorService;
 import com.google.blockly.android.codegen.CodeGeneratorManager;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DeleteVariableDialog;
 import com.google.blockly.android.ui.NameVariableDialog;
-import com.google.blockly.android.ui.TrashCanView;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.BlocklyUnifiedWorkspace;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -67,28 +61,29 @@ import java.util.List;
  * navigation menu.
  * <p/>
  * The default layout is filled with a workspace and with the toolbox and trash configured as
- * fly-out views (via the {@link BlocklyUnifiedWorkspace}).  Everything below the
+ * fly-out views.  Everything below the
  * {@link ActionBar} can be replaced by overriding {@link #onCreateContentView}.  After
  * {@link #onCreateContentView}, the base implementation of {@link #onCreateFragments()} looks for
- * the {@link WorkspaceFragment}, the {@link ToolboxFragment}, and the {@link TrashFragment} via
- * fragment ids {@link R.id#blockly_workspace}, {@link R.id#blockly_toolbox}, and
- * {@link R.id#blockly_trash}, respectively. If overriding {@link #onCreateContentView} without
+ * the {@link WorkspaceFragment}, the toolbox's {@link FlyoutFragment} and
+ * {@link CategorySelectorFragment}, and the trash's {@link FlyoutFragment} via fragment ids
+ * {@link R.id#blockly_workspace}, {@link R.id#blockly_flyout}, {@link R.id#blockly_categories}, and
+ * {@link R.id#blockly_trash}. If overriding {@link #onCreateContentView} without
  * {@code unified_blockly_workspace.xml} or those fragment ids, override
  * {@link #onCreateFragments()}, appropriately.
  * <p/>
  * The activity can also contain a few buttons to control the workspace.
  * {@link R.id#blockly_zoom_in_button} and {@link R.id#blockly_zoom_out_button} control the
  * workspace zoom scale, and {@link R.id#blockly_center_view_button} will reset it.
- * {@link R.id#blockly_trash_icon} will toggle a closeable {@link TrashFragment}, and also act as
+ * {@link R.id#blockly_trash_icon} will toggle a closeable {@link FlyoutFragment}, and also act as
  * a block drop target to delete blocks.  The methods {@link #onConfigureTrashIcon()},
  * {@link #onConfigureZoomInButton()}, {@link #onConfigureZoomOutButton()}, and
  * {@link #onConfigureCenterViewButton()} will search for these views
  * and set the respective behavior.  By default, these buttons are provided by
- * {@link BlocklyUnifiedWorkspace} in {@link #onCreateContentView}.
+ * in {@link #onCreateContentView}.
  * <p/>
  * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
  * {@link #getToolboxContentsXmlPath()}, and {@link #onCreateBlockViewFactory}.  An initial
- * workspace can be defined by overriding {@link #getStartingWorkspacePath()}.
+ * workspace can be loaded during {@link #onLoadInitialWorkspace()}.
  * <p/>
  * The block definitions can be updated at any time by calling {@link #reloadBlockDefinitions()},
  * which triggers another call to {@link #getBlockDefinitionsJsonPaths()}.  Similarly, The toolbox
@@ -113,8 +108,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected BlockViewFactory mBlockViewFactory;
     protected BlockClipDataHelper mClipDataHelper;
     protected WorkspaceFragment mWorkspaceFragment;
-    protected ToolboxFragment mToolboxFragment;
-    protected TrashFragment mTrashFragment;
+    protected FlyoutFragment mToolboxFlyoutFragment;
+    protected FlyoutFragment mTrashFragment;
+    protected CategorySelectorFragment mCategoryFragment;
 
     // These two may be null if {@link #onCreateAppNavigationDrawer} returns null.
     protected View mNavigationDrawer;
@@ -265,13 +261,12 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * the toolbox, then the trash, before allowing the system to back out of the activity.
      *
      * @see #onBackToCloseNavMenu()
-     * @see #onBackToCloseToolbox()
-     * @see #onBackToCloseTrash()
+     * @see #onBackToCloseFlyouts()
      */
     @Override
     public void onBackPressed() {
         // Try to close any open drawer / toolbox before backing out of the Activity.
-        if (!onBackToCloseNavMenu() && !onBackToCloseToolbox() && !onBackToCloseTrash()) {
+        if (!onBackToCloseNavMenu() && !onBackToCloseFlyouts()) {
             super.onBackPressed();
         }
     }
@@ -315,7 +310,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 .addBlockDefinitionsFromAssets(getBlockDefinitionsJsonPaths())
                 .setToolboxConfigurationAsset(getToolboxContentsXmlPath())
                 .setTrashFragment(mTrashFragment)
-                .setToolboxFragment(mToolboxFragment, mDrawerLayout);
+                .setToolboxFragment(mToolboxFlyoutFragment, mCategoryFragment);
         mController = builder.build();
 
         onConfigureTrashIcon();
@@ -405,7 +400,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void onLoadInitialWorkspace() {
         onInitBlankWorkspace();
-        mToolboxFragment.closeBlocksDrawer();
+        mController.closeFlyouts();
     }
 
     /**
@@ -492,28 +487,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     @NonNull
     abstract protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback();
-
-    /**
-     * Returns the asset path to the initial workspace to load.  If null, no workspace file will be
-     * loaded.
-     *
-     * @return The asset path to the initial workspace to load.
-     */
-    @Nullable
-    protected String getStartingWorkspacePath() {
-        return null;
-    }
-
-    /**
-     * Returns a style to override the application's theme with when rendering Blockly. If 0 is
-     * returned the activity or application's theme will be used, with attributes defaulting to
-     * those in {@link R.style#BlocklyTheme}.
-     *
-     * @return A style that inherits from {@link R.style#BlocklyTheme} or 0.
-     */
-    protected int getStyleResId() {
-        return 0;
-    }
 
     /**
      * Returns a callback for handling user requests to change the list of variables (create,
@@ -644,9 +617,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      * Creates the Views and Fragments before the BlocklyController is constructed.  Override to
      * load a custom View hierarchy.  Responsible for assigning
-     * {@link #mWorkspaceFragment}, and optionally, {@link #mToolboxFragment} and
+     * {@link #mWorkspaceFragment}, and optionally, {@link #mToolboxFlyoutFragment} and
      * {@link #mTrashFragment}. This base implementation attempts to acquire references to the
-     * {@link #mToolboxFragment} and {@link #mTrashFragment} using the layout ids
+     * {@link #mToolboxFlyoutFragment} and {@link #mTrashFragment} using the layout ids
      * {@link R.id#} and {@link R.id#blockly_trash}, respectively. Subclasses may leave these
      * {@code null} if the views are not present in the UI.
      * <p>
@@ -656,10 +629,12 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         mWorkspaceFragment = (WorkspaceFragment)
                 fragmentManager.findFragmentById(R.id.blockly_workspace);
-        mToolboxFragment =
-                (ToolboxFragment) fragmentManager.findFragmentById(R.id.blockly_toolbox);
-        mTrashFragment = (TrashFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
-        mToolboxFragment.setTrashFragment(mTrashFragment);
+        mToolboxFlyoutFragment =
+                (FlyoutFragment) fragmentManager.findFragmentById(R.id.blockly_flyout);
+        mCategoryFragment = (CategorySelectorFragment) fragmentManager
+                .findFragmentById(R.id.blockly_categories);
+
+        mTrashFragment = (FlyoutFragment) fragmentManager.findFragmentById(R.id.blockly_trash);
 
         if (mTrashFragment != null) {
             // TODO(#14): Make trash list a drop location.
@@ -668,28 +643,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * This method finds and configures {@link R.id#blockly_trash_icon} from the view hierarchy as
-     * the button to open and close the {@link TrashFragment}, and assigns the BlocklyController if
-     * it is a {@link TrashCanView}. If {@link R.id#blockly_trash_icon} is not found, it does
-     * nothing.
+     * the button to open and close the trash, and a drop location for deleting
+     * blocks. If {@link R.id#blockly_trash_icon} is not found, it does nothing.
      * <p/>
      * This is called after {@link #mController} is initialized, but before any blocks are loaded
      * into the workspace.
      */
     protected void onConfigureTrashIcon() {
         View trashIcon = findViewById(R.id.blockly_trash_icon);
-        if (trashIcon instanceof TrashCanView) {
-            ((TrashCanView) trashIcon).setBlocklyController(mController);
-        }
-        if (mTrashFragment != null && trashIcon != null && mTrashFragment.isCloseable()) {
-            mTrashFragment.setOpened(false);
-
-            trashIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Toggle opened state.
-                    mTrashFragment.setOpened(!mTrashFragment.isOpened());
-                }
-            });
+        if (mController != null && trashIcon != null) {
+            mController.setTrashIcon(trashIcon);
         }
     }
 
@@ -845,23 +808,11 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * @return True if the action was handled to close a previously open (and closable) toolbox.
+     * @return True if the action was handled to close a previously open (and closable) flyout.
      *         Otherwise false.
      */
-    protected boolean onBackToCloseToolbox() {
-        return mToolboxFragment != null
-                && mToolboxFragment.isCloseable()
-                && mToolboxFragment.closeBlocksDrawer();
-    }
-
-    /**
-     * @return True if the action was handled to close a previously open (and closable) trash.
-     *         Otherwise false.
-     */
-    protected boolean onBackToCloseTrash() {
-        return mTrashFragment != null
-                && mTrashFragment.isCloseable()
-                && mTrashFragment.setOpened(false);
+    protected boolean onBackToCloseFlyouts() {
+        return mController.closeFlyouts();
     }
 
     private class DefaultVariableCallback extends BlocklyController.VariableCallback {

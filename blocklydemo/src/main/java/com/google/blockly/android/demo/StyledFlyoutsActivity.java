@@ -14,8 +14,6 @@
  */
 package com.google.blockly.android.demo;
 
-import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 
@@ -23,15 +21,31 @@ import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * Basic implementation of AbstractBlocklyActivity that demonstrates applying styles. This demo
- * uses an Activity style defined in the manifest XML.
+ * Demonstrates how the layout for the flyouts can be dramatically changed by overriding
+ * {@link #onCreateContentView(int)} with a custom layout file.
+ *
+ * TODO: Add menu to switch between different layouts.
  */
-public class StylesActivity extends AbstractBlocklyActivity {
-    private static final String TAG = "StylesActivity";
+public class StyledFlyoutsActivity extends AbstractBlocklyActivity {
+    private static final String TAG = "StyledFlyouts";
+
+    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
+            "default/logic_blocks.json",
+            "default/loop_blocks.json",
+            "default/math_blocks.json",
+            "default/text_blocks.json",
+            "default/list_blocks.json",
+            "default/colour_blocks.json",
+            "default/variable_blocks.json"
+    );
+    private static final List<String> JAVASCRIPT_GENERATORS = Arrays.asList(
+        // Custom block generators go here. Default blocks are already included.
+        // TODO(#99): Include Javascript defaults when other languages are supported.
+    );
 
     CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
@@ -39,21 +53,19 @@ public class StylesActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
-        return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
+        return BLOCK_DEFINITIONS;
     }
 
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "turtle/toolbox_advanced.xml";
+        return "default/toolbox.xml";
     }
 
     @NonNull
     @Override
     protected List<String> getGeneratorsJsPaths() {
-        List<String> paths = new ArrayList<String>(1);
-        paths.add("turtle/generators.js");
-        return paths;
+        return JAVASCRIPT_GENERATORS;
     }
 
     @NonNull
@@ -65,11 +77,19 @@ public class StylesActivity extends AbstractBlocklyActivity {
 
     @Override
     protected void onInitBlankWorkspace() {
+        // Initialize variable names.
         // TODO: (#22) Remove this override when variables are supported properly
         getController().addVariable("item");
         getController().addVariable("leo");
         getController().addVariable("don");
         getController().addVariable("mike");
         getController().addVariable("raf");
+    }
+
+
+    @Override
+    protected View onCreateContentView(int parentId) {
+        View root = getLayoutInflater().inflate(R.layout.styled_content, null);
+        return root;
     }
 }

@@ -130,7 +130,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         if (logEvents) {
             mController.addCallback(mEventsCallback);
         } else {
-            mController.removeListener(mEventsCallback);
+            mController.removeCallback(mEventsCallback);
         }
         mLogEventsMenuItem.setChecked(logEvents);
     }
@@ -188,11 +188,6 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
         return BLOCK_DEFINITIONS;
-    }
-
-    @Override
-    protected String getStartingWorkspacePath() {
-        return "default/demo_workspace.xml";
     }
 
     @NonNull

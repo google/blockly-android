@@ -8,13 +8,13 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
-    <FrameLayout
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_weight="1"
         >
         <include layout="@layout/blockly_unified_workspace" />
-    </FrameLayout>
+    </RelativeLayout>
 
     <WebView android:id="@+id/turtle_runtime"
         android:layout_width="wrap_content"

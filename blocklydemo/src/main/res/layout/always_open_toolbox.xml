@@ -10,8 +10,8 @@
     android:layout_height="match_parent"
     >
 
-    <fragment android:name="com.google.blockly.android.ToolboxFragment"
-        android:id="@+id/blockly_toolbox"
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
+        android:id="@+id/blockly_flyout"
         android:layout_width="match_parent"
         android:layout_height="140dp"
         android:layout_alignParentTop="true"
@@ -22,7 +22,7 @@
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_below="@id/blockly_toolbox">
+        android:layout_below="@id/blockly_flyout">
 
         <fragment android:name="com.google.blockly.android.WorkspaceFragment"
             android:id="@+id/blockly_workspace"
@@ -30,7 +30,7 @@
             android:layout_height="match_parent"
             />
 
-        <fragment android:name="com.google.blockly.android.TrashFragment"
+        <fragment android:name="com.google.blockly.android.FlyoutFragment"
             android:id="@+id/blockly_trash"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

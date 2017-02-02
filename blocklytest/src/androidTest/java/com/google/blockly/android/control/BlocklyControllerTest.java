@@ -1363,7 +1363,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     public void testLoadWorkspaceContents_andTrashAllBlocks() {
         mController.initWorkspaceView(mWorkspaceView);
         assertThat(mWorkspace.getRootBlocks()).hasSize(0);
-        assertThat(mWorkspace.getTrashContents()).hasSize(0);
+        assertThat(mWorkspace.getTrashCategory().getBlocks()).hasSize(0);
 
         mController.loadWorkspaceContents(
             BlockTestStrings.EMPTY_BLOCK_WITH_POSITION +
@@ -1371,11 +1371,11 @@ public class BlocklyControllerTest extends BlocklyTestCase {
                     BlockTestStrings.EMPTY_BLOCK_ID,
                     BlockTestStrings.EMPTY_BLOCK_ID + '2'));
         assertThat(mWorkspace.getRootBlocks()).hasSize(2);
-        assertThat(mWorkspace.getTrashContents()).hasSize(0);
+        assertThat(mWorkspace.getTrashCategory().getBlocks()).hasSize(0);
 
         mController.trashAllBlocks();
         assertThat(mWorkspace.getRootBlocks()).hasSize(0);
-        assertThat(mWorkspace.getTrashContents()).hasSize(2);
+        assertThat(mWorkspace.getTrashCategory().getBlocks()).hasSize(2);
     }
 
     /**

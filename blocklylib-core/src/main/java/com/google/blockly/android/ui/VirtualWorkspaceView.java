@@ -347,9 +347,9 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         // below.
         final int offsetX = getScrollX();
         final int offsetY = getScrollY();
-        mWorkspaceView.layout(
-                (int) ((l / mViewScale) + offsetX), (int) ((t / mViewScale) + offsetY),
-                (int) ((r / mViewScale) + offsetX), (int) ((b / mViewScale) + offsetY));
+        mWorkspaceView.layout((offsetX), (offsetY),
+                (int) ((getMeasuredWidth() / mViewScale) + offsetX),
+                (int) ((getMeasuredHeight() / mViewScale) + offsetY));
     }
 
     @Override
