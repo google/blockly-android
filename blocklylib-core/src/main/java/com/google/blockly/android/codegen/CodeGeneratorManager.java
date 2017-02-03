@@ -34,15 +34,18 @@ public class CodeGeneratorManager {
         this.mCodeGenerationConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName className, IBinder binder) {
-                if (!mResumed) {
-                    mContext.unbindService(mCodeGenerationConnection);
-                } else {
-                    mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
-                    mIsConnecting = false;
+                try {
+                    if (!mResumed) {
+                        mContext.unbindService(mCodeGenerationConnection);
+                    } else {
+                        mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
 
-                    while (!mStoredRequests.isEmpty()) {
-                        executeCodeGenerationRequest(mStoredRequests.poll());
+                        while (!mStoredRequests.isEmpty()) {
+                            executeCodeGenerationRequest(mStoredRequests.poll());
+                        }
                     }
+                } finally {
+                    mIsConnecting = false;
                 }
             }
 
@@ -78,11 +81,15 @@ public class CodeGeneratorManager {
      * @param codeGenerationRequest the request to generate code.
      */
     public void requestCodeGeneration(CodeGenerationRequest codeGenerationRequest) {
+        if(!mResumed) {
+            Log.w(TAG, "Code generation called while paused. Request ignored.");
+            return;
+        }
+        if (codeGenerationRequest == null) {
+            Log.w(TAG, "codeGenerationRequest was null");
+            return;
+        }
         if (isBound()) {
-            if(!mResumed) {
-                Log.w(TAG, "Code generation called while paused. Request ignored.");
-                return;
-            }
             executeCodeGenerationRequest(codeGenerationRequest);
         } else {
             mStoredRequests.add(codeGenerationRequest);
