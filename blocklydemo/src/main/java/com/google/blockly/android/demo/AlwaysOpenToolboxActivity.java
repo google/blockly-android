@@ -15,7 +15,7 @@ import java.util.List;
  * Demonstration of how to replace {@code blockly_unified_layout} with a custom layout.
  * This alternative layout that places the toolbox on top, configured to always remain open.
  */
-
+// TODO: Merge this demo into StyledFlyoutsActivity.
 public class AlwaysOpenToolboxActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SimpleActivity";
 
