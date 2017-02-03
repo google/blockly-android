@@ -25,6 +25,7 @@
     <string name="split_activity_name">Blockly Split</string>
     <string name="turtle_activity_name">Blockly Turtle</string>
     <string name="style_activity_name">Blockly Styles</string>
+    <string name="flyout_activity_name">Blockly Flyouts</string>
 
     <string name="scrollable_menuitem">Scrollable</string>
     <string name="pinch_zoom_menuitem">Pinch Zoom</string>

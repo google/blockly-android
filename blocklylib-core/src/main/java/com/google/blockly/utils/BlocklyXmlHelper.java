@@ -22,7 +22,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.ToolboxCategory;
+import com.google.blockly.model.FlyoutCategory;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -59,12 +59,12 @@ public final class BlocklyXmlHelper {
      * @return The top-level category in the toolbox.
      * @throws BlocklyParserException when parsing fails.
      */
-    public static ToolboxCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory)
+    public static FlyoutCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
         try {
             XmlPullParser parser = mParserFactory.newPullParser();
             parser.setInput(is, null);
-            return ToolboxCategory.fromXml(parser, blockFactory);
+            return FlyoutCategory.fromXml(parser, blockFactory);
         } catch (XmlPullParserException | IOException e) {
             throw new BlocklyParserException(e);
         }
