@@ -222,4 +222,10 @@ public class TurtleActivity extends BlocklySectionsActivity {
         controller.addVariable("kitkat");
         controller.addVariable("android");
     }
+
+    @NonNull
+    @Override
+    protected String getWorkspaceSavePath() {
+        return SAVED_WORKSPACE_FILENAME;
+    }
 }

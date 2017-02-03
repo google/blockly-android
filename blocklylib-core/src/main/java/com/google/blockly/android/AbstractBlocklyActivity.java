@@ -80,8 +80,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     private static final String TAG = "AbstractBlocklyActivity";
 
-    public static final String DEFAULT_WORKSPACE_FILENAME = "workspace.xml";
-
     protected BlocklyActivityHelper mBlockly;
 
     protected ActionBar mActionBar;
@@ -162,10 +160,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      * Called when the user clicks the save action.  Default implementation delegates handling to
      * {@link BlocklyActivityHelper#saveWorkspaceToAppDir(String)} using
-     * {@link #DEFAULT_WORKSPACE_FILENAME}.
+     * {@link #getWorkspaceSavePath()}.
      */
     public void onSaveWorkspace() {
-        mBlockly.saveWorkspaceToAppDir(DEFAULT_WORKSPACE_FILENAME);
+        mBlockly.saveWorkspaceToAppDir(getWorkspaceSavePath());
     }
 
     /**
@@ -181,7 +179,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
      */
     public void onLoadWorkspace() {
-        mBlockly.loadWorkspaceFromAppDir(DEFAULT_WORKSPACE_FILENAME);
+        mBlockly.loadWorkspaceFromAppDir(getWorkspaceSavePath());
     }
 
     /**
@@ -405,6 +403,15 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     @NonNull
     abstract protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback();
+
+    /**
+     * @return The path to the saved workspace file on the local device. By default,
+     *         "workspace.xml".
+     */
+    @NonNull
+    protected String getWorkspaceSavePath() {
+        return "workspace.xml";
+    }
 
     /**
      * Creates or loads the root content view (by default, {@link R.layout#drawers_and_action_bar})
