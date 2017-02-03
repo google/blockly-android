@@ -1,9 +1,24 @@
+/*
+ *  Copyright 2017 Google Inc. All Rights Reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.google.blockly.android;
 
 import android.app.Activity;
 import android.content.Context;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -16,6 +31,7 @@ import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
@@ -28,7 +44,7 @@ import java.util.List;
  * {@link BlocklyActivityHelper#onCreateFragments()} looks for
  * the {@link WorkspaceFragment}, the toolbox's {@link FlyoutFragment}, and the trash's
  * {@link FlyoutFragment} via fragment ids {@link R.id#blockly_workspace},
- * {@link R.id#blockly_toolbox}, and {@link R.id#blockly_trash}, respectively.
+ * {@link R.id#blockly_toolbox_flyout}, and {@link R.id#blockly_trash_flyout}, respectively.
  * <p/>
  * The activity can also contain a few buttons to control the workspace.
  * {@link R.id#blockly_zoom_in_button} and {@link R.id#blockly_zoom_out_button} control the
@@ -41,6 +57,8 @@ import java.util.List;
  */
 
 public class BlocklyActivityHelper {
+    private static final String TAG = "BlocklyActivityHelper";
+
     protected AppCompatActivity mActivity;
 
     protected WorkspaceHelper mWorkspaceHelper;
@@ -48,7 +66,7 @@ public class BlocklyActivityHelper {
     protected BlockClipDataHelper mClipDataHelper;
     protected WorkspaceFragment mWorkspaceFragment;
     protected FlyoutFragment mToolboxFlyoutFragment;
-    protected FlyoutFragment mTrashFragment;
+    protected FlyoutFragment mTrashFlyoutFragment;
     protected CategorySelectorFragment mCategoryFragment;
 
     protected BlocklyController mController;
@@ -65,8 +83,7 @@ public class BlocklyActivityHelper {
      */
     public BlocklyActivityHelper(AppCompatActivity activity,
                                  List<String> blockDefinitionJsonPaths,
-                                 String toolboxPath,
-                                 BlocklyController.VariableCallback variableCallback) {
+                                 String toolboxPath) {
         mActivity = activity;
 
         onCreateFragments();
@@ -83,13 +100,14 @@ public class BlocklyActivityHelper {
                 .setClipDataHelper(mClipDataHelper)
                 .setWorkspaceHelper(mWorkspaceHelper)
                 .setBlockViewFactory(mBlockViewFactory)
-                .setVariableCallback(variableCallback)
                 .setWorkspaceFragment(mWorkspaceFragment)
                 .addBlockDefinitionsFromAssets(blockDefinitionJsonPaths)
                 .setToolboxConfigurationAsset(toolboxPath)
-                .setTrashFragment(mTrashFragment)
+                .setTrashFragment(mTrashFlyoutFragment)
                 .setToolboxFragment(mToolboxFlyoutFragment, mCategoryFragment);
         mController = builder.build();
+
+        onCreateVariableCallback();
 
         onConfigureTrashIcon();
         onConfigureZoomInButton();
@@ -154,15 +172,37 @@ public class BlocklyActivityHelper {
         return mController.closeFlyouts();
     }
 
+    /**
+     * Requests code generation using the blocks in the {@link Workspace}/{@link WorkspaceFragment}.
+     *
+     * @param blockDefinitionsJsonPaths The asset path to the JSON block definitions.
+     * @param generatorsJsPaths The asset paths to the JavaScript generators, and optionally the
+     *                          JavaScript block extension/mutator sources.
+     * @param codeGenerationCallback The {@link CodeGenerationRequest.CodeGeneratorCallback} to use
+     *                               upon completion.
+     */
     public void requestCodeGeneration(
             List<String> blockDefinitionsJsonPaths,
             List<String> generatorsJsPaths,
             CodeGenerationRequest.CodeGeneratorCallback codeGenerationCallback) {
+
+        final StringOutputStream serialized = new StringOutputStream();
+        try {
+            mController.getWorkspace().serializeToXml(serialized);
+        } catch (BlocklySerializerException e) {
+            // Not using a string resource because no non-developer should see this.
+            String msg = "Failed to serialize workspace during code generation.";
+            Log.wtf(TAG, msg, e);
+            Toast.makeText(mActivity, msg, Toast.LENGTH_LONG).show();
+            throw new IllegalStateException(msg, e);
+        }
+
         mCodeGeneratorManager.requestCodeGeneration(
-                blockDefinitionsJsonPaths,
-                generatorsJsPaths,
-                mWorkspaceFragment.getWorkspace(),
-                codeGenerationCallback);
+                new CodeGenerationRequest(
+                        serialized.toString(),
+                        codeGenerationCallback,
+                        blockDefinitionsJsonPaths,
+                        generatorsJsPaths));
     }
 
 
@@ -199,21 +239,26 @@ public class BlocklyActivityHelper {
 
     /**
      * Creates the Views and Fragments before the BlocklyController is constructed.  Override to
-     * load a custom View hierarchy.  Responsible for assigning
-     * {@link #mWorkspaceFragment}, and optionally, {@link #mToolboxFlyoutFragment} and
-     * {@link #mTrashFragment}. This base implementation attempts to acquire references to the
-     * {@link #mToolboxFlyoutFragment} and {@link #mTrashFragment} using the layout ids
-     * {@link R.id#} and {@link R.id#blockly_trash}, respectively. Subclasses may leave these
-     * {@code null} if the views are not present in the UI.
-     * <p>
-     * Always called once from {@link #BlocklyActivityHelper} and before {@link #mController} is
+     * load a custom View hierarchy.  Responsible for assigning {@link #mWorkspaceFragment}, and
+     * optionally, {@link #mToolboxFlyoutFragment} and {@link #mTrashFlyoutFragment}. This base
+     * implementation attempts to acquire references to:
+     * <ul>
+     *   <li>the {@link WorkspaceFragment} with id {@link R.id#blockly_workspace}, assigned to
+     *   {@link #mWorkspaceFragment}.</li>
+     *   <li>the toolbox {@link CategorySelectorFragment} with id {@link R.id#blockly_categories},
+     *   assigned to {@link #mCategoryFragment}.</li>
+     *   <li>the toolbox {@link FlyoutFragment} with id {@link R.id#blockly_toolbox_flyout},
+     *   assigned to {@link #mToolboxFlyoutFragment}.</li>
+     *   <li>the trash {@link FlyoutFragment} with id {@link R.id#blockly_trash_flyout}, assigned to
+     *   {@link #mTrashFlyoutFragment}.</li>
+     * </ul>
+     * Only the workspace fragment is required. The activity layout can choose not to include the
+     * other fragments, and subclasses that override this method can leave the field null if that
+     * are not used.
+     * <p/>
+     * This methods is always called once from the constructor before {@link #mController} is
      * instantiated.
      */
-//    the base implementation of {@link #onCreateFragments()} looks for
-//            * the {@link WorkspaceFragment}, the toolbox's {@link FlyoutFragment} and
-//            * {@link CategorySelectorFragment}, and the trash's {@link FlyoutFragment} via fragment ids
-//            * {@link R.id#blockly_workspace}, {@link R.id#blockly_flyout}, {@link R.id#blockly_categories}, and
-//    * {@link R.id#blockly_trash}.
     protected void onCreateFragments() {
         FragmentManager fragmentManager = mActivity.getSupportFragmentManager();
         mWorkspaceFragment = (WorkspaceFragment)
@@ -222,10 +267,10 @@ public class BlocklyActivityHelper {
                 .findFragmentById(R.id.blockly_toolbox_flyout);
         mCategoryFragment = (CategorySelectorFragment) fragmentManager
                 .findFragmentById(R.id.blockly_categories);
-        mTrashFragment = (FlyoutFragment) fragmentManager
+        mTrashFlyoutFragment = (FlyoutFragment) fragmentManager
                 .findFragmentById(R.id.blockly_trash_flyout);
 
-        if (mTrashFragment != null) {
+        if (mTrashFlyoutFragment != null) {
             // TODO(#14): Make trash list a drop location.
         }
     }
@@ -359,5 +404,25 @@ public class BlocklyActivityHelper {
             ZoomBehavior zoomBehavior = mWorkspaceHelper.getZoomBehavior();
             recenterButton.setVisibility(zoomBehavior.isFixed()? View.GONE : View.VISIBLE);
         }
+    }
+
+    /**
+     * Constructs a {@link BlocklyController.VariableCallback} for handling user requests to change
+     * the list of variables (create, rename, delete). This can be used to provide UI for confirming
+     * a deletion or renaming a variable.
+     * <p/>
+     * By default, this method constructs a {@link DefaultVariableCallback}. Apps can override this
+     * to provide an alternative implementation, or optionally override the method to do nothing (no
+     * confirmation UI).
+     * <p/>
+     * This method is responsible for calling {@link BlocklyController#setVariableCallback}.
+     *
+     * @return A {@link com.google.blockly.android.control.BlocklyController.VariableCallback} for
+     *         handling variable updates from the controller.
+     */
+    protected void onCreateVariableCallback() {
+        BlocklyController.VariableCallback variableCb =
+                new DefaultVariableCallback(mActivity, mController);
+        mController.setVariableCallback(variableCb);
     }
 }

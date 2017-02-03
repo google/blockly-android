@@ -55,38 +55,13 @@ public class CodeGeneratorManager {
     /**
      * Calls the Service to request code generation for the workspace passed in.
      *
-     * @param workspace the workspace to request code generation for.
-     * @param codeGenerationCallback the callback to call with the generated code.
+     * @param request The information required to perform code generation.
      */
-    public void requestCodeGeneration(List<String> blockDefinitionsJsonPaths,
-                                      List<String> generatorsJsPaths,
-                                      Workspace workspace,
-                                      CodeGeneratorCallback codeGenerationCallback) {
-
-        if (workspace.hasBlocks()) {
-            if (isBound()) {
-                try {
-                    final StringOutputStream serialized = new StringOutputStream();
-                    workspace.serializeToXml(serialized);
-
-                    mGeneratorService.requestCodeGeneration(
-                        new CodeGenerationRequest(
-                            serialized.toString(),
-                            codeGenerationCallback,
-                            blockDefinitionsJsonPaths,
-                            generatorsJsPaths)
-                    );
-                } catch (BlocklySerializerException e) {
-                    Log.wtf(TAG, e);
-                    Toast.makeText(mContext, "Code generation failed.",
-                        Toast.LENGTH_LONG).show();
-
-                }
-            } else {
-                Log.i(TAG, "Generator not bound to service. Skipping run request.");
-            }
+    public void requestCodeGeneration(CodeGenerationRequest request) {
+        if (isBound()) {
+            mGeneratorService.requestCodeGeneration(request);
         } else {
-            Log.i(TAG, "No blocks in workspace. Skipping run request.");
+            Log.i(TAG, "Generator not bound to service. Skipping run request.");
         }
     }
 

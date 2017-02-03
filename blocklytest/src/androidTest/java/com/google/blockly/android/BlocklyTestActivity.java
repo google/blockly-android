@@ -73,8 +73,7 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
     public BlocklyActivityHelper onCreateActivityHelper() {
         return new BlocklyActivityHelper(this,
                 getBlockDefinitionsJsonPaths(),
-                getToolboxContentsXmlPath(),
-                getVariableCallback()) {
+                getToolboxContentsXmlPath()) {
             @Override
             public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper workspaceHelper) {
                 return new VerticalBlockViewFactory(

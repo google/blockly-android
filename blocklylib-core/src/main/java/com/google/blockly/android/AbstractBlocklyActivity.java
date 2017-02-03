@@ -26,6 +26,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,10 +36,7 @@ import android.widget.FrameLayout;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.android.ui.DeleteVariableDialog;
-import com.google.blockly.android.ui.NameVariableDialog;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
-import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 
 import java.io.IOException;
@@ -93,8 +91,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected View mNavigationDrawer;
     protected ActionBarDrawerToggle mDrawerToggle;
 
-    // This may be null if {@link #getVariableCallback} never sets it.
-    private BlocklyController.VariableCallback mVariableCb;
     private boolean mUserLearnedDrawer;
 
     @Override
@@ -127,7 +123,11 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
             onClearWorkspace();
             return true;
         } else if (id == R.id.action_run) {
-            onRunCode();
+            if (getController().getWorkspace().hasBlocks()) {
+                onRunCode();
+            } else {
+                Log.i(TAG, "No blocks in workspace. Skipping run request.");
+            }
             return true;
         } else if (id == android.R.id.home && mNavigationDrawer != null) {
             setNavDrawerOpened(!isNavDrawerOpen());
@@ -270,8 +270,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     public BlocklyActivityHelper onCreateActivityHelper() {
         return new BlocklyActivityHelper(this,
                 getBlockDefinitionsJsonPaths(),
-                getToolboxContentsXmlPath(),
-                getVariableCallback());
+                getToolboxContentsXmlPath());
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
@@ -406,22 +405,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     @NonNull
     abstract protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback();
-
-    /**
-     * Returns a callback for handling user requests to change the list of variables (create,
-     * rename, delete). This can be used to provide UI for confirming a deletion or renaming a
-     * variable.
-     *
-     * @return A {@link com.google.blockly.android.control.BlocklyController.VariableCallback} for
-     *         handling variable updates from the controller.
-     */
-    protected BlocklyController.VariableCallback getVariableCallback() {
-        if (mVariableCb == null) {
-            mVariableCb = new DefaultVariableCallback(new DeleteVariableDialog(),
-                    new NameVariableDialog());
-        }
-        return mVariableCb;
-    }
 
     /**
      * Creates or loads the root content view (by default, {@link R.layout#drawers_and_action_bar})
@@ -589,7 +572,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         BlockFactory factory = getController().getBlockFactory();
         factory.clear();
 
-        String blockDefsPath = null;
+        String blockDefsPath;
         Iterator<String> iter = blockDefsPaths.iterator();
         while (iter.hasNext()) {
             blockDefsPath = iter.next();
@@ -604,10 +587,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         }
     }
 
-
     /**
-     * @return True if the action consumed to close a previously open navigation menu. Otherwise
-     *         false.
+     * @return True if the navigation menu was closed and the back event should be consumed.
+     *         Otherwise false.
      */
     protected boolean onBackToCloseNavMenu() {
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -615,64 +597,5 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
             return true;
         }
         return false;
-    }
-
-    private class DefaultVariableCallback extends BlocklyController.VariableCallback {
-        private final DeleteVariableDialog mDeleteDialog;
-        private final NameVariableDialog mNameDialog;
-
-        private final NameVariableDialog.Callback mRenameCallback = new NameVariableDialog
-                .Callback() {
-            @Override
-            public void onNameConfirmed(String oldName, String newName) {
-                getController().renameVariable(oldName, newName);
-            }
-        };
-        private final NameVariableDialog.Callback mCreateCallback = new NameVariableDialog
-                .Callback() {
-            @Override
-            public void onNameConfirmed(String originalName, String newName) {
-                getController().addVariable(newName);
-            }
-        };
-
-
-        public DefaultVariableCallback(DeleteVariableDialog deleteVariableDialog,
-                NameVariableDialog nameVariableDialog) {
-            mDeleteDialog = deleteVariableDialog;
-            mNameDialog = nameVariableDialog;
-        }
-
-        @Override
-        public boolean onDeleteVariable(String variable) {
-            BlocklyController controller = getController();
-            if (!controller.isVariableInUse(variable)) {
-                return true;
-            }
-            List<Block> blocks = controller.getBlocksWithVariable(variable);
-            if (blocks.size() == 1) {
-                // For one block just let the controller delete it.
-                return true;
-            }
-
-            mDeleteDialog.setController(controller);
-            mDeleteDialog.setVariable(variable, blocks.size());
-            mDeleteDialog.show(getSupportFragmentManager(), "DeleteVariable");
-            return false;
-        }
-
-        @Override
-        public boolean onRenameVariable(String variable, String newName) {
-            mNameDialog.setVariable(variable, mRenameCallback, true);
-            mNameDialog.show(getSupportFragmentManager(), "RenameVariable");
-            return false;
-        }
-
-        @Override
-        public boolean onCreateVariable(String variable) {
-            mNameDialog.setVariable(variable, mCreateCallback, false);
-            mNameDialog.show(getSupportFragmentManager(), "CreateVariable");
-            return false;
-        }
     }
 }
