@@ -36,8 +36,6 @@ import java.util.List;
 public class SplitActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SplitActivity";
 
-    // SplitActivity shares a save file with TurtleActivity to show generated code and running code.
-    public static final String SAVED_WORKSPACE_FILENAME = TurtleActivity.SAVED_WORKSPACE_FILENAME;
     private TextView mGeneratedTextView;
     private Handler mHandler;
 
@@ -56,16 +54,6 @@ public class SplitActivity extends AbstractBlocklyActivity {
                     });
                 }
             };
-
-    @Override
-    public void onLoadWorkspace() {
-        loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
-    }
-
-    @Override
-    public void onSaveWorkspace() {
-        saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -155,5 +143,13 @@ public class SplitActivity extends AbstractBlocklyActivity {
 
         float density = getResources().getDisplayMetrics().density;
         mGeneratedTextView.setMinWidth((int) (maxline * 13 * density));
+    }
+
+    @NonNull
+    @Override
+    protected String getWorkspaceSavePath() {
+        // SplitActivity uses the turtle block definitions, and thus shares the same file as
+        // TurtleActivity.
+        return TurtleActivity.SAVED_WORKSPACE_FILENAME;
     }
 }

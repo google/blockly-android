@@ -96,12 +96,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     public void onLoadWorkspace() {
-        loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
+        mBlockly.loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
     }
 
     @Override
     public void onSaveWorkspace() {
-        saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
+        mBlockly.saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
     }
 
     @Override
@@ -221,5 +221,11 @@ public class TurtleActivity extends BlocklySectionsActivity {
         controller.addVariable("lollipop");
         controller.addVariable("kitkat");
         controller.addVariable("android");
+    }
+
+    @NonNull
+    @Override
+    protected String getWorkspaceSavePath() {
+        return SAVED_WORKSPACE_FILENAME;
     }
 }
