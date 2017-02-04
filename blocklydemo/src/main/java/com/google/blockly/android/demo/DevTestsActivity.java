@@ -255,4 +255,10 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         controller.addVariable("gir");
         controller.addVariable("tak");
     }
+
+    @NonNull
+    @Override
+    protected String getWorkspaceSavePath() {
+        return "devtests_workspace.xml";
+    }
 }
