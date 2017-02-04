@@ -6,34 +6,47 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.google.blockly.android.codegen.CodeGenerationRequest.CodeGeneratorCallback;
-import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.Workspace;
-import com.google.blockly.utils.StringOutputStream;
-
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Client Side class responsible for connecting to the {@link CodeGeneratorService}.
+ *
+ * A connection to the service is only made the first time code generation is requested.
  */
 public class CodeGeneratorManager {
     private static final String TAG = "CodeGeneratorManager";
 
     private final Context mContext;
-    private final ServiceConnection mCodeGenerationConnection;
+    private final Queue<CodeGenerationRequest> mStoredRequests;
 
+    private final ServiceConnection mCodeGenerationConnection;
     private CodeGeneratorService mGeneratorService;
+
+    private boolean mResumed = false;
+    private boolean mIsConnecting = false;
 
     public CodeGeneratorManager(Context context) {
         this.mContext = context;
+        this.mStoredRequests = new LinkedList<>();
 
         this.mCodeGenerationConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName className, IBinder binder) {
-                mGeneratorService =
-                    ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
+                try {
+                    if (!mResumed) {
+                        mContext.unbindService(mCodeGenerationConnection);
+                    } else {
+                        mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
+
+                        while (!mStoredRequests.isEmpty()) {
+                            executeCodeGenerationRequest(mStoredRequests.poll());
+                        }
+                    }
+                } finally {
+                    mIsConnecting = false;
+                }
             }
 
             @Override
@@ -43,29 +56,62 @@ public class CodeGeneratorManager {
         };
     }
 
-    public void onResume() {
-        Intent intent = new Intent(mContext, CodeGeneratorService.class);
-        mContext.bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+    /**
+     * Unbind the underlying service (if it is bound).
+     */
+    public void onPause() {
+        mResumed = false;
+        if (isBound()) {
+            mContext.unbindService(mCodeGenerationConnection);
+        }
     }
 
-    public void onPause() {
-        mContext.unbindService(mCodeGenerationConnection);
+    /**
+     * Inform this class that it is ok to bind to the service and remove any stored requests as
+     * the service won't be bound until a new request comes in.
+     */
+    public void onResume() {
+        mResumed = true;
+        mStoredRequests.clear();
     }
 
     /**
      * Calls the Service to request code generation for the workspace passed in.
      *
-     * @param request The information required to perform code generation.
+     * @param codeGenerationRequest the request to generate code.
      */
-    public void requestCodeGeneration(CodeGenerationRequest request) {
+    public void requestCodeGeneration(CodeGenerationRequest codeGenerationRequest) {
+        if(!mResumed) {
+            Log.w(TAG, "Code generation called while paused. Request ignored.");
+            return;
+        }
+        if (codeGenerationRequest == null) {
+            Log.w(TAG, "codeGenerationRequest was null");
+            return;
+        }
         if (isBound()) {
-            mGeneratorService.requestCodeGeneration(request);
+            executeCodeGenerationRequest(codeGenerationRequest);
         } else {
-            Log.i(TAG, "Generator not bound to service. Skipping run request.");
+            mStoredRequests.add(codeGenerationRequest);
+            if (!mIsConnecting) {
+                connectToService();
+            }
         }
     }
 
     private boolean isBound() {
         return mGeneratorService != null;
+    }
+
+    private void connectToService() {
+        mIsConnecting = true;
+        Intent intent = new Intent(mContext, CodeGeneratorService.class);
+        mContext.bindService(intent, mCodeGenerationConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void executeCodeGenerationRequest(CodeGenerationRequest request) {
+        if (request != null) {
+            mGeneratorService.requestCodeGeneration(request);
+        }
     }
 }
