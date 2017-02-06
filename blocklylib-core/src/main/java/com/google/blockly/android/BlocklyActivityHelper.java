@@ -100,7 +100,7 @@ public class BlocklyActivityHelper {
                 .setClipDataHelper(mClipDataHelper)
                 .setWorkspaceHelper(mWorkspaceHelper)
                 .setBlockViewFactory(mBlockViewFactory)
-                .setWorkspaceFragment(mWorkspaceFragment)
+                .setWorkspaceUi(mWorkspaceFragment)
                 .addBlockDefinitionsFromAssets(blockDefinitionJsonPaths)
                 .setToolboxConfigurationAsset(toolboxPath)
                 .setTrashFragment(mTrashFlyoutFragment)
