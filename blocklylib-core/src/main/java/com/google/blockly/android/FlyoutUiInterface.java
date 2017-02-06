@@ -33,7 +33,7 @@ public interface FlyoutUiInterface {
     /**
      * Connects the {@link FlyoutUiInterface} to the application's drag and click handling. It is
      * called by
-     * {@link BlocklyController#setToolboxUi(FlyoutUiInterface, CategorySelectorFragment)}
+     * {@link BlocklyController#setToolboxUi(FlyoutUiInterface, CategorySelectorUiInterface)}
      * and should not be called by the application developer.
      *
      * @param callback The callback that will handle user actions in the flyout.

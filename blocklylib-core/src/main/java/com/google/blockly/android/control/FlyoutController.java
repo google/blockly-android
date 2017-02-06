@@ -17,8 +17,7 @@ package com.google.blockly.android.control;
 
 import android.view.View;
 
-import com.google.blockly.android.CategorySelectorFragment;
-import com.google.blockly.android.FlyoutFragment;
+import com.google.blockly.android.CategorySelectorUiInterface;
 import com.google.blockly.android.FlyoutUiInterface;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.CategoryTabs;
@@ -39,7 +38,7 @@ public class FlyoutController {
     /// Whether the toolbox is currently closeable, depending on configuration.
     protected boolean mToolboxIsCloseable = true;
     /// The fragment for displaying toolbox categories
-    protected CategorySelectorFragment mCategoryFragment;
+    protected CategorySelectorUiInterface mCategoryFragment;
     /// The fragment for displaying blocks in the current category
     protected FlyoutUiInterface mToolboxFlyout;
     /// The root of the toolbox tree, containing either blocks or subcategories (not both).
@@ -138,8 +137,8 @@ public class FlyoutController {
      * @param categoryFragment The fragment for displaying category tabs.
      * @param toolboxFlyout The fragment for displaying blocks in a category.
      */
-    public void setToolboxFragments(CategorySelectorFragment categoryFragment,
-                                    FlyoutUiInterface toolboxFlyout) {
+    public void setToolboxUiComponents(CategorySelectorUiInterface categoryFragment,
+                                       FlyoutUiInterface toolboxFlyout) {
         mCategoryFragment = categoryFragment;
         mToolboxFlyout = toolboxFlyout;
         if (mToolboxFlyout == null) {
