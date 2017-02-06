@@ -125,12 +125,12 @@ public class BlockListHelper {
      * Calculates the workspace point for a {@link PendingDrag}, such that the
      * {@link MotionEvent#ACTION_DOWN} location remains in the same location on the screen
      * (i.e., under the user's finger), and calls
-     * {@link BlockListView.OnDragListBlock#getDraggableBlockGroup} with the location. The workspace
+     * {@link FlyoutCallback#getDraggableBlockGroup} with the location. The workspace
      * point accounts for the {@link WorkspaceView}'s location, pan, and scale.
      *
      * @param pendingDrag The {@link PendingDrag} for the gesture.
      * @return The pair of {@link BlockGroup} and the view relative touch point returned by
-     *         {@link BlockListView.OnDragListBlock#getDraggableBlockGroup}.
+     *         {@link FlyoutCallback#getDraggableBlockGroup}.
      */
     @NonNull
     private Pair<BlockGroup, ViewPoint> getWorkspaceBlockGroupForTouch(PendingDrag pendingDrag) {

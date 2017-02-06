@@ -12,7 +12,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.google.blockly.android.demo;
+package com.google.blockly.android.demo.flyout;
 
 import android.support.annotation.NonNull;
 import android.view.View;
@@ -20,6 +20,7 @@ import android.view.View;
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
+import com.google.blockly.android.demo.R;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.List;
  *
  * TODO: Add menu to switch between different layouts.
  */
-public class StyledFlyoutsActivity extends AbstractBlocklyActivity {
+public class AlwaysOpenToolboxActivity extends AbstractBlocklyActivity {
     private static final String TAG = "StyledFlyouts";
 
     private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(

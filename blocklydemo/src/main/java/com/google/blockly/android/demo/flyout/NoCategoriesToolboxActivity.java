@@ -1,4 +1,4 @@
-package com.google.blockly.android.demo;
+package com.google.blockly.android.demo.flyout;
 
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -7,6 +7,7 @@ import android.view.View;
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
+import com.google.blockly.android.demo.R;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,9 +16,8 @@ import java.util.List;
  * Demonstration of how to replace {@code blockly_unified_layout} with a custom layout.
  * This alternative layout that places the toolbox on top, configured to always remain open.
  */
-// TODO: Merge this demo into StyledFlyoutsActivity.
-public class AlwaysOpenToolboxActivity extends AbstractBlocklyActivity {
-    private static final String TAG = "SimpleActivity";
+public class NoCategoriesToolboxActivity extends AbstractBlocklyActivity {
+    private static final String TAG = "NoCatsActivity";
 
     private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
             "default/logic_blocks.json",

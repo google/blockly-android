@@ -36,17 +36,6 @@
         </activity>
 
         <activity
-            android:name=".AlwaysOpenToolboxActivity"
-            android:label="@string/always_open_toolbox_activity_name"
-            android:taskAffinity="com.google.blockly.SimpleActivity"
-            android:windowSoftInputMode="stateHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".DevTestsActivity"
             android:label="@string/dev_activity_name"
             android:theme="@style/StylesDemoTheme"
@@ -93,13 +82,33 @@
         </activity>
 
         <activity
-            android:name=".StyledFlyoutsActivity"
+            android:name=".FlyoutDemos"
             android:label="@string/flyout_activity_name"
-            android:taskAffinity="com.google.blockly.demo.StyledFlyoutsActivity"
+            android:taskAffinity="com.google.blockly.demo.FlyoutDemos"
             android:windowSoftInputMode="stateHidden|adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".flyout.AlwaysOpenToolboxActivity"
+            android:label="@string/always_open_toolbox_activity_name"
+            android:taskAffinity="com.google.blockly.demo.FlyoutDemos"
+            android:windowSoftInputMode="stateHidden|adjustPan">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".flyout.NoCategoriesToolboxActivity"
+            android:label="@string/no_categories_toolbox_activity_name"
+            android:taskAffinity="com.google.blockly.demo.FlyoutDemos"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
     </application>
