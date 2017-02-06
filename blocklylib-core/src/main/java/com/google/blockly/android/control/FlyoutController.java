@@ -19,6 +19,7 @@ import android.view.View;
 
 import com.google.blockly.android.CategorySelectorFragment;
 import com.google.blockly.android.FlyoutFragment;
+import com.google.blockly.android.FlyoutUiInterface;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.android.ui.FlyoutCallback;
@@ -40,14 +41,14 @@ public class FlyoutController {
     /// The fragment for displaying toolbox categories
     protected CategorySelectorFragment mCategoryFragment;
     /// The fragment for displaying blocks in the current category
-    protected FlyoutFragment mToolboxFlyout;
+    protected FlyoutUiInterface mToolboxFlyout;
     /// The root of the toolbox tree, containing either blocks or subcategories (not both).
     protected FlyoutCategory mToolboxRoot;
 
     /// Whether the trash is closeable, depending on configuration.
     protected boolean mTrashIsCloseable = true;
-    /// The fragment for displaying blocks in the trash.
-    protected FlyoutFragment mTrashFlyout;
+    /// The ui for displaying blocks in the trash.
+    protected FlyoutUiInterface mTrashUi;
     /// The category backing the trash's list of blocks.
     protected FlyoutCategory mTrashCategory;
 
@@ -116,10 +117,10 @@ public class FlyoutController {
         @Override
         public void onClick(View v) {
             // Toggle opened state.
-            if (mTrashFlyout.isOpen()) {
+            if (mTrashUi.isOpen()) {
                 closeTrash();
             } else {
-                mTrashFlyout.setCurrentCategory(mTrashCategory);
+                mTrashUi.setCurrentCategory(mTrashCategory);
                 closeToolbox();
             }
         }
@@ -138,7 +139,7 @@ public class FlyoutController {
      * @param toolboxFlyout The fragment for displaying blocks in a category.
      */
     public void setToolboxFragments(CategorySelectorFragment categoryFragment,
-            FlyoutFragment toolboxFlyout) {
+                                    FlyoutUiInterface toolboxFlyout) {
         mCategoryFragment = categoryFragment;
         mToolboxFlyout = toolboxFlyout;
         if (mToolboxFlyout == null) {
@@ -200,13 +201,13 @@ public class FlyoutController {
     }
 
     /**
-     * @param trashFragment The flyout to use for displaying blocks in the trash.
+     * @param trashUi The trash ui to use for displaying blocks in the trash.
      */
-    public void setTrashFragment(FlyoutFragment trashFragment) {
-        mTrashFlyout = trashFragment;
-        if (trashFragment != null) {
-            mTrashIsCloseable = mTrashFlyout.isCloseable();
-            mTrashFlyout.init(mController, mTrashFlyoutCallback);
+    public void setTrashUi(FlyoutUiInterface trashUi) {
+        mTrashUi = trashUi;
+        if (trashUi != null) {
+            mTrashIsCloseable = mTrashUi.isCloseable();
+            mTrashUi.init(mController, mTrashFlyoutCallback);
             closeTrash();
         }
     }
@@ -216,8 +217,8 @@ public class FlyoutController {
      */
     public void setTrashContents(FlyoutCategory trashContents) {
         mTrashCategory = trashContents;
-        if (mTrashFlyout != null) {
-            mTrashFlyout.setCurrentCategory(mTrashFlyout.isOpen() ? trashContents : null);
+        if (mTrashUi != null) {
+            mTrashUi.setCurrentCategory(mTrashUi.isOpen() ? trashContents : null);
         }
     }
 
@@ -230,7 +231,7 @@ public class FlyoutController {
         }
         // The trash icon is always a drop target.
         trashIcon.setOnDragListener(new OnDragToTrashListener(mController));
-        if (mTrashFlyout != null && mTrashIsCloseable) {
+        if (mTrashUi != null && mTrashIsCloseable) {
             // But we only need a click listener if the trash can be closed.
             trashIcon.setOnClickListener(mTrashClickListener);
         }
@@ -301,8 +302,8 @@ public class FlyoutController {
      */
     private boolean closeTrash() {
         boolean didClose = false;
-        if (isTrashCloseable() && mTrashFlyout != null) {
-            didClose = mTrashFlyout.closeBlocksDrawer();
+        if (isTrashCloseable() && mTrashUi != null) {
+            didClose = mTrashUi.closeBlocksDrawer();
         }
         return didClose;
     }

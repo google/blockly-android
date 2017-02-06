@@ -28,6 +28,7 @@ import android.view.ViewParent;
 
 import com.google.blockly.android.CategorySelectorFragment;
 import com.google.blockly.android.FlyoutFragment;
+import com.google.blockly.android.FlyoutUiInterface;
 import com.google.blockly.android.WorkspaceUiInterface;
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
@@ -253,31 +254,32 @@ public class BlocklyController {
     }
 
     /**
-     * Connects a {@link FlyoutFragment} and optional {@link CategorySelectorFragment} to this controller,
-     * so the user can drag new blocks into the attached {@link WorkspaceUiInterface}.
+     * Connects a {@link FlyoutUiInterface} and optional {@link CategorySelectorFragment} to
+     * this controller, so the user can drag new blocks into the attached
+     * {@link WorkspaceUiInterface}.
      *
-     * @param flyoutFragment The flyout for displaying toolbox blocks.
+     * @param flyoutUi The flyout for displaying toolbox blocks.
      * @param categoryFragment Optional fragment for displaying toolbox categories.
      */
-    public void setToolboxFragments(FlyoutFragment flyoutFragment,
-            @Nullable CategorySelectorFragment categoryFragment) {
-        if (flyoutFragment != null && mViewFactory == null) {
+    public void setToolboxUi(FlyoutUiInterface flyoutUi,
+                             @Nullable CategorySelectorFragment categoryFragment) {
+        if (flyoutUi != null && mViewFactory == null) {
             throw new IllegalStateException("Cannot set fragments without a BlockViewFactory.");
         }
-        mFlyoutController.setToolboxFragments(categoryFragment, flyoutFragment);
+        mFlyoutController.setToolboxFragments(categoryFragment, flyoutUi);
         mFlyoutController.setToolboxRoot(mWorkspace.getToolboxContents());
     }
 
     /**
-     * Connects a {@link FlyoutFragment} for the trash to this controller.
+     * Connects a {@link FlyoutUiInterface} for the trash to this controller.
      *
-     * @param trashFragment
+     * @param trashUi
      */
-    public void setTrashFragment(@Nullable FlyoutFragment trashFragment) {
-        if (trashFragment != null && mViewFactory == null) {
+    public void setTrashUi(@Nullable FlyoutUiInterface trashUi) {
+        if (trashUi != null && mViewFactory == null) {
             throw new IllegalStateException("Cannot set fragments without a BlockViewFactory.");
         }
-        mFlyoutController.setTrashFragment(trashFragment);
+        mFlyoutController.setTrashUi(trashUi);
         mFlyoutController.setTrashContents(mWorkspace.getTrashCategory());
     }
 
@@ -1664,9 +1666,9 @@ public class BlocklyController {
         private BlockViewFactory mViewFactory;
         private VariableCallback mVariableCallback;
         private WorkspaceUiInterface mWorkspaceUi;
-        private FlyoutFragment mFlyoutFragment;
+        private FlyoutUiInterface mFlyoutUi;
         private CategorySelectorFragment mCategoryFragment;
-        private FlyoutFragment mTrashFragment;
+        private FlyoutUiInterface mTrashUi;
         private View mTrashIcon;
 
         // TODO: Should these be part of the style?
@@ -1711,12 +1713,15 @@ public class BlocklyController {
          * Sets the fragments used for the toolbox, including the flyout with blocks and the
          * category tabs.
          *
-         * @param toolbox The FlyoutFragment to use to display blocks in the current category.
-         * @param categoryFragment The CategorySelectorFragment for displaying the list of categories.
+         * @param toolbox The {@link FlyoutUiInterface} to use to display blocks in the current
+         *                category.
+         * @param categoryFragment The CategorySelectorFragment for displaying the list of
+         *                         categories.
          * @return this
          */
-        public Builder setToolboxFragment(FlyoutFragment toolbox, CategorySelectorFragment categoryFragment) {
-            mFlyoutFragment = toolbox;
+        public Builder setToolboxFragment(FlyoutUiInterface toolbox,
+                                          CategorySelectorFragment categoryFragment) {
+            mFlyoutUi = toolbox;
             mCategoryFragment = categoryFragment;
             return this;
         }
@@ -1725,11 +1730,11 @@ public class BlocklyController {
          * Sets the FlyoutFragment to be used for the trash. This must be a different fragment than
          * the toolbox fragment.
          *
-         * @param trash The FlyoutFragment to use to display blocks in the trash.
+         * @param trash The {@link FlyoutUiInterface} to use to display blocks in the trash.
          * @return this
          */
-        public Builder setTrashFragment(FlyoutFragment trash) {
-            mTrashFragment = trash;
+        public Builder setTrashFragment(FlyoutUiInterface trash) {
+            mTrashUi = trash;
             return this;
         }
 
@@ -1878,8 +1883,8 @@ public class BlocklyController {
          * @return A new {@link BlocklyController}.
          */
         public BlocklyController build() {
-            if (mViewFactory == null && (mWorkspaceUi != null || mTrashFragment != null
-                    || mFlyoutFragment != null || mCategoryFragment != null)) {
+            if (mViewFactory == null && (mWorkspaceUi != null || mTrashUi != null
+                    || mFlyoutUi != null || mCategoryFragment != null)) {
                 throw new IllegalStateException(
                         "BlockViewFactory cannot be null when using Fragments.");
             }
@@ -1933,8 +1938,8 @@ public class BlocklyController {
 
             // Any of the following may be null and result in a no-op.
             controller.setWorkspaceUi(mWorkspaceUi);
-            controller.setTrashFragment(mTrashFragment);
-            controller.setToolboxFragments(mFlyoutFragment, mCategoryFragment);
+            controller.setTrashUi(mTrashUi);
+            controller.setToolboxUi(mFlyoutUi, mCategoryFragment);
             controller.setTrashIcon(mTrashIcon);
             controller.setVariableCallback(mVariableCallback);
 
