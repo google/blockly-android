@@ -6,7 +6,7 @@ import com.google.blockly.model.FlyoutCategory;
 /**
  * An interface that specifies the actions that can be taken on a category selector ui component.
  */
-public interface CategorySelectorUiInterface {
+public interface CategorySelectorUI {
 
     /**
      * Set the root category for the category selector.
@@ -32,5 +32,13 @@ public interface CategorySelectorUiInterface {
     /**
      * @param categoryCallback the callback for when the user clicks on a category.
      */
-    void setCategoryCallback(CategoryTabs.Callback categoryCallback);
+    void setCategoryCallback(CategorySelectorUI.Callback categoryCallback);
+
+
+    /**
+     * Callback for when the user clicks on a category.
+     */
+    abstract class Callback {
+        public abstract void onCategoryClicked(FlyoutCategory category);
+    }
 }

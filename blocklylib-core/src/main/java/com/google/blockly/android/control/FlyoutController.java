@@ -17,10 +17,9 @@ package com.google.blockly.android.control;
 
 import android.view.View;
 
-import com.google.blockly.android.CategorySelectorUiInterface;
-import com.google.blockly.android.FlyoutUiInterface;
+import com.google.blockly.android.BlockListUI;
+import com.google.blockly.android.CategorySelectorUI;
 import com.google.blockly.android.ui.BlockGroup;
-import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.OnDragToTrashListener;
 import com.google.blockly.model.Block;
@@ -38,16 +37,16 @@ public class FlyoutController {
     /// Whether the toolbox is currently closeable, depending on configuration.
     protected boolean mToolboxIsCloseable = true;
     /// The fragment for displaying toolbox categories
-    protected CategorySelectorUiInterface mCategoryFragment;
+    protected CategorySelectorUI mCategorySelectorUi;
     /// The fragment for displaying blocks in the current category
-    protected FlyoutUiInterface mToolboxFlyout;
+    protected BlockListUI mToolboxFlyout;
     /// The root of the toolbox tree, containing either blocks or subcategories (not both).
     protected FlyoutCategory mToolboxRoot;
 
     /// Whether the trash is closeable, depending on configuration.
     protected boolean mTrashIsCloseable = true;
     /// The ui for displaying blocks in the trash.
-    protected FlyoutUiInterface mTrashUi;
+    protected BlockListUI mTrashUi;
     /// The category backing the trash's list of blocks.
     protected FlyoutCategory mTrashCategory;
 
@@ -76,10 +75,10 @@ public class FlyoutController {
     };
 
     /// Callbacks for user actions on the list of categories in the Toolbox
-    protected CategoryTabs.Callback mTabsCallback = new CategoryTabs.Callback() {
+    protected CategorySelectorUI.Callback mTabsCallback = new CategorySelectorUI.Callback() {
         @Override
         public void onCategoryClicked(FlyoutCategory category) {
-            FlyoutCategory currCategory = mCategoryFragment.getCurrentCategory();
+            FlyoutCategory currCategory = mCategorySelectorUi.getCurrentCategory();
             if (category == currCategory) {
                 // Clicked the open category, close it if closeable.
                 closeToolbox();
@@ -137,16 +136,16 @@ public class FlyoutController {
      * @param categoryFragment The fragment for displaying category tabs.
      * @param toolboxFlyout The fragment for displaying blocks in a category.
      */
-    public void setToolboxUiComponents(CategorySelectorUiInterface categoryFragment,
-                                       FlyoutUiInterface toolboxFlyout) {
-        mCategoryFragment = categoryFragment;
+    public void setToolboxUiComponents(CategorySelectorUI categoryFragment,
+                                       BlockListUI toolboxFlyout) {
+        mCategorySelectorUi = categoryFragment;
         mToolboxFlyout = toolboxFlyout;
         if (mToolboxFlyout == null) {
             return;
         }
 
-        if (mCategoryFragment != null) {
-            mCategoryFragment.setCategoryCallback(mTabsCallback);
+        if (mCategorySelectorUi != null) {
+            mCategorySelectorUi.setCategoryCallback(mTabsCallback);
         }
         mToolboxIsCloseable = mToolboxFlyout.isCloseable();
         if (mToolboxRoot != null) {
@@ -165,8 +164,8 @@ public class FlyoutController {
     public void setToolboxRoot(FlyoutCategory root) {
         mToolboxRoot = root;
         if (mToolboxRoot == null) {
-            if (mCategoryFragment != null) {
-                mCategoryFragment.setContents(null);
+            if (mCategorySelectorUi != null) {
+                mCategorySelectorUi.setContents(null);
             }
             if (mToolboxFlyout != null) {
                 mToolboxFlyout.setCurrentCategory(null);
@@ -189,7 +188,7 @@ public class FlyoutController {
      * @return True if the toolbox's flyout may be closed.
      */
     public boolean isToolboxCloseable() {
-        return mToolboxIsCloseable && mCategoryFragment != null;
+        return mToolboxIsCloseable && mCategorySelectorUi != null;
     }
 
     /**
@@ -202,7 +201,7 @@ public class FlyoutController {
     /**
      * @param trashUi The trash ui to use for displaying blocks in the trash.
      */
-    public void setTrashUi(FlyoutUiInterface trashUi) {
+    public void setTrashUi(BlockListUI trashUi) {
         mTrashUi = trashUi;
         if (trashUi != null) {
             mTrashIsCloseable = mTrashUi.isCloseable();
@@ -254,8 +253,8 @@ public class FlyoutController {
             newRoot.addSubcategory(mToolboxRoot);
             mToolboxRoot = newRoot;
         }
-        if (mCategoryFragment != null) {
-            mCategoryFragment.setContents(mToolboxRoot);
+        if (mCategorySelectorUi != null) {
+            mCategorySelectorUi.setContents(mToolboxRoot);
         }
         if (!mToolboxIsCloseable) {
             setToolboxCategory(mToolboxRoot.getSubcategories().get(0));
@@ -273,8 +272,8 @@ public class FlyoutController {
         if (mToolboxFlyout != null) {
             mToolboxFlyout.setCurrentCategory(category);
         }
-        if (mCategoryFragment != null) {
-            mCategoryFragment.setCurrentCategory(category);
+        if (mCategorySelectorUi != null) {
+            mCategorySelectorUi.setCurrentCategory(category);
         }
     }
 
@@ -287,8 +286,8 @@ public class FlyoutController {
         boolean didClose = false;
         if (isToolboxCloseable() && mToolboxFlyout != null) {
             didClose = mToolboxFlyout.closeBlocksDrawer();
-            if (mCategoryFragment != null) {
-                mCategoryFragment.setCurrentCategory(null);
+            if (mCategorySelectorUi != null) {
+                mCategorySelectorUi.setCurrentCategory(null);
             }
         }
         return didClose;

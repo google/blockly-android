@@ -26,8 +26,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
-import com.google.blockly.android.CategorySelectorUiInterface;
-import com.google.blockly.android.FlyoutUiInterface;
+import com.google.blockly.android.BlockListUI;
+import com.google.blockly.android.CategorySelectorUI;
 import com.google.blockly.android.WorkspaceUiInterface;
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
@@ -253,15 +253,15 @@ public class BlocklyController {
     }
 
     /**
-     * Connects a {@link FlyoutUiInterface} and optional {@link CategorySelectorUiInterface} to
+     * Connects a {@link BlockListUI} and optional {@link CategorySelectorUI} to
      * this controller, so the user can drag new blocks into the attached
      * {@link WorkspaceUiInterface}.
      *
      * @param flyoutUi The flyout for displaying toolbox blocks.
      * @param categoryUi Optional ui for displaying toolbox categories.
      */
-    public void setToolboxUi(FlyoutUiInterface flyoutUi,
-                             @Nullable CategorySelectorUiInterface categoryUi) {
+    public void setToolboxUi(BlockListUI flyoutUi,
+                             @Nullable CategorySelectorUI categoryUi) {
         if (flyoutUi != null && mViewFactory == null) {
             throw new IllegalStateException("Cannot set UIs without a BlockViewFactory.");
         }
@@ -270,11 +270,11 @@ public class BlocklyController {
     }
 
     /**
-     * Connects a {@link FlyoutUiInterface} for the trash to this controller.
+     * Connects a {@link BlockListUI} for the trash to this controller.
      *
      * @param trashUi
      */
-    public void setTrashUi(@Nullable FlyoutUiInterface trashUi) {
+    public void setTrashUi(@Nullable BlockListUI trashUi) {
         if (trashUi != null && mViewFactory == null) {
             throw new IllegalStateException("Cannot set UIs without a BlockViewFactory.");
         }
@@ -809,7 +809,7 @@ public class BlocklyController {
     /**
      * Moves a block (and the child blocks connected to it) from the trashed blocks (removing it
      * from the deleted blocks list), back to the workspace as a root block, including the
-     * BlockGroup and other views in the trash {@link FlyoutUiInterface}.
+     * BlockGroup and other views in the trash {@link BlockListUI}.
      *
      * This method does not connect the block to existing blocks, even if the block was connected
      * before putting it in the trash.
@@ -1665,9 +1665,9 @@ public class BlocklyController {
         private BlockViewFactory mViewFactory;
         private VariableCallback mVariableCallback;
         private WorkspaceUiInterface mWorkspaceUi;
-        private FlyoutUiInterface mFlyoutUi;
-        private CategorySelectorUiInterface mCategoryUi;
-        private FlyoutUiInterface mTrashUi;
+        private BlockListUI mFlyoutUi;
+        private CategorySelectorUI mCategoryUi;
+        private BlockListUI mTrashUi;
         private View mTrashIcon;
 
         // TODO: Should these be part of the style?
@@ -1712,27 +1712,27 @@ public class BlocklyController {
          * Sets the ui used for the toolbox, including the flyout with blocks and the
          * category tabs.
          *
-         * @param toolbox The {@link FlyoutUiInterface} to use to display blocks in the current
+         * @param toolbox The {@link BlockListUI} to use to display blocks in the current
          *                category.
-         * @param categoryUi The FlyoutUiInterface for displaying the list of
+         * @param categoryUi The BlockListUI for displaying the list of
          *                         categories.
          * @return this
          */
-        public Builder setToolboxUi(FlyoutUiInterface toolbox,
-                                    CategorySelectorUiInterface categoryUi) {
+        public Builder setToolboxUi(BlockListUI toolbox,
+                                    CategorySelectorUI categoryUi) {
             mFlyoutUi = toolbox;
             mCategoryUi = categoryUi;
             return this;
         }
 
         /**
-         * Sets the FlyoutUiInterface to be used for the trash. This must be a different ui than
+         * Sets the BlockListUI to be used for the trash. This must be a different ui than
          * the toolbox flyout ui.
          *
-         * @param trash The {@link FlyoutUiInterface} to use to display blocks in the trash.
+         * @param trash The {@link BlockListUI} to use to display blocks in the trash.
          * @return this
          */
-        public Builder setTrashUi(FlyoutUiInterface trash) {
+        public Builder setTrashUi(BlockListUI trash) {
             mTrashUi = trash;
             return this;
         }

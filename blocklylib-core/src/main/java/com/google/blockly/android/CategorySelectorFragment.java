@@ -39,7 +39,7 @@ import com.google.blockly.model.FlyoutCategory;
  * {@link #setCategoryCallback(CategoryTabs.Callback)}.
  *
  */
-public class CategorySelectorFragment extends Fragment implements CategorySelectorUiInterface {
+public class CategorySelectorFragment extends Fragment implements CategorySelectorUI {
     private static final String TAG = "CategorySelectorFragment";
 
     protected CategoryView mCategoryView;
@@ -91,7 +91,7 @@ public class CategorySelectorFragment extends Fragment implements CategorySelect
         return mCategoryView.getCurrentCategory();
     }
 
-    public void setCategoryCallback(CategoryTabs.Callback categoryCallback) {
+    public void setCategoryCallback(CategorySelectorUI.Callback categoryCallback) {
         mCategoryView.setCallback(categoryCallback);
     }
 }

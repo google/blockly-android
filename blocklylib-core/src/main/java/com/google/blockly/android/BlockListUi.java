@@ -9,7 +9,7 @@ import com.google.blockly.model.FlyoutCategory;
 /**
  * An interface that specifies the actions that can be taken on a flyout ui component.
  */
-public interface FlyoutUiInterface {
+public interface BlockListUI {
 
     /**
      * @return True if this ui is currently visible, false otherwise.
@@ -31,9 +31,9 @@ public interface FlyoutUiInterface {
     boolean isCloseable();
 
     /**
-     * Connects the {@link FlyoutUiInterface} to the application's drag and click handling. It is
+     * Connects the {@link BlockListUI} to the application's drag and click handling. It is
      * called by
-     * {@link BlocklyController#setToolboxUi(FlyoutUiInterface, CategorySelectorUiInterface)}
+     * {@link BlocklyController#setToolboxUi(BlockListUI, CategorySelectorUI)}
      * and should not be called by the application developer.
      *
      * @param callback The callback that will handle user actions in the flyout.

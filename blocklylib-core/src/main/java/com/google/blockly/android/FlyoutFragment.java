@@ -82,7 +82,7 @@ import com.google.blockly.utils.ColorUtils;
  * @attr ref com.google.blockly.R.styleable#ToolboxFragment_rotateTabs
  */
 // TODO(#9): Attribute and arguments to set the tab background.
-public class FlyoutFragment extends Fragment implements FlyoutUiInterface {
+public class FlyoutFragment extends Fragment implements BlockListUI {
     private static final String TAG = "FlyoutFragment";
 
     public static final int DEFAULT_BLOCKS_BACKGROUND_ALPHA = 0xBB;
@@ -177,7 +177,7 @@ public class FlyoutFragment extends Fragment implements FlyoutUiInterface {
     /**
      * Connects the {@link FlyoutFragment} to the application's drag and click handling. It is
      * called by
-     * {@link BlocklyController#setToolboxUi(FlyoutUiInterface, CategorySelectorUiInterface)}
+     * {@link BlocklyController#setToolboxUi(BlockListUI, CategorySelectorUI)}
      * and should not be called by the application developer.
      *
      * @param callback The callback that will handle user actions in the flyout.
