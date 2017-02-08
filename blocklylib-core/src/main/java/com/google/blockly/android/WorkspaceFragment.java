@@ -44,7 +44,7 @@ import com.google.blockly.model.Workspace;
  *     /&gt;
  * </pre></blockquote>
  */
-public class WorkspaceFragment extends Fragment implements WorkspaceUiInterface {
+public class WorkspaceFragment extends Fragment {
     private static final String TAG = "WorkspaceFragment";
 
     private BlocklyController mController;

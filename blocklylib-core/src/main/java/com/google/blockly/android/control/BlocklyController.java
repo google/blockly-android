@@ -28,14 +28,14 @@ import android.view.ViewParent;
 
 import com.google.blockly.android.BlockListUI;
 import com.google.blockly.android.CategorySelectorUI;
-import com.google.blockly.android.WorkspaceUiInterface;
+import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
+import com.google.blockly.android.ui.Dragger;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.android.ui.Dragger;
 import com.google.blockly.android.ui.InputView;
 import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.android.ui.ViewPoint;
@@ -111,7 +111,7 @@ public class BlocklyController {
 
     private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
-    private WorkspaceUiInterface mWorkspaceUi = null;
+    private WorkspaceFragment mWorkspaceFragment = null;
     private Dragger mDragger;
     private VariableCallback mVariableCallback = null;
 
@@ -231,31 +231,31 @@ public class BlocklyController {
     }
 
     /**
-     * Connects a WorkspaceUi to this controller.
+     * Connects a WorkspaceFragment to this controller.
      *
-     * @param workspaceUi The ui component that contains the main workspace.
+     * @param workspaceFragment The fragment that contains the main workspace.
      */
-    public void setWorkspaceUi(@Nullable WorkspaceUiInterface workspaceUi) {
-        if (workspaceUi != null && mViewFactory == null) {
+    public void setWorkspaceFragment(@Nullable WorkspaceFragment workspaceFragment) {
+        if (workspaceFragment != null && mViewFactory == null) {
             throw new IllegalStateException("Cannot set UIs without a BlockViewFactory.");
         }
 
-        if (workspaceUi == mWorkspaceUi) {
+        if (workspaceFragment == mWorkspaceFragment) {
             return;  // No-op
         }
-        if (mWorkspaceUi != null) {
-            mWorkspaceUi.setController(null);
+        if (mWorkspaceFragment != null) {
+            mWorkspaceFragment.setController(null);
         }
-        mWorkspaceUi = workspaceUi;
-        if (mWorkspaceUi != null) {
-            mWorkspaceUi.setController(this);
+        mWorkspaceFragment = workspaceFragment;
+        if (mWorkspaceFragment != null) {
+            mWorkspaceFragment.setController(this);
         }
     }
 
     /**
      * Connects a {@link BlockListUI} and optional {@link CategorySelectorUI} to
      * this controller, so the user can drag new blocks into the attached
-     * {@link WorkspaceUiInterface}.
+     * {@link WorkspaceFragment}.
      *
      * @param flyoutUi The flyout for displaying toolbox blocks.
      * @param categoryUi Optional ui for displaying toolbox categories.
@@ -1664,7 +1664,7 @@ public class BlocklyController {
         private BlockClipDataHelper mClipHelper;
         private BlockViewFactory mViewFactory;
         private VariableCallback mVariableCallback;
-        private WorkspaceUiInterface mWorkspaceUi;
+        private WorkspaceFragment mWorkspaceFragment;
         private BlockListUI mFlyoutUi;
         private CategorySelectorUI mCategoryUi;
         private BlockListUI mTrashUi;
@@ -1703,8 +1703,8 @@ public class BlocklyController {
             return this;
         }
 
-        public Builder setWorkspaceUi(WorkspaceUiInterface workspaceUi) {
-            mWorkspaceUi = workspaceUi;
+        public Builder setWorkspaceFragment(WorkspaceFragment workspace) {
+            mWorkspaceFragment = workspace;
             return this;
         }
 
@@ -1882,7 +1882,7 @@ public class BlocklyController {
          * @return A new {@link BlocklyController}.
          */
         public BlocklyController build() {
-            if (mViewFactory == null && (mWorkspaceUi != null || mTrashUi != null
+            if (mViewFactory == null && (mWorkspaceFragment != null || mTrashUi != null
                     || mFlyoutUi != null || mCategoryUi != null)) {
                 throw new IllegalStateException(
                         "BlockViewFactory cannot be null when using UIs.");
@@ -1936,7 +1936,7 @@ public class BlocklyController {
             }
 
             // Any of the following may be null and result in a no-op.
-            controller.setWorkspaceUi(mWorkspaceUi);
+            controller.setWorkspaceFragment(mWorkspaceFragment);
             controller.setTrashUi(mTrashUi);
             controller.setToolboxUi(mFlyoutUi, mCategoryUi);
             controller.setTrashIcon(mTrashIcon);
