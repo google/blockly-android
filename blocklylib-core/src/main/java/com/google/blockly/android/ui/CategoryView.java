@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import com.google.blockly.android.CategorySelectorUI;
 import com.google.blockly.android.R;
 import com.google.blockly.model.FlyoutCategory;
 import com.google.blockly.utils.ColorUtils;
@@ -38,7 +39,7 @@ public class CategoryView extends RelativeLayout {
     private boolean mCloseable = mPreferCloseable;
     private int mScrollOrientation = OrientationHelper.VERTICAL;
     private @Rotation.Enum int mLabelRotation = Rotation.NONE;
-    private CategoryTabs.Callback mCallback;
+    private CategorySelectorUI.Callback mCallback;
 
     public CategoryView(Context context) {
         super(context);
@@ -72,7 +73,7 @@ public class CategoryView extends RelativeLayout {
         mCategoryTabs.setLabelRotation(mLabelRotation);
     }
 
-    public void setCallback(CategoryTabs.Callback callback) {
+    public void setCallback(CategorySelectorUI.Callback callback) {
         mCallback = callback;
         if (mCategoryTabs != null) {
             mCategoryTabs.setCallback(callback);

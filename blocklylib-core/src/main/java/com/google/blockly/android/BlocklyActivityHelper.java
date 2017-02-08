@@ -103,8 +103,8 @@ public class BlocklyActivityHelper {
                 .setWorkspaceFragment(mWorkspaceFragment)
                 .addBlockDefinitionsFromAssets(blockDefinitionJsonPaths)
                 .setToolboxConfigurationAsset(toolboxPath)
-                .setTrashFragment(mTrashFlyoutFragment)
-                .setToolboxFragment(mToolboxFlyoutFragment, mCategoryFragment);
+                .setTrashUi(mTrashFlyoutFragment)
+                .setToolboxUi(mToolboxFlyoutFragment, mCategoryFragment);
         mController = builder.build();
 
         onCreateVariableCallback();

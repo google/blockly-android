@@ -39,8 +39,7 @@ import com.google.blockly.model.FlyoutCategory;
  * {@link #setCategoryCallback(CategoryTabs.Callback)}.
  *
  */
-// TODO (#510): Create an interface for the {@link BlocklyController} to interact with this fragment
-public class CategorySelectorFragment extends Fragment {
+public class CategorySelectorFragment extends Fragment implements CategorySelectorUI {
     private static final String TAG = "CategorySelectorFragment";
 
     protected CategoryView mCategoryView;
@@ -80,7 +79,6 @@ public class CategorySelectorFragment extends Fragment {
         return mCategoryView;
     }
 
-
     public void setContents(FlyoutCategory rootCategory) {
         mCategoryView.setContents(rootCategory);
     }
@@ -93,7 +91,7 @@ public class CategorySelectorFragment extends Fragment {
         return mCategoryView.getCurrentCategory();
     }
 
-    public void setCategoryCallback(CategoryTabs.Callback categoryCallback) {
+    public void setCategoryCallback(CategorySelectorUI.Callback categoryCallback) {
         mCategoryView.setCallback(categoryCallback);
     }
 }

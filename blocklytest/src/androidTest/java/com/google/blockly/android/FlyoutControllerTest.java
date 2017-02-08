@@ -35,8 +35,8 @@ public class FlyoutControllerTest extends BlocklyTestCase {
         mToolboxFlyout = mock(FlyoutFragment.class);
         mCategoryFragment = mock(CategorySelectorFragment.class);
         mTrashFlyout = mock(FlyoutFragment.class);
-        mFlyoutController.setToolboxFragments(mCategoryFragment, mToolboxFlyout);
-        mFlyoutController.setTrashFragment(mTrashFlyout);
+        mFlyoutController.setToolboxUiComponents(mCategoryFragment, mToolboxFlyout);
+        mFlyoutController.setTrashUi(mTrashFlyout);
     }
 
     // TODO: test FlyoutController

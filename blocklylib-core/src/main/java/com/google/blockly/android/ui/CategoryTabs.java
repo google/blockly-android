@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.google.blockly.android.CategorySelectorUI;
 import com.google.blockly.android.R;
 import com.google.blockly.model.FlyoutCategory;
 
@@ -57,7 +58,7 @@ public class CategoryTabs extends RecyclerView {
     protected boolean mTapSelectedDeselects = false;
 
     private LabelAdapter mLabelAdapter;
-    protected @Nullable Callback mCallback;
+    protected @Nullable CategorySelectorUI.Callback mCallback;
     protected @Nullable
     FlyoutCategory mCurrentCategory;
 
@@ -101,11 +102,11 @@ public class CategoryTabs extends RecyclerView {
     }
 
     /**
-     * Sets the {@link Callback} used by this instance.
+     * Sets the {@link CategorySelectorUI.Callback} used by this instance.
      *
-     * @param callback The {@link Callback} for event handling.
+     * @param callback The {@link CategorySelectorUI.Callback} for event handling.
      */
-    public void setCallback(@Nullable Callback callback) {
+    public void setCallback(@Nullable CategorySelectorUI.Callback callback) {
         mCallback = callback;
     }
 
@@ -308,13 +309,6 @@ public class CategoryTabs extends RecyclerView {
                 View labelView, FlyoutCategory category, int position, boolean isSelected) {
             labelView.setSelected(isSelected);
         }
-    }
-
-    /**
-     * Callback for when the user clicks on a category.
-     */
-    public abstract static class Callback {
-        public abstract void onCategoryClicked(FlyoutCategory category);
     }
 
     /**
