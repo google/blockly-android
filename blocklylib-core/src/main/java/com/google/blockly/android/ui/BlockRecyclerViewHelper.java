@@ -29,7 +29,7 @@ import java.util.List;
  * TODO (#503): implement labels and buttons
  */
 
-public class BlockListHelper {
+public class BlockRecyclerViewHelper {
     private final Handler mHandler = new Handler();
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
@@ -45,7 +45,7 @@ public class BlockListHelper {
     private FlyoutCategory mCurrentCategory;
     private BlockTouchHandler mTouchHandler;
 
-    public BlockListHelper(RecyclerView recyclerView, Context context) {
+    public BlockRecyclerViewHelper(RecyclerView recyclerView, Context context) {
         mRecyclerView = recyclerView;
         mContext = context;
         mAdapter = new Adapter();

@@ -1,5 +1,8 @@
 package com.google.blockly.android;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.model.FlyoutCategory;
 
@@ -13,16 +16,15 @@ public interface CategorySelectorUI {
      *
      * @param rootCategory The top-level category in the toolbox.
      */
-    void setContents(FlyoutCategory rootCategory);
+    void setContents(@NonNull FlyoutCategory rootCategory);
 
     /**
-     * Sets the currently selected category.
-     * If the cateogry is not a member of the contents previously set, no category will render
-     * selected.
+     * Sets the currently selected category. If {@code category} is null, or if the category is not
+     * a member of the contents previously set, the current category should be unselected.
      *
      * @param category the category to use as currently selected.
      */
-    void setCurrentCategory(FlyoutCategory category);
+    void setCurrentCategory(@Nullable FlyoutCategory category);
 
     /**
      * @return the current category.
@@ -32,13 +34,16 @@ public interface CategorySelectorUI {
     /**
      * @param categoryCallback the callback for when the user clicks on a category.
      */
-    void setCategoryCallback(CategorySelectorUI.Callback categoryCallback);
-
+    void setCategoryCallback(@Nullable CategorySelectorUI.Callback categoryCallback);
 
     /**
      * Callback for when the user clicks on a category.
      */
     abstract class Callback {
-        public abstract void onCategoryClicked(FlyoutCategory category);
+        /**
+         * Notifies the system that the user has selected a category, or unselected all categories.
+         * @param category The selected category, or null if unselected.
+         */
+        public abstract void onCategoryClicked(@Nullable FlyoutCategory category);
     }
 }

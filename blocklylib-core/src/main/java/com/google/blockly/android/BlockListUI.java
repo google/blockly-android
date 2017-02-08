@@ -41,9 +41,9 @@ public interface BlockListUI {
     void init(BlocklyController controller, FlyoutCallback callback);
 
     /**
-     * Attempts to close the blocks drawer.
+     * Attempts to close the blocks UI (e.g., a drawer).
      *
      * @return True if an action was taken (the drawer is closeable and was previously open).
      */
-    boolean closeBlocksDrawer();
+    boolean closeUI();
 }
