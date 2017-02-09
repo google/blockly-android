@@ -16,7 +16,6 @@
 package com.google.blockly.android.ui;
 
 import android.support.annotation.NonNull;
-import android.test.suitebuilder.annotation.SmallTest;
 import android.view.MotionEvent;
 
 import com.google.blockly.android.BlocklyTestCase;
@@ -36,7 +35,6 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link AbstractBlockView}.
  */
-@SmallTest
 public class AbstractBlockViewTest extends BlocklyTestCase {
 
     private Block mEmptyBlock;

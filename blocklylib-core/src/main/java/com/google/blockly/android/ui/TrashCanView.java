@@ -26,7 +26,6 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.control.BlocklyController;
 
 import java.lang.annotation.Retention;
 
@@ -79,23 +78,14 @@ public class TrashCanView extends ImageView {
         }
     }
 
-    /**
-     * From the provided {@link BlocklyController}, configures the {@link OnDragToTrashListener}.
-     *
-     * @param controller
-     */
-    public void setBlocklyController(BlocklyController controller) {
-        if (controller == null) {
-            setOnDragListener(null);
-            setOnClickListener(null);
-            return;
-        }
-
-        setOnDragListener(new OnDragToTrashListener(controller) {
+    @Override
+    public void setOnDragListener(final View.OnDragListener dragListener) {
+        View.OnDragListener wrapper = new OnDragListener() {
             @Override
-            public boolean onDrag(View v, DragEvent event) {
-                int action = event.getAction();
-                boolean result = super.onDrag(v, event); // Whether the dragged block trashable.
+            public boolean onDrag(View view, DragEvent dragEvent) {
+                int action = dragEvent.getAction();
+                // Whether the dragged object can be handled by the trash.
+                boolean result = dragListener.onDrag(view, dragEvent);
                 if (action == DragEvent.ACTION_DRAG_ENDED) {
                     setState(STATE_DEFAULT);
                 } else  if (result) {
@@ -111,7 +101,8 @@ public class TrashCanView extends ImageView {
                 }
                 return result;
             }
-        });
+        };
+        super.setOnDragListener(wrapper);
     }
 
     @Override

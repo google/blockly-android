@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.blockly.android.ui.FlyoutView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:blockly="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbox_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/blockly_toolbox_bg"
+    blockly:closeable="true">
+
+    <LinearLayout
+        android:id="@+id/list_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:orientation="horizontal"
+        android:gravity="start">
+        <Button
+            android:id="@+id/action_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:minHeight="48dip"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="@string/create_variable"
+            />
+        <com.google.blockly.android.ui.BlockListView
+            android:id="@+id/block_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            blockly:scrollOrientation="horizontal"
+            />
+    </LinearLayout>
+    <com.google.blockly.android.ui.CategoryTabs
+        android:id="@+id/category_tabs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/list_wrapper"
+        blockly:labelRotation="none"
+        blockly:scrollOrientation="horizontal"/>
+
+</com.google.blockly.android.ui.FlyoutView>

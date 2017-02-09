@@ -1,8 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This layout ensures compatibility with older apps that include it,
-  -  instead of referencing BlocklyUnifiedWorkspace directly.
-  -->
-<com.google.blockly.android.ui.BlocklyUnifiedWorkspace
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"/>
+    xmlns:blockly="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent">
+
+    <fragment android:name="com.google.blockly.android.WorkspaceFragment"
+              android:id="@+id/blockly_workspace"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:layout_toEndOf="@+id/blockly_categories"
+              android:layout_toRightOf="@id/blockly_categories"/>
+
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
+              android:id="@+id/blockly_trash_ui"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_alignParentBottom="true"
+              android:layout_toEndOf="@id/blockly_categories"
+              android:layout_toRightOf="@id/blockly_categories"
+              blockly:scrollOrientation="horizontal"
+              blockly:closeable="true"
+              tools:ignore="MissingPrefix"/>
+
+
+    <fragment android:name="com.google.blockly.android.CategorySelectorFragment"
+              android:id="@id/blockly_categories"
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:layout_alignParentStart="true"
+              android:layout_alignParentLeft="true"
+              blockly:labelRotation="start"
+              blockly:scrollOrientation="vertical"
+              tools:ignore="MissingPrefix"/>
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
+              android:id="@+id/blockly_toolbox_ui"
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:layout_toEndOf="@id/blockly_categories"
+              android:layout_toRightOf="@id/blockly_categories"
+              blockly:scrollOrientation="vertical"
+              blockly:closeable="true"
+              tools:ignore="MissingPrefix"/>
+
+
+    <LinearLayout android:id="@+id/blockly_overlay_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical">
+
+        <ImageButton android:id="@+id/blockly_zoom_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="2dp"
+            android:src="@drawable/zoom_in"/>
+
+        <ImageButton android:id="@+id/blockly_zoom_out_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="2dp"
+            android:src="@drawable/zoom_out"/>
+
+        <ImageButton android:id="@+id/blockly_center_view_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/translucent"
+            android:padding="2dp"
+            android:src="@drawable/reset_view"/>
+
+        <com.google.blockly.android.ui.TrashCanView
+            android:id="@+id/blockly_trash_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/translucent"
+            android:padding="2dp"/>
+    </LinearLayout>
+</RelativeLayout>

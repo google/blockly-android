@@ -18,7 +18,7 @@ package com.google.blockly.model;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.blockly.android.ToolboxFragment;
+import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.utils.ColorUtils;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -30,16 +30,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A category of a toolbox, which holds zero or more blocks and zero or more subcategories.
- * {@link ToolboxFragment} is responsible for displaying this.
+ * A category of a toolbox, which holds zero or more blocks or zero or more subcategories. Not both.
+ * {@link FlyoutFragment} is responsible for displaying this.
  */
-public class ToolboxCategory {
-    private static final String TAG = "ToolboxCategory";
+public class FlyoutCategory {
+    private static final String TAG = "FlyoutCategory";
 
     /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
     private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
 
-    private final List<ToolboxCategory> mSubcategories = new ArrayList<>();
+    private final List<FlyoutCategory> mSubcategories = new ArrayList<>();
     private final List<Block> mBlocks = new ArrayList<>();
     // As displayed in the toolbox.
     private String mCategoryName;
@@ -47,28 +47,55 @@ public class ToolboxCategory {
     private Integer mColor = null;
     private boolean mIsVariableCategory = false;
     private boolean mIsFunctionCategory = false;
+    private Callback mCallback;
 
+    public void setCallback(Callback callback) {
+        mCallback = callback;
+    }
+
+    /**
+     * @return The user visible name of this category.
+     */
     public String getCategoryName() {
         return mCategoryName;
     }
 
+    /**
+     * @return The custome type of this category.
+     */
     public String getCustomType() {
         return mCustomType;
     }
 
+    /**
+     * Convenience method for checking if this category has the custom "VARIABLE" type.
+     *
+     * @return True if this category has the custom type "VARIABLE"
+     */
     public boolean isVariableCategory() {
         return mIsVariableCategory;
     }
 
+    /**
+     * Convenience method for checking if this category has the custom "FUNCTION" type.
+     *
+     * @return True if this category has the custom type "FUNCTION"
+     */
     public boolean isFunctionCategory() {
         return mIsFunctionCategory;
     }
 
+    /**
+     * Gets the list of blocks in this category. The list should not be modified directly, instead
+     * {@link #addBlock(Block)} and {@link #removeBlock(Block)} should be used.
+     *
+     * @return The list of blocks in this category.
+     */
     public List<Block> getBlocks() {
         return mBlocks;
     }
 
-    public List<ToolboxCategory> getSubcategories() {
+    public List<FlyoutCategory> getSubcategories() {
         return mSubcategories;
     }
 
@@ -83,6 +110,40 @@ public class ToolboxCategory {
      */
     public void addBlock(Block block) {
         mBlocks.add(block);
+        if (mCallback != null) {
+            mCallback.onBlockAdded(mBlocks.size() - 1, block);
+        }
+    }
+
+    /**
+     * Add a {@link Block} to the blocks displayed in this category at the specified index.
+     *
+     * @param index The index to insert the block at.
+     * @param block The {@link Block} to add.
+     */
+    public void addBlock(int index, Block block) {
+        mBlocks.add(index, block);
+        if (mCallback != null) {
+            mCallback.onBlockAdded(index, block);
+        }
+    }
+
+    /**
+     * Removes a block from this category.
+     *
+     * @param block The block to remove.
+     * @return true if the block was found and removed, false otherwise.
+     */
+    public boolean removeBlock(Block block) {
+        int i = mBlocks.indexOf(block);
+        if (i != -1) {
+            mBlocks.remove(i);
+            if (mCallback != null) {
+                mCallback.onBlockRemoved(i, block);
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -94,8 +155,14 @@ public class ToolboxCategory {
         }
         mBlocks.clear();
         mSubcategories.clear();
+        if (mCallback != null) {
+            mCallback.onCategoryCleared();
+        }
     }
 
+    /**
+     * @return True if this category contains no blocks or subcategories, false otherwise.
+     */
     public boolean isEmpty() {
         return mSubcategories.isEmpty() && mBlocks.isEmpty();
     }
@@ -113,23 +180,19 @@ public class ToolboxCategory {
         }
     }
 
-    private void addSubcategory(ToolboxCategory subcategory) {
-        mSubcategories.add(subcategory);
-    }
-
     /**
      * Read the full definition of the category's contents in from XML.
      *
      * @param parser The {@link XmlPullParser} to read from.
      * @param factory The {@link BlockFactory} to use to generate blocks from their names.
      *
-     * @return A new {@link ToolboxCategory} with the contents given by the XML.
+     * @return A new {@link FlyoutCategory} with the contents given by the XML.
      * @throws IOException when reading from the parser fails.
      * @throws XmlPullParserException when reading from the parser fails.
      */
-    public static ToolboxCategory fromXml(XmlPullParser parser, BlockFactory factory)
+    public static FlyoutCategory fromXml(XmlPullParser parser, BlockFactory factory)
             throws IOException, XmlPullParserException {
-        ToolboxCategory result = new ToolboxCategory();
+        FlyoutCategory result = new FlyoutCategory();
         result.mCategoryName = parser.getAttributeValue("", "name");
         result.mCustomType = parser.getAttributeValue("", "custom");
         result.mIsVariableCategory = result.mCustomType != null
@@ -150,7 +213,7 @@ public class ToolboxCategory {
             switch (eventType) {
                 case XmlPullParser.START_TAG:
                     if (parser.getName().equalsIgnoreCase("category")) {
-                        result.addSubcategory(ToolboxCategory.fromXml(parser, factory));
+                        result.addSubcategory(FlyoutCategory.fromXml(parser, factory));
                     } else if (parser.getName().equalsIgnoreCase("block")) {
                         result.addBlock(factory.fromXml(parser));
                     } else if (parser.getName().equalsIgnoreCase("shadow")) {
@@ -169,5 +232,39 @@ public class ToolboxCategory {
             eventType = parser.next();
         }
         return result;
+    }
+
+    /**
+     * @param subcategory The category to add under this category.
+     */
+    public void addSubcategory(FlyoutCategory subcategory) {
+        mSubcategories.add(subcategory);
+    }
+
+
+    /**
+     * Callback class for listening to changes to this category.
+     */
+    public abstract static class Callback {
+        /**
+         * Called when a block is added to this category.
+         *
+         * @param index The index the block was added at.
+         * @param block The block that was added.
+         */
+        public void onBlockAdded(int index, Block block) {}
+
+        /**
+         * Called when a block is removed from this category.
+         *
+         * @param index The index the block was previously at.
+         * @param block The block that was removed.
+         */
+        public void onBlockRemoved(int index, Block block) {}
+
+        /**
+         * Called when the category is cleared, which removes all its subcategories and blocks.
+         */
+        public void onCategoryCleared() {}
     }
 }

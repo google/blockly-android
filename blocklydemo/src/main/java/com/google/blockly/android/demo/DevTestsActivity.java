@@ -72,7 +72,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean isShown = super.onCreateOptionsMenu(menu);
         if (isShown) {
-            ZoomBehavior zb = mWorkspaceHelper.getZoomBehavior();
+            ZoomBehavior zb = getController().getWorkspaceHelper().getZoomBehavior();
 
             mScrollableMenuItem = menu.findItem(R.id.scrollable_menuitem);
             mPinchZoomMenuItem = menu.findItem(R.id.pinch_zoom_menuitem);
@@ -115,12 +115,12 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     @Override
     public void onLoadWorkspace() {
-        loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
+        mBlockly.loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
     }
 
     @Override
     public void onSaveWorkspace() {
-        saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
+        mBlockly.saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
     }
 
     /**
@@ -128,9 +128,9 @@ public class DevTestsActivity extends BlocklySectionsActivity {
      */
     private void setLogEvents(boolean logEvents) {
         if (logEvents) {
-            mController.addCallback(mEventsCallback);
+            getController().addCallback(mEventsCallback);
         } else {
-            mController.removeListener(mEventsCallback);
+            getController().removeCallback(mEventsCallback);
         }
         mLogEventsMenuItem.setChecked(logEvents);
     }
@@ -140,11 +140,11 @@ public class DevTestsActivity extends BlocklySectionsActivity {
      */
     private void airstrike() {
         List<Block> blocks = new ArrayList<>();
-        mController.getWorkspace().getToolboxContents().getAllBlocksRecursive(blocks);
+        getController().getWorkspace().getToolboxContents().getAllBlocksRecursive(blocks);
         for (int i = 0; i < blocks.size(); i++) {
             Block copiedModel = blocks.get(i).deepCopy();
             copiedModel.setPosition(0, 0);
-            mController.addRootBlock(copiedModel);
+            getController().addRootBlock(copiedModel);
         }
     }
 
@@ -159,7 +159,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
             Block copiedModel = blocks.get(i).deepCopy();
             copiedModel.setPosition((int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2,
                     (int) (Math.random() * CARPET_SIZE) - CARPET_SIZE / 2);
-            mController.addRootBlock(copiedModel);
+            getController().addRootBlock(copiedModel);
         }
     }
 
@@ -254,5 +254,11 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         controller.addVariable("zim");
         controller.addVariable("gir");
         controller.addVariable("tak");
+    }
+
+    @NonNull
+    @Override
+    protected String getWorkspaceSavePath() {
+        return "devtests_workspace.xml";
     }
 }

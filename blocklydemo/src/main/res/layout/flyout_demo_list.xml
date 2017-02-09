@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A Blockly workspace layout which places the toolbox on the top edge,
+  -  and is configured to always be open.
+  -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_margin="16dip"
+        android:textAppearance="@android:style/TextAppearance.Large"
+        android:text="@string/flyout_activity_title"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/demo_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+</LinearLayout>

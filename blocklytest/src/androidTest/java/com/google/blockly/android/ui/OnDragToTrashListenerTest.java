@@ -1,6 +1,7 @@
 package com.google.blockly.android.ui;
 
 import android.content.ClipDescription;
+import android.support.v7.widget.RecyclerView;
 import android.view.DragEvent;
 
 import com.google.blockly.android.BlocklyTestCase;
@@ -27,7 +28,7 @@ public class OnDragToTrashListenerTest extends BlocklyTestCase {
     BlockClipDataHelper mMockClipDataHelper;
 
     @Mock
-    BlockListView mMockToolbox;
+    RecyclerView mMockToolbox;
     @Mock
     WorkspaceView mMockWorkspaceView;
     @Mock

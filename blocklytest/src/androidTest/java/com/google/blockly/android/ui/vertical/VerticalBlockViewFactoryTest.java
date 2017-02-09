@@ -16,7 +16,6 @@
 package com.google.blockly.android.ui.vertical;
 
 import android.support.annotation.NonNull;
-import android.test.suitebuilder.annotation.SmallTest;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.ConnectionManager;
@@ -35,7 +34,6 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link VerticalBlockViewFactory}.
  */
-@SmallTest
 public class VerticalBlockViewFactoryTest extends BlocklyTestCase {
 
     private BlockFactory mBlockFactory;

@@ -10,8 +10,8 @@
     android:layout_height="match_parent"
     >
 
-    <fragment android:name="com.google.blockly.android.ToolboxFragment"
-        android:id="@+id/blockly_toolbox"
+    <fragment android:name="com.google.blockly.android.FlyoutFragment"
+        android:id="@+id/blockly_toolbox_ui"
         android:layout_width="match_parent"
         android:layout_height="140dp"
         android:layout_alignParentTop="true"
@@ -22,7 +22,7 @@
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_below="@id/blockly_toolbox">
+        android:layout_below="@id/blockly_toolbox_ui">
 
         <fragment android:name="com.google.blockly.android.WorkspaceFragment"
             android:id="@+id/blockly_workspace"
@@ -30,8 +30,8 @@
             android:layout_height="match_parent"
             />
 
-        <fragment android:name="com.google.blockly.android.TrashFragment"
-            android:id="@+id/blockly_trash"
+        <fragment android:name="com.google.blockly.android.FlyoutFragment"
+            android:id="@+id/blockly_trash_ui"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
@@ -74,9 +74,6 @@
                 android:id="@+id/blockly_trash_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentBottom="true"
                 android:background="@color/translucent"
                 android:padding="2dp"/>
         </LinearLayout>
