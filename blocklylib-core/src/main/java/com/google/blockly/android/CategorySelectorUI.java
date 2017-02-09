@@ -41,7 +41,7 @@ public interface CategorySelectorUI {
      */
     abstract class Callback {
         /**
-         * Notifies the system that the user has clicked on view representing a category.
+         * Notifies the callback that the user has clicked on view representing a category.
          * @param category The selected category, or null if unselected.
          */
         public abstract void onCategoryClicked(@Nullable FlyoutCategory category);
