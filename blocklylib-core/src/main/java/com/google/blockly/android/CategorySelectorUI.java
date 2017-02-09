@@ -44,8 +44,8 @@ public interface CategorySelectorUI {
          * Notifies the callback that the user has clicked on view representing a category.
          * Callback code is responsible for updating the toolbox BlockListUI (by default implemented
          * in {@link com.google.blockly.android.control.FlyoutController}).
-         * @param category The selected category.
+         * @param category The clicked category.
          */
-        public abstract void onCategoryClicked(@Nullable FlyoutCategory category);
+        public abstract void onCategoryClicked(@NonNull FlyoutCategory category);
     }
 }
