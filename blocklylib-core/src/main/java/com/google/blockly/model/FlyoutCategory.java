@@ -15,7 +15,6 @@
 
 package com.google.blockly.model;
 
-import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
