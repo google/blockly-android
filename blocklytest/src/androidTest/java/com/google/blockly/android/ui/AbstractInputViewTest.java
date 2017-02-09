@@ -17,7 +17,6 @@ package com.google.blockly.android.ui;
 
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
-import android.test.suitebuilder.annotation.SmallTest;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
@@ -39,7 +38,6 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link AbstractInputView}.
  */
-@SmallTest
 public class AbstractInputViewTest extends BlocklyTestCase {
 
     private Input mDummyInput;

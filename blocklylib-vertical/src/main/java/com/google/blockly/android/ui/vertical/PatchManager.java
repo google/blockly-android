@@ -15,17 +15,22 @@
 
 package com.google.blockly.android.ui.vertical;
 
+import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.NinePatchDrawable;
+import android.support.v4.content.ContextCompat;
 
 import com.google.blockly.model.Block;
 
 /**
- * Helper class to manage patches, including 9-patches, for drawing blocks.
+ * Helper class to load and manage 9-patches and other drawables. Each block shape is composed of
+ * multiple shaded 9-patches that together make the overall shape. The PatchManager constructs new
+ * drawables with shared backing bitmaps to minimize Blocky's memory footprint.
  */
 public class PatchManager {
+    private final Context mContext;
     private final Resources mResources;
 
     private final Rect mTempRect = new Rect();
@@ -105,8 +110,16 @@ public class PatchManager {
     // Minimum height of a block.
     int mMinBlockHeight;
 
-    PatchManager(Resources resources, boolean rtl, boolean useHat) {
-        mResources = resources;
+    /**
+     * Constructs a new PatchManager to load and 9-patch resources used to compose the block shapes.
+     * @param context The activity's context.
+     * @param rtl Whether to use right-to-left resources.
+     * @param useHat Whether to use event hats when blocks have neither previous or output
+     *               connectors.  See {@link R.drawable#top_start_hat} nine-patch.
+     */
+    PatchManager(Context context, boolean rtl, boolean useHat) {
+        mContext = context;
+        mResources = mContext.getResources();
         computePatchLayoutMeasures(rtl, useHat);
     }
 
@@ -117,7 +130,7 @@ public class PatchManager {
      * @return The drawable for the requested patch.
      */
     public NinePatchDrawable getPatchDrawable(int id) {
-        return (NinePatchDrawable) mResources.getDrawable(id);
+        return (NinePatchDrawable) ContextCompat.getDrawable(mContext, id);
     }
 
     /**

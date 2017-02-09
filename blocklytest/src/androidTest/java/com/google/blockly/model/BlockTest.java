@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static android.test.MoreAsserts.assertNotEqual;
 import static com.google.blockly.utils.MoreAsserts.assertStringNotEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -58,7 +57,8 @@ public class BlockTest extends BlocklyTestCase {
     @Test
     public void testEmptyBlockHasId() {
         Block block = new Block.Builder("test_block").build();
-        assertStringNotEmpty("Block id cannot be empty.", block.getId());
+        assertWithMessage("Block id cannot be empty.")
+                .that(block.getId()).isNotEmpty();
     }
 
     @Test
@@ -67,8 +67,8 @@ public class BlockTest extends BlocklyTestCase {
         Block copy = original.deepCopy();
 
         assertStringNotEmpty("Copies of blocks cannot be empty ids.", copy.getId());
-        assertNotEqual("Copies of blocks must have different ids than their originals.",
-                original.getId(), copy.getId());
+        assertWithMessage("Copies of blocks must have different ids than their originals.")
+                .that(copy.getId()).isNotEqualTo(original.getId());
     }
 
     @Test

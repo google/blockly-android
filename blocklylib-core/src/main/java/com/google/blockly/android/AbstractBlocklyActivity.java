@@ -546,10 +546,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void restoreActionBar() {
         ActionBar actionBar = getSupportActionBar();
-        // TODO(#362): Replace NAVIGATION_MODE_STANDARD, expose Up versus Back alternatives.
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(getWorkspaceTitle());
+        if (actionBar != null) {
+            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setTitle(getWorkspaceTitle());
+        }
     }
 
     /**
