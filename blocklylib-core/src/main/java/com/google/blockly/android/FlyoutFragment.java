@@ -33,7 +33,9 @@ import android.widget.Button;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.FlyoutController;
+import com.google.blockly.android.ui.BlockListUI;
 import com.google.blockly.android.ui.BlockRecyclerViewHelper;
+import com.google.blockly.android.ui.CategorySelectorUI;
 import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;

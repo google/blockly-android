@@ -24,7 +24,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.RelativeLayout;
 
-import com.google.blockly.android.CategorySelectorUI;
 import com.google.blockly.android.R;
 import com.google.blockly.model.FlyoutCategory;
 import com.google.blockly.utils.ColorUtils;

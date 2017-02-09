@@ -28,7 +28,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.google.blockly.android.CategorySelectorUI;
 import com.google.blockly.android.R;
 import com.google.blockly.model.FlyoutCategory;
 

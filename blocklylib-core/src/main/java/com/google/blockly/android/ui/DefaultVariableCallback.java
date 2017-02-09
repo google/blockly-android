@@ -12,7 +12,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.google.blockly.android;
+package com.google.blockly.android.ui;
 
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;

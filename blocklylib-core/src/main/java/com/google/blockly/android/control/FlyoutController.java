@@ -18,8 +18,8 @@ package com.google.blockly.android.control;
 import android.support.annotation.Nullable;
 import android.view.View;
 
-import com.google.blockly.android.BlockListUI;
-import com.google.blockly.android.CategorySelectorUI;
+import com.google.blockly.android.ui.BlockListUI;
+import com.google.blockly.android.ui.CategorySelectorUI;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.OnDragToTrashListener;
