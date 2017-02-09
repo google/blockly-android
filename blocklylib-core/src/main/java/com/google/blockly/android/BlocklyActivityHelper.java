@@ -281,7 +281,7 @@ public class BlocklyActivityHelper {
      * core library does not include a factory implementation, and the app developer will need to
      * include blockly vertical or another block rendering implementation.
      * <p>
-     * The default implementation atempts to instantiates a VerticalBlockViewFactory, which is
+     * The default implementation attempts to instantiates a VerticalBlockViewFactory, which is
      * included in the blocklylib-vertical library.  An error will be thrown unless
      * blocklylib-vertical is included or this method is overridden to provide a custom
      * BlockViewFactory.
