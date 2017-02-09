@@ -91,10 +91,7 @@ public class FlyoutController {
         }
     };
 
-
-    /**
-     * Callbacks for user actions on the trash's flyout.
-     */
+    /** Callbacks for user actions on the trash's flyout. */
     protected FlyoutCallback mTrashCallback = new FlyoutCallback() {
         @Override
         public void onButtonClicked(View v, String action, FlyoutCategory category) {
@@ -113,9 +110,7 @@ public class FlyoutController {
         }
     };
 
-    /**
-     * Opens/closes the trash in response to clicks on the trash icon.
-     */
+    /** Opens/closes the trash in response to clicks on the trash icon. */
     protected View.OnClickListener mTrashClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
