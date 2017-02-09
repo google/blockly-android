@@ -61,7 +61,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
 
         loadStyleData(workspaceTheme);
 
-        mPatchManager = new PatchManager(mContext.getResources(), helper.useRtl(), mUseHats);
+        mPatchManager = new PatchManager(mContext, helper.useRtl(), mUseHats);
         mLayoutInflater = LayoutInflater.from(context);
     }
 
