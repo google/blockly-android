@@ -26,7 +26,6 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.control.BlocklyController;
 
 import java.lang.annotation.Retention;
 
