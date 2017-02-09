@@ -13,12 +13,11 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android;
+package com.google.blockly.android.ui;
 
 import android.support.annotation.Nullable;
 
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.model.FlyoutCategory;
 
 /**

@@ -28,6 +28,7 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.CodeGeneratorManager;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
+import com.google.blockly.android.ui.DefaultVariableCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
@@ -44,7 +45,7 @@ import java.util.List;
  * {@link BlocklyActivityHelper#onCreateFragments()} looks for
  * the {@link WorkspaceFragment}, the toolbox's {@link FlyoutFragment}, and the trash's
  * {@link FlyoutFragment} via fragment ids {@link R.id#blockly_workspace},
- * {@link R.id#blockly_toolbox_flyout}, and {@link R.id#blockly_trash_flyout}, respectively.
+ * {@link R.id#blockly_toolbox_ui}, and {@link R.id#blockly_trash_ui}, respectively.
  * <p/>
  * The activity can also contain a few buttons to control the workspace.
  * {@link R.id#blockly_zoom_in_button} and {@link R.id#blockly_zoom_out_button} control the
@@ -247,9 +248,9 @@ public class BlocklyActivityHelper {
      *   {@link #mWorkspaceFragment}.</li>
      *   <li>the toolbox {@link CategorySelectorFragment} with id {@link R.id#blockly_categories},
      *   assigned to {@link #mCategoryFragment}.</li>
-     *   <li>the toolbox {@link FlyoutFragment} with id {@link R.id#blockly_toolbox_flyout},
+     *   <li>the toolbox {@link FlyoutFragment} with id {@link R.id#blockly_toolbox_ui},
      *   assigned to {@link #mToolboxFlyoutFragment}.</li>
-     *   <li>the trash {@link FlyoutFragment} with id {@link R.id#blockly_trash_flyout}, assigned to
+     *   <li>the trash {@link FlyoutFragment} with id {@link R.id#blockly_trash_ui}, assigned to
      *   {@link #mTrashFlyoutFragment}.</li>
      * </ul>
      * Only the workspace fragment is required. The activity layout can choose not to include the
@@ -264,11 +265,11 @@ public class BlocklyActivityHelper {
         mWorkspaceFragment = (WorkspaceFragment)
                 fragmentManager.findFragmentById(R.id.blockly_workspace);
         mToolboxFlyoutFragment = (FlyoutFragment) fragmentManager
-                .findFragmentById(R.id.blockly_toolbox_flyout);
+                .findFragmentById(R.id.blockly_toolbox_ui);
         mCategoryFragment = (CategorySelectorFragment) fragmentManager
                 .findFragmentById(R.id.blockly_categories);
         mTrashFlyoutFragment = (FlyoutFragment) fragmentManager
-                .findFragmentById(R.id.blockly_trash_flyout);
+                .findFragmentById(R.id.blockly_trash_ui);
 
         if (mTrashFlyoutFragment != null) {
             // TODO(#14): Make trash list a drop location.

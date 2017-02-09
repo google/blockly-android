@@ -28,7 +28,7 @@
                   blockly:scrollOrientation="horizontal"
                   tools:ignore="MissingPrefix" />
         <fragment android:name="com.google.blockly.android.FlyoutFragment"
-                  android:id="@+id/blockly_toolbox_flyout"
+                  android:id="@+id/blockly_toolbox_ui"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   blockly:scrollOrientation="horizontal"

@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.ui.CategorySelectorUI;
 import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.android.ui.CategoryView;
 import com.google.blockly.android.ui.Rotation;

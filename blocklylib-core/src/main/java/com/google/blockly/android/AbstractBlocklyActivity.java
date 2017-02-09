@@ -53,7 +53,7 @@ import java.util.List;
  * is constructed to help initialize the Blockly fragments, controller, and supporting UI. If
  * overriding {@link #onCreateContentView} without {@code unified_blockly_workspace.xml} or
  * otherwise using standard blockly fragment and view ids ({@link R.id#blockly_workspace},
- * {@link R.id#blockly_toolbox_flyout}, {@link R.id#blockly_trash_flyout}, etc.), override
+ * {@link R.id#blockly_toolbox_ui}, {@link R.id#blockly_trash_ui}, etc.), override
  * {@link #onCreateActivityHelper()} and {@link BlocklyActivityHelper#onCreateFragments()}
  * appropriately.
  * <p/>

@@ -14,7 +14,7 @@
               android:layout_toRightOf="@id/blockly_categories"/>
 
     <fragment android:name="com.google.blockly.android.FlyoutFragment"
-              android:id="@+id/blockly_trash_flyout"
+              android:id="@+id/blockly_trash_ui"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:layout_alignParentBottom="true"
@@ -35,7 +35,7 @@
               blockly:scrollOrientation="vertical"
               tools:ignore="MissingPrefix"/>
     <fragment android:name="com.google.blockly.android.FlyoutFragment"
-              android:id="@+id/blockly_toolbox_flyout"
+              android:id="@+id/blockly_toolbox_ui"
               android:layout_width="wrap_content"
               android:layout_height="match_parent"
               android:layout_toEndOf="@id/blockly_categories"

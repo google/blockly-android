@@ -13,7 +13,7 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android;
+package com.google.blockly.android.ui;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
