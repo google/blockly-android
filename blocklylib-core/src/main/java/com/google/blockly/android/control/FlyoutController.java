@@ -23,7 +23,6 @@ import com.google.blockly.android.CategorySelectorUI;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.OnDragToTrashListener;
-import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.FlyoutCategory;
 import com.google.blockly.model.WorkspacePoint;
@@ -47,7 +46,7 @@ public class FlyoutController {
 
     /** Whether the trash is closeable, depending on configuration. */
     protected boolean mTrashIsCloseable = true;
-    /** The ui for displaying blocks in the trash. */
+    /** The UI for displaying blocks in the trash. */
     protected BlockListUI mTrashUi;
     /** The category backing the trash's list of blocks. */
     protected FlyoutCategory mTrashCategory;
@@ -175,7 +174,7 @@ public class FlyoutController {
                 mCategorySelectorUi.setContents(null);
             }
             if (mToolbox != null) {
-                mToolbox.closeUI();
+                mToolbox.closeUi();
             }
             return;
         }
@@ -206,7 +205,7 @@ public class FlyoutController {
     }
 
     /**
-     * @param trashUi The trash ui to use for displaying blocks in the trash.
+     * @param trashUi The trash UI to use for displaying blocks in the trash.
      */
     public void setTrashUi(BlockListUI trashUi) {
         mTrashUi = trashUi;
@@ -285,7 +284,7 @@ public class FlyoutController {
             }
         } else {
             if (mToolbox != null) {
-                mToolbox.closeUI();
+                mToolbox.closeUi();
             }
             if (mCategorySelectorUi != null) {
                 mCategorySelectorUi.setCurrentCategory(category);
@@ -301,7 +300,7 @@ public class FlyoutController {
     private boolean closeToolbox() {
         boolean didClose = false;
         if (isToolboxCloseable() && mToolbox != null) {
-            didClose = mToolbox.closeUI();
+            didClose = mToolbox.closeUi();
             if (mCategorySelectorUi != null) {
                 mCategorySelectorUi.setCurrentCategory(null);
             }
@@ -317,7 +316,7 @@ public class FlyoutController {
     private boolean closeTrash() {
         boolean didClose = false;
         if (isTrashCloseable() && mTrashUi != null) {
-            didClose = mTrashUi.closeUI();
+            didClose = mTrashUi.closeUi();
         }
         return didClose;
     }

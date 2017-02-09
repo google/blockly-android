@@ -253,7 +253,7 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
      *
      * @return True if an action was taken (the drawer is closeable and was previously open).
      */
-    public boolean closeUI() {
+    public boolean closeUi() {
         if (!isCloseable() || mFlyoutView.getVisibility() == View.GONE) {
             return false;
         }
