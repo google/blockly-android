@@ -75,10 +75,8 @@ public class FlyoutController {
         }
     };
 
-    /**
-     * Callbacks for user actions on the list of categories in the Toolbox.
-     */
-    protected CategorySelectorUI.Callback mTabsCallback = new CategorySelectorUI.Callback() {
+    /** Callback for user category selection. */
+    protected CategorySelectorUI.Callback mCategoriesCallback = new CategorySelectorUI.Callback() {
         @Override
         public void onCategoryClicked(FlyoutCategory category) {
             FlyoutCategory currCategory = mCategorySelectorUi.getCurrentCategory();
@@ -152,7 +150,7 @@ public class FlyoutController {
         }
 
         if (mCategorySelectorUi != null) {
-            mCategorySelectorUi.setCategoryCallback(mTabsCallback);
+            mCategorySelectorUi.setCategoryCallback(mCategoriesCallback);
         }
         mToolboxIsCloseable = mToolbox.isCloseable();
         if (mToolboxRoot != null) {
@@ -275,20 +273,15 @@ public class FlyoutController {
      * @param category The category to set.
      */
     private void setToolboxCategory(@Nullable FlyoutCategory category) {
-        if (category != null) {
-            if (mToolbox != null) {
+        if (mToolbox != null) {
+            if (category != null) {
                 mToolbox.setCurrentCategory(category);
-            }
-            if (mCategorySelectorUi != null) {
-                mCategorySelectorUi.setCurrentCategory(category);
-            }
-        } else {
-            if (mToolbox != null) {
+            } else {
                 mToolbox.closeUi();
             }
-            if (mCategorySelectorUi != null) {
-                mCategorySelectorUi.setCurrentCategory(category);
-            }
+        }
+        if (mCategorySelectorUi != null) {
+            mCategorySelectorUi.setCurrentCategory(category);
         }
     }
 
