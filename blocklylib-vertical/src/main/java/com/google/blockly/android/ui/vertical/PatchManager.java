@@ -111,7 +111,8 @@ public class PatchManager {
     int mMinBlockHeight;
 
     /**
-     * Constructs a new PatchManager to load and 9-patch resources used to compose the block shapes.
+     * Constructs a new PatchManager to load and manage 9-patch resources used to compose the block
+     * shapes.
      * @param context The activity's context.
      * @param rtl Whether to use right-to-left resources.
      * @param useHat Whether to use event hats when blocks have neither previous or output
