@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.control;
 
+import android.support.annotation.Nullable;
 import android.view.View;
 
 import com.google.blockly.android.BlockListUI;
@@ -34,26 +35,26 @@ import java.util.List;
  */
 public class FlyoutController {
     private static final String TAG = "FlyoutController";
-    /// Whether the toolbox is currently closeable, depending on configuration.
+    /** Whether the toolbox is currently closeable, depending on configuration. */
     protected boolean mToolboxIsCloseable = true;
-    /// The fragment for displaying toolbox categories
+    /** The fragment for displaying toolbox categories. */
     protected CategorySelectorUI mCategorySelectorUi;
-    /// The fragment for displaying blocks in the current category
+    /** The fragment for displaying blocks in the current category. */
     protected BlockListUI mToolbox;
-    /// The root of the toolbox tree, containing either blocks or subcategories (not both).
+    /** The root of the toolbox tree, containing either blocks or subcategories (not both). */
     protected FlyoutCategory mToolboxRoot;
 
-    /// Whether the trash is closeable, depending on configuration.
+    /** Whether the trash is closeable, depending on configuration. */
     protected boolean mTrashIsCloseable = true;
-    /// The ui for displaying blocks in the trash.
+    /** The UI for displaying blocks in the trash. */
     protected BlockListUI mTrashUi;
-    /// The category backing the trash's list of blocks.
+    /** The category backing the trash's list of blocks. */
     protected FlyoutCategory mTrashCategory;
 
-    /// Main controller for any actions that require wider state changes.
+    /** Main controller for any actions that require wider state changes. */
     protected BlocklyController mController;
 
-    /// Callbacks for user actions on the toolbox's flyout
+    /** Callbacks for user actions on the toolbox's flyout. */
     protected FlyoutCallback mToolboxCallback = new FlyoutCallback() {
         @Override
         public void onButtonClicked(View v, String action, FlyoutCategory category) {
@@ -74,8 +75,8 @@ public class FlyoutController {
         }
     };
 
-    /// Callbacks for user actions on the list of categories in the Toolbox
-    protected CategorySelectorUI.Callback mTabsCallback = new CategorySelectorUI.Callback() {
+    /** Callback for user category selection. */
+    protected CategorySelectorUI.Callback mCategoriesCallback = new CategorySelectorUI.Callback() {
         @Override
         public void onCategoryClicked(FlyoutCategory category) {
             FlyoutCategory currCategory = mCategorySelectorUi.getCurrentCategory();
@@ -90,8 +91,7 @@ public class FlyoutController {
         }
     };
 
-
-    /// Callbacks for user actions on the trash's flyout
+    /** Callbacks for user actions on the trash's flyout. */
     protected FlyoutCallback mTrashCallback = new FlyoutCallback() {
         @Override
         public void onButtonClicked(View v, String action, FlyoutCategory category) {
@@ -110,7 +110,7 @@ public class FlyoutController {
         }
     };
 
-    /// Opens/closes the trash in response to clicks on the trash icon.
+    /** Opens/closes the trash in response to clicks on the trash icon. */
     protected View.OnClickListener mTrashClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -145,7 +145,7 @@ public class FlyoutController {
         }
 
         if (mCategorySelectorUi != null) {
-            mCategorySelectorUi.setCategoryCallback(mTabsCallback);
+            mCategorySelectorUi.setCategoryCallback(mCategoriesCallback);
         }
         mToolboxIsCloseable = mToolbox.isCloseable();
         if (mToolboxRoot != null) {
@@ -167,7 +167,7 @@ public class FlyoutController {
                 mCategorySelectorUi.setContents(null);
             }
             if (mToolbox != null) {
-                mToolbox.setCurrentCategory(null);
+                mToolbox.closeUi();
             }
             return;
         }
@@ -198,7 +198,7 @@ public class FlyoutController {
     }
 
     /**
-     * @param trashUi The trash ui to use for displaying blocks in the trash.
+     * @param trashUi The trash UI to use for displaying blocks in the trash.
      */
     public void setTrashUi(BlockListUI trashUi) {
         mTrashUi = trashUi;
@@ -214,8 +214,8 @@ public class FlyoutController {
      */
     public void setTrashContents(FlyoutCategory trashContents) {
         mTrashCategory = trashContents;
-        if (mTrashUi != null) {
-            mTrashUi.setCurrentCategory(mTrashUi.isOpen() ? trashContents : null);
+        if (mTrashUi != null && mTrashUi.isOpen()) {
+            mTrashUi.setCurrentCategory(trashContents);
         }
     }
 
@@ -267,9 +267,13 @@ public class FlyoutController {
      *
      * @param category The category to set.
      */
-    private void setToolboxCategory(FlyoutCategory category) {
+    private void setToolboxCategory(@Nullable FlyoutCategory category) {
         if (mToolbox != null) {
-            mToolbox.setCurrentCategory(category);
+            if (category != null) {
+                mToolbox.setCurrentCategory(category);
+            } else {
+                mToolbox.closeUi();
+            }
         }
         if (mCategorySelectorUi != null) {
             mCategorySelectorUi.setCurrentCategory(category);
@@ -284,7 +288,7 @@ public class FlyoutController {
     private boolean closeToolbox() {
         boolean didClose = false;
         if (isToolboxCloseable() && mToolbox != null) {
-            didClose = mToolbox.closeBlocksDrawer();
+            didClose = mToolbox.closeUi();
             if (mCategorySelectorUi != null) {
                 mCategorySelectorUi.setCurrentCategory(null);
             }
@@ -300,7 +304,7 @@ public class FlyoutController {
     private boolean closeTrash() {
         boolean didClose = false;
         if (isTrashCloseable() && mTrashUi != null) {
-            didClose = mTrashUi.closeBlocksDrawer();
+            didClose = mTrashUi.closeUi();
         }
         return didClose;
     }

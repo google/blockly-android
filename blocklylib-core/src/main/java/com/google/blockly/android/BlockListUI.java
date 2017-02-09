@@ -12,7 +12,7 @@ import com.google.blockly.model.FlyoutCategory;
 public interface BlockListUI {
 
     /**
-     * @return True if this ui is currently visible, false otherwise.
+     * @return True if this UI is currently visible, false otherwise.
      */
     boolean isOpen();
 
@@ -41,9 +41,9 @@ public interface BlockListUI {
     void init(BlocklyController controller, FlyoutCallback callback);
 
     /**
-     * Attempts to close the blocks drawer.
+     * Attempts to hide or close the blocks UI (e.g., a drawer).
      *
      * @return True if an action was taken (the drawer is closeable and was previously open).
      */
-    boolean closeBlocksDrawer();
+    boolean closeUi();
 }

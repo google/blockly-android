@@ -20,6 +20,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.OrientationHelper;
@@ -32,7 +33,7 @@ import android.widget.Button;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.FlyoutController;
-import com.google.blockly.android.ui.BlockListHelper;
+import com.google.blockly.android.ui.BlockRecyclerViewHelper;
 import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
@@ -45,8 +46,8 @@ import com.google.blockly.utils.ColorUtils;
  * displaying a single set of blocks. Set the blocks currently being shown by using
  * {@link #setCurrentCategory(FlyoutCategory)}.
  * <p/>
- * This Fragment is often used with {@link CategorySelectorFragment} which displays a list of tabs built
- * from a root category. The fragments don't interact directly, but the
+ * This Fragment is often used with {@link CategorySelectorFragment} which displays a list of tabs
+ * built from a root category. The fragments don't interact directly, but the
  * {@link FlyoutController} can be used to handle the interaction between these components.
  * <p/>
  * The behavior of the {@code FlyoutFragment} is configurable in xml. {@code closeable} and
@@ -104,7 +105,7 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
     protected int mScrollOrientation = OrientationHelper.VERTICAL;
 
     protected FlyoutCallback mViewCallback = null;
-    protected BlockListHelper mBlockListHelper;
+    protected BlockRecyclerViewHelper mRecyclerHelper;
     protected final ColorDrawable mBgDrawable = new ColorDrawable(mBgColor);
 
     @Override
@@ -151,14 +152,14 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
                 if (mViewCallback != null) {
                     // TODO (#503): replace action name with v.getTag()
                     mViewCallback.onButtonClicked(v, null /*action name*/,
-                            mBlockListHelper.getCurrentCategory());
+                            mRecyclerHelper.getCurrentCategory());
                 }
             }
         });
 
         RecyclerView recyclerView = (RecyclerView) mFlyoutView.findViewById(R.id.block_list_view);
-        mBlockListHelper = new BlockListHelper(recyclerView, getContext());
-        mBlockListHelper.setScrollOrientation(mScrollOrientation);
+        mRecyclerHelper = new BlockRecyclerViewHelper(recyclerView, getContext());
+        mRecyclerHelper.setScrollOrientation(mScrollOrientation);
         return mFlyoutView;
     }
 
@@ -190,9 +191,9 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
         mController = controller;
         mViewCallback = callback;
         if (mController == null) {
-            mBlockListHelper.reset();
+            mRecyclerHelper.reset();
         }
-        mBlockListHelper.init(controller, callback);
+        mRecyclerHelper.init(controller, callback);
     }
 
     /**
@@ -202,30 +203,26 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
      *
      * @param category The {@link FlyoutCategory} with blocks to display.
      */
-    public void setCurrentCategory(@Nullable FlyoutCategory category) {
-        mBlockListHelper.setCurrentCategory(category);
+    public void setCurrentCategory(@NonNull FlyoutCategory category) {
+        mRecyclerHelper.setCurrentCategory(category);
         updateCategoryColors(category);
         // TODO (#503): Refactor action button into category list
-        if (category != null && category.isVariableCategory()) {
+        if (category.isVariableCategory()) {
             mActionButton.setVisibility(View.VISIBLE);
             // Note: tag not currently used, but "CREATE_VARIABLE" is the key used by web
             mActionButton.setTag("CREATE_VARIABLE");
         } else {
             mActionButton.setVisibility(View.GONE);
         }
-        // TODO(#80): Add animation hooks for subclasses.
-        if (category == null) {
-            mFlyoutView.setVisibility(View.GONE);
-        } else {
-            mFlyoutView.setVisibility(View.VISIBLE);
-        }
+        // TODO(#80): Animate drawer opening and closing.
+        mFlyoutView.setVisibility(View.VISIBLE);
     }
 
     /**
      * @return The currently set category.
      */
     public FlyoutCategory getCurrentCategory() {
-        return mBlockListHelper.getCurrentCategory();
+        return mRecyclerHelper.getCurrentCategory();
     }
 
     /**
@@ -256,12 +253,14 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
      *
      * @return True if an action was taken (the drawer is closeable and was previously open).
      */
-    // TODO(#80): Add animation hooks for subclasses.
-    public boolean closeBlocksDrawer() {
+    public boolean closeUi() {
         if (!isCloseable() || mFlyoutView.getVisibility() == View.GONE) {
             return false;
         }
-        setCurrentCategory(null);
+        mRecyclerHelper.setCurrentCategory(null);
+        mFlyoutView.setVisibility(View.GONE);
+        updateCategoryColors(null);
+        mActionButton.setVisibility(View.GONE);
         return true;
     }
 
@@ -282,7 +281,7 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
      *
      * @param curCategory The category to set the color from or null.
      */
-    protected void updateCategoryColors(FlyoutCategory curCategory) {
+    protected void updateCategoryColors(@Nullable FlyoutCategory curCategory) {
         Integer maybeColor = curCategory == null ? null : curCategory.getColor();
         int bgColor = mBgColor;
         if (maybeColor != null) {
