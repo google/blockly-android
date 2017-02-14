@@ -18,7 +18,7 @@ import android.view.View;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -37,7 +37,7 @@ public abstract class FlyoutCallback {
      * @param action The callback key associated with the clicked button.
      * @param category The category that this action was in.
      */
-    public abstract void onButtonClicked(View v, String action, FlyoutCategory category);
+    public abstract void onButtonClicked(View v, String action, BlocklyCategory category);
 
     /**
      * Handles the selection of the draggable {@link BlockGroup}, including possibly adding the

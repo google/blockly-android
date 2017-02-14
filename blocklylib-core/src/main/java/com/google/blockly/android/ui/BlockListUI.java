@@ -18,7 +18,7 @@ package com.google.blockly.android.ui;
 import android.support.annotation.Nullable;
 
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 
 /**
  * An interface that specifies the actions that can be taken on a flyout ui component.
@@ -31,13 +31,13 @@ public interface BlockListUI {
     boolean isOpen();
 
     /**
-     * Sets the Flyout's current {@link FlyoutCategory}, including opening or closing the drawer.
+     * Sets the Flyout's current {@link BlocklyCategory}, including opening or closing the drawer.
      * In closeable toolboxes, {@code null} {@code category} is equivalent to closing the drawer.
      * Otherwise, the drawer will be rendered empty.
      *
-     * @param category The {@link FlyoutCategory} with blocks to display.
+     * @param category The {@link BlocklyCategory} with blocks to display.
      */
-    void setCurrentCategory(@Nullable FlyoutCategory category);
+    void setCurrentCategory(@Nullable BlocklyCategory category);
 
     /**
      * @return True if this flyout is allowed to close, false otherwise.

@@ -25,7 +25,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 import com.google.blockly.android.R;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.utils.ColorUtils;
 
 import java.util.ArrayList;
@@ -41,8 +41,8 @@ public class CategoryView extends RelativeLayout {
 
     protected CategoryTabs mCategoryTabs;
 
-    protected FlyoutCategory mRootCategory;
-    protected FlyoutCategory mCurrentCategory;
+    protected BlocklyCategory mRootCategory;
+    protected BlocklyCategory mCurrentCategory;
 
     protected int mBgAlpha = DEFAULT_CATEGORIES_BACKGROUND_ALPHA;
     protected int mBgColor = DEFAULT_CATEGORIES_BACKGROUND_COLOR;
@@ -95,7 +95,7 @@ public class CategoryView extends RelativeLayout {
     }
 
     public void reset() {
-        mCategoryTabs.setCategories(new ArrayList<FlyoutCategory>(0));
+        mCategoryTabs.setCategories(new ArrayList<BlocklyCategory>(0));
     }
 
     /**
@@ -105,13 +105,13 @@ public class CategoryView extends RelativeLayout {
      *
      * @param topLevelCategory The top-level category in the toolbox.
      */
-    public void setContents(@Nullable final FlyoutCategory topLevelCategory) {
+    public void setContents(@Nullable final BlocklyCategory topLevelCategory) {
         mRootCategory = topLevelCategory;
         if (topLevelCategory == null) {
             reset();
             return;
         }
-        List<FlyoutCategory> subcats = topLevelCategory.getSubcategories();
+        List<BlocklyCategory> subcats = topLevelCategory.getSubcategories();
 
         if (subcats.isEmpty()) {
             throw new IllegalArgumentException("Contents must be a set of subcategories.");
@@ -125,7 +125,7 @@ public class CategoryView extends RelativeLayout {
         mCategoryTabs.setTapSelectedDeselects(mCloseable);
     }
 
-    public void setCurrentCategory(@Nullable FlyoutCategory category) {
+    public void setCurrentCategory(@Nullable BlocklyCategory category) {
         if (category == mCurrentCategory) {
             return;
         }
@@ -134,7 +134,7 @@ public class CategoryView extends RelativeLayout {
         updateCategoryColors(category);
     }
 
-    public FlyoutCategory getCurrentCategory() {
+    public BlocklyCategory getCurrentCategory() {
         return mCurrentCategory;
     }
 
@@ -156,7 +156,7 @@ public class CategoryView extends RelativeLayout {
         }
     }
 
-    protected void updateCategoryColors(FlyoutCategory curCategory) {
+    protected void updateCategoryColors(BlocklyCategory curCategory) {
         Integer maybeColor = curCategory == null ? null : curCategory.getColor();
         int bgColor = DEFAULT_CATEGORIES_BACKGROUND_COLOR;
         if (maybeColor != null) {
