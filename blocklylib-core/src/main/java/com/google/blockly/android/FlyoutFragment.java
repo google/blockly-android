@@ -99,7 +99,6 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
     protected int mBgColor = DEFAULT_BLOCKS_BACKGROUND_COLOR;
 
     protected View mFlyoutView;
-    protected Button mActionButton;
     protected BlocklyController mController;
     protected WorkspaceHelper mHelper;
 
@@ -145,19 +144,6 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
         int layout = mScrollOrientation == OrientationHelper.VERTICAL
                 ? R.layout.default_flyout_start : R.layout.default_flyout_bottom;
         mFlyoutView = inflater.inflate(layout, null);
-
-        // TODO (#503): Refactor action button into category list
-        mActionButton = (Button) mFlyoutView.findViewById(R.id.action_button);
-        mActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mViewCallback != null) {
-                    // TODO (#503): replace action name with v.getTag()
-                    mViewCallback.onButtonClicked(v, null /*action name*/,
-                            mRecyclerHelper.getCurrentCategory());
-                }
-            }
-        });
 
         RecyclerView recyclerView = (RecyclerView) mFlyoutView.findViewById(R.id.block_list_view);
         mRecyclerHelper = new BlockRecyclerViewHelper(recyclerView, getContext());
@@ -208,16 +194,12 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
     public void setCurrentCategory(@NonNull FlyoutCategory category) {
         mRecyclerHelper.setCurrentCategory(category);
         updateCategoryColors(category);
-        // TODO (#503): Refactor action button into category list
-        if (category.isVariableCategory()) {
-            mActionButton.setVisibility(View.VISIBLE);
-            // Note: tag not currently used, but "CREATE_VARIABLE" is the key used by web
-            mActionButton.setTag("CREATE_VARIABLE");
+        // TODO(#80): Add animation hooks for subclasses.
+        if (category == null) {
+            mFlyoutView.setVisibility(View.GONE);
         } else {
-            mActionButton.setVisibility(View.GONE);
+            mFlyoutView.setVisibility(View.VISIBLE);
         }
-        // TODO(#80): Animate drawer opening and closing.
-        mFlyoutView.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -262,7 +244,6 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
         mRecyclerHelper.setCurrentCategory(null);
         mFlyoutView.setVisibility(View.GONE);
         updateCategoryColors(null);
-        mActionButton.setVisibility(View.GONE);
         return true;
     }
 

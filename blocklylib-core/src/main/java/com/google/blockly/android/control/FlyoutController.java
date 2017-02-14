@@ -16,6 +16,7 @@
 package com.google.blockly.android.control;
 
 import android.support.annotation.Nullable;
+import android.content.Context;
 import android.view.View;
 
 import com.google.blockly.android.ui.BlockListUI;
@@ -24,6 +25,7 @@ import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.OnDragToTrashListener;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.CategoryFactory;
 import com.google.blockly.model.FlyoutCategory;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -59,7 +61,7 @@ public class FlyoutController {
         @Override
         public void onButtonClicked(View v, String action, FlyoutCategory category) {
             // TODO (#503): Switch to using the view's tag to determine behavior
-            if (category != null && category.isVariableCategory() && mController != null) {
+            if (action == VariableCategory.ACTION_CREATE_VARIABLE && mController != null) {
                 mController.requestAddVariable("item");
             }
         }
@@ -104,7 +106,7 @@ public class FlyoutController {
             Block copy = blockInList.deepCopy();
             copy.setPosition(initialBlockPosition.x, initialBlockPosition.y);
             BlockGroup copyView = mController.addRootBlock(copy);
-            mTrashCategory.removeBlock(blockInList);
+            mTrashCategory.removeItem(index);
             closeTrash();
             return copyView;
         }
@@ -124,8 +126,10 @@ public class FlyoutController {
         }
     };
 
-    public FlyoutController(BlocklyController controller) {
+    public FlyoutController(Context context, BlocklyController controller) {
         mController = controller;
+        FlyoutCategory.CATEGORY_FACTORIES.put("VARIABLE",
+                new CategoryFactory.VariableFlyoutFactory(context, controller));
     }
 
     /**
@@ -242,8 +246,8 @@ public class FlyoutController {
             return;
         }
         List<FlyoutCategory> subCats = mToolboxRoot.getSubcategories();
-        List<Block> topBlocks = mToolboxRoot.getBlocks();
-        if (subCats.size() > 0 && topBlocks.size() > 0) {
+        List<FlyoutCategory.FlyoutItem> topItems = mToolboxRoot.getItems();
+        if (subCats.size() > 0 && topItems.size() > 0) {
             throw new IllegalArgumentException(
                     "Toolbox root cannot have both blocks and subcategories.");
         }

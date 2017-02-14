@@ -311,6 +311,13 @@ public class CategoryTabs extends RecyclerView {
     }
 
     /**
+     * Callback for when the user clicks on a category.
+     */
+    public abstract static class Callback {
+        public abstract void onCategoryClicked(FlyoutCategory category);
+    }
+
+    /**
      * ViewHolder for the display name of a category in the toolbox.
      */
     private static class TabLabelHolder extends RecyclerView.ViewHolder {

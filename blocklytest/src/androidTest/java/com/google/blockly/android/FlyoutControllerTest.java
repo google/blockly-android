@@ -19,6 +19,7 @@ import android.support.test.rule.ActivityTestRule;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.FlyoutController;
+import com.google.blockly.android.ui.BlockViewFactory;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,10 +29,12 @@ import static org.mockito.Mockito.mock;
 
 public class FlyoutControllerTest extends BlocklyTestCase {
 
-    private BlocklyController mMockController;
     private FlyoutController mFlyoutController;
     private FlyoutFragment mToolboxFlyout;
     private FlyoutFragment mTrashFlyout;
+    private BlockViewFactory mBlockViewFactory;
+
+    private BlocklyController mController;
     private CategorySelectorFragment mCategoryFragment;
     private BlocklyTestActivity mActivity;
 
@@ -42,12 +45,20 @@ public class FlyoutControllerTest extends BlocklyTestCase {
     @Before
     public void setUp() throws Exception {
         configureForUIThread();
-        mMockController = mock(BlocklyController.class);
-        mFlyoutController = new FlyoutController(mMockController);
+        mActivity = mActivityRule.getActivity();
 
         mToolboxFlyout = mock(FlyoutFragment.class);
         mCategoryFragment = mock(CategorySelectorFragment.class);
         mTrashFlyout = mock(FlyoutFragment.class);
+        mBlockViewFactory = mock(BlockViewFactory.class);
+
+        BlocklyController.Builder bob = new BlocklyController.Builder(mActivity);
+        bob.setBlockViewFactory(mBlockViewFactory);
+        bob.setToolboxUi(mToolboxFlyout, mCategoryFragment);
+        bob.setTrashUi(mTrashFlyout);
+
+        mController = bob.build();
+        mFlyoutController = new FlyoutController(mActivity, mController);
         mFlyoutController.setToolboxUiComponents(mCategoryFragment, mToolboxFlyout);
         mFlyoutController.setTrashUi(mTrashFlyout);
     }

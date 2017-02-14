@@ -124,7 +124,7 @@ public class Workspace {
      */
     // TODO(#56): Make sure the block doesn't have a parent.
     public void addBlockToTrash(Block block) {
-        mTrashCategory.addBlock(0, block);
+        mTrashCategory.addItem(0, new FlyoutCategory.BlockItem(block));
     }
 
     /**
@@ -324,7 +324,7 @@ public class Workspace {
     }
 
     public boolean hasDeletedBlocks() {
-        return !mTrashCategory.getBlocks().isEmpty();
+        return !mTrashCategory.getItems().isEmpty();
     }
 
     public FlyoutCategory getToolboxContents() {

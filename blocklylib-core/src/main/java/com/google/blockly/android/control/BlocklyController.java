@@ -115,7 +115,7 @@ public class BlocklyController {
     private Dragger mDragger;
     private VariableCallback mVariableCallback = null;
 
-    private FlyoutController mFlyoutController = new FlyoutController(this);
+    private FlyoutController mFlyoutController;
 
     // For use in bumping neighbors; instance variable only to avoid repeated allocation.
     private final ArrayList<Connection> mTempConnections = new ArrayList<>();
@@ -228,6 +228,8 @@ public class BlocklyController {
 
         mDragger = new Dragger(this);
         mTouchHandler = mDragger.buildSloppyBlockTouchHandler(mWorkspaceDragHandler);
+
+        mFlyoutController = new FlyoutController(mContext, this);
     }
 
     /**
@@ -929,7 +931,8 @@ public class BlocklyController {
         for (int i = 0; i < rootBlocks.size(); ++i) {
             unlinkViews(rootBlocks.get(i));
         }
-        List<Block> trashBlocks = mWorkspace.getTrashCategory().getBlocks();
+        List<Block> trashBlocks = new ArrayList<>();
+        mWorkspace.getTrashCategory().getAllBlocksRecursive(trashBlocks);
         for (int i = 0; i < trashBlocks.size(); i++) {
             unlinkViews(trashBlocks.get(i));
         }

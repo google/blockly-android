@@ -5,25 +5,12 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:background="@color/blockly_toolbox_bg">
-    <Button
-        android:id="@+id/action_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"
-        android:minHeight="48dip"
-        android:maxLines="1"
-        android:singleLine="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:text="@string/create_variable"/>
     <android.support.v7.widget.RecyclerView
         android:id="@+id/block_list_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
-        android:layout_below="@id/action_button"
         />
 
 </RelativeLayout>
