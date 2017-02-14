@@ -21,13 +21,18 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.Pair;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
@@ -45,11 +50,14 @@ import java.util.List;
  */
 
 public class BlockRecyclerViewHelper {
+    private static final String TAG = "BlockRVHelper";
+
     private final Handler mHandler = new Handler();
     private final WorkspacePoint mTempWorkspacePoint = new WorkspacePoint();
 
     private final RecyclerView mRecyclerView;
     private final Context mContext;
+    private final LayoutInflater mHelium;
     private final Adapter mAdapter;
     private final CategoryCallback mCategoryCb;
     private final LinearLayoutManager mLayoutManager;
@@ -63,6 +71,7 @@ public class BlockRecyclerViewHelper {
     public BlockRecyclerViewHelper(RecyclerView recyclerView, Context context) {
         mRecyclerView = recyclerView;
         mContext = context;
+        mHelium = LayoutInflater.from(mContext);
         mAdapter = new Adapter();
         mCategoryCb = new CategoryCallback();
         mLayoutManager = new LinearLayoutManager(context);
@@ -185,7 +194,7 @@ public class BlockRecyclerViewHelper {
         mTempWorkspacePoint.offset(-wsOffsetX, -wsOffsetY);
 
         BlockGroup dragGroup = mCallback.getDraggableBlockGroup(
-                mCurrentCategory.getBlocks().indexOf(rootBlock), rootBlock,
+                mCurrentCategory.getItems().indexOf(rootBlock), rootBlock,
                 mTempWorkspacePoint);
         return Pair.create(dragGroup, touchOffset);
     }
@@ -197,12 +206,12 @@ public class BlockRecyclerViewHelper {
     protected class CategoryCallback extends FlyoutCategory.Callback {
 
         @Override
-        public void onBlockAdded(int index, Block block) {
+        public void onItemAdded(int index, FlyoutCategory.FlyoutItem item) {
             mAdapter.notifyItemInserted(index);
         }
 
         @Override
-        public void onBlockRemoved(int index, Block block) {
+        public void onItemRemoved(int index, FlyoutCategory.FlyoutItem block) {
             mAdapter.notifyItemRemoved(index);
         }
 
@@ -215,41 +224,76 @@ public class BlockRecyclerViewHelper {
     /**
      * Adapts {@link Block}s in list into {@link BlockGroup}s inside {@Link FrameLayout}.
      */
-    public class Adapter extends RecyclerView.Adapter<ViewHolder> {
+    public class Adapter extends RecyclerView.Adapter<BlockViewHolder> {
 
         @Override
         public int getItemCount() {
-            return mCurrentCategory == null ? 0 : mCurrentCategory.getBlocks().size();
+            return mCurrentCategory == null ? 0 : mCurrentCategory.getItems().size();
         }
 
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new ViewHolder(mContext);
+        public BlockViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new BlockViewHolder(mContext);
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            List<Block> blocks = mCurrentCategory == null ? new ArrayList<Block>()
-                    : mCurrentCategory.getBlocks();
-            Block block = blocks.get(position);
-            BlockGroup bg = mHelper.getParentBlockGroup(block);
-            if (bg == null) {
-                bg = mHelper.getBlockViewFactory().buildBlockGroupTree(
-                        block, mConnectionManager, mTouchHandler);
-            } else {
-                bg.setTouchHandler(mTouchHandler);
+        public int getItemViewType(int position) {
+            if (mCurrentCategory == null) {
+                return -1;
             }
-            holder.mContainer.addView(bg, new FrameLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.WRAP_CONTENT,
-                    RelativeLayout.LayoutParams.WRAP_CONTENT));
-            holder.bg = bg;
+            return mCurrentCategory.getItems().get(position).getType();
         }
 
         @Override
-        public void onViewRecycled(ViewHolder holder) {
-            // BlockGroup may be reused under a new parent.
+        public void onBindViewHolder(BlockViewHolder holder, int position) {
+            List<FlyoutCategory.FlyoutItem> items = mCurrentCategory == null
+                    ? new ArrayList<FlyoutCategory.FlyoutItem>()
+                    : mCurrentCategory.getItems();
+            FlyoutCategory.FlyoutItem item = items.get(position);
+            if (item.getType() == FlyoutCategory.FlyoutItem.TYPE_BLOCK) {
+                Block block = ((FlyoutCategory.BlockItem) item).getBlock();
+                BlockGroup bg = mHelper.getParentBlockGroup(block);
+                if (bg == null) {
+                    bg = mHelper.getBlockViewFactory().buildBlockGroupTree(
+                            block, mConnectionManager, mTouchHandler);
+                } else {
+                    bg.setTouchHandler(mTouchHandler);
+                }
+                holder.mContainer.addView(bg, new FrameLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                holder.bg = bg;
+            } else if (item.getType() == FlyoutCategory.FlyoutItem.TYPE_BUTTON) {
+                FlyoutCategory.ButtonItem bItem = (FlyoutCategory.ButtonItem) item;
+                final String action = bItem.getAction();
+                Button button = (Button) mHelium.inflate(R.layout.simple_button, holder.mContainer,
+                        false);
+                holder.mContainer.addView(button);
+                button.setText(bItem.getText());
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (mCallback != null) {
+                            mCallback.onButtonClicked(v, action, mCurrentCategory);
+                        }
+                    }
+                });
+            } else if (item.getType() == FlyoutCategory.FlyoutItem.TYPE_LABEL) {
+                FlyoutCategory.LabelItem lItem = (FlyoutCategory.LabelItem) item;
+                TextView label = (TextView) mHelium.inflate(R.layout.simple_label,
+                        holder.mContainer, false);
+                holder.mContainer.addView(label);
+                label.setText(lItem.getText());
+            } else {
+                Log.e(TAG, "Tried to bind unknown item type " + item.getType());
+            }
+        }
+
+        @Override
+        public void onViewRecycled(BlockViewHolder holder) {
+            // If this was a block item BlockGroup may be reused under a new parent.
             // Only clear if it is still a child of mContainer.
-            if (holder.bg.getParent() == holder.mContainer) {
+            if (holder.bg != null && holder.bg.getParent() == holder.mContainer) {
                 holder.bg.unlinkModel();
                 holder.bg = null;
                 holder.mContainer.removeAllViews();
@@ -259,11 +303,11 @@ public class BlockRecyclerViewHelper {
         }
     }
 
-    private class ViewHolder extends RecyclerView.ViewHolder {
+    private class BlockViewHolder extends RecyclerView.ViewHolder {
         final FrameLayout mContainer;
         BlockGroup bg = null;  // Root of the currently attach block views.
 
-        ViewHolder(Context context) {
+        BlockViewHolder(Context context) {
             super(new FrameLayout(context));
             mContainer = (FrameLayout) itemView;
         }
