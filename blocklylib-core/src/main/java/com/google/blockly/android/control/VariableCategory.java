@@ -21,7 +21,7 @@ import android.support.v4.util.SimpleArrayMap;
 import com.google.blockly.android.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +29,7 @@ import java.util.Collections;
 /**
  * Automatically adds/removes blocks from the category when the list of variables changes.
  */
-public class VariableCategory extends FlyoutCategory {
+public class VariableCategory extends BlocklyCategory {
     public static final String ACTION_CREATE_VARIABLE = "CREATE_VARIABLE";
 
     private static final String GET_VAR_BLOCK = "variables_get";

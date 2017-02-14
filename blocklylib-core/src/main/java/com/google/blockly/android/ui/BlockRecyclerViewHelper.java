@@ -36,7 +36,7 @@ import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.WorkspacePoint;
 
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ public class BlockRecyclerViewHelper {
     private WorkspaceHelper mHelper;
     private ConnectionManager mConnectionManager;
     private FlyoutCallback mCallback;
-    private FlyoutCategory mCurrentCategory;
+    private BlocklyCategory mCurrentCategory;
     private BlockTouchHandler mTouchHandler;
 
     public BlockRecyclerViewHelper(RecyclerView recyclerView, Context context) {
@@ -124,7 +124,7 @@ public class BlockRecyclerViewHelper {
      *
      * @param category The category to display blocks for.
      */
-    public void setCurrentCategory(@Nullable FlyoutCategory category) {
+    public void setCurrentCategory(@Nullable BlocklyCategory category) {
         if (mCurrentCategory == category) {
             return;
         }
@@ -141,7 +141,8 @@ public class BlockRecyclerViewHelper {
     /**
      * @return The currently set category.
      */
-    public @Nullable FlyoutCategory getCurrentCategory() {
+    public @Nullable
+    BlocklyCategory getCurrentCategory() {
         return mCurrentCategory;
     }
 
@@ -203,15 +204,15 @@ public class BlockRecyclerViewHelper {
      * Internal implementation that listens to changes to the category and refreshes
      * the recycler view if it changes.
      */
-    protected class CategoryCallback extends FlyoutCategory.Callback {
+    protected class CategoryCallback extends BlocklyCategory.Callback {
 
         @Override
-        public void onItemAdded(int index, FlyoutCategory.FlyoutItem item) {
+        public void onItemAdded(int index, BlocklyCategory.CategoryItem item) {
             mAdapter.notifyItemInserted(index);
         }
 
         @Override
-        public void onItemRemoved(int index, FlyoutCategory.FlyoutItem block) {
+        public void onItemRemoved(int index, BlocklyCategory.CategoryItem block) {
             mAdapter.notifyItemRemoved(index);
         }
 
@@ -246,12 +247,12 @@ public class BlockRecyclerViewHelper {
 
         @Override
         public void onBindViewHolder(BlockViewHolder holder, int position) {
-            List<FlyoutCategory.FlyoutItem> items = mCurrentCategory == null
-                    ? new ArrayList<FlyoutCategory.FlyoutItem>()
+            List<BlocklyCategory.CategoryItem> items = mCurrentCategory == null
+                    ? new ArrayList<BlocklyCategory.CategoryItem>()
                     : mCurrentCategory.getItems();
-            FlyoutCategory.FlyoutItem item = items.get(position);
-            if (item.getType() == FlyoutCategory.FlyoutItem.TYPE_BLOCK) {
-                Block block = ((FlyoutCategory.BlockItem) item).getBlock();
+            BlocklyCategory.CategoryItem item = items.get(position);
+            if (item.getType() == BlocklyCategory.CategoryItem.TYPE_BLOCK) {
+                Block block = ((BlocklyCategory.BlockItem) item).getBlock();
                 BlockGroup bg = mHelper.getParentBlockGroup(block);
                 if (bg == null) {
                     bg = mHelper.getBlockViewFactory().buildBlockGroupTree(
@@ -263,8 +264,8 @@ public class BlockRecyclerViewHelper {
                         RelativeLayout.LayoutParams.WRAP_CONTENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT));
                 holder.bg = bg;
-            } else if (item.getType() == FlyoutCategory.FlyoutItem.TYPE_BUTTON) {
-                FlyoutCategory.ButtonItem bItem = (FlyoutCategory.ButtonItem) item;
+            } else if (item.getType() == BlocklyCategory.CategoryItem.TYPE_BUTTON) {
+                BlocklyCategory.ButtonItem bItem = (BlocklyCategory.ButtonItem) item;
                 final String action = bItem.getAction();
                 Button button = (Button) mHelium.inflate(R.layout.simple_button, holder.mContainer,
                         false);
@@ -278,8 +279,8 @@ public class BlockRecyclerViewHelper {
                         }
                     }
                 });
-            } else if (item.getType() == FlyoutCategory.FlyoutItem.TYPE_LABEL) {
-                FlyoutCategory.LabelItem lItem = (FlyoutCategory.LabelItem) item;
+            } else if (item.getType() == BlocklyCategory.CategoryItem.TYPE_LABEL) {
+                BlocklyCategory.LabelItem lItem = (BlocklyCategory.LabelItem) item;
                 TextView label = (TextView) mHelium.inflate(R.layout.simple_label,
                         holder.mContainer, false);
                 holder.mContainer.addView(label);

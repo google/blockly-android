@@ -21,24 +21,24 @@ import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.control.VariableCategory;
 
 /**
- * Class for returning a FlyoutCategory of a specific type.
+ * Class for returning a BlocklyCategory of a specific type.
  */
 public abstract class CategoryFactory {
-    public abstract FlyoutCategory obtainFlyout(String customType);
+    public abstract BlocklyCategory obtainCategory(String customType);
 
-    public static final class VariableFlyoutFactory extends CategoryFactory {
+    public static final class VariableCategoryFactory extends CategoryFactory {
         private Context mContext;
         private BlocklyController mController;
         private NameManager mVariableNameManager;
 
-        public VariableFlyoutFactory(Context context, BlocklyController controller) {
+        public VariableCategoryFactory(Context context, BlocklyController controller) {
             mContext = context;
             mController = controller;
             mVariableNameManager = mController.getWorkspace().getVariableNameManager();
         }
 
         @Override
-        public FlyoutCategory obtainFlyout(String customType) {
+        public BlocklyCategory obtainCategory(String customType) {
             return new VariableCategory(mContext, mController, mVariableNameManager);
         }
     }

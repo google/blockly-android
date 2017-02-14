@@ -51,8 +51,8 @@ public class Workspace {
             new WorkspaceStats(mVariableNameManager, mProcedureManager,
                     mConnectionManager);
 
-    private FlyoutCategory mFlyoutCategory;
-    private FlyoutCategory mTrashCategory = new FlyoutCategory();
+    private BlocklyCategory mFlyoutCategory;
+    private BlocklyCategory mTrashCategory = new BlocklyCategory();
 
     /**
      * Create a workspace.
@@ -124,7 +124,7 @@ public class Workspace {
      */
     // TODO(#56): Make sure the block doesn't have a parent.
     public void addBlockToTrash(Block block) {
-        mTrashCategory.addItem(0, new FlyoutCategory.BlockItem(block));
+        mTrashCategory.addItem(0, new BlocklyCategory.BlockItem(block));
     }
 
     /**
@@ -327,11 +327,11 @@ public class Workspace {
         return !mTrashCategory.getItems().isEmpty();
     }
 
-    public FlyoutCategory getToolboxContents() {
+    public BlocklyCategory getToolboxContents() {
         return mFlyoutCategory;
     }
 
-    public FlyoutCategory getTrashCategory() {
+    public BlocklyCategory getTrashCategory() {
         return mTrashCategory;
     }
 

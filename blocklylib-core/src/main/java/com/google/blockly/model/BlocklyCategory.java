@@ -19,7 +19,6 @@ import android.support.annotation.IntDef;
 import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 
 import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.utils.ColorUtils;
@@ -38,8 +37,8 @@ import java.util.List;
  * A category of a toolbox, which holds zero or more blocks or zero or more subcategories. Not both.
  * {@link FlyoutFragment} is responsible for displaying this.
  */
-public class FlyoutCategory {
-    private static final String TAG = "FlyoutCategory";
+public class BlocklyCategory {
+    private static final String TAG = "BlocklyCategory";
 
     public static final SimpleArrayMap<String, CategoryFactory> CATEGORY_FACTORIES
             = new SimpleArrayMap<>();
@@ -47,8 +46,8 @@ public class FlyoutCategory {
     /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
     private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
 
-    protected final List<FlyoutCategory> mSubcategories = new ArrayList<>();
-    protected final List<FlyoutItem> mItems = new ArrayList<>();
+    protected final List<BlocklyCategory> mSubcategories = new ArrayList<>();
+    protected final List<CategoryItem> mItems = new ArrayList<>();
     // As displayed in the toolbox.
     private String mCategoryName;
     private String mCustomType;
@@ -95,15 +94,15 @@ public class FlyoutCategory {
 
     /**
      * Gets the list of blocks in this category. The list should not be modified directly, instead
-     * {@link #addItem(FlyoutItem)} and {@link #removeItem(FlyoutItem)} should be used.
+     * {@link #addItem(CategoryItem)} and {@link #removeItem(CategoryItem)} should be used.
      *
      * @return The list of blocks in this category.
      */
-    public List<FlyoutItem> getItems() {
+    public List<CategoryItem> getItems() {
         return mItems;
     }
 
-    public List<FlyoutCategory> getSubcategories() {
+    public List<BlocklyCategory> getSubcategories() {
         return mSubcategories;
     }
 
@@ -116,7 +115,7 @@ public class FlyoutCategory {
      *
      * @param item The {@link Block} to add.
      */
-    public void addItem(FlyoutItem item) {
+    public void addItem(CategoryItem item) {
         mItems.add(item);
         if (mCallback != null) {
             mCallback.onItemAdded(mItems.size() - 1, item);
@@ -129,7 +128,7 @@ public class FlyoutCategory {
      * @param index The index to insert the block at.
      * @param item The {@link Block} to add.
      */
-    public void addItem(int index, FlyoutItem item) {
+    public void addItem(int index, CategoryItem item) {
         mItems.add(index, item);
         if (mCallback != null) {
             mCallback.onItemAdded(index, item);
@@ -142,7 +141,7 @@ public class FlyoutCategory {
      * @param item The item to remove.
      * @return true if the item was found and removed, false otherwise.
      */
-    public boolean removeItem(FlyoutItem item) {
+    public boolean removeItem(CategoryItem item) {
         int i = mItems.indexOf(item);
         if (i != -1) {
             return removeItem(i);
@@ -157,7 +156,7 @@ public class FlyoutCategory {
      * @return true if the item was removed, otherwise an OOBE will be thrown.
      */
     public boolean removeItem(int index) {
-        FlyoutItem item = mItems.remove(index);
+        CategoryItem item = mItems.remove(index);
         if (mCallback != null) {
             mCallback.onItemRemoved(index, item);
         }
@@ -172,8 +171,8 @@ public class FlyoutCategory {
      */
     public boolean removeBlock(Block block) {
         for (int i = 0; i < mItems.size(); i++) {
-            FlyoutItem item = mItems.get(i);
-            if (item.getType() == FlyoutItem.TYPE_BLOCK) {
+            CategoryItem item = mItems.get(i);
+            if (item.getType() == CategoryItem.TYPE_BLOCK) {
                 Block currBlock = ((BlockItem)item).getBlock();
                 if (currBlock == block) {
                     return removeItem(i);
@@ -211,8 +210,8 @@ public class FlyoutCategory {
      * @param blocks The list to add to, which is not cleared before adding blocks.
      */
     public void getAllBlocksRecursive(List<Block> blocks) {
-        for (FlyoutItem item : mItems) {
-            if (item.getType() == FlyoutItem.TYPE_BLOCK) {
+        for (CategoryItem item : mItems) {
+            if (item.getType() == CategoryItem.TYPE_BLOCK) {
                 blocks.add(((BlockItem) item).getBlock());
             }
         }
@@ -227,18 +226,18 @@ public class FlyoutCategory {
      * @param parser The {@link XmlPullParser} to read from.
      * @param factory The {@link BlockFactory} to use to generate blocks from their names.
      *
-     * @return A new {@link FlyoutCategory} with the contents given by the XML.
+     * @return A new {@link BlocklyCategory} with the contents given by the XML.
      * @throws IOException when reading from the parser fails.
      * @throws XmlPullParserException when reading from the parser fails.
      */
-    public static FlyoutCategory fromXml(XmlPullParser parser, BlockFactory factory)
+    public static BlocklyCategory fromXml(XmlPullParser parser, BlockFactory factory)
             throws IOException, XmlPullParserException {
-        FlyoutCategory result;
+        BlocklyCategory result;
         String customType = parser.getAttributeValue("", "custom");
         if (CATEGORY_FACTORIES.containsKey(customType)) {
-            result = CATEGORY_FACTORIES.get(customType).obtainFlyout(customType);
+            result = CATEGORY_FACTORIES.get(customType).obtainCategory(customType);
         } else {
-            result = new FlyoutCategory();
+            result = new BlocklyCategory();
         }
         result.mCategoryName = parser.getAttributeValue("", "name");
         result.mCustomType = parser.getAttributeValue("", "custom");
@@ -260,7 +259,7 @@ public class FlyoutCategory {
             switch (eventType) {
                 case XmlPullParser.START_TAG:
                     if (parser.getName().equalsIgnoreCase("category")) {
-                        result.addSubcategory(FlyoutCategory.fromXml(parser, factory));
+                        result.addSubcategory(BlocklyCategory.fromXml(parser, factory));
                     } else if (parser.getName().equalsIgnoreCase("block")) {
                         result.addItem(new BlockItem(factory.fromXml(parser)));
                     } else if (parser.getName().equalsIgnoreCase("shadow")) {
@@ -284,7 +283,7 @@ public class FlyoutCategory {
     /**
      * @param subcategory The category to add under this category.
      */
-    public void addSubcategory(FlyoutCategory subcategory) {
+    public void addSubcategory(BlocklyCategory subcategory) {
         mSubcategories.add(subcategory);
     }
 
@@ -299,7 +298,7 @@ public class FlyoutCategory {
          * @param index The index the item was added at.
          * @param item The item that was added.
          */
-        public void onItemAdded(int index, FlyoutItem item) {}
+        public void onItemAdded(int index, CategoryItem item) {}
 
         /**
          * Called when an item is removed from this category.
@@ -307,7 +306,7 @@ public class FlyoutCategory {
          * @param index The index the item was previously at.
          * @param item The item that was removed.
          */
-        public void onItemRemoved(int index, FlyoutItem item) {}
+        public void onItemRemoved(int index, CategoryItem item) {}
 
         /**
          * Called when the category is cleared, which removes all its subcategories and items.
@@ -316,9 +315,9 @@ public class FlyoutCategory {
     }
 
     /**
-     * Wraps items that can be displayed as part of a {@link FlyoutCategory}.
+     * Wraps items that can be displayed as part of a {@link BlocklyCategory}.
      */
-    public abstract static class FlyoutItem {
+    public abstract static class CategoryItem {
         @Retention(RetentionPolicy.SOURCE)
         @IntDef({TYPE_BLOCK, TYPE_LABEL, TYPE_BUTTON})
         public @interface ItemType {
@@ -329,11 +328,11 @@ public class FlyoutCategory {
 
         private final @ItemType int mType;
 
-        public FlyoutItem(@ItemType int type) {
+        public CategoryItem(@ItemType int type) {
             mType = type;
         }
 
-        public @FlyoutItem.ItemType int getType() {
+        public @CategoryItem.ItemType int getType() {
             return mType;
         }
     }
@@ -341,7 +340,7 @@ public class FlyoutCategory {
     /**
      * Flyout item that contains a stack blocks.
      */
-    public static class BlockItem extends FlyoutItem {
+    public static class BlockItem extends CategoryItem {
         private final Block mBlock;
 
         public BlockItem(Block block) {
@@ -358,7 +357,7 @@ public class FlyoutCategory {
      * Flyout item representing a clickable button, such as "Add Variable".
      * TODO (#503): Support style and callback spec
      */
-    public static class ButtonItem extends FlyoutItem {
+    public static class ButtonItem extends CategoryItem {
         private final String mText;
         private final String mAction;
         public ButtonItem(String text, String action) {
@@ -380,7 +379,7 @@ public class FlyoutCategory {
      * Flyout item representing a label between groups of blocks.
      * TODO (#503): Support styling
      */
-    public static class LabelItem extends FlyoutItem {
+    public static class LabelItem extends CategoryItem {
         private final String mText;
 
         public LabelItem(String text) {

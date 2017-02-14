@@ -27,17 +27,16 @@ import android.view.ViewGroup;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.CategorySelectorUI;
-import com.google.blockly.android.ui.CategoryTabs;
 import com.google.blockly.android.ui.CategoryView;
 import com.google.blockly.android.ui.Rotation;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 
 /**
  * Creates a set of tabs of Blockly categories. The set of categories should be provided by
- * {@link #setContents(FlyoutCategory)}. Interaction with other fragments is not handled by this
+ * {@link #setContents(BlocklyCategory)}. Interaction with other fragments is not handled by this
  * class and should be done by registering a callback with
- * {@link #setCategoryCallback(CategoryTabs.Callback)}.
+ * {@link #setCategoryCallback(CategorySelectorUI.Callback)}.
  *
  */
 public class CategorySelectorFragment extends Fragment implements CategorySelectorUI {
@@ -80,15 +79,15 @@ public class CategorySelectorFragment extends Fragment implements CategorySelect
         return mCategoryView;
     }
 
-    public void setContents(FlyoutCategory rootCategory) {
+    public void setContents(BlocklyCategory rootCategory) {
         mCategoryView.setContents(rootCategory);
     }
 
-    public void setCurrentCategory(FlyoutCategory category) {
+    public void setCurrentCategory(BlocklyCategory category) {
         mCategoryView.setCurrentCategory(category);
     }
 
-    public FlyoutCategory getCurrentCategory() {
+    public BlocklyCategory getCurrentCategory() {
         return mCategoryView.getCurrentCategory();
     }
 

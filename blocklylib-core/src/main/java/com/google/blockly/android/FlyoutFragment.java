@@ -29,7 +29,6 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.FlyoutController;
@@ -39,14 +38,14 @@ import com.google.blockly.android.ui.CategorySelectorUI;
 import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.utils.ColorUtils;
 
 /**
  * A drawer UI to show a set of {@link Block Blocks} one can drag into the workspace. The
- * available blocks are provided by a {@link FlyoutCategory}, with this fragment
+ * available blocks are provided by a {@link BlocklyCategory}, with this fragment
  * displaying a single set of blocks. Set the blocks currently being shown by using
- * {@link #setCurrentCategory(FlyoutCategory)}.
+ * {@link #setCurrentCategory(BlocklyCategory)}.
  * <p/>
  * This Fragment is often used with {@link CategorySelectorFragment} which displays a list of tabs
  * built from a root category. The fragments don't interact directly, but the
@@ -185,13 +184,13 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
     }
 
     /**
-     * Sets the Flyout's current {@link FlyoutCategory}, including opening or closing the drawer.
+     * Sets the Flyout's current {@link BlocklyCategory}, including opening or closing the drawer.
      * In closeable toolboxes, {@code null} {@code category} is equivalent to closing the drawer.
      * Otherwise, the drawer will be rendered empty.
      *
-     * @param category The {@link FlyoutCategory} with blocks to display.
+     * @param category The {@link BlocklyCategory} with blocks to display.
      */
-    public void setCurrentCategory(@NonNull FlyoutCategory category) {
+    public void setCurrentCategory(@NonNull BlocklyCategory category) {
         mRecyclerHelper.setCurrentCategory(category);
         updateCategoryColors(category);
         // TODO(#80): Add animation hooks for subclasses.
@@ -205,7 +204,7 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
     /**
      * @return The currently set category.
      */
-    public FlyoutCategory getCurrentCategory() {
+    public BlocklyCategory getCurrentCategory() {
         return mRecyclerHelper.getCurrentCategory();
     }
 
@@ -264,7 +263,7 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
      *
      * @param curCategory The category to set the color from or null.
      */
-    protected void updateCategoryColors(@Nullable FlyoutCategory curCategory) {
+    protected void updateCategoryColors(@Nullable BlocklyCategory curCategory) {
         Integer maybeColor = curCategory == null ? null : curCategory.getColor();
         int bgColor = mBgColor;
         if (maybeColor != null) {

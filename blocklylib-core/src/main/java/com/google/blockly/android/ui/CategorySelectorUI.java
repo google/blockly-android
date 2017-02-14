@@ -18,7 +18,7 @@ package com.google.blockly.android.ui;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 
 /**
  * An interface that specifies the actions that can be taken on a category selector ui component.
@@ -30,7 +30,7 @@ public interface CategorySelectorUI {
      *
      * @param rootCategory The top-level category in the toolbox.
      */
-    void setContents(@NonNull FlyoutCategory rootCategory);
+    void setContents(@NonNull BlocklyCategory rootCategory);
 
     /**
      * Sets the currently selected category. If {@code category} is null, or if the category is not
@@ -38,12 +38,12 @@ public interface CategorySelectorUI {
      *
      * @param category the category to use as currently selected.
      */
-    void setCurrentCategory(@Nullable FlyoutCategory category);
+    void setCurrentCategory(@Nullable BlocklyCategory category);
 
     /**
      * @return the current category.
      */
-    FlyoutCategory getCurrentCategory();
+    BlocklyCategory getCurrentCategory();
 
     /**
      * @param categoryCallback the callback for when the user clicks on a category.
@@ -60,6 +60,6 @@ public interface CategorySelectorUI {
          * in {@link com.google.blockly.android.control.FlyoutController}).
          * @param category The clicked category.
          */
-        public abstract void onCategoryClicked(@NonNull FlyoutCategory category);
+        public abstract void onCategoryClicked(@NonNull BlocklyCategory category);
     }
 }
