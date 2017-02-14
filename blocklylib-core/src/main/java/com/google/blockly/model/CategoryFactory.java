@@ -14,32 +14,9 @@
  */
 package com.google.blockly.model;
 
-import android.content.Context;
-
-import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.control.NameManager;
-import com.google.blockly.android.control.VariableCategory;
-
 /**
  * Class for returning a BlocklyCategory of a specific type.
  */
 public abstract class CategoryFactory {
     public abstract BlocklyCategory obtainCategory(String customType);
-
-    public static final class VariableCategoryFactory extends CategoryFactory {
-        private Context mContext;
-        private BlocklyController mController;
-        private NameManager mVariableNameManager;
-
-        public VariableCategoryFactory(Context context, BlocklyController controller) {
-            mContext = context;
-            mController = controller;
-            mVariableNameManager = mController.getWorkspace().getVariableNameManager();
-        }
-
-        @Override
-        public BlocklyCategory obtainCategory(String customType) {
-            return new VariableCategory(mContext, mController, mVariableNameManager);
-        }
-    }
 }
