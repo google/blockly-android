@@ -13,7 +13,7 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android.control;
+package com.google.blockly.model;
 
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -23,13 +23,7 @@ import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
-import com.google.blockly.model.Block;
-import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.Connection;
-import com.google.blockly.model.Field;
-import com.google.blockly.model.Input;
-import com.google.blockly.model.Workspace;
-import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import org.json.JSONArray;
@@ -366,7 +360,7 @@ public abstract class BlocklyEvent {
          * @param oldValue The original value.
          * @param newValue The new value.
          */
-        private ChangeEvent(@ChangeElement String element, @NonNull Workspace workspace,
+        public ChangeEvent(@ChangeElement String element, @NonNull Workspace workspace,
                             @NonNull Block block, @Nullable Field field,
                             @Nullable String oldValue, @Nullable String newValue) {
             super(TYPE_CHANGE, workspace.getId(), null, block.getId());
@@ -520,7 +514,7 @@ public abstract class BlocklyEvent {
          * @param workspace The workspace containing the deletion.
          * @param block The deleted block (or to-be-deleted block), with all children attached.
          */
-        DeleteEvent(@NonNull Workspace workspace, @NonNull Block block) {
+        public DeleteEvent(@NonNull Workspace workspace, @NonNull Block block) {
             super(TYPE_DELETE, workspace.getId(), null, block.getId());
             try {
                 mOldXml = BlocklyXmlHelper.writeBlockToXml(block);
@@ -539,7 +533,7 @@ public abstract class BlocklyEvent {
          * @param json The serialized DeleteEvent.
          * @throws JSONException
          */
-        DeleteEvent(@NonNull JSONObject json) throws JSONException {
+        public DeleteEvent(@NonNull JSONObject json) throws JSONException {
             super(TYPE_DELETE, json);
             if (TextUtils.isEmpty(mBlockId)) {
                 throw new JSONException(TYPENAME_DELETE + " requires " + JSON_BLOCK_ID);
@@ -616,7 +610,7 @@ public abstract class BlocklyEvent {
          * @param workspace The workspace containing the moved blocks.
          * @param block The root block of the move, while it is still in its original position.
          */
-        MoveEvent(@NonNull Workspace workspace, @NonNull Block block) {
+        public MoveEvent(@NonNull Workspace workspace, @NonNull Block block) {
             super(TYPE_MOVE, workspace.getId(), null, block.getId());
 
             Connection parentConnection = block.getParentConnection();
@@ -645,7 +639,7 @@ public abstract class BlocklyEvent {
          * @param json The serialized MoveEvent.
          * @throws JSONException
          */
-        MoveEvent(JSONObject json) throws JSONException {
+        public MoveEvent(JSONObject json) throws JSONException {
             super(TYPE_MOVE, json);
             if (TextUtils.isEmpty(mBlockId)) {
                 throw new JSONException(TYPENAME_MOVE + " requires " + JSON_BLOCK_ID);
@@ -814,7 +808,7 @@ public abstract class BlocklyEvent {
          * @param oldValue The value before the event. Booleans are mapped to "true" and "false".
          * @param newValue The value after the event. Booleans are mapped to "true" and "false".
          */
-        private UIEvent(@BlocklyEvent.UIElement String element, @NonNull Workspace workspace,
+        public UIEvent(@BlocklyEvent.UIElement String element, @NonNull Workspace workspace,
                         @Nullable Block block, String oldValue, String newValue) {
             super(TYPE_UI, workspace.getId(), null, block == null ? null : block.getId());
             this.mUiElement = validateUiElement(element);
@@ -828,7 +822,7 @@ public abstract class BlocklyEvent {
          * @param json The serialized UIEvent.
          * @throws JSONException
          */
-        UIEvent(JSONObject json) throws JSONException {
+        public UIEvent(JSONObject json) throws JSONException {
             super(TYPE_UI, json);
             String element = json.getString(JSON_ELEMENT);
             try {

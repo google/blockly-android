@@ -45,6 +45,7 @@ import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Connection;
