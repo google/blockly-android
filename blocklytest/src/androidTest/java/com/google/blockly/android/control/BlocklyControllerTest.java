@@ -28,6 +28,7 @@ import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTestStrings;
+import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Workspace;

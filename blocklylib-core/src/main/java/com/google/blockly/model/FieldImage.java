@@ -88,7 +88,7 @@ public final class FieldImage extends Field {
      * <p/>
      * Changes will induce a {@link Field.Observer#onValueChanged}, even though FieldImages do not
      * store a value.  This trigger updates to the matching Fieldview, but in might also generate a
-     * no-op {@link com.google.blockly.android.control.BlocklyEvent.ChangeEvent}.
+     * no-op {@link BlocklyEvent.ChangeEvent}.
      *
      * @param src A web address or Blockly reference to the image.
      * @param width The display width of the image in dips.

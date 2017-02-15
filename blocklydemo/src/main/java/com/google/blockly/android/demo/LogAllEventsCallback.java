@@ -4,7 +4,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.control.BlocklyEvent;
+import com.google.blockly.model.BlocklyEvent;
 
 import org.json.JSONException;
 

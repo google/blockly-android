@@ -18,7 +18,7 @@ package com.google.blockly.model;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.blockly.android.control.BlocklyEvent.ChangeEvent;
+import com.google.blockly.model.BlocklyEvent.ChangeEvent;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
