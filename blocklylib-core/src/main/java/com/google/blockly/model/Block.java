@@ -39,7 +39,6 @@ public class Block {
     // These values are immutable once a block is created
     private final String mUuid;
     private final String mType;
-    private final int mCategory;
     private final Connection mOutputConnection;
     private final Connection mNextConnection;
     private final Connection mPreviousConnection;
@@ -65,13 +64,11 @@ public class Block {
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
 
-    private Block(@Nullable String uuid, String name, int category, int color,
-                  Connection outputConnection, Connection nextConnection,
-                  Connection previousConnection, ArrayList<Input> inputList, boolean inputsInline,
-                  boolean inputsInlineModified) {
+    private Block(@Nullable String uuid, String name, int color, Connection outputConnection,
+                  Connection nextConnection, Connection previousConnection,
+                  ArrayList<Input> inputList, boolean inputsInline, boolean inputsInlineModified) {
         mUuid = (uuid != null) ? uuid : UUID.randomUUID().toString();
         mType = name;
-        mCategory = category;
 
         // This constructor reuses Connections and Inputs instead of copying them.  Consider using
         // a BlockFactory and Builders instead of creating Blocks directly.
@@ -853,7 +850,6 @@ public class Block {
         // These values are immutable once a block is created
         private String mUuid;
         private String mType;
-        private int mCategory;
         private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
         private Connection mOutputConnection;
         private Connection mNextConnection;
@@ -881,7 +877,6 @@ public class Block {
         public Builder(Block block) {
             this(block.mType);
             mColor = block.mColor;
-            mCategory = block.mCategory;
 
             mOutputConnection = Connection.cloneConnection(block.mOutputConnection);
             mNextConnection = Connection.cloneConnection(block.mNextConnection);
@@ -931,11 +926,6 @@ public class Block {
 
         public Builder setColor(int color) {
             mColor = color;
-            return this;
-        }
-
-        public Builder setCategory(int category) {
-            mCategory = category;
             return this;
         }
 
@@ -1036,7 +1026,7 @@ public class Block {
             if (mIsShadow && containsVariableField(mInputs)) {
                 throw new IllegalArgumentException("Shadow blocks cannot contain variables");
             }
-            Block b = new Block(mUuid, mType, mCategory, mColor, mOutputConnection, mNextConnection,
+            Block b = new Block(mUuid, mType, mColor, mOutputConnection, mNextConnection,
                     mPreviousConnection, mInputs, mInputsInline, mInputsInlineModified);
             b.mTooltip = mTooltip;
             b.mComment = mComment;
