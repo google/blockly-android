@@ -26,7 +26,7 @@ import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.OnDragToTrashListener;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlocklyCategory;
-import com.google.blockly.model.CategoryFactory;
+import com.google.blockly.model.VariableCategoryFactory;
 import com.google.blockly.model.WorkspacePoint;
 
 import java.util.List;
@@ -60,7 +60,7 @@ public class FlyoutController {
     protected FlyoutCallback mToolboxCallback = new FlyoutCallback() {
         @Override
         public void onButtonClicked(View v, String action, BlocklyCategory category) {
-            if (action == VariableCategory.ACTION_CREATE_VARIABLE && mController != null) {
+            if (action == VariableCategoryFactory.ACTION_CREATE_VARIABLE && mController != null) {
                 mController.requestAddVariable("item");
             }
         }
@@ -128,7 +128,7 @@ public class FlyoutController {
     public FlyoutController(Context context, BlocklyController controller) {
         mController = controller;
         BlocklyCategory.CATEGORY_FACTORIES.put("VARIABLE",
-                new CategoryFactory.VariableCategoryFactory(context, controller));
+                new VariableCategoryFactory(context, controller));
     }
 
     /**

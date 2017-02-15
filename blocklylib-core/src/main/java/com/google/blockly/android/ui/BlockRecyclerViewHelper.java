@@ -45,8 +45,6 @@ import java.util.List;
 /**
  * Provides the standard configuration for a {@link android.support.v7.widget.RecyclerView}
  * to display a list of blocks, labels, and buttons.
- *
- * TODO (#503): implement labels and buttons
  */
 
 public class BlockRecyclerViewHelper {
