@@ -291,6 +291,7 @@ public class BlocklyActivityHelper {
      */
     public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper helper) {
         try {
+            @SuppressWarnings("unchecked")
             Class<? extends BlockViewFactory> clazz =
                     (Class<? extends BlockViewFactory>)Class.forName(
                             "com.google.blockly.android.ui.vertical.VerticalBlockViewFactory");
