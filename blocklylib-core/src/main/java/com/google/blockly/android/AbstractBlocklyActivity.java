@@ -474,8 +474,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 Gravity.START);
         // Add navigation drawer above the content view, as the first drawer.
         mDrawerLayout.addView(mNavigationDrawer, 1, lp);
-        // TODO(#362): Replace NAVIGATION_MODE_STANDARD, expose Up versus Back alternatives.
-        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
         // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow,
