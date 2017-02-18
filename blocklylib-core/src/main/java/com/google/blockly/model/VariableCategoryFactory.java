@@ -17,7 +17,6 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.support.v4.util.SimpleArrayMap;
-import android.util.Log;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
@@ -26,6 +25,8 @@ import com.google.blockly.android.control.NameManager;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import static com.google.blockly.model.BlockFactory.block;
 
 /**
  * Class for building {@link BlocklyCategory categories} for variable
@@ -80,9 +81,9 @@ public final class VariableCategoryFactory extends CategoryFactory {
         if (variables.size() == 0) {
             return;
         }
-        Block setter = mBlockFactory.obtainBlock(SET_VAR_BLOCK, null);
+        Block setter = mBlockFactory.obtain(block().ofType(SET_VAR_BLOCK));
         category.addItem(new BlocklyCategory.BlockItem(setter));
-        Block changer = mBlockFactory.obtainBlock(CHANGE_VAR_BLOCK, null);
+        Block changer = mBlockFactory.obtain(block().ofType(CHANGE_VAR_BLOCK));
         category.addItem(new BlocklyCategory.BlockItem(changer));
         ArrayList<String> varNames = new ArrayList<>(variables.size());
         for (int i = 0; i < variables.size(); i++) {
@@ -91,7 +92,7 @@ public final class VariableCategoryFactory extends CategoryFactory {
         Collections.sort(varNames);
 
         for (int i = 0; i < varNames.size(); i++) {
-            Block varBlock = mBlockFactory.obtainBlock(GET_VAR_BLOCK, null);
+            Block varBlock = mBlockFactory.obtain(block().ofType(GET_VAR_BLOCK));
             varBlock.getFieldByName(GET_VAR_FIELD).setFromString(varNames.get(i));
             category.addItem(new BlocklyCategory.BlockItem(varBlock));
         }

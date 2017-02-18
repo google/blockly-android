@@ -20,7 +20,6 @@ import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,9 +32,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.blockly.utils.MoreAsserts.assertStringNotEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+
 
 /**
  * Tests for {@link BlockFactory}.
@@ -57,8 +58,7 @@ public class BlockFactoryTest {
 
     @Test
     public void testJson() throws JSONException, BlockLoadingException {
-        JSONObject blockDefinitionJson = new JSONObject(BlockTestStrings.TEST_JSON_STRING);
-        Block block = mBlockFactory.fromJson("test_block", blockDefinitionJson);
+        Block block = mBlockFactory.obtain(block().fromJson(BlockTestStrings.TEST_JSON_STRING));
 
         assertWithMessage("Block was null after initializing from JSON").that(block).isNotNull();
         assertWithMessage("Type not set correctly").that(block.getType()).isEqualTo("test_block");
@@ -70,9 +70,9 @@ public class BlockFactoryTest {
 
     @Test
     public void testLoadBlocks() {
-        List<Block> blocks = mBlockFactory.getAllBlocks();
+        List<BlockDefinition> definitions = mBlockFactory.getAllBlockDefinitions();
         assertWithMessage("BlockFactory failed to load all blocks.")
-                .that(blocks.size()).isEqualTo(21);
+                .that(definitions.size()).isEqualTo(21);
     }
 
     @Test

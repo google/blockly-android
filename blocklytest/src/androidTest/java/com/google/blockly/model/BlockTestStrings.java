@@ -21,7 +21,7 @@ public class BlockTestStrings {
     public static final WorkspacePoint DEFAULT_POSITION = new WorkspacePoint(37, 13);
 
     public static final String TEST_JSON_STRING = "{"
-            + "  \"id\": \"test_block\","
+            + "  \"type\": \"test_block\","
             + "  \"message0\": \"%1 %2 %3 %4  %5 for each %6 %7 in %8 do %9\","
             + "  \"args0\": ["
             + "    {"

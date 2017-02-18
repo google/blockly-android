@@ -19,14 +19,21 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.android.control.ConnectionManager;
+import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.Field;
 
+import org.json.JSONException;
+import org.json.JSONStringer;
+
 import java.util.List;
+
+import static com.google.blockly.model.BlockFactory.block;
 
 /**
  * Utils for setting up blocks during testing.
@@ -84,5 +91,47 @@ public final class TestUtils {
             }
         }
         return null;  // Not found.
+    }
+
+    public static BlockDefinition getProcedureDefinitionBlockDefinition(String procName) {
+        String jsonDefPrefix = "{\"type\":";
+        String jsonDefMiddle = ", \"message0\":\"%1\",\"args0\":["
+                + "{\"type\":\"field_input\",\"name\":\"name\",\"text\":";
+        String jsonDefSuffix = "}]}";
+        try {
+            String typeQuotedAndEscaped = new JSONStringer()
+                    .value(ProcedureManager.PROCEDURE_DEFINITION_PREFIX + procName)
+                    .toString();
+            String nameQuotedAndEscaped = new JSONStringer()
+                    .value(procName)
+                    .toString();
+            return new BlockDefinition(
+                    jsonDefPrefix + typeQuotedAndEscaped
+                    + jsonDefMiddle + nameQuotedAndEscaped
+                    + jsonDefSuffix);
+        } catch (JSONException e) {
+            throw new IllegalStateException("Failed to create and parse JSON block definition.");
+        }
+    }
+
+    public static BlockDefinition getProcedureReferenceBlockDefinition(String procName) {
+        String jsonDefPrefix = "{\"type\":";
+        String jsonDefMiddle = ", \"message0\":\"%1\",\"args0\":["
+                + "{\"type\":\"field_input\",\"name\":\"name\",\"text\":";
+        String jsonDefSuffix = "}]}";
+        try {
+            String typeQuotedAndEscaped = new JSONStringer()
+                    .value(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + procName)
+                    .toString();
+            String nameQuotedAndEscaped = new JSONStringer()
+                    .value(procName)
+                    .toString();
+            return new BlockDefinition(
+                    jsonDefPrefix + typeQuotedAndEscaped
+                            + jsonDefMiddle + nameQuotedAndEscaped
+                            + jsonDefSuffix);
+        } catch (JSONException e) {
+            throw new IllegalStateException("Failed to create and parse JSON block definition.");
+        }
     }
 }

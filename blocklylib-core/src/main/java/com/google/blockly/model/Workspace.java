@@ -208,7 +208,7 @@ public class Workspace {
      */
     public void loadWorkspaceContents(InputStream is)
             throws BlocklyParserException {
-        List<Block> newBlocks = BlocklyXmlHelper.loadFromXml(is, mBlockFactory, mStats);
+        List<Block> newBlocks = BlocklyXmlHelper.loadFromXml(is, mBlockFactory);
 
         // Successfully deserialized.  Update workspace.
         // TODO: (#22) Add proper variable support.

@@ -16,6 +16,7 @@ import org.junit.Test;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -42,7 +43,7 @@ public class CodeGeneratorServiceTest {
             return;  // See testEscapeFieldDataForAndroidWebView()
         }
 
-        Block block = mBlockFactory.obtainBlock("text", null);
+        Block block = mBlockFactory.obtain(block().ofType("text"));
         block.getFieldByName("TEXT").setFromString("apostrophe ' end");
 
         String xml = toXml(block);
@@ -66,7 +67,7 @@ public class CodeGeneratorServiceTest {
             return;  // See testEscapeFieldDataForChromium()
         }
 
-        Block block = mBlockFactory.obtainBlock("text", null);
+        Block block = mBlockFactory.obtain(block().ofType("text"));
         block.getFieldByName("TEXT").setFromString("apostrophe ' end");
 
         String xml = toXml(block);

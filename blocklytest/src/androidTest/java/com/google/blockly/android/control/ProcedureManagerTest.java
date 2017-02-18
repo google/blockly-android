@@ -15,11 +15,16 @@
 
 package com.google.blockly.android.control;
 
+import android.support.test.InstrumentationRegistry;
+
+import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.Input;
 
+import org.json.JSONStringer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,6 +32,7 @@ import org.junit.rules.ExpectedException;
 
 import java.util.List;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -35,25 +41,20 @@ import static com.google.common.truth.Truth.assertThat;
 public class ProcedureManagerTest {
     private static final String PROCEDURE_NAME = "procedure name";
 
+    private BlockFactory mFactory;
     private ProcedureManager mProcedureManager;
     private Block mProcedureDefinition;
     private Block mProcedureReference;
 
     @Before
     public void setUp() throws Exception {
+        mFactory = new BlockFactory(InstrumentationRegistry.getTargetContext());
         mProcedureManager = new ProcedureManager();
 
-        Input nameInput = new Input.InputDummy("dummyName", Input.ALIGN_CENTER);
-        Field nameField = new FieldInput("name", PROCEDURE_NAME);
-        nameInput.add(nameField);
-        mProcedureDefinition = new Block.Builder(
-                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test")
-                .addInput(nameInput)
-                .build();
-        mProcedureReference = new Block.Builder(
-                ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test")
-                .addInput(nameInput)
-                .build();
+        mProcedureDefinition = mFactory.obtain(
+                block().fromDefinition(TestUtils.getProcedureDefinitionBlockDefinition("test")));
+        mProcedureReference = mFactory.obtain(
+                block().fromDefinition(TestUtils.getProcedureReferenceBlockDefinition("test")));
     }
 
     @Rule
@@ -76,7 +77,7 @@ public class ProcedureManagerTest {
 
         // Adding two block definitions with the same name should change the name of the new
         // block.
-        Block secondProcedureDefinition = (new Block.Builder(mProcedureDefinition)).build();
+        Block secondProcedureDefinition = mFactory.obtain(block().copyOf(mProcedureDefinition));
 
         mProcedureManager.addDefinition(secondProcedureDefinition);
         assertThat(PROCEDURE_NAME.equalsIgnoreCase(
@@ -125,12 +126,10 @@ public class ProcedureManagerTest {
 
     @Test
     public void testMissingNames() {
-        mProcedureDefinition = new Block.Builder(
-                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test")
-                .build();
-        mProcedureReference = new Block.Builder(
-                ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test")
-                .build();
+        mProcedureDefinition = mFactory.obtain(
+                block().ofType(ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test"));
+        mProcedureReference = mFactory.obtain(
+                block().ofType(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test"));
 
         thrown.expect(IllegalArgumentException.class);
         mProcedureManager.addDefinition(mProcedureDefinition);

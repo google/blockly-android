@@ -15,7 +15,10 @@
 
 package com.google.blockly.android.control;
 
+import android.support.test.InstrumentationRegistry;
+
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
@@ -26,16 +29,19 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link ConnectionManager}
  */
 public class ConnectionManagerTest {
+    private BlockFactory factory;
     private ConnectionManager manager;
 
     @Before
     public void setUp() {
+        factory = new BlockFactory(InstrumentationRegistry.getTargetContext());
         manager = new ConnectionManager();
     }
 
@@ -354,7 +360,7 @@ public class ConnectionManagerTest {
     private Connection createConnection(float x, float y, int type, boolean shadow) {
         Connection conn = new Connection(type, null);
         conn.setPosition(x, y);
-        conn.setBlock(new Block.Builder("test").setShadow(shadow).build());
+        conn.setBlock(factory.obtain(block().shadow().ofType("test")));
         return conn;
     }
 }

@@ -39,6 +39,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
@@ -94,7 +95,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     public void testAddRootBlock() {
         assertThat(mEventsFired.isEmpty()).isTrue();
 
-        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        Block block = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("connectTarget"));
         mController.addRootBlock(block);
 
         assertThat(mWorkspace.getRootBlocks().contains(block)).isTrue();
@@ -105,7 +107,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     @Test
     public void testTrashRootBlock() {
-        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        Block block = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("connectTarget"));
         mController.addRootBlock(block);
 
         mEventsFired.clear();
@@ -119,7 +122,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     @Test
     public void testTrashRootBlockNotDeletable() {
-        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        Block block = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("connectTarget"));
         block.setDeletable(false);
         mController.addRootBlock(block);
 
@@ -132,7 +136,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     @Test
     public void testTrashRootBlockIgnoringDeletable() {
-        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        Block block = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("connectTarget"));
         block.setDeletable(false);
         mController.addRootBlock(block);
 
@@ -147,7 +152,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     @Test
     public void testAddBlockFromTrash() {
-        Block block = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
+        Block block = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("connectTarget"));
         mController.addRootBlock(block);
         mController.trashRootBlock(block);
 
@@ -172,15 +178,17 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_outputToInput(boolean withViews) {
         // Setup
-        Block target = mBlockFactory.obtainBlock("simple_input_output", "connectTarget");
-        Block source = mBlockFactory.obtainBlock("simple_input_output", "connectSource");
+        Block target = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("connectTarget"));
+        Block source = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("connectSource"));
         Connection targetConnection = target.getOnlyValueInput().getConnection();
         Connection sourceConnection = source.getOutputConnection();
         mController.addRootBlock(target);
         mController.addRootBlock(source);
 
-        Block shadow = mBlockFactory.obtainBlockFromJson();
-                new Block.Builder(target).setUuid("connectShadow").setShadow(true).build();
+        Block shadow = mBlockFactory.obtain(
+                block().shadow().copyOf(target).withId("connectShadow"));
 
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
@@ -246,9 +254,9 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_outputToInputBumpNoInput(boolean withViews) {
         // Setup
-        Block target = mBlockFactory.obtainBlock("simple_input_output", "target");
-        Block tail = mBlockFactory.obtainBlock("simple_input_output", "tail");
-        Block source = mBlockFactory.obtainBlock("output_no_input", "source");
+        Block target = mBlockFactory.obtain(block().ofType("simple_input_output").withId("target"));
+        Block tail = mBlockFactory.obtain(block().ofType("simple_input_output").withId("tail"));
+        Block source = mBlockFactory.obtain(block().ofType("output_no_input").withId("source"));
 
         // Connect the output of tail to the input of target.
         target.getOnlyValueInput().getConnection().connect(tail.getOutputConnection());
@@ -308,9 +316,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_outputToInputBumpMultipleInputs(boolean withViews) {
         // Setup
-        Block target = mBlockFactory.obtainBlock("simple_input_output", "target");
-        Block tail = mBlockFactory.obtainBlock("simple_input_output", "tail");
-        Block source = mBlockFactory.obtainBlock("multiple_input_output", "source");
+        Block target = mBlockFactory.obtain(block().ofType("simple_input_output").withId("target"));
+        Block tail = mBlockFactory.obtain(block().ofType("simple_input_output").withId("tail"));
+        Block source = mBlockFactory.obtain(
+                block().ofType("multiple_input_output").withId("source"));
 
         // Connect the output of tail to the input of target.
         tail.getOutputConnection().connect(target.getOnlyValueInput().getConnection());
@@ -367,10 +376,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_outputToInputShadowSplice(boolean withViews) {
         // Setup
-        Block target = mBlockFactory.obtainBlock("simple_input_output", "target");
-        Block tail = mBlockFactory.obtainBlock("simple_input_output", "tail");
-        Block source = mBlockFactory.obtainBlock("simple_input_output", "source");
-        Block shadow = new Block.Builder(source).setShadow(true).setUuid("shadow").build();
+        Block target = mBlockFactory.obtain(block().ofType("simple_input_output").withId("target"));
+        Block tail = mBlockFactory.obtain(block().ofType("simple_input_output").withId("tail"));
+        Block source = mBlockFactory.obtain(block().ofType("simple_input_output").withId("source"));
+        Block shadow = mBlockFactory.obtain(block().shadow().copyOf(source).withId("shadow"));
         Connection sourceInputConnection = source.getOnlyValueInput().getConnection();
 
         // Connect the output of tail to the input of target.
@@ -427,10 +436,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_outputToInputSplice(boolean withViews) {
         // Setup
-        Block target = mBlockFactory.obtainBlock("simple_input_output", "target");
-        Block tail = mBlockFactory.obtainBlock("multiple_input_output", "tail");
-        Block source = mBlockFactory.obtainBlock("simple_input_output", "source");
-        Block shadow = new Block.Builder(tail).setShadow(true).setUuid("shadow").build();
+        Block target = mBlockFactory.obtain(block().ofType("simple_input_output").withId("target"));
+        Block tail = mBlockFactory.obtain(block().ofType("multiple_input_output").withId("tail"));
+        Block source = mBlockFactory.obtain(block().ofType("simple_input_output").withId("source"));
+        Block shadow = mBlockFactory.obtain(block().shadow().copyOf(tail).withId("shadow"));
 
         // Add a hidden shadow to the target to ensure it has no effect.
         target.getOnlyValueInput().getConnection()
@@ -477,9 +486,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_previousToNext(boolean withViews) {
         // setup
-        Block target = mBlockFactory.obtainBlock("statement_no_input", "target");
-        Block source = mBlockFactory.obtainBlock("statement_no_input", "source");
-        Block shadow = new Block.Builder(target).setUuid("connectShadow").setShadow(true).build();
+        Block target = mBlockFactory.obtain(block().ofType("statement_no_input").withId("target"));
+        Block source = mBlockFactory.obtain(block().ofType("statement_no_input").withId("source"));
+        Block shadow = mBlockFactory.obtain(
+                block().shadow().copyOf(target).withId("connectShadow"));
         BlockView targetView = null, sourceView = null;
 
         mController.addRootBlock(target);
@@ -548,10 +558,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_previousToNextSplice(boolean withViews) {
         // setup
-        Block target = mBlockFactory.obtainBlock("statement_no_input", "target");
-        Block tail = mBlockFactory.obtainBlock("statement_no_input", "tail");
-        Block source = mBlockFactory.obtainBlock("statement_no_input", "source");
-        Block shadow = new Block.Builder("tail").setShadow(true).setUuid("shadow").build();
+        Block target = mBlockFactory.obtain(block().ofType("statement_no_input").withId("target"));
+        Block tail = mBlockFactory.obtain(block().ofType("statement_no_input").withId("tail"));
+        Block source = mBlockFactory.obtain(block().ofType("statement_no_input").withId("source"));
+        Block shadow = mBlockFactory.obtain(block().shadow().ofType("tail").withId("shadow"));
         BlockView targetView = null, tailView = null, sourceView = null;
 
         // Add a shadow to make sure it doesn't have any effects.
@@ -602,10 +612,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_previousToNextBumpRemainder(boolean withViews) {
         // setup
-        Block target = mBlockFactory.obtainBlock("statement_no_input", "target");
-        Block tail1 = mBlockFactory.obtainBlock("statement_no_input", "tail1");
-        Block tail2 = mBlockFactory.obtainBlock("statement_no_input", "tail2");
-        Block source = mBlockFactory.obtainBlock("statement_no_next", "source");
+        Block target = mBlockFactory.obtain(block().ofType("statement_no_input").withId("target"));
+        Block tail1 = mBlockFactory.obtain(block().ofType("statement_no_input").withId("tail1"));
+        Block tail2 = mBlockFactory.obtain(block().ofType("statement_no_input").withId("tail2"));
+        Block source = mBlockFactory.obtain(block().ofType("statement_no_next").withId("source"));
         BlockView targetView = null, tailView1 = null, tailView2 = null, sourceView = null;
 
         // Create a sequence of target, tail1, and tail2.
@@ -678,11 +688,12 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_previousToNextShadowSplice(boolean withViews) {
         // setup
-        Block target = mBlockFactory.obtainBlock("statement_no_input", "target");
-        Block tail1 = mBlockFactory.obtainBlock("statement_no_input", "tail1");
-        Block tail2 = mBlockFactory.obtainBlock("statement_no_input", "tail2");
-        Block source = mBlockFactory.obtainBlock("statement_no_input", "source");
-        Block shadowTail = new Block.Builder(tail1).setShadow(true).setUuid("shadowTail").build();
+        Block target = mBlockFactory.obtain(block().ofType("statement_no_input").withId("target"));
+        Block tail1 = mBlockFactory.obtain(block().ofType("statement_no_input").withId("tail1"));
+        Block tail2 = mBlockFactory.obtain(block().ofType("statement_no_input").withId("tail2"));
+        Block source = mBlockFactory.obtain(block().ofType("statement_no_input").withId("source"));
+        Block shadowTail = mBlockFactory.obtain(
+                block().shadow().copyOf(tail1).withId("shadowTail"));
         BlockView targetView = null, tailView1 = null, tailView2 = null, sourceView = null;
 
         // Create a sequence of target, tail1, and tail2.
@@ -754,9 +765,11 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_previousToStatement(boolean withViews) {
         // setup
-        Block target = mBlockFactory.obtainBlock("statement_statement_input", "target");
-        Block source = mBlockFactory.obtainBlock("statement_statement_input", "source");
-        Block shadow = new Block.Builder(source).setShadow(true).setUuid("shadow").build();
+        Block target = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("target"));
+        Block source = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("source"));
+        Block shadow = mBlockFactory.obtain(block().shadow().copyOf(source).withId("shadow"));
 
         Connection statementConnection = target.getInputByName("statement input").getConnection();
 
@@ -820,10 +833,13 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testConnect_previousToStatementSpliceRemainder(boolean withViews) {
         // setup
-        Block target = mBlockFactory.obtainBlock("statement_statement_input", "target");
-        Block tail = mBlockFactory.obtainBlock("statement_statement_input", "tail");
-        Block source = mBlockFactory.obtainBlock("statement_statement_input", "source");
-        Block shadow = new Block.Builder(tail).setShadow(true).setUuid("shadow").build();
+        Block target = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("target"));
+        Block tail = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("tail"));
+        Block source = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("source"));
+        Block shadow = mBlockFactory.obtain(block().shadow().copyOf(source));
         BlockView targetView = null, tailView = null, sourceView = null;
 
         Connection statementConnection =  target.getInputByName("statement input").getConnection();
@@ -879,9 +895,12 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     }
 
     private void testConnect_previousToStatementBumpRemainder(boolean withViews) {
-        Block target = mBlockFactory.obtainBlock("statement_statement_input", "target");
-        Block tail = mBlockFactory.obtainBlock("statement_statement_input", "tail");
-        Block source = mBlockFactory.obtainBlock("statement_no_next", "source");
+        Block target = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("target"));
+        Block tail = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("tail"));
+        Block source = mBlockFactory.obtain(
+                block().ofType("statement_no_next").withId("source"));
         BlockView sourceView = null;
 
         // Connect tail inside target.
@@ -941,10 +960,12 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     }
 
     private void testConnect_previousToStatementShadowSplice(boolean withViews) {
-        Block target = mBlockFactory.obtainBlock("statement_statement_input", "target");
-        Block tail = mBlockFactory.obtainBlock("statement_statement_input", "tail");
-        Block source = mBlockFactory.obtainBlock("statement_no_input", "source");
-        Block shadow = new Block.Builder(source).setShadow(true).setUuid("shadow").build();
+        Block target = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("target"));
+        Block tail = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("tail"));
+        Block source = mBlockFactory.obtain(block().ofType("statement_no_input").withId("source"));
+        Block shadow = mBlockFactory.obtain(block().shadow().copyOf(source).withId("shadow"));
         BlockView sourceView = null;
 
         // Connect tail inside target.
@@ -1010,7 +1031,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testExtractAsRootBlock_alreadyRoot(boolean withViews) {
         // Configure
-        Block block = mBlockFactory.obtainBlock("statement_statement_input", "block");
+        Block block = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("block"));
         mController.addRootBlock(block);
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);
@@ -1045,8 +1067,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     }
 
     private void testExtractBlockAsRoot_fromInput(boolean withViews) {
-        Block first = mBlockFactory.obtainBlock("simple_input_output", "first block");
-        Block second = mBlockFactory.obtainBlock("simple_input_output", "second block");
+        Block first = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("first block"));
+        Block second = mBlockFactory.obtain(
+                block().ofType("simple_input_output").withId("second block"));
         mController.connect(
                 second.getOutputConnection(), first.getOnlyValueInput().getConnection());
         mController.addRootBlock(first);
@@ -1091,8 +1115,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     private void testExtractBlockAsRoot_fromNext(boolean withViews) {
         // Configure
-        Block first = mBlockFactory.obtainBlock("statement_statement_input", "first block");
-        Block second = mBlockFactory.obtainBlock("statement_statement_input", "second block");
+        Block first = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("first block"));
+        Block second = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("second block"));
         mController.connect(second.getPreviousConnection(), first.getNextConnection());
         mController.addRootBlock(first);
         if (withViews) {
@@ -1261,16 +1287,17 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         mController.addVariable("var3");
         mController.addVariable("var4");
 
-        Block set1 = mBlockFactory.obtainBlock("set_variable", "first block");
-        Block set2 = mBlockFactory.obtainBlock("set_variable", "second block");
-        Block set3 = mBlockFactory.obtainBlock("set_variable", "third block");
-        Block set4 = mBlockFactory.obtainBlock("set_variable", "fourth block");
-        Block set5 = mBlockFactory.obtainBlock("set_variable", "fifth block");
-        Block set6 = mBlockFactory.obtainBlock("set_variable", "sixth block");
-        Block statement = mBlockFactory.obtainBlock("statement_statement_input", "statement block");
-        Block get1 = mBlockFactory.obtainBlock("get_variable", "get1");
-        Block get2 = mBlockFactory.obtainBlock("get_variable", "get2");
-        Block get3 = mBlockFactory.obtainBlock("get_variable", "get3");
+        Block set1 = mBlockFactory.obtain(block().ofType("set_variable").withId("first block"));
+        Block set2 = mBlockFactory.obtain(block().ofType("set_variable").withId("second block"));
+        Block set3 = mBlockFactory.obtain(block().ofType("set_variable").withId("third block"));
+        Block set4 = mBlockFactory.obtain(block().ofType("set_variable").withId("fourth block"));
+        Block set5 = mBlockFactory.obtain(block().ofType("set_variable").withId("fifth block"));
+        Block set6 = mBlockFactory.obtain(block().ofType("set_variable").withId("sixth block"));
+        Block statement = mBlockFactory.obtain(
+                block().ofType("statement_statement_input").withId("statement block"));
+        Block get1 = mBlockFactory.obtain(block().ofType("get_variable").withId("get1"));
+        Block get2 = mBlockFactory.obtain(block().ofType("get_variable").withId("get2"));
+        Block get3 = mBlockFactory.obtain(block().ofType("get_variable").withId("get3"));
 
         mController.connect(statement.getInputs().get(0).getConnection(),
                 set1.getPreviousConnection());

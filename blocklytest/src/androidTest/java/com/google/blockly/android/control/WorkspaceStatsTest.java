@@ -17,7 +17,9 @@ package com.google.blockly.android.control;
 
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldInput;
@@ -27,6 +29,7 @@ import com.google.blockly.model.Input;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,6 +38,7 @@ import static org.mockito.Mockito.verify;
  * Tests for {@link WorkspaceStats}.
  */
 public class WorkspaceStatsTest {
+    private BlockFactory mFactory;
     private WorkspaceStats mStats;
     private Input mFieldInput;
     private Input mVariableFieldsInput;
@@ -42,7 +46,9 @@ public class WorkspaceStatsTest {
     private ProcedureManager mMockProcedureManager;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        mFactory = new BlockFactory(InstrumentationRegistry.getTargetContext());
+
         System.setProperty(
                 "dexmaker.dexcache",
                 InstrumentationRegistry.getTargetContext().getCacheDir().getPath());
@@ -67,18 +73,15 @@ public class WorkspaceStatsTest {
 
     @Test
     public void testCollectProcedureStats() {
-        Block.Builder blockBuilder = new Block.Builder(
-                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test");
-        blockBuilder.addInput(mFieldInput);
-        Block blockUnderTest = blockBuilder.build();
+        Block blockUnderTest = mFactory.obtain(
+                block().fromDefinition(TestUtils.getProcedureDefinitionBlockDefinition("test")));
 
         mStats.collectStats(blockUnderTest, false);
         verify(mMockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
-        blockBuilder = new Block.Builder(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test");
-        blockBuilder.addInput(mFieldInput);
-        Block procedureReference = blockBuilder.build();
+        Block procedureReference = mFactory.obtain(
+                block().fromDefinition(TestUtils.getProcedureReferenceBlockDefinition("test")));
 
         mStats.collectStats(procedureReference, false);
         verify(mMockProcedureManager).addReference(procedureReference);

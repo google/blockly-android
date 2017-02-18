@@ -20,7 +20,6 @@ import android.text.TextUtils;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
-import com.google.blockly.utils.ColorUtils;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -35,9 +34,6 @@ import java.util.UUID;
 public class Block {
     private static final String TAG = "Block";
 
-    /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
-    private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
-
     // These values are immutable once a block is created
     private final BlockFactory mFactory;
     private final String mUuid;
@@ -47,10 +43,10 @@ public class Block {
     private boolean mIsShadow;
 
     // These values can be changed after creating the block
-    private final int mColor;
-    private final Connection mOutputConnection;
-    private final Connection mNextConnection;
-    private final Connection mPreviousConnection;
+    private int mColor;
+    private Connection mOutputConnection;
+    private Connection mNextConnection;
+    private Connection mPreviousConnection;
     private String mTooltip;
     private String mComment;
     private boolean mHasContextMenu;
@@ -71,9 +67,11 @@ public class Block {
      * @param factory The factory creating this block.
      * @param definition The definition this block instantiates.
      * @param id The globablly unique identifier for this block.
+     * @param isShadow Whether the block should be a shadow block (default input value block).
      * @throws BlockLoadingException When the {@link BlockDefinition} throws errors.
      */
-    Block(BlockFactory factory, BlockDefinition definition, @Nullable String id)
+    Block(BlockFactory factory, BlockDefinition definition, @Nullable String id,
+          boolean isShadow)
             throws BlockLoadingException {
         mFactory = factory;
         mUuid = (id != null) ? id : UUID.randomUUID().toString();
@@ -87,6 +85,7 @@ public class Block {
         mInputList = definition.createInputList(factory);
 
         mInputsInline = definition.isInputsInlineDefault();
+
         mInputsInlineModified = false;
         mPosition = new WorkspacePoint(0, 0);
 

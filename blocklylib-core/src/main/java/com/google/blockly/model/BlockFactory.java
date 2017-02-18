@@ -22,7 +22,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
-import com.google.blockly.utils.ColorUtils;
+import com.google.blockly.utils.JsonUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,7 +36,6 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -46,8 +45,17 @@ import java.util.List;
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
 
-    /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
-    private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
+    /**
+     * Description to pass into {@link #obtain(BlockDescriptionSubject)}, an API to obtain a new
+     * Block.
+     *
+     * <pre>
+     * {@code factory.obtain(block().ofType("math_number"));}
+     * </pre>
+     */
+    public static BlockDescriptionSubject block() {
+        return new BlockDescriptionSubject();
+    }
 
     private Resources mResources;
     private final HashMap<String, BlockDefinition> mDefinitions = new HashMap<>();
@@ -90,14 +98,42 @@ public class BlockFactory {
     }
 
     /**
+     * Registers a new BlockDefinition with the factory.
+     * @param definition The new definition.
+     */
+    public void addDefinition(BlockDefinition definition) {
+        String definitionName = definition.getTypeName();
+        if (mDefinitions.containsKey(definitionName)) {
+            throw new IllegalStateException("Definition already defined.");
+        }
+        mDefinitions.put(definitionName, definition);
+    }
+
+    /**
+     * Convenience method to {@link #addDefinition} from a JSON object.
+     * @param json The JSON representation of the definition.
+     */
+    public void addJsonDefinition(JSONObject json) throws JSONException {
+        addDefinition(new BlockDefinition(json));
+    }
+
+    /**
+     * Convenience method to {@link #addDefinition} from a JSON string.
+     * @param json The JSON representation of the definition.
+     */
+    public void addJsonDefinition(String json) throws JSONException {
+        addDefinition(new BlockDefinition(json));
+    }
+
+    /**
      * Removes a block type from the factory. If the Block is still in use by the workspace this
-     * could cause a crash if the user tries to load a new block of this type.
+     * could cause a crash if the user tries to load a new block of this type, including copies.
      *
      * @param definitionName The name of the block to remove.
      *
      * @return True if the definition was found and removed. Otherwise, false.
      */
-    public boolean removeBlockDefinition(String definitionName) {
+    public boolean removeDefinition(String definitionName) {
         return mDefinitions.remove(definitionName) != null;
     }
 
@@ -106,71 +142,75 @@ public class BlockFactory {
      * this factory. If the definitionName is not one of the known block types null will be returned
      * instead.
      *
+     * <strong>Deprecated:</strong> Prefer using
+     * {@code obtain(block().ofType(definitionName).withId(id));}
+     *
      * @param definitionName The name of the block type to create.
-     * @param uuid The id of the block if loaded from XML; null otherwise.
+     * @param id The id of the block if loaded from XML; null otherwise.
      *
      * @return A new block of that type or null.
      * @throws IllegalArgumentException If uuid is not null and already refers to a block.
      */
-    public Block obtainBlock(String definitionName, @Nullable String uuid) {
-        // Existing instance not found.  Constructing a new one.
-        BlockDefinition definition = mDefinitions.get(definitionName);
-        if (definition == null) {
+    @Deprecated
+    public Block obtainBlock(String definitionName, @Nullable String id) {
+        // Verify definition is defined.
+        if (!mDefinitions.containsKey(definitionName)) {
             Log.w(TAG, "Block " + definitionName + " not found.");
             return null;
         }
-        return obtainBlock(definition, uuid);
+        return obtain(block().ofType(definitionName).withId(id));
     }
 
     /**
-     * Creates a block of the specified by the JSON string definition. This block will lack a
-     * registered type, and will not be loadable from serialized workspace or toolbox XML. This is
-     * more useful in testing than in real apps.
+     * Creates the {@link Block} described by the description.
      *
-     * @param json The JSON defining the block.
-     * @param uuid The id of the block if loaded from XML; null otherwise.
+     * {@code blockFactory.obtain(block().ofType("math_number"));}
      *
-     * @return A new block of that type.
-     * @throws IllegalArgumentException If uuid is not null and already refers to a block.
+     * @param description A description of the block to create.
+     * @return A new block, or null if not able to construct it.
      */
-    public Block obtainBlockFromJson(String json, @Nullable String uuid) throws JSONException {
-        return obtainBlock(new BlockDefinition(json), uuid);
-    }
-
-    /**
-     * Creates a block of the specified by the block definition. This block may lack a
-     * registered type, and will not be loadable from serialized workspace or toolbox XML. This is
-     * more useful in testing than in real apps.
-     *
-     * @param definition The name of the block type to create.
-     * @param uuid The id of the block if loaded from XML; null otherwise.
-     *
-     * @return A new block of that type or null.
-     * @throws IllegalArgumentException If uuid is not null and already refers to a block.
-     */
-    public Block obtainBlock(BlockDefinition definition, @Nullable String uuid) {
-        Block block;
-        // First search for any existing instance
-        if (uuid != null) {
-            WeakReference<Block> ref = mBlockRefs.get(uuid);
+    public Block obtain(BlockDescriptionSubject description) {
+        // First search for any existing block with a conflicting ID.
+        if (description.mId != null) {
+            WeakReference<Block> ref = mBlockRefs.get(description.mId);
             if (ref != null) {
-                block = ref.get();
+                Block block = ref.get();
                 if (block != null) {
-                    throw new IllegalArgumentException("Block with given UUID \"" + uuid
+                    throw new IllegalArgumentException("Block with given ID \"" + description.mId
                             + "\" already exists. Duplicate UUIDs not allowed.");
                 }
             }
         }
 
-        // Existing instance not found.  Constructing a new one.
+        // Existing instance not found.  Constructing a new Block.
+        BlockDefinition definition;
+        if (description.mDefinition != null) {
+            assert (description.mDefinitionName == null);
+            definition = description.mDefinition;
+        } else if (description.mDefinitionName != null) {
+            definition = mDefinitions.get(description.mDefinitionName.trim());
+            if (definition != null) {
+                Log.w(TAG,
+                        "BlockDefinition named \"" + description.mDefinitionName + "\" not found.");
+                return null;
+            }
+        } else {
+            Log.w(TAG, "No BlockDefinition declared.");
+            return null;
+        }
+
         try {
-            block = new Block(this, definition, uuid);
+            Block block = new Block(this, definition, description.mId, description.mIsShadow);
+            // TODO: Apply Extensions.
             mBlockRefs.put(block.getId(), new WeakReference<Block>(block));
 
-            // TODO: Apply Extensions.
             return block;
         } catch (BlockLoadingException e) {
-            Log.e(TAG, "Failed to load block of type \"" + definitionName + "\".", e);
+            // Prefer reporting registered typename over the definition's self-reported type name.
+            String defName = description.mDefinitionName != null ?
+                    description.mDefinitionName : definition.getTypeName();
+            String ofTypeName = " of type \"" + defName + "\"";
+            Log.e(TAG, "Failed to create block" + ofTypeName + ".", e);
             return null;
         }
     }
@@ -237,23 +277,14 @@ public class BlockFactory {
      * @throws BlockLoadingException if the json is malformed.
      */
     public Block fromJson(String type, JSONObject json) throws BlockLoadingException {
-        try{
-            String typeInJson = json.optString("type");
-            if (typeInJson == null || (!type.equals(typeInJson))) {
-                // Copy object with all keys.
-                Iterator<String> keyIter = json.keys();
-                String [] keys = new String[json.length()];
-                int i = 0;
-                while (keyIter.hasNext()) {
-                    keys[i++] = keyIter.next();
-                }
-                json = new JSONObject(json, keys);
+        try {
+            if (!type.equals(json.optString("type"))) {
+                json = JsonUtils.shallowCopy(json);
                 json.put("type", type);
             }
-            BlockDefinition def = new BlockDefinition(json);
-            return new Block(this, def, null);
+            return obtain(block().fromJson(json));
         } catch (JSONException e) {
-            throw new BlockLoadingException(e);
+            throw new BlockLoadingException("Failed to create block from JSON definition.", e);
         }
     }
 
