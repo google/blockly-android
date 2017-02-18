@@ -71,7 +71,7 @@ public class SingleMimeTypeClipDataHelper implements BlockClipDataHelper {
     @Override
     public ClipData buildDragClipData(PendingDrag drag) throws IOException {
         Block root = drag.getRootDraggedBlock();
-        String xml = BlocklyXmlHelper.writeBlockToXml(root);
+        String xml = BlocklyXmlHelper.writeBlockToXml(root, /* include children */ true);
 
         Intent intent = new Intent();
         intent.putExtra(EXTRA_BLOCKLY_XML, xml);

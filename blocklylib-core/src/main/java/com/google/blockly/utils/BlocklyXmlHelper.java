@@ -180,7 +180,7 @@ public final class BlocklyXmlHelper {
      */
     public static void writeToXml(List<Block> toSerialize, OutputStream os)
             throws BlocklySerializerException {
-        writeToXmlImpl(toSerialize, os, null);
+        writeToXmlImpl(toSerialize, os, null, /* include children */ true);
     }
 
     /**
@@ -193,7 +193,7 @@ public final class BlocklyXmlHelper {
      */
     public static void writeToXml(List<Block> toSerialize, Writer writer)
             throws BlocklySerializerException {
-        writeToXmlImpl(toSerialize, null, writer);
+        writeToXmlImpl(toSerialize, null, writer, /* include children */ true);
     }
 
     /**
@@ -203,11 +203,12 @@ public final class BlocklyXmlHelper {
      * @param toSerialize A list of Blocks to serialize.
      * @param os An OutputStream to write the blocks to.
      * @param writer A writer to write the blocks to, if {@code os} is null.
+     * @param includeChildren Whether to include child blocks and child shadows.
      *
      * @throws BlocklySerializerException
      */
     public static void writeToXmlImpl(List<Block> toSerialize, @Nullable OutputStream os,
-                                      @Nullable Writer writer)
+                                      @Nullable Writer writer, boolean includeChildren)
             throws BlocklySerializerException {
         try {
             XmlSerializer serializer = mParserFactory.newSerializer();
@@ -221,7 +222,7 @@ public final class BlocklyXmlHelper {
 
             serializer.startTag(XML_NAMESPACE, "xml");
             for (int i = 0; i < toSerialize.size(); i++) {
-                toSerialize.get(i).serialize(serializer, true);
+                toSerialize.get(i).serialize(serializer, true, includeChildren);
             }
             serializer.endTag(XML_NAMESPACE, "xml");
             serializer.flush();
@@ -249,10 +250,11 @@ public final class BlocklyXmlHelper {
      * Convenience function to serialize one stack of Blocks (a BlockGroup, effectively).
      *
      * @param rootBlock The root block of the stack to serialize.
+     * @param includeChildren Whether to include child blocks and child shadows.
      * @return XML string for block and all descendant blocks.
      * @throws BlocklySerializerException
      */
-    public static String writeBlockToXml(Block rootBlock)
+    public static String writeBlockToXml(Block rootBlock, boolean includeChildren)
             throws BlocklySerializerException {
         StringWriter sw = new StringWriter();
         List<Block> temp = new ArrayList<>();

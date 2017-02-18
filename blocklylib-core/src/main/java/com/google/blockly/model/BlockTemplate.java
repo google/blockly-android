@@ -15,7 +15,6 @@
 package com.google.blockly.model;
 
 import android.text.TextUtils;
-import android.util.Pair;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -70,7 +69,8 @@ public class BlockTemplate {
     Block mCopySource = null;
 
     String mId = null;
-    boolean mIsShadow = false;
+    boolean mAllowAlternateId = true;
+    Boolean mIsShadow = null;  // Defaults to mCopySource or false.
 
     // Mutable state, applied via Block.applyTemplate()
     boolean mHasPosition = false;
@@ -209,7 +209,8 @@ public class BlockTemplate {
     }
 
     /**
-     * Sets the id of the block to be created.
+     * Sets the id of the block to be created. If the id is already in use, a new id will be
+     * generated for the new block.
      *
      * <pre>
      * {@code blockFactory.obtain(block().withId("my-block"));}
@@ -219,10 +220,26 @@ public class BlockTemplate {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate withId(String id) {
-        if (mId != null) {
-            throw new IllegalStateException("Block ID already assigned.");
-        }
         mId = id;
+        mAllowAlternateId = true;
+        return this;
+    }
+
+    /**
+     * Sets the id of the block to be created. In the case of a conflict with an existing block id,
+     * if {@code required} is true, obtaining the block will fail. Otherwise, a new id will be
+     * generated for the new block.
+     *
+     * <pre>
+     * {@code blockFactory.obtain(block().withRequiredId("this-exact-id"));}
+     * </pre>
+     *
+     * @param id The id of the block to be created.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate withRequiredId(String id, boolean required) {
+        mId = id;
+        mAllowAlternateId = false;
         return this;
     }
 

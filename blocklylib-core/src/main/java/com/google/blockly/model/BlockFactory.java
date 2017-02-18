@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.JsonUtils;
 
 import org.json.JSONArray;
@@ -162,62 +163,81 @@ public class BlockFactory {
     }
 
     /**
-     * Creates the {@link Block} described by the description.
+     * Creates the {@link Block} described by the template.
      *
      * {@code blockFactory.obtain(block().ofType("math_number"));}
      *
-     * @param description A description of the block to create.
+     * @param template A template of the block to create.
      * @return A new block, or null if not able to construct it.
      */
-    public Block obtain(BlockTemplate description) {
+    public Block obtain(BlockTemplate template) {
         // First search for any existing block with a conflicting ID.
-        if (description.mId != null) {
-            WeakReference<Block> ref = mBlockRefs.get(description.mId);
+        String id = template.mId;
+        if (id != null) {
+            WeakReference<Block> ref = mBlockRefs.get(id);
             if (ref != null) {
                 Block block = ref.get();
                 if (block != null) {
-                    throw new IllegalArgumentException("Block with given ID \"" + description.mId
-                            + "\" already exists. Duplicate UUIDs not allowed.");
+                    if (template.mAllowAlternateId) {
+                        id = null;  // Clear to allow for generated values
+                    } else {
+                        throw new IllegalArgumentException("Block with given ID \"" + id
+                                + "\" already exists. Duplicate UUIDs not allowed.");
+                    }
                 }
             }
         }
 
         // Existing instance not found.  Constructing a new Block.
         BlockDefinition definition;
-        if (description.mDefinition != null) {
-            assert (description.mDefinitionName == null);
-            definition = description.mDefinition;
-        } else if (description.mDefinitionName != null) {
-            definition = mDefinitions.get(description.mDefinitionName.trim());
-            if (definition == null) {
-                Log.w(TAG,
-                        "BlockDefinition named \"" + description.mDefinitionName + "\" not found.");
+        boolean isShadow = template.mIsShadow == null ? false : template.mIsShadow;
+        Block block;
+        if (template.mCopySource != null) {
+            try {
+                // TODO: Improve I/O overhead. (Another thread?)
+                String xml = BlocklyXmlHelper.writeBlockToXml(template.mCopySource, false);
+                block = BlocklyXmlHelper.loadOneBlockFromXml(xml, this);
+            } catch (BlocklySerializerException e) {
+                Log.e(TAG, template.mCopySource + ": Failed to copy block.", e);
                 return null;
+
             }
         } else {
-            Log.w(TAG, "No BlockDefinition declared.");
-            return null;
+            // Start a new block from a block definition.
+            if (template.mDefinition != null) {
+                assert (template.mDefinitionName == null);
+                definition = template.mDefinition;
+            } else if (template.mDefinitionName != null) {
+                definition = mDefinitions.get(template.mDefinitionName.trim());
+                if (definition == null) {
+                    Log.w(TAG,
+                            "BlockDefinition named \"" + template.mDefinitionName + "\" not found.");
+                    return null;
+                }
+            } else {
+                Log.w(TAG, "No BlockDefinition declared.");
+                return null;
+            }
+
+            try {
+                block = new Block(this, definition, id, isShadow);
+                // TODO(#529): Apply Extensions.
+            } catch (BlockLoadingException e) {
+                // Prefer reporting registered typename over the definition's self-reported type name.
+                String defName = template.mDefinitionName != null ?
+                        template.mDefinitionName : definition.getTypeName();
+                String ofTypeName = " of type \"" + defName + "\"";
+                Log.e(TAG, "Failed to create block" + ofTypeName + ".", e);
+                return null;
+            }
         }
 
-        try {
-            Block block = new Block(this, definition, description.mId, description.mIsShadow);
+        mBlockRefs.put(block.getId(), new WeakReference<>(block));
 
-            // TODO: Apply Extensions.
+        // Apply mutable state last.
+        block.applyTemplate(template);
 
-            mBlockRefs.put(block.getId(), new WeakReference<Block>(block));
-
-            // Apply mutable state last.
-            block.applyTemplate(description);
-
-            return block;
-        } catch (BlockLoadingException e) {
-            // Prefer reporting registered typename over the definition's self-reported type name.
-            String defName = description.mDefinitionName != null ?
-                    description.mDefinitionName : definition.getTypeName();
-            String ofTypeName = " of type \"" + defName + "\"";
-            Log.e(TAG, "Failed to create block" + ofTypeName + ".", e);
-            return null;
-        }
+        return block;
     }
 
     /**

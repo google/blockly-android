@@ -17,7 +17,6 @@ package com.google.blockly.model;
 
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Pair;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -523,7 +522,7 @@ public class Block {
      */
     public Block deepCopy() {
         try {
-            String xml = BlocklyXmlHelper.writeBlockToXml(this);
+            String xml = BlocklyXmlHelper.writeBlockToXml(this, /* include children */ true);
             return BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
         } catch (BlocklySerializerException e) {
             throw new IllegalStateException("Failed to serialize block during copy.", e);
@@ -535,10 +534,12 @@ public class Block {
      *
      * @param serializer The XmlSerializer to write to.
      * @param rootBlock True if the block is a top level block, false otherwise.
+     * @param includeChildren Whether to include child blocks and child shadows.
      *
      * @throws IOException
      */
-    public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
+    public void serialize(XmlSerializer serializer, boolean rootBlock, boolean includeChildren)
+            throws IOException {
         serializer.startTag(null, mIsShadow ? "shadow" : "block")
                 .attribute(null, "type", mType)
                 .attribute(null, "id", mId);
@@ -574,13 +575,13 @@ public class Block {
 
         for (int i = 0; i < mInputList.size(); i++) {
             if (mInputList.get(i) != null) {
-                mInputList.get(i).serialize(serializer);
+                mInputList.get(i).serialize(serializer, includeChildren);
             }
         }
 
-        if (getNextBlock() != null) {
+        if (includeChildren && getNextBlock() != null) {
             serializer.startTag(null, "next");
-            getNextBlock().serialize(serializer, false);
+            getNextBlock().serialize(serializer, false, true);
             serializer.endTag(null, "next");
         }
 
