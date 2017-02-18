@@ -188,7 +188,7 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeShadowBlock() throws BlocklySerializerException, IOException {
+    public void testSerializeShadowBlock() throws IOException {
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtain(
                 block().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
@@ -203,7 +203,7 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeValue() throws BlocklySerializerException, IOException {
+    public void testSerializeValue() throws IOException {
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtain(block().ofType("frankenblock").withId("364"));
         block.setPosition(37, 13);

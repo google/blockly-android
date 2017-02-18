@@ -14,8 +14,14 @@
  */
 package com.google.blockly.model;
 
+import android.text.TextUtils;
+import android.util.Pair;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Template of a block, describing the initial state of a new block.
@@ -31,6 +37,33 @@ import org.json.JSONObject;
  * static method {@link BlockFactory#block} to construct a new instance.
  */
 public class BlockTemplate {
+    static class FieldValue {
+        /** The name of the field. */
+        final String mName;
+        /** The serialized value of the field. */
+        final String mValue;
+
+        FieldValue(String name, String value) {
+            mName = name;
+            mValue = value;
+        }
+    }
+
+    static class InputValue {
+        /** The name of the input */
+        final String mName;
+        /** The child block. */
+        final Block mChild;
+        /** The connected shadow block. */
+        final Block mShadow;
+
+        InputValue(String name, Block child, Block shadow) {
+            mName = name;
+            mChild = child;
+            mShadow = shadow;
+        }
+    }
+
     // Only one of the following three may be set.
     String mDefinitionName = null;
     BlockDefinition mDefinition = null;
@@ -50,6 +83,15 @@ public class BlockTemplate {
     boolean mInlineInputs = false;
     boolean mIsMovable = true;
     String mCommentText = null;
+
+    /** Ordered list of field names and string values, as loaded during XML deserialization. */
+    List<FieldValue> mFieldValues;
+
+    /** Ordered list of input names and blocks, as loaded during XML deserialization. */
+    List<InputValue> mInputValues;
+
+    Block mNextChild = null;
+    Block mNextShadow = null;
 
     /**
      * Create a new block descriptor. Prefer using {@link BlockFactory#block()} via static import
@@ -286,6 +328,67 @@ public class BlockTemplate {
      */
     public BlockTemplate withComment(String commentText) {
         mCommentText = commentText;
+        return this;
+    }
+
+    /**
+     * Sets a field's value immediately after creation.
+     *
+     * This method is package private because the API of this method is subject to change. Do not
+     * use it in application code.
+     *
+     * @param fieldName The name of the field.
+     * @param value The serialized field value.
+     * @return This block descriptor, for chaining.
+     */
+    BlockTemplate withFieldValue(String fieldName, String value) {
+        assert(!TextUtils.isEmpty(fieldName));
+        assert(!TextUtils.isEmpty(value));
+        if (mFieldValues == null) {
+            mFieldValues = new ArrayList<>();
+        }
+        mFieldValues.add(new FieldValue(fieldName, value));
+        return this;
+    }
+
+    /**
+     * Sets a field's value immediately after creation.
+     *
+     * This method is package private because the API of this method is subject to change. Do not
+     * use it in application code.
+     *
+     * @param inputName The name of the field.
+     * @param child The deserialized child block.
+     * @param shadow The deserialized shadow block.
+     * @return This block descriptor, for chaining.
+     */
+    BlockTemplate withInputValue(String inputName, Block child, Block shadow) {
+        assert(!TextUtils.isEmpty(inputName));
+        assert(child == null || child.isShadow() == false);
+        assert(shadow == null || shadow.isShadow());
+
+        if (mInputValues == null) {
+            mInputValues = new ArrayList<>();
+        }
+        mInputValues.add(new InputValue(inputName, child, shadow));
+        return this;
+    }
+
+    /**
+     * Sets a block next children immediately after creation.
+     *
+     * This method is package private because the API of this method is subject to change. Do not
+     * use it in application code.
+     *
+     * @param child The deserialized child block.
+     * @param shadow The deserialized shadow block.
+     * @return This block descriptor, for chaining.
+     */
+    BlockTemplate withNextChild(Block child, Block shadow) {
+        assert(child == null || child.isShadow() == false);
+        assert(shadow == null || shadow.isShadow());
+        mNextChild = child;
+        mNextShadow = shadow;
         return this;
     }
 

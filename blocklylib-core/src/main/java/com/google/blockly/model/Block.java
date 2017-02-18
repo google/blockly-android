@@ -17,6 +17,7 @@ package com.google.blockly.model;
 
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Pair;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -94,10 +95,25 @@ public class Block {
     }
 
     /**
-     * Applies the mutable state described by a template.
-     * @param template The template
+     * Applies the mutable state described by a template. Called after extensions are applied to the
+     * block (and thus event handles and mutators have been registered).
+     * @param template The source template.
      */
     public void applyTemplate(BlockTemplate template) {
+        if (template.mFieldValues != null) {
+            for (BlockTemplate.FieldValue fieldValue : template.mFieldValues) {
+                Field field = getFieldByName(fieldValue.mName);
+                if (field == null) {
+                    throw new BlocklyParserException(
+                            toString() + ": No field with name \"" + fieldValue.mName + "\"");
+                }
+                if (!field.setFromString(fieldValue.mValue)) {
+                    throw new BlocklyParserException(
+                            "Failed to set a field's value from XML.");
+                }
+            }
+        }
+
         if (template.mHasPosition) {
             setPosition(template.mPositionX, template.mPositionY);
         }
@@ -108,6 +124,8 @@ public class Block {
         setEditable(template.mIsEditable);
         setInputsInline(template.mInlineInputs);
         setMovable(template.mIsMovable);
+
+
     }
 
     /**
@@ -662,6 +680,15 @@ public class Block {
         Connection parentConnection = getParentConnection();
         return parentConnection == null ? null : parentConnection.getBlock();
     }
+
+    /**
+     * This method returns a string describing this Block in developer terms (type
+     * name and ID; English only). Intended to on be used in console logs and errors.
+     * @return The description.
+     */
+    public String toString() {
+        return "\"" + mType + "\" block (id=\"\" + this.id + \"\\\")\"";
+    };
 
     /**
      * Configures whether this block should be a shadow block. This should only be called during

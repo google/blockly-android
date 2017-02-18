@@ -381,7 +381,7 @@ public class BlockFactory {
         }
         // If the id was empty the BlockFactory will just generate one.
 
-        BlockTemplate template = new BlockTemplate().ofType(type).withId(id);
+        final BlockTemplate template = new BlockTemplate().ofType(type).withId(id);
         if (template == null) {
             throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
         }
@@ -428,8 +428,7 @@ public class BlockFactory {
         String fieldName = "";
         Block childBlock = null;
         Block childShadow = null;
-        Input valueInput = null;
-        Input statementInput = null;
+        String inputName = null;
 
         while (eventType != XmlPullParser.END_DOCUMENT) {
             String tagname = parser.getName();
@@ -443,15 +442,9 @@ public class BlockFactory {
                     } else if (tagname.equalsIgnoreCase("field")) {
                         fieldName = parser.getAttributeValue(null, "name");
                     } else if (tagname.equalsIgnoreCase("value")) {
-                        valueInput = template.getInputByName(
-                                parser.getAttributeValue(null, "name"));
-                        if (valueInput == null) {
-                            throw new BlocklyParserException("The value input was null at line "
-                                    + parser.getLineNumber() + "!");
-                        }
+                        inputName = parser.getAttributeValue(null, "name");
                     } else if (tagname.equalsIgnoreCase("statement")) {
-                        statementInput = template.getInputByName(
-                                parser.getAttributeValue(null, "name"));
+                        inputName = parser.getAttributeValue(null, "name");
                     } else if (tagname.equalsIgnoreCase("mutation")) {
                         // TODO(#530): Handle mutations.
                     }
@@ -462,105 +455,36 @@ public class BlockFactory {
                     break;
 
                 case XmlPullParser.END_TAG:
-                    Connection parentConnection = null;
-
                     if (tagname.equalsIgnoreCase("block")) {
-                        if (template == null) {
-                            throw new BlocklyParserException(
-                                    "Created a null block. This should never happen.");
-                        }
                         return obtain(template);
                     } else if (tagname.equalsIgnoreCase("shadow")) {
-                        if (template == null) {
-                            throw new BlocklyParserException(
-                                    "Created a null block. This should never happen.");
-                        }
                         try {
                             template.shadow();
+                            return obtain(template);
                         } catch (IllegalStateException e) {
                             throw new BlocklyParserException(e);
                         }
-                        return obtain(template);
                     }else if (tagname.equalsIgnoreCase("field")) {
-                        Field toSet = template.getFieldByName(fieldName);
-                        if (toSet != null) {
-                            if (!toSet.setFromString(text)) {
-                                throw new BlocklyParserException(
-                                        "Failed to set a field's value from XML.");
-                            }
-                        }
+                        template.withFieldValue(fieldName, text);
+                        fieldName = null;
+                        text = "";
                     } else if (tagname.equalsIgnoreCase("comment")) {
                         template.withComment(text);
-                    } else if (tagname.equalsIgnoreCase("value")) {
-                        if (valueInput != null) {
-                            parentConnection = valueInput.getConnection();
-                            if (parentConnection == null) {
-                                throw new BlocklyParserException("The input connection was null.");
-                            }
-                        } else {
-                            throw new BlocklyParserException(
-                                    "A value input was null.");
+                        text = "";
+                    } else if (tagname.equalsIgnoreCase("value") ||
+                            tagname.equalsIgnoreCase("statement")) {
+                        if (inputName == null) {
+                            // Malformed XML.
+                            throw new BlocklyParserException("Missing inputName.");
                         }
-                    } else if (tagname.equalsIgnoreCase("statement")) {
-                        if (statementInput != null) {
-                            parentConnection = statementInput.getConnection();
-                            if (parentConnection == null) {
-                                throw new BlocklyParserException(
-                                        "The statement connection was null.");
-                            }
-                        } else {
-                            throw new BlocklyParserException(
-                                    "A statement input was null.");
-                        }
-                    } else if (tagname.equalsIgnoreCase("next")) {
-                        parentConnection = template.getNextConnection();
-                        if (parentConnection == null) {
-                            throw new BlocklyParserException("A next connection was null");
-                        }
-                    }
-                    // If we finished a parent connection (statement, value, or next)
-                    if (parentConnection != null) {
-                        // Connect its child if one exists
-                        if (childBlock != null) {
-                            Connection childConnection = childBlock.getPreviousConnection();
-                            if (childConnection == null) {
-                                childConnection = childBlock.getOutputConnection();
-                            }
-                            if (childConnection == null) {
-                                throw new BlocklyParserException(
-                                        "The child block's connection was null.");
-                            }
-                            if (parentConnection.isConnected()) {
-                                throw new BlocklyParserException("Duplicated " + tagname
-                                        + " in block.");
-                            }
-                            parentConnection.connect(childConnection);
-                        }
-                        // Then connect its shadow if one exists
-                        if (childShadow != null) {
-                            Connection shadowConnection = childShadow.getPreviousConnection();
-                            if (shadowConnection == null) {
-                                shadowConnection = childShadow.getOutputConnection();
-                            }
-                            if (shadowConnection == null) {
-                                throw new BlocklyParserException(
-                                        "The shadow block connection was null.");
-                            }
-                            if (parentConnection.getShadowConnection() != null) {
-                                throw new BlocklyParserException("Duplicated " + tagname
-                                        + " in block.");
-                            }
-                            parentConnection.setShadowConnection(shadowConnection);
-                            if (!parentConnection.isConnected()) {
-                                // If there was no standard block connect the shadow
-                                parentConnection.connect(shadowConnection);
-                            }
-                        }
-                        // And clear out all the references for this tag
+                        template.withInputValue(inputName, childBlock, childShadow);
                         childBlock = null;
                         childShadow = null;
-                        valueInput = null;
-                        statementInput = null;
+                        inputName = null;
+                    } else if (tagname.equalsIgnoreCase("next")) {
+                        template.withNextChild(childBlock, childShadow);
+                        childBlock = null;
+                        childShadow = null;
                     }
                     break;
 
