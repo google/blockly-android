@@ -36,7 +36,7 @@ public class Block {
 
     // These values are immutable once a block is created
     private final BlockFactory mFactory;
-    private final String mUuid;
+    private final String mId;
     private final String mType;
     private final ArrayList<Connection> mConnectionList = new ArrayList<>();
     private final ArrayList<Input> mInputList;
@@ -66,15 +66,15 @@ public class Block {
     /**
      * @param factory The factory creating this block.
      * @param definition The definition this block instantiates.
-     * @param id The globablly unique identifier for this block.
+     * @param id The globally unique identifier for this block.
      * @param isShadow Whether the block should be a shadow block (default input value block).
      * @throws BlockLoadingException When the {@link BlockDefinition} throws errors.
      */
-    Block(BlockFactory factory, BlockDefinition definition, @Nullable String id,
-          boolean isShadow)
+    Block(BlockFactory factory, BlockDefinition definition, @Nullable String id, boolean isShadow)
             throws BlockLoadingException {
         mFactory = factory;
-        mUuid = (id != null) ? id : UUID.randomUUID().toString();
+        // TODO: Validate id if not null
+        mId = (id != null) ? id : UUID.randomUUID().toString();
 
         mType = definition.getTypeName();
         mColor = definition.getColor();
@@ -90,6 +90,24 @@ public class Block {
         mPosition = new WorkspacePoint(0, 0);
 
         rebuildConnectionList();
+        setShadow(isShadow);
+    }
+
+    /**
+     * Applies the mutable state described by a template.
+     * @param template The template
+     */
+    public void applyTemplate(BlockTemplate template) {
+        if (template.mHasPosition) {
+            setPosition(template.mPositionX, template.mPositionY);
+        }
+        setCollapsed(template.mIsCollapsed);
+        setComment(template.mCommentText);
+        setDeletable(template.mIsDeletable);
+        setDisabled(template.mIsDisabled);
+        setEditable(template.mIsEditable);
+        setInputsInline(template.mInlineInputs);
+        setMovable(template.mIsMovable);
     }
 
     /**
@@ -103,7 +121,7 @@ public class Block {
      * @return The unique identifier of the block. Not for display.
      */
     public String getId() {
-        return mUuid;
+        return mId;
     }
 
     /**
@@ -313,6 +331,9 @@ public class Block {
      * @param y The workspace y position.
      */
     public void setPosition(float x, float y) {
+        if (Float.isNaN(x) || Float.isInfinite(x) || Float.isNaN(y) || Float.isInfinite(y)) {
+            throw new IllegalArgumentException();
+        }
         mPosition.x = x;
         mPosition.y = y;
     }
@@ -502,7 +523,7 @@ public class Block {
     public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
         serializer.startTag(null, mIsShadow ? "shadow" : "block")
                 .attribute(null, "type", mType)
-                .attribute(null, "id", mUuid);
+                .attribute(null, "id", mId);
 
         // The position of the block only needs to be saved if it is a top level block.
         if (rootBlock) {
@@ -644,11 +665,11 @@ public class Block {
 
     /**
      * Configures whether this block should be a shadow block. This should only be called during
-     * creation of the block.
+     * the constructor.
      *
      * @param isShadow
      */
-    void setShadow(boolean isShadow) {
+    private void setShadow(boolean isShadow) {
         if (mIsShadow == isShadow) {
             return;
         }

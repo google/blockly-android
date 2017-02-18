@@ -39,8 +39,8 @@ import static com.google.blockly.utils.ConnectionSubject.assertThat;
  */
 public class ConnectionTest {
     private BlockFactory factory;
-    private BlockDescriptionSubject dummyBlock;
-    private BlockDescriptionSubject shadowBlock;
+    private BlockTemplate dummyBlock;
+    private BlockTemplate shadowBlock;
 
     private Connection input;
     private Connection output;
@@ -58,8 +58,8 @@ public class ConnectionTest {
     public void setUp() throws JSONException {
         factory = new BlockFactory(InstrumentationRegistry.getTargetContext());
         factory.addJsonDefinition("{\"type\": \"dummyBlock\"}");
-        BlockDescriptionSubject dummyBlock = block().ofType("dummyBlock");
-        BlockDescriptionSubject shadowBlock = new BlockDescriptionSubject(dummyBlock).shadow();
+        BlockTemplate dummyBlock = block().ofType("dummyBlock");
+        BlockTemplate shadowBlock = new BlockTemplate(dummyBlock).shadow();
 
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         input.setBlock(factory.obtain(dummyBlock));

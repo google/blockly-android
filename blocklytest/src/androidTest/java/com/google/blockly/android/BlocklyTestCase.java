@@ -35,6 +35,8 @@ public class BlocklyTestCase {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
     }
 
+    // TODO: Investigate whether use of getContext() (and associated getMainLooper()) fixes the need
+    //       for this Looper.
     protected void configureForUIThread() throws Exception {
         // Espresso support requires AndroidJUnitRunner, and that doesn't run tests on in the main
         // thread (and thus, not in a Looper).  Adding a Looper allows normal unit tests to run

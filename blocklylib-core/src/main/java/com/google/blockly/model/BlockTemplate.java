@@ -18,11 +18,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Literate API to describe a new block, used as an input to {@link BlockFactory#obtain}.
- * BlockDescriptionSubject class is not intended to be referenced directly by name. Instead use the
+ * Template of a block, describing the initial state of a new block.
+ *
+ * The API of this class is designed to be used in a literate manner, as an input to
+ * {@link BlockFactory#obtain}. The static method {@link BlockFactory#block()} (which returns a
+ * {@code BlockTemplate}) can be used as a via static import to read like English.
+ *
+ * <pre>
+ * {@code factory.obtain(block().shadow().ofType("math_number").atPosition(25,56));}
+ * </pre>
+ * BlockTemplate class is not intended to be referenced directly by name. Instead use the
  * static method {@link BlockFactory#block} to construct a new instance.
  */
-public class BlockDescriptionSubject {
+public class BlockTemplate {
     // Only one of the following three may be set.
     String mDefinitionName = null;
     BlockDefinition mDefinition = null;
@@ -31,16 +39,28 @@ public class BlockDescriptionSubject {
     String mId = null;
     boolean mIsShadow = false;
 
+    // Mutable state, applied via Block.applyTemplate()
+    boolean mHasPosition = false;
+    float mPositionX;
+    float mPositionY;
+    boolean mIsCollapsed = false;
+    boolean mIsDeletable = true;
+    boolean mIsDisabled = false;
+    boolean mIsEditable = true;
+    boolean mInlineInputs = false;
+    boolean mIsMovable = true;
+    String mCommentText = null;
+
     /**
      * Create a new block descriptor. Prefer using {@link BlockFactory#block()} via static import
      * for readability.
      */
-    public BlockDescriptionSubject() {}
+    public BlockTemplate() {}
 
     /**
      * Copy constructor to create a new description based on a prior.
      */
-    public BlockDescriptionSubject(BlockDescriptionSubject src) {
+    public BlockTemplate(BlockTemplate src) {
         mDefinitionName = src.mDefinitionName;
         mDefinition = src.mDefinition;
         mId = src.mId;
@@ -57,7 +77,7 @@ public class BlockDescriptionSubject {
      * @param definitionName The name of the definition, as registered with the block.
      * @return This block descriptor, for chaining.
      */
-    public BlockDescriptionSubject ofType(String definitionName) {
+    public BlockTemplate ofType(String definitionName) {
         checkDefinitionAndCopySourceUnset();  // Throws if already set.
         mDefinitionName = definitionName;
         return this;
@@ -76,7 +96,7 @@ public class BlockDescriptionSubject {
      * @param definition The definition of the block.
      * @return This block descriptor, for chaining.
      */
-    public BlockDescriptionSubject fromDefinition(BlockDefinition definition) {
+    public BlockTemplate fromDefinition(BlockDefinition definition) {
         checkDefinitionAndCopySourceUnset();  // Throws if already set.
         mDefinition = definition;
         return this;
@@ -95,7 +115,7 @@ public class BlockDescriptionSubject {
      * @param json The JSON definition of the block.
      * @return This block descriptor, for chaining.
      */
-    public BlockDescriptionSubject fromJson(String json) {
+    public BlockTemplate fromJson(String json) {
         checkDefinitionAndCopySourceUnset();  // Throws if already set.
         try {
             mDefinition = new BlockDefinition(json);
@@ -118,7 +138,7 @@ public class BlockDescriptionSubject {
      * @param json The JSON definition of the block.
      * @return This block descriptor, for chaining.
      */
-    public BlockDescriptionSubject fromJson(JSONObject json) {
+    public BlockTemplate fromJson(JSONObject json) {
         checkDefinitionAndCopySourceUnset();  // Throws if already set.
         try {
             mDefinition = new BlockDefinition(json);
@@ -129,16 +149,18 @@ public class BlockDescriptionSubject {
     }
 
     /**
-     * Sets a block as an example to copy.
+     * Sets a block as an example to copy. The source will be serialized and deserialized in the
+     * copy process. No additional data (e.g., block definition or mutable state) will be stored in
+     * this template.
      *
      * <pre>
-     * {@code blockFactory.obtain(block().fromJson("{\"output\": \"Number\"}"));}
+     * {@code blockFactory.obtain(block().copyOf(otherBlock));}
      * </pre>
      *
      * @param source The JSON definition of the block.
      * @return This block descriptor, for chaining.
      */
-    public BlockDescriptionSubject copyOf(Block source) {
+    public BlockTemplate copyOf(Block source) {
         checkDefinitionAndCopySourceUnset();  // Throws if already set.
         mCopySource = source;
         return this;
@@ -154,7 +176,7 @@ public class BlockDescriptionSubject {
      * @param id The id of the block to be created.
      * @return This block descriptor, for chaining.
      */
-    public BlockDescriptionSubject withId(String id) {
+    public BlockTemplate withId(String id) {
         if (mId != null) {
             throw new IllegalStateException("Block ID already assigned.");
         }
@@ -172,8 +194,98 @@ public class BlockDescriptionSubject {
      *
      * @return This block descriptor, for chaining.
      */
-    public BlockDescriptionSubject shadow() {
+    public BlockTemplate shadow() {
         mIsShadow = true;
+        return this;
+    }
+
+    /**
+     * Declares whether the new block will be a shadow block.
+     *
+     * <pre>
+     * {@code blockFactory.obtain(block().copyOf(otherBlock).shadow(false));}
+     * </pre>
+     *
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate shadow(boolean isShadow) {
+        mIsShadow = true;
+        return this;
+    }
+
+    /**
+     * Sets the position of the resulting block.
+     *
+     * @param x The horizontal coordinate of the workspace position.
+     * @param y The vertical coordinate of the workspace position.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate atPosition(float x, float y) {
+        if (Float.isNaN(x) || Float.isInfinite(x) || Float.isNaN(y) || Float.isInfinite(y)) {
+            throw new IllegalArgumentException();
+        }
+        mPositionX = x;
+        mPositionY = y;
+        mHasPosition = true;
+        return this;
+    }
+
+    /**
+     * @param isCollapsed The collapsed state of the resulting block.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate collapsed(boolean isCollapsed) {
+        mIsCollapsed = isCollapsed;
+        return this;
+    }
+
+    /**
+     * @param isDeletable Whether users will be able to delete the resulting block.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate deletable(boolean isDeletable) {
+        return this;
+    }
+
+    /**
+     * @param isDisabled Whether the result block will be disabled.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate disabled(boolean isDisabled) {
+        return this;
+    }
+
+    /**
+     * @param isEditable Whether fields on the resulting block will be editable.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate editable(boolean isEditable) {
+        return this;
+    }
+
+    /**
+     * @param isInline Whether inputs will be inlined on the resulting block.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate withInlineInputs(boolean isInline) {
+        return this;
+    }
+
+    /**
+     * @param isMovable Whether users will be able to move the resulting block.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate movable(boolean isMovable) {
+        mIsMovable = isMovable;
+        return this;
+    }
+
+    /**
+     * @param commentText The comment text of the resulting block.
+     * @return This block descriptor, for chaining.
+     */
+    public BlockTemplate withComment(String commentText) {
+        mCommentText = commentText;
         return this;
     }
 

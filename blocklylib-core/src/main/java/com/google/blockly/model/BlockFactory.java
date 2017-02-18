@@ -46,15 +46,15 @@ public class BlockFactory {
     private static final String TAG = "BlockFactory";
 
     /**
-     * Description to pass into {@link #obtain(BlockDescriptionSubject)}, an API to obtain a new
-     * Block.
+     * Description to pass into {@link #obtain(BlockTemplate)}, a literate API to obtain a
+     * new Block.
      *
      * <pre>
      * {@code factory.obtain(block().ofType("math_number"));}
      * </pre>
      */
-    public static BlockDescriptionSubject block() {
-        return new BlockDescriptionSubject();
+    public static BlockTemplate block() {
+        return new BlockTemplate();
     }
 
     private Resources mResources;
@@ -169,7 +169,7 @@ public class BlockFactory {
      * @param description A description of the block to create.
      * @return A new block, or null if not able to construct it.
      */
-    public Block obtain(BlockDescriptionSubject description) {
+    public Block obtain(BlockTemplate description) {
         // First search for any existing block with a conflicting ID.
         if (description.mId != null) {
             WeakReference<Block> ref = mBlockRefs.get(description.mId);
@@ -189,7 +189,7 @@ public class BlockFactory {
             definition = description.mDefinition;
         } else if (description.mDefinitionName != null) {
             definition = mDefinitions.get(description.mDefinitionName.trim());
-            if (definition != null) {
+            if (definition == null) {
                 Log.w(TAG,
                         "BlockDefinition named \"" + description.mDefinitionName + "\" not found.");
                 return null;
@@ -201,8 +201,13 @@ public class BlockFactory {
 
         try {
             Block block = new Block(this, definition, description.mId, description.mIsShadow);
+
             // TODO: Apply Extensions.
+
             mBlockRefs.put(block.getId(), new WeakReference<Block>(block));
+
+            // Apply mutable state last.
+            block.applyTemplate(description);
 
             return block;
         } catch (BlockLoadingException e) {
@@ -376,46 +381,46 @@ public class BlockFactory {
         }
         // If the id was empty the BlockFactory will just generate one.
 
-        Block resultBlock = obtainBlock(type, id);
-        if (resultBlock == null) {
+        BlockTemplate template = new BlockTemplate().ofType(type).withId(id);
+        if (template == null) {
             throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
         }
 
         String collapsedString = parser.getAttributeValue(null, "collapsed");
         if (collapsedString != null) {
-            resultBlock.setCollapsed(Boolean.parseBoolean(collapsedString));
+            template.collapsed(Boolean.parseBoolean(collapsedString));
         }
 
         String deletableString = parser.getAttributeValue(null, "deletable");
         if (deletableString != null) {
-            resultBlock.setDeletable(Boolean.parseBoolean(deletableString));
+            template.deletable(Boolean.parseBoolean(deletableString));
         }
 
         String disabledString = parser.getAttributeValue(null, "disabled");
         if (disabledString != null) {
-            resultBlock.setDisabled(Boolean.parseBoolean(disabledString));
+            template.disabled(Boolean.parseBoolean(disabledString));
         }
 
         String editableString = parser.getAttributeValue(null, "editable");
         if (editableString != null) {
-            resultBlock.setEditable(Boolean.parseBoolean(editableString));
+            template.editable(Boolean.parseBoolean(editableString));
         }
 
         String inputsInlineString = parser.getAttributeValue(null, "inline");
         if (inputsInlineString != null) {
-            resultBlock.setInputsInline(Boolean.parseBoolean(inputsInlineString));
+            template.withInlineInputs(Boolean.parseBoolean(inputsInlineString));
         }
 
         String movableString = parser.getAttributeValue(null, "movable");
         if (movableString != null) {
-            resultBlock.setMovable(Boolean.parseBoolean(movableString));
+            template.movable(Boolean.parseBoolean(movableString));
         }
 
         // Set position.  Only if this is a top level block.
         String x = parser.getAttributeValue(null, "x");
         String y = parser.getAttributeValue(null, "y");
         if (x != null && y != null) {
-            resultBlock.setPosition(Float.parseFloat(x), Float.parseFloat(y));
+            template.atPosition(Float.parseFloat(x), Float.parseFloat(y));
         }
 
         int eventType = parser.next();
@@ -438,17 +443,17 @@ public class BlockFactory {
                     } else if (tagname.equalsIgnoreCase("field")) {
                         fieldName = parser.getAttributeValue(null, "name");
                     } else if (tagname.equalsIgnoreCase("value")) {
-                        valueInput = resultBlock.getInputByName(
+                        valueInput = template.getInputByName(
                                 parser.getAttributeValue(null, "name"));
                         if (valueInput == null) {
                             throw new BlocklyParserException("The value input was null at line "
                                     + parser.getLineNumber() + "!");
                         }
                     } else if (tagname.equalsIgnoreCase("statement")) {
-                        statementInput = resultBlock.getInputByName(
+                        statementInput = template.getInputByName(
                                 parser.getAttributeValue(null, "name"));
                     } else if (tagname.equalsIgnoreCase("mutation")) {
-                        // TODO(fenichel): Handle mutations.
+                        // TODO(#530): Handle mutations.
                     }
                     break;
 
@@ -460,24 +465,24 @@ public class BlockFactory {
                     Connection parentConnection = null;
 
                     if (tagname.equalsIgnoreCase("block")) {
-                        if (resultBlock == null) {
+                        if (template == null) {
                             throw new BlocklyParserException(
                                     "Created a null block. This should never happen.");
                         }
-                        return resultBlock;
+                        return obtain(template);
                     } else if (tagname.equalsIgnoreCase("shadow")) {
-                        if (resultBlock == null) {
+                        if (template == null) {
                             throw new BlocklyParserException(
                                     "Created a null block. This should never happen.");
                         }
                         try {
-                            resultBlock.setShadow(true);
+                            template.shadow();
                         } catch (IllegalStateException e) {
                             throw new BlocklyParserException(e);
                         }
-                        return resultBlock;
+                        return obtain(template);
                     }else if (tagname.equalsIgnoreCase("field")) {
-                        Field toSet = resultBlock.getFieldByName(fieldName);
+                        Field toSet = template.getFieldByName(fieldName);
                         if (toSet != null) {
                             if (!toSet.setFromString(text)) {
                                 throw new BlocklyParserException(
@@ -485,7 +490,7 @@ public class BlockFactory {
                             }
                         }
                     } else if (tagname.equalsIgnoreCase("comment")) {
-                        resultBlock.setComment(text);
+                        template.withComment(text);
                     } else if (tagname.equalsIgnoreCase("value")) {
                         if (valueInput != null) {
                             parentConnection = valueInput.getConnection();
@@ -508,7 +513,7 @@ public class BlockFactory {
                                     "A statement input was null.");
                         }
                     } else if (tagname.equalsIgnoreCase("next")) {
-                        parentConnection = resultBlock.getNextConnection();
+                        parentConnection = template.getNextConnection();
                         if (parentConnection == null) {
                             throw new BlocklyParserException("A next connection was null");
                         }
