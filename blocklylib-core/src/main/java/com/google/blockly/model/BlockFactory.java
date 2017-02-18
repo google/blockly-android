@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -49,7 +50,7 @@ public class BlockFactory {
     private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
 
     private Resources mResources;
-    private final HashMap<String, Block> mBlockTemplates = new HashMap<>();
+    private final HashMap<String, BlockDefinition> mDefinitions = new HashMap<>();
     private final HashMap<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
     /**
@@ -58,7 +59,6 @@ public class BlockFactory {
      */
     protected final HashMap<BlockTypeFieldName, WeakReference<FieldDropdown.Options>>
             mDropdownOptions = new HashMap<>();
-
 
     /**
      * Create a factory with an initial set of blocks from json resources.
@@ -90,41 +90,67 @@ public class BlockFactory {
     }
 
     /**
-     * Adds a block to the set of blocks that can be created.
-     *
-     * @param block The master block to add.
-     */
-    public void addBlockTemplate(Block block) {
-        if (mBlockTemplates.containsKey(block.getType())) {
-            Log.i(TAG, "Replacing block: " + block.getType());
-        }
-        mBlockTemplates.put(block.getType(), new Block.Builder(block).build());
-    }
-
-    /**
      * Removes a block type from the factory. If the Block is still in use by the workspace this
      * could cause a crash if the user tries to load a new block of this type.
      *
-     * @param prototypeName The name of the block to remove.
+     * @param definitionName The name of the block to remove.
      *
-     * @return The master block that was removed or null if it wasn't found.
+     * @return True if the definition was found and removed. Otherwise, false.
      */
-    public Block removeBlockTemplate(String prototypeName) {
-        return mBlockTemplates.remove(prototypeName);
+    public boolean removeBlockDefinition(String definitionName) {
+        return mDefinitions.remove(definitionName) != null;
     }
 
     /**
-     * Creates a block of the specified type using one of the master blocks known to this factory.
-     * If the prototypeName is not one of the known block types null will be returned instead.
+     * Creates a block of the specified type using one of {@link BlockDefinition}s registered with
+     * this factory. If the definitionName is not one of the known block types null will be returned
+     * instead.
      *
-     * @param prototypeName The name of the block type to create.
+     * @param definitionName The name of the block type to create.
      * @param uuid The id of the block if loaded from XML; null otherwise.
      *
      * @return A new block of that type or null.
+     * @throws IllegalArgumentException If uuid is not null and already refers to a block.
      */
-    public Block obtainBlock(String prototypeName, @Nullable String uuid) {
-        // First search for any existing instance
+    public Block obtainBlock(String definitionName, @Nullable String uuid) {
+        // Existing instance not found.  Constructing a new one.
+        BlockDefinition definition = mDefinitions.get(definitionName);
+        if (definition == null) {
+            Log.w(TAG, "Block " + definitionName + " not found.");
+            return null;
+        }
+        return obtainBlock(definition, uuid);
+    }
+
+    /**
+     * Creates a block of the specified by the JSON string definition. This block will lack a
+     * registered type, and will not be loadable from serialized workspace or toolbox XML. This is
+     * more useful in testing than in real apps.
+     *
+     * @param json The JSON defining the block.
+     * @param uuid The id of the block if loaded from XML; null otherwise.
+     *
+     * @return A new block of that type.
+     * @throws IllegalArgumentException If uuid is not null and already refers to a block.
+     */
+    public Block obtainBlockFromJson(String json, @Nullable String uuid) throws JSONException {
+        return obtainBlock(new BlockDefinition(json), uuid);
+    }
+
+    /**
+     * Creates a block of the specified by the block definition. This block may lack a
+     * registered type, and will not be loadable from serialized workspace or toolbox XML. This is
+     * more useful in testing than in real apps.
+     *
+     * @param definition The name of the block type to create.
+     * @param uuid The id of the block if loaded from XML; null otherwise.
+     *
+     * @return A new block of that type or null.
+     * @throws IllegalArgumentException If uuid is not null and already refers to a block.
+     */
+    public Block obtainBlock(BlockDefinition definition, @Nullable String uuid) {
         Block block;
+        // First search for any existing instance
         if (uuid != null) {
             WeakReference<Block> ref = mBlockRefs.get(uuid);
             if (ref != null) {
@@ -137,24 +163,23 @@ public class BlockFactory {
         }
 
         // Existing instance not found.  Constructing a new one.
-        if (!mBlockTemplates.containsKey(prototypeName)) {
-            Log.w(TAG, "Block " + prototypeName + " not found.");
+        try {
+            block = new Block(this, definition, uuid);
+            mBlockRefs.put(block.getId(), new WeakReference<Block>(block));
+
+            // TODO: Apply Extensions.
+            return block;
+        } catch (BlockLoadingException e) {
+            Log.e(TAG, "Failed to load block of type \"" + definitionName + "\".", e);
             return null;
         }
-        Block.Builder builder = new Block.Builder(mBlockTemplates.get(prototypeName));
-        if (uuid != null) {
-            builder.setUuid(uuid);
-        }
-        block = builder.build();
-        mBlockRefs.put(block.getId(), new WeakReference<Block>(block));
-        return block;
     }
 
     /**
      * @return The list of known blocks that can be created.
      */
-    public List<Block> getAllBlocks() {
-        return new ArrayList<>(mBlockTemplates.values());
+    public List<BlockDefinition> getAllBlockDefinitions() {
+        return new ArrayList<>(mDefinitions.values());
     }
 
     /**
@@ -212,149 +237,24 @@ public class BlockFactory {
      * @throws BlockLoadingException if the json is malformed.
      */
     public Block fromJson(String type, JSONObject json) throws BlockLoadingException {
-        if (TextUtils.isEmpty(type)) {
-            throw new IllegalArgumentException("Block type may not be null or empty.");
-        }
-        if (json == null) {
-            throw new IllegalArgumentException("Json may not be null.");
-        }
-        Block.Builder builder = new Block.Builder(type);
-
-        if (json.has("output") && json.has("previousStatement")) {
-            throw new BlockLoadingException(
-                    "Block cannot have both an output and a previous statement.");
-        }
-
-        // Parse any connections that are present.
-        if (json.has("output")) {
-            String[] checks = Input.getChecksFromJson(json, "output");
-            Connection output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, checks);
-            builder.setOutput(output);
-        } else if (json.has("previousStatement")) {
-            String[] checks = Input.getChecksFromJson(json, "previousStatement");
-            Connection previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, checks);
-            builder.setPrevious(previous);
-        }
-        // A block can have either an output connection or previous connection, but it can always
-        // have a next connection.
-        if (json.has("nextStatement")) {
-            String[] checks = Input.getChecksFromJson(json, "nextStatement");
-            Connection next = new Connection(Connection.CONNECTION_TYPE_NEXT, checks);
-            builder.setNext(next);
-        }
-        if (json.has("inputsInline")) {
-            try {
-                builder.setInputsInline(json.getBoolean("inputsInline"));
-            } catch (JSONException e) {
-                // Do nothing and it will remain false.
-            }
-        }
-
-        int blockColor = ColorUtils.DEFAULT_BLOCK_COLOR;
-        if (json.has("colour")) {
-            try {
-                String colourString = json.getString("colour");
-                blockColor = ColorUtils.parseColor(colourString, TEMP_IO_THREAD_FLOAT_ARRAY,
-                        ColorUtils.DEFAULT_BLOCK_COLOR);
-            } catch (JSONException e) {
-                // Won't get here. Checked above.
-            }
-        }
-        builder.setColor(blockColor);
-
-        ArrayList<Input> inputs = new ArrayList<>();
-        ArrayList<Field> fields = new ArrayList<>();
-        for (int i = 0; ; i++) {
-            String messageKey = "message" + i;
-            String argsKey = "args" + i;
-            String lastDummyAlignKey = "lastDummyAlign" + i;
-            if (!json.has(messageKey)) {
-                break;
-            }
-            String message = json.optString(messageKey);
-            JSONArray args = json.optJSONArray(argsKey);
-            if (args == null) {
-                // If there's no args for this message use an empty array.
-                args = new JSONArray();
-            }
-
-            if (message.matches("^%[a-zA-Z][a-zA-Z_0-9]*$")) {
-                // TODO(#83): load the message from resources.
-            }
-            // Split on all argument indices of the form "%N" where N is a number from 1 to
-            // the number of args without removing them.
-            List<String> tokens = Block.tokenizeMessage(message);
-            int indexCount = 0;
-            // Indices start at 1, make the array 1 bigger so we don't have to offset things
-            boolean[] seenIndices = new boolean[args.length() + 1];
-
-            for (String token : tokens) {
-                // Check if this token is an argument index of the form "%N"
-                if (token.matches("^%\\d+$")) {
-                    int index = Integer.parseInt(token.substring(1));
-                    if (index < 1 || index > args.length()) {
-                        throw new BlockLoadingException("Message index " + index
-                                + " is out of range.");
-                    }
-                    if (seenIndices[index]) {
-                        throw new BlockLoadingException(("Message index " + index
-                                + " is duplicated"));
-                    }
-                    seenIndices[index] = true;
-
-                    JSONObject element;
-                    try {
-                        element = args.getJSONObject(index - 1);
-                    } catch (JSONException e) {
-                        throw new BlockLoadingException("Error reading arg %" + index, e);
-                    }
-                    while (element != null) {
-                        String elementType = element.optString("type");
-                        if (TextUtils.isEmpty(elementType)) {
-                            throw new BlockLoadingException("No type for arg %" + index);
-                        }
-
-                        if (Field.isFieldType(elementType)) {
-                            fields.add(loadFieldFromJson(type, element));
-                            break;
-                        } else if (Input.isInputType(elementType)) {
-                            Input input = Input.fromJson(element);
-                            input.addAll(fields);
-                            fields.clear();
-                            inputs.add(input);
-                            break;
-                        } else {
-                            // Try getting the fallback block if it exists
-                            Log.w(TAG, "Unknown element type: " + elementType);
-                            element = element.optJSONObject("alt");
-                        }
-                    }
-                } else {
-                    token = token.replace("%%", "%").trim();
-                    if (!TextUtils.isEmpty(token)) {
-                        fields.add(new FieldLabel(null, token));
-                    }
+        try{
+            String typeInJson = json.optString("type");
+            if (typeInJson == null || (!type.equals(typeInJson))) {
+                // Copy object with all keys.
+                Iterator<String> keyIter = json.keys();
+                String [] keys = new String[json.length()];
+                int i = 0;
+                while (keyIter.hasNext()) {
+                    keys[i++] = keyIter.next();
                 }
+                json = new JSONObject(json, keys);
+                json.put("type", type);
             }
-
-            // Verify every argument was used
-            for (int j = 1; j < seenIndices.length; j++) {
-                if (!seenIndices[j]) {
-                    throw new BlockLoadingException("Argument " + j + " was never used.");
-                }
-            }
-            // If there were leftover fields we need to add a dummy input to hold them.
-            if (fields.size() != 0) {
-                String align = json.optString(lastDummyAlignKey, Input.ALIGN_LEFT_STRING);
-                Input input = new Input.InputDummy(null, align);
-                input.addAll(fields);
-                inputs.add(input);
-                fields.clear();
-            }
+            BlockDefinition def = new BlockDefinition(json);
+            return new Block(this, def, null);
+        } catch (JSONException e) {
+            throw new BlockLoadingException(e);
         }
-
-        builder.setInputs(inputs);
-        return builder.build();
     }
 
     /**
@@ -667,7 +567,7 @@ public class BlockFactory {
      * Removes all blocks from the factory.
      */
     public void clear() {
-        mBlockTemplates.clear();
+        mDefinitions.clear();
         mDropdownOptions.clear();
         mBlockRefs.clear();
     }
@@ -691,10 +591,10 @@ public class BlockFactory {
             String json = new String(buffer, "UTF-8");
             JSONArray blocks = new JSONArray(json);
             for (int i = 0; i < blocks.length(); i++) {
-                JSONObject block = blocks.getJSONObject(i);
-                String type = block.optString("type");
+                JSONObject jsonDef = blocks.getJSONObject(i);
+                String type = jsonDef.optString("type");
                 if (!TextUtils.isEmpty(type)) {
-                    mBlockTemplates.put(type, fromJson(type, block));
+                    mDefinitions.put(type, new BlockDefinition(jsonDef));
                     ++blockAddedCount;
                 } else {
                     throw new BlockLoadingException(

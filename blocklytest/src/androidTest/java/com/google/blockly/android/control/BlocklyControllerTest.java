@@ -179,7 +179,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         mController.addRootBlock(target);
         mController.addRootBlock(source);
 
-        Block shadow = new Block.Builder(target).setUuid("connectShadow").setShadow(true).build();
+        Block shadow = mBlockFactory.obtainBlockFromJson();
+                new Block.Builder(target).setUuid("connectShadow").setShadow(true).build();
 
         if (withViews) {
             mController.initWorkspaceView(mWorkspaceView);

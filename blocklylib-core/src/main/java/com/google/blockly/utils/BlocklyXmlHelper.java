@@ -74,45 +74,80 @@ public final class BlocklyXmlHelper {
      * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
      * contained in it or descending from it.
      *
-     * @param is The input stream from which to read.
+     * @param inputXml The input stream from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
-     * @param stats The WorkspaceStats to store connection information in.
      * @param result The List to add the parsed blocks to.
      *
      * @throws BlocklyParserException
      */
-    public static void loadFromXml(InputStream is, BlockFactory blockFactory, WorkspaceStats stats,
-            List<Block> result) throws BlocklyParserException {
-        loadBlocksFromXml(is, null, blockFactory, stats, result);
+    public static void loadFromXml(InputStream inputXml, BlockFactory blockFactory,
+                                   List<Block> result)
+            throws BlocklyParserException {
+        loadBlocksFromXml(inputXml, null, blockFactory, result);
+    }
+
+    /**
+     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
+     * contained in it or descending from it.
+     *
+     * @param inputXml The input stream of XML from which to read.
+     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     * @param stats Unused
+     * @param result The List to add the parsed blocks to.
+     *
+     * @throws BlocklyParserException
+     */
+    @Deprecated
+    public static void loadFromXml(InputStream inputXml, BlockFactory blockFactory,
+                                   WorkspaceStats stats, List<Block> result)
+            throws BlocklyParserException {
+        loadBlocksFromXml(inputXml, null, blockFactory, result);
     }
 
     /**
      * Convenience function that creates a new {@link ArrayList}.
+     * @param inputXml The input stream of XML from which to read.
      */
-    public static List<Block> loadFromXml(InputStream is, BlockFactory blockFactory,
-            WorkspaceStats stats) throws BlocklyParserException {
+    public static List<Block> loadFromXml(InputStream inputXml, BlockFactory blockFactory)
+            throws BlocklyParserException {
         List<Block> result = new ArrayList<>();
-        loadBlocksFromXml(is, null, blockFactory, stats, result);
+        loadBlocksFromXml(inputXml, null, blockFactory, result);
         return result;
+    }
+
+    /**
+     * Convenient version of {@link #loadFromXml(InputStream, BlockFactory, List)} function that
+     * returns results in a newly created a new {@link ArrayList}.
+     * @param inputXml The input stream of XML from which to read.
+     *
+     */
+    @Deprecated
+    public static List<Block> loadFromXml(InputStream inputXml, BlockFactory blockFactory,
+                                          WorkspaceStats stats) throws BlocklyParserException {
+        return loadFromXml(inputXml, blockFactory);
     }
 
     /**
      * Convenience function to load only one Block.
      *
-     * @param is The input stream from which to read the Block.
+     * @param inputXml The input stream of XML from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
      * @return The first Block read from is, or null if no Block was read.
      * @throws BlocklyParserException
      */
     @Nullable
-    public static Block loadOneBlockFromXml(InputStream is, BlockFactory blockFactory)
+    public static Block loadOneBlockFromXml(InputStream inputXml, BlockFactory blockFactory)
             throws BlocklyParserException {
-        List<Block> temp = loadFromXml(is, blockFactory, null);
-        if (temp.isEmpty()) {
+        List<Block> result = new ArrayList<>();
+        loadBlocksFromXml(inputXml, null, blockFactory, result);
+        if (result.isEmpty()) {
             return null;
         }
-        return temp.get(0);
+        if (result.size() > 1) {
+            throw new IllegalStateException("Expected one top block. Found " + result.size() + ".");
+        }
+        return result.get(0);
     }
 
     /**
@@ -128,7 +163,7 @@ public final class BlocklyXmlHelper {
     public static Block loadOneBlockFromXml(String xml, BlockFactory blockFactory)
             throws BlocklyParserException {
         List<Block> result = new ArrayList<>();
-        loadBlocksFromXml(null, xml, blockFactory, null, result);
+        loadBlocksFromXml(null, xml, blockFactory, result);
         if (result.isEmpty()) {
             return null;
         }
@@ -239,13 +274,12 @@ public final class BlocklyXmlHelper {
      * @param inStream The input stream to read blocks from. Maybe null.
      * @param inString The xml string to read blocks from if {@code insStream} is null.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     * @param result An list (usually empty) to append new top-level Blocks to.
      *
-     * @return A list of top-level Blocks.
      * @throws BlocklyParserException
      */
     private static void loadBlocksFromXml(
-            InputStream inStream, String inString, BlockFactory blockFactory, WorkspaceStats stats,
-            List<Block> result)
+            InputStream inStream, String inString, BlockFactory blockFactory, List<Block> result)
             throws BlocklyParserException {
         StringReader reader = null;
         try {

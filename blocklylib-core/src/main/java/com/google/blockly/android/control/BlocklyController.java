@@ -1807,25 +1807,6 @@ public class BlocklyController {
             }
             return this;
         }
-        /**
-         * Adds a list of blocks to the set of all known blocks. These will be added to the set of
-         * all known blocks, but will not appear in the user's toolbox unless they are also defined
-         * in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
-         * <p/>
-         * These blocks may not have any child blocks attached to them. If these blocks are
-         * duplicates of blocks loaded from a resource they will override the block from resources.
-         * Blocks added here will always be loaded after any blocks added with {@link
-         * #addBlockDefinitions(int)};
-         * <p/>
-         * A duplicate block is any block with the same {@link Block#getType() type}.
-         *
-         * @param blocks The list of blocks to add to the workspace.
-         * @return this
-         */
-        public Builder addBlockDefinitions(List<Block> blocks) {
-            mBlockDefs.addAll(blocks);
-            return this;
-        }
 
         /**
          * Sets the resource to load the toolbox configuration from. This must be an xml resource in
@@ -1920,9 +1901,6 @@ public class BlocklyController {
                     throw new IllegalStateException("Failed to load block definitions from asset: "
                             + assetPath, e);
                 }
-            }
-            for (int i = 0; i < mBlockDefs.size(); i++) {
-                factory.addBlockTemplate(mBlockDefs.get(i));
             }
             BlocklyController controller = new BlocklyController(
                     mContext, factory, mWorkspaceHelper, blockClipDataHelper, mViewFactory);
