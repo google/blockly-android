@@ -309,7 +309,7 @@ public class Workspace {
      * @throws BlocklySerializerException if there was a failure while serializing.
      */
     public void serializeToXml(OutputStream os) throws BlocklySerializerException {
-        BlocklyXmlHelper.writeToXml(mRootBlocks, os, IOOptions.ALL_DATA);
+        BlocklyXmlHelper.writeToXml(mRootBlocks, os, IOOptions.WRITE_ALL_DATA);
     }
 
     /**

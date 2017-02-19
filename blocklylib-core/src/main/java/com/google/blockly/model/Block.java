@@ -35,11 +35,6 @@ import java.util.UUID;
 public class Block {
     private static final String TAG = "Block";
 
-    private static final IOOptions DEEP_COPY_IO_OPTIONS = new IOOptions(
-            /* include children */ true,
-            /* Do not include ids */ false
-    );
-
     // These values are immutable once a block is created
     private final BlockFactory mFactory;
     private final String mId;
@@ -599,7 +594,8 @@ public class Block {
      */
     public Block deepCopy() {
         try {
-            String xml = BlocklyXmlHelper.writeBlockToXml(this, DEEP_COPY_IO_OPTIONS);
+            String xml = BlocklyXmlHelper.writeBlockToXml(this,
+                    IOOptions.WRITE_ALL_BLOCKS_WITHOUT_ID);
             return BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
         } catch (BlocklySerializerException e) {
             throw new IllegalStateException("Failed to serialize block during copy.", e);

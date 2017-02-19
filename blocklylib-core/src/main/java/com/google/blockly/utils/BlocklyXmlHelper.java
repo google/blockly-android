@@ -15,7 +15,6 @@
 
 package com.google.blockly.utils;
 
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -38,11 +37,8 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
  * Helper class to serialize and deserialize blockly workspaces, including constructing new
@@ -182,12 +178,13 @@ public final class BlocklyXmlHelper {
      *
      * @param toSerialize A list of Blocks to serialize.
      * @param os An OutputStream to write the blocks to.
-     * @param options The options to configure the block serialization.
+     * @param options The options to configure the block serialization. If omitted,
+     *                {@link IOOptions#WRITE_ALL_DATA} will be used by default.
      *
      * @throws BlocklySerializerException
      */
     public static void writeToXml(@NonNull List<Block> toSerialize, @NonNull OutputStream os,
-                                  @NonNull IOOptions options)
+                                  @Nullable IOOptions options)
             throws BlocklySerializerException {
         writeToXmlImpl(toSerialize, os, null, options);
     }
@@ -197,12 +194,13 @@ public final class BlocklyXmlHelper {
      *
      * @param toSerialize A list of Blocks to serialize.
      * @param writer A writer to write the blocks to.
-     * @param options The options to configure the block serialization.
+     * @param options The options to configure the block serialization. If omitted,
+     *                {@link IOOptions#WRITE_ALL_DATA} will be used by default.
      *
      * @throws BlocklySerializerException
      */
     public static void writeToXml(@NonNull List<Block> toSerialize, @NonNull Writer writer,
-                                  @NonNull IOOptions options)
+                                  @Nullable IOOptions options)
             throws BlocklySerializerException {
         writeToXmlImpl(toSerialize, null, writer, options);
     }
@@ -214,13 +212,17 @@ public final class BlocklyXmlHelper {
      * @param toSerialize A list of Blocks to serialize.
      * @param os An OutputStream to write the blocks to.
      * @param writer A writer to write the blocks to, if {@code os} is null.
-     * @param options The options to configure the block serialization.
+     * @param options The options to configure the block serialization. If omitted,
+     *                {@link IOOptions#WRITE_ALL_DATA} will be used by default.
      *
      * @throws BlocklySerializerException
      */
     public static void writeToXmlImpl(@NonNull List<Block> toSerialize, @Nullable OutputStream os,
-                                      @Nullable Writer writer, @NonNull IOOptions options)
+                                      @Nullable Writer writer, @Nullable IOOptions options)
             throws BlocklySerializerException {
+        if (options == null) {
+            options = IOOptions.WRITE_ALL_DATA;
+        }
         try {
             XmlSerializer serializer = mParserFactory.newSerializer();
             if (os != null) {
@@ -247,12 +249,13 @@ public final class BlocklyXmlHelper {
      *
      * @param rootBlock The root block of the stack to serialize.
      * @param os An OutputStream to which to write them.
-     * @param options The options to configure the block serialization.
+     * @param options The options to configure the block serialization. If omitted,
+     *                {@link IOOptions#WRITE_ALL_DATA} will be used by default.
      *
      * @throws BlocklySerializerException
      */
     public static void writeBlockToXml(@NonNull Block rootBlock, @NonNull OutputStream os,
-                                       @NonNull IOOptions options)
+                                       @Nullable IOOptions options)
             throws BlocklySerializerException {
         List<Block> temp = new ArrayList<>();
         temp.add(rootBlock);
@@ -263,11 +266,12 @@ public final class BlocklyXmlHelper {
      * Convenience function to serialize one stack of Blocks (a BlockGroup, effectively).
      *
      * @param rootBlock The root block of the stack to serialize.
-     * @param options The options to configure the block serialization.
+     * @param options The options to configure the block serialization. If omitted,
+     *                {@link IOOptions#WRITE_ALL_DATA} will be used by default.
      * @return XML string for block and all descendant blocks.
      * @throws BlocklySerializerException
      */
-    public static String writeBlockToXml(@NonNull Block rootBlock, @NonNull IOOptions options)
+    public static String writeBlockToXml(@NonNull Block rootBlock, @Nullable IOOptions options)
             throws BlocklySerializerException {
         StringWriter sw = new StringWriter();
         List<Block> temp = new ArrayList<>();

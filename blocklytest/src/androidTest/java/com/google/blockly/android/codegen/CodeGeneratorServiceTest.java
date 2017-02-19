@@ -83,7 +83,7 @@ public class CodeGeneratorServiceTest {
     private String toXml(Block block) {
         StringOutputStream out = new StringOutputStream();
         try {
-            BlocklyXmlHelper.writeBlockToXml(block, out, IOOptions.ALL_DATA);
+            BlocklyXmlHelper.writeBlockToXml(block, out, null);
         } catch (BlocklySerializerException e) {
             throw new IllegalArgumentException("Failed to serialize block.", e);
         }

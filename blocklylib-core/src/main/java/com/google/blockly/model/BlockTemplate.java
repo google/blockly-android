@@ -323,6 +323,7 @@ public class BlockTemplate {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate deletable(boolean isDeletable) {
+        mIsDeletable = isDeletable;
         return this;
     }
 
@@ -331,6 +332,7 @@ public class BlockTemplate {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate disabled(boolean isDisabled) {
+        mIsDisabled = isDisabled;
         return this;
     }
 
@@ -339,6 +341,7 @@ public class BlockTemplate {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate editable(boolean isEditable) {
+        mIsEditable = isEditable;
         return this;
     }
 
@@ -347,6 +350,7 @@ public class BlockTemplate {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate withInlineInputs(boolean isInline) {
+        mInlineInputs = isInline;
         return this;
     }
 

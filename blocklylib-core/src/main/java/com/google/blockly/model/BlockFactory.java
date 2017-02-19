@@ -46,11 +46,6 @@ import java.util.List;
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
 
-    private static final IOOptions ROOT_ONLY_WITHOUT_ID = new IOOptions(
-            /* includeChildren */ false,
-            /* includeIds */ false
-    );
-
     /**
      * Description to pass into {@link #obtain(BlockTemplate)}, a literate API to obtain a
      * new Block.
@@ -199,8 +194,9 @@ public class BlockFactory {
         Block block;
         if (template.mCopySource != null) {
             try {
-                // TODO: Improve I/O overhead. (Another thread?)
-                String xml = BlocklyXmlHelper.writeBlockToXml(template.mCopySource, ROOT_ONLY_WITHOUT_ID);
+                // TODO: Improve copy overhead. Avoid XML?
+                String xml = BlocklyXmlHelper.writeBlockToXml(template.mCopySource,
+                        IOOptions.WRITE_ROOT_ONLY_WITHOUT_ID);
                 block = BlocklyXmlHelper.loadOneBlockFromXml(xml, this);
             } catch (BlocklySerializerException e) {
                 Log.e(TAG, template.mCopySource + ": Failed to copy block.", e);

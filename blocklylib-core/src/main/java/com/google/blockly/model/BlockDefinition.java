@@ -25,10 +25,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+
 
 /**
  * Definition of a type of block.
@@ -82,6 +81,7 @@ public class BlockDefinition {
             throw new IllegalArgumentException(
                     warningPrefix + "Block cannot have both \"output\" and \"previousStatement\".");
         }
+        // Each connection may have a list of allow connection checks / types.
         mOutputChecks = mHasOutput ? Input.getChecksFromJson(mJson, "output") : null;
         mPreviousChecks = mHasPrevious ? Input.getChecksFromJson(mJson, "previousStatement") : null;
         mNextChecks = mHasNext ? Input.getChecksFromJson(mJson, "nextStatement") : null;
@@ -99,15 +99,18 @@ public class BlockDefinition {
     }
 
     public Connection createOutputConnection() {
-        return new Connection(Connection.CONNECTION_TYPE_OUTPUT, mOutputChecks);
+        return !mHasOutput ? null :
+                new Connection(Connection.CONNECTION_TYPE_OUTPUT, mOutputChecks);
     }
 
     public Connection createPreviousConnection() {
-        return new Connection(Connection.CONNECTION_TYPE_PREVIOUS, mPreviousChecks);
+        return !mHasPrevious ? null :
+                new Connection(Connection.CONNECTION_TYPE_PREVIOUS, mPreviousChecks);
     }
 
     public Connection createNextConnection() {
-        return new Connection(Connection.CONNECTION_TYPE_NEXT, mNextChecks);
+        return !mHasNext ? null :
+                new Connection(Connection.CONNECTION_TYPE_NEXT, mNextChecks);
     }
 
     public ArrayList<Input> createInputList(BlockFactory factory) throws BlockLoadingException {

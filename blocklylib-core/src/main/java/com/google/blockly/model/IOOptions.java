@@ -17,24 +17,30 @@ package com.google.blockly.model;
 
 /**
  * A set of options for reading or writing blocks.
+ *
+ * This class is subject to API changes, and so all members are marked package private for now.
+ * Instead, use the static instances {@link #WRITE_ALL_DATA}, {@link #WRITE_ALL_BLOCKS_WITHOUT_ID},
+ * or {@link #WRITE_ROOT_ONLY_WITHOUT_ID}.
  */
-public class IOOptions {
-    public static final IOOptions ALL_DATA = new IOOptions(true, true);
+public final class IOOptions {
+    public static final IOOptions WRITE_ALL_DATA = new IOOptions(true, true);
+    public static final IOOptions WRITE_ALL_BLOCKS_WITHOUT_ID = new IOOptions(true, false);
+    public static final IOOptions WRITE_ROOT_ONLY_WITHOUT_ID = new IOOptions(false, false);
 
     protected final boolean mIncludeChildren;
     protected final boolean mIncludeIds;
 
-    // Package private because it is subject to future changes.
+    // Package private because this class is subject to future changes.
     IOOptions(boolean includeChildren, boolean includeIds) {
         mIncludeChildren = includeChildren;
         mIncludeIds = includeIds;
     }
 
-    public final boolean isBlockChildWritten() {
+    boolean isBlockChildWritten() {
         return mIncludeChildren;
     }
 
-    public final boolean isBlockIdWritten() {
+    boolean isBlockIdWritten() {
         return mIncludeIds;
     }
 }

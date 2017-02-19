@@ -26,11 +26,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,14 +54,14 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testEmptyBlockHasId() {
-        Block block = mBlockFactory.obtain(block().ofType("text_block"));
+        Block block = mBlockFactory.obtain(block().ofType("text"));
         assertWithMessage("Block id cannot be empty.")
                 .that(block.getId()).isNotEmpty();
     }
 
     @Test
     public void testCopyBlockDoesNotCopyId() {
-        Block original = mBlockFactory.obtain(block().ofType("text_block"));
+        Block original = mBlockFactory.obtain(block().ofType("text"));
         Block copy = original.deepCopy();
 
         assertStringNotEmpty("Copies of blocks cannot be empty ids.", copy.getId());
@@ -136,14 +133,14 @@ public class BlockTest extends BlocklyTestCase {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
 
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
         assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION);
 
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
 
-        block.serialize(serializer, /* root block */ false, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ false, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
         assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_NO_POSITION);
 
@@ -151,7 +148,7 @@ public class BlockTest extends BlocklyTestCase {
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
 
-        block.serialize(serializer, /* root block */ false, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ false, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
         assertThat(os.toString()).isEqualTo(
             BlockTestStrings.blockStart("block", "frankenblock", "frankenblock1", null)
@@ -160,7 +157,7 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeInputsInline() throws BlocklySerializerException, IOException {
+    public void testSerializeInputsInline() throws IOException {
         BlockFactory bf = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         Block block = bf.obtain(
                 block().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
@@ -168,21 +165,21 @@ public class BlockTest extends BlocklyTestCase {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
 
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
         assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION);
 
         block.setInputsInline(false);
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
         assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_INLINE_FALSE);
 
         block.setInputsInline(true);
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
         assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_INLINE_TRUE);
     }
@@ -196,7 +193,7 @@ public class BlockTest extends BlocklyTestCase {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
 
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
         assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_SHADOW_WITH_POSITION);
     }
@@ -213,7 +210,7 @@ public class BlockTest extends BlocklyTestCase {
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
 
         String expected = BlockTestStrings.frankenBlockStart("block", "364")
@@ -236,7 +233,7 @@ public class BlockTest extends BlocklyTestCase {
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
 
         String expected = BlockTestStrings.frankenBlockStart("block", "364")
@@ -255,7 +252,7 @@ public class BlockTest extends BlocklyTestCase {
         input.getConnection().connect(inputBlock.getOutputConnection());
 
         os.reset();
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
 
         expected = BlockTestStrings.frankenBlockStart("block", "777")
@@ -277,7 +274,7 @@ public class BlockTest extends BlocklyTestCase {
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
-        block.serialize(serializer, /* root block */ true, IOOptions.ALL_DATA);
+        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
         serializer.flush();
 
         String expected = BlockTestStrings.frankenBlockStart("block", "364")
@@ -671,24 +668,20 @@ public class BlockTest extends BlocklyTestCase {
     private String toXml(Block block) {
         StringOutputStream out = new StringOutputStream();
         try {
-            BlocklyXmlHelper.writeBlockToXml(block, out, IOOptions.ALL_DATA);
+            BlocklyXmlHelper.writeBlockToXml(block, out, null);
         } catch (BlocklySerializerException e) {
             throw new IllegalArgumentException("Failed to serialize block.", e);
         }
         return out.toString();
     }
 
+    // TODO: Replace with IOOption
     private Block fromXmlWithoutId(String xml) {
         xml = xml.replaceAll("id=\\\"[^\\\"]*\\\"", "");  // Remove id attributes.
         return fromXml(xml);
     }
 
     private Block fromXml(String xml) {
-        try {
-            InputStream stream = new ByteArrayInputStream(xml.getBytes("UTF-8"));
-            return BlocklyXmlHelper.loadOneBlockFromXml(stream, mBlockFactory);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException(e);
-        }
+        return BlocklyXmlHelper.loadOneBlockFromXml(xml, mBlockFactory);
     }
 }
