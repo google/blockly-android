@@ -76,16 +76,16 @@ public class WorkspaceStatsTest {
     public void testCollectVariableStats() throws JSONException {
         BlockDefinition def = new BlockDefinition(
                 "{" +
-                    "\"type\":\"two variable references\"" +
+                    "\"type\":\"two variable references\"," +
                     "\"message0\":\"%1 %2\"," +
                     "\"args0\":[{" +
                         "\"type\":\"field_variable\"," +
                         "\"name\":\"field name\"," +
-                        "\"variable\":\"nameid\"" +
+                        "\"variable\":\"variable name\"" +
                     "},{" +
                         "\"type\":\"field_variable\"," +
                         "\"name\":\"field name 2\"," +
-                        "\"variable\":\"nameid2\"" +
+                        "\"variable\":\"variable name\"" +
                     "}]" +
                 "}"
         );
@@ -109,7 +109,7 @@ public class WorkspaceStatsTest {
     public void testCollectConnectionStatsNextPrevStatementRecursion() throws JSONException {
         BlockDefinition variableWithNext = new BlockDefinition(
             "{" +
-                "\"type\":\"parent variableWithNext\"" +
+                "\"type\":\"parent variableWithNext\"," +
                 "\"message0\":\"%1\"," +
                 "\"args0\":[{" +
                     "\"type\":\"field_variable\"," +
@@ -121,7 +121,7 @@ public class WorkspaceStatsTest {
         );
         BlockDefinition nextAndPrev = new BlockDefinition(
             "{" +
-                "\"type\":\"test target nextAndPrev\"" +
+                "\"type\":\"test target nextAndPrev\"," +
                 "\"message0\":\"label on dummy input\"," +
                 "\"previousStatement\":null," +
                 "\"nextStatement\":null" +
@@ -129,7 +129,7 @@ public class WorkspaceStatsTest {
         );
         BlockDefinition variableWithPrev = new BlockDefinition(
             "{" +
-                "\"type\":\"child variableWithPrev\"" +
+                "\"type\":\"child variableWithPrev\"," +
                 "\"message0\":\"%1\"," +
                 "\"args0\":[{" +
                     "\"type\":\"field_variable\"," +
