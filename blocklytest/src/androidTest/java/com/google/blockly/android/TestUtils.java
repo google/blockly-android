@@ -29,6 +29,7 @@ import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.Field;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import java.util.List;
@@ -142,8 +143,8 @@ public final class TestUtils {
     private static String getProcedureBlockJson(String blockType, String procedureName)
             throws JSONException
     {
-        String typeQuotedAndEscaped = new JSONStringer().value(blockType).toString();
-        String nameQuotedAndEscaped = new JSONStringer().value(procedureName).toString();
+        String typeQuotedAndEscaped = JSONObject.quote(blockType);
+        String nameQuotedAndEscaped = JSONObject.quote(procedureName);
         String prefix = "{\"type\":";  // Quoted block type goes here
         String middle = ", \"message0\":\"%1\"," +
                         "\"args0\":[{" +
