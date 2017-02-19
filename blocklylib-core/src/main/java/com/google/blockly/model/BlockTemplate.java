@@ -295,7 +295,7 @@ public class BlockTemplate {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate shadow(boolean isShadow) {
-        mIsShadow = true;
+        mIsShadow = isShadow;
         return this;
     }
 

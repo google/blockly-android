@@ -762,7 +762,7 @@ public class Block {
      * @return The description.
      */
     public String toString() {
-        return "\"" + mType + "\" block (id=\"\" + this.id + \"\\\")\"";
+        return "\"" + mType + "\" block (id=\"" + mId + "\")";
     };
 
     /**
