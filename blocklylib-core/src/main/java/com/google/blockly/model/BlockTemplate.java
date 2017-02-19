@@ -70,18 +70,18 @@ public class BlockTemplate {
 
     String mId = null;
     boolean mAllowAlternateId = true;
-    Boolean mIsShadow = null;  // Defaults to mCopySource or false.
 
-    // Mutable state, applied via Block.applyTemplate()
-    boolean mHasPosition = false;
-    float mPositionX;
-    float mPositionY;
-    boolean mIsCollapsed = false;
-    boolean mIsDeletable = true;
-    boolean mIsDisabled = false;
-    boolean mIsEditable = true;
-    boolean mInlineInputs = false;
-    boolean mIsMovable = true;
+    // Mutable state variables below.
+    // Applied via Block.applyTemplate()
+    // If not set, the block's value is unmodified.
+    Boolean mIsShadow = null;
+    WorkspacePoint mPosition = null;
+    Boolean mIsCollapsed = null;
+    Boolean mIsDeletable = null;
+    Boolean mIsDisabled = null;
+    Boolean mIsEditable = null;
+    Boolean mInlineInputs = null;
+    Boolean mIsMovable = null;
     String mCommentText = null;
 
     /** Ordered list of field names and string values, as loaded during XML deserialization. */
@@ -90,8 +90,8 @@ public class BlockTemplate {
     /** Ordered list of input names and blocks, as loaded during XML deserialization. */
     List<InputValue> mInputValues;
 
-    Block mNextChild = null;
-    Block mNextShadow = null;
+    Block mNextChild;
+    Block mNextShadow;
 
     /**
      * Create a new block descriptor. Prefer using {@link BlockFactory#block()} via static import
@@ -103,10 +103,35 @@ public class BlockTemplate {
      * Copy constructor to create a new description based on a prior.
      */
     public BlockTemplate(BlockTemplate src) {
+        if (src.mInputValues != null || src.mNextChild != null || src.mNextShadow != null) {
+            throw new IllegalArgumentException(
+                    "Cannot copy a template with child Block references.");
+        }
+
         mDefinitionName = src.mDefinitionName;
         mDefinition = src.mDefinition;
         mId = src.mId;
+        mAllowAlternateId = src.mAllowAlternateId;
+
         mIsShadow = src.mIsShadow;
+        if (src.mPosition != null) {
+            mPosition = new WorkspacePoint(src.mPosition);
+        }
+
+        mIsCollapsed = src.mIsCollapsed;
+        mIsDeletable = src.mIsDeletable;
+        mIsDisabled = src.mIsDisabled;
+        mIsEditable = src.mIsEditable;
+        mInlineInputs = src.mInlineInputs;
+        mIsMovable = src.mIsMovable;
+        mCommentText = src.mCommentText;
+
+        if (src.mFieldValues != null) {
+            mFieldValues = new ArrayList<>(src.mFieldValues);
+        }
+        if (src.mInputValues != null) {
+            mInputValues = new ArrayList<>(src.mInputValues);
+        }
     }
 
     /**
@@ -280,12 +305,7 @@ public class BlockTemplate {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate atPosition(float x, float y) {
-        if (Float.isNaN(x) || Float.isInfinite(x) || Float.isNaN(y) || Float.isInfinite(y)) {
-            throw new IllegalArgumentException();
-        }
-        mPositionX = x;
-        mPositionY = y;
-        mHasPosition = true;
+        mPosition = new WorkspacePoint(x, y);
         return this;
     }
 
@@ -370,6 +390,7 @@ public class BlockTemplate {
 
     /**
      * Sets a field's value immediately after creation.
+     * Generally only used during XML deserialization.
      *
      * This method is package private because the API of this method is subject to change. Do not
      * use it in application code.
@@ -381,8 +402,10 @@ public class BlockTemplate {
      */
     BlockTemplate withInputValue(String inputName, Block child, Block shadow) {
         assert(!TextUtils.isEmpty(inputName));
-        assert(child == null || child.isShadow() == false);
-        assert(shadow == null || shadow.isShadow());
+        if ((child != null && (child.isShadow() || child.getOutputConnection() == null))
+            || ((shadow != null) && (!shadow.isShadow() || shadow.getOutputConnection() == null))) {
+            throw new IllegalArgumentException("Invalid input child Block(s).");
+        }
 
         if (mInputValues == null) {
             mInputValues = new ArrayList<>();
@@ -393,6 +416,7 @@ public class BlockTemplate {
 
     /**
      * Sets a block next children immediately after creation.
+     * Generally only used during XML deserialization.
      *
      * This method is package private because the API of this method is subject to change. Do not
      * use it in application code.
@@ -402,8 +426,10 @@ public class BlockTemplate {
      * @return This block descriptor, for chaining.
      */
     BlockTemplate withNextChild(Block child, Block shadow) {
-        assert(child == null || child.isShadow() == false);
-        assert(shadow == null || shadow.isShadow());
+        if ((child != null && (child.isShadow() || child.getPreviousConnection() == null))
+                || ((shadow != null) && (!shadow.isShadow() || shadow.getPreviousConnection() == null))) {
+            throw new IllegalArgumentException("Invalid next child Block(s).");
+        }
         mNextChild = child;
         mNextShadow = shadow;
         return this;

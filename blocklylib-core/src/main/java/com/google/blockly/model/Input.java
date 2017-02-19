@@ -167,16 +167,16 @@ public abstract class Input implements Cloneable {
     /**
      * Writes the value of the Input and all of its Fields as a string. By default only fields are
      * written. Subclasses should override this and call
-     * {@link #serializeImpl(XmlSerializer, String)} with the correct tag to also serialize any
-     * connected blocks.
+     * {@link #serializeImpl(XmlSerializer, String, IOOptions)} with the correct tag to also
+     * serialize any connected blocks.
      *
      * @param serializer The XmlSerializer to write to.
-     * @param includeChildren Whether to include child blocks and child shadows.
+     * @param options The options to configure writing.
      *
      * @throws IOException
      */
-    public void serialize(XmlSerializer serializer, boolean includeChildren) throws IOException {
-        serializeImpl(serializer, null);
+    public void serialize(XmlSerializer serializer, IOOptions options) throws IOException {
+        serializeImpl(serializer, null, options);
     }
 
     /**
@@ -185,26 +185,29 @@ public abstract class Input implements Cloneable {
      *
      * @param serializer The XmlSerializer to write to.
      * @param tag The xml tag to use for wrapping the block connected to the input or null.
+     * @param options The I/O options.
      *
      * @throws IOException
      */
-    protected void serializeImpl(XmlSerializer serializer, @Nullable String tag)
+    protected void serializeImpl(XmlSerializer serializer, @Nullable String tag, IOOptions options)
             throws IOException {
-        if (tag != null && getConnection() != null && (getConnection().isConnected()
-                || getConnection().getShadowBlock() != null)) {
+        if (tag != null
+                && options.isBlockChildWritten()
+                && getConnection() != null
+                && (getConnection().isConnected() || getConnection().getShadowBlock() != null)) {
             serializer.startTag(null, tag)
                     .attribute(null, "name", getName());
 
             // Serialize the connection's shadow if it has one
             Block block = getConnection().getShadowBlock();
             if (block != null) {
-                block.serialize(serializer, /* root block */ false, /* recurse */ true);
+                block.serialize(serializer, /* root block */ false, options);
             }
             // Then serialize its non-shadow target if it has one
             if (block != getConnection().getTargetBlock()) {
                 block = getConnection().getTargetBlock();
                 if (block != null) {
-                    block.serialize(serializer, /* root block */ false, /* recurse */ true);
+                    block.serialize(serializer, /* root block */ false, options);
                 }
             }
             serializer.endTag(null, tag);
@@ -449,8 +452,8 @@ public abstract class Input implements Cloneable {
         }
 
         @Override
-        public void serialize(XmlSerializer serializer, boolean recurse) throws IOException {
-            serializeImpl(serializer, recurse ? "value" : null);
+        public void serialize(XmlSerializer serializer, IOOptions options) throws IOException {
+            serializeImpl(serializer, "value", options);
         }
     }
 
@@ -485,8 +488,8 @@ public abstract class Input implements Cloneable {
         }
 
         @Override
-        public void serialize(XmlSerializer serializer, boolean recurse) throws IOException {
-            serializeImpl(serializer, recurse ? "statement" : null);
+        public void serialize(XmlSerializer serializer, IOOptions options) throws IOException {
+            serializeImpl(serializer, "statement", options);
         }
     }
 

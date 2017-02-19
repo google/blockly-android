@@ -15,6 +15,8 @@
 
 package com.google.blockly.utils;
 
+import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.google.blockly.android.control.WorkspaceStats;
@@ -23,6 +25,7 @@ import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.IOOptions;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -35,8 +38,11 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
  * Helper class to serialize and deserialize blockly workspaces, including constructing new
@@ -45,6 +51,7 @@ import java.util.List;
 public final class BlocklyXmlHelper {
     private static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
     private static final XmlPullParserFactory mParserFactory = createParseFactory();
+
 
     private BlocklyXmlHelper() {
     }
@@ -175,12 +182,14 @@ public final class BlocklyXmlHelper {
      *
      * @param toSerialize A list of Blocks to serialize.
      * @param os An OutputStream to write the blocks to.
+     * @param options The options to configure the block serialization.
      *
      * @throws BlocklySerializerException
      */
-    public static void writeToXml(List<Block> toSerialize, OutputStream os)
+    public static void writeToXml(@NonNull List<Block> toSerialize, @NonNull OutputStream os,
+                                  @NonNull IOOptions options)
             throws BlocklySerializerException {
-        writeToXmlImpl(toSerialize, os, null, /* include children */ true);
+        writeToXmlImpl(toSerialize, os, null, options);
     }
 
     /**
@@ -188,12 +197,14 @@ public final class BlocklyXmlHelper {
      *
      * @param toSerialize A list of Blocks to serialize.
      * @param writer A writer to write the blocks to.
+     * @param options The options to configure the block serialization.
      *
      * @throws BlocklySerializerException
      */
-    public static void writeToXml(List<Block> toSerialize, Writer writer)
+    public static void writeToXml(@NonNull List<Block> toSerialize, @NonNull Writer writer,
+                                  @NonNull IOOptions options)
             throws BlocklySerializerException {
-        writeToXmlImpl(toSerialize, null, writer, /* include children */ true);
+        writeToXmlImpl(toSerialize, null, writer, options);
     }
 
     /**
@@ -203,12 +214,12 @@ public final class BlocklyXmlHelper {
      * @param toSerialize A list of Blocks to serialize.
      * @param os An OutputStream to write the blocks to.
      * @param writer A writer to write the blocks to, if {@code os} is null.
-     * @param includeChildren Whether to include child blocks and child shadows.
+     * @param options The options to configure the block serialization.
      *
      * @throws BlocklySerializerException
      */
-    public static void writeToXmlImpl(List<Block> toSerialize, @Nullable OutputStream os,
-                                      @Nullable Writer writer, boolean includeChildren)
+    public static void writeToXmlImpl(@NonNull List<Block> toSerialize, @Nullable OutputStream os,
+                                      @Nullable Writer writer, @NonNull IOOptions options)
             throws BlocklySerializerException {
         try {
             XmlSerializer serializer = mParserFactory.newSerializer();
@@ -222,7 +233,7 @@ public final class BlocklyXmlHelper {
 
             serializer.startTag(XML_NAMESPACE, "xml");
             for (int i = 0; i < toSerialize.size(); i++) {
-                toSerialize.get(i).serialize(serializer, true, includeChildren);
+                toSerialize.get(i).serialize(serializer, true, options);
             }
             serializer.endTag(XML_NAMESPACE, "xml");
             serializer.flush();
@@ -236,30 +247,32 @@ public final class BlocklyXmlHelper {
      *
      * @param rootBlock The root block of the stack to serialize.
      * @param os An OutputStream to which to write them.
+     * @param options The options to configure the block serialization.
      *
      * @throws BlocklySerializerException
      */
-    public static void writeBlockToXml(Block rootBlock, OutputStream os)
+    public static void writeBlockToXml(@NonNull Block rootBlock, @NonNull OutputStream os,
+                                       @NonNull IOOptions options)
             throws BlocklySerializerException {
         List<Block> temp = new ArrayList<>();
         temp.add(rootBlock);
-        writeToXml(temp, os);
+        writeToXml(temp, os, options);
     }
 
     /**
      * Convenience function to serialize one stack of Blocks (a BlockGroup, effectively).
      *
      * @param rootBlock The root block of the stack to serialize.
-     * @param includeChildren Whether to include child blocks and child shadows.
+     * @param options The options to configure the block serialization.
      * @return XML string for block and all descendant blocks.
      * @throws BlocklySerializerException
      */
-    public static String writeBlockToXml(Block rootBlock, boolean includeChildren)
+    public static String writeBlockToXml(@NonNull Block rootBlock, @NonNull IOOptions options)
             throws BlocklySerializerException {
         StringWriter sw = new StringWriter();
         List<Block> temp = new ArrayList<>();
         temp.add(rootBlock);
-        writeToXml(temp, sw);
+        writeToXml(temp, sw, options);
         String xmlString = sw.toString();
         try {
             sw.close();

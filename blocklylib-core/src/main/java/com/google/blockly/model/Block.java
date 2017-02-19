@@ -20,6 +20,7 @@ import android.text.TextUtils;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
+import com.google.blockly.utils.ColorUtils;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -34,6 +35,11 @@ import java.util.UUID;
 public class Block {
     private static final String TAG = "Block";
 
+    private static final IOOptions DEEP_COPY_IO_OPTIONS = new IOOptions(
+            /* include children */ true,
+            /* Do not include ids */ false
+    );
+
     // These values are immutable once a block is created
     private final BlockFactory mFactory;
     private final String mId;
@@ -43,19 +49,19 @@ public class Block {
     private boolean mIsShadow;
 
     // These values can be changed after creating the block
-    private int mColor;
+    private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
     private Connection mOutputConnection;
     private Connection mNextConnection;
     private Connection mPreviousConnection;
-    private String mTooltip;
-    private String mComment;
+    private String mTooltip = null;
+    private String mComment = null;
     private boolean mHasContextMenu;
-    private boolean mDeletable;
-    private boolean mMovable;
-    private boolean mEditable;
-    private boolean mCollapsed;
-    private boolean mDisabled;
-    private boolean mInputsInline;
+    private boolean mDeletable = true;
+    private boolean mMovable = true;
+    private boolean mEditable = true;
+    private boolean mCollapsed = false;
+    private boolean mDisabled = false;
+    private boolean mInputsInline = false;
 
     // Keep track of whether inputsInline has ever been changed.
     private boolean mInputsInlineModified = false;
@@ -90,41 +96,112 @@ public class Block {
         mPosition = new WorkspacePoint(0, 0);
 
         rebuildConnectionList();
-        setShadow(isShadow);
     }
 
     /**
      * Applies the mutable state described by a template. Called after extensions are applied to the
      * block (and thus event handles and mutators have been registered).
      * @param template The source template.
+     * @throws BlockLoadingException
      */
-    public void applyTemplate(BlockTemplate template) {
+    public void applyTemplate(BlockTemplate template) throws BlockLoadingException {
         if (template.mFieldValues != null) {
             for (BlockTemplate.FieldValue fieldValue : template.mFieldValues) {
                 Field field = getFieldByName(fieldValue.mName);
                 if (field == null) {
-                    throw new BlocklyParserException(
+                    throw new BlockLoadingException(
                             toString() + ": No field with name \"" + fieldValue.mName + "\"");
                 }
                 if (!field.setFromString(fieldValue.mValue)) {
-                    throw new BlocklyParserException(
+                    throw new BlockLoadingException(
                             "Failed to set a field's value from XML.");
                 }
             }
         }
 
-        if (template.mHasPosition) {
-            setPosition(template.mPositionX, template.mPositionY);
+        if (template.mIsShadow != null) {
+            setShadow(template.mIsShadow);
         }
-        setCollapsed(template.mIsCollapsed);
-        setComment(template.mCommentText);
-        setDeletable(template.mIsDeletable);
-        setDisabled(template.mIsDisabled);
-        setEditable(template.mIsEditable);
-        setInputsInline(template.mInlineInputs);
-        setMovable(template.mIsMovable);
+        if (template.mPosition != null) {
+            setPosition(template.mPosition.x, template.mPosition.y);
+        }
+        if (template.mIsCollapsed != null) {
+            setCollapsed(template.mIsCollapsed);
+        }
+        if (template.mCommentText != null) {
+            setComment(template.mCommentText);
+        }
+        if (template.mIsDeletable != null) {
+            setDeletable(template.mIsDeletable);
+        }
+        if (template.mIsDisabled != null) {
+            setDisabled(template.mIsDisabled);
+        }
+        if (template.mIsEditable != null) {
+            setEditable(template.mIsEditable);
+        }
+        if (template.mInlineInputs != null) {
+            setInputsInline(template.mInlineInputs);
+        }
+        if (template.mIsMovable != null) {
+            setMovable(template.mIsMovable);
+        }
 
+        // TODO: Use the controller for the following block connections, in order to fire events.
+        if (template.mInputValues != null) {
+            for (BlockTemplate.InputValue inputValue : template.mInputValues) {
+                Input input = getInputByName(inputValue.mName);
+                if (input == null) {
+                    throw new BlockLoadingException(
+                            toString() + ": No input with name \"" + inputValue.mName + "\"");
+                }
 
+                Connection connection = input.getConnection();
+                if (connection == null) {
+                    throw new BlockLoadingException(
+                            "Input \"" + inputValue.mName + "\" does not have a connection.");
+                }
+                if (inputValue.mShadow != null) {
+                    Connection shadowOutput = inputValue.mShadow.getOutputConnection();
+                    if (shadowOutput == null) {
+                        throw new BlockLoadingException("Input \"" + inputValue.mName
+                                + "\" shadow does not have a output connection.");
+                    }
+                    connection.setShadowConnection(shadowOutput);
+                }
+                if (inputValue.mChild != null) {
+                    Connection childOutput = inputValue.mChild.getOutputConnection();
+                    if (childOutput == null) {
+                        throw new BlockLoadingException("Input \"" + inputValue.mName
+                                + "\" child does not have a output connection.");
+                    }
+                    connection.connect(childOutput);
+                }
+            }
+        }
+
+        if (template.mNextChild != null || template.mNextShadow != null) {
+            Connection connection = getNextConnection();
+            if (connection == null) {
+                throw new BlockLoadingException("Block does not have a next connection.");
+            }
+            if (template.mNextShadow != null) {
+                Connection shadowPrev = template.mNextShadow.getPreviousConnection();
+                if (shadowPrev == null) {
+                    throw new BlockLoadingException(
+                            "Next shadow does not have a previous connection.");
+                }
+                connection.setShadowConnection(shadowPrev);
+            }
+            if (template.mNextChild != null) {
+                Connection childPrev = template.mNextChild.getPreviousConnection();
+                if (childPrev == null) {
+                    throw new BlockLoadingException(
+                            "Next shadow does not have a previous connection.");
+                }
+                connection.setShadowConnection(childPrev);
+            }
+        }
     }
 
     /**
@@ -522,7 +599,7 @@ public class Block {
      */
     public Block deepCopy() {
         try {
-            String xml = BlocklyXmlHelper.writeBlockToXml(this, /* include children */ true);
+            String xml = BlocklyXmlHelper.writeBlockToXml(this, DEEP_COPY_IO_OPTIONS);
             return BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
         } catch (BlocklySerializerException e) {
             throw new IllegalStateException("Failed to serialize block during copy.", e);
@@ -533,16 +610,17 @@ public class Block {
      * Writes information about the editable parts of the block as XML.
      *
      * @param serializer The XmlSerializer to write to.
-     * @param rootBlock True if the block is a top level block, false otherwise.
-     * @param includeChildren Whether to include child blocks and child shadows.
+     * @param options I/O options.
      *
      * @throws IOException
      */
-    public void serialize(XmlSerializer serializer, boolean rootBlock, boolean includeChildren)
+    public void serialize(XmlSerializer serializer, boolean rootBlock, IOOptions options)
             throws IOException {
         serializer.startTag(null, mIsShadow ? "shadow" : "block")
-                .attribute(null, "type", mType)
-                .attribute(null, "id", mId);
+                .attribute(null, "type", mType);
+        if (options.isBlockIdWritten()) {
+            serializer.attribute(null, "id", mId);
+        }
 
         // The position of the block only needs to be saved if it is a top level block.
         if (rootBlock) {
@@ -575,13 +653,13 @@ public class Block {
 
         for (int i = 0; i < mInputList.size(); i++) {
             if (mInputList.get(i) != null) {
-                mInputList.get(i).serialize(serializer, includeChildren);
+                mInputList.get(i).serialize(serializer, options);
             }
         }
 
-        if (includeChildren && getNextBlock() != null) {
+        if (options.isBlockChildWritten() && getNextBlock() != null) {
             serializer.startTag(null, "next");
-            getNextBlock().serialize(serializer, false, true);
+            getNextBlock().serialize(serializer, false, options);
             serializer.endTag(null, "next");
         }
 
@@ -693,11 +771,11 @@ public class Block {
 
     /**
      * Configures whether this block should be a shadow block. This should only be called during
-     * the constructor.
+     * block initialization.
      *
-     * @param isShadow
+     * @param isShadow If true the block will act as a shadow.
      */
-    private void setShadow(boolean isShadow) {
+    public void setShadow(boolean isShadow) {
         if (mIsShadow == isShadow) {
             return;
         }

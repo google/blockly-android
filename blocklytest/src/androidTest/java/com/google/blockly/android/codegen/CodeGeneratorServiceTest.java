@@ -7,6 +7,7 @@ import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.IOOptions;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
 
@@ -82,7 +83,7 @@ public class CodeGeneratorServiceTest {
     private String toXml(Block block) {
         StringOutputStream out = new StringOutputStream();
         try {
-            BlocklyXmlHelper.writeBlockToXml(block, out);
+            BlocklyXmlHelper.writeBlockToXml(block, out, IOOptions.ALL_DATA);
         } catch (BlocklySerializerException e) {
             throw new IllegalArgumentException("Failed to serialize block.", e);
         }
