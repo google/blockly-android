@@ -561,12 +561,14 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         Block target = mBlockFactory.obtain(block().ofType("statement_no_input").withId("target"));
         Block tail = mBlockFactory.obtain(block().ofType("statement_no_input").withId("tail"));
         Block source = mBlockFactory.obtain(block().ofType("statement_no_input").withId("source"));
-        Block shadow = mBlockFactory.obtain(block().shadow().ofType("tail").withId("shadow"));
+        Block shadow = mBlockFactory.obtain(
+                block().shadow().ofType("statement_no_input").withId("shadowTail"));
         BlockView targetView = null, tailView = null, sourceView = null;
 
         // Add a shadow to make sure it doesn't have any effects.
-        target.getNextConnection().setShadowConnection(shadow.getPreviousConnection());
-        tail.getPreviousConnection().connect(target.getNextConnection());
+        Connection targetNext = target.getNextConnection();
+        targetNext.setShadowConnection(shadow.getPreviousConnection());
+        tail.getPreviousConnection().connect(targetNext);
 
         mController.addRootBlock(target);
         mController.addRootBlock(source);

@@ -269,11 +269,11 @@ public class BlockTemplate {
     }
 
     /**
-     * Declares the new block will be a shadow block. Shadow blocks are usually used as default
-     * values for inputs, especially in ToolBox XMl.
+     * Declares the new block will be a shadow block. This is a literate API shorthand for
+     * {@code template.shadow(true);}.
      *
      * <pre>
-     * {@code blockFactory.obtain(block().ofType("math_number").shadow());}
+     * {@code blockFactory.obtain(block().shadow().ofType("math_number"));}
      * </pre>
      *
      * @return This block descriptor, for chaining.
@@ -284,12 +284,14 @@ public class BlockTemplate {
     }
 
     /**
-     * Declares whether the new block will be a shadow block.
+     * Declares whether the new block will be a shadow block. Shadow blocks are usually used as
+     * default values for inputs, especially in ToolBox XMl.
      *
      * <pre>
-     * {@code blockFactory.obtain(block().copyOf(otherBlock).shadow(false));}
+     * {@code blockFactory.obtain(block().copyOf(originalShadow).shadow(false));}
      * </pre>
      *
+     * @param isShadow Whether the block will be a shadow.
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate shadow(boolean isShadow) {

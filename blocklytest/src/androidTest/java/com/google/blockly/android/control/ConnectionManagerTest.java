@@ -17,7 +17,7 @@ package com.google.blockly.android.control;
 
 import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.model.Block;
+import com.google.blockly.android.test.R;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
@@ -42,6 +42,7 @@ public class ConnectionManagerTest {
     @Before
     public void setUp() {
         factory = new BlockFactory(InstrumentationRegistry.getTargetContext());
+        factory.addBlocks(R.raw.test_blocks);
         manager = new ConnectionManager();
     }
 
@@ -293,7 +294,6 @@ public class ConnectionManagerTest {
 
     @Test
     public void testGetNeighbours() {
-
         ConnectionManager.YSortedList list =
                 manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
 
@@ -357,10 +357,26 @@ public class ConnectionManagerTest {
                 radius);
     }
 
-    private Connection createConnection(float x, float y, int type, boolean shadow) {
-        Connection conn = new Connection(type, null);
+    private Connection createConnection(float x, float y, int connectionType, boolean shadow) {
+        String blockType;
+        switch (connectionType) {
+            case Connection.CONNECTION_TYPE_INPUT:
+            case Connection.CONNECTION_TYPE_OUTPUT:
+                blockType = "simple_input_output";
+                break;
+
+            case Connection.CONNECTION_TYPE_PREVIOUS:
+            case Connection.CONNECTION_TYPE_NEXT:
+                blockType = "statement_no_input";
+                break;
+
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        Connection conn = new Connection(connectionType, null);
         conn.setPosition(x, y);
-        conn.setBlock(factory.obtain(block().shadow().ofType("test")));
+        conn.setBlock(factory.obtain(block().shadow(shadow).ofType(blockType)));
         return conn;
     }
 }
