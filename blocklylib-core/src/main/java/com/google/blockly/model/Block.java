@@ -162,7 +162,7 @@ public class Block {
                         throw new BlockLoadingException("Input \"" + inputValue.mName
                                 + "\" shadow does not have a output connection.");
                     }
-                    connection.setShadowConnection(shadowOutput);
+                    checkAndConnect(connection, shadowOutput, true);
                 }
                 if (inputValue.mChild != null) {
                     Connection childOutput = inputValue.mChild.getOutputConnection();
@@ -170,7 +170,7 @@ public class Block {
                         throw new BlockLoadingException("Input \"" + inputValue.mName
                                 + "\" child does not have a output connection.");
                     }
-                    connection.connect(childOutput);
+                    checkAndConnect(connection, childOutput, false);
                 }
             }
         }
@@ -186,16 +186,29 @@ public class Block {
                     throw new BlockLoadingException(
                             "Next shadow does not have a previous connection.");
                 }
-                connection.setShadowConnection(shadowPrev);
+                checkAndConnect(connection, shadowPrev, true);
             }
             if (template.mNextChild != null) {
                 Connection childPrev = template.mNextChild.getPreviousConnection();
                 if (childPrev == null) {
                     throw new BlockLoadingException(
-                            "Next shadow does not have a previous connection.");
+                            "Next child does not have a previous connection.");
                 }
-                connection.setShadowConnection(childPrev);
+                checkAndConnect(connection, childPrev, false);
             }
+        }
+    }
+
+    private void checkAndConnect(Connection parent, Connection child, boolean shadow)
+            throws BlockLoadingException {
+        try {
+            if (shadow) {
+                parent.setShadowConnection(child);
+            } else {
+                parent.connect(child);
+            }
+        } catch (IllegalStateException e) {
+            throw new BlockLoadingException("Invalid connection", e);
         }
     }
 

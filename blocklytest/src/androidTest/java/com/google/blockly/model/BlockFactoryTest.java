@@ -394,7 +394,6 @@ public class BlockFactoryTest {
 
     private void parseBlockFromXmlFailure(String testString, String messageIfDoesNotFail)
             throws IOException, XmlPullParserException {
-
         XmlPullParser parser = getXmlPullParser(testString, "block");
 
         thrown.expect(BlocklyParserException.class);
