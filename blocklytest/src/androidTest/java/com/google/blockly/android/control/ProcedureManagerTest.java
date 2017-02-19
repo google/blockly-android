@@ -20,11 +20,8 @@ import android.support.test.InstrumentationRegistry;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
-import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldInput;
-import com.google.blockly.model.Input;
 
-import org.json.JSONStringer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,10 +48,12 @@ public class ProcedureManagerTest {
         mFactory = new BlockFactory(InstrumentationRegistry.getTargetContext());
         mProcedureManager = new ProcedureManager();
 
-        mProcedureDefinition = mFactory.obtain(
-                block().fromDefinition(TestUtils.getProcedureDefinitionBlockDefinition("test")));
-        mProcedureReference = mFactory.obtain(
-                block().fromDefinition(TestUtils.getProcedureReferenceBlockDefinition("test")));
+        mProcedureDefinition = mFactory.obtain(block().fromDefinition(
+                TestUtils.getProcedureDefinitionBlockDefinition(PROCEDURE_NAME)));
+        mProcedureReference = mFactory.obtain(block().fromDefinition(
+                TestUtils.getProcedureReferenceBlockDefinition(PROCEDURE_NAME)));
+        assertThat(mProcedureDefinition).isNotNull();
+        assertThat(mProcedureReference).isNotNull();
     }
 
     @Rule
@@ -64,8 +63,10 @@ public class ProcedureManagerTest {
     public void testAddProcedureDefinition() {
         mProcedureManager.addDefinition(mProcedureDefinition);
         assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isTrue();
-        assertThat(mProcedureManager.getReferences(PROCEDURE_NAME)).isNotNull();
-        assertThat(mProcedureManager.getReferences(PROCEDURE_NAME).size()).isEqualTo(0);
+
+        List<Block> references = mProcedureManager.getReferences(PROCEDURE_NAME);
+        assertThat(references).isNotNull();
+        assertThat(references.size()).isEqualTo(0);
     }
 
     @Test
@@ -126,10 +127,8 @@ public class ProcedureManagerTest {
 
     @Test
     public void testMissingNames() {
-        mProcedureDefinition = mFactory.obtain(
-                block().ofType(ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test"));
-        mProcedureReference = mFactory.obtain(
-                block().ofType(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test"));
+        mProcedureDefinition = mFactory.obtain(block().fromJson(
+                "{\"type\":\"no field named name\"}"));
 
         thrown.expect(IllegalArgumentException.class);
         mProcedureManager.addDefinition(mProcedureDefinition);

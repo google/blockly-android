@@ -194,7 +194,7 @@ public class BlockFactory {
         Block block;
         if (template.mCopySource != null) {
             try {
-                // TODO: Improve copy overhead. Avoid XML?
+                // TODO: Improve copy overhead. Template from copy to avoid XML I/O?
                 String xml = BlocklyXmlHelper.writeBlockToXml(template.mCopySource,
                         IOOptions.WRITE_ROOT_ONLY_WITHOUT_ID);
                 block = BlocklyXmlHelper.loadOneBlockFromXml(xml, this);

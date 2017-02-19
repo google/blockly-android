@@ -65,9 +65,9 @@ public class BlockDefinition {
             int jsonHash = json.toString().hashCode();
             tmpTypeName = "auto-" + Integer.toHexString(jsonHash);
         } else if(isValidType(tmpTypeName)) {
-            warningPrefix = "Type \"" + tmpTypeName + "\"";
+            warningPrefix = "Type \"" + tmpTypeName + "\": ";
         } else {
-            String valueQuotedAndEscaped = new JSONStringer().value(tmpTypeName).toString();
+            String valueQuotedAndEscaped = JSONObject.quote(tmpTypeName);
             throw new IllegalArgumentException("Invalid type name: " + valueQuotedAndEscaped);
         }
         mTypeName = tmpTypeName;
