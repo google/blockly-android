@@ -428,9 +428,14 @@ public class BlockTemplate {
                 || (inputName = inputName.trim()).length() == 0) {  // Trim and test name
             throw new IllegalArgumentException("Invalid input value name.");
         }
-        if ((child != null && (child.isShadow() || child.getOutputConnection() == null))
-            || ((shadow != null) && (!shadow.isShadow() || shadow.getOutputConnection() == null))) {
-            throw new IllegalArgumentException("Invalid input child Block(s).");
+        // Validate child block shadow state and upward connection.
+        if (child != null && child.isShadow() && child.getOutputConnection() == null
+                && child.getPreviousConnection() == null) {
+            throw new IllegalArgumentException("Invalid input value block.");
+        }
+        if (shadow != null && !shadow.isShadow() && shadow.getOutputConnection() == null
+                && shadow.getPreviousConnection() == null) {
+            throw new IllegalArgumentException("Invalid input shadow block.");
         }
 
         // Find duplicate values.
