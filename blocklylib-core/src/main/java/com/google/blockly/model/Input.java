@@ -86,6 +86,25 @@ public abstract class Input implements Cloneable {
         INPUT_TYPES.add(TYPE_DUMMY_STRING);
     }
 
+    /**
+     * Acquires the Connection on {@code block} that matches the connection type for {@code input}
+     * as a parent, or null if none exist. That is, if input is a value input, return the output
+     * connection of the block. If input is a statement input, return the previous connection of
+     * block.
+     *
+     * @param input The potential parent input.
+     * @param block The potential child block.
+     * @return The Connection on block (output or previous).
+     */
+    public static Connection getPotentialConnection(Input input, Block block) {
+        if (input.getType() == TYPE_VALUE) {
+            return block.getOutputConnection();
+        } else if (input.getType() == TYPE_STATEMENT) {
+            return block.getPreviousConnection();
+        }
+        return null; // No potential conneciton.
+    }
+
     private final ArrayList<Field> mFields = new ArrayList<>();
     private final String mName;
     private final Connection mConnection;

@@ -89,6 +89,7 @@ public class Block {
         mInputsInlineModified = false;
 
         mPosition = new WorkspacePoint(0, 0);
+        setShadow(isShadow);
 
         rebuildConnectionList();
     }
@@ -157,20 +158,20 @@ public class Block {
                             "Input \"" + inputValue.mName + "\" does not have a connection.");
                 }
                 if (inputValue.mShadow != null) {
-                    Connection shadowOutput = inputValue.mShadow.getOutputConnection();
-                    if (shadowOutput == null) {
-                        throw new BlockLoadingException("Input \"" + inputValue.mName
-                                + "\" shadow does not have a output connection.");
+                    Connection shadowConn = Input.getPotentialConnection(input, inputValue.mShadow);
+                    if (shadowConn == null) {
+                        throw new BlockLoadingException("Input shadow block for \"" +
+                                inputValue.mName + "\" does not have required connection.");
                     }
-                    checkAndConnect(connection, shadowOutput, true);
+                    checkAndConnect(connection, shadowConn, true);
                 }
                 if (inputValue.mChild != null) {
-                    Connection childOutput = inputValue.mChild.getOutputConnection();
-                    if (childOutput == null) {
-                        throw new BlockLoadingException("Input \"" + inputValue.mName
-                                + "\" child does not have a output connection.");
+                    Connection childConn = Input.getPotentialConnection(input, inputValue.mChild);
+                    if (childConn == null) {
+                        throw new BlockLoadingException("Input block for \"" +
+                                inputValue.mName + "\" does not have required connection.");
                     }
-                    checkAndConnect(connection, childOutput, false);
+                    checkAndConnect(connection, childConn, false);
                 }
             }
         }
