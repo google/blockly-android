@@ -389,6 +389,26 @@ public class BlockTemplate {
     }
 
     /**
+     * @return
+     */
+    public String toString() {
+        return toString("BlockTemplate");
+    }
+
+    public String toString(String prefix) {
+        String msg = prefix;
+        if (mDefinitionName != null) {
+            msg += " \"" + mDefinitionName + "\"";
+        } else if (mDefinition != null && mDefinition.getTypeName() != null) {
+            msg += " \"" + mDefinition.getTypeName() + "\"";
+        }
+        if (mId != null) {
+            msg += " (id=\"" + mId + "\")";
+        }
+        return msg;
+    }
+
+    /**
      * Sets a field's value immediately after creation.
      *
      * This method is package private because the API of this method is subject to change. Do not

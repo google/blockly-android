@@ -529,10 +529,17 @@ public class BlockFactory {
                             childShadow = fromXml(parser);
                         } else if (tagname.equalsIgnoreCase("field")) {
                             fieldName = parser.getAttributeValue(null, "name");
-                        } else if (tagname.equalsIgnoreCase("value")) {
+                            if (TextUtils.isEmpty(fieldName)) {
+                                throw new BlockLoadingException(
+                                        "<field> must have a name attribute.");
+                            }
+                        } else if (tagname.equalsIgnoreCase("value")
+                                || tagname.equalsIgnoreCase("statement")) {
                             inputName = parser.getAttributeValue(null, "name");
-                        } else if (tagname.equalsIgnoreCase("statement")) {
-                            inputName = parser.getAttributeValue(null, "name");
+                            if (TextUtils.isEmpty(inputName)) {
+                                throw new BlockLoadingException(
+                                        "<" + tagname + "> must have a name attribute.");
+                            }
                         } else if (tagname.equalsIgnoreCase("mutation")) {
                             // TODO(#530): Handle mutations.
                         }
@@ -546,12 +553,8 @@ public class BlockFactory {
                         if (tagname.equalsIgnoreCase("block")) {
                             return obtain(template);
                         } else if (tagname.equalsIgnoreCase("shadow")) {
-                            try {
-                                template.shadow();
-                                return obtain(template);
-                            } catch (IllegalStateException e) {
-                                throw new BlockLoadingException(e);
-                            }
+                            template.shadow();
+                            return obtain(template);
                         } else if (tagname.equalsIgnoreCase("field")) {
                             template.withFieldValue(fieldName, text);
                             fieldName = null;
@@ -562,13 +565,14 @@ public class BlockFactory {
                         } else if (tagname.equalsIgnoreCase("value") ||
                                 tagname.equalsIgnoreCase("statement")) {
                             if (inputName == null) {
-                                // Start tag missing input name
+                                // Start tag missing input name. Should catch this above.
                                 throw new BlockLoadingException("Missing inputName.");
                             }
                             try {
                                 template.withInputValue(inputName, childBlock, childShadow);
                             } catch (IllegalArgumentException e) {
-                                throw new BlockLoadingException(e.getMessage());
+                                throw new BlockLoadingException(template.toString("Block")
+                                        + " input \"" + inputName + "\": " + e.getMessage());
                             }
                             childBlock = null;
                             childShadow = null;
