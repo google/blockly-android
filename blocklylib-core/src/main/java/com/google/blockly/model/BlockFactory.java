@@ -459,139 +459,137 @@ public class BlockFactory {
      * Load a block and all of its children from XML.
      *
      * @param parser An XmlPullParser pointed at the start tag of this block.
-     *
      * @return The loaded block.
-     *
-     * @throws XmlPullParserException
-     * @throws IOException
-     * @throws BlocklyParserException
+     * @throws BlockLoadingException If unable to load the block or child. May contain a
+     *                               XmlPullParserException or IOException as a root cause.
      */
-    public Block fromXml(XmlPullParser parser)
-            throws XmlPullParserException, IOException, BlocklyParserException {
-
-        String type = parser.getAttributeValue(null, "type");   // prototype name
-        String id = parser.getAttributeValue(null, "id");
-        if (type == null || type.isEmpty()) {
-            throw new BlocklyParserException("Block was missing a type.");
-        }
-        // If the id was empty the BlockFactory will just generate one.
-
-        final BlockTemplate template = new BlockTemplate().ofType(type).withId(id);
-
-        String collapsedString = parser.getAttributeValue(null, "collapsed");
-        if (collapsedString != null) {
-            template.collapsed(Boolean.parseBoolean(collapsedString));
-        }
-
-        String deletableString = parser.getAttributeValue(null, "deletable");
-        if (deletableString != null) {
-            template.deletable(Boolean.parseBoolean(deletableString));
-        }
-
-        String disabledString = parser.getAttributeValue(null, "disabled");
-        if (disabledString != null) {
-            template.disabled(Boolean.parseBoolean(disabledString));
-        }
-
-        String editableString = parser.getAttributeValue(null, "editable");
-        if (editableString != null) {
-            template.editable(Boolean.parseBoolean(editableString));
-        }
-
-        String inputsInlineString = parser.getAttributeValue(null, "inline");
-        if (inputsInlineString != null) {
-            template.withInlineInputs(Boolean.parseBoolean(inputsInlineString));
-        }
-
-        String movableString = parser.getAttributeValue(null, "movable");
-        if (movableString != null) {
-            template.movable(Boolean.parseBoolean(movableString));
-        }
-
-        // Set position.  Only if this is a top level block.
-        String x = parser.getAttributeValue(null, "x");
-        String y = parser.getAttributeValue(null, "y");
-        if (x != null && y != null) {
-            template.atPosition(Float.parseFloat(x), Float.parseFloat(y));
-        }
-
-        int eventType = parser.next();
-        String text = "";
-        String fieldName = "";
-        Block childBlock = null;
-        Block childShadow = null;
-        String inputName = null;
-
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            String tagname = parser.getName();
-            switch (eventType) {
-                case XmlPullParser.START_TAG:
-                    text = ""; // Ignore text from parent (or prior) block.
-                    if (tagname.equalsIgnoreCase("block")) {
-                        childBlock = fromXml(parser);
-                    } else if (tagname.equalsIgnoreCase("shadow")) {
-                        childShadow = fromXml(parser);
-                    } else if (tagname.equalsIgnoreCase("field")) {
-                        fieldName = parser.getAttributeValue(null, "name");
-                    } else if (tagname.equalsIgnoreCase("value")) {
-                        inputName = parser.getAttributeValue(null, "name");
-                    } else if (tagname.equalsIgnoreCase("statement")) {
-                        inputName = parser.getAttributeValue(null, "name");
-                    } else if (tagname.equalsIgnoreCase("mutation")) {
-                        // TODO(#530): Handle mutations.
-                    }
-                    break;
-
-                case XmlPullParser.TEXT:
-                    text = parser.getText();
-                    break;
-
-                case XmlPullParser.END_TAG:
-                    if (tagname.equalsIgnoreCase("block")) {
-                        return obtain(template);
-                    } else if (tagname.equalsIgnoreCase("shadow")) {
-                        try {
-                            template.shadow();
-                            return obtain(template);
-                        } catch (IllegalStateException e) {
-                            throw new BlocklyParserException(e);
-                        }
-                    }else if (tagname.equalsIgnoreCase("field")) {
-                        template.withFieldValue(fieldName, text);
-                        fieldName = null;
-                        text = "";
-                    } else if (tagname.equalsIgnoreCase("comment")) {
-                        template.withComment(text);
-                        text = "";
-                    } else if (tagname.equalsIgnoreCase("value") ||
-                            tagname.equalsIgnoreCase("statement")) {
-                        if (inputName == null) {
-                            // Start tag missing input name
-                            throw new BlocklyParserException("Missing inputName.");
-                        }
-                        try {
-                            template.withInputValue(inputName, childBlock, childShadow);
-                        } catch (IllegalArgumentException e) {
-                            throw new BlockLoadingException(e);
-                        }
-                        childBlock = null;
-                        childShadow = null;
-                        inputName = null;
-                    } else if (tagname.equalsIgnoreCase("next")) {
-                        template.withNextChild(childBlock, childShadow);
-                        childBlock = null;
-                        childShadow = null;
-                    }
-                    break;
-
-                default:
-                    break;
+    public Block fromXml(XmlPullParser parser) throws BlockLoadingException {
+        try {
+            String type = parser.getAttributeValue(null, "type");   // prototype name
+            String id = parser.getAttributeValue(null, "id");
+            if (type == null || type.isEmpty()) {
+                throw new BlockLoadingException("Block was missing a type.");
             }
-            eventType = parser.next();
+            // If the id was empty the BlockFactory will just generate one.
+
+            final BlockTemplate template = new BlockTemplate().ofType(type).withId(id);
+
+            String collapsedString = parser.getAttributeValue(null, "collapsed");
+            if (collapsedString != null) {
+                template.collapsed(Boolean.parseBoolean(collapsedString));
+            }
+
+            String deletableString = parser.getAttributeValue(null, "deletable");
+            if (deletableString != null) {
+                template.deletable(Boolean.parseBoolean(deletableString));
+            }
+
+            String disabledString = parser.getAttributeValue(null, "disabled");
+            if (disabledString != null) {
+                template.disabled(Boolean.parseBoolean(disabledString));
+            }
+
+            String editableString = parser.getAttributeValue(null, "editable");
+            if (editableString != null) {
+                template.editable(Boolean.parseBoolean(editableString));
+            }
+
+            String inputsInlineString = parser.getAttributeValue(null, "inline");
+            if (inputsInlineString != null) {
+                template.withInlineInputs(Boolean.parseBoolean(inputsInlineString));
+            }
+
+            String movableString = parser.getAttributeValue(null, "movable");
+            if (movableString != null) {
+                template.movable(Boolean.parseBoolean(movableString));
+            }
+
+            // Set position.  Only if this is a top level block.
+            String x = parser.getAttributeValue(null, "x");
+            String y = parser.getAttributeValue(null, "y");
+            if (x != null && y != null) {
+                template.atPosition(Float.parseFloat(x), Float.parseFloat(y));
+            }
+
+            int eventType = parser.next();
+            String text = "";
+            String fieldName = "";
+            Block childBlock = null;
+            Block childShadow = null;
+            String inputName = null;
+
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                String tagname = parser.getName();
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        text = ""; // Ignore text from parent (or prior) block.
+                        if (tagname.equalsIgnoreCase("block")) {
+                            childBlock = fromXml(parser);
+                        } else if (tagname.equalsIgnoreCase("shadow")) {
+                            childShadow = fromXml(parser);
+                        } else if (tagname.equalsIgnoreCase("field")) {
+                            fieldName = parser.getAttributeValue(null, "name");
+                        } else if (tagname.equalsIgnoreCase("value")) {
+                            inputName = parser.getAttributeValue(null, "name");
+                        } else if (tagname.equalsIgnoreCase("statement")) {
+                            inputName = parser.getAttributeValue(null, "name");
+                        } else if (tagname.equalsIgnoreCase("mutation")) {
+                            // TODO(#530): Handle mutations.
+                        }
+                        break;
+
+                    case XmlPullParser.TEXT:
+                        text = parser.getText();
+                        break;
+
+                    case XmlPullParser.END_TAG:
+                        if (tagname.equalsIgnoreCase("block")) {
+                            return obtain(template);
+                        } else if (tagname.equalsIgnoreCase("shadow")) {
+                            try {
+                                template.shadow();
+                                return obtain(template);
+                            } catch (IllegalStateException e) {
+                                throw new BlockLoadingException(e);
+                            }
+                        } else if (tagname.equalsIgnoreCase("field")) {
+                            template.withFieldValue(fieldName, text);
+                            fieldName = null;
+                            text = "";
+                        } else if (tagname.equalsIgnoreCase("comment")) {
+                            template.withComment(text);
+                            text = "";
+                        } else if (tagname.equalsIgnoreCase("value") ||
+                                tagname.equalsIgnoreCase("statement")) {
+                            if (inputName == null) {
+                                // Start tag missing input name
+                                throw new BlockLoadingException("Missing inputName.");
+                            }
+                            try {
+                                template.withInputValue(inputName, childBlock, childShadow);
+                            } catch (IllegalArgumentException e) {
+                                throw new BlockLoadingException(e.getMessage());
+                            }
+                            childBlock = null;
+                            childShadow = null;
+                            inputName = null;
+                        } else if (tagname.equalsIgnoreCase("next")) {
+                            template.withNextChild(childBlock, childShadow);
+                            childBlock = null;
+                            childShadow = null;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+                eventType = parser.next();
+            }
+            // Should never reach here, since this is called from a workspace fromXml function.
+            throw new BlockLoadingException("Reached the END_DOCUMENT before end of block.");
+        } catch (XmlPullParserException | IOException e) {
+            throw new BlockLoadingException(e);
         }
-        // Should never reach here, since this is called from a workspace fromXml function.
-        throw new BlocklyParserException(
-                "Reached the end of Block.fromXml. This should never happen.");
     }
 
     /**

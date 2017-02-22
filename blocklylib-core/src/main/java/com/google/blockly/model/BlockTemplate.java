@@ -278,7 +278,7 @@ public class BlockTemplate {
      */
     public BlockTemplate withRequiredId(String id, boolean required) {
         mId = id;
-        mAllowAlternateId = false;
+        mAllowAlternateId = !required;
         return this;
     }
 

@@ -84,7 +84,7 @@ public class BlockFactoryTest {
 
     @Test
     public void testBlocksRequireType() throws IOException, XmlPullParserException {
-        parseBlockFromXmlParserFailure(BlockTestStrings.NO_BLOCK_TYPE,
+        parseBlockFromXmlFailure(BlockTestStrings.NO_BLOCK_TYPE,
             "Block without a type must fail to load.");
     }
 
@@ -113,14 +113,14 @@ public class BlockFactoryTest {
     // TODO(fenichel): Value: no input connection
     @Test
     public void testBlockWithNoOutputInteriorFails() throws IOException, XmlPullParserException {
-        parseBlockFromXmlParserFailure(BlockTestStrings.assembleFrankenblock("block", "2",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "2",
             BlockTestStrings.VALUE_NO_OUTPUT),
             "A <value> child block without an output must fail to load.");
     }
 
     @Test
     public void testBlockWithBadlyNamedInteriorFails() throws IOException, XmlPullParserException {
-        parseBlockFromXmlLoadingFailure(BlockTestStrings.assembleFrankenblock("block", "4",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "4",
             BlockTestStrings.VALUE_BAD_NAME),
             "A block without a recognized type id must fail to load.");
     }
@@ -129,7 +129,7 @@ public class BlockFactoryTest {
     public void testBlockMultipleValuesForSameInputFails()
             throws IOException, XmlPullParserException
     {
-        parseBlockFromXmlLoadingFailure(BlockTestStrings.assembleFrankenblock("block", "5",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "5",
             BlockTestStrings.VALUE_REPEATED),
             "An input <value> with multiple blocks must fail to load.");
     }
@@ -175,7 +175,7 @@ public class BlockFactoryTest {
     public void testBlockWithNoConnectionOnChildBlockFails()
             throws IOException, XmlPullParserException
     {
-        parseBlockFromXmlParserFailure(BlockTestStrings.assembleFrankenblock("block", "13",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "13",
             BlockTestStrings.STATEMENT_BAD_CHILD),
             "A statement <value> child without a previous connection must fail to load.");
     }
@@ -184,7 +184,7 @@ public class BlockFactoryTest {
     public void testCreateBlockWithBadStatmentNameFails()
             throws IOException, XmlPullParserException
     {
-        parseBlockFromXmlParserFailure(BlockTestStrings.assembleFrankenblock("block", "14",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "14",
             BlockTestStrings.STATEMENT_BAD_NAME),
             "A block without a recognized type id must fail to load.");
     }
@@ -298,7 +298,7 @@ public class BlockFactoryTest {
     public void testLoadFromXmlShadowBlockWithShadowChildFails()
             throws IOException, XmlPullParserException
     {
-        parseBlockFromXmlParserFailure(BlockTestStrings.assembleFrankenblock("block", "6",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "6",
             BlockTestStrings.VALUE_NESTED_SHADOW_BLOCK),
             "A <shadow> containing a normal <block> must fail to load.");
     }
@@ -307,7 +307,7 @@ public class BlockFactoryTest {
     public void testLoadFromXmlBlockWithVariableCannotBeShadowBlock()
             throws IOException, XmlPullParserException
     {
-        parseBlockFromXmlParserFailure(BlockTestStrings.assembleFrankenblock("block", "7",
+        parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "7",
                 BlockTestStrings.VALUE_SHADOW_VARIABLE),
                 "A <shadow> containing a variable field (at any depth) must fail to load.");
     }
@@ -392,18 +392,7 @@ public class BlockFactoryTest {
         return loaded;
     }
 
-    // TODO: Merge BlocklyParserException and BlockLoadingException, then merge with below.
-    private void parseBlockFromXmlParserFailure(String testString, String messageIfDoesNotFail)
-            throws IOException, XmlPullParserException {
-        XmlPullParser parser = getXmlPullParser(testString, "block");
-
-        thrown.expect(BlocklyParserException.class);
-        thrown.reportMissingExceptionWithMessage(messageIfDoesNotFail);
-        mBlockFactory.fromXml(parser);
-    }
-
-    // TODO: Merge BlocklyParserException and BlockLoadingException, then merge in above.
-    private void parseBlockFromXmlLoadingFailure(String testString, String messageIfDoesNotFail)
+    private void parseBlockFromXmlFailure(String testString, String messageIfDoesNotFail)
             throws IOException, XmlPullParserException {
         XmlPullParser parser = getXmlPullParser(testString, "block");
 
