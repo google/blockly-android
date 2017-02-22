@@ -16,14 +16,15 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
-import com.google.blockly.utils.JsonUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,13 +32,13 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Helper class for building a set of master blocks and then obtaining copies of them for use in
@@ -80,7 +81,7 @@ public class BlockFactory {
         this(context);
         if (blockSourceIds != null) {
             for (int i = 0; i < blockSourceIds.length; i++) {
-                addBlocks(blockSourceIds[i]);
+                addJsonDefinitions(blockSourceIds[i]);
             }
         }
     }
@@ -95,35 +96,124 @@ public class BlockFactory {
     }
 
     public BlockFactory(final InputStream source) throws IOException {
-        loadBlocks(source);
+        addJsonDefinitions(source);
     }
 
     /**
      * Registers a new BlockDefinition with the factory.
      * @param definition The new definition.
+     * @throws IllegalArgumentException If type name is already defined.
      */
     public void addDefinition(BlockDefinition definition) {
         String definitionName = definition.getTypeName();
         if (mDefinitions.containsKey(definitionName)) {
-            throw new IllegalStateException("Definition already defined.");
+            throw new IllegalArgumentException("Definition already defined. Must remove first.");
         }
         mDefinitions.put(definitionName, definition);
     }
 
     /**
-     * Convenience method to {@link #addDefinition} from a JSON object.
-     * @param json The JSON representation of the definition.
+     * Loads and adds block definitions from a JSON array in an input stream.
+     *
+     * @param jsonStream The stream containing the JSON block definitions.
+     *
+     * @return A pair of a list of exceptions (null if none) and a count of definitions added.
+     * @throws IOException If unrecoverable errors are encountered reading the stream.
      */
-    public void addJsonDefinition(JSONObject json) throws JSONException {
-        addDefinition(new BlockDefinition(json));
+    public Pair<List<Exception>, Integer> addJsonDefinitions(InputStream jsonStream)
+            throws IOException {
+        // Read stream as single string.
+        String inString = new Scanner( jsonStream ).useDelimiter("\\A").next();
+        return addJsonDefinitions(inString);
     }
 
     /**
-     * Convenience method to {@link #addDefinition} from a JSON string.
-     * @param json The JSON representation of the definition.
+     * Loads and adds block definition from a JSON array string.
+     *
+     * @param jsonString The InputStream containing the JSON block definitions.
+     *
+     * @return A pair of a list of exceptions (null if none) and a count of definitions added.
+     * @throws IOException If unrecoverable errors are encountered reading the string.
      */
-    public void addJsonDefinition(String json) throws JSONException {
-        addDefinition(new BlockDefinition(json));
+    public Pair<List<Exception>, Integer> addJsonDefinitions(String jsonString) throws IOException {
+        List<Exception> exceptions = null;
+
+        // Parse JSON first, avoiding side effects (partially added file) in the case of an error.
+        List<BlockDefinition> defs;
+        try {
+            JSONArray jsonArray = new JSONArray(jsonString);
+            defs = new ArrayList<>(jsonArray.length());
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonDef = jsonArray.getJSONObject(i);
+                try {
+                    defs.add(new BlockDefinition(jsonDef));
+                } catch (JSONException e) {
+                    String msg = "Block definition #" + i + ": " + e.getMessage();
+                    Log.w(TAG, msg);
+                    if (exceptions == null) {
+                        exceptions = new ArrayList<>();
+                    }
+                    exceptions.add(new BlockLoadingException(msg, e));
+                }
+            }
+        } catch (JSONException e) {
+            throw new IOException(e);
+        }
+
+        // Attempt to add each definition, catching redefinition errors.
+        int blockAddedCount = 0;
+        for (int i = 0; i < defs.size(); ++i) {
+            BlockDefinition def = defs.get(i);
+            String typeName = def.getTypeName();
+            if (!mDefinitions.containsKey(typeName)) {
+                addDefinition(def);
+                blockAddedCount++;
+            } else {
+                String msg = "Block type \"" + def.getTypeName() + "\" already defined.";
+                Log.w(TAG, msg);
+                if (exceptions == null) {
+                    exceptions = new ArrayList<>();
+                }
+                exceptions.add(new BlockLoadingException(msg));
+            }
+        }
+
+        return Pair.create(exceptions, blockAddedCount);
+    }
+
+    /**
+     * Loads and adds block definitions from a file in Assets.
+     *
+     * @param assets The context's AssetManager.
+     * @param assetPath The asset path to the JSON definitions.
+     * @return The count of definitions added.
+     */
+    public int addJsonDefinitionsAsset(AssetManager assets, String assetPath) {
+        Pair<List<Exception>, Integer> result;
+        InputStream jsonInput = null;
+        try {
+            jsonInput = assets.open(assetPath);
+            result = addJsonDefinitions(jsonInput);
+        } catch (IOException e) {
+            // Compile time resources are expected to always be valid.
+            throw new IllegalStateException(
+                    "Failed to load block definitions from asset file: " + assetPath, e);
+        } finally {
+            if (jsonInput != null) {
+                try {
+                    jsonInput.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
+            }
+        }
+        if (result.first != null) {
+            // Compile time resources are expected to always be valid.
+            throw new IllegalStateException(
+                    "Failed to load all block definitions from asset file: " + assetPath
+                    + "\nSee above.");
+        }
+        return result.second;
     }
 
     /**
@@ -253,68 +343,33 @@ public class BlockFactory {
     }
 
     /**
-     * Loads and adds block templates from a resource.
+     * Loads and adds block templates from a raw file resource.
+     *
+     * Block definitions from resources will never be passed to generators
+     * (https://github.com/google/blockly-android/issues/525). Instead, use
+     * {@link #addJsonDefinitionsAsset(AssetManager, String)} to load from assets.
      *
      * @param resId The id of the JSON resource to load blocks from.
      *
      * @return Number of blocks added to the factory.
      * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
      */
-    public int addBlocks(int resId) {
-        InputStream blockIs = mResources.openRawResource(resId);
+    @Deprecated
+    public int addJsonDefinitions(int resId) {
+        InputStream jsonInput = mResources.openRawResource(resId);
         try {
-            return loadBlocks(blockIs);
+            Pair<List<Exception>, Integer> results = addJsonDefinitions(jsonInput);
+            return results.second;
         } catch (IOException e) {
             // Compile time resources are expected to always be valid.
             throw new IllegalStateException("Failed to load block defintions from resource: "
                     + mResources.getResourceEntryName(resId));
-        }
-    }
-
-    /**
-     * Loads and adds block templates from a string.
-     *
-     * @param json_string The JSON string to load blocks from.
-     *
-     * @return Number of blocks added to the factory.
-     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
-     */
-    public int addBlocks(String json_string) throws IOException {
-        final InputStream blockIs = new ByteArrayInputStream(json_string.getBytes());
-        return loadBlocks(blockIs);
-    }
-
-
-    /**
-     * Loads and adds block templates from an input stream.
-     *
-     * @param is The json stream to read blocks from.
-     *
-     * @return Number of blocks added to the factory.
-     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
-     */
-    public int addBlocks(InputStream is) throws IOException {
-        return loadBlocks(is);
-    }
-
-    /**
-     * Generate a {@link Block} from JSON, including all inputs and fields within the block.
-     *
-     * @param type The type id of the block.
-     * @param json The JSON to generate the block from.
-     *
-     * @return The generated Block.
-     * @throws BlockLoadingException if the json is malformed.
-     */
-    public Block fromJson(String type, JSONObject json) throws BlockLoadingException {
-        try {
-            if (!type.equals(json.optString("type"))) {
-                json = JsonUtils.shallowCopy(json);
-                json.put("type", type);
+        } finally {
+            try {
+                jsonInput.close();
+            } catch (IOException e) {
+                // Ignore
             }
-            return obtain(block().fromJson(json));
-        } catch (JSONException e) {
-            throw new BlockLoadingException("Failed to create block from JSON definition.", e);
         }
     }
 
@@ -563,33 +618,5 @@ public class BlockFactory {
      */
     public void clearPriorBlockReferences() {
         mBlockRefs.clear();
-    }
-
-    /** @return Number of blocks added to the factory. */
-    private int loadBlocks(InputStream blockIs) throws IOException {
-        int blockAddedCount = 0;
-        try {
-            int size = blockIs.available();
-            byte[] buffer = new byte[size];
-            blockIs.read(buffer);
-
-            String json = new String(buffer, "UTF-8");
-            JSONArray blocks = new JSONArray(json);
-            for (int i = 0; i < blocks.length(); i++) {
-                JSONObject jsonDef = blocks.getJSONObject(i);
-                String type = jsonDef.optString("type");
-                if (!TextUtils.isEmpty(type)) {
-                    mDefinitions.put(type, new BlockDefinition(jsonDef));
-                    ++blockAddedCount;
-                } else {
-                    throw new BlockLoadingException(
-                            "Block " + i + " has no type and cannot be loaded.");
-                }
-            }
-        } catch (JSONException e) {
-            throw new BlockLoadingException(e);
-        }
-
-        return blockAddedCount;
     }
 }

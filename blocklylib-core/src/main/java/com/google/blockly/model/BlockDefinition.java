@@ -30,7 +30,9 @@ import java.util.List;
 
 
 /**
- * Definition of a type of block.
+ * Definition of a type of block, usually defined in JSON.  See
+ * <a href="https://developers.google.com/blockly/guides/create-custom-blocks/define-blocks">the guide on block definitions</a>
+ * for details.
  */
 public class BlockDefinition {
     private static final String TAG = "BlockDefinition";
@@ -50,10 +52,20 @@ public class BlockDefinition {
     private final String[] mNextChecks;
     private final boolean mInputsInlineDefault;
 
+    /**
+     * Initializes the definition from a string of JSON.
+     * @param jsonStr The JSON definition as a string.
+     * @throws JSONException If JSON is malformed or does not include expected a attributes.
+     */
     public BlockDefinition(String jsonStr) throws JSONException {
         this(new JSONObject(jsonStr));
     }
 
+    /**
+     * Initializes the definition from a JSON object.
+     * @param json The JSON object with the definition.
+     * @throws JSONException If JSON does not include expected a attributes.
+     */
     public BlockDefinition(JSONObject json) throws JSONException {
         mJson = json;
 
@@ -90,30 +102,50 @@ public class BlockDefinition {
         mInputsInlineDefault = parseInputsInline(warningPrefix, mJson);
     }
 
+    /**
+     * @return The identifying name of the block definition, referenced by XML and
+     *         {@link BlockTemplate}s.
+     */
     public String getTypeName() {
         return mTypeName;
     }
 
+    /**
+     * @return The opaque {@link android.graphics.Color} int of block.
+     */
     public int getColor() {
         return mColor;
     }
 
-    public Connection createOutputConnection() {
+    /**
+     * @return A new output connection for a new block of this type.
+     */
+    protected Connection createOutputConnection() {
         return !mHasOutput ? null :
                 new Connection(Connection.CONNECTION_TYPE_OUTPUT, mOutputChecks);
     }
 
-    public Connection createPreviousConnection() {
+    /**
+     * @return A new previous connection for a new block of this type.
+     */
+    protected Connection createPreviousConnection() {
         return !mHasPrevious ? null :
                 new Connection(Connection.CONNECTION_TYPE_PREVIOUS, mPreviousChecks);
     }
 
-    public Connection createNextConnection() {
+    /**
+     * @return A new next connection for a new block of this type.
+     */
+    protected Connection createNextConnection() {
         return !mHasNext ? null :
                 new Connection(Connection.CONNECTION_TYPE_NEXT, mNextChecks);
     }
 
-    public ArrayList<Input> createInputList(BlockFactory factory) throws BlockLoadingException {
+    /**
+     * @return A new list of {@link Input} objects for a new block of this type, complete with
+     *         fields.
+     */
+    protected ArrayList<Input> createInputList(BlockFactory factory) throws BlockLoadingException {
         ArrayList<Input> inputs = new ArrayList<>();
         ArrayList<Field> fields = new ArrayList<>();
         for (int i = 0; ; i++) {
@@ -208,10 +240,19 @@ public class BlockDefinition {
         return  inputs;
     }
 
+    /**
+     * @return True if new blocks begin with inputs inlined. Otherwise, false.
+     */
     public boolean isInputsInlineDefault() {
         return mInputsInlineDefault;
     }
 
+    /**
+     * Parses the JSON "colour" attribute.
+     * @param warningPrefix A prefix for errors, including the block type if available.
+     * @param json The JSON representation of the block definition.
+     * @return The int representation of the opaque color.
+     */
     private static int parseColour(String warningPrefix, JSONObject json) {
         int color = ColorUtils.DEFAULT_BLOCK_COLOR;
         if (json.has("colour")) {
@@ -232,6 +273,12 @@ public class BlockDefinition {
         return color;
     }
 
+    /**
+     * Parses the JSON "inputsInline" attribute.
+     * @param warningPrefix A prefix for errors, including the block type if available.
+     * @param json The JSON representation of the block definition.
+     * @return True if blocks of this type should inlined. Otherwise, false.
+     */
     private static boolean parseInputsInline(String warningPrefix, JSONObject json) {
         boolean inputsInline = false;
         if (json.has("inputsInline")) {

@@ -1885,7 +1885,7 @@ public class BlocklyController {
             BlockFactory factory = new BlockFactory(mContext, null);
             for (int i = 0; i < mBlockDefResources.size(); i++) {
                 try {
-                    factory.addBlocks(mBlockDefResources.get(i));
+                    factory.addJsonDefinitions(mBlockDefResources.get(i));
                 } catch (Throwable e) {
                     factory.clear();  // Clear partially loaded resources.
                     throw e;
@@ -1894,7 +1894,7 @@ public class BlocklyController {
             for (int i = 0; i < mBlockDefAssets.size(); i++) {
                 String assetPath = mBlockDefAssets.get(i);
                 try {
-                    factory.addBlocks(mContext.getAssets().open(assetPath));
+                    factory.addJsonDefinitions(mContext.getAssets().open(assetPath));
                 } catch (IOException e) {
                     factory.clear();  // Clear partially loaded resources.
                     // Compile-time bundled assets are assumed to always be valid.

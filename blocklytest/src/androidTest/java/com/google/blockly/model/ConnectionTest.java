@@ -57,7 +57,7 @@ public class ConnectionTest {
     @Before
     public void setUp() throws JSONException {
         factory = new BlockFactory(InstrumentationRegistry.getTargetContext());
-        factory.addJsonDefinition("{\"type\": \"dummyBlock\"}");
+        factory.addDefinition(new BlockDefinition("{\"type\": \"dummyBlock\"}"));
         BlockTemplate dummyBlock = block().ofType("dummyBlock");
         BlockTemplate shadowBlock = new BlockTemplate(dummyBlock).shadow();
 

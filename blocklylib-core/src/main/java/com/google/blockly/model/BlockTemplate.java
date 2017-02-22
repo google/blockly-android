@@ -32,11 +32,9 @@ import java.util.List;
  * <pre>
  * {@code factory.obtain(block().shadow().ofType("math_number").atPosition(25,56));}
  * </pre>
- * BlockTemplate class is not intended to be referenced directly by name. Instead use the
- * static method {@link BlockFactory#block} to construct a new instance.
  */
 public class BlockTemplate {
-    static class FieldValue {
+    protected static class FieldValue {
         /** The name of the field. */
         final String mName;
         /** The serialized value of the field. */
@@ -48,7 +46,7 @@ public class BlockTemplate {
         }
     }
 
-    static class InputValue {
+    protected static class InputValue {
         /** The name of the input */
         final String mName;
         /** The child block. */
@@ -63,35 +61,37 @@ public class BlockTemplate {
         }
     }
 
-    // Only one of the following three may be set.
-    String mDefinitionName = null;
-    BlockDefinition mDefinition = null;
-    Block mCopySource = null;
+    // Member fields are accessed directly from {@link Block#applyTemplate(BlockTemplate)}.
 
-    String mId = null;
-    boolean mAllowAlternateId = true;
+    // Only one of the following three may be set.
+    protected String mDefinitionName = null;
+    protected BlockDefinition mDefinition = null;
+    protected Block mCopySource = null;
+
+    protected String mId = null;
+    protected boolean mAllowAlternateId = true;
 
     // Mutable state variables below.
     // Applied via Block.applyTemplate()
     // If not set, the block's value is unmodified.
-    Boolean mIsShadow = null;
-    WorkspacePoint mPosition = null;
-    Boolean mIsCollapsed = null;
-    Boolean mIsDeletable = null;
-    Boolean mIsDisabled = null;
-    Boolean mIsEditable = null;
-    Boolean mInlineInputs = null;
-    Boolean mIsMovable = null;
-    String mCommentText = null;
+    protected Boolean mIsShadow = null;
+    protected WorkspacePoint mPosition = null;
+    protected Boolean mIsCollapsed = null;
+    protected Boolean mIsDeletable = null;
+    protected Boolean mIsDisabled = null;
+    protected Boolean mIsEditable = null;
+    protected Boolean mInlineInputs = null;
+    protected Boolean mIsMovable = null;
+    protected String mCommentText = null;
 
     /** Ordered list of field names and string values, as loaded during XML deserialization. */
-    List<FieldValue> mFieldValues;
+    protected List<FieldValue> mFieldValues;
 
     /** Ordered list of input names and blocks, as loaded during XML deserialization. */
-    List<InputValue> mInputValues;
+    protected List<InputValue> mInputValues;
 
-    Block mNextChild;
-    Block mNextShadow;
+    protected Block mNextChild;
+    protected Block mNextShadow;
 
     /**
      * Create a new block descriptor. Prefer using {@link BlockFactory#block()} via static import

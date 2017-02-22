@@ -86,8 +86,8 @@ public class Block {
         mInputList = definition.createInputList(factory);
 
         mInputsInline = definition.isInputsInlineDefault();
-
         mInputsInlineModified = false;
+
         mPosition = new WorkspacePoint(0, 0);
 
         rebuildConnectionList();
@@ -888,10 +888,9 @@ public class Block {
      * % is escaped (eg "Escaped %%5 has no args")
      *
      * @param message The message to tokenize.
-     *
      * @return A list of Strings that are either an arg or plain text.
      */
-    /*package*/
+    // package scoped
     static List<String> tokenizeMessage(String message) {
         ArrayList<String> result = new ArrayList<>();
         if (TextUtils.isEmpty(message)) {

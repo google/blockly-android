@@ -572,23 +572,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void reloadBlockDefinitions() {
         AssetManager assetManager = getAssets();
-        List<String> blockDefsPaths = getBlockDefinitionsJsonPaths();
-
         BlockFactory factory = getController().getBlockFactory();
         factory.clear();
-
-        String blockDefsPath;
-        Iterator<String> iter = blockDefsPaths.iterator();
-        while (iter.hasNext()) {
-            blockDefsPath = iter.next();
-            try {
-                factory.addBlocks(assetManager.open(blockDefsPath));
-            } catch (IOException e) {
-                factory.clear();  // Clear any partial loaded block sets.
-                // Compile-time bundled assets are assumed to be valid.
-                throw new IllegalStateException("Failed to load block definitions from asset: "
-                        + blockDefsPath, e);
-            }
+        for (String definitionsPath : getBlockDefinitionsJsonPaths()) {
+            factory.addJsonDefinitionsAsset(assetManager, definitionsPath);
         }
     }
 
