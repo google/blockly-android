@@ -16,6 +16,8 @@ package com.google.blockly.model;
 
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,7 +57,7 @@ public class ConnectionTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Before
-    public void setUp() throws JSONException {
+    public void setUp() throws JSONException, BlockLoadingException {
         factory = new BlockFactory(InstrumentationRegistry.getTargetContext());
         factory.addDefinition(new BlockDefinition("{\"type\": \"dummyBlock\"}"));
         BlockTemplate dummyBlock = block().ofType("dummyBlock");
@@ -97,7 +99,7 @@ public class ConnectionTest {
     }
 
     @Test
-    public void testCanConnectWithReasonDisconnect() {
+    public void testCanConnectWithReasonDisconnect() throws BlockLoadingException {
         assertThat(input).connectingTo(output).isSuccessful();
 
         Connection conn = new Connection(CONNECTION_TYPE_OUTPUT, null);
@@ -122,7 +124,7 @@ public class ConnectionTest {
     }
 
     @Test
-    public void testCanConnectWithReasonChecks() {
+    public void testCanConnectWithReasonChecks() throws BlockLoadingException {
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, new String[]{"String", "int"});
         input.setBlock(factory.obtain(dummyBlock));
         assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
@@ -167,7 +169,8 @@ public class ConnectionTest {
     }
 
     @Test
-    public void testCheckConnection_failsOnInputCannotConnectToInput() {
+    public void testCheckConnection_failsOnInputCannotConnectToInput()
+            throws BlockLoadingException {
         thrown.expect(IllegalArgumentException.class);
         thrown.reportMissingExceptionWithMessage("Input cannot connect to input!");
 
@@ -192,7 +195,8 @@ public class ConnectionTest {
     }
 
     @Test
-    public void testCheckConnection_failOnOutputCannotConnectToBlock() {
+    public void testCheckConnection_failOnOutputCannotConnectToBlock()
+            throws BlockLoadingException {
         thrown.expect(IllegalArgumentException.class);
         thrown.reportMissingExceptionWithMessage("Output cannot connect to output!");
 
@@ -216,7 +220,8 @@ public class ConnectionTest {
     }
 
     @Test
-    public void testCheckConnection_failOnPreviousCannotConnectToPrevious() {
+    public void testCheckConnection_failOnPreviousCannotConnectToPrevious()
+            throws BlockLoadingException {
         thrown.expect(IllegalArgumentException.class);
         thrown.reportMissingExceptionWithMessage("Previous cannot connect to previous!");
 
@@ -240,7 +245,7 @@ public class ConnectionTest {
     }
 
     @Test
-    public void testCheckConnection_failOnNextCannotConnectToNext() {
+    public void testCheckConnection_failOnNextCannotConnectToNext() throws BlockLoadingException {
         thrown.expect(IllegalArgumentException.class);
         thrown.reportMissingExceptionWithMessage("Next cannot connect to next!");
 
@@ -311,7 +316,8 @@ public class ConnectionTest {
     }
 
     @Test
-    public void testCheckConnection_failOnShadowInputCannotConnectToShadowInput() {
+    public void testCheckConnection_failOnShadowInputCannotConnectToShadowInput()
+            throws BlockLoadingException {
         thrown.expect(IllegalArgumentException.class);
         thrown.reportMissingExceptionWithMessage("Input cannot connect to input!");
 

@@ -50,6 +50,7 @@ public class AbstractBlockViewTest extends BlocklyTestCase {
         mMockHelper = mock(WorkspaceHelper.class);
         mMockViewFactory = mock(BlockViewFactory.class);
 
+        // TODO(#435): Replace R.raw.test_blocks
         BlockFactory mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         mEmptyBlock = mBlockFactory.obtainBlock("empty_block", "fake_id");
     }

@@ -46,7 +46,7 @@ import java.util.List;
  */
 public final class BlocklyXmlHelper {
     private static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
-    private static final XmlPullParserFactory mParserFactory = createParseFactory();
+    private static final XmlPullParserFactory PARSER_FACTORY = createParseFactory();
 
 
     private BlocklyXmlHelper() {
@@ -65,7 +65,7 @@ public final class BlocklyXmlHelper {
     public static BlocklyCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory)
             throws BlocklyParserException {
         try {
-            XmlPullParser parser = mParserFactory.newPullParser();
+            XmlPullParser parser = PARSER_FACTORY.newPullParser();
             parser.setInput(is, null);
             return BlocklyCategory.fromXml(parser, blockFactory);
         } catch (XmlPullParserException | IOException e) {
@@ -224,7 +224,7 @@ public final class BlocklyXmlHelper {
             options = IOOptions.WRITE_ALL_DATA;
         }
         try {
-            XmlSerializer serializer = mParserFactory.newSerializer();
+            XmlSerializer serializer = PARSER_FACTORY.newSerializer();
             if (os != null) {
                 serializer.setOutput(os, null);
             } else {
@@ -287,6 +287,23 @@ public final class BlocklyXmlHelper {
     }
 
     /**
+     * @param text The text to escape.
+     * @return
+     */
+    public static String escape(String text) {
+        try {
+            StringWriter sw = new StringWriter();
+            XmlSerializer serializer = PARSER_FACTORY.newSerializer();
+            serializer.setOutput(sw);
+            serializer.text(text).flush();
+            return sw.toString();
+        } catch(XmlPullParserException | IOException e) {
+            // Should never get here.
+            throw new IllegalStateException("Unable to build/use XmlSerializer.");
+        }
+    }
+
+    /**
      * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
      * contained in it or descending from it.
      *
@@ -302,7 +319,7 @@ public final class BlocklyXmlHelper {
             throws BlocklyParserException {
         StringReader reader = null;
         try {
-            XmlPullParser parser = mParserFactory.newPullParser();
+            XmlPullParser parser = PARSER_FACTORY.newPullParser();
             if (inStream != null) {
                 parser.setInput(inStream, null);
             } else {

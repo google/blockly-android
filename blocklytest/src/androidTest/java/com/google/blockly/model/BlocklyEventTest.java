@@ -36,6 +36,7 @@ public class BlocklyEventTest {
     @Before
     public void setUp() throws Exception {
         mMockWorkspace = mock(Workspace.class);
+        // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
         mBlock = mBlockFactory.obtainBlock(BLOCK_TYPE, BLOCK_ID);

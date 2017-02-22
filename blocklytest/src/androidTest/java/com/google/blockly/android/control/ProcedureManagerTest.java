@@ -21,6 +21,7 @@ import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.FieldInput;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -70,7 +71,7 @@ public class ProcedureManagerTest {
     }
 
     @Test
-    public void testAddProcedureDefinitionTwice() {
+    public void testAddProcedureDefinitionTwice() throws BlockLoadingException {
         mProcedureManager.addDefinition(mProcedureDefinition);
 
         thrown.expect(IllegalStateException.class);
@@ -126,7 +127,7 @@ public class ProcedureManagerTest {
     }
 
     @Test
-    public void testMissingNames() {
+    public void testMissingNames() throws BlockLoadingException {
         mProcedureDefinition = mFactory.obtain(block().fromJson(
                 "{\"type\":\"no field named name\"}"));
 

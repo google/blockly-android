@@ -22,6 +22,7 @@ import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -376,7 +377,12 @@ public class ConnectionManagerTest {
 
         Connection conn = new Connection(connectionType, null);
         conn.setPosition(x, y);
-        conn.setBlock(factory.obtain(block().shadow(shadow).ofType(blockType)));
+        try {
+            conn.setBlock(factory.obtain(block().shadow(shadow).ofType(blockType)));
+        } catch (BlockLoadingException e) {
+            throw new RuntimeException(
+                    "Unexpected error obtaining \"" + blockType + "\" block.", e);
+        }
         return conn;
     }
 }

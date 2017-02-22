@@ -50,6 +50,7 @@ public class AbstractInputViewTest extends BlocklyTestCase {
     public void setUp() throws Exception {
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         // Use the BlockFactory to make sure we have real inputs.
+        // TODO(#435): Replace R.raw.test_blocks
         BlockFactory factory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
         Block block = factory.obtainBlock("test_block_one_input_each_type", "fake_id");

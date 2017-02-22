@@ -53,6 +53,7 @@ public class WorkspaceHelperTest extends BlocklyTestCase {
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
         mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
+        // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
     }
 

@@ -23,6 +23,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Connection;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
 import org.junit.Before;
@@ -57,7 +58,7 @@ public class WorkspaceStatsTest {
     }
 
     @Test
-    public void testCollectProcedureStats() {
+    public void testCollectProcedureStats() throws BlockLoadingException {
         Block blockUnderTest = mFactory.obtain(
                 block().fromDefinition(TestUtils.getProcedureDefinitionBlockDefinition("test")));
 
@@ -73,7 +74,7 @@ public class WorkspaceStatsTest {
     }
 
     @Test
-    public void testCollectVariableStats() throws JSONException {
+    public void testCollectVariableStats() throws JSONException, BlockLoadingException {
         BlockDefinition def = new BlockDefinition(
                 "{" +
                     "\"type\":\"two variable references\"," +
@@ -106,7 +107,9 @@ public class WorkspaceStatsTest {
     }
 
     @Test
-    public void testCollectConnectionStatsNextPrevStatementRecursion() throws JSONException {
+    public void testCollectConnectionStatsNextPrevStatementRecursion()
+            throws JSONException, BlockLoadingException {
+
         BlockDefinition variableWithNext = new BlockDefinition(
             "{" +
                 "\"type\":\"parent variableWithNext\"," +

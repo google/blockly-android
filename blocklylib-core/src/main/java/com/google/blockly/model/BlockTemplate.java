@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -94,10 +95,23 @@ public class BlockTemplate {
     protected Block mNextShadow;
 
     /**
-     * Create a new block descriptor. Prefer using {@link BlockFactory#block()} via static import
-     * for readability.
+     * Create a new block descriptor.
+     *
+     * Alternatively, consider using {@link BlockFactory#block()} via static import:
+     * <pre>
+     * {@code factory.obtain(block().ofType("math_number"));}
+     * </pre>
      */
     public BlockTemplate() {}
+
+    /**
+     * Create a new block descriptor for the named block type.
+     *
+     * @param blockDefinitionName The name of the block definition to use.
+     */
+    public BlockTemplate(String blockDefinitionName) {
+        ofType(blockDefinitionName);
+    }
 
     /**
      * Copy constructor to create a new description based on a prior.
@@ -405,16 +419,43 @@ public class BlockTemplate {
      * @param child The deserialized child block.
      * @param shadow The deserialized shadow block.
      * @return This block descriptor, for chaining.
+     * @throws IllegalArgumentException If inputName is not a valid name; if child or shadow are not
+     *                                  configured as such; if child or shadow overwrites a prior
+     *                                  value.
      */
     BlockTemplate withInputValue(String inputName, Block child, Block shadow) {
-        assert(!TextUtils.isEmpty(inputName));
+        if (inputName == null
+                || (inputName = inputName.trim()).length() == 0) {  // Trim and test name
+            throw new IllegalArgumentException("Invalid input value name.");
+        }
         if ((child != null && (child.isShadow() || child.getOutputConnection() == null))
             || ((shadow != null) && (!shadow.isShadow() || shadow.getOutputConnection() == null))) {
             throw new IllegalArgumentException("Invalid input child Block(s).");
         }
 
+        // Find duplicate values.
         if (mInputValues == null) {
             mInputValues = new ArrayList<>();
+        } else {
+            // Check for prior assignments to the same input value.
+            Iterator<InputValue> iter = mInputValues.iterator();
+            while (iter.hasNext()) {
+                InputValue priorValue = iter.next();
+                if (priorValue.mName.equals(inputName)) {
+                    boolean overwriteChild = child != null
+                            && priorValue.mChild != null && child != priorValue.mChild;
+                    boolean overwriteShadow = shadow != null
+                            & priorValue.mShadow != null && shadow != priorValue.mShadow;
+
+                    if (overwriteChild || overwriteShadow) {
+                        throw new IllegalArgumentException(
+                                "Input \"" + inputName + "\" already assigned.");
+                    }
+                    child = (child == null ? priorValue.mChild : child);
+                    shadow = (shadow == null ? priorValue.mShadow : shadow);
+                    iter.remove();  // Replaced below
+                }
+            }
         }
         mInputValues.add(new InputValue(inputName, child, shadow));
         return this;

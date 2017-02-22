@@ -17,10 +17,12 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.support.v4.util.SimpleArrayMap;
+import android.util.Log;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.NameManager;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -32,11 +34,13 @@ import static com.google.blockly.model.BlockFactory.block;
  * Class for building {@link BlocklyCategory categories} for variable
  */
 public final class VariableCategoryFactory extends CategoryFactory {
+    private static final String TAG = "VariableCategoryFactory";
+
     public static final String ACTION_CREATE_VARIABLE = "CREATE_VARIABLE";
 
-    private static final String GET_VAR_BLOCK = "variables_get";
-    private static final String SET_VAR_BLOCK = "variables_set";
-    private static final String CHANGE_VAR_BLOCK = "math_change";
+    private static final BlockTemplate GET_VAR_TEMPLATE = new BlockTemplate("variables_get");
+    private static final BlockTemplate SET_VAR_TEMPLATE = new BlockTemplate("variables_set");
+    private static final BlockTemplate CHANGE_VAR_TEMPLATE = new BlockTemplate("math_change");
     private static final String GET_VAR_FIELD = "VAR";
 
     private Context mContext;
@@ -81,20 +85,32 @@ public final class VariableCategoryFactory extends CategoryFactory {
         if (variables.size() == 0) {
             return;
         }
-        Block setter = mBlockFactory.obtain(block().ofType(SET_VAR_BLOCK));
-        category.addItem(new BlocklyCategory.BlockItem(setter));
-        Block changer = mBlockFactory.obtain(block().ofType(CHANGE_VAR_BLOCK));
-        category.addItem(new BlocklyCategory.BlockItem(changer));
+        try {
+            Block setter = mBlockFactory.obtain(SET_VAR_TEMPLATE);
+            category.addItem(new BlocklyCategory.BlockItem(setter));
+        } catch (BlockLoadingException e) {
+            Log.e(TAG, "Fail to obtain \"" + SET_VAR_TEMPLATE.mDefinitionName + "\" block.");
+        }
+        try {
+            Block changer = mBlockFactory.obtain(CHANGE_VAR_TEMPLATE);
+            category.addItem(new BlocklyCategory.BlockItem(changer));
+        } catch (BlockLoadingException e) {
+            Log.e(TAG, "Fail to obtain \"" + CHANGE_VAR_TEMPLATE.mDefinitionName + "\" block.");
+        }
         ArrayList<String> varNames = new ArrayList<>(variables.size());
         for (int i = 0; i < variables.size(); i++) {
             varNames.add(variables.keyAt(i));
         }
         Collections.sort(varNames);
 
-        for (int i = 0; i < varNames.size(); i++) {
-            Block varBlock = mBlockFactory.obtain(block().ofType(GET_VAR_BLOCK));
-            varBlock.getFieldByName(GET_VAR_FIELD).setFromString(varNames.get(i));
-            category.addItem(new BlocklyCategory.BlockItem(varBlock));
+        try {
+            for (int i = 0; i < varNames.size(); i++) {
+                Block varBlock = mBlockFactory.obtain(GET_VAR_TEMPLATE);
+                varBlock.getFieldByName(GET_VAR_FIELD).setFromString(varNames.get(i));
+                category.addItem(new BlocklyCategory.BlockItem(varBlock));
+            }
+        } catch (BlockLoadingException e) {
+            Log.e(TAG, "Fail to obtain \"" + GET_VAR_TEMPLATE.mDefinitionName + "\" block.");
         }
     }
 }

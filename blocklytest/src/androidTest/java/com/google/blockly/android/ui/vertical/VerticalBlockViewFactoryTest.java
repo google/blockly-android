@@ -46,6 +46,7 @@ public class VerticalBlockViewFactoryTest extends BlocklyTestCase {
      public void setUp() throws Exception {
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mMockConnectionManager = mock(ConnectionManager.class);
+        // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         mViewFactory = new VerticalBlockViewFactory(getContext(), mMockWorkspaceHelper);
         mBlockGroup = mViewFactory.buildBlockGroup();

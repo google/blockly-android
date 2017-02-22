@@ -8,6 +8,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.IOOptions;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
 
@@ -28,6 +29,7 @@ public class CodeGeneratorServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
     }
@@ -39,7 +41,7 @@ public class CodeGeneratorServiceTest {
      * about the quote character.
      */
     @Test
-    public void testEscapeFieldDataForChromium() {
+    public void testEscapeFieldDataForChromium() throws BlockLoadingException {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             return;  // See testEscapeFieldDataForAndroidWebView()
         }
@@ -63,7 +65,7 @@ public class CodeGeneratorServiceTest {
      * URL, using %20 for spaces (not +'s).
      */
     @Test
-    public void testEscapeFieldDataForAndroidWebView() {
+    public void testEscapeFieldDataForAndroidWebView() throws BlockLoadingException {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {
             return;  // See testEscapeFieldDataForChromium()
         }

@@ -72,11 +72,15 @@ public class BlockFactory {
 
     /**
      * Create a factory with an initial set of blocks from json resources.
+     * Block definitions from resources will never be passed to generators
+     * (https://github.com/google/blockly-android/issues/525). Instead, use
+     * {@link #addJsonDefinitionsAsset(AssetManager, String)} to load from assets.
      *
      * @param context The context for loading resources.
      * @param blockSourceIds A list of JSON resources containing blocks.
      * @throws IllegalStateException if any block definitions fail to load.
      */
+    @Deprecated
     public BlockFactory(Context context, int[] blockSourceIds) {
         this(context);
         if (blockSourceIds != null) {
@@ -87,16 +91,30 @@ public class BlockFactory {
     }
 
     /**
-     * Create a factory.
+     * Create a factory with a handle to the Activity Resources.
+     * Block definitions from resources will never be passed to generators
+     * (https://github.com/google/blockly-android/issues/525). Instead, use
+     * {@link #addJsonDefinitionsAsset(AssetManager, String)} to load from assets.
      *
      * @param context The context for loading resources.
      */
+    @Deprecated
     public BlockFactory(Context context) {
         mResources = context.getResources();
     }
 
     public BlockFactory(final InputStream source) throws IOException {
         addJsonDefinitions(source);
+    }
+
+    /**
+     * @param id The id to check.
+     * @returns True if a block with the given id exists. Otherwise, false.
+     */
+    public boolean isBlockIdInUse(String id) {
+        WeakReference<Block> priorBlockRef = mBlockRefs.get(id);
+        Block priorBlock = priorBlockRef == null ? null : priorBlockRef.get();
+        return priorBlock != null;
     }
 
     /**
@@ -240,16 +258,25 @@ public class BlockFactory {
      * @param id The id of the block if loaded from XML; null otherwise.
      *
      * @return A new block of that type or null.
-     * @throws IllegalArgumentException If uuid is not null and already refers to a block.
+     * @throws IllegalArgumentException If id is not null and already refers to a block.
      */
     @Deprecated
     public Block obtainBlock(String definitionName, @Nullable String id) {
+        // Validate id is available.
+        if (isBlockIdInUse(id)) {
+            throw new IllegalArgumentException("Block id \"" + id + "\" already in use.");
+        }
+
         // Verify definition is defined.
         if (!mDefinitions.containsKey(definitionName)) {
             Log.w(TAG, "Block " + definitionName + " not found.");
             return null;
         }
-        return obtain(block().ofType(definitionName).withId(id));
+        try {
+            return obtain(block().ofType(definitionName).withRequiredId(id, true));
+        } catch (BlockLoadingException e) {
+            return null;
+        }
     }
 
     /**
@@ -260,25 +287,13 @@ public class BlockFactory {
      * @param template A template of the block to create.
      * @return A new block, or null if not able to construct it.
      */
-    public Block obtain(BlockTemplate template) {
-        // First search for any existing block with a conflicting ID.
-        String id = template.mId;
-        if (id != null) {
-            WeakReference<Block> ref = mBlockRefs.get(id);
-            if (ref != null) {
-                Block block = ref.get();
-                if (block != null) {
-                    if (template.mAllowAlternateId) {
-                        id = null;  // Clear to allow for generated values
-                    } else {
-                        throw new IllegalArgumentException("Block with given ID \"" + id
-                                + "\" already exists. Duplicate UUIDs not allowed.");
-                    }
-                }
-            }
+    public Block obtain(BlockTemplate template) throws BlockLoadingException {
+        // Validate id is available.
+        if (isBlockIdInUse(template.mId)) {
+            throw new IllegalArgumentException("Block id \"" + template.mId + "\" already in use.");
         }
 
-        // Existing instance not found.  Constructing a new Block.
+        // Existing instance not found. Constructing a new Block.
         BlockDefinition definition;
         boolean isShadow = template.mIsShadow == null ? false : template.mIsShadow;
         Block block;
@@ -287,6 +302,10 @@ public class BlockFactory {
                 // TODO: Improve copy overhead. Template from copy to avoid XML I/O?
                 String xml = BlocklyXmlHelper.writeBlockToXml(template.mCopySource,
                         IOOptions.WRITE_ROOT_ONLY_WITHOUT_ID);
+                if (template.mId != null) {
+                    String escapedId = BlocklyXmlHelper.escape(template.mId);
+                    xml = xml.replace("<block", "<block id=\"" + escapedId + "\"");
+                }
                 block = BlocklyXmlHelper.loadOneBlockFromXml(xml, this);
             } catch (BlocklySerializerException e) {
                 Log.e(TAG, template.mCopySource + ": Failed to copy block.", e);
@@ -311,7 +330,7 @@ public class BlockFactory {
             }
 
             try {
-                block = new Block(this, definition, id, isShadow);
+                block = new Block(this, definition, template.mId, isShadow);
                 // TODO(#529): Apply Extensions.
             } catch (BlockLoadingException e) {
                 // Prefer reporting registered typename over the definition's self-reported type name.
@@ -323,16 +342,11 @@ public class BlockFactory {
             }
         }
 
-        try {
-            // Apply mutable state last.
-            block.applyTemplate(template);
-            mBlockRefs.put(block.getId(), new WeakReference<>(block));
+        // Apply mutable state last.
+        block.applyTemplate(template);
+        mBlockRefs.put(block.getId(), new WeakReference<>(block));
 
-            return block;
-        } catch (BlockLoadingException e) {
-            Log.e(TAG, "Failed to load " + block + ".", e);
-            return null;
-        }
+        return block;
     }
 
     /**
@@ -454,6 +468,7 @@ public class BlockFactory {
      */
     public Block fromXml(XmlPullParser parser)
             throws XmlPullParserException, IOException, BlocklyParserException {
+
         String type = parser.getAttributeValue(null, "type");   // prototype name
         String id = parser.getAttributeValue(null, "id");
         if (type == null || type.isEmpty()) {
@@ -462,9 +477,6 @@ public class BlockFactory {
         // If the id was empty the BlockFactory will just generate one.
 
         final BlockTemplate template = new BlockTemplate().ofType(type).withId(id);
-        if (template == null) {
-            throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
-        }
 
         String collapsedString = parser.getAttributeValue(null, "collapsed");
         if (collapsedString != null) {
@@ -554,10 +566,14 @@ public class BlockFactory {
                     } else if (tagname.equalsIgnoreCase("value") ||
                             tagname.equalsIgnoreCase("statement")) {
                         if (inputName == null) {
-                            // Malformed XML.
+                            // Start tag missing input name
                             throw new BlocklyParserException("Missing inputName.");
                         }
-                        template.withInputValue(inputName, childBlock, childShadow);
+                        try {
+                            template.withInputValue(inputName, childBlock, childShadow);
+                        } catch (IllegalArgumentException e) {
+                            throw new BlockLoadingException(e);
+                        }
                         childBlock = null;
                         childShadow = null;
                         inputName = null;
