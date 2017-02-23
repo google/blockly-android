@@ -399,8 +399,8 @@ public class BlockTemplate {
         String msg = prefix;
         if (mDefinitionName != null) {
             msg += " \"" + mDefinitionName + "\"";
-        } else if (mDefinition != null && mDefinition.getTypeName() != null) {
-            msg += " \"" + mDefinition.getTypeName() + "\"";
+        } else if (mDefinition != null && mDefinition.getName() != null) {
+            msg += " \"" + mDefinition.getName() + "\"";
         }
         if (mId != null) {
             msg += " (id=\"" + mId + "\")";

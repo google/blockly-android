@@ -123,7 +123,7 @@ public class BlockFactory {
      * @throws IllegalArgumentException If type name is already defined.
      */
     public void addDefinition(BlockDefinition definition) {
-        String definitionName = definition.getTypeName();
+        String definitionName = definition.getName();
         if (mDefinitions.containsKey(definitionName)) {
             throw new IllegalArgumentException("Definition already defined. Must remove first.");
         }
@@ -182,12 +182,12 @@ public class BlockFactory {
         int blockAddedCount = 0;
         for (int i = 0; i < defs.size(); ++i) {
             BlockDefinition def = defs.get(i);
-            String typeName = def.getTypeName();
+            String typeName = def.getName();
             if (!mDefinitions.containsKey(typeName)) {
                 addDefinition(def);
                 blockAddedCount++;
             } else {
-                String msg = "Block type \"" + def.getTypeName() + "\" already defined.";
+                String msg = "Block type \"" + def.getName() + "\" already defined.";
                 Log.w(TAG, msg);
                 if (exceptions == null) {
                     exceptions = new ArrayList<>();
@@ -313,7 +313,10 @@ public class BlockFactory {
         } else {
             // Start a new block from a block definition.
             if (template.mDefinition != null) {
-                assert (template.mDefinitionName == null);
+                if (template.mDefinitionName != null
+                        && !template.mDefinitionName.equals(template.mDefinition.getName())) {
+                    throw new BlockLoadingException("Conflicting block definitions referenced.");
+                }
                 definition = template.mDefinition;
             } else if (template.mDefinitionName != null) {
                 definition = mDefinitions.get(template.mDefinitionName.trim());

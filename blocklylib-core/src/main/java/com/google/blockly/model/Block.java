@@ -78,7 +78,7 @@ public class Block {
         // TODO: Validate id if not null
         mId = (id != null) ? id : UUID.randomUUID().toString();
 
-        mType = definition.getTypeName();
+        mType = definition.getName();
         mColor = definition.getColor();
 
         mOutputConnection = definition.createOutputConnection();

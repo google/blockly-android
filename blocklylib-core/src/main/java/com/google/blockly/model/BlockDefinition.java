@@ -23,7 +23,6 @@ import com.google.blockly.utils.ColorUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +41,7 @@ public class BlockDefinition {
     }
 
     private final JSONObject mJson;
-    private final String mTypeName;
+    private final String mName;
     private final int mColor;
     private final boolean mHasOutput;
     private final boolean mHasPrevious;
@@ -70,19 +69,19 @@ public class BlockDefinition {
         mJson = json;
 
         // Validate or create type id.
-        String tmpTypeName = mJson.optString("type");
+        String tmpName = mJson.optString("type");
         String warningPrefix = "";
-        if (tmpTypeName == null) {
+        if (tmpName == null) {
             // Generate definition name that will be consistent across runs
             int jsonHash = json.toString().hashCode();
-            tmpTypeName = "auto-" + Integer.toHexString(jsonHash);
-        } else if(isValidType(tmpTypeName)) {
-            warningPrefix = "Type \"" + tmpTypeName + "\": ";
+            tmpName = "auto-" + Integer.toHexString(jsonHash);
+        } else if(isValidType(tmpName)) {
+            warningPrefix = "Type \"" + tmpName + "\": ";
         } else {
-            String valueQuotedAndEscaped = JSONObject.quote(tmpTypeName);
-            throw new IllegalArgumentException("Invalid type name: " + valueQuotedAndEscaped);
+            String valueQuotedAndEscaped = JSONObject.quote(tmpName);
+            throw new IllegalArgumentException("Invalid block type name: " + valueQuotedAndEscaped);
         }
-        mTypeName = tmpTypeName;
+        mName = tmpName;
 
         // A block can have either an output connection or previous connection, but it can always
         // have a next connection.
@@ -103,11 +102,12 @@ public class BlockDefinition {
     }
 
     /**
+     * This is the identifying string used in the "type" attributes within JSON and XML.
      * @return The identifying name of the block definition, referenced by XML and
      *         {@link BlockTemplate}s.
      */
-    public String getTypeName() {
-        return mTypeName;
+    public String getName() {
+        return mName;
     }
 
     /**
@@ -199,7 +199,7 @@ public class BlockDefinition {
                         }
 
                         if (Field.isFieldType(elementType)) {
-                            fields.add(factory.loadFieldFromJson(mTypeName, element));
+                            fields.add(factory.loadFieldFromJson(mName, element));
                             break;
                         } else if (Input.isInputType(elementType)) {
                             Input input = Input.fromJson(element);
