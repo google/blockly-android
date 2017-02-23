@@ -1683,8 +1683,6 @@ public class BlocklyController {
         private String mToolboxXml;
         private ArrayList<Integer> mBlockDefResources = new ArrayList<>();
         private ArrayList<String> mBlockDefAssets = new ArrayList<>();
-        private ArrayList<Block> mBlockDefs = new ArrayList<>();
-
 
         public Builder(Context context) {
             mContext = context;

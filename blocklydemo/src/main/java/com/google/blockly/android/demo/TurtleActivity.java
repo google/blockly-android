@@ -126,7 +126,6 @@ public class TurtleActivity extends BlocklySectionsActivity {
         }
 
         if (loadWorkspace) {
-            boolean success = false;
             try {
                 controller.loadWorkspaceContents(activity.getAssets().open(
                         "turtle/demo_workspaces/" + filename));
