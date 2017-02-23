@@ -562,7 +562,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         try {
             controller.loadToolboxContents(assetManager.open(getToolboxContentsXmlPath()));
             return true;
-        } catch (IOException | BlockLoadingException e) {
+        } catch (IOException e) {
             Log.w(TAG, "Failed to reload toolbox.", e);
             return false;
         }

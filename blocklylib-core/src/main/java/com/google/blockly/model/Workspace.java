@@ -202,7 +202,7 @@ public class Workspace {
      * @param toolboxXml The xml of the set of blocks or block groups to show in the toolbox.
      * @return True if successful. Otherwise, false with error logged.
      */
-    public boolean loadToolboxContents(String toolboxXml) throws BlockLoadingException {
+    public boolean loadToolboxContents(String toolboxXml) {
         return loadToolboxContents(new ByteArrayInputStream(toolboxXml.getBytes()));
     }
 
@@ -261,7 +261,7 @@ public class Workspace {
      * @param xml The XML source string to read from.
      * @return True if successful. Otherwise, false with error logged.
      */
-    public boolean loadWorkspaceContents(String xml) throws BlockLoadingException {
+    public boolean loadWorkspaceContents(String xml) {
         return loadWorkspaceContents(new ByteArrayInputStream(xml.getBytes()));
     }
 
