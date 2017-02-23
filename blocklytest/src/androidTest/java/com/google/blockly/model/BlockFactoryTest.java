@@ -17,6 +17,7 @@ package com.google.blockly.model;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.logging.LogLogcatRule;
 import android.support.test.rule.logging.RuleLoggingUtils;
+import android.util.Log;
 
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
@@ -301,9 +302,9 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowBlockWithShadowChildFails() throws BlockLoadingException {
+    public void testLoadFromXmlShadowBlockWithNormalChildFails() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "6",
-            BlockTestStrings.VALUE_NESTED_SHADOW_BLOCK),
+            BlockTestStrings.VALUE_SHADOW_BLOCK_WITH_NESTED_NORMAL_BLOCK),
             "A <shadow> containing a normal <block> must fail to load.");
     }
 

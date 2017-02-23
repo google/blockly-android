@@ -155,65 +155,23 @@ public class Block {
                     throw new BlockLoadingException(
                             toString() + ": No input with name \"" + inputValue.mName + "\"");
                 }
-
                 Connection connection = input.getConnection();
                 if (connection == null) {
                     throw new BlockLoadingException(
                             "Input \"" + inputValue.mName + "\" does not have a connection.");
                 }
-                if (inputValue.mShadow != null) {
-                    Connection shadowConn = Input.getPotentialConnection(input, inputValue.mShadow);
-                    if (shadowConn == null) {
-                        throw new BlockLoadingException("Input shadow block for \"" +
-                                inputValue.mName + "\" does not have required connection.");
-                    }
-                    checkAndConnect(connection, shadowConn, true);
-                }
-                if (inputValue.mChild != null) {
-                    Connection childConn = Input.getPotentialConnection(input, inputValue.mChild);
-                    if (childConn == null) {
-                        throw new BlockLoadingException("Input block for \"" +
-                                inputValue.mName + "\" does not have required connection.");
-                    }
-                    checkAndConnect(connection, childConn, false);
-                }
+                connectOrThrow(input.getType() == Input.TYPE_STATEMENT ? "statement" : "value",
+                        connection, inputValue.mChild, inputValue.mShadow);
             }
         }
 
         if (template.mNextChild != null || template.mNextShadow != null) {
             Connection connection = getNextConnection();
             if (connection == null) {
-                throw new BlockLoadingException("Block does not have a next connection.");
+                throw new BlockLoadingException(
+                        this + "does not have a connection for next child.");
             }
-            if (template.mNextShadow != null) {
-                Connection shadowPrev = template.mNextShadow.getPreviousConnection();
-                if (shadowPrev == null) {
-                    throw new BlockLoadingException(
-                            "Next shadow does not have a previous connection.");
-                }
-                checkAndConnect(connection, shadowPrev, true);
-            }
-            if (template.mNextChild != null) {
-                Connection childPrev = template.mNextChild.getPreviousConnection();
-                if (childPrev == null) {
-                    throw new BlockLoadingException(
-                            "Next child does not have a previous connection.");
-                }
-                checkAndConnect(connection, childPrev, false);
-            }
-        }
-    }
-
-    private void checkAndConnect(Connection parent, Connection child, boolean shadow)
-            throws BlockLoadingException {
-        try {
-            if (shadow) {
-                parent.setShadowConnection(child);
-            } else {
-                parent.connect(child);
-            }
-        } catch (IllegalStateException e) {
-            throw new BlockLoadingException("Invalid connection", e);
+            connectOrThrow("next", connection, template.mNextChild, template.mNextShadow);
         }
     }
 
@@ -777,15 +735,6 @@ public class Block {
     }
 
     /**
-     * This method returns a string describing this Block in developer terms (type
-     * name and ID; English only). Intended to on be used in console logs and errors.
-     * @return The description.
-     */
-    public String toString() {
-        return "\"" + mType + "\" block (id=\"" + mId + "\")";
-    };
-
-    /**
      * Configures whether this block should be a shadow block. This should only be called during
      * block initialization.
      *
@@ -824,6 +773,22 @@ public class Block {
         mIsShadow = isShadow;
     }
 
+    /**
+     * This method returns a string describing this Block in developer terms (type
+     * name and ID; English only). Intended to on be used in console logs and errors.
+     * @return The description.
+     */
+    public String toString() {
+        String description = (mIsShadow ? "shadow" : "block");
+        if (mType != null) {
+            description = "\"" + mType + "\" " + description;  // Prefix
+        }
+        if (mId != null) {
+            description += " (id=\"" + mId + "\")"; // Postfix
+        }
+        return description;
+    };
+
     private void rebuildConnectionList() {
         if (mInputList != null) {
             for (int i = 0; i < mInputList.size(); i++) {
@@ -845,6 +810,44 @@ public class Block {
         if (mNextConnection != null) {
             mNextConnection.setBlock(this);
             mConnectionList.add(mNextConnection);
+        }
+    }
+
+    /**
+     * Connects to given children, or throws a descriptive BlockLoadingException.
+     * @param tagName The string name of the connection, as seen in XML.
+     * @param thisConn The connection point on this block.
+     * @param child The child block to connect.
+     * @param shadow The child shadow to connect.
+     * @throws BlockLoadingException If any connection fails.
+     */
+    private void connectOrThrow(String tagName, Connection thisConn, Block child, Block shadow)
+            throws BlockLoadingException {
+        if (child != null) {
+            if (mIsShadow) {
+                throw new BlockLoadingException(
+                        this + " cannot be a parent to non-shadow " + child);
+            }
+            Connection childConn = child.getUpwardsConnection();
+            try {
+                thisConn.connect(childConn);
+            } catch (IllegalArgumentException e) {
+                throw new BlockLoadingException(
+                        this + ": Invalid " + tagName + " connection to " + child, e);
+            }
+        }
+        if (shadow != null) {
+            Connection shadowConn = shadow.getUpwardsConnection();
+            try {
+                thisConn.setShadowConnection(shadowConn);
+                if (!thisConn.isConnected()) {
+                    // If there is no standard child block, so connect the shadow
+                    thisConn.connect(shadowConn);
+                }
+            } catch (IllegalArgumentException e) {
+                throw new BlockLoadingException(
+                        this + ": Invalid " + tagName + " shadow connection to " + child, e);
+            }
         }
     }
 

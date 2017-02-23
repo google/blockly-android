@@ -449,12 +449,10 @@ public class BlockTemplate {
             throw new IllegalArgumentException("Invalid input value name.");
         }
         // Validate child block shadow state and upward connection.
-        if (child != null && child.isShadow() && child.getOutputConnection() == null
-                && child.getPreviousConnection() == null) {
+        if (child != null && (child.isShadow() || child.getUpwardsConnection() == null)) {
             throw new IllegalArgumentException("Invalid input value block.");
         }
-        if (shadow != null && !shadow.isShadow() && shadow.getOutputConnection() == null
-                && shadow.getPreviousConnection() == null) {
+        if (shadow != null && (!shadow.isShadow() || shadow.getUpwardsConnection() == null)) {
             throw new IllegalArgumentException("Invalid input shadow block.");
         }
 
