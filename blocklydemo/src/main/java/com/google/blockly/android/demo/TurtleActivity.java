@@ -127,10 +127,11 @@ public class TurtleActivity extends BlocklySectionsActivity {
         }
 
         if (loadWorkspace) {
+            boolean success = false;
             try {
                 controller.loadWorkspaceContents(activity.getAssets().open(
                         "turtle/demo_workspaces/" + filename));
-            } catch (IOException | BlockLoadingException e) {
+            } catch (IOException e) {
                 Log.e(TAG, "Couldn't load demo workspace from assets.", e);
             }
             addDefaultVariables(controller);

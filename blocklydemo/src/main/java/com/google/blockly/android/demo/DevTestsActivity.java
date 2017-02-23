@@ -169,10 +169,9 @@ public class DevTestsActivity extends BlocklySectionsActivity {
      */
     private boolean loadSpaghetti() {
         try {
-            getController().loadWorkspaceContents(getAssets().open(
+            return getController().loadWorkspaceContents(getAssets().open(
                     "sample_sections/workspace_spaghetti.xml"));
-            return true;
-        } catch (IOException | BlockLoadingException e) {
+        } catch (IOException e) {
             Toast.makeText(getApplicationContext(),
                     R.string.toast_workspace_file_not_found,
                     Toast.LENGTH_LONG).show();
@@ -207,7 +206,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         try {
             getController().loadWorkspaceContents(getAssets().open(
                     "sample_sections/mock_block_initial_workspace.xml"));
-        } catch (IOException | BlockLoadingException e) {
+        } catch (IOException e) {
             Log.e(TAG, "Couldn't load initial workspace.", e);
         }
         addDefaultVariables();

@@ -367,12 +367,12 @@ public class BlocklyController {
      * the contents of the xml.
      *
      * @param workspaceXmlStream The input stream to read from.
-     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
-     *                               or XmlPullParserException as a root cause.
+     * @return True if successful. Otherwise, false with error logged.
      */
-    public void loadWorkspaceContents(InputStream workspaceXmlStream) throws BlockLoadingException {
-        mWorkspace.loadWorkspaceContents(workspaceXmlStream);
+    public boolean loadWorkspaceContents(InputStream workspaceXmlStream) {
+        boolean result = mWorkspace.loadWorkspaceContents(workspaceXmlStream);
         initBlockViews();
+        return result;
     }
 
     /**
@@ -426,12 +426,9 @@ public class BlocklyController {
                 return false;
             }
             ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+            boolean success = false;
             try {
-                loadWorkspaceContents(in);
-            } catch(BlockLoadingException e) {
-                // Ignore all other workspace state variables.
-                Log.w(TAG, "Unable to restore Blockly state.", e);
-                return false;
+                success = loadWorkspaceContents(in);
             } finally {
                 try {
                     in.close();
@@ -442,7 +439,7 @@ public class BlocklyController {
 
             // TODO(#58): Restore the rest of the state.
 
-            return true;
+            return success;
         }
         return false;
     }

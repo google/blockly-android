@@ -162,9 +162,8 @@ public class BlocklyActivityHelper {
      */
     public boolean loadWorkspaceFromAppDir(String filename) {
         try {
-            mController.loadWorkspaceContents(mActivity.openFileInput(filename));
-            return true;
-        } catch (FileNotFoundException | BlockLoadingException e) {
+            return mController.loadWorkspaceContents(mActivity.openFileInput(filename));
+        } catch (FileNotFoundException e) {
             Toast.makeText(mActivity, R.string.toast_workspace_file_not_found, Toast.LENGTH_LONG).show();
             Log.e(TAG, "Failed to load workspace", e);
             return false;
