@@ -22,7 +22,6 @@ import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
-import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.IOOptions;
 
@@ -60,16 +59,17 @@ public final class BlocklyXmlHelper {
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
      * @return The top-level category in the toolbox.
-     * @throws BlocklyParserException when parsing fails.
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     public static BlocklyCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory)
-            throws BlocklyParserException {
+            throws BlockLoadingException {
         try {
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
             parser.setInput(is, null);
             return BlocklyCategory.fromXml(parser, blockFactory);
-        } catch (XmlPullParserException | IOException e) {
-            throw new BlocklyParserException(e);
+        } catch (XmlPullParserException e) {
+            throw new BlockLoadingException(e);
         }
     }
 
@@ -81,11 +81,12 @@ public final class BlocklyXmlHelper {
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      * @param result The List to add the parsed blocks to.
      *
-     * @throws BlocklyParserException
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     public static void loadFromXml(InputStream inputXml, BlockFactory blockFactory,
                                    List<Block> result)
-            throws BlocklyParserException {
+            throws BlockLoadingException {
         loadBlocksFromXml(inputXml, null, blockFactory, result);
     }
 
@@ -98,21 +99,24 @@ public final class BlocklyXmlHelper {
      * @param stats Unused
      * @param result The List to add the parsed blocks to.
      *
-     * @throws BlocklyParserException
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     @Deprecated
     public static void loadFromXml(InputStream inputXml, BlockFactory blockFactory,
                                    WorkspaceStats stats, List<Block> result)
-            throws BlocklyParserException {
+            throws BlockLoadingException {
         loadBlocksFromXml(inputXml, null, blockFactory, result);
     }
 
     /**
      * Convenience function that creates a new {@link ArrayList}.
      * @param inputXml The input stream of XML from which to read.
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     public static List<Block> loadFromXml(InputStream inputXml, BlockFactory blockFactory)
-            throws BlocklyParserException {
+            throws BlockLoadingException {
         List<Block> result = new ArrayList<>();
         loadBlocksFromXml(inputXml, null, blockFactory, result);
         return result;
@@ -122,11 +126,15 @@ public final class BlocklyXmlHelper {
      * Convenient version of {@link #loadFromXml(InputStream, BlockFactory, List)} function that
      * returns results in a newly created a new {@link ArrayList}.
      * @param inputXml The input stream of XML from which to read.
-     *
+     * @param blockFactory The factory object used to create blocks.
+     * @param stats Unused.
+     * @return A list of the root blocks successfully loaded.
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     @Deprecated
     public static List<Block> loadFromXml(InputStream inputXml, BlockFactory blockFactory,
-                                          WorkspaceStats stats) throws BlocklyParserException {
+                                          WorkspaceStats stats) throws BlockLoadingException {
         return loadFromXml(inputXml, blockFactory);
     }
 
@@ -137,11 +145,12 @@ public final class BlocklyXmlHelper {
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
      * @return The first Block read from is, or null if no Block was read.
-     * @throws BlocklyParserException
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     @Nullable
     public static Block loadOneBlockFromXml(InputStream inputXml, BlockFactory blockFactory)
-            throws BlocklyParserException {
+            throws BlockLoadingException {
         List<Block> result = new ArrayList<>();
         loadBlocksFromXml(inputXml, null, blockFactory, result);
         if (result.isEmpty()) {
@@ -160,11 +169,12 @@ public final class BlocklyXmlHelper {
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      *
      * @return The first Block read from is, or null if no Block was read.
-     * @throws BlocklyParserException
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     @Nullable
     public static Block loadOneBlockFromXml(String xml, BlockFactory blockFactory)
-            throws BlocklyParserException {
+            throws BlockLoadingException {
         List<Block> result = new ArrayList<>();
         loadBlocksFromXml(null, xml, blockFactory, result);
         if (result.isEmpty()) {
@@ -312,11 +322,12 @@ public final class BlocklyXmlHelper {
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
      * @param result An list (usually empty) to append new top-level Blocks to.
      *
-     * @throws BlocklyParserException
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     private static void loadBlocksFromXml(
             InputStream inStream, String inString, BlockFactory blockFactory, List<Block> result)
-            throws BlocklyParserException {
+            throws BlockLoadingException {
         StringReader reader = null;
         try {
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
@@ -331,7 +342,7 @@ public final class BlocklyXmlHelper {
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
                         if (parser.getName() == null) {
-                            throw new BlocklyParserException("Malformed XML; aborting.");
+                            throw new BlockLoadingException("Malformed XML; aborting.");
                         }
                         if (parser.getName().equalsIgnoreCase("block")) {
                             result.add(blockFactory.fromXml(parser));
@@ -347,19 +358,19 @@ public final class BlocklyXmlHelper {
                 eventType = parser.next();
             }
         } catch (XmlPullParserException | IOException e) {
-            throw new BlocklyParserException(e);
+            throw new BlockLoadingException(e);
         }
         if (reader != null) {
             reader.close();
         }
     }
 
-    private static XmlPullParserFactory createParseFactory() throws BlocklyParserException {
+    private static XmlPullParserFactory createParseFactory() {
         XmlPullParserFactory parserFactory;
         try {
             parserFactory = XmlPullParserFactory.newInstance();
         } catch (XmlPullParserException e) {
-            throw new BlocklyParserException(e);
+            throw new IllegalStateException(e);
         }
         parserFactory.setNamespaceAware(true);
         return parserFactory;

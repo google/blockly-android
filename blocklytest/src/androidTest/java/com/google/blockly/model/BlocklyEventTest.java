@@ -3,6 +3,7 @@ package com.google.blockly.model;
 import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.test.R;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import org.json.JSONException;
@@ -140,7 +141,7 @@ public class BlocklyEventTest {
     }
 
     @Test
-    public void testCreateEvent() throws JSONException {
+    public void testCreateEvent() throws JSONException, BlockLoadingException {
         BlocklyEvent.CreateEvent event = new BlocklyEvent.CreateEvent(mMockWorkspace, mBlock);
 
         assertThat(event.getTypeId()).isSameAs(BlocklyEvent.TYPE_CREATE);

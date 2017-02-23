@@ -29,6 +29,7 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -166,14 +167,17 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     /**
      * Loads a workspace with heavily nested blocks.
      */
-    private void loadSpaghetti() {
+    private boolean loadSpaghetti() {
         try {
             getController().loadWorkspaceContents(getAssets().open(
                     "sample_sections/workspace_spaghetti.xml"));
-        } catch (IOException e) {
+            return true;
+        } catch (IOException | BlockLoadingException e) {
             Toast.makeText(getApplicationContext(),
                     R.string.toast_workspace_file_not_found,
                     Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Failed to load spaghetti workspace.", e);
+            return false;
         }
     }
 
@@ -203,8 +207,8 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         try {
             getController().loadWorkspaceContents(getAssets().open(
                     "sample_sections/mock_block_initial_workspace.xml"));
-        } catch (IOException e) {
-            Log.d(TAG, "Couldn't load initial workspace.");
+        } catch (IOException | BlockLoadingException e) {
+            Log.e(TAG, "Couldn't load initial workspace.", e);
         }
         addDefaultVariables();
     }

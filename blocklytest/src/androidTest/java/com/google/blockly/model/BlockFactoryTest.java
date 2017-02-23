@@ -76,163 +76,155 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testSuccessfulLoadFromXml() throws IOException, XmlPullParserException {
+    public void testSuccessfulLoadFromXml() throws BlockLoadingException {
         Block loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK);
         assertThat(loaded.getType()).isEqualTo("frankenblock");
         assertThat(loaded.getPosition()).isEqualTo(new WorkspacePoint(37, 13));
     }
 
     @Test
-    public void testBlocksRequireType() throws IOException, XmlPullParserException {
+    public void testBlocksRequireType() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.NO_BLOCK_TYPE,
             "Block without a type must fail to load.");
     }
 
     @Test
-    public void testIdsGeneratedByBlockFactory() throws IOException, XmlPullParserException {
+    public void testIdsGeneratedByBlockFactory() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.NO_BLOCK_ID);
     }
 
     @Test
-    public void testOnlyTopLevelBlocksNeedPosition() throws IOException, XmlPullParserException {
+    public void testOnlyTopLevelBlocksNeedPosition() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.NO_BLOCK_POSITION);
     }
 
     @Test
-    public void testBlockWithGoodInterior() throws IOException, XmlPullParserException {
+    public void testBlockWithGoodInterior() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "1",
             BlockTestStrings.VALUE_GOOD));
     }
 
     @Test
-    public void testBlockWithInteriorWithNoChild() throws IOException, XmlPullParserException {
+    public void testBlockWithInteriorWithNoChild() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "3",
             BlockTestStrings.VALUE_NO_CHILD));
     }
 
     // TODO(fenichel): Value: no input connection
     @Test
-    public void testBlockWithNoOutputInteriorFails() throws IOException, XmlPullParserException {
+    public void testBlockWithNoOutputInteriorFails() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "2",
             BlockTestStrings.VALUE_NO_OUTPUT),
             "A <value> child block without an output must fail to load.");
     }
 
     @Test
-    public void testBlockWithBadlyNamedInteriorFails() throws IOException, XmlPullParserException {
+    public void testBlockWithBadlyNamedInteriorFails() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "4",
             BlockTestStrings.VALUE_BAD_NAME),
             "A block without a recognized type id must fail to load.");
     }
 
     @Test
-    public void testBlockMultipleValuesForSameInputFails()
-            throws IOException, XmlPullParserException
-    {
+    public void testBlockMultipleValuesForSameInputFails() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "5",
             BlockTestStrings.VALUE_REPEATED),
             "An input <value> with multiple blocks must fail to load.");
     }
 
     @Test
-    public void testBlockWithGoodComment() throws IOException, XmlPullParserException {
+    public void testBlockWithGoodComment() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "6",
             BlockTestStrings.COMMENT_GOOD));
     }
 
     @Test
-    public void testBlockWithEmptyComment() throws IOException, XmlPullParserException {
+    public void testBlockWithEmptyComment() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "7",
             BlockTestStrings.COMMENT_NO_TEXT));
     }
 
     @Test
-    public void testBlockWithGoodFields() throws IOException, XmlPullParserException {
+    public void testBlockWithGoodFields() throws BlockLoadingException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "8",
             BlockTestStrings.FIELD_HAS_NAME));
         assertThat(((FieldInput) loaded.getFieldByName("text_input")).getText()).isEqualTo("item");
     }
 
     @Test
-    public void testCreateBlockWithMissingFieldName() throws IOException, XmlPullParserException {
+    public void testCreateBlockWithMissingFieldName() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "9",
             BlockTestStrings.FIELD_MISSING_NAME));
     }
 
     @Test
-    public void testCreateBlockWithUnknownFieldName() throws IOException, XmlPullParserException {
+    public void testCreateBlockWithUnknownFieldName() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "10",
             BlockTestStrings.FIELD_UNKNOWN_NAME));
     }
 
     @Test
-    public void testCreateBlockWithMissingFieldText() throws IOException, XmlPullParserException {
+    public void testCreateBlockWithMissingFieldText() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "11",
             BlockTestStrings.FIELD_MISSING_TEXT));
     }
 
     @Test
-    public void testBlockWithNoConnectionOnChildBlockFails()
-            throws IOException, XmlPullParserException
-    {
+    public void testBlockWithNoConnectionOnChildBlockFails() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "13",
             BlockTestStrings.STATEMENT_BAD_CHILD),
             "A statement <value> child without a previous connection must fail to load.");
     }
 
     @Test
-    public void testCreateBlockWithBadStatmentNameFails()
-            throws IOException, XmlPullParserException
-    {
+    public void testCreateBlockWithBadStatmentNameFails() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "14",
             BlockTestStrings.STATEMENT_BAD_NAME),
             "A block without a recognized type id must fail to load.");
     }
 
     @Test
-    public void testCreateBlockWithValidStatement() throws IOException, XmlPullParserException {
+    public void testCreateBlockWithValidStatement() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "15",
             BlockTestStrings.STATEMENT_GOOD));
     }
 
     @Test
-    public void testCreateBlockWithStatementWithNullChildBlock()
-            throws IOException, XmlPullParserException
-    {
+    public void testCreateBlockWithStatementWithNullChildBlock() throws BlockLoadingException {
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "12",
                 BlockTestStrings.STATEMENT_NO_CHILD));
     }
 
     @Test
-    public void testLoadFromXmlInlineTagAtStart() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlInlineTagAtStart() throws BlockLoadingException {
         Block inlineAtStart = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_BEGINNING);
         assertThat(inlineAtStart.getInputsInline()).isTrue();
         assertThat(inlineAtStart.getInputsInlineModified()).isTrue();
     }
 
     @Test
-    public void testLoadFromXmlInlineTagAtEnd() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlInlineTagAtEnd() throws BlockLoadingException {
         Block inlineAtEnd = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_END);
         assertThat(inlineAtEnd.getInputsInline()).isTrue();
         assertThat(inlineAtEnd.getInputsInlineModified()).isTrue();
     }
 
     @Test
-    public void testLoadFromXmlInlineTagFalse() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlInlineTagFalse() throws BlockLoadingException {
         Block inlineFalseBlock = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_FALSE);
         assertThat(inlineFalseBlock.getInputsInline()).isFalse();
         assertThat(inlineFalseBlock.getInputsInlineModified()).isTrue();
     }
 
     @Test
-    public void testLoadXmlWithNoInlineTag() throws IOException, XmlPullParserException {
+    public void testLoadXmlWithNoInlineTag() throws BlockLoadingException {
         Block blockNoInline = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK);
         assertThat(blockNoInline.getInputsInline()).isFalse();
         assertThat(blockNoInline.getInputsInlineModified()).isFalse();
     }
 
     @Test
-    public void testLoadFromXmlSimpleShadow() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlSimpleShadow() throws BlockLoadingException {
         Block loaded = parseShadowFromXml(BlockTestStrings.SIMPLE_SHADOW);
         assertThat(loaded.getType()).isEqualTo("math_number");
         assertThat(loaded.getPosition()).isEqualTo(new WorkspacePoint(37, 13));
@@ -240,7 +232,7 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowInValue() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlShadowInValue() throws BlockLoadingException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "1",
             BlockTestStrings.VALUE_SHADOW));
         Connection conn = loaded.getInputByName("value_input").getConnection();
@@ -249,7 +241,7 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowWithBlockInValue() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlShadowWithBlockInValue() throws BlockLoadingException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "2",
             BlockTestStrings.VALUE_SHADOW_GOOD));
         Connection conn = loaded.getInputByName("value_input").getConnection();
@@ -260,7 +252,7 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowInStatement() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlShadowInStatement() throws BlockLoadingException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "3",
             BlockTestStrings.STATEMENT_SHADOW));
         Connection conn = loaded.getInputByName("NAME").getConnection();
@@ -269,9 +261,7 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowWithBlockInStatement()
-            throws IOException, XmlPullParserException
-    {
+    public void testLoadFromXmlShadowWithBlockInStatement() throws BlockLoadingException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "4",
             BlockTestStrings.STATEMENT_SHADOW_GOOD));
         Connection conn = loaded.getInputByName("NAME").getConnection();
@@ -282,7 +272,7 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlNestedShadow() throws IOException, XmlPullParserException {
+    public void testLoadFromXmlNestedShadow() throws BlockLoadingException {
         Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "5",
             BlockTestStrings.VALUE_NESTED_SHADOW));
         Connection conn = loaded.getInputByName("value_input").getConnection();
@@ -295,18 +285,14 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlShadowBlockWithShadowChildFails()
-            throws IOException, XmlPullParserException
-    {
+    public void testLoadFromXmlShadowBlockWithShadowChildFails() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "6",
             BlockTestStrings.VALUE_NESTED_SHADOW_BLOCK),
             "A <shadow> containing a normal <block> must fail to load.");
     }
 
     @Test
-    public void testLoadFromXmlBlockWithVariableCannotBeShadowBlock()
-            throws IOException, XmlPullParserException
-    {
+    public void testLoadFromXmlBlockWithVariableCannotBeShadowBlock() throws BlockLoadingException {
         parseBlockFromXmlFailure(BlockTestStrings.assembleFrankenblock("block", "7",
                 BlockTestStrings.VALUE_SHADOW_VARIABLE),
                 "A <shadow> containing a variable field (at any depth) must fail to load.");
@@ -376,16 +362,14 @@ public class BlockFactoryTest {
         mBlockFactory.obtainBlock("empty_block", "123");
     }
 
-    private Block parseBlockFromXml(String testString)
-            throws IOException, XmlPullParserException {
+    private Block parseBlockFromXml(String testString) throws BlockLoadingException {
         XmlPullParser parser = getXmlPullParser(testString, "block");
         Block loaded = mBlockFactory.fromXml(parser);
         assertThat(loaded).isNotNull();
         return loaded;
     }
 
-    private Block parseShadowFromXml(String testString)
-            throws IOException, XmlPullParserException {
+    private Block parseShadowFromXml(String testString) throws BlockLoadingException {
         XmlPullParser parser = getXmlPullParser(testString, "shadow");
         Block loaded = mBlockFactory.fromXml(parser);
         assertThat(loaded).isNotNull();
@@ -393,7 +377,7 @@ public class BlockFactoryTest {
     }
 
     private void parseBlockFromXmlFailure(String testString, String messageIfDoesNotFail)
-            throws IOException, XmlPullParserException {
+            throws BlockLoadingException {
         XmlPullParser parser = getXmlPullParser(testString, "block");
 
         thrown.expect(BlockLoadingException.class);
@@ -421,7 +405,7 @@ public class BlockFactoryTest {
                 eventType = parser.next();
             }
         } catch (XmlPullParserException | IOException e) {
-            throw new BlocklyParserException(e);
+            throw new IllegalStateException(e);
         }
         return null;
     }

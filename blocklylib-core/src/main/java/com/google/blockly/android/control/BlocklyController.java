@@ -46,12 +46,12 @@ import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyEvent;
-import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -315,8 +315,10 @@ public class BlocklyController {
      * Loads the toolbox contents from a JSON resource file.
      *
      * @param toolboxJsonResId The resource id of JSON file (should be a raw resource file).
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
-    public void loadToolboxContents(int toolboxJsonResId) {
+    public void loadToolboxContents(int toolboxJsonResId) throws BlockLoadingException {
         mWorkspace.loadToolboxContents(toolboxJsonResId);
         updateToolbox();
     }
@@ -325,9 +327,11 @@ public class BlocklyController {
      * Loads the toolbox contents from a JSON string.
      *
      * @param toolboxJsonString The JSON source of the set of blocks or block groups to show in the
-     *     toolbox.
+     *                          toolbox.
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
-    public void loadToolboxContents(String toolboxJsonString) {
+    public void loadToolboxContents(String toolboxJsonString) throws BlockLoadingException {
         mWorkspace.loadToolboxContents(toolboxJsonString);
         updateToolbox();
     }
@@ -336,9 +340,11 @@ public class BlocklyController {
      * Loads the toolbox contents from a JSON input stream.
      *
      * @param toolboxJsonStream A stream of the JSON source of the set of blocks or block groups to
-     *    show in the toolbox.
+     *                          show in the toolbox.
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
-    public void loadToolboxContents(InputStream toolboxJsonStream) {
+    public void loadToolboxContents(InputStream toolboxJsonStream) throws BlockLoadingException {
         mWorkspace.loadToolboxContents(toolboxJsonStream);
         updateToolbox();
     }
@@ -348,9 +354,10 @@ public class BlocklyController {
      * the contents of the xml.
      *
      * @param workspaceXmlString The XML source string to read from.
-     * @throws BlocklyParserException if there was a parse failure.
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
-    public void loadWorkspaceContents(String workspaceXmlString) throws BlocklyParserException {
+    public void loadWorkspaceContents(String workspaceXmlString) throws BlockLoadingException {
         mWorkspace.loadWorkspaceContents(workspaceXmlString);
         initBlockViews();
     }
@@ -360,10 +367,10 @@ public class BlocklyController {
      * the contents of the xml.
      *
      * @param workspaceXmlStream The input stream to read from.
-     * @throws BlocklyParserException if there was a parse failure.
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
-    public void loadWorkspaceContents(InputStream workspaceXmlStream)
-            throws BlocklyParserException {
+    public void loadWorkspaceContents(InputStream workspaceXmlStream) throws BlockLoadingException {
         mWorkspace.loadWorkspaceContents(workspaceXmlStream);
         initBlockViews();
     }
@@ -371,8 +378,8 @@ public class BlocklyController {
     /**
      * Saves a snapshot of current workspace contents to a temporary cache file, and saves the
      * filename to the instance state bundle.
-     * @param mSavedInstanceState
-     * @return
+     * @param mSavedInstanceState The output Bundle to write the state to.
+     * @return True upon success. Otherwise, false with error written to log.
      */
     public boolean onSaveSnapshot(Bundle mSavedInstanceState) {
         Bundle blocklyState = new Bundle();
@@ -421,7 +428,7 @@ public class BlocklyController {
             ByteArrayInputStream in = new ByteArrayInputStream(bytes);
             try {
                 loadWorkspaceContents(in);
-            } catch(BlocklyParserException e) {
+            } catch(BlockLoadingException e) {
                 // Ignore all other workspace state variables.
                 Log.w(TAG, "Unable to restore Blockly state.", e);
                 return false;
@@ -1905,15 +1912,22 @@ public class BlocklyController {
             BlocklyController controller = new BlocklyController(
                     mContext, factory, mWorkspaceHelper, blockClipDataHelper, mViewFactory);
             if (mToolboxResId != 0) {
-                controller.loadToolboxContents(mToolboxResId);
+                try {
+                    controller.loadToolboxContents(mToolboxResId);
+                } catch (BlockLoadingException e) {
+                    Log.e(TAG, "Failed to initialize toolbox blocks from resources.", e);
+                }
             } else if (mToolboxXml != null) {
-                controller.loadToolboxContents(mToolboxXml);
+                try {
+                    controller.loadToolboxContents(mToolboxXml);
+                } catch (BlockLoadingException e) {
+                    Log.e(TAG, "Failed to initialize toolbox blocks from XML.", e);
+                }
             } else if (mToolboxAssetId != null && mContext.getAssets() != null) {
                 try {
                     controller.loadToolboxContents(mContext.getAssets().open(mToolboxAssetId));
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("Failed to load toolbox from assets "
-                            + mToolboxAssetId, e);
+                } catch (IOException | BlockLoadingException e) {
+                    Log.e(TAG, "Failed to initialize toolbox blocks from assets.", e);
                 }
             }
 

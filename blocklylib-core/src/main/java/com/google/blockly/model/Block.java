@@ -611,8 +611,10 @@ public class Block {
             String xml = BlocklyXmlHelper.writeBlockToXml(this,
                     IOOptions.WRITE_ALL_BLOCKS_WITHOUT_ID);
             return BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
-        } catch (BlocklySerializerException e) {
-            throw new IllegalStateException("Failed to serialize block during copy.", e);
+        } catch (BlocklySerializerException | BlockLoadingException e) {
+            // This error indicates something is very wrong with the serialization / deserialization
+            // framework.  Allow this to bubble up as a RuntimeException.
+            throw new IllegalStateException("Failed to copy blocks.", e);
         }
     }
 

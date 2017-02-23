@@ -33,6 +33,7 @@ import com.google.blockly.android.ui.DefaultVariableCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
@@ -155,13 +156,18 @@ public class BlocklyActivityHelper {
 
     /**
      * Loads the workspace from the given file in the application's private data directory.
+     * @param filename The path to the file, in the application's local storage.
+     * @return True if successful. Otherwise, false with the error logged and user notified via
+     *         Toast.
      */
-    public void loadWorkspaceFromAppDir(String filename) {
+    public boolean loadWorkspaceFromAppDir(String filename) {
         try {
             mController.loadWorkspaceContents(mActivity.openFileInput(filename));
-        } catch (FileNotFoundException e) {
-            Toast.makeText(mActivity, R.string.toast_workspace_file_not_found,
-                    Toast.LENGTH_LONG).show();
+            return true;
+        } catch (FileNotFoundException | BlockLoadingException e) {
+            Toast.makeText(mActivity, R.string.toast_workspace_file_not_found, Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Failed to load workspace", e);
+            return false;
         }
     }
 

@@ -127,7 +127,7 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeBlock() throws IOException {
+    public void testSerializeBlock() throws IOException, BlockLoadingException {
         Block block = mBlockFactory.obtain(
                 block().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
         block.setPosition(37, 13);
@@ -158,7 +158,7 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeInputsInline() throws IOException {
+    public void testSerializeInputsInline() throws IOException, BlockLoadingException {
         Block block = mBlockFactory.obtain(
                 block().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
         block.setPosition(37, 13);
@@ -185,7 +185,7 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeShadowBlock() throws IOException {
+    public void testSerializeShadowBlock() throws IOException, BlockLoadingException {
         Block block = mBlockFactory.obtain(block().shadow().ofType("empty_block")
                 .withId(BlockTestStrings.EMPTY_BLOCK_ID)
                 .atPosition(37, 13));
@@ -198,7 +198,7 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeValue() throws IOException {
+    public void testSerializeValue() throws IOException, BlockLoadingException {
         Block block = mBlockFactory.obtain(block().ofType("frankenblock").withId("364"));
         block.setPosition(37, 13);
 
@@ -219,13 +219,16 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeShadowValue() throws BlocklySerializerException, IOException {
-        Block block = mBlockFactory.obtain(block().ofType("frankenblock").withId("364").atPosition(37, 13));
+    public void testSerializeShadowValue() throws IOException, BlockLoadingException {
+        Block block = mBlockFactory.obtain(
+                block().ofType("frankenblock").withId("364").atPosition(37, 13));
 
         Input input = block.getInputByName("value_input");
-        Block inputBlock = mBlockFactory.obtain(block().ofType("output_foo").withId("VALUE_REAL"));
+        Block inputBlock = mBlockFactory.obtain(
+                block().ofType("output_foo").withId("VALUE_REAL"));
         input.getConnection().connect(inputBlock.getOutputConnection());
-        inputBlock = mBlockFactory.obtain(block().shadow().ofType("output_foo").withId("VALUE_SHADOW"));
+        inputBlock = mBlockFactory.obtain(
+                block().shadow().ofType("output_foo").withId("VALUE_SHADOW"));
         input.getConnection().setShadowConnection(inputBlock.getOutputConnection());
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -242,10 +245,12 @@ public class BlockTest extends BlocklyTestCase {
         block = mBlockFactory.obtain(block().ofType("frankenblock").withId("777"));
         block.setPosition(37, 13);
         input = block.getInputByName("value_input");
-        inputBlock = mBlockFactory.obtain(block().shadow().ofType("simple_input_output").withId("SHADOW1"));
+        inputBlock = mBlockFactory.obtain(
+                block().shadow().ofType("simple_input_output").withId("SHADOW1"));
         input.getConnection().connect(inputBlock.getOutputConnection());
         input = inputBlock.getOnlyValueInput();
-        inputBlock = mBlockFactory.obtain(block().shadow().ofType("simple_input_output").withId("SHADOW2"));
+        inputBlock = mBlockFactory.obtain(
+                block().shadow().ofType("simple_input_output").withId("SHADOW2"));
         input.getConnection().connect(inputBlock.getOutputConnection());
 
         os.reset();
@@ -260,7 +265,7 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSerializeStatement() throws IOException {
+    public void testSerializeStatement() throws IOException, BlockLoadingException {
         Block block = mBlockFactory.obtain(block().ofType("frankenblock").withId("364"));
         block.setPosition(37, 13);
 
@@ -312,14 +317,16 @@ public class BlockTest extends BlocklyTestCase {
     @Test
     public void testGetOnlyValueInput() throws BlockLoadingException {
         // No inputs.
-        assertThat(mBlockFactory.obtain(block().ofType("statement_no_input")).getOnlyValueInput()).isNull();
+        assertThat(mBlockFactory.obtain(
+                block().ofType("statement_no_input")).getOnlyValueInput()).isNull();
 
         // One value input.
         Block underTest = mBlockFactory.obtain(block().ofType("statement_value_input"));
         assertThat(underTest.getInputByName("value")).isSameAs(underTest.getOnlyValueInput());
 
         // Statement input, no value inputs.
-        assertThat(mBlockFactory.obtain(block().ofType("statement_statement_input")).getOnlyValueInput()).isNull();
+        assertThat(mBlockFactory.obtain(
+                block().ofType("statement_statement_input")).getOnlyValueInput()).isNull();
 
         // Multiple value inputs.
         assertThat(mBlockFactory.obtain(block().ofType("statement_multiple_value_input"))
@@ -677,6 +684,11 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     private Block fromXml(String xml) {
-        return BlocklyXmlHelper.loadOneBlockFromXml(xml, mBlockFactory);
+        try {
+            return BlocklyXmlHelper.loadOneBlockFromXml(xml, mBlockFactory);
+        } catch (BlockLoadingException e) {
+            // Should not happen. Throw as RuntimeException
+            throw new IllegalStateException(e);
+        }
     }
 }

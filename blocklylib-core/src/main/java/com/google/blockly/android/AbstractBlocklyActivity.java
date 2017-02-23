@@ -38,6 +38,7 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -553,16 +554,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      * Reloads the block definitions and toolbox contents.
      * @see #getToolboxContentsXmlPath()
+     * @return True if successful. Otherwise, false with the error logged.
      */
-    protected void reloadToolbox() {
+    protected boolean reloadToolbox() {
         AssetManager assetManager = getAssets();
-        String toolboxPath = getToolboxContentsXmlPath();
-
         BlocklyController controller = getController();
         try {
             controller.loadToolboxContents(assetManager.open(getToolboxContentsXmlPath()));
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Error opening toolbox at " + toolboxPath, e);
+            return true;
+        } catch (IOException | BlockLoadingException e) {
+            Log.w(TAG, "Failed to reload toolbox.", e);
+            return false;
         }
     }
 

@@ -1392,7 +1392,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testLoadWorkspaceContents_andReset() {
+    public void testLoadWorkspaceContents_andReset() throws BlockLoadingException {
         mController.initWorkspaceView(mWorkspaceView);
         assertThat(mWorkspace.getRootBlocks()).hasSize(0);
         assertThat(mWorkspaceView.getChildCount()).isEqualTo(0);
@@ -1411,7 +1411,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testLoadWorkspaceContents_andTrashAllBlocks() {
+    public void testLoadWorkspaceContents_andTrashAllBlocks() throws BlockLoadingException {
         mController.initWorkspaceView(mWorkspaceView);
         assertThat(mWorkspace.getRootBlocks()).hasSize(0);
         assertThat(mWorkspace.getTrashCategory().getItems()).hasSize(0);

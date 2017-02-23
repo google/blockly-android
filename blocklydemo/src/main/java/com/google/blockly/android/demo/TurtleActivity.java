@@ -32,6 +32,7 @@ import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.util.JavascriptUtil;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -129,8 +130,8 @@ public class TurtleActivity extends BlocklySectionsActivity {
             try {
                 controller.loadWorkspaceContents(activity.getAssets().open(
                         "turtle/demo_workspaces/" + filename));
-            } catch (IOException e) {
-                Log.d(TAG, "Couldn't load workspace from assets");
+            } catch (IOException | BlockLoadingException e) {
+                Log.e(TAG, "Couldn't load demo workspace from assets.", e);
             }
             addDefaultVariables(controller);
             return true;
