@@ -60,8 +60,8 @@ public class ConnectionTest {
     public void setUp() throws JSONException, BlockLoadingException {
         factory = new BlockFactory(InstrumentationRegistry.getTargetContext());
         factory.addDefinition(new BlockDefinition("{\"type\": \"dummyBlock\"}"));
-        BlockTemplate dummyBlock = block().ofType("dummyBlock");
-        BlockTemplate shadowBlock = new BlockTemplate(dummyBlock).shadow();
+        dummyBlock = block().ofType("dummyBlock");
+        shadowBlock = new BlockTemplate(dummyBlock).shadow();
 
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
         input.setBlock(factory.obtain(dummyBlock));

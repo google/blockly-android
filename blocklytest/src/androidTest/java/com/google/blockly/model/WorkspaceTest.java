@@ -82,8 +82,8 @@ public class WorkspaceTest extends BlocklyTestCase {
 
     @Test
     public void testBadXmlParsing() throws BlockLoadingException {
-        thrown.expect(BlockLoadingException.class);
-        mWorkspace.loadWorkspaceContents(assembleWorkspace(BAD_XML));
+        assertWithMessage("Bad workspace XML will will fail to load.")
+                .that(mWorkspace.loadWorkspaceContents(assembleWorkspace(BAD_XML))).isFalse();
     }
 
     @Test
