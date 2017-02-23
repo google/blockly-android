@@ -17,6 +17,7 @@ package com.google.blockly.model;
 
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -84,6 +85,9 @@ public class Block {
         mPreviousConnection = definition.createPreviousConnection();
         mNextConnection = definition.createNextConnection();
         mInputList = definition.createInputList(factory);
+        if (isShadow && containsVariableField()) {
+            throw new BlockLoadingException("Shadow blocks may not contain variable fields.");
+        }
 
         mInputsInline = definition.isInputsInlineDefault();
         mInputsInlineModified = false;
@@ -105,12 +109,12 @@ public class Block {
             for (BlockTemplate.FieldValue fieldValue : template.mFieldValues) {
                 Field field = getFieldByName(fieldValue.mName);
                 if (field == null) {
-                    throw new BlockLoadingException(
-                            toString() + ": No field with name \"" + fieldValue.mName + "\"");
-                }
-                if (!field.setFromString(fieldValue.mValue)) {
-                    throw new BlockLoadingException(
-                            "Failed to set a field's value from XML.");
+                    Log.w(TAG, "Ignoring non-existent field \"" + field + "\" in " + this);
+                } else {
+                    if (!field.setFromString(fieldValue.mValue)) {
+                        throw new BlockLoadingException(
+                                "Failed to set a field's value from XML.");
+                    }
                 }
             }
         }

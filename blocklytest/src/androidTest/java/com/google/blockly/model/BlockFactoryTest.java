@@ -15,6 +15,8 @@
 package com.google.blockly.model;
 
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.logging.LogLogcatRule;
+import android.support.test.rule.logging.RuleLoggingUtils;
 
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
@@ -29,6 +31,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -47,6 +50,9 @@ public class BlockFactoryTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public LogLogcatRule logcat = new LogLogcatRule();
 
     @Before
     public void setUp() throws Exception {
@@ -152,15 +158,25 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testCreateBlockWithMissingFieldName() throws BlockLoadingException {
+    public void testCreateBlockWithMissingFieldName() throws BlockLoadingException, IOException {
+        // Log warning and ignore field.
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "9",
             BlockTestStrings.FIELD_MISSING_NAME));
+
+        File dumpFile = logcat.dumpLogcat("testCreateBlockWithMissingFieldName");
+        RuleLoggingUtils.assertFileContentContains("Must log warning when field is missing name.",
+                dumpFile, "Ignoring unnamed field");
     }
 
     @Test
-    public void testCreateBlockWithUnknownFieldName() throws BlockLoadingException {
+    public void testCreateBlockWithUnknownFieldName() throws BlockLoadingException, IOException {
+        // Log warning and ignore field.
         parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "10",
             BlockTestStrings.FIELD_UNKNOWN_NAME));
+
+        File dumpFile = logcat.dumpLogcat("testCreateBlockWithMissingFieldName");
+        RuleLoggingUtils.assertFileContentContains("Must log warning when field is missing name.",
+                dumpFile, "Ignoring non-existent field");
     }
 
     @Test

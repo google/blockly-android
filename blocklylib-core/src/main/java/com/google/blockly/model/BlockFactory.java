@@ -308,9 +308,7 @@ public class BlockFactory {
                 }
                 block = BlocklyXmlHelper.loadOneBlockFromXml(xml, this);
             } catch (BlocklySerializerException e) {
-                Log.e(TAG, template.mCopySource + ": Failed to copy block.", e);
-                return null;
-
+                throw new BlockLoadingException("Failed to copy " + template.mCopySource, e);
             }
         } else {
             // Start a new block from a block definition.
@@ -320,26 +318,15 @@ public class BlockFactory {
             } else if (template.mDefinitionName != null) {
                 definition = mDefinitions.get(template.mDefinitionName.trim());
                 if (definition == null) {
-                    Log.w(TAG,
-                            "BlockDefinition named \"" + template.mDefinitionName + "\" not found.");
-                    return null;
+                    throw new BlockLoadingException("Block definition named \""
+                            + template.mDefinitionName + "\" not found.");
                 }
             } else {
-                Log.w(TAG, "No BlockDefinition declared.");
-                return null;
+                throw new BlockLoadingException(template.toString() + "missing block definition.");
             }
 
-            try {
-                block = new Block(this, definition, template.mId, isShadow);
-                // TODO(#529): Apply Extensions.
-            } catch (BlockLoadingException e) {
-                // Prefer reporting registered typename over the definition's self-reported type name.
-                String defName = template.mDefinitionName != null ?
-                        template.mDefinitionName : definition.getTypeName();
-                String ofTypeName = " of type \"" + defName + "\"";
-                Log.e(TAG, "Failed to create block" + ofTypeName + ".", e);
-                return null;
-            }
+            block = new Block(this, definition, template.mId, isShadow);
+            // TODO(#529): Apply Extensions.
         }
 
         // Apply mutable state last.
@@ -529,10 +516,6 @@ public class BlockFactory {
                             childShadow = fromXml(parser);
                         } else if (tagname.equalsIgnoreCase("field")) {
                             fieldName = parser.getAttributeValue(null, "name");
-                            if (TextUtils.isEmpty(fieldName)) {
-                                throw new BlockLoadingException(
-                                        "<field> must have a name attribute.");
-                            }
                         } else if (tagname.equalsIgnoreCase("value")
                                 || tagname.equalsIgnoreCase("statement")) {
                             inputName = parser.getAttributeValue(null, "name");
@@ -556,7 +539,12 @@ public class BlockFactory {
                             template.shadow();
                             return obtain(template);
                         } else if (tagname.equalsIgnoreCase("field")) {
-                            template.withFieldValue(fieldName, text);
+                            if (TextUtils.isEmpty(fieldName)) {
+                                Log.w(TAG, "Ignoring unnamed field in " +
+                                        template.toString("block"));
+                            } else {
+                                template.withFieldValue(fieldName, text);
+                            }
                             fieldName = null;
                             text = "";
                         } else if (tagname.equalsIgnoreCase("comment")) {
