@@ -30,11 +30,8 @@ import com.google.blockly.model.Field;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.util.List;
-
-import static com.google.blockly.model.BlockFactory.block;
 
 /**
  * Utils for setting up blocks during testing.

@@ -28,8 +28,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static com.google.blockly.model.BlockFactory.block;
-
 /**
  * Class for building {@link BlocklyCategory categories} for variable
  */

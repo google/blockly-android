@@ -33,7 +33,6 @@ import com.google.blockly.android.ui.DefaultVariableCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
-import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;

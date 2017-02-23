@@ -29,7 +29,6 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
-import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.ArrayList;

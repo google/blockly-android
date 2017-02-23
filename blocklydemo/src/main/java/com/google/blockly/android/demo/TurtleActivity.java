@@ -32,7 +32,6 @@ import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.util.JavascriptUtil;
-import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.Arrays;

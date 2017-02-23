@@ -17,7 +17,6 @@ package com.google.blockly.model;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.logging.LogLogcatRule;
 import android.support.test.rule.logging.RuleLoggingUtils;
-import android.util.Log;
 
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;

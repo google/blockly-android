@@ -38,10 +38,8 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.model.BlockFactory;
-import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 /**
