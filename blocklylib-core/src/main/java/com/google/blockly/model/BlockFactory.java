@@ -257,7 +257,6 @@ public class BlockFactory {
      *
      * @param definitionName The name of the block type to create.
      * @param id The id of the block if loaded from XML; null otherwise.
-     *
      * @return A new block of that type or null.
      * @throws IllegalArgumentException If id is not null and already refers to a block.
      */
