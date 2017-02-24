@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -45,14 +46,13 @@ public class AbstractBlockViewTest extends BlocklyTestCase {
 
     @Before
      public void setUp() throws Exception {
-
         mMockConnectionManager = mock(ConnectionManager.class);
         mMockHelper = mock(WorkspaceHelper.class);
         mMockViewFactory = mock(BlockViewFactory.class);
 
         // TODO(#435): Replace R.raw.test_blocks
         BlockFactory mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        mEmptyBlock = mBlockFactory.obtainBlock("empty_block", "fake_id");
+        mEmptyBlock = mBlockFactory.obtain(block().ofType("empty_block"));
     }
 
     // Verify correct object state after construction.

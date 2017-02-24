@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -40,7 +41,7 @@ public class BlocklyEventTest {
         // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
-        mBlock = mBlockFactory.obtainBlock(BLOCK_TYPE, BLOCK_ID);
+        mBlock = mBlockFactory.obtain(block().ofType(BLOCK_TYPE).withId(BLOCK_ID));
         mField = mBlock.getFieldByName(FIELD_NAME);
         mBlock.setPosition(NEW_POSITION_X, NEW_POSITION_Y);
 

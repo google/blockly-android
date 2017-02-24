@@ -24,10 +24,12 @@ import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -54,9 +56,8 @@ public class VerticalBlockViewFactoryTest extends BlocklyTestCase {
 
     // Verify construction of a BlockView for a Block with inputs.
     @Test
-    public void testBuildBlockViewWithInputs() {
-        final Block block = mBlockFactory.obtainBlock(
-                "test_block_one_input_each_type", "TestBlock");
+    public void testBuildBlockViewWithInputs() throws BlockLoadingException {
+        final Block block = mBlockFactory.obtain(block().ofType("test_block_one_input_each_type"));
         final BlockView blockView = makeBlockView(block);
         assertThat(block).isNotNull();
 

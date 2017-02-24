@@ -70,7 +70,6 @@ public class BlockTemplate {
     protected Block mCopySource = null;
 
     protected String mId = null;
-    protected boolean mAllowAlternateId = true;
 
     // Mutable state variables below.
     // Applied via Block.applyTemplate()
@@ -125,7 +124,6 @@ public class BlockTemplate {
         mDefinitionName = src.mDefinitionName;
         mDefinition = src.mDefinition;
         mId = src.mId;
-        mAllowAlternateId = src.mAllowAlternateId;
 
         mIsShadow = src.mIsShadow;
         if (src.mPosition != null) {
@@ -260,25 +258,6 @@ public class BlockTemplate {
      */
     public BlockTemplate withId(String id) {
         mId = id;
-        mAllowAlternateId = true;
-        return this;
-    }
-
-    /**
-     * Sets the id of the block to be created. In the case of a conflict with an existing block id,
-     * if {@code required} is true, obtaining the block will fail. Otherwise, a new id will be
-     * generated for the new block.
-     *
-     * <pre>
-     * {@code blockFactory.obtain(block().withRequiredId("this-exact-id"));}
-     * </pre>
-     *
-     * @param id The id of the block to be created.
-     * @return This block descriptor, for chaining.
-     */
-    public BlockTemplate withRequiredId(String id, boolean required) {
-        mId = id;
-        mAllowAlternateId = !required;
         return this;
     }
 

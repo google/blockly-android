@@ -338,11 +338,11 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testObtainBlock_repeatedWithoutUuid() {
-        Block frankenblock = mBlockFactory.obtainBlock("frankenblock", null);
+    public void testObtainBlock_repeatedWithoutUuid() throws BlockLoadingException {
+        Block frankenblock = mBlockFactory.obtain(block().ofType("frankenblock"));
         assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
-        Block frankencopy = mBlockFactory.obtainBlock("frankenblock", null);
+        Block frankencopy = mBlockFactory.obtain(block().ofType("frankenblock"));
         assertWithMessage("Obtained blocks should be distinct objects when uuid is null.")
                 .that(frankencopy).isNotSameAs(frankenblock);
 
@@ -358,12 +358,12 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testObtainBlock_repeatedWithUuid() {
+    public void testObtainBlock_repeatedWithId() {
         Block frankenblock = mBlockFactory.obtainBlock("frankenblock", "123");
         assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.reportMissingExceptionWithMessage("Cannot create two bblocks with the same id");
+        thrown.reportMissingExceptionWithMessage("Cannot create two blocks with the same id");
         mBlockFactory.obtainBlock("frankenblock", "123");
     }
 

@@ -15,6 +15,7 @@
 
 package com.google.blockly.model;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -72,11 +73,14 @@ public class Block {
      * @param isShadow Whether the block should be a shadow block (default input value block).
      * @throws BlockLoadingException When the {@link BlockDefinition} throws errors.
      */
-    Block(BlockFactory factory, BlockDefinition definition, @Nullable String id, boolean isShadow)
+    Block(@NonNull BlockFactory factory, @NonNull BlockDefinition definition, @NonNull String id,
+          boolean isShadow)
             throws BlockLoadingException {
+        if (factory == null || definition == null || id == null) {
+            throw new NullPointerException();
+        }
         mFactory = factory;
-        // TODO: Validate id if not null
-        mId = (id != null) ? id : UUID.randomUUID().toString();
+        mId = id;
 
         mType = definition.getName();
         mColor = definition.getColor();

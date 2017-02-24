@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 
 /**
  * Helper class for building a set of master blocks and then obtaining copies of them for use in
@@ -273,7 +274,7 @@ public class BlockFactory {
             return null;
         }
         try {
-            return obtain(block().ofType(definitionName).withRequiredId(id, true));
+            return obtain(block().ofType(definitionName).withId(id));
         } catch (BlockLoadingException e) {
             return null;
         }
@@ -288,10 +289,7 @@ public class BlockFactory {
      * @return A new block, or null if not able to construct it.
      */
     public Block obtain(BlockTemplate template) throws BlockLoadingException {
-        // Validate id is available.
-        if (isBlockIdInUse(template.mId)) {
-            throw new IllegalArgumentException("Block id \"" + template.mId + "\" already in use.");
-        }
+        String id = getCheckedId(template.mId);
 
         // Existing instance not found. Constructing a new Block.
         BlockDefinition definition;
@@ -302,13 +300,12 @@ public class BlockFactory {
                 // TODO: Improve copy overhead. Template from copy to avoid XML I/O?
                 String xml = BlocklyXmlHelper.writeBlockToXml(template.mCopySource,
                         IOOptions.WRITE_ROOT_ONLY_WITHOUT_ID);
-                if (template.mId != null) {
-                    String escapedId = BlocklyXmlHelper.escape(template.mId);
-                    xml = xml.replace("<block", "<block id=\"" + escapedId + "\"");
-                }
+                String escapedId = BlocklyXmlHelper.escape(id);
+                xml = xml.replace("<block", "<block id=\"" + escapedId + "\"");
                 block = BlocklyXmlHelper.loadOneBlockFromXml(xml, this);
             } catch (BlocklySerializerException e) {
-                throw new BlockLoadingException("Failed to copy " + template.mCopySource, e);
+                throw new BlockLoadingException(
+                        "Failed to serialize original " + template.mCopySource, e);
             }
         } else {
             // Start a new block from a block definition.
@@ -328,7 +325,7 @@ public class BlockFactory {
                 throw new BlockLoadingException(template.toString() + "missing block definition.");
             }
 
-            block = new Block(this, definition, template.mId, isShadow);
+            block = new Block(this, definition, id, isShadow);
             // TODO(#529): Apply Extensions.
         }
 
@@ -627,5 +624,22 @@ public class BlockFactory {
      */
     public void clearPriorBlockReferences() {
         mBlockRefs.clear();
+    }
+
+    /**
+     * Returns an id that is statistically unique.
+     * @param requested The requested id.
+     * @return The allowed id.
+     * @throws BlockLoadingException If a collision occurs when the id is required.
+     */
+    private String getCheckedId(String requested) throws BlockLoadingException {
+        if (requested != null) {
+            if (isBlockIdInUse(requested)) {
+                throw new BlockLoadingException(
+                        "Block id \"" + requested + "\" is already in use.");
+            }
+            return requested;
+        }
+        return UUID.randomUUID().toString();  // Assuming no collisions.
     }
 }
