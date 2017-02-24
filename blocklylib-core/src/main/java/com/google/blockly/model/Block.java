@@ -103,83 +103,6 @@ public class Block {
     }
 
     /**
-     * Applies the mutable state described by a template. Called after extensions are applied to the
-     * block (and thus event handles and mutators have been registered).
-     * @param template The source template.
-     * @throws BlockLoadingException
-     */
-    public void applyTemplate(BlockTemplate template) throws BlockLoadingException {
-        if (template.mFieldValues != null) {
-            for (BlockTemplate.FieldValue fieldValue : template.mFieldValues) {
-                Field field = getFieldByName(fieldValue.mName);
-                if (field == null) {
-                    Log.w(TAG, "Ignoring non-existent field \"" + field + "\" in " + this);
-                } else {
-                    if (!field.setFromString(fieldValue.mValue)) {
-                        throw new BlockLoadingException(
-                                "Failed to set a field's value from XML.");
-                    }
-                }
-            }
-        }
-
-        if (template.mIsShadow != null) {
-            setShadow(template.mIsShadow);
-        }
-        if (template.mPosition != null) {
-            setPosition(template.mPosition.x, template.mPosition.y);
-        }
-        if (template.mIsCollapsed != null) {
-            setCollapsed(template.mIsCollapsed);
-        }
-        if (template.mCommentText != null) {
-            setComment(template.mCommentText);
-        }
-        if (template.mIsDeletable != null) {
-            setDeletable(template.mIsDeletable);
-        }
-        if (template.mIsDisabled != null) {
-            setDisabled(template.mIsDisabled);
-        }
-        if (template.mIsEditable != null) {
-            setEditable(template.mIsEditable);
-        }
-        if (template.mInlineInputs != null) {
-            setInputsInline(template.mInlineInputs);
-        }
-        if (template.mIsMovable != null) {
-            setMovable(template.mIsMovable);
-        }
-
-        // TODO: Use the controller for the following block connections, in order to fire events.
-        if (template.mInputValues != null) {
-            for (BlockTemplate.InputValue inputValue : template.mInputValues) {
-                Input input = getInputByName(inputValue.mName);
-                if (input == null) {
-                    throw new BlockLoadingException(
-                            toString() + ": No input with name \"" + inputValue.mName + "\"");
-                }
-                Connection connection = input.getConnection();
-                if (connection == null) {
-                    throw new BlockLoadingException(
-                            "Input \"" + inputValue.mName + "\" does not have a connection.");
-                }
-                connectOrThrow(input.getType() == Input.TYPE_STATEMENT ? "statement" : "value",
-                        connection, inputValue.mChild, inputValue.mShadow);
-            }
-        }
-
-        if (template.mNextChild != null || template.mNextShadow != null) {
-            Connection connection = getNextConnection();
-            if (connection == null) {
-                throw new BlockLoadingException(
-                        this + "does not have a connection for next child.");
-            }
-            connectOrThrow("next", connection, template.mNextChild, template.mNextShadow);
-        }
-    }
-
-    /**
      * @return The name of the block. Not for display.
      */
     public String getType() {
@@ -825,7 +748,7 @@ public class Block {
      * @param shadow The child shadow to connect.
      * @throws BlockLoadingException If any connection fails.
      */
-    private void connectOrThrow(String tagName, Connection thisConn, Block child, Block shadow)
+    void connectOrThrow(String tagName, Connection thisConn, Block child, Block shadow)
             throws BlockLoadingException {
         if (child != null) {
             if (mIsShadow) {

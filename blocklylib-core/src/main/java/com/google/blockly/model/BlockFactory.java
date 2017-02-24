@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
@@ -329,7 +330,7 @@ public class BlockFactory {
         }
 
         // Apply mutable state last.
-        block.applyTemplate(template);
+        template.applyMutableState(block);
         mBlockRefs.put(block.getId(), new WeakReference<>(block));
 
         return block;
@@ -452,13 +453,18 @@ public class BlockFactory {
     public Block fromXml(XmlPullParser parser) throws BlockLoadingException {
         try {
             String type = parser.getAttributeValue(null, "type");   // prototype name
-            String id = parser.getAttributeValue(null, "id");
-            if (type == null || type.isEmpty()) {
+            if (type == null || type.trim().isEmpty()) {
                 throw new BlockLoadingException("Block was missing a type.");
             }
+            type = type.trim();
+
+            String id = parser.getAttributeValue(null, "id");
             // If the id was empty the BlockFactory will just generate one.
 
-            final BlockTemplate template = new BlockTemplate().ofType(type).withId(id);
+            // These two are the same object, but the first keeps the XmlBlockTemplate type.
+            // The other type safe alternative is to override each method used. https://goo.gl/zKbYjo
+            final XmlBlockTemplate templateWithChildren = new XmlBlockTemplate();
+            final BlockTemplate template = templateWithChildren.ofType(type).withId(id);
 
             String collapsedString = parser.getAttributeValue(null, "collapsed");
             if (collapsedString != null) {
@@ -556,7 +562,8 @@ public class BlockFactory {
                                 throw new BlockLoadingException("Missing inputName.");
                             }
                             try {
-                                template.withInputValue(inputName, childBlock, childShadow);
+                                templateWithChildren
+                                        .withInputValue(inputName, childBlock, childShadow);
                             } catch (IllegalArgumentException e) {
                                 throw new BlockLoadingException(template.toString("Block")
                                         + " input \"" + inputName + "\": " + e.getMessage());
@@ -565,7 +572,7 @@ public class BlockFactory {
                             childShadow = null;
                             inputName = null;
                         } else if (tagname.equalsIgnoreCase("next")) {
-                            template.withNextChild(childBlock, childShadow);
+                            templateWithChildren.withNextChild(childBlock, childShadow);
                             childBlock = null;
                             childShadow = null;
                         }
@@ -640,5 +647,136 @@ public class BlockFactory {
             return requested;
         }
         return UUID.randomUUID().toString();  // Assuming no collisions.
+    }
+
+    /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */
+    private static class InputValue {
+        /** The name of the input */
+        final String mName;
+        /** The child block. */
+        final Block mChild;
+        /** The connected shadow block. */
+        final Block mShadow;
+
+        InputValue(String name, Block child, Block shadow) {
+            mName = name;
+            mChild = child;
+            mShadow = shadow;
+        }
+    }
+
+    private class XmlBlockTemplate extends BlockTemplate {
+        /** Ordered list of input names and blocks, as loaded during XML deserialization. */
+        protected List<InputValue> mInputValues;
+
+
+        /**
+         * Sets a field's value immediately after creation.
+         * Generally only used during XML deserialization.
+         *
+         * This method is package private because the API of this method is subject to change. Do not
+         * use it in application code.
+         *
+         * @param inputName The name of the field.
+         * @param child The deserialized child block.
+         * @param shadow The deserialized shadow block.
+         * @return This block descriptor, for chaining.
+         * @throws IllegalArgumentException If inputName is not a valid name; if child or shadow are not
+         *                                  configured as such; if child or shadow overwrites a prior
+         *                                  value.
+         */
+        BlockTemplate withInputValue(String inputName, Block child, Block shadow) {
+            if (inputName == null
+                    || (inputName = inputName.trim()).length() == 0) {  // Trim and test name
+                throw new IllegalArgumentException("Invalid input value name.");
+            }
+            // Validate child block shadow state and upward connection.
+            if (child != null && (child.isShadow() || child.getUpwardsConnection() == null)) {
+                throw new IllegalArgumentException("Invalid input value block.");
+            }
+            if (shadow != null && (!shadow.isShadow() || shadow.getUpwardsConnection() == null)) {
+                throw new IllegalArgumentException("Invalid input shadow block.");
+            }
+
+            // Find duplicate values.
+            if (mInputValues == null) {
+                mInputValues = new ArrayList<>();
+            } else {
+                // Check for prior assignments to the same input value.
+                Iterator<InputValue> iter = mInputValues.iterator();
+                while (iter.hasNext()) {
+                    InputValue priorValue = iter.next();
+                    if (priorValue.mName.equals(inputName)) {
+                        boolean overwriteChild = child != null
+                                && priorValue.mChild != null && child != priorValue.mChild;
+                        boolean overwriteShadow = shadow != null
+                                & priorValue.mShadow != null && shadow != priorValue.mShadow;
+
+                        if (overwriteChild || overwriteShadow) {
+                            throw new IllegalArgumentException(
+                                    "Input \"" + inputName + "\" already assigned.");
+                        }
+                        child = (child == null ? priorValue.mChild : child);
+                        shadow = (shadow == null ? priorValue.mShadow : shadow);
+                        iter.remove();  // Replaced below
+                    }
+                }
+            }
+            mInputValues.add(new InputValue(inputName, child, shadow));
+            return this;
+        }
+
+        /**
+         * Sets a block next children immediately after creation.
+         * Generally only used during XML deserialization.
+         *
+         * This method is package private because the API of this method is subject to change. Do not
+         * use it in application code.
+         *
+         * @param child The deserialized child block.
+         * @param shadow The deserialized shadow block.
+         * @return This block descriptor, for chaining.
+         */
+        BlockTemplate withNextChild(Block child, Block shadow) {
+            if ((child != null && (child.isShadow() || child.getPreviousConnection() == null))
+                    || ((shadow != null) && (!shadow.isShadow() || shadow.getPreviousConnection() == null))) {
+                throw new IllegalArgumentException("Invalid next child Block(s).");
+            }
+            mNextChild = child;
+            mNextShadow = shadow;
+            return this;
+        }
+
+        @Override
+        public void applyMutableState(Block block) throws BlockLoadingException {
+            super.applyMutableState(block);
+
+            // TODO: Use the controller for the following block connections, in order to fire events.
+            if (mInputValues != null) {
+                for (InputValue inputValue : mInputValues) {
+                    Input input = block.getInputByName(inputValue.mName);
+                    if (input == null) {
+                        throw new BlockLoadingException(
+                                toString() + ": No input with name \"" + inputValue.mName + "\"");
+                    }
+                    Connection connection = input.getConnection();
+                    if (connection == null) {
+                        throw new BlockLoadingException(
+                                "Input \"" + inputValue.mName + "\" does not have a connection.");
+                    }
+                    block.connectOrThrow(input.getType() == Input.TYPE_STATEMENT ? "statement" : "value",
+                            connection, inputValue.mChild, inputValue.mShadow);
+                }
+            }
+
+            if (mNextChild != null || mNextShadow != null) {
+                Connection connection = block.getNextConnection();
+                if (connection == null) {
+                    throw new BlockLoadingException(
+                            this + "does not have a connection for next child.");
+                }
+                block.connectOrThrow("next", connection, mNextChild, mNextShadow);
+            }
+        }
     }
 }

@@ -15,26 +15,31 @@
 package com.google.blockly.model;
 
 import android.text.TextUtils;
+import android.util.Log;
+
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
  * Template of a block, describing the initial state of a new block.
  *
- * The API of this class is designed to be used in a literate manner, as an input to
+ * The API of this class is designed to be used in a
+ * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent</a> manner, as an input to
  * {@link BlockFactory#obtain}. The static method {@link BlockFactory#block()} (which returns a
  * {@code BlockTemplate}) can be used as a via static import to read like English.
  *
- * <pre>
- * {@code factory.obtain(block().shadow().ofType("math_number").atPosition(25,56));}
- * </pre>
+ * <pre>{@code
+ * factory.obtain(block().shadow().ofType("math_number").atPosition(25,56));
+ * }</pre>
  */
-public class BlockTemplate {
+public class BlockTemplate<T extends BlockTemplate<T>> {
+    private static final String TAG = "BlockTemplate";
+
     protected static class FieldValue {
         /** The name of the field. */
         final String mName;
@@ -44,21 +49,6 @@ public class BlockTemplate {
         FieldValue(String name, String value) {
             mName = name;
             mValue = value;
-        }
-    }
-
-    protected static class InputValue {
-        /** The name of the input */
-        final String mName;
-        /** The child block. */
-        final Block mChild;
-        /** The connected shadow block. */
-        final Block mShadow;
-
-        InputValue(String name, Block child, Block shadow) {
-            mName = name;
-            mChild = child;
-            mShadow = shadow;
         }
     }
 
@@ -87,9 +77,6 @@ public class BlockTemplate {
     /** Ordered list of field names and string values, as loaded during XML deserialization. */
     protected List<FieldValue> mFieldValues;
 
-    /** Ordered list of input names and blocks, as loaded during XML deserialization. */
-    protected List<InputValue> mInputValues;
-
     protected Block mNextChild;
     protected Block mNextShadow;
 
@@ -116,11 +103,6 @@ public class BlockTemplate {
      * Copy constructor to create a new description based on a prior.
      */
     public BlockTemplate(BlockTemplate src) {
-        if (src.mInputValues != null || src.mNextChild != null || src.mNextShadow != null) {
-            throw new IllegalArgumentException(
-                    "Cannot copy a template with child Block references.");
-        }
-
         mDefinitionName = src.mDefinitionName;
         mDefinition = src.mDefinition;
         mId = src.mId;
@@ -141,8 +123,55 @@ public class BlockTemplate {
         if (src.mFieldValues != null) {
             mFieldValues = new ArrayList<>(src.mFieldValues);
         }
-        if (src.mInputValues != null) {
-            mInputValues = new ArrayList<>(src.mInputValues);
+    }
+
+    /**
+     * Applies the mutable state described by a template. Called after extensions are applied to the
+     * block (and thus event handles and mutators have been registered).
+     * @param block The block to update.
+     * @throws BlockLoadingException
+     */
+    public void applyMutableState(Block block) throws BlockLoadingException {
+        if (mFieldValues != null) {
+            for (BlockTemplate.FieldValue fieldValue : mFieldValues) {
+                Field field = block.getFieldByName(fieldValue.mName);
+                if (field == null) {
+                    Log.w(TAG, "Ignoring non-existent field \"" + field + "\" in " + this);
+                } else {
+                    if (!field.setFromString(fieldValue.mValue)) {
+                        throw new BlockLoadingException(
+                                "Failed to set a field's value from XML.");
+                    }
+                }
+            }
+        }
+
+        if (mIsShadow != null) {
+            block.setShadow(mIsShadow);
+        }
+        if (mPosition != null) {
+            block.setPosition(mPosition.x, mPosition.y);
+        }
+        if (mIsCollapsed != null) {
+            block.setCollapsed(mIsCollapsed);
+        }
+        if (mCommentText != null) {
+            block.setComment(mCommentText);
+        }
+        if (mIsDeletable != null) {
+            block.setDeletable(mIsDeletable);
+        }
+        if (mIsDisabled != null) {
+            block.setDisabled(mIsDisabled);
+        }
+        if (mIsEditable != null) {
+            block.setEditable(mIsEditable);
+        }
+        if (mInlineInputs != null) {
+            block.setInputsInline(mInlineInputs);
+        }
+        if (mIsMovable != null) {
+            block.setMovable(mIsMovable);
         }
     }
 
@@ -387,6 +416,12 @@ public class BlockTemplate {
         return msg;
     }
 
+    /** Correctly typed reference to this for return values. */
+    @SuppressWarnings("unchecked")
+    protected T getThis() {
+        return (T) this;
+    }
+
     /**
      * Sets a field's value immediately after creation.
      *
@@ -404,83 +439,6 @@ public class BlockTemplate {
             mFieldValues = new ArrayList<>();
         }
         mFieldValues.add(new FieldValue(fieldName, value));
-        return this;
-    }
-
-    /**
-     * Sets a field's value immediately after creation.
-     * Generally only used during XML deserialization.
-     *
-     * This method is package private because the API of this method is subject to change. Do not
-     * use it in application code.
-     *
-     * @param inputName The name of the field.
-     * @param child The deserialized child block.
-     * @param shadow The deserialized shadow block.
-     * @return This block descriptor, for chaining.
-     * @throws IllegalArgumentException If inputName is not a valid name; if child or shadow are not
-     *                                  configured as such; if child or shadow overwrites a prior
-     *                                  value.
-     */
-    BlockTemplate withInputValue(String inputName, Block child, Block shadow) {
-        if (inputName == null
-                || (inputName = inputName.trim()).length() == 0) {  // Trim and test name
-            throw new IllegalArgumentException("Invalid input value name.");
-        }
-        // Validate child block shadow state and upward connection.
-        if (child != null && (child.isShadow() || child.getUpwardsConnection() == null)) {
-            throw new IllegalArgumentException("Invalid input value block.");
-        }
-        if (shadow != null && (!shadow.isShadow() || shadow.getUpwardsConnection() == null)) {
-            throw new IllegalArgumentException("Invalid input shadow block.");
-        }
-
-        // Find duplicate values.
-        if (mInputValues == null) {
-            mInputValues = new ArrayList<>();
-        } else {
-            // Check for prior assignments to the same input value.
-            Iterator<InputValue> iter = mInputValues.iterator();
-            while (iter.hasNext()) {
-                InputValue priorValue = iter.next();
-                if (priorValue.mName.equals(inputName)) {
-                    boolean overwriteChild = child != null
-                            && priorValue.mChild != null && child != priorValue.mChild;
-                    boolean overwriteShadow = shadow != null
-                            & priorValue.mShadow != null && shadow != priorValue.mShadow;
-
-                    if (overwriteChild || overwriteShadow) {
-                        throw new IllegalArgumentException(
-                                "Input \"" + inputName + "\" already assigned.");
-                    }
-                    child = (child == null ? priorValue.mChild : child);
-                    shadow = (shadow == null ? priorValue.mShadow : shadow);
-                    iter.remove();  // Replaced below
-                }
-            }
-        }
-        mInputValues.add(new InputValue(inputName, child, shadow));
-        return this;
-    }
-
-    /**
-     * Sets a block next children immediately after creation.
-     * Generally only used during XML deserialization.
-     *
-     * This method is package private because the API of this method is subject to change. Do not
-     * use it in application code.
-     *
-     * @param child The deserialized child block.
-     * @param shadow The deserialized shadow block.
-     * @return This block descriptor, for chaining.
-     */
-    BlockTemplate withNextChild(Block child, Block shadow) {
-        if ((child != null && (child.isShadow() || child.getPreviousConnection() == null))
-                || ((shadow != null) && (!shadow.isShadow() || shadow.getPreviousConnection() == null))) {
-            throw new IllegalArgumentException("Invalid next child Block(s).");
-        }
-        mNextChild = child;
-        mNextShadow = shadow;
         return this;
     }
 
