@@ -18,7 +18,6 @@ package com.google.blockly.model;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -29,7 +28,6 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Base class for a Blockly Block.
@@ -52,7 +50,7 @@ public class Block {
     private Connection mPreviousConnection;
     private String mTooltip = null;
     private String mComment = null;
-    private boolean mHasContextMenu;
+    private boolean mHasContextMenu = true;
     private boolean mDeletable = true;
     private boolean mMovable = true;
     private boolean mEditable = true;
@@ -741,7 +739,8 @@ public class Block {
     }
 
     /**
-     * Connects to given children, or throws a descriptive BlockLoadingException.
+     * Connects to given child and shadow (even if occluded), or throws a descriptive
+     * BlockLoadingException for an invalid connection.
      * @param tagName The string name of the connection, as seen in XML.
      * @param thisConn The connection point on this block.
      * @param child The child block to connect.

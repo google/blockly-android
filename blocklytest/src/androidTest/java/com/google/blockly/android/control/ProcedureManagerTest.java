@@ -15,8 +15,6 @@
 
 package com.google.blockly.android.control;
 
-import android.support.test.InstrumentationRegistry;
-
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -46,7 +44,7 @@ public class ProcedureManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        mFactory = new BlockFactory(InstrumentationRegistry.getTargetContext());
+        mFactory = new BlockFactory();
         mProcedureManager = new ProcedureManager();
 
         mProcedureDefinition = mFactory.obtain(block().fromDefinition(

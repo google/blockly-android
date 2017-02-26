@@ -46,8 +46,10 @@ public class WorkspaceStatsTest {
     @Before
     public void setUp() {
         Context context = InstrumentationRegistry.getTargetContext();
-        mFactory = new BlockFactory(context);
+        mFactory = new BlockFactory();
 
+        // TODO: Do we need this? We don't use Mockito in this test.
+        //       http://stackoverflow.com/a/22402631/152543
         System.setProperty(
                 "dexmaker.dexcache",
                 context.getCacheDir().getPath());

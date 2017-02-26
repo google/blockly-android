@@ -14,8 +14,6 @@
  */
 package com.google.blockly.model;
 
-import android.support.test.InstrumentationRegistry;
-
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
@@ -58,7 +56,7 @@ public class ConnectionTest {
 
     @Before
     public void setUp() throws JSONException, BlockLoadingException {
-        factory = new BlockFactory(InstrumentationRegistry.getTargetContext());
+        factory = new BlockFactory();
         factory.addDefinition(new BlockDefinition("{\"type\": \"dummyBlock\"}"));
         dummyBlock = block().ofType("dummyBlock");
         shadowBlock = new BlockTemplate(dummyBlock).shadow();

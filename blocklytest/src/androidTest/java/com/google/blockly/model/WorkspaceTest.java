@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -82,8 +83,9 @@ public class WorkspaceTest extends BlocklyTestCase {
 
     @Test
     public void testBadXmlParsing() throws BlockLoadingException {
-        assertWithMessage("Bad workspace XML will will fail to load.")
-                .that(mWorkspace.loadWorkspaceContents(assembleWorkspace(BAD_XML))).isFalse();
+        thrown.expect(BlockLoadingException.class);
+        thrown.reportMissingExceptionWithMessage("Bad workspace XML will will fail to load.");
+        mWorkspace.loadWorkspaceContents(assembleWorkspace(BAD_XML));
     }
 
     @Test

@@ -16,12 +16,10 @@
 package com.google.blockly.model;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.Pair;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -43,8 +41,20 @@ import java.util.Scanner;
 import java.util.UUID;
 
 /**
- * Helper class for building a set of master blocks and then obtaining copies of them for use in
- * a workspace or toolbar.
+ * The BlockFactory is responsible for managing the set of BlockDefinitions, and instantiating
+ * {@link Block}s from those definitions.
+ *
+ * Add new definitions to the factory via {@link #addJsonDefinitions}. Create new Blocks by passing
+ * a {@link BlockTemplate} using {@link #obtain(BlockTemplate)}.  Using the method {@link #block()}
+ * to create the template, this can look like:
+ *
+ * <pre>{@code
+ * // Add definition.
+ * factory.addJsonDefinition(getAssets().open("default/math_blocks.json"));
+ * // Create blocks.
+ * Block pi = factory.obtain(block().ofType("math_number").withId("PI"));
+ * factory.obtain(block().copyOf(pi).shadow().withId("PI-shadow"));
+ * }</pre>
  */
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
@@ -61,7 +71,6 @@ public class BlockFactory {
         return new BlockTemplate();
     }
 
-    private Resources mResources;
     private final HashMap<String, BlockDefinition> mDefinitions = new HashMap<>();
     private final HashMap<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
@@ -72,11 +81,17 @@ public class BlockFactory {
     protected final HashMap<BlockTypeFieldName, WeakReference<FieldDropdown.Options>>
             mDropdownOptions = new HashMap<>();
 
+    /** Default constructor. */
+    public BlockFactory() {
+
+    }
+
     /**
      * Create a factory with an initial set of blocks from json resources.
      * Block definitions from resources will never be passed to generators
      * (https://github.com/google/blockly-android/issues/525). Instead, use
-     * {@link #addJsonDefinitionsAsset(AssetManager, String)} to load from assets.
+     * {@link #addJsonDefinitions(String)} to load from assets.
+     * @deprecated Call default constructor, and prefer block definitions in assets over resources.
      *
      * @param context The context for loading resources.
      * @param blockSourceIds A list of JSON resources containing blocks.
@@ -84,29 +99,18 @@ public class BlockFactory {
      */
     @Deprecated
     public BlockFactory(Context context, int[] blockSourceIds) {
-        this(context);
-        if (blockSourceIds != null) {
-            for (int i = 0; i < blockSourceIds.length; i++) {
-                addJsonDefinitions(blockSourceIds[i]);
+        Resources resources = context.getResources();
+        try {
+            if (blockSourceIds != null) {
+                for (int i = 0; i < blockSourceIds.length; i++) {
+                    InputStream in = resources.openRawResource(blockSourceIds[i]);
+                    addJsonDefinitions(in);
+                }
             }
+        } catch (IOException | BlockLoadingException e) {
+            // Resources are assumed to be valid. Throw this error as RuntimeException.
+            throw new IllegalStateException(e.getMessage(), e);
         }
-    }
-
-    /**
-     * Create a factory with a handle to the Activity Resources.
-     * Block definitions from resources will never be passed to generators
-     * (https://github.com/google/blockly-android/issues/525). Instead, use
-     * {@link #addJsonDefinitionsAsset(AssetManager, String)} to load from assets.
-     *
-     * @param context The context for loading resources.
-     */
-    @Deprecated
-    public BlockFactory(Context context) {
-        mResources = context.getResources();
-    }
-
-    public BlockFactory(final InputStream source) throws IOException {
-        addJsonDefinitions(source);
     }
 
     /**
@@ -137,103 +141,59 @@ public class BlockFactory {
      *
      * @param jsonStream The stream containing the JSON block definitions.
      *
-     * @return A pair of a list of exceptions (null if none) and a count of definitions added.
-     * @throws IOException If unrecoverable errors are encountered reading the stream.
+     * @return A count of definitions added.
+     * @throws IOException If there is a fundamental problem with the input.
+     * @throws BlockLoadingException If the definition is malformed.
      */
-    public Pair<List<Exception>, Integer> addJsonDefinitions(InputStream jsonStream)
-            throws IOException {
+    public int addJsonDefinitions(InputStream jsonStream)
+            throws IOException, BlockLoadingException {
         // Read stream as single string.
         String inString = new Scanner( jsonStream ).useDelimiter("\\A").next();
         return addJsonDefinitions(inString);
     }
 
     /**
-     * Loads and adds block definition from a JSON array string.
+     * Loads and adds block definition from a JSON array string. These definitions will replace
+     * existing definitions, if the type names conflict.
      *
      * @param jsonString The InputStream containing the JSON block definitions.
      *
-     * @return A pair of a list of exceptions (null if none) and a count of definitions added.
-     * @throws IOException If unrecoverable errors are encountered reading the string.
+     * @return A count of definitions added.
+     * @throws IOException If there is a fundamental problem with the input.
+     * @throws BlockLoadingException If the definition is malformed.
      */
-    public Pair<List<Exception>, Integer> addJsonDefinitions(String jsonString) throws IOException {
-        List<Exception> exceptions = null;
-
+    public int addJsonDefinitions(String jsonString) throws IOException, BlockLoadingException {
         // Parse JSON first, avoiding side effects (partially added file) in the case of an error.
         List<BlockDefinition> defs;
+        int arrayIndex = 0;  // definition index
         try {
             JSONArray jsonArray = new JSONArray(jsonString);
             defs = new ArrayList<>(jsonArray.length());
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonDef = jsonArray.getJSONObject(i);
-                try {
-                    defs.add(new BlockDefinition(jsonDef));
-                } catch (JSONException e) {
-                    String msg = "Block definition #" + i + ": " + e.getMessage();
-                    Log.w(TAG, msg);
-                    if (exceptions == null) {
-                        exceptions = new ArrayList<>();
-                    }
-                    exceptions.add(new BlockLoadingException(msg, e));
-                }
+            for (arrayIndex = 0; arrayIndex < jsonArray.length(); arrayIndex++) {
+                JSONObject jsonDef = jsonArray.getJSONObject(arrayIndex);
+                defs.add(new BlockDefinition(jsonDef));
             }
         } catch (JSONException e) {
-            throw new IOException(e);
+            String msg = "Block definition #" + arrayIndex + ": " + e.getMessage();
+            throw new BlockLoadingException(msg, e);
         }
 
         // Attempt to add each definition, catching redefinition errors.
         int blockAddedCount = 0;
-        for (int i = 0; i < defs.size(); ++i) {
-            BlockDefinition def = defs.get(i);
+        for (arrayIndex = 0; arrayIndex < defs.size(); ++arrayIndex) {
+            BlockDefinition def = defs.get(arrayIndex);
             String typeName = def.getName();
-            if (!mDefinitions.containsKey(typeName)) {
-                addDefinition(def);
-                blockAddedCount++;
-            } else {
-                String msg = "Block type \"" + def.getName() + "\" already defined.";
-                Log.w(TAG, msg);
-                if (exceptions == null) {
-                    exceptions = new ArrayList<>();
-                }
-                exceptions.add(new BlockLoadingException(msg));
+
+            // Replace prior definition with warning, mimicking web behavior.
+            if (removeDefinition(typeName)) {
+                Log.w(TAG, "Block definition #" + arrayIndex +
+                        " in JSON array replaces prior definition of \"" + typeName + "\".");
             }
+            addDefinition(def);
+            blockAddedCount++;
         }
 
-        return Pair.create(exceptions, blockAddedCount);
-    }
-
-    /**
-     * Loads and adds block definitions from a file in Assets.
-     *
-     * @param assets The context's AssetManager.
-     * @param assetPath The asset path to the JSON definitions.
-     * @return The count of definitions added.
-     */
-    public int addJsonDefinitionsAsset(AssetManager assets, String assetPath) {
-        Pair<List<Exception>, Integer> result;
-        InputStream jsonInput = null;
-        try {
-            jsonInput = assets.open(assetPath);
-            result = addJsonDefinitions(jsonInput);
-        } catch (IOException e) {
-            // Compile time resources are expected to always be valid.
-            throw new IllegalStateException(
-                    "Failed to load block definitions from asset file: " + assetPath, e);
-        } finally {
-            if (jsonInput != null) {
-                try {
-                    jsonInput.close();
-                } catch (IOException e) {
-                    // Ignore
-                }
-            }
-        }
-        if (result.first != null) {
-            // Compile time resources are expected to always be valid.
-            throw new IllegalStateException(
-                    "Failed to load all block definitions from asset file: " + assetPath
-                    + "\nSee above.");
-        }
-        return result.second;
+        return blockAddedCount;
     }
 
     /**
@@ -343,36 +303,36 @@ public class BlockFactory {
         return new ArrayList<>(mDefinitions.values());
     }
 
-    /**
-     * Loads and adds block templates from a raw file resource.
-     *
-     * Block definitions from resources will never be passed to generators
-     * (https://github.com/google/blockly-android/issues/525). Instead, use
-     * {@link #addJsonDefinitionsAsset(AssetManager, String)} to load from assets.
-     *
-     * @param resId The id of the JSON resource to load blocks from.
-     *
-     * @return Number of blocks added to the factory.
-     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
-     */
-    @Deprecated
-    public int addJsonDefinitions(int resId) {
-        InputStream jsonInput = mResources.openRawResource(resId);
-        try {
-            Pair<List<Exception>, Integer> results = addJsonDefinitions(jsonInput);
-            return results.second;
-        } catch (IOException e) {
-            // Compile time resources are expected to always be valid.
-            throw new IllegalStateException("Failed to load block defintions from resource: "
-                    + mResources.getResourceEntryName(resId));
-        } finally {
-            try {
-                jsonInput.close();
-            } catch (IOException e) {
-                // Ignore
-            }
-        }
-    }
+//    /**
+//     * Loads and adds block templates from a raw file resource.
+//     *
+//     * Block definitions from resources will never be passed to generators
+//     * (https://github.com/google/blockly-android/issues/525). Instead, use
+//     * {@link #addJsonDefinitionsAsset(String)} to load from assets.
+//     *
+//     * @param resId The id of the JSON resource to load blocks from.
+//     *
+//     * @return Number of blocks added to the factory.
+//     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
+//     */
+//    @Deprecated
+//    public int addJsonDefinitions(int resId) {
+//        InputStream jsonInput = mResources.openRawResource(resId);
+//        try {
+//            Pair<List<Exception>, Integer> results = addJsonDefinitions(jsonInput);
+//            return results.second;
+//        } catch (IOException e) {
+//            // Compile time resources are expected to always be valid.
+//            throw new IllegalStateException("Failed to load block defintions from resource: "
+//                    + mResources.getResourceEntryName(resId));
+//        } finally {
+//            try {
+//                jsonInput.close();
+//            } catch (IOException e) {
+//                // Ignore
+//            }
+//        }
+//    }
 
     /**
      * Create a new {@link Field} instance from JSON.  If the type is not recognized

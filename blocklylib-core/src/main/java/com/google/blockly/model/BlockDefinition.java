@@ -26,6 +26,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -50,6 +51,8 @@ public class BlockDefinition {
     private final String[] mPreviousChecks;
     private final String[] mNextChecks;
     private final boolean mInputsInlineDefault;
+
+    Map<String,FieldDropdown.Options> mDropdownOptions;
 
     /**
      * Initializes the definition from a string of JSON.

@@ -16,8 +16,8 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.support.annotation.RawRes;
 import android.support.v4.util.SimpleArrayMap;
-import android.util.Log;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
@@ -152,30 +152,37 @@ public class Workspace {
     }
 
     /**
-     * Loads the toolbox category, blocks, and buttons.
+     * Loads the toolbox category, blocks, and buttons from the {@code /raw/} resources directory.
      *
      * @param toolboxResId The resource id of the set of blocks or block groups to show in the
-     * @return True if successful. Otherwise, false with error logged.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public boolean loadToolboxContents(int toolboxResId) {
+    public void loadToolboxContents(@RawRes int toolboxResId) throws BlockLoadingException {
         InputStream is = mContext.getResources().openRawResource(toolboxResId);
-        return loadToolboxContents(is);
+        loadToolboxContents(is);
     }
 
     /**
      * Loads the toolbox category, blocks, and buttons.
      *
      * @param source The source of the set of blocks or block groups to show in the toolbox.
-     * @return True if successful. Otherwise, false with error logged.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public boolean loadToolboxContents(InputStream source) {
-        try {
-            mFlyoutCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
-            return true;
-        } catch (BlockLoadingException e) {
-            Log.e(TAG, "Failed to load trash contents.", e);
-            return false;
-        }
+    public void loadToolboxContents(InputStream source) throws BlockLoadingException {
+        mFlyoutCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
+    }
+
+    /**
+     * Set up toolbox's contents.
+     *
+     * @param toolboxXml The xml of the set of blocks or block groups to show in the toolbox.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
+     */
+    public void loadToolboxContents(String toolboxXml) throws BlockLoadingException {
+        loadToolboxContents(new ByteArrayInputStream(toolboxXml.getBytes()));
     }
 
     /**
@@ -184,26 +191,11 @@ public class Workspace {
      * not have subcategories.
      *
      * @param source The source to initialize the trash.
-     * @return True if successful. Otherwise, false with error logged.
+     * @throws BlockLoadingException If trash was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public boolean loadTrashContents(InputStream source) {
-        try {
-            mTrashCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
-            return true;
-        } catch (BlockLoadingException e) {
-            Log.e(TAG, "Failed to load trash contents.", e);
-            return false;
-        }
-    }
-
-    /**
-     * Set up toolbox's contents.
-     *
-     * @param toolboxXml The xml of the set of blocks or block groups to show in the toolbox.
-     * @return True if successful. Otherwise, false with error logged.
-     */
-    public boolean loadToolboxContents(String toolboxXml) {
-        return loadToolboxContents(new ByteArrayInputStream(toolboxXml.getBytes()));
+    public void loadTrashContents(InputStream source) throws BlockLoadingException {
+        mTrashCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
     }
 
     /**
@@ -212,10 +204,11 @@ public class Workspace {
      * not have subcategories.
      *
      * @param trashXml The xml of the flyout to configure the trash.
-     * @return True if successful. Otherwise, false with error logged.
+     * @throws BlockLoadingException If trash was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public boolean loadTrashContents(String trashXml) {
-        return loadTrashContents(new ByteArrayInputStream(trashXml.getBytes()));
+    public void loadTrashContents(String trashXml) throws BlockLoadingException {
+        loadTrashContents(new ByteArrayInputStream(trashXml.getBytes()));
     }
 
 
@@ -224,33 +217,28 @@ public class Workspace {
      * the contents of the xml.
      *
      * @param is The input stream to read from.
-     * @return True if successful. Otherwise, false with error logged.
+     * @throws BlockLoadingException If workspace was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public boolean loadWorkspaceContents(InputStream is) {
-        try {
-            List<Block> newBlocks = BlocklyXmlHelper.loadFromXml(is, mBlockFactory);
+    public void loadWorkspaceContents(InputStream is) throws BlockLoadingException {
+        List<Block> newBlocks = BlocklyXmlHelper.loadFromXml(is, mBlockFactory);
 
-            // Successfully deserialized.  Update workspace.
-            // TODO: (#22) Add proper variable support.
-            // For now just save and restore the list of variables.
-            SimpleArrayMap<String, String> varsMap = mVariableNameManager.getUsedNames();
-            String[] vars = new String[varsMap.size()];
-            for (int i = 0; i < varsMap.size(); i++) {
-                vars[i] = varsMap.keyAt(i);
-            }
-            mController.resetWorkspace();
-            for (int i = 0; i < vars.length; i++) {
-                mController.addVariable(vars[i]);
-            }
+        // Successfully deserialized.  Update workspace.
+        // TODO: (#22) Add proper variable support.
+        // For now just save and restore the list of variables.
+        SimpleArrayMap<String, String> varsMap = mVariableNameManager.getUsedNames();
+        String[] vars = new String[varsMap.size()];
+        for (int i = 0; i < varsMap.size(); i++) {
+            vars[i] = varsMap.keyAt(i);
+        }
+        mController.resetWorkspace();
+        for (int i = 0; i < vars.length; i++) {
+            mController.addVariable(vars[i]);
+        }
 
-            mRootBlocks.addAll(newBlocks);
-            for (int i = 0; i < mRootBlocks.size(); i++) {
-                mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
-            }
-            return true;
-        } catch (BlockLoadingException e) {
-            Log.e(TAG, "Failed to load workspace contents.", e);
-            return false;
+        mRootBlocks.addAll(newBlocks);
+        for (int i = 0; i < mRootBlocks.size(); i++) {
+            mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
         }
     }
 
@@ -259,10 +247,11 @@ public class Workspace {
      * the contents of the xml.
      *
      * @param xml The XML source string to read from.
-     * @return True if successful. Otherwise, false with error logged.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public boolean loadWorkspaceContents(String xml) {
-        return loadWorkspaceContents(new ByteArrayInputStream(xml.getBytes()));
+    public void loadWorkspaceContents(String xml) throws BlockLoadingException {
+        loadWorkspaceContents(new ByteArrayInputStream(xml.getBytes()));
     }
 
     /**

@@ -16,7 +16,6 @@
 package com.google.blockly.android;
 
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -37,7 +36,7 @@ import android.widget.FrameLayout;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.model.BlockFactory;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.List;
@@ -162,15 +161,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link #getWorkspaceSavePath()}.
      */
     public void onSaveWorkspace() {
-        mBlockly.saveWorkspaceToAppDir(getWorkspaceSavePath());
+        mBlockly.saveWorkspaceToAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Save the workspace to the given file in the application's private data directory.
-     * @deprecated Call {@code mBlockly.saveWorkspaceToAppDir(filename)}.
+     * @deprecated Call {@code mBlockly.saveWorkspaceToAppDir(filename)} or
+     *             {@code mBlockly.saveWorkspaceToAppDirSafely(filename)}.
      */
     public void saveWorkspaceToAppDir(String filename) {
-        mBlockly.saveWorkspaceToAppDir(filename);
+        mBlockly.saveWorkspaceToAppDirSafely(filename);
     }
 
     /**
@@ -178,15 +178,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
      */
     public void onLoadWorkspace() {
-        mBlockly.loadWorkspaceFromAppDir(getWorkspaceSavePath());
+        mBlockly.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Loads the workspace from the given file in the application's private data directory.
-     * @deprecated Call {@code mBlockly.loadWorkspaceFromAppDir(filename)}
+     * @deprecated Call {@code mBlockly.loadWorkspaceFromAppDir(filename)} or
+     *             {@code mBlockly.loadWorkspaceFromAppDirSafely(filename)}.
      */
+    @Deprecated
     public void loadWorkspaceFromAppDir(String filename) {
-        mBlockly.loadWorkspaceFromAppDir(filename);
+        mBlockly.loadWorkspaceFromAppDirSafely(filename);
     }
 
     /**
@@ -550,33 +552,21 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Reloads the block definitions and toolbox contents.
-     * @see #getToolboxContentsXmlPath()
-     * @return True if successful. Otherwise, false with the error logged.
+     * Reloads the block definitions and toolbox contents specified by
+     * {@link #getToolboxContentsXmlPath()}
      */
-    protected boolean reloadToolbox() {
-        AssetManager assetManager = getAssets();
-        BlocklyController controller = getController();
-        try {
-            controller.loadToolboxContents(assetManager.open(getToolboxContentsXmlPath()));
-            return true;
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to reload toolbox.", e);
-            return false;
-        }
+    protected void reloadToolbox() {
+        mBlockly.reloadToolbox(getToolboxContentsXmlPath());
     }
 
     /**
-     * Reloads the block definitions.
-     * @see #getBlockDefinitionsJsonPaths()
+     * Reloads the block definitions specified by {@link #getBlockDefinitionsJsonPaths()}.
+     *
+     * @throws IOException If there is a fundamental problem with the input.
+     * @throws BlockLoadingException If the definition is malformed.
      */
     protected void reloadBlockDefinitions() {
-        AssetManager assetManager = getAssets();
-        BlockFactory factory = getController().getBlockFactory();
-        factory.clear();
-        for (String definitionsPath : getBlockDefinitionsJsonPaths()) {
-            factory.addJsonDefinitionsAsset(assetManager, definitionsPath);
-        }
+        mBlockly.reloadBlockDefinitions(getBlockDefinitionsJsonPaths());
     }
 
     /**

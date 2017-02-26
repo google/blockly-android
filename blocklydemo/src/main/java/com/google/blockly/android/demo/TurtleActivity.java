@@ -32,6 +32,7 @@ import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.util.JavascriptUtil;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -96,12 +97,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     public void onLoadWorkspace() {
-        mBlockly.loadWorkspaceFromAppDir(SAVED_WORKSPACE_FILENAME);
+        mBlockly.loadWorkspaceFromAppDirSafely(SAVED_WORKSPACE_FILENAME);
     }
 
     @Override
     public void onSaveWorkspace() {
-        mBlockly.saveWorkspaceToAppDir(SAVED_WORKSPACE_FILENAME);
+        mBlockly.saveWorkspaceToAppDirSafely(SAVED_WORKSPACE_FILENAME);
     }
 
     @Override
@@ -126,11 +127,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
         }
 
         if (loadWorkspace) {
+            String assetFilename = "turtle/demo_workspaces/" + filename;
             try {
-                controller.loadWorkspaceContents(activity.getAssets().open(
-                        "turtle/demo_workspaces/" + filename));
-            } catch (IOException e) {
-                Log.e(TAG, "Couldn't load demo workspace from assets.", e);
+                controller.loadWorkspaceContents(activity.getAssets().open(assetFilename));
+            } catch (IOException | BlockLoadingException e) {
+                throw new IllegalStateException(
+                        "Couldn't load demo workspace from assets: " + assetFilename, e);
             }
             addDefaultVariables(controller);
             return true;

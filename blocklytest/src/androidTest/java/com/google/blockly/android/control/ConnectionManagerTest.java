@@ -42,8 +42,9 @@ public class ConnectionManagerTest {
 
     @Before
     public void setUp() {
-        factory = new BlockFactory(InstrumentationRegistry.getTargetContext());
-        factory.addJsonDefinitions(R.raw.test_blocks);
+        factory = new BlockFactory(
+                InstrumentationRegistry.getTargetContext(),
+                new int[] {R.raw.test_blocks});
         manager = new ConnectionManager();
     }
 
