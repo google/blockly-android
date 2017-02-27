@@ -51,7 +51,7 @@ public class CodeGeneratorManager {
             public void onServiceConnected(ComponentName className, IBinder binder) {
                 try {
                     if (!mResumed) {
-                        mContext.unbindService(mCodeGenerationConnection);
+                        unbind();
                     } else {
                         mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
 
@@ -76,9 +76,7 @@ public class CodeGeneratorManager {
      */
     public void onPause() {
         mResumed = false;
-        if (isBound()) {
-            mContext.unbindService(mCodeGenerationConnection);
-        }
+        unbind();
     }
 
     /**
@@ -88,6 +86,16 @@ public class CodeGeneratorManager {
     public void onResume() {
         mResumed = true;
         mStoredRequests.clear();
+    }
+
+    /**
+     * Checks if the service is currently bound and unbinds it if it is.
+     */
+    protected void unbind() {
+        if (isBound()) {
+            mContext.unbindService(mCodeGenerationConnection);
+            mGeneratorService = null;
+        }
     }
 
     /**
