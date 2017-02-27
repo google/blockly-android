@@ -24,6 +24,7 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.NameManager;
 
 import java.lang.ref.WeakReference;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 
