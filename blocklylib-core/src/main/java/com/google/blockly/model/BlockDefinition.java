@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model;
 
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -31,10 +32,10 @@ import java.util.Map;
 
 /**
  * Definition of a type of block, usually defined in JSON.  See
- * <a href="https://developers.google.com/blockly/guides/create-custom-blocks/define-blocks">the guide on block definitions</a>
- * for details.
+ * <a href="https://developers.google.com/blockly/guides/create-custom-blocks/define-blocks">the
+ * guide on block definitions</a>for details.
  */
-public class BlockDefinition {
+public final class BlockDefinition {
     private static final String TAG = "BlockDefinition";
 
     public static boolean isValidType(String typeName) {
@@ -42,7 +43,7 @@ public class BlockDefinition {
     }
 
     private final JSONObject mJson;
-    private final String mName;
+    private final String mTypeName;
     private final int mColor;
     private final boolean mHasOutput;
     private final boolean mHasPrevious;
@@ -57,7 +58,7 @@ public class BlockDefinition {
     /**
      * Initializes the definition from a string of JSON.
      * @param jsonStr The JSON definition as a string.
-     * @throws JSONException If JSON is malformed or does not include expected a attributes.
+     * @throws JSONException If JSON is malformed or does not include expected attributes.
      */
     public BlockDefinition(String jsonStr) throws JSONException {
         this(new JSONObject(jsonStr));
@@ -66,25 +67,25 @@ public class BlockDefinition {
     /**
      * Initializes the definition from a JSON object.
      * @param json The JSON object with the definition.
-     * @throws JSONException If JSON does not include expected a attributes.
+     * @throws JSONException If JSON does not include expected attributes.
      */
     public BlockDefinition(JSONObject json) throws JSONException {
         mJson = json;
 
         // Validate or create type id.
         String tmpName = mJson.optString("type");
-        String warningPrefix = "";
+        String logPrefix = "";
         if (tmpName == null) {
             // Generate definition name that will be consistent across runs
             int jsonHash = json.toString().hashCode();
             tmpName = "auto-" + Integer.toHexString(jsonHash);
         } else if(isValidType(tmpName)) {
-            warningPrefix = "Type \"" + tmpName + "\": ";
+            logPrefix = "Type \"" + tmpName + "\": ";
         } else {
             String valueQuotedAndEscaped = JSONObject.quote(tmpName);
             throw new IllegalArgumentException("Invalid block type name: " + valueQuotedAndEscaped);
         }
-        mName = tmpName;
+        mTypeName = tmpName;
 
         // A block can have either an output connection or previous connection, but it can always
         // have a next connection.
@@ -93,15 +94,15 @@ public class BlockDefinition {
         mHasNext = mJson.has("nextStatement");
         if (mHasOutput && mHasPrevious) {
             throw new IllegalArgumentException(
-                    warningPrefix + "Block cannot have both \"output\" and \"previousStatement\".");
+                    logPrefix + "Block cannot have both \"output\" and \"previousStatement\".");
         }
         // Each connection may have a list of allow connection checks / types.
         mOutputChecks = mHasOutput ? Input.getChecksFromJson(mJson, "output") : null;
         mPreviousChecks = mHasPrevious ? Input.getChecksFromJson(mJson, "previousStatement") : null;
         mNextChecks = mHasNext ? Input.getChecksFromJson(mJson, "nextStatement") : null;
 
-        mColor = parseColour(warningPrefix, mJson);
-        mInputsInlineDefault = parseInputsInline(warningPrefix, mJson);
+        mColor = parseColour(logPrefix, mJson);
+        mInputsInlineDefault = parseInputsInline(logPrefix, mJson);
     }
 
     /**
@@ -109,8 +110,8 @@ public class BlockDefinition {
      * @return The identifying name of the block definition, referenced by XML and
      *         {@link BlockTemplate}s.
      */
-    public String getName() {
-        return mName;
+    public String getTypeName() {
+        return mTypeName;
     }
 
     /**
@@ -121,24 +122,30 @@ public class BlockDefinition {
     }
 
     /**
-     * @return A new output connection for a new block of this type.
+     * @return A new output connection for a new block of this type, or null if the block should not
+     *         have an output connection.
      */
+    @Nullable
     protected Connection createOutputConnection() {
         return !mHasOutput ? null :
                 new Connection(Connection.CONNECTION_TYPE_OUTPUT, mOutputChecks);
     }
 
     /**
-     * @return A new previous connection for a new block of this type.
+     * @return A new previous connection for a new block of this type, or null if the block should
+     *         not have an previous connection.
      */
+    @Nullable
     protected Connection createPreviousConnection() {
         return !mHasPrevious ? null :
                 new Connection(Connection.CONNECTION_TYPE_PREVIOUS, mPreviousChecks);
     }
 
     /**
-     * @return A new next connection for a new block of this type.
+     * @return A new next connection for a new block of this type, or null if the block should not
+     *         have an next connection.
      */
+    @Nullable
     protected Connection createNextConnection() {
         return !mHasNext ? null :
                 new Connection(Connection.CONNECTION_TYPE_NEXT, mNextChecks);
@@ -202,7 +209,7 @@ public class BlockDefinition {
                         }
 
                         if (Field.isFieldType(elementType)) {
-                            fields.add(factory.loadFieldFromJson(mName, element));
+                            fields.add(factory.loadFieldFromJson(mTypeName, element));
                             break;
                         } else if (Input.isInputType(elementType)) {
                             Input input = Input.fromJson(element);

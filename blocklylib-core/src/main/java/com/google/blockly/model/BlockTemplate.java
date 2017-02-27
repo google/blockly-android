@@ -55,7 +55,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
     // Member fields are accessed directly from {@link Block#applyTemplate(BlockTemplate)}.
 
     // Only one of the following three may be set.
-    protected String mDefinitionName = null;
+    protected String mTypeName = null;
     protected BlockDefinition mDefinition = null;
     protected Block mCopySource = null;
 
@@ -103,7 +103,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * Copy constructor to create a new description based on a prior.
      */
     public BlockTemplate(BlockTemplate src) {
-        mDefinitionName = src.mDefinitionName;
+        mTypeName = src.mTypeName;
         mDefinition = src.mDefinition;
         mId = src.mId;
 
@@ -187,7 +187,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      */
     public BlockTemplate ofType(String definitionName) {
         checkDefinitionAndCopySourceUnset();  // Throws if already set.
-        mDefinitionName = definitionName;
+        mTypeName = definitionName;
         return this;
     }
 
@@ -405,10 +405,10 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
 
     public String toString(String prefix) {
         String msg = prefix;
-        if (mDefinitionName != null) {
-            msg += " \"" + mDefinitionName + "\"";
-        } else if (mDefinition != null && mDefinition.getName() != null) {
-            msg += " \"" + mDefinition.getName() + "\"";
+        if (mTypeName != null) {
+            msg += " \"" + mTypeName + "\"";
+        } else if (mDefinition != null && mDefinition.getTypeName() != null) {
+            msg += " \"" + mDefinition.getTypeName() + "\"";
         }
         if (mId != null) {
             msg += " (id=\"" + mId + "\")";
@@ -443,7 +443,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
     }
 
     private void checkDefinitionAndCopySourceUnset() {
-        if (mDefinition != null || mDefinitionName != null || mCopySource != null) {
+        if (mDefinition != null || mTypeName != null || mCopySource != null) {
             throw new IllegalStateException("Definition or copy source already set.");
         }
     }

@@ -1856,10 +1856,12 @@ public class BlocklyController {
          * <p/>
          * If this is set, {@link #setToolboxConfigurationResId(int)} and {@link
          * #setToolboxConfigurationAsset(String)} may not be set.
+         * @deprecated Use {@link #loadToolboxContents(String)}
          *
          * @param toolboxXml The XML for configuring the toolbox.
          * @return this
          */
+        @Deprecated
         public Builder setToolboxConfiguration(String toolboxXml) {
             if (mToolboxResId != 0 && mToolboxAssetPath != null) {
                 throw new IllegalStateException("Toolbox xml may not be set if a res id is set");

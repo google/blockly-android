@@ -129,11 +129,11 @@ public class BlockFactory {
      * @throws IllegalArgumentException If type name is already defined.
      */
     public void addDefinition(BlockDefinition definition) {
-        String definitionName = definition.getName();
-        if (mDefinitions.containsKey(definitionName)) {
+        String typeName = definition.getTypeName();
+        if (mDefinitions.containsKey(typeName)) {
             throw new IllegalArgumentException("Definition already defined. Must remove first.");
         }
-        mDefinitions.put(definitionName, definition);
+        mDefinitions.put(typeName, definition);
     }
 
     /**
@@ -182,7 +182,7 @@ public class BlockFactory {
         int blockAddedCount = 0;
         for (arrayIndex = 0; arrayIndex < defs.size(); ++arrayIndex) {
             BlockDefinition def = defs.get(arrayIndex);
-            String typeName = def.getName();
+            String typeName = def.getTypeName();
 
             // Replace prior definition with warning, mimicking web behavior.
             if (removeDefinition(typeName)) {
@@ -270,16 +270,16 @@ public class BlockFactory {
         } else {
             // Start a new block from a block definition.
             if (template.mDefinition != null) {
-                if (template.mDefinitionName != null
-                        && !template.mDefinitionName.equals(template.mDefinition.getName())) {
+                if (template.mTypeName != null
+                        && !template.mTypeName.equals(template.mDefinition.getTypeName())) {
                     throw new BlockLoadingException("Conflicting block definitions referenced.");
                 }
                 definition = template.mDefinition;
-            } else if (template.mDefinitionName != null) {
-                definition = mDefinitions.get(template.mDefinitionName.trim());
+            } else if (template.mTypeName != null) {
+                definition = mDefinitions.get(template.mTypeName.trim());
                 if (definition == null) {
                     throw new BlockLoadingException("Block definition named \""
-                            + template.mDefinitionName + "\" not found.");
+                            + template.mTypeName + "\" not found.");
                 }
             } else {
                 throw new BlockLoadingException(template.toString() + "missing block definition.");

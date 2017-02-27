@@ -75,12 +75,13 @@ public class Block {
           boolean isShadow)
             throws BlockLoadingException {
         if (factory == null || definition == null || id == null) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException(
+                    "Tried to instantiate ablock but factory, definition, or id was null.");
         }
         mFactory = factory;
         mId = id;
 
-        mType = definition.getName();
+        mType = definition.getTypeName();
         mColor = definition.getColor();
 
         mOutputConnection = definition.createOutputConnection();
@@ -322,7 +323,7 @@ public class Block {
      */
     public void setPosition(float x, float y) {
         if (Float.isNaN(x) || Float.isInfinite(x) || Float.isNaN(y) || Float.isInfinite(y)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Position must be a real, finite number.");
         }
         mPosition.x = x;
         mPosition.y = y;
@@ -714,7 +715,12 @@ public class Block {
         return description;
     };
 
+    /**
+     * Updates {@link #mConnectionList} to reflect the latest state of all connections on this block
+     * (inputs, next, previous, and output).
+     */
     private void rebuildConnectionList() {
+        mConnectionList.clear();
         if (mInputList != null) {
             for (int i = 0; i < mInputList.size(); i++) {
                 Input in = mInputList.get(i);
