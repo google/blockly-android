@@ -42,6 +42,7 @@ public final class BlockDefinition {
         return !TextUtils.isEmpty(typeName);
     }
 
+    // TODO: Parse into List<InputDefinition> and discard JSON. Include FieldDropdown.Options.
     private final JSONObject mJson;
     private final String mTypeName;
     private final int mColor;
@@ -52,8 +53,6 @@ public final class BlockDefinition {
     private final String[] mPreviousChecks;
     private final String[] mNextChecks;
     private final boolean mInputsInlineDefault;
-
-    Map<String,FieldDropdown.Options> mDropdownOptions;
 
     /**
      * Initializes the definition from a string of JSON.
@@ -176,7 +175,7 @@ public final class BlockDefinition {
                 // TODO(#83): load the message from resources.
             }
             // Split on all argument indices of the form "%N" where N is a number from 1 to
-            // the number of args without removing them.
+            // the number of args. Arguments indices are returned as "%N" strings.
             List<String> tokens = Block.tokenizeMessage(message);
             int indexCount = 0;
             // Indices start at 1, make the array 1 bigger so we don't have to offset things

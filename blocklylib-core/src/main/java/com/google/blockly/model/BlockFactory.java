@@ -88,7 +88,7 @@ public class BlockFactory {
 
     /**
      * Create a factory with an initial set of blocks from json resources.
-     * Block definitions from resources will never be passed to generators
+     * Block definitions from resources are not currently passed to generators
      * (https://github.com/google/blockly-android/issues/525). Instead, use
      * {@link #addJsonDefinitions(String)} to load from assets.
      * @deprecated Call default constructor, and prefer block definitions in assets over resources.
@@ -119,8 +119,7 @@ public class BlockFactory {
      */
     public boolean isBlockIdInUse(String id) {
         WeakReference<Block> priorBlockRef = mBlockRefs.get(id);
-        Block priorBlock = priorBlockRef == null ? null : priorBlockRef.get();
-        return priorBlock != null;
+        return priorBlockRef != null && priorBlockRef.get() != null;
     }
 
     /**
@@ -131,7 +130,8 @@ public class BlockFactory {
     public void addDefinition(BlockDefinition definition) {
         String typeName = definition.getTypeName();
         if (mDefinitions.containsKey(typeName)) {
-            throw new IllegalArgumentException("Definition already defined. Must remove first.");
+            throw new IllegalArgumentException(
+                    "Definition \"" + typeName + "\" already defined. Prior must remove first.");
         }
         mDefinitions.put(typeName, definition);
     }
@@ -197,11 +197,10 @@ public class BlockFactory {
     }
 
     /**
-     * Removes a block type from the factory. If the Block is still in use by the workspace this
-     * could cause a crash if the user tries to load a new block of this type, including copies.
+     * Removes a block type definition from the factory. If any block of this type is still in use,
+     * this may cause a crash if the user tries to load a new block of this type, including copies.
      *
      * @param definitionName The name of the block to remove.
-     *
      * @return True if the definition was found and removed. Otherwise, false.
      */
     public boolean removeDefinition(String definitionName) {
@@ -209,12 +208,11 @@ public class BlockFactory {
     }
 
     /**
-     * Creates a block of the specified type using one of {@link BlockDefinition}s registered with
-     * this factory. If the definitionName is not one of the known block types null will be returned
-     * instead.
+     * Creates a block of the specified type using a {@link BlockDefinition} registered with this
+     * factory. If the {@code definitionName} is not one of the known block types null will be
+     * returned instead.
      *
-     * <strong>Deprecated:</strong> Prefer using
-     * {@code obtain(block().ofType(definitionName).withId(id));}
+     * @deprecated Prefer using {@code obtain(block().ofType(definitionName).withId(id));}
      *
      * @param definitionName The name of the block type to create.
      * @param id The id of the block if loaded from XML; null otherwise.
@@ -224,7 +222,7 @@ public class BlockFactory {
     @Deprecated
     public Block obtainBlock(String definitionName, @Nullable String id) {
         // Validate id is available.
-        if (isBlockIdInUse(id)) {
+        if (id != null && isBlockIdInUse(id)) {
             throw new IllegalArgumentException("Block id \"" + id + "\" already in use.");
         }
 
@@ -297,42 +295,11 @@ public class BlockFactory {
     }
 
     /**
-     * @return The list of known blocks that can be created.
+     * @return The list of known blocks types.
      */
     public List<BlockDefinition> getAllBlockDefinitions() {
         return new ArrayList<>(mDefinitions.values());
     }
-
-//    /**
-//     * Loads and adds block templates from a raw file resource.
-//     *
-//     * Block definitions from resources will never be passed to generators
-//     * (https://github.com/google/blockly-android/issues/525). Instead, use
-//     * {@link #addJsonDefinitionsAsset(String)} to load from assets.
-//     *
-//     * @param resId The id of the JSON resource to load blocks from.
-//     *
-//     * @return Number of blocks added to the factory.
-//     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
-//     */
-//    @Deprecated
-//    public int addJsonDefinitions(int resId) {
-//        InputStream jsonInput = mResources.openRawResource(resId);
-//        try {
-//            Pair<List<Exception>, Integer> results = addJsonDefinitions(jsonInput);
-//            return results.second;
-//        } catch (IOException e) {
-//            // Compile time resources are expected to always be valid.
-//            throw new IllegalStateException("Failed to load block defintions from resource: "
-//                    + mResources.getResourceEntryName(resId));
-//        } finally {
-//            try {
-//                jsonInput.close();
-//            } catch (IOException e) {
-//                // Ignore
-//            }
-//        }
-//    }
 
     /**
      * Create a new {@link Field} instance from JSON.  If the type is not recognized
@@ -543,7 +510,6 @@ public class BlockFactory {
                 }
                 eventType = parser.next();
             }
-            // Should never reach here, since this is called from a workspace fromXml function.
             throw new BlockLoadingException("Reached the END_DOCUMENT before end of block.");
         } catch (XmlPullParserException | IOException e) {
             throw new BlockLoadingException(e);
@@ -634,31 +600,31 @@ public class BlockFactory {
          * Sets a field's value immediately after creation.
          * Generally only used during XML deserialization.
          *
-         * This method is package private because the API of this method is subject to change. Do not
-         * use it in application code.
+         * This method is package private because the API of this method is subject to change. Do
+         * not use it in application code.
          *
          * @param inputName The name of the field.
          * @param child The deserialized child block.
          * @param shadow The deserialized shadow block.
          * @return This block descriptor, for chaining.
-         * @throws IllegalArgumentException If inputName is not a valid name; if child or shadow are not
-         *                                  configured as such; if child or shadow overwrites a prior
-         *                                  value.
+         * @throws BlockLoadingException If inputName is not a valid name; if child or shadow are
+         *                               not configured as such; if child or shadow overwrites a
+         *                               prior value.
          */
-        BlockTemplate withInputValue(String inputName, Block child, Block shadow) {
+        XmlBlockTemplate withInputValue(String inputName, Block child, Block shadow)
+                throws BlockLoadingException {
             if (inputName == null
                     || (inputName = inputName.trim()).length() == 0) {  // Trim and test name
-                throw new IllegalArgumentException("Invalid input value name.");
+                throw new BlockLoadingException("Invalid input value name.");
             }
             // Validate child block shadow state and upward connection.
             if (child != null && (child.isShadow() || child.getUpwardsConnection() == null)) {
-                throw new IllegalArgumentException("Invalid input value block.");
+                throw new BlockLoadingException("Invalid input value block.");
             }
             if (shadow != null && (!shadow.isShadow() || shadow.getUpwardsConnection() == null)) {
-                throw new IllegalArgumentException("Invalid input shadow block.");
+                throw new BlockLoadingException("Invalid input shadow block.");
             }
 
-            // Find duplicate values.
             if (mInputValues == null) {
                 mInputValues = new ArrayList<>();
             } else {
@@ -690,17 +656,23 @@ public class BlockFactory {
          * Sets a block next children immediately after creation.
          * Generally only used during XML deserialization.
          *
-         * This method is package private because the API of this method is subject to change. Do not
-         * use it in application code.
+         * This method is package private because the API of this method is subject to change. Do
+         * not use it in application code.
          *
          * @param child The deserialized child block.
          * @param shadow The deserialized shadow block.
          * @return This block descriptor, for chaining.
+         * @throws BlockLoadingException If inputName is not a valid name; if child or shadow are
+         *                               not configured as such; if child or shadow overwrites a
+         *                               prior value.
          */
-        BlockTemplate withNextChild(Block child, Block shadow) {
-            if ((child != null && (child.isShadow() || child.getPreviousConnection() == null))
-                    || ((shadow != null) && (!shadow.isShadow() || shadow.getPreviousConnection() == null))) {
-                throw new IllegalArgumentException("Invalid next child Block(s).");
+        XmlBlockTemplate withNextChild(Block child, Block shadow) throws BlockLoadingException {
+            if (child != null && (child.isShadow() || child.getPreviousConnection() == null)) {
+                throw new BlockLoadingException("Invalid next child block.");
+            }
+            if (shadow != null && (!shadow.isShadow() || shadow.getPreviousConnection() == null)) {
+                throw new BlockLoadingException("Invalid next child shadow.");
+
             }
             mNextChild = child;
             mNextShadow = shadow;
@@ -711,7 +683,8 @@ public class BlockFactory {
         public void applyMutableState(Block block) throws BlockLoadingException {
             super.applyMutableState(block);
 
-            // TODO: Use the controller for the following block connections, in order to fire events.
+            // TODO: Use the controller for the following block connections, in order to fire
+            //       events.
             if (mInputValues != null) {
                 for (InputValue inputValue : mInputValues) {
                     Input input = block.getInputByName(inputValue.mName);
@@ -724,7 +697,8 @@ public class BlockFactory {
                         throw new BlockLoadingException(
                                 "Input \"" + inputValue.mName + "\" does not have a connection.");
                     }
-                    block.connectOrThrow(input.getType() == Input.TYPE_STATEMENT ? "statement" : "value",
+                    block.connectOrThrow(
+                            input.getType() == Input.TYPE_STATEMENT ? "statement" : "value",
                             connection, inputValue.mChild, inputValue.mShadow);
                 }
             }
