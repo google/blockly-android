@@ -111,11 +111,6 @@ public class SplitActivity extends AbstractBlocklyActivity {
     }
 
     @Override
-    protected void onInitBlankWorkspace() {
-        TurtleActivity.addDefaultVariables(getController());
-    }
-
-    @Override
     public void onClearWorkspace() {
         super.onClearWorkspace();
         mGeneratedTextView.setText(mNoCodeText);

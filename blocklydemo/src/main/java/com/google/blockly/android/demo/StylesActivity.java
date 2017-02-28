@@ -59,14 +59,4 @@ public class StylesActivity extends AbstractBlocklyActivity {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
     }
-
-    @Override
-    protected void onInitBlankWorkspace() {
-        // TODO: (#22) Remove this override when variables are supported properly
-        getController().addVariable("item");
-        getController().addVariable("leo");
-        getController().addVariable("don");
-        getController().addVariable("mike");
-        getController().addVariable("raf");
-    }
 }
