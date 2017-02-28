@@ -79,7 +79,11 @@ public class BlockFactoryTest {
     public void testSuccessfulLoadFromXml() throws IOException, XmlPullParserException {
         Block loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK);
         assertThat(loaded.getType()).isEqualTo("frankenblock");
-        assertThat(loaded.getPosition()).isEqualTo(new WorkspacePoint(37, 13));
+
+        // PointF.equals(other) did not exist before API 17. Compare components for 16.
+        WorkspacePoint position = loaded.getPosition();
+        assertThat(position.x).isEqualTo(37f);
+        assertThat(position.y).isEqualTo(13f);
     }
 
     @Test
@@ -235,8 +239,12 @@ public class BlockFactoryTest {
     public void testLoadFromXmlSimpleShadow() throws IOException, XmlPullParserException {
         Block loaded = parseShadowFromXml(BlockTestStrings.SIMPLE_SHADOW);
         assertThat(loaded.getType()).isEqualTo("math_number");
-        assertThat(loaded.getPosition()).isEqualTo(new WorkspacePoint(37, 13));
         assertThat(loaded.isShadow()).isTrue();
+
+        // PointF.equals(other) did not exist before API 17. Compare components for API 16.
+        WorkspacePoint position = loaded.getPosition();
+        assertThat(position.x).isEqualTo(37f);
+        assertThat(position.y).isEqualTo(13f);
     }
 
     @Test
