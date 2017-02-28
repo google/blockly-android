@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Template of a block, describing the initial state of a new block. The most methods return the
+ * Template of a block, describing the initial state of a new block. Most methods return the
  * template, for use in chaining.
  */
 public class BlockTemplate {

@@ -1954,7 +1954,7 @@ public class BlocklyController {
         /**
          * Loads the toolbox from {@link #mToolboxResId}, {@link #mToolboxXml}, or
          * {@link #mToolboxAssetPath}. If loading fails, throw an IllegalStateException since this
-         * this is a early initialization (and probably compile time) resource.
+         * is a early initialization (and probably compile time) resource.
          *
          * @param controller The controller to load into.
          */
