@@ -40,8 +40,8 @@ public final class BlockDefinition {
         return !TextUtils.isEmpty(typeName);
     }
 
-    // TODO: Parse into List<InputDefinition> and discard JSON. Include FieldDropdown.Options.
-    private final JSONObject mJson;
+    // TODO(#542): Parse into List<InputDefinition> and discard JSON. Include FieldDropdown.Options.
+    private final JSONObject mJson;  // Saved to parse inputs and field at creation time.
     private final String mTypeName;
     private final int mColor;
     private final boolean mHasOutput;
@@ -57,16 +57,16 @@ public final class BlockDefinition {
      * @param jsonStr The JSON definition as a string.
      * @throws JSONException If JSON is malformed or does not include expected attributes.
      */
-    public BlockDefinition(String jsonStr) throws JSONException {
-        this(new JSONObject(jsonStr));
+    public BlockDefinition(String jsonStr) throws BlockLoadingException {
+        this(parseJsonOrThrow(jsonStr));
     }
 
     /**
      * Initializes the definition from a JSON object.
      * @param json The JSON object with the definition.
-     * @throws JSONException If JSON does not include expected attributes.
+     * @throws BlockLoadingException If JSON does not include expected attributes.
      */
-    public BlockDefinition(JSONObject json) throws JSONException {
+    public BlockDefinition(JSONObject json) throws BlockLoadingException {
         mJson = json;
 
         // Validate or create type id.
@@ -80,7 +80,7 @@ public final class BlockDefinition {
             logPrefix = "Type \"" + tmpName + "\": ";
         } else {
             String valueQuotedAndEscaped = JSONObject.quote(tmpName);
-            throw new IllegalArgumentException("Invalid block type name: " + valueQuotedAndEscaped);
+            throw new BlockLoadingException("Invalid block type name: " + valueQuotedAndEscaped);
         }
         mTypeName = tmpName;
 
@@ -90,7 +90,7 @@ public final class BlockDefinition {
         mHasPrevious = mJson.has("previousStatement");
         mHasNext = mJson.has("nextStatement");
         if (mHasOutput && mHasPrevious) {
-            throw new IllegalArgumentException(
+            throw new BlockLoadingException(
                     logPrefix + "Block cannot have both \"output\" and \"previousStatement\".");
         }
         // Each connection may have a list of allow connection checks / types.
@@ -252,6 +252,18 @@ public final class BlockDefinition {
      */
     public boolean isInputsInlineDefault() {
         return mInputsInlineDefault;
+    }
+
+    /**
+     * Attempts to parse a string as JSON.
+     * @throws BlockLoadingException If the string is not valid JSON.
+     */
+    private static final JSONObject parseJsonOrThrow(String jsonStr) throws BlockLoadingException {
+        try {
+            return new JSONObject(jsonStr);
+        } catch (JSONException e) {
+            throw new BlockLoadingException(e);
+        }
     }
 
     /**

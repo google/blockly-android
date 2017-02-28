@@ -17,6 +17,7 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.support.v4.util.SimpleArrayMap;
+import android.util.Log;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
