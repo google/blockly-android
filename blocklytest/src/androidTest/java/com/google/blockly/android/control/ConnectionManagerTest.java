@@ -19,6 +19,7 @@ import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
@@ -30,7 +31,6 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -137,7 +137,8 @@ public class ConnectionManagerTest {
                 Connection.CONNECTION_TYPE_OUTPUT, /* shadow */ false);
 
         // Verify that shadows can be parents of other shadows
-        assertThat(manager.isConnectionAllowed(shadowParentInput, shadowOutput, 1000.0, false)).isTrue();
+        assertThat(manager.isConnectionAllowed(shadowParentInput, shadowOutput, 1000.0, false))
+                .isTrue();
         // But not parents of non-shadows
         assertThat(manager.isConnectionAllowed(shadowParentInput, output, 1000.0, false)).isFalse();
         // Unless shadow parents are explicitly allowed
@@ -379,7 +380,8 @@ public class ConnectionManagerTest {
         Connection conn = new Connection(connectionType, null);
         conn.setPosition(x, y);
         try {
-            conn.setBlock(factory.obtain(block().shadow(shadow).ofType(blockType)));
+            conn.setBlock(factory.obtainBlockFrom(
+                    new BlockTemplate().shadow(shadow).ofType(blockType)));
         } catch (BlockLoadingException e) {
             throw new RuntimeException(
                     "Unexpected error obtaining \"" + blockType + "\" block.", e);

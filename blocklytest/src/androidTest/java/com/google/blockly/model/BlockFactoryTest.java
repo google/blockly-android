@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.blockly.utils.MoreAsserts.assertStringNotEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -64,7 +63,8 @@ public class BlockFactoryTest {
 
     @Test
     public void testJson() throws JSONException, BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().fromJson(BlockTestStrings.TEST_JSON_STRING));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().fromJson(BlockTestStrings.TEST_JSON_STRING));
 
         assertWithMessage("Block was null after initializing from JSON").that(block).isNotNull();
         assertWithMessage("Type not set correctly").that(block.getType()).isEqualTo("test_block");
@@ -343,10 +343,12 @@ public class BlockFactoryTest {
 
     @Test
     public void testObtainBlock_repeatedWithoutUuid() throws BlockLoadingException {
-        Block frankenblock = mBlockFactory.obtain(block().ofType("frankenblock"));
+        Block frankenblock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("frankenblock"));
         assertWithMessage("Failed to create the frankenblock.").that(frankenblock).isNotNull();
 
-        Block frankencopy = mBlockFactory.obtain(block().ofType("frankenblock"));
+        Block frankencopy = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("frankenblock"));
         assertWithMessage("Obtained blocks should be distinct objects when uuid is null.")
                 .that(frankencopy).isNotSameAs(frankenblock);
 

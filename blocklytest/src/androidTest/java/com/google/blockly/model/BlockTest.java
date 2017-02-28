@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.blockly.utils.MoreAsserts.assertStringNotEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -56,14 +55,14 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testEmptyBlockHasId() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("text"));
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         assertWithMessage("Block id cannot be empty.")
                 .that(block.getId()).isNotEmpty();
     }
 
     @Test
     public void testCopyBlockDoesNotCopyId() throws BlockLoadingException {
-        Block original = mBlockFactory.obtain(block().ofType("text"));
+        Block original = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         Block copy = original.deepCopy();
 
         assertStringNotEmpty("Copies of blocks cannot be empty ids.", copy.getId());
@@ -73,10 +72,12 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testCopyBlockCopiesChildren() throws BlockLoadingException {
-        Block original = mBlockFactory.obtain(block().ofType("simple_input_output").withId("1"));
-        Block original2 = mBlockFactory.obtain(block().ofType("simple_input_output").withId("2"));
-        Block originalShadow = mBlockFactory.obtain(
-                block().shadow().ofType("simple_input_output").withId("3"));
+        Block original = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("1"));
+        Block original2 = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("2"));
+        Block originalShadow = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().shadow().ofType("simple_input_output").withId("3"));
         
         original.getOnlyValueInput().getConnection().connect(original2.getOutputConnection());
         original.getOnlyValueInput().getConnection()
@@ -128,8 +129,8 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSerializeBlock() throws IOException, BlockLoadingException {
-        Block block = mBlockFactory.obtain(
-                block().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
         block.setPosition(37, 13);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
@@ -145,7 +146,8 @@ public class BlockTest extends BlocklyTestCase {
         serializer.flush();
         assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_NO_POSITION);
 
-        block = mBlockFactory.obtain(block().ofType("frankenblock").withId("frankenblock1"));
+        block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("frankenblock").withId("frankenblock1"));
         os = new ByteArrayOutputStream();
         serializer = getXmlSerializer(os);
 
@@ -159,8 +161,8 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSerializeInputsInline() throws IOException, BlockLoadingException {
-        Block block = mBlockFactory.obtain(
-                block().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
         block.setPosition(37, 13);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         XmlSerializer serializer = getXmlSerializer(os);
@@ -186,7 +188,8 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSerializeShadowBlock() throws IOException, BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().shadow().ofType("empty_block")
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().shadow().ofType("empty_block")
                 .withId(BlockTestStrings.EMPTY_BLOCK_ID)
                 .atPosition(37, 13));
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -199,11 +202,13 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSerializeValue() throws IOException, BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("frankenblock").withId("364"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("frankenblock").withId("364"));
         block.setPosition(37, 13);
 
         Input input = block.getInputByName("value_input");
-        Block inputBlock = mBlockFactory.obtain(block().ofType("output_foo").withId("VALUE_GOOD"));
+        Block inputBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("output_foo").withId("VALUE_GOOD"));
         input.getConnection().connect(inputBlock.getOutputConnection());
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -220,15 +225,15 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSerializeShadowValue() throws IOException, BlockLoadingException {
-        Block block = mBlockFactory.obtain(
-                block().ofType("frankenblock").withId("364").atPosition(37, 13));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("frankenblock").withId("364").atPosition(37, 13));
 
         Input input = block.getInputByName("value_input");
-        Block inputBlock = mBlockFactory.obtain(
-                block().ofType("output_foo").withId("VALUE_REAL"));
+        Block inputBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("output_foo").withId("VALUE_REAL"));
         input.getConnection().connect(inputBlock.getOutputConnection());
-        inputBlock = mBlockFactory.obtain(
-                block().shadow().ofType("output_foo").withId("VALUE_SHADOW"));
+        inputBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().shadow().ofType("output_foo").withId("VALUE_SHADOW"));
         input.getConnection().setShadowConnection(inputBlock.getOutputConnection());
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -242,15 +247,16 @@ public class BlockTest extends BlocklyTestCase {
                 + BlockTestStrings.BLOCK_END;
         assertThat(os.toString()).isEqualTo(expected);
 
-        block = mBlockFactory.obtain(block().ofType("frankenblock").withId("777"));
+        block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("frankenblock").withId("777"));
         block.setPosition(37, 13);
         input = block.getInputByName("value_input");
-        inputBlock = mBlockFactory.obtain(
-                block().shadow().ofType("simple_input_output").withId("SHADOW1"));
+        inputBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().shadow().ofType("simple_input_output").withId("SHADOW1"));
         input.getConnection().connect(inputBlock.getOutputConnection());
         input = inputBlock.getOnlyValueInput();
-        inputBlock = mBlockFactory.obtain(
-                block().shadow().ofType("simple_input_output").withId("SHADOW2"));
+        inputBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().shadow().ofType("simple_input_output").withId("SHADOW2"));
         input.getConnection().connect(inputBlock.getOutputConnection());
 
         os.reset();
@@ -266,11 +272,13 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSerializeStatement() throws IOException, BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("frankenblock").withId("364"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("frankenblock").withId("364"));
         block.setPosition(37, 13);
 
         Input input = block.getInputByName("NAME");
-        Block inputBlock = mBlockFactory.obtain(block().ofType("frankenblock").withId("3"));
+        Block inputBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("frankenblock").withId("3"));
         input.getConnection().connect(inputBlock.getPreviousConnection());
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -292,22 +300,23 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testGetAllConnections() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("frankenblock"));
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("frankenblock"));
         List<Connection> allConnections = block.getAllConnections();
         assertThat(allConnections.size()).isEqualTo(4);
 
-        block = mBlockFactory.obtain(block().ofType("frankenblock"));
+        block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("frankenblock"));
         allConnections.clear();
         block.getAllConnections(allConnections);
         assertThat(allConnections.size()).isEqualTo(4);
 
         allConnections.clear();
 
-        Block ivb = mBlockFactory.obtain(block().ofType("simple_input_output"));
+        Block ivb = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
         block.getInputs().get(0).getConnection().connect(ivb.getOutputConnection());
-        Block svb = mBlockFactory.obtain(block().ofType("output_no_input"));
+        Block svb = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("output_no_input"));
         ivb.getInputs().get(0).getConnection().connect(svb.getOutputConnection());
-        Block smb = mBlockFactory.obtain(block().ofType("statement_no_input"));
+        Block smb = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("statement_no_input"));
         block.getInputs().get(1).getConnection().connect(smb.getPreviousConnection());
 
         block.getAllConnectionsRecursive(allConnections);
@@ -317,23 +326,28 @@ public class BlockTest extends BlocklyTestCase {
     @Test
     public void testGetOnlyValueInput() throws BlockLoadingException {
         // No inputs.
-        assertThat(mBlockFactory.obtain(
-                block().ofType("statement_no_input")).getOnlyValueInput()).isNull();
+        assertThat(mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input")
+        ).getOnlyValueInput()).isNull();
 
         // One value input.
-        Block underTest = mBlockFactory.obtain(block().ofType("statement_value_input"));
+        Block underTest = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_value_input"));
         assertThat(underTest.getInputByName("value")).isSameAs(underTest.getOnlyValueInput());
 
         // Statement input, no value inputs.
-        assertThat(mBlockFactory.obtain(
-                block().ofType("statement_statement_input")).getOnlyValueInput()).isNull();
+        assertThat(mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_statement_input")
+        ).getOnlyValueInput()).isNull();
 
         // Multiple value inputs.
-        assertThat(mBlockFactory.obtain(block().ofType("statement_multiple_value_input"))
-                .getOnlyValueInput());
+        assertThat(mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_multiple_value_input")
+        ).getOnlyValueInput());
 
         // Statement input, dummy input and value input.
-        underTest = mBlockFactory.obtain(block().ofType("controls_repeat_ext"));
+        underTest = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("controls_repeat_ext"));
         assertThat(underTest.getInputByName("TIMES")).isSameAs(underTest.getOnlyValueInput());
     }
 
@@ -364,10 +378,10 @@ public class BlockTest extends BlocklyTestCase {
     public void testGetLastUnconnectedInputConnectionOneInputAtEnd() throws BlockLoadingException {
         // Two simple input blocks
         ArrayList<Block> blocks = new ArrayList<>();
-        Block first = mBlockFactory.obtain(
-                block().ofType("simple_input_output").withId("first block"));
-        Block second = mBlockFactory.obtain(
-                block().ofType("simple_input_output").withId("second block"));
+        Block first = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("first block"));
+        Block second = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("second block"));
         first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
         blocks.add(first);
 
@@ -380,12 +394,12 @@ public class BlockTest extends BlocklyTestCase {
     @Test
     public void testGetLastUnconnectedInputConnectionMultipleInputs() throws BlockLoadingException {
         ArrayList<Block> blocks = new ArrayList<>();
-        Block first = mBlockFactory.obtain(
-                block().ofType("simple_input_output").withId("first block"));
-        Block second = mBlockFactory.obtain(
-                block().ofType("simple_input_output").withId("second block"));
-        Block third = mBlockFactory.obtain(
-                block().ofType("multiple_input_output").withId("third block"));
+        Block first = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("first block"));
+        Block second = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("second block"));
+        Block third = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("multiple_input_output").withId("third block"));
         first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
         second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
         blocks.add(first);
@@ -398,12 +412,12 @@ public class BlockTest extends BlocklyTestCase {
     @Test
     public void testGetLastUnconnectedInputConnectionNoInput() throws BlockLoadingException {
         ArrayList<Block> blocks = new ArrayList<>();
-        Block first = mBlockFactory.obtain(
-                block().ofType("simple_input_output").withId("first block"));
-        Block second = mBlockFactory.obtain(
-                block().ofType("simple_input_output").withId("second block"));
-        Block third = mBlockFactory.obtain(
-                block().ofType("output_no_input").withId("third block"));
+        Block first = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("first block"));
+        Block second = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("second block"));
+        Block third = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("output_no_input").withId("third block"));
         first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
         second.getOnlyValueInput().getConnection().connect(third.getOutputConnection());
         blocks.add(first);
@@ -417,11 +431,12 @@ public class BlockTest extends BlocklyTestCase {
     public void testGetLastUnconnectedInputConnectionShadowAtEnd() throws BlockLoadingException {
         // Two simple input blocks
         ArrayList<Block> blocks = new ArrayList<>();
-        Block first = mBlockFactory.obtain(
-                block().ofType("simple_input_output").withId("first block"));
-        Block second = mBlockFactory.obtain(
-                block().ofType("simple_input_output").withId("second block"));
-        Block shadow = mBlockFactory.obtain(block().shadow().copyOf(second).withId("shadow block"));
+        Block first = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("first block"));
+        Block second = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output").withId("second block"));
+        Block shadow = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().shadow().copyOf(second).withId("shadow block"));
 
         first.getOnlyValueInput().getConnection().connect(second.getOutputConnection());
         Connection secondConn = second.getOnlyValueInput().getConnection();
@@ -437,11 +452,12 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testLastBlockInSequence_blockLacksNext() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(
-                block().ofType("statement_input_no_next").withId("block"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_input_no_next").withId("block"));
 
         // This value block should not returned; it is not connected to the next connection.
-        Block value = mBlockFactory.obtain(block().ofType("output_no_input").withId("value"));
+        Block value = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("output_no_input").withId("value"));
         block.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
         assertThat(block).isSameAs(block.getLastBlockInSequence());
@@ -449,10 +465,12 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testLastBlockInSequence_noBlockConnected() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("statement_value_input").withId("block"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_value_input").withId("block"));
 
         // This value block should not returned; it is not connected to the next connection.
-        Block value = mBlockFactory.obtain(block().ofType("output_no_input").withId("value"));
+        Block value = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("output_no_input").withId("value"));
         block.getInputByName("value").getConnection().connect(value.getOutputConnection());
 
         assertThat(block).isSameAs(block.getLastBlockInSequence());
@@ -460,15 +478,16 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testLastBlockInSequence_lastBlockUnconnected() throws BlockLoadingException {
-        Block first = mBlockFactory.obtain(
-                block().ofType("statement_no_input").withId("first block"));
-        Block second = mBlockFactory.obtain(
-                block().ofType("statement_no_input").withId("second block"));
-        Block third = mBlockFactory.obtain(
-                block().ofType("statement_value_input").withId("third block"));
+        Block first = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input").withId("first block"));
+        Block second = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input").withId("second block"));
+        Block third = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_value_input").withId("third block"));
 
         // This value block should not returned; it is not connected to the next connection.
-        Block value = mBlockFactory.obtain(block().ofType("output_no_input").withId("value"));
+        Block value = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("output_no_input").withId("value"));
 
         first.getNextConnection().connect(second.getPreviousConnection());
         second.getNextConnection().connect(third.getPreviousConnection());
@@ -479,15 +498,16 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testLastBlockInSequence_lastBlockNoNext() throws BlockLoadingException {
-        Block first = mBlockFactory.obtain(
-                block().ofType("statement_no_input").withId("first block"));
-        Block second = mBlockFactory.obtain(
-                block().ofType("statement_no_input").withId("second block"));
-        Block third = mBlockFactory.obtain(
-                block().ofType("statement_input_no_next").withId("third block"));
+        Block first = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input").withId("first block"));
+        Block second = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input").withId("second block"));
+        Block third = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_input_no_next").withId("third block"));
 
         // This value block should not returned; it is not connected to the next connection.
-        Block value = mBlockFactory.obtain(block().ofType("output_no_input").withId("value"));
+        Block value = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("output_no_input").withId("value"));
 
         first.getNextConnection().connect(second.getPreviousConnection());
         second.getNextConnection().connect(third.getPreviousConnection());
@@ -498,11 +518,12 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testLastBlockInSequence_lastBlockShadow() throws BlockLoadingException {
-        Block first = mBlockFactory.obtain(
-                block().ofType("statement_no_input").withId("first block"));
-        Block second = mBlockFactory.obtain(
-                block().ofType("statement_no_input").withId("second block"));
-        Block shadow = mBlockFactory.obtain(block().shadow().copyOf(second).withId("shadow block"));
+        Block first = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input").withId("first block"));
+        Block second = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input").withId("second block"));
+        Block shadow = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().shadow().copyOf(second).withId("shadow block"));
 
         first.getNextConnection().connect(second.getPreviousConnection());
         second.getNextConnection().setShadowConnection(shadow.getPreviousConnection());
@@ -513,12 +534,14 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testBlockIdSerializedDeserialized() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("statement_no_input").withId("123"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input").withId("123"));
     }
 
     @Test
     public void testCollapsed() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("statement_no_input"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input"));
         assertWithMessage("By default, blocks are not collapsed.")
                 .that(block.isCollapsed()).isFalse();
 
@@ -544,7 +567,8 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testDeletable() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("statement_no_input"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input"));
         assertWithMessage("By default, blocks are deletable.")
                 .that(block.isDeletable()).isTrue();
 
@@ -571,7 +595,8 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testDisabled() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("statement_no_input"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input"));
         assertWithMessage("By default, blocks are not disabled.")
                 .that(block.isDisabled()).isFalse();
 
@@ -598,7 +623,8 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testEditable() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("statement_no_input"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input"));
         assertWithMessage("By default, blocks are editable.")
                 .that(block.isEditable()).isTrue();
 
@@ -625,7 +651,8 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testMovable() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("statement_no_input"));
+        Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("statement_no_input"));
         assertWithMessage("By default, blocks are editable.")
                 .that(block.isMovable()).isTrue();
 
@@ -656,7 +683,7 @@ public class BlockTest extends BlocklyTestCase {
      */
     @Test
     public void testEscapeFieldData() throws BlockLoadingException {
-        Block block = mBlockFactory.obtain(block().ofType("text"));
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         block.getFieldByName("TEXT").setFromString(
                 "less than < greater than > ampersand & quote \" apostrophe ' end");
 

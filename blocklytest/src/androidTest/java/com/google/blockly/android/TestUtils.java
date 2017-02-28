@@ -46,8 +46,8 @@ public final class TestUtils {
      * of connection manager, helper, and view.
      */
     public static void createViews(List<Block> blocks, BlockViewFactory viewFactory,
-                                   ConnectionManager connectionManager, WorkspaceView workspaceView) {
-
+                                   ConnectionManager connectionManager, WorkspaceView workspaceView)
+    {
         // Create views for all of the blocks we're interested in.
         for (int i = 0; i < blocks.size(); i++) {
             workspaceView.addView(

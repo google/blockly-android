@@ -23,13 +23,13 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -52,7 +52,7 @@ public class AbstractBlockViewTest extends BlocklyTestCase {
 
         // TODO(#435): Replace R.raw.test_blocks
         BlockFactory mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        mEmptyBlock = mBlockFactory.obtain(block().ofType("empty_block"));
+        mEmptyBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("empty_block"));
     }
 
     // Verify correct object state after construction.

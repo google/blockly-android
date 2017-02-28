@@ -27,8 +27,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 
 /**
  * Definition of a type of block, usually defined in JSON.  See

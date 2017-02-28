@@ -44,32 +44,20 @@ import java.util.UUID;
  * The BlockFactory is responsible for managing the set of BlockDefinitions, and instantiating
  * {@link Block}s from those definitions.
  *
- * Add new definitions to the factory via {@link #addJsonDefinitions}. Create new Blocks by passing
- * a {@link BlockTemplate} using {@link #obtain(BlockTemplate)}.  Using the method {@link #block()}
- * to create the template, this can look like:
+ * Add new definitions to the factory via {@link #addJsonDefinitions}. Create new Blocks by calling
+ * {@link #obtainBlockFrom(BlockTemplate)}.  Using {@link BlockTemplate}'s chaining methods, this
+ * can look like:
  *
  * <pre>{@code
  * // Add definition.
  * factory.addJsonDefinition(getAssets().open("default/math_blocks.json"));
  * // Create blocks.
- * Block pi = factory.obtain(block().ofType("math_number").withId("PI"));
- * factory.obtain(block().copyOf(pi).shadow().withId("PI-shadow"));
+ * Block pi = factory.obtainBlockFrom(new BlockTemplate().ofType("math_number").withId("PI"));
+ * factory.obtainBlockFrom(new BlockTemplate().copyOf(pi).shadow().withId("PI-shadow"));
  * }</pre>
  */
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
-
-    /**
-     * Description to pass into {@link #obtain(BlockTemplate)}, a literate API to obtain a
-     * new Block.
-     *
-     * <pre>
-     * {@code factory.obtain(block().ofType("math_number"));}
-     * </pre>
-     */
-    public static BlockTemplate block() {
-        return new BlockTemplate();
-    }
 
     private final HashMap<String, BlockDefinition> mDefinitions = new HashMap<>();
     private final HashMap<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
@@ -92,7 +80,7 @@ public class BlockFactory {
      * @deprecated Call default constructor, and prefer block definitions in assets over resources.
      *
      * @param context The context for loading resources.
-     * @param rawJsonBlockDefinitionResIds A list of raw JSON resources containing block definitions.
+     * @param rawJsonBlockDefinitionResIds List of raw JSON resources containing block definitions.
      * @throws IllegalStateException if any block definitions fail to load.
      */
     @Deprecated
@@ -214,7 +202,7 @@ public class BlockFactory {
      * factory. If the {@code definitionName} is not one of the known block types null will be
      * returned instead.
      *
-     * @deprecated Prefer using {@code obtain(block().ofType(definitionName).withId(id));}
+     * @deprecated Prefer using {@code obtain(new BlockTemplate().ofType(definitionName).withId(id));}
      *
      * @param definitionName The name of the block type to create.
      * @param id The id of the block if loaded from XML; null otherwise.
@@ -234,7 +222,7 @@ public class BlockFactory {
             return null;
         }
         try {
-            return obtain(block().ofType(definitionName).withId(id));
+            return obtainBlockFrom(new BlockTemplate().ofType(definitionName).withId(id));
         } catch (BlockLoadingException e) {
             return null;
         }
@@ -243,12 +231,14 @@ public class BlockFactory {
     /**
      * Creates the {@link Block} described by the template.
      *
-     * {@code blockFactory.obtain(block().ofType("math_number"));}
+     * <pre>{@code
+     * blockFactory.obtainBlockFrom(new BlockTemplate().shadow().ofType("math_number"));
+     * }</pre>
      *
      * @param template A template of the block to create.
      * @return A new block, or null if not able to construct it.
      */
-    public Block obtain(BlockTemplate template) throws BlockLoadingException {
+    public Block obtainBlockFrom(BlockTemplate template) throws BlockLoadingException {
         String id = getCheckedId(template.mId);
 
         // Existing instance not found. Constructing a new Block.
@@ -282,7 +272,7 @@ public class BlockFactory {
                             + template.mTypeName + "\" not found.");
                 }
             } else {
-                throw new BlockLoadingException(template.toString() + "missing block definition.");
+                throw new BlockLoadingException(template.toString() + " missing block definition.");
             }
 
             block = new Block(this, definition, id, isShadow);
@@ -380,19 +370,17 @@ public class BlockFactory {
      *                               XmlPullParserException or IOException as a root cause.
      */
     public Block fromXml(XmlPullParser parser) throws BlockLoadingException {
+        int startLine = parser.getLineNumber();
+        BlockLoadingException childException = null;
+        final XmlBlockTemplate template = new XmlBlockTemplate();
         try {
             String type = parser.getAttributeValue(null, "type");   // prototype name
-            if (type == null || type.trim().isEmpty()) {
-                throw new BlockLoadingException("Block was missing a type.");
+            if (type == null || (type = type.trim()).isEmpty()) {
+                throw new BlockLoadingException("Block is missing a type.");
             }
-            type = type.trim();
-
-            String id = parser.getAttributeValue(null, "id");
+            template.ofType(type);
+            template.withId(parser.getAttributeValue(null, "id"));
             // If the id was empty the BlockFactory will just generate one.
-
-            // These two are the same object, but the first keeps the XmlBlockTemplate type.
-            // The other type safe alternative is to override each method used. https://goo.gl/zKbYjo
-            final XmlBlockTemplate template = new XmlBlockTemplate();
 
             String collapsedString = parser.getAttributeValue(null, "collapsed");
             if (collapsedString != null) {
@@ -444,9 +432,19 @@ public class BlockFactory {
                     case XmlPullParser.START_TAG:
                         text = ""; // Ignore text from parent (or prior) block.
                         if (tagname.equalsIgnoreCase("block")) {
-                            childBlock = fromXml(parser);
+                            try {
+                                childBlock = fromXml(parser);
+                            } catch (BlockLoadingException e) {
+                                childException = e;  // Save reference to pass through outer catch
+                                throw e;
+                            }
                         } else if (tagname.equalsIgnoreCase("shadow")) {
-                            childShadow = fromXml(parser);
+                            try {
+                                childShadow = fromXml(parser);
+                            } catch (BlockLoadingException e) {
+                                childException = e;  // Save reference to pass through outer catch
+                                throw e;
+                            }
                         } else if (tagname.equalsIgnoreCase("field")) {
                             fieldName = parser.getAttributeValue(null, "name");
                         } else if (tagname.equalsIgnoreCase("value")
@@ -467,10 +465,10 @@ public class BlockFactory {
 
                     case XmlPullParser.END_TAG:
                         if (tagname.equalsIgnoreCase("block")) {
-                            return obtain(template);
+                            return obtainBlockFrom(template);
                         } else if (tagname.equalsIgnoreCase("shadow")) {
                             template.shadow();
-                            return obtain(template);
+                            return obtainBlockFrom(template);
                         } else if (tagname.equalsIgnoreCase("field")) {
                             if (TextUtils.isEmpty(fieldName)) {
                                 Log.w(TAG, "Ignoring unnamed field in " +
@@ -511,8 +509,22 @@ public class BlockFactory {
                 eventType = parser.next();
             }
             throw new BlockLoadingException("Reached the END_DOCUMENT before end of block.");
-        } catch (XmlPullParserException | IOException e) {
-            throw new BlockLoadingException(e);
+        } catch (BlockLoadingException | XmlPullParserException | IOException e) {
+            if (e == childException) {
+                throw (BlockLoadingException) e; // Pass through unchanged.
+            }
+
+            String msg = "Error";
+            int errorLine = parser.getLineNumber();
+            if (errorLine > -1) {
+                int errorCol = parser.getColumnNumber();
+                msg += " at line " + errorLine + ", col " + errorCol;
+            }
+            msg += " loading " + template.toString("block");
+            if (startLine > -1) {
+                msg += " starting at line " + startLine;
+            }
+            throw new BlockLoadingException(msg + ": " + e.getMessage(), e);
         }
     }
 

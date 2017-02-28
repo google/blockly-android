@@ -53,7 +53,8 @@ public class CodeGeneratorManager {
                     if (!mResumed) {
                         mContext.unbindService(mCodeGenerationConnection);
                     } else {
-                        mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder).getService();
+                        mGeneratorService = ((CodeGeneratorService.CodeGeneratorBinder) binder)
+                                .getService();
 
                         while (!mStoredRequests.isEmpty()) {
                             executeCodeGenerationRequest(mStoredRequests.poll());

@@ -30,7 +30,6 @@ import static com.google.blockly.model.Connection.REASON_SELF_CONNECTION;
 import static com.google.blockly.model.Connection.REASON_TARGET_NULL;
 import static com.google.blockly.model.Connection.REASON_WRONG_TYPE;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.blockly.utils.ConnectionSubject.assertThat;
 
 
@@ -58,32 +57,32 @@ public class ConnectionTest {
     public void setUp() throws JSONException, BlockLoadingException {
         factory = new BlockFactory();
         factory.addDefinition(new BlockDefinition("{\"type\": \"dummyBlock\"}"));
-        dummyBlock = block().ofType("dummyBlock");
+        dummyBlock = new BlockTemplate().ofType("dummyBlock");
         shadowBlock = new BlockTemplate(dummyBlock).shadow();
 
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
-        input.setBlock(factory.obtain(dummyBlock));
+        input.setBlock(factory.obtainBlockFrom(dummyBlock));
 
         output = new Connection(CONNECTION_TYPE_OUTPUT, null);
-        output.setBlock(factory.obtain(dummyBlock));
+        output.setBlock(factory.obtainBlockFrom(dummyBlock));
 
         previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
-        previous.setBlock(factory.obtain(dummyBlock));
+        previous.setBlock(factory.obtainBlockFrom(dummyBlock));
 
         next = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
-        next.setBlock(factory.obtain(dummyBlock));
+        next.setBlock(factory.obtainBlockFrom(dummyBlock));
 
         shadowInput = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
-        shadowInput.setBlock(factory.obtain(shadowBlock));
+        shadowInput.setBlock(factory.obtainBlockFrom(shadowBlock));
 
         shadowOutput = new Connection(CONNECTION_TYPE_OUTPUT, null);
-        shadowOutput.setBlock(factory.obtain(shadowBlock));
+        shadowOutput.setBlock(factory.obtainBlockFrom(shadowBlock));
 
         shadowPrevious = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
-        shadowPrevious.setBlock(factory.obtain(shadowBlock));
+        shadowPrevious.setBlock(factory.obtainBlockFrom(shadowBlock));
 
         shadowNext = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
-        shadowNext.setBlock(factory.obtain(shadowBlock));
+        shadowNext.setBlock(factory.obtainBlockFrom(shadowBlock));
     }
 
     @Test
@@ -101,7 +100,7 @@ public class ConnectionTest {
         assertThat(input).connectingTo(output).isSuccessful();
 
         Connection conn = new Connection(CONNECTION_TYPE_OUTPUT, null);
-        conn.setBlock(factory.obtain(dummyBlock));
+        conn.setBlock(factory.obtainBlockFrom(dummyBlock));
         input.connect(conn);
         assertThat(input).connectingTo(output).returnsReason(REASON_MUST_DISCONNECT);
     }
@@ -124,23 +123,23 @@ public class ConnectionTest {
     @Test
     public void testCanConnectWithReasonChecks() throws BlockLoadingException {
         input = new Connection(Connection.CONNECTION_TYPE_INPUT, new String[]{"String", "int"});
-        input.setBlock(factory.obtain(dummyBlock));
+        input.setBlock(factory.obtainBlockFrom(dummyBlock));
         assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
 
         output = new Connection(CONNECTION_TYPE_OUTPUT, new String[]{"int"});
-        output.setBlock(factory.obtain(dummyBlock));
+        output.setBlock(factory.obtainBlockFrom(dummyBlock));
         assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
 
         output = new Connection(CONNECTION_TYPE_OUTPUT, new String[]{"String"});
-        output.setBlock(factory.obtain(dummyBlock));
+        output.setBlock(factory.obtainBlockFrom(dummyBlock));
         assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
 
         output = new Connection(CONNECTION_TYPE_OUTPUT, new String[]{"String", "int"});
-        output.setBlock(factory.obtain(dummyBlock));
+        output.setBlock(factory.obtainBlockFrom(dummyBlock));
         assertThat(input).connectingTo(output).returnsReason(CAN_CONNECT);
 
         output = new Connection(CONNECTION_TYPE_OUTPUT, new String[]{"Some other type"});
-        output.setBlock(factory.obtain(dummyBlock));
+        output.setBlock(factory.obtainBlockFrom(dummyBlock));
         assertThat(input).connectingTo(output).returnsReason(REASON_CHECKS_FAILED);
     }
 
@@ -173,7 +172,7 @@ public class ConnectionTest {
         thrown.reportMissingExceptionWithMessage("Input cannot connect to input!");
 
         Connection input2 = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
-        input2.setBlock(factory.obtain(dummyBlock));
+        input2.setBlock(factory.obtainBlockFrom(dummyBlock));
 
         input.checkConnection(input2);
     }
@@ -199,7 +198,7 @@ public class ConnectionTest {
         thrown.reportMissingExceptionWithMessage("Output cannot connect to output!");
 
         Connection output2 = new Connection(CONNECTION_TYPE_OUTPUT, null);
-        output2.setBlock(factory.obtain(dummyBlock));
+        output2.setBlock(factory.obtainBlockFrom(dummyBlock));
         output.checkConnection(output2);
     }
 
@@ -224,7 +223,7 @@ public class ConnectionTest {
         thrown.reportMissingExceptionWithMessage("Previous cannot connect to previous!");
 
         Connection previous2 = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null);
-        previous2.setBlock(factory.obtain(dummyBlock));
+        previous2.setBlock(factory.obtainBlockFrom(dummyBlock));
         previous.checkConnection(previous2);
     }
 
@@ -248,7 +247,7 @@ public class ConnectionTest {
         thrown.reportMissingExceptionWithMessage("Next cannot connect to next!");
 
         Connection next2 = new Connection(Connection.CONNECTION_TYPE_NEXT, null);
-        next2.setBlock(factory.obtain(dummyBlock));
+        next2.setBlock(factory.obtainBlockFrom(dummyBlock));
         next.checkConnection(next2);
     }
 
@@ -320,7 +319,7 @@ public class ConnectionTest {
         thrown.reportMissingExceptionWithMessage("Input cannot connect to input!");
 
         Connection shadowInput2 = new Connection(Connection.CONNECTION_TYPE_INPUT, null);
-        shadowInput2.setBlock(factory.obtain(shadowBlock));
+        shadowInput2.setBlock(factory.obtainBlockFrom(shadowBlock));
 
         shadowInput.checkConnection(shadowInput2);
     }

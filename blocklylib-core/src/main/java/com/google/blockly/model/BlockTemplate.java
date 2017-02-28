@@ -26,18 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Template of a block, describing the initial state of a new block.
- *
- * The API of this class is designed to be used in a
- * <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent</a> manner, as an input to
- * {@link BlockFactory#obtain}. The static method {@link BlockFactory#block()} (which returns a
- * {@code BlockTemplate}) can be used as a via static import to read like English.
- *
- * <pre>{@code
- * factory.obtain(block().shadow().ofType("math_number").atPosition(25,56));
- * }</pre>
+ * Template of a block, describing the initial state of a new block. The most methods return the
+ * template, for use in chaining.
  */
-public class BlockTemplate<T extends BlockTemplate<T>> {
+public class BlockTemplate {
     private static final String TAG = "BlockTemplate";
 
     protected static class FieldValue {
@@ -81,12 +73,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
     protected Block mNextShadow;
 
     /**
-     * Create a new block descriptor.
-     *
-     * Alternatively, consider using {@link BlockFactory#block()} via static import:
-     * <pre>
-     * {@code factory.obtain(block().ofType("math_number"));}
-     * </pre>
+     * Create a new block template.
      */
     public BlockTemplate() {}
 
@@ -180,7 +167,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * Sets the block definition by name.
      *
      * <pre>
-     * {@code blockFactory.obtain(block().ofType("math_number"));}
+     * {@code blockFactory.obtainBlockFrom(new BlockTemplate().ofType("math_number"));}
      * </pre>
      *
      * @param definitionName The name of the definition, as registered with the block.
@@ -198,9 +185,9 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * duplication. That said, such definitions can be useful for one-off blocks, especially in test
      * code.
      *
-     * <pre>
-     * {@code blockFactory.obtain(block().fromDefinition(booleanBlockDefinition));}
-     * </pre>
+     * <pre>{@code
+     * blockFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(booleanBlockDefinition));
+     * }</pre>
      *
      * @param definition The definition of the block.
      * @return This block descriptor, for chaining.
@@ -217,9 +204,9 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * including duplication. That said, such definitions can be useful for one-off blocks,
      * especially in test code.
      *
-     * <pre>
-     * {@code blockFactory.obtain(block().fromJson("{\"output\": \"Number\"}"));}
-     * </pre>
+     * <pre>{@code
+     * blockFactory.obtainBlockFrom(new BlockTemplate().fromJson("{\"output\": \"Number\"}"));
+     * }</pre>
      *
      * @param json The JSON definition of the block.
      * @return This block descriptor, for chaining.
@@ -241,7 +228,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * especially in test code.
      *
      * <pre>
-     * {@code blockFactory.obtain(block().fromJson(myJsonDefinition));}
+     * {@code blockFactory.obtainBlockFrom(new BlockTemplate().fromJson(myJsonDefinition));}
      * </pre>
      *
      * @param json The JSON definition of the block.
@@ -263,7 +250,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * this template.
      *
      * <pre>
-     * {@code blockFactory.obtain(block().copyOf(otherBlock));}
+     * {@code blockFactory.obtainBlockFrom(new BlockTemplate().copyOf(otherBlock));}
      * </pre>
      *
      * @param source The JSON definition of the block.
@@ -280,7 +267,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * generated for the new block.
      *
      * <pre>
-     * {@code blockFactory.obtain(block().withId("my-block"));}
+     * {@code blockFactory.obtainBlockFrom(new BlockTemplate().withId("my-block"));}
      * </pre>
      *
      * @param id The id of the block to be created.
@@ -293,12 +280,12 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
 
     /**
      * Declares the new block will be a shadow block. This is true, even if the template copies
-     * a non-shadow block via {@link #copyOf(Block)}.
+     * a non-shadow block via {@link #copyOf(Block)}, independent of call order.
      *
      * This is a fluent API shorthand for {@code template.shadow(true);}.
      *
      * <pre>
-     * {@code blockFactory.obtain(block().shadow().ofType("math_number"));}
+     * {@code blockFactory.obtainBlockFrom(new BlockTemplate().shadow().ofType("math_number"));}
      * </pre>
      *
      * @return This block descriptor, for chaining.
@@ -312,9 +299,9 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * Declares whether the new block will be a shadow block. Shadow blocks are usually used as
      * default values for inputs, especially in ToolBox XMl.
      *
-     * <pre>
-     * {@code blockFactory.obtain(block().copyOf(originalShadow).shadow(false));}
-     * </pre>
+     * <pre>{@code
+     * blockFactory.obtainBlockFrom(new BlockTemplate().copyOf(originalShadow).shadow(false));
+     * }</pre>
      *
      * @param isShadow Whether the block will be a shadow.
      * @return This block descriptor, for chaining.

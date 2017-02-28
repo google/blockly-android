@@ -633,7 +633,8 @@ public class Dragger {
         ViewPoint curDragLocationPixels = mTempViewPoint;
         curDragLocationPixels.set((int) event.getX(), (int) event.getY());
         WorkspacePoint curDragPositionWorkspace = mTempWorkspacePoint;
-        mViewHelper.virtualViewToWorkspaceCoordinates(curDragLocationPixels, curDragPositionWorkspace);
+        mViewHelper.virtualViewToWorkspaceCoordinates(
+                curDragLocationPixels, curDragPositionWorkspace);
 
         WorkspacePoint touchDownWorkspace = mPendingDrag.getTouchDownWorkspaceCoordinates();
         // Subtract original drag location from current location to get delta

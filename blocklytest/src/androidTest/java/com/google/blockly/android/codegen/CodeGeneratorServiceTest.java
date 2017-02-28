@@ -6,6 +6,7 @@ import android.support.test.InstrumentationRegistry;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -17,7 +18,6 @@ import org.junit.Test;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -45,7 +45,7 @@ public class CodeGeneratorServiceTest {
             return;  // See testEscapeFieldDataForAndroidWebView()
         }
 
-        Block block = mBlockFactory.obtain(block().ofType("text"));
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         block.getFieldByName("TEXT").setFromString("apostrophe ' end");
 
         String xml = toXml(block);
@@ -69,7 +69,7 @@ public class CodeGeneratorServiceTest {
             return;  // See testEscapeFieldDataForChromium()
         }
 
-        Block block = mBlockFactory.obtain(block().ofType("text"));
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         block.getFieldByName("TEXT").setFromString("apostrophe ' end");
 
         String xml = toXml(block);

@@ -23,6 +23,7 @@ import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Input;
 
 import org.junit.Before;
@@ -32,7 +33,6 @@ import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -54,7 +54,8 @@ public class AbstractInputViewTest extends BlocklyTestCase {
         // TODO(#435): Replace R.raw.test_blocks
         BlockFactory factory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
-        Block block = factory.obtain(block().ofType("test_block_one_input_each_type"));
+        Block block = factory.obtainBlockFrom(new BlockTemplate()
+                .ofType("test_block_one_input_each_type"));
         mDummyInput = block.getInputs().get(0);
         assertThat(mDummyInput.getType()).isEqualTo(Input.TYPE_DUMMY);
     }

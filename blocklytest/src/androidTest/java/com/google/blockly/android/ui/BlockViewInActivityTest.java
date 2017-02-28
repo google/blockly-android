@@ -26,6 +26,7 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
@@ -33,7 +34,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.blockly.utils.ViewSubject.view;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -85,12 +85,15 @@ public class BlockViewInActivityTest {
      */
     private void loadWhileUntilBlocksIntoWorkspaceView() {
         try {
-            mRootBlock = mBlockFactory.obtain(block().ofType("controls_whileUntil"));
+            mRootBlock = mBlockFactory.obtainBlockFrom(
+                    new BlockTemplate().ofType("controls_whileUntil"));
             assertThat(mRootBlock).isNotNull();
-            mChildInputBlock = mBlockFactory.obtain(block().ofType("output_no_input"));
+            mChildInputBlock = mBlockFactory.obtainBlockFrom(
+                    new BlockTemplate().ofType("output_no_input"));
             mRootBlock.getInputByName("TIMES").getConnection()
                     .connect(mChildInputBlock.getOutputConnection());
-            mChildStatementBlock = mBlockFactory.obtain(block().ofType("statement_no_input"));
+            mChildStatementBlock = mBlockFactory.obtainBlockFrom(
+                    new BlockTemplate().ofType("statement_no_input"));
             mRootBlock.getInputByName("NAME").getConnection()
                     .connect(mChildStatementBlock.getPreviousConnection());
 

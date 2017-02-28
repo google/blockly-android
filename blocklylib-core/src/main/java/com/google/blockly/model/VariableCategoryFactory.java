@@ -84,13 +84,13 @@ public final class VariableCategoryFactory extends CategoryFactory {
             return;
         }
         try {
-            Block setter = mBlockFactory.obtain(SET_VAR_TEMPLATE);
+            Block setter = mBlockFactory.obtainBlockFrom(SET_VAR_TEMPLATE);
             category.addItem(new BlocklyCategory.BlockItem(setter));
         } catch (BlockLoadingException e) {
             Log.e(TAG, "Fail to obtain \"" + SET_VAR_TEMPLATE.mTypeName + "\" block.");
         }
         try {
-            Block changer = mBlockFactory.obtain(CHANGE_VAR_TEMPLATE);
+            Block changer = mBlockFactory.obtainBlockFrom(CHANGE_VAR_TEMPLATE);
             category.addItem(new BlocklyCategory.BlockItem(changer));
         } catch (BlockLoadingException e) {
             Log.e(TAG, "Fail to obtain \"" + CHANGE_VAR_TEMPLATE.mTypeName + "\" block.");
@@ -103,7 +103,7 @@ public final class VariableCategoryFactory extends CategoryFactory {
 
         try {
             for (int i = 0; i < varNames.size(); i++) {
-                Block varBlock = mBlockFactory.obtain(GET_VAR_TEMPLATE);
+                Block varBlock = mBlockFactory.obtainBlockFrom(GET_VAR_TEMPLATE);
                 varBlock.getFieldByName(GET_VAR_FIELD).setFromString(varNames.get(i));
                 category.addItem(new BlocklyCategory.BlockItem(varBlock));
             }

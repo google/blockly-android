@@ -18,6 +18,7 @@ package com.google.blockly.android.control;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.FieldInput;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -28,7 +29,6 @@ import org.junit.rules.ExpectedException;
 
 import java.util.List;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -47,10 +47,12 @@ public class ProcedureManagerTest {
         mFactory = new BlockFactory();
         mProcedureManager = new ProcedureManager();
 
-        mProcedureDefinition = mFactory.obtain(block().fromDefinition(
-                TestUtils.getProcedureDefinitionBlockDefinition(PROCEDURE_NAME)));
-        mProcedureReference = mFactory.obtain(block().fromDefinition(
-                TestUtils.getProcedureReferenceBlockDefinition(PROCEDURE_NAME)));
+        mProcedureDefinition = mFactory.obtainBlockFrom(
+                new BlockTemplate().fromDefinition(
+                        TestUtils.getProcedureDefinitionBlockDefinition(PROCEDURE_NAME)));
+        mProcedureReference = mFactory.obtainBlockFrom(
+                new BlockTemplate().fromDefinition(
+                        TestUtils.getProcedureReferenceBlockDefinition(PROCEDURE_NAME)));
         assertThat(mProcedureDefinition).isNotNull();
         assertThat(mProcedureReference).isNotNull();
     }
@@ -77,7 +79,8 @@ public class ProcedureManagerTest {
 
         // Adding two block definitions with the same name should change the name of the new
         // block.
-        Block secondProcedureDefinition = mFactory.obtain(block().copyOf(mProcedureDefinition));
+        Block secondProcedureDefinition =
+                mFactory.obtainBlockFrom(new BlockTemplate().copyOf(mProcedureDefinition));
 
         mProcedureManager.addDefinition(secondProcedureDefinition);
         assertThat(PROCEDURE_NAME.equalsIgnoreCase(
@@ -126,7 +129,7 @@ public class ProcedureManagerTest {
 
     @Test
     public void testMissingNames() throws BlockLoadingException {
-        mProcedureDefinition = mFactory.obtain(block().fromJson(
+        mProcedureDefinition = mFactory.obtainBlockFrom(new BlockTemplate().fromJson(
                 "{\"type\":\"no field named name\"}"));
 
         thrown.expect(IllegalArgumentException.class);

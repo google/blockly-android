@@ -32,6 +32,7 @@ import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
@@ -49,7 +50,6 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.mockito.Matchers.anyInt;
@@ -203,8 +203,9 @@ public class DraggerTest extends BlocklyTestCase {
     @Test
     public void testIgnoreDragThatIsntBlocks() throws BlockLoadingException {
         // Setup
-        mTouchedBlock = mDraggedBlock = mBlockFactory.obtain(block().ofType("simple_input_output"));
-        mTargetBlock = mBlockFactory.obtain(block().ofType("output_no_input"));
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        mTargetBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("output_no_input"));
 
         Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
                 .thenReturn(false);
@@ -222,8 +223,9 @@ public class DraggerTest extends BlocklyTestCase {
     @Test
     public void testDragConnect() throws BlockLoadingException {
         // Setup
-        mTouchedBlock = mDraggedBlock = mBlockFactory.obtain(block().ofType("simple_input_output"));
-        mTargetBlock = mBlockFactory.obtain(block().ofType("output_no_input"));
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        mTargetBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("output_no_input"));
 
         Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
                 .thenReturn(true);
@@ -246,8 +248,9 @@ public class DraggerTest extends BlocklyTestCase {
     @Test
     public void testDragNoConnect() throws BlockLoadingException {
         // Setup
-        mTouchedBlock = mDraggedBlock = mBlockFactory.obtain(block().ofType("simple_input_output"));
-        mTargetBlock = mBlockFactory.obtain(block().ofType("output_no_input"));
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        mTargetBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("output_no_input"));
 
         Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
                 .thenReturn(true);
@@ -266,9 +269,12 @@ public class DraggerTest extends BlocklyTestCase {
     @Test
     public void testRemoveConnectionsDuringDrag() throws BlockLoadingException {
         // Setup
-        mTargetBlock = mBlockFactory.obtain(block().ofType("simple_input_output"));
-        mTouchedBlock = mDraggedBlock = mBlockFactory.obtain(block().ofType("simple_input_output"));
-        Block draggedChild = mBlockFactory.obtain(block().ofType("multiple_input_output"));
+        mTargetBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        Block draggedChild = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("multiple_input_output"));
         mDraggedBlock.getOnlyValueInput().getConnection().connect(
                 draggedChild.getOutputConnection());
 

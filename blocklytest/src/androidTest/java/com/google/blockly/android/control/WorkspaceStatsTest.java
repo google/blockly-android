@@ -22,6 +22,7 @@ import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -29,7 +30,6 @@ import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.google.blockly.model.BlockFactory.block;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -61,15 +61,15 @@ public class WorkspaceStatsTest {
 
     @Test
     public void testCollectProcedureStats() throws BlockLoadingException {
-        Block blockUnderTest = mFactory.obtain(
-                block().fromDefinition(TestUtils.getProcedureDefinitionBlockDefinition("test")));
+        Block blockUnderTest = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(
+                TestUtils.getProcedureDefinitionBlockDefinition("test")));
 
         mStats.collectStats(blockUnderTest, false);
         verify(mMockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
-        Block procedureReference = mFactory.obtain(
-                block().fromDefinition(TestUtils.getProcedureReferenceBlockDefinition("test")));
+        Block procedureReference = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(
+                TestUtils.getProcedureReferenceBlockDefinition("test")));
 
         mStats.collectStats(procedureReference, false);
         verify(mMockProcedureManager).addReference(procedureReference);
@@ -92,7 +92,7 @@ public class WorkspaceStatsTest {
                     "}]" +
                 "}"
         );
-        Block variableReference = mFactory.obtain(block().fromDefinition(def));
+        Block variableReference = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(def));
         mStats.collectStats(variableReference, false);
 
         assertThat(mStats.getVariableNameManager().contains("variable name")).isTrue();
@@ -146,12 +146,15 @@ public class WorkspaceStatsTest {
         );
 
         // Make sure we're only recursing on next, not previous.
-        Block parentBlock = mFactory.obtain(block().fromDefinition(variableWithNext));
+        Block parentBlock = mFactory.obtainBlockFrom(
+                new BlockTemplate().fromDefinition(variableWithNext));
 
-        Block middleTestBlock = mFactory.obtain(block().fromDefinition(nextAndPrev));
+        Block middleTestBlock = mFactory.obtainBlockFrom(
+                new BlockTemplate().fromDefinition(nextAndPrev));
         middleTestBlock.getPreviousConnection().connect(parentBlock.getNextConnection());
 
-        Block childBlock = mFactory.obtain(block().fromDefinition(variableWithPrev));
+        Block childBlock = mFactory.obtainBlockFrom(
+                new BlockTemplate().fromDefinition(variableWithPrev));
         childBlock.getPreviousConnection().connect(middleTestBlock.getNextConnection());
 
         mStats.collectStats(middleTestBlock, true);
