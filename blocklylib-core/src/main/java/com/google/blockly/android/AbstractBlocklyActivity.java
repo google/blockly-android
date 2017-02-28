@@ -552,8 +552,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Reloads the block definitions and toolbox contents specified by
-     * {@link #getToolboxContentsXmlPath()}
+     * Reloads the toolbox contents using the path provided by {@link #getToolboxContentsXmlPath()}.
      */
     protected void reloadToolbox() {
         mBlockly.reloadToolbox(getToolboxContentsXmlPath());

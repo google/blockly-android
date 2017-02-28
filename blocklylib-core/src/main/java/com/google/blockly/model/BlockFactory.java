@@ -82,9 +82,7 @@ public class BlockFactory {
             mDropdownOptions = new HashMap<>();
 
     /** Default constructor. */
-    public BlockFactory() {
-
-    }
+    public BlockFactory() {}
 
     /**
      * Create a factory with an initial set of blocks from json resources.
@@ -94,16 +92,20 @@ public class BlockFactory {
      * @deprecated Call default constructor, and prefer block definitions in assets over resources.
      *
      * @param context The context for loading resources.
-     * @param blockSourceIds A list of JSON resources containing blocks.
+     * @param rawJsonBlockDefinitionResIds A list of raw JSON resources containing block definitions.
      * @throws IllegalStateException if any block definitions fail to load.
      */
     @Deprecated
-    public BlockFactory(Context context, int[] blockSourceIds) {
+    public BlockFactory(Context context, int[] rawJsonBlockDefinitionResIds) {
+        // TODO(#525): Remove deprecation and warning when supported in CodeGenerators.
+        Log.w(TAG, "WARNING: Loading block definitions into BlockFactory from resources does not "
+                + "yet load the definitions into the code generators.");
+
         Resources resources = context.getResources();
         try {
-            if (blockSourceIds != null) {
-                for (int i = 0; i < blockSourceIds.length; i++) {
-                    InputStream in = resources.openRawResource(blockSourceIds[i]);
+            if (rawJsonBlockDefinitionResIds != null) {
+                for (int i = 0; i < rawJsonBlockDefinitionResIds.length; i++) {
+                    InputStream in = resources.openRawResource(rawJsonBlockDefinitionResIds[i]);
                     addJsonDefinitions(in);
                 }
             }
@@ -390,8 +392,7 @@ public class BlockFactory {
 
             // These two are the same object, but the first keeps the XmlBlockTemplate type.
             // The other type safe alternative is to override each method used. https://goo.gl/zKbYjo
-            final XmlBlockTemplate templateWithChildren = new XmlBlockTemplate();
-            final BlockTemplate template = templateWithChildren.ofType(type).withId(id);
+            final XmlBlockTemplate template = new XmlBlockTemplate();
 
             String collapsedString = parser.getAttributeValue(null, "collapsed");
             if (collapsedString != null) {
@@ -489,8 +490,7 @@ public class BlockFactory {
                                 throw new BlockLoadingException("Missing inputName.");
                             }
                             try {
-                                templateWithChildren
-                                        .withInputValue(inputName, childBlock, childShadow);
+                                template.withInputValue(inputName, childBlock, childShadow);
                             } catch (IllegalArgumentException e) {
                                 throw new BlockLoadingException(template.toString("Block")
                                         + " input \"" + inputName + "\": " + e.getMessage());
@@ -499,7 +499,7 @@ public class BlockFactory {
                             childShadow = null;
                             inputName = null;
                         } else if (tagname.equalsIgnoreCase("next")) {
-                            templateWithChildren.withNextChild(childBlock, childShadow);
+                            template.withNextChild(childBlock, childShadow);
                             childBlock = null;
                             childShadow = null;
                         }
@@ -572,7 +572,11 @@ public class BlockFactory {
             }
             return requested;
         }
-        return UUID.randomUUID().toString();  // Assuming no collisions.
+        String id = UUID.randomUUID().toString();
+        while(mBlockRefs.containsKey(id)) {  // Exceptionally unlikely, but...
+            id = UUID.randomUUID().toString();
+        }
+        return id;
     }
 
     /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */

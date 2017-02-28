@@ -402,7 +402,6 @@ public class BlocklyController {
 
         // TODO(#58): Save the rest of the state.
 
-        // Success!
         mSavedInstanceState.putBundle(SNAPSHOT_BUNDLE_KEY, blocklyState);
         return success;
     }
@@ -1908,6 +1907,12 @@ public class BlocklyController {
             return controller;
         }
 
+        /**
+         * Loads list of block definitions from asset files or fail with IllegalStateException.
+         *
+         * @param factory The factory to add block definitions to.
+         * @param assetPaths The paths to JSON block definition files.
+         */
         private void loadBlockDefinitionsFromAssets(BlockFactory factory, List<String> assetPaths) {
             for (int i = 0; i < assetPaths.size(); i++) {
                 String assetPath = assetPaths.get(i);
@@ -1922,7 +1927,12 @@ public class BlocklyController {
             }
         }
 
-        /** Loads list of block definitions from resources or fail with IllegalStateException. */
+        /**
+         * Loads list of block definitions from resources or fail with IllegalStateException.
+         *
+         * @param factory The factory to add block definitions to.
+         * @param resIds The resource ids to raw XML files with the block definitions.
+         */
         private void loadBlockDefinitionsFromResources(BlockFactory factory, List<Integer> resIds) {
             Resources resources = mContext.getResources();
             for (int i = 0; i < resIds.size(); i++) {
@@ -1941,6 +1951,13 @@ public class BlocklyController {
             }
         }
 
+        /**
+         * Loads the toolbox from {@link #mToolboxResId}, {@link #mToolboxXml}, or
+         * {@link #mToolboxAssetPath}. If loading fails, throw an IllegalStateException since this
+         * this is a early initialization (and probably compile time) resource.
+         *
+         * @param controller The controller to load into.
+         */
         private void loadToolbox(BlocklyController controller) {
             String fromClausePeriod = ".";
             try {
