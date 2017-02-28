@@ -26,6 +26,8 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -72,6 +74,7 @@ public class BlockViewInActivityTest {
         System.setProperty("dexmaker.dexcache", mActivity.getCacheDir().getPath());
         MockitoAnnotations.initMocks(this);
 
+        // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(mActivity.mThemeWrapper, new int[]{R.raw.test_blocks});
         mHelper = mActivity.mWorkspaceHelper;
         mViewFactory = mActivity.mViewFactory;
@@ -81,23 +84,30 @@ public class BlockViewInActivityTest {
      * Loads a {@code whileUntil} block instance with children into the workspace.
      */
     private void loadWhileUntilBlocksIntoWorkspaceView() {
-        mRootBlock = mBlockFactory.obtainBlock("controls_whileUntil", "1");
-        assertThat(mRootBlock).isNotNull();
-        mChildInputBlock = mBlockFactory.obtainBlock("output_no_input", "2");
-        mRootBlock.getInputByName("TIMES").getConnection()
-                .connect(mChildInputBlock.getOutputConnection());
-        mChildStatementBlock = mBlockFactory.obtainBlock("statement_no_input", "3");
-        mRootBlock.getInputByName("NAME").getConnection()
-                .connect(mChildStatementBlock.getPreviousConnection());
+        try {
+            mRootBlock = mBlockFactory.obtainBlockFrom(
+                    new BlockTemplate().ofType("controls_whileUntil"));
+            assertThat(mRootBlock).isNotNull();
+            mChildInputBlock = mBlockFactory.obtainBlockFrom(
+                    new BlockTemplate().ofType("output_no_input"));
+            mRootBlock.getInputByName("TIMES").getConnection()
+                    .connect(mChildInputBlock.getOutputConnection());
+            mChildStatementBlock = mBlockFactory.obtainBlockFrom(
+                    new BlockTemplate().ofType("statement_no_input"));
+            mRootBlock.getInputByName("NAME").getConnection()
+                    .connect(mChildStatementBlock.getPreviousConnection());
 
-        mViewFactory.buildBlockGroupTree(mRootBlock, mMockConnectionManager, null);
-        mRootView = mHelper.getView(mRootBlock);
-        mFieldView = TestUtils.getFieldView(mRootView, mRootBlock.getFieldByName("MODE"));
-        mChildInputBlockView = mHelper.getView(mChildInputBlock);
-        mChildStatementBlockView = mHelper.getView(mChildStatementBlock);
+            mViewFactory.buildBlockGroupTree(mRootBlock, mMockConnectionManager, null);
+            mRootView = mHelper.getView(mRootBlock);
+            mFieldView = TestUtils.getFieldView(mRootView, mRootBlock.getFieldByName("MODE"));
+            mChildInputBlockView = mHelper.getView(mChildInputBlock);
+            mChildStatementBlockView = mHelper.getView(mChildStatementBlock);
 
-        BlockGroup rootBlockGroup = (BlockGroup) mRootView.getParent();
-        mActivity.mWorkspaceView.addView(rootBlockGroup);
+            BlockGroup rootBlockGroup = (BlockGroup) mRootView.getParent();
+            mActivity.mWorkspaceView.addView(rootBlockGroup);
+        } catch (BlockLoadingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /** Tests that pressed {@link View} state does not propagate to child BlockViews. */

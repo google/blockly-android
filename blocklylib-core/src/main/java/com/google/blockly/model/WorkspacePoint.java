@@ -61,6 +61,9 @@ public class WorkspacePoint extends PointF {
      */
     public WorkspacePoint(float x, float y) {
         super(x, y);
+        if (Float.isNaN(x) || Float.isInfinite(x) || Float.isNaN(y) || Float.isInfinite(y)) {
+            throw new IllegalArgumentException("Point must be a real, finite number.");
+        }
     }
 
     /**

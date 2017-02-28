@@ -17,6 +17,7 @@ package com.google.blockly.android.control;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -46,12 +47,12 @@ import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyEvent;
-import com.google.blockly.model.BlocklyParserException;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -312,33 +313,36 @@ public class BlocklyController {
     }
 
     /**
-     * Loads the toolbox contents from a JSON resource file.
+     * Loads the toolbox contents from an XML resource file.
      *
      * @param toolboxJsonResId The resource id of JSON file (should be a raw resource file).
      */
-    public void loadToolboxContents(int toolboxJsonResId) {
+    public void loadToolboxContents(int toolboxJsonResId) throws BlockLoadingException {
         mWorkspace.loadToolboxContents(toolboxJsonResId);
         updateToolbox();
     }
 
     /**
-     * Loads the toolbox contents from a JSON string.
+     * Loads the toolbox contents from a XML string.
      *
      * @param toolboxJsonString The JSON source of the set of blocks or block groups to show in the
-     *     toolbox.
+     *                          toolbox.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public void loadToolboxContents(String toolboxJsonString) {
+    public void loadToolboxContents(String toolboxJsonString) throws BlockLoadingException {
         mWorkspace.loadToolboxContents(toolboxJsonString);
         updateToolbox();
     }
 
     /**
-     * Loads the toolbox contents from a JSON input stream.
+     * Loads the toolbox contents from a XML input stream.
      *
      * @param toolboxJsonStream A stream of the JSON source of the set of blocks or block groups to
-     *    show in the toolbox.
+     *                          show in the toolbox.
      */
-    public void loadToolboxContents(InputStream toolboxJsonStream) {
+    public void loadToolboxContents(InputStream toolboxJsonStream)
+            throws IOException, BlockLoadingException {
         mWorkspace.loadToolboxContents(toolboxJsonStream);
         updateToolbox();
     }
@@ -348,9 +352,10 @@ public class BlocklyController {
      * the contents of the xml.
      *
      * @param workspaceXmlString The XML source string to read from.
-     * @throws BlocklyParserException if there was a parse failure.
+     * @throws BlockLoadingException If workspace was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public void loadWorkspaceContents(String workspaceXmlString) throws BlocklyParserException {
+    public void loadWorkspaceContents(String workspaceXmlString) throws BlockLoadingException {
         mWorkspace.loadWorkspaceContents(workspaceXmlString);
         initBlockViews();
     }
@@ -360,10 +365,9 @@ public class BlocklyController {
      * the contents of the xml.
      *
      * @param workspaceXmlStream The input stream to read from.
-     * @throws BlocklyParserException if there was a parse failure.
+     * @return True if successful. Otherwise, false with error logged.
      */
-    public void loadWorkspaceContents(InputStream workspaceXmlStream)
-            throws BlocklyParserException {
+    public void loadWorkspaceContents(InputStream workspaceXmlStream) throws BlockLoadingException {
         mWorkspace.loadWorkspaceContents(workspaceXmlStream);
         initBlockViews();
     }
@@ -371,10 +375,12 @@ public class BlocklyController {
     /**
      * Saves a snapshot of current workspace contents to a temporary cache file, and saves the
      * filename to the instance state bundle.
-     * @param mSavedInstanceState
-     * @return
+     * @param mSavedInstanceState The output Bundle to write the state to.
+     * @return True if all values were written successfully to the bundle. Otherwise, false with
+     *         errors written to log.
      */
     public boolean onSaveSnapshot(Bundle mSavedInstanceState) {
+        boolean success;
         Bundle blocklyState = new Bundle();
 
         // First attempt to save the workspace to a file.
@@ -382,9 +388,10 @@ public class BlocklyController {
         try {
             mWorkspace.serializeToXml(out);
             blocklyState.putByteArray(SERIALIZED_WORKSPACE_KEY, out.toByteArray());
+            success = true;
         } catch (BlocklySerializerException e) {
-            Log.w(TAG, "Error serializing workspace.", e);
-            return false;
+            Log.e(TAG, "Error serializing workspace.", e);
+            success = false;
         } finally {
             try {
                 out.close();
@@ -395,9 +402,8 @@ public class BlocklyController {
 
         // TODO(#58): Save the rest of the state.
 
-        // Success!
         mSavedInstanceState.putBundle(SNAPSHOT_BUNDLE_KEY, blocklyState);
-        return true;
+        return success;
     }
 
     /**
@@ -405,39 +411,41 @@ public class BlocklyController {
      * {@link #onSaveSnapshot(Bundle)}.
      *
      * @param savedInstanceState The activity state Bundle passed into {@link Activity#onCreate} or
-     *     {@link Activity#onRestoreInstanceState}.
+     *                           {@link Activity#onRestoreInstanceState}.
      * @return True if a Blockly state was found and successfully loaded into the Controller.
-     *     Otherwise, false.
+     *         Otherwise, false.
      */
     public boolean onRestoreSnapshot(@Nullable Bundle savedInstanceState) {
+
         Bundle blocklyState = (savedInstanceState == null) ? null :
                 savedInstanceState.getBundle(SNAPSHOT_BUNDLE_KEY);
-        if (blocklyState != null) {
-            byte[] bytes = blocklyState.getByteArray(SERIALIZED_WORKSPACE_KEY);
-            if (bytes == null) {
-                // Ignore all other workspace variables.
-                return false;
-            }
-            ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-            try {
-                loadWorkspaceContents(in);
-            } catch(BlocklyParserException e) {
-                // Ignore all other workspace state variables.
-                Log.w(TAG, "Unable to restore Blockly state.", e);
-                return false;
-            } finally {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    // Ignore.
-                }
-            }
-
-            // TODO(#58): Restore the rest of the state.
-
-            return true;
+        if (blocklyState == null) {
+            return  false;
         }
-        return false;
+        byte[] bytes = blocklyState.getByteArray(SERIALIZED_WORKSPACE_KEY);
+        if (bytes == null) {
+            // Ignore all other workspace variables.
+            return false;
+        }
+
+        boolean success = true;
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        try {
+            loadWorkspaceContents(in);
+        } catch (BlockLoadingException e) {
+            Log.e(TAG, "Failed to load snapshot from Bundle.", e);
+            success = false;
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                // Ignore.
+            }
+        }
+
+        // TODO(#58): Restore the rest of the state.
+
+        return success;
     }
 
     public Context getContext() {
@@ -1676,12 +1684,10 @@ public class BlocklyController {
 
         // TODO: Should these be part of the style?
         private int mToolboxResId;
-        private String mToolboxAssetId;
+        private String mToolboxAssetPath;
         private String mToolboxXml;
         private ArrayList<Integer> mBlockDefResources = new ArrayList<>();
         private ArrayList<String> mBlockDefAssets = new ArrayList<>();
-        private ArrayList<Block> mBlockDefs = new ArrayList<>();
-
 
         public Builder(Context context) {
             mContext = context;
@@ -1807,25 +1813,6 @@ public class BlocklyController {
             }
             return this;
         }
-        /**
-         * Adds a list of blocks to the set of all known blocks. These will be added to the set of
-         * all known blocks, but will not appear in the user's toolbox unless they are also defined
-         * in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
-         * <p/>
-         * These blocks may not have any child blocks attached to them. If these blocks are
-         * duplicates of blocks loaded from a resource they will override the block from resources.
-         * Blocks added here will always be loaded after any blocks added with {@link
-         * #addBlockDefinitions(int)};
-         * <p/>
-         * A duplicate block is any block with the same {@link Block#getType() type}.
-         *
-         * @param blocks The list of blocks to add to the workspace.
-         * @return this
-         */
-        public Builder addBlockDefinitions(List<Block> blocks) {
-            mBlockDefs.addAll(blocks);
-            return this;
-        }
 
         /**
          * Sets the resource to load the toolbox configuration from. This must be an xml resource in
@@ -1838,7 +1825,7 @@ public class BlocklyController {
          * @return this
          */
         public Builder setToolboxConfigurationResId(int toolboxResId) {
-            if (mToolboxXml != null && mToolboxAssetId != null) {
+            if (mToolboxXml != null && mToolboxAssetPath != null) {
                 throw new IllegalStateException("Toolbox res id may not be set if xml is set.");
             }
             mToolboxResId = toolboxResId;
@@ -1859,7 +1846,7 @@ public class BlocklyController {
             if (mToolboxXml != null && mToolboxResId != 0) {
                 throw new IllegalStateException("Toolbox res id may not be set if xml is set.");
             }
-            mToolboxAssetId = assetName;
+            mToolboxAssetPath = assetName;
             return this;
         }
 
@@ -1868,12 +1855,14 @@ public class BlocklyController {
          * <p/>
          * If this is set, {@link #setToolboxConfigurationResId(int)} and {@link
          * #setToolboxConfigurationAsset(String)} may not be set.
+         * @deprecated Use {@link #loadToolboxContents(String)}
          *
          * @param toolboxXml The XML for configuring the toolbox.
          * @return this
          */
+        @Deprecated
         public Builder setToolboxConfiguration(String toolboxXml) {
-            if (mToolboxResId != 0 && mToolboxAssetId != null) {
+            if (mToolboxResId != 0 && mToolboxAssetPath != null) {
                 throw new IllegalStateException("Toolbox xml may not be set if a res id is set");
             }
             mToolboxXml = toolboxXml;
@@ -1901,43 +1890,12 @@ public class BlocklyController {
                 blockClipDataHelper = SingleMimeTypeClipDataHelper.getDefault(mContext);
             }
 
-            BlockFactory factory = new BlockFactory(mContext, null);
-            for (int i = 0; i < mBlockDefResources.size(); i++) {
-                try {
-                    factory.addBlocks(mBlockDefResources.get(i));
-                } catch (Throwable e) {
-                    factory.clear();  // Clear partially loaded resources.
-                    throw e;
-                }
-            }
-            for (int i = 0; i < mBlockDefAssets.size(); i++) {
-                String assetPath = mBlockDefAssets.get(i);
-                try {
-                    factory.addBlocks(mContext.getAssets().open(assetPath));
-                } catch (IOException e) {
-                    factory.clear();  // Clear partially loaded resources.
-                    // Compile-time bundled assets are assumed to always be valid.
-                    throw new IllegalStateException("Failed to load block definitions from asset: "
-                            + assetPath, e);
-                }
-            }
-            for (int i = 0; i < mBlockDefs.size(); i++) {
-                factory.addBlockTemplate(mBlockDefs.get(i));
-            }
+            BlockFactory factory = new BlockFactory();
+            loadBlockDefinitionsFromResources(factory, mBlockDefResources);
+            loadBlockDefinitionsFromAssets(factory, mBlockDefAssets);
             BlocklyController controller = new BlocklyController(
                     mContext, factory, mWorkspaceHelper, blockClipDataHelper, mViewFactory);
-            if (mToolboxResId != 0) {
-                controller.loadToolboxContents(mToolboxResId);
-            } else if (mToolboxXml != null) {
-                controller.loadToolboxContents(mToolboxXml);
-            } else if (mToolboxAssetId != null && mContext.getAssets() != null) {
-                try {
-                    controller.loadToolboxContents(mContext.getAssets().open(mToolboxAssetId));
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("Failed to load toolbox from assets "
-                            + mToolboxAssetId, e);
-                }
-            }
+            loadToolbox(controller);
 
             // Any of the following may be null and result in a no-op.
             controller.setWorkspaceFragment(mWorkspaceFragment);
@@ -1948,6 +1906,83 @@ public class BlocklyController {
 
             return controller;
         }
+
+        /**
+         * Loads list of block definitions from asset files or fail with IllegalStateException.
+         *
+         * @param factory The factory to add block definitions to.
+         * @param assetPaths The paths to JSON block definition files.
+         */
+        private void loadBlockDefinitionsFromAssets(BlockFactory factory, List<String> assetPaths) {
+            for (int i = 0; i < assetPaths.size(); i++) {
+                String assetPath = assetPaths.get(i);
+                try {
+                    factory.addJsonDefinitions(mContext.getAssets().open(assetPath));
+                } catch (IOException | BlockLoadingException e) {
+                    factory.clear();  // Clear partially loaded resources.
+                    // Compile-time bundled assets are assumed to always be valid.
+                    throw new IllegalStateException("Failed to load block definitions from asset: "
+                            + assetPath, e);
+                }
+            }
+        }
+
+        /**
+         * Loads list of block definitions from resources or fail with IllegalStateException.
+         *
+         * @param factory The factory to add block definitions to.
+         * @param resIds The resource ids to raw XML files with the block definitions.
+         */
+        private void loadBlockDefinitionsFromResources(BlockFactory factory, List<Integer> resIds) {
+            Resources resources = mContext.getResources();
+            for (int i = 0; i < resIds.size(); i++) {
+                int resourceId = resIds.get(i);
+                try {
+                    InputStream is = resources.openRawResource(resourceId);
+                    factory.addJsonDefinitions(is);
+                } catch (IOException | BlockLoadingException e) {
+                    factory.clear();  // Clear partially loaded resources.
+                    // Compile-time bundled assets are assumed to always be valid.
+                    String resName = resources.getResourceName(resourceId);
+                    throw new IllegalStateException(
+                            "Failed to load block definition from resource id " + resourceId
+                            + (resName == null ? "" : " \"" + resName + "\""), e);
+                }
+            }
+        }
+
+        /**
+         * Loads the toolbox from {@link #mToolboxResId}, {@link #mToolboxXml}, or
+         * {@link #mToolboxAssetPath}. If loading fails, throw an IllegalStateException since this
+         * is a early initialization (and probably compile time) resource.
+         *
+         * @param controller The controller to load into.
+         */
+        private void loadToolbox(BlocklyController controller) {
+            String fromClausePeriod = ".";
+            try {
+                if (mToolboxResId != 0) {
+                    fromClausePeriod = " from resources.";
+                    controller.loadToolboxContents(mToolboxResId);
+                } else if (mToolboxXml != null) {
+                    fromClausePeriod = " from raw XML.";
+                    controller.loadToolboxContents(mToolboxXml);
+                } else if (mToolboxAssetPath != null && mContext.getAssets() != null) {
+                    fromClausePeriod = " from asset \"" + mToolboxAssetPath + "\".";
+
+                    try {
+                        controller.loadToolboxContents(
+                                mContext.getAssets().open(mToolboxAssetPath));
+                    } catch (IOException e) {
+                        Log.e(TAG, "Failed to initialize toolbox blocks from assets.", e);
+                    }
+                }
+            } catch (BlockLoadingException e) {
+                // Compile-time bundled assets are assumed to always be valid.
+                throw new IllegalStateException("Failed to load toolbox" + fromClausePeriod, e);
+            }
+        }
+
     }
 
     /**

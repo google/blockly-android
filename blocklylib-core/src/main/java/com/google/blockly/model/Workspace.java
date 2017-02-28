@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.support.annotation.RawRes;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.control.BlocklyController;
@@ -23,6 +24,7 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.android.control.WorkspaceStats;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.ByteArrayInputStream;
@@ -150,52 +152,63 @@ public class Workspace {
     }
 
     /**
-     * Set up toolbox's contents.
+     * Loads the toolbox category, blocks, and buttons from the {@code /raw/} resources directory.
      *
      * @param toolboxResId The resource id of the set of blocks or block groups to show in the
-     * toolbox.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public void loadToolboxContents(int toolboxResId) {
+    public void loadToolboxContents(@RawRes int toolboxResId) throws BlockLoadingException {
         InputStream is = mContext.getResources().openRawResource(toolboxResId);
         loadToolboxContents(is);
     }
 
     /**
-     * Set up toolbox's contents.
+     * Loads the toolbox category, blocks, and buttons.
      *
      * @param source The source of the set of blocks or block groups to show in the toolbox.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public void loadToolboxContents(InputStream source) {
+    public void loadToolboxContents(InputStream source) throws BlockLoadingException {
         mFlyoutCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
-    }
-
-    /**
-     * Set up the trash from an input stream. The trash is loaded like a toolbox and can have a
-     * name, color, and set of blocks to start with. Unlike a toolbox it may not have subcategories.
-     *
-     * @param source The source to initialize the trash.
-     */
-    public void loadTrashConfiguration(InputStream source) {
-        mTrashCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
     }
 
     /**
      * Set up toolbox's contents.
      *
      * @param toolboxXml The xml of the set of blocks or block groups to show in the toolbox.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public void loadToolboxContents(String toolboxXml) {
+    public void loadToolboxContents(String toolboxXml) throws BlockLoadingException {
         loadToolboxContents(new ByteArrayInputStream(toolboxXml.getBytes()));
     }
 
     /**
-     * Set up the trash from an input stream. The trash is loaded like a toolbox and can have a
-     * name, color, and set of blocks to start with. Unlike a toolbox it may not have subcategories.
+     * Loads a list of blocks into the trash from an input stream. The trash is loaded like a
+     * toolbox and can have a name, color, and set of blocks to start with. Unlike a toolbox it may
+     * not have subcategories.
+     *
+     * @param source The source to initialize the trash.
+     * @throws BlockLoadingException If trash was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
+     */
+    public void loadTrashContents(InputStream source) throws BlockLoadingException {
+        mTrashCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
+    }
+
+    /**
+     * Loads a list of blocks into the trash from an input stream. The trash is loaded like a
+     * toolbox and can have a name, color, and set of blocks to start with. Unlike a toolbox it may
+     * not have subcategories.
      *
      * @param trashXml The xml of the flyout to configure the trash.
+     * @throws BlockLoadingException If trash was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public void loadTrashConfiguration(String trashXml) {
-        loadTrashConfiguration(new ByteArrayInputStream(trashXml.getBytes()));
+    public void loadTrashContents(String trashXml) throws BlockLoadingException {
+        loadTrashContents(new ByteArrayInputStream(trashXml.getBytes()));
     }
 
 
@@ -204,11 +217,11 @@ public class Workspace {
      * the contents of the xml.
      *
      * @param is The input stream to read from.
-     * @throws BlocklyParserException if there was a parse failure.
+     * @throws BlockLoadingException If workspace was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public void loadWorkspaceContents(InputStream is)
-            throws BlocklyParserException {
-        List<Block> newBlocks = BlocklyXmlHelper.loadFromXml(is, mBlockFactory, mStats);
+    public void loadWorkspaceContents(InputStream is) throws BlockLoadingException {
+        List<Block> newBlocks = BlocklyXmlHelper.loadFromXml(is, mBlockFactory);
 
         // Successfully deserialized.  Update workspace.
         // TODO: (#22) Add proper variable support.
@@ -234,9 +247,10 @@ public class Workspace {
      * the contents of the xml.
      *
      * @param xml The XML source string to read from.
-     * @throws BlocklyParserException if there was a parse failure.
+     * @throws BlockLoadingException If toolbox was not loaded. May wrap an IOException or another
+     *                               BlockLoadingException.
      */
-    public void loadWorkspaceContents(String xml) throws BlocklyParserException {
+    public void loadWorkspaceContents(String xml) throws BlockLoadingException {
         loadWorkspaceContents(new ByteArrayInputStream(xml.getBytes()));
     }
 
@@ -309,7 +323,7 @@ public class Workspace {
      * @throws BlocklySerializerException if there was a failure while serializing.
      */
     public void serializeToXml(OutputStream os) throws BlocklySerializerException {
-        BlocklyXmlHelper.writeToXml(mRootBlocks, os);
+        BlocklyXmlHelper.writeToXml(mRootBlocks, os, IOOptions.WRITE_ALL_DATA);
     }
 
     /**

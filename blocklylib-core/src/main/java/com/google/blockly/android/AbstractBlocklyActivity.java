@@ -16,7 +16,6 @@
 package com.google.blockly.android;
 
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -37,10 +36,9 @@ import android.widget.FrameLayout;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.model.BlockFactory;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -163,15 +161,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link #getWorkspaceSavePath()}.
      */
     public void onSaveWorkspace() {
-        mBlockly.saveWorkspaceToAppDir(getWorkspaceSavePath());
+        mBlockly.saveWorkspaceToAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Save the workspace to the given file in the application's private data directory.
-     * @deprecated Call {@code mBlockly.saveWorkspaceToAppDir(filename)}.
+     * @deprecated Call {@code mBlockly.saveWorkspaceToAppDir(filename)} or
+     *             {@code mBlockly.saveWorkspaceToAppDirSafely(filename)}.
      */
     public void saveWorkspaceToAppDir(String filename) {
-        mBlockly.saveWorkspaceToAppDir(filename);
+        mBlockly.saveWorkspaceToAppDirSafely(filename);
     }
 
     /**
@@ -179,15 +178,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
      */
     public void onLoadWorkspace() {
-        mBlockly.loadWorkspaceFromAppDir(getWorkspaceSavePath());
+        mBlockly.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Loads the workspace from the given file in the application's private data directory.
-     * @deprecated Call {@code mBlockly.loadWorkspaceFromAppDir(filename)}
+     * @deprecated Call {@code mBlockly.loadWorkspaceFromAppDir(filename)} or
+     *             {@code mBlockly.loadWorkspaceFromAppDirSafely(filename)}.
      */
+    @Deprecated
     public void loadWorkspaceFromAppDir(String filename) {
-        mBlockly.loadWorkspaceFromAppDir(filename);
+        mBlockly.loadWorkspaceFromAppDirSafely(filename);
     }
 
     /**
@@ -551,45 +552,20 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Reloads the block definitions and toolbox contents.
-     * @see #getToolboxContentsXmlPath()
+     * Reloads the toolbox contents using the path provided by {@link #getToolboxContentsXmlPath()}.
      */
     protected void reloadToolbox() {
-        AssetManager assetManager = getAssets();
-        String toolboxPath = getToolboxContentsXmlPath();
-
-        BlocklyController controller = getController();
-        try {
-            controller.loadToolboxContents(assetManager.open(getToolboxContentsXmlPath()));
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Error opening toolbox at " + toolboxPath, e);
-        }
+        mBlockly.reloadToolbox(getToolboxContentsXmlPath());
     }
 
     /**
-     * Reloads the block definitions.
-     * @see #getBlockDefinitionsJsonPaths()
+     * Reloads the block definitions specified by {@link #getBlockDefinitionsJsonPaths()}.
+     *
+     * @throws IOException If there is a fundamental problem with the input.
+     * @throws BlockLoadingException If the definition is malformed.
      */
     protected void reloadBlockDefinitions() {
-        AssetManager assetManager = getAssets();
-        List<String> blockDefsPaths = getBlockDefinitionsJsonPaths();
-
-        BlockFactory factory = getController().getBlockFactory();
-        factory.clear();
-
-        String blockDefsPath;
-        Iterator<String> iter = blockDefsPaths.iterator();
-        while (iter.hasNext()) {
-            blockDefsPath = iter.next();
-            try {
-                factory.addBlocks(assetManager.open(blockDefsPath));
-            } catch (IOException e) {
-                factory.clear();  // Clear any partial loaded block sets.
-                // Compile-time bundled assets are assumed to be valid.
-                throw new IllegalStateException("Failed to load block definitions from asset: "
-                        + blockDefsPath, e);
-            }
-        }
+        mBlockly.reloadBlockDefinitions(getBlockDefinitionsJsonPaths());
     }
 
     /**

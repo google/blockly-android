@@ -21,6 +21,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.android.FlyoutFragment;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.ColorUtils;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -227,57 +228,61 @@ public class BlocklyCategory {
      * @param factory The {@link BlockFactory} to use to generate blocks from their names.
      *
      * @return A new {@link BlocklyCategory} with the contents given by the XML.
-     * @throws IOException when reading from the parser fails.
-     * @throws XmlPullParserException when reading from the parser fails.
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
      */
     public static BlocklyCategory fromXml(XmlPullParser parser, BlockFactory factory)
-            throws IOException, XmlPullParserException {
-        BlocklyCategory result;
-        String customType = parser.getAttributeValue("", "custom");
-        if (CATEGORY_FACTORIES.containsKey(customType)) {
-            result = CATEGORY_FACTORIES.get(customType).obtainCategory(customType);
-        } else {
-            result = new BlocklyCategory();
-        }
-        result.mCategoryName = parser.getAttributeValue("", "name");
-        result.mCustomType = parser.getAttributeValue("", "custom");
-        result.mIsVariableCategory = result.mCustomType != null
-                && TextUtils.equals("VARIABLE", result.mCustomType.toUpperCase());
-        result.mIsFunctionCategory = result.mCustomType != null
-                && TextUtils.equals("FUNCTION", result.mCustomType.toUpperCase());
-        String colourAttr = parser.getAttributeValue("", "colour");
-        if (!TextUtils.isEmpty(colourAttr)) {
-            try {
-                result.mColor = ColorUtils.parseColor(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY);
-            } catch (ParseException e) {
-                Log.w(TAG, "Invalid toolbox category colour \"" + colourAttr + "\"");
+            throws BlockLoadingException {
+        try {
+            BlocklyCategory result;
+            String customType = parser.getAttributeValue("", "custom");
+            if (CATEGORY_FACTORIES.containsKey(customType)) {
+                result = CATEGORY_FACTORIES.get(customType).obtainCategory(customType);
+            } else {
+                result = new BlocklyCategory();
             }
-        }
-        int eventType = parser.next();
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            String tagname = parser.getName();
-            switch (eventType) {
-                case XmlPullParser.START_TAG:
-                    if (parser.getName().equalsIgnoreCase("category")) {
-                        result.addSubcategory(BlocklyCategory.fromXml(parser, factory));
-                    } else if (parser.getName().equalsIgnoreCase("block")) {
-                        result.addItem(new BlockItem(factory.fromXml(parser)));
-                    } else if (parser.getName().equalsIgnoreCase("shadow")) {
-                        throw new IllegalArgumentException(
-                                "Shadow blocks may not be top level toolbox blocks.");
-                    }
-                    break;
-                case XmlPullParser.END_TAG:
-                    if (tagname.equalsIgnoreCase("category")) {
-                        return result;
-                    }
-                    break;
-                default:
-                    break;
+            result.mCategoryName = parser.getAttributeValue("", "name");
+            result.mCustomType = parser.getAttributeValue("", "custom");
+            result.mIsVariableCategory = result.mCustomType != null
+                    && TextUtils.equals("VARIABLE", result.mCustomType.toUpperCase());
+            result.mIsFunctionCategory = result.mCustomType != null
+                    && TextUtils.equals("FUNCTION", result.mCustomType.toUpperCase());
+            String colourAttr = parser.getAttributeValue("", "colour");
+            if (!TextUtils.isEmpty(colourAttr)) {
+                try {
+                    result.mColor = ColorUtils.parseColor(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY);
+                } catch (ParseException e) {
+                    Log.w(TAG, "Invalid toolbox category colour \"" + colourAttr + "\"");
+                }
             }
-            eventType = parser.next();
+            int eventType = parser.next();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                String tagname = parser.getName();
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        if (parser.getName().equalsIgnoreCase("category")) {
+                            result.addSubcategory(BlocklyCategory.fromXml(parser, factory));
+                        } else if (parser.getName().equalsIgnoreCase("block")) {
+                            result.addItem(new BlockItem(factory.fromXml(parser)));
+                        } else if (parser.getName().equalsIgnoreCase("shadow")) {
+                            throw new IllegalArgumentException(
+                                    "Shadow blocks may not be top level toolbox blocks.");
+                        }
+                        break;
+                    case XmlPullParser.END_TAG:
+                        if (tagname.equalsIgnoreCase("category")) {
+                            return result;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                eventType = parser.next();
+            }
+            return result;
+        } catch (IOException | XmlPullParserException e) {
+            throw new BlockLoadingException(e);
         }
-        return result;
     }
 
     /**

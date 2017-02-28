@@ -16,6 +16,7 @@ package com.google.blockly.android;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -31,11 +32,14 @@ import com.google.blockly.android.ui.BlockListUI;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DefaultVariableCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
+import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.StringOutputStream;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
@@ -81,6 +85,9 @@ public class BlocklyActivityHelper {
      *     <li>{@link #onCreateBlockViewFactory}</li>
      * </ul>
      * Subclasses should override those methods to configure the Blockly environment.
+     *
+     * @throws IllegalStateException If error occurs during initialization. Assumes all initial
+     *                               compile-time assets are known to be valid.
      */
     public BlocklyActivityHelper(AppCompatActivity activity,
                                  List<String> blockDefinitionJsonPaths,
@@ -139,30 +146,65 @@ public class BlocklyActivityHelper {
     }
 
     /**
-     * Save the workspace to the given file in the application's private data directory.
+     * Save the workspace to the given file in the application's private data directory, and show a
+     * status toast. If the save fails, the error is logged.
      */
-    public void saveWorkspaceToAppDir(String filename) {
+    public void saveWorkspaceToAppDir(String filename)
+            throws FileNotFoundException, BlocklySerializerException{
         Workspace workspace = mWorkspaceFragment.getWorkspace();
+        workspace.serializeToXml(mActivity.openFileOutput(filename, Context.MODE_PRIVATE));
+    }
+
+    /**
+     * Save the workspace to the given file in the application's private data directory, and show a
+     * status toast. If the save fails, the error is logged.
+     * @return True if the save was successful. Otherwise false.
+     */
+    public boolean saveWorkspaceToAppDirSafely(String filename) {
         try {
-            workspace.serializeToXml(mActivity.openFileOutput(filename, Context.MODE_PRIVATE));
+            saveWorkspaceToAppDir(filename);
             Toast.makeText(mActivity, R.string.toast_workspace_saved,
                     Toast.LENGTH_LONG).show();
+            return true;
         } catch (FileNotFoundException | BlocklySerializerException e) {
             Toast.makeText(mActivity, R.string.toast_workspace_not_saved,
                     Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Failed to save workspace to " + filename, e);
+            return false;
         }
     }
 
     /**
      * Loads the workspace from the given file in the application's private data directory.
+     * @param filename The path to the file, in the application's local storage.
+     * @throws IOException If there is a underlying problem with the input.
+     * @throws BlockLoadingException If there is a error with the workspace XML format or blocks.
      */
-    public void loadWorkspaceFromAppDir(String filename) {
+    public void loadWorkspaceFromAppDir(String filename) throws IOException, BlockLoadingException {
+        mController.loadWorkspaceContents(mActivity.openFileInput(filename));
+    }
+
+    /**
+     * Loads the workspace from the given file in the application's private data directory. If it
+     * fails to load, a toast will be shown and the error will be logged.
+     * @param filename The path to the file, in the application's local storage.
+     * @return True if loading the workspace succeeds. Otherwise, false and the error will be
+     *         logged.
+     */
+    public boolean loadWorkspaceFromAppDirSafely(String filename) {
         try {
-            mController.loadWorkspaceContents(mActivity.openFileInput(filename));
+            loadWorkspaceFromAppDir(filename);
+            return true;
         } catch (FileNotFoundException e) {
-            Toast.makeText(mActivity, R.string.toast_workspace_file_not_found,
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(mActivity, R.string.toast_workspace_file_not_found, Toast.LENGTH_LONG)
+                    .show();
+            Log.e(TAG, "Failed to load workspace", e);
+        } catch (IOException | BlockLoadingException e) {
+            Toast.makeText(mActivity, R.string.toast_workspace_load_failed, Toast.LENGTH_LONG)
+                    .show();
+            Log.e(TAG, "Failed to load workspace", e);
         }
+        return false;
     }
 
     /**
@@ -426,5 +468,43 @@ public class BlocklyActivityHelper {
         BlocklyController.VariableCallback variableCb =
                 new DefaultVariableCallback(mActivity, mController);
         mController.setVariableCallback(variableCb);
+    }
+
+    /**
+     * Reloads the set of block definions from a set of JSON files in assets.
+     * @param blockDefinitionsJsonPaths The list of definition asset paths.
+     * @throws IllegalStateException On any issues with the input.
+     */
+    public void reloadBlockDefinitions(List<String> blockDefinitionsJsonPaths) {
+        AssetManager assets = mActivity.getAssets();
+        BlockFactory factory = mController.getBlockFactory();
+        factory.clear();
+
+        String assetPath = null;
+        try {
+            for (String path : blockDefinitionsJsonPaths) {
+                assetPath = path;
+                factory.addJsonDefinitions(assets.open(path));
+            }
+        } catch (IOException | BlockLoadingException e) {
+            throw new IllegalStateException(
+                    "Failed to load block definition asset file: " + assetPath, e);
+        }
+    }
+
+    /**
+     * Reloads the toolbox from assets.
+     * @param toolboxContentsXmlPath The asset path to the toolbox XML
+     * @throws IllegalStateException If error occurs during loading.
+     */
+    public void reloadToolbox(String toolboxContentsXmlPath) {
+        AssetManager assetManager = mActivity.getAssets();
+        BlocklyController controller = getController();
+        try {
+            controller.loadToolboxContents(assetManager.open(toolboxContentsXmlPath));
+        } catch (IOException | BlockLoadingException e) {
+            // compile time assets such as assets are assumed to be good.
+            throw new IllegalStateException("Failed to load toolbox XML.", e);
+        }
     }
 }

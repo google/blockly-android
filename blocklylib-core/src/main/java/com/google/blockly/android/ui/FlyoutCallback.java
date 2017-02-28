@@ -25,9 +25,8 @@ import com.google.blockly.model.WorkspacePoint;
 /**
  * Callback for determining the behavior of user actions in a flyout that affect the workspace. Use
  * {@link com.google.blockly.android.FlyoutFragment#init(BlocklyController, FlyoutCallback)} to
- * define this behavior.
- * {@link BlockRecyclerViewHelper#init(BlocklyController, FlyoutCallback)} may be used instead if not using
- * a FlyoutFragment.
+ * define this behavior. {@link BlockRecyclerViewHelper#init(BlocklyController, FlyoutCallback)} may
+ * be used instead if not using a FlyoutFragment.
  */
 public abstract class FlyoutCallback {
     /**

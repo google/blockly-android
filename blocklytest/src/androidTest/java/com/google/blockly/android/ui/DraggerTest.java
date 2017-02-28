@@ -32,8 +32,10 @@ import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -149,6 +151,7 @@ public class DraggerTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
+                // TODO(#435): Replace R.raw.test_blocks
                 mBlockFactory = new BlockFactory(mMockContext, new int[]{R.raw.test_blocks});
                 mWorkspaceView = new WorkspaceView(mMockContext);
                 mWorkspaceHelper = new WorkspaceHelper(mMockContext);
@@ -198,11 +201,11 @@ public class DraggerTest extends BlocklyTestCase {
 
     /** Drag events are not always block related.  Ignore other blocks. */
     @Test
-    public void testIgnoreDragThatIsntBlocks() {
+    public void testIgnoreDragThatIsntBlocks() throws BlockLoadingException {
         // Setup
-        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlock(
-                "simple_input_output", "first block");
-        mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        mTargetBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("output_no_input"));
 
         Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
                 .thenReturn(false);
@@ -218,12 +221,11 @@ public class DraggerTest extends BlocklyTestCase {
 
     /** Drag together two compatible blocks. */
     @Test
-    public void testDragConnect() {
-
+    public void testDragConnect() throws BlockLoadingException {
         // Setup
-        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlock(
-                "simple_input_output", "first block");
-        mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        mTargetBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("output_no_input"));
 
         Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
                 .thenReturn(true);
@@ -244,11 +246,11 @@ public class DraggerTest extends BlocklyTestCase {
 
     /** Drag together two incompatible blocks. */
     @Test
-    public void testDragNoConnect() {
+    public void testDragNoConnect() throws BlockLoadingException {
         // Setup
-        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlock(
-                "simple_input_output", "first block");
-        mTargetBlock = mBlockFactory.obtainBlock("output_no_input", "second block");
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        mTargetBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("output_no_input"));
 
         Mockito.when(mMockBlockClipDataHelper.isBlockData(any(ClipDescription.class)))
                 .thenReturn(true);
@@ -265,12 +267,14 @@ public class DraggerTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testRemoveConnectionsDuringDrag() {
+    public void testRemoveConnectionsDuringDrag() throws BlockLoadingException {
         // Setup
-        mTargetBlock = mBlockFactory.obtainBlock("simple_input_output", "first block");
-        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlock(
-                "simple_input_output", "second block");
-        Block draggedChild = mBlockFactory.obtainBlock("multiple_input_output", "third block");
+        mTargetBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        mTouchedBlock = mDraggedBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("simple_input_output"));
+        Block draggedChild = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("multiple_input_output"));
         mDraggedBlock.getOnlyValueInput().getConnection().connect(
                 draggedChild.getOutputConnection());
 

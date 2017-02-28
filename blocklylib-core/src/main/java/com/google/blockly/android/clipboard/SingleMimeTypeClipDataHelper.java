@@ -24,6 +24,7 @@ import android.view.DragEvent;
 import com.google.blockly.android.R;
 import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.IOOptions;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import java.io.IOException;
@@ -71,7 +72,7 @@ public class SingleMimeTypeClipDataHelper implements BlockClipDataHelper {
     @Override
     public ClipData buildDragClipData(PendingDrag drag) throws IOException {
         Block root = drag.getRootDraggedBlock();
-        String xml = BlocklyXmlHelper.writeBlockToXml(root);
+        String xml = BlocklyXmlHelper.writeBlockToXml(root, IOOptions.WRITE_ALL_DATA);
 
         Intent intent = new Intent();
         intent.putExtra(EXTRA_BLOCKLY_XML, xml);

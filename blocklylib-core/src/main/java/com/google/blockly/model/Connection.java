@@ -117,6 +117,16 @@ public class Connection implements Cloneable {
      * Sets the connection (and shadow block) to use when a normal block isn't connected. This may
      * only be called on connections that belong to an input (value or statement).
      *
+     * This method does not connect the shadow to the visible connection. For that, follow this call
+     * with connect():
+     * <pre>{@code
+     * parentConnection.setShadowConnection(childConnection)
+     * if (!parentConnection.isConnected()) {
+     *     // If there is no standard child block, so connect the shadow
+     *     parentConnection.connect(childConnection);
+     * }
+     * }</pre>
+     *
      * @param target The connection on the shadow block to use.
      */
     public void setShadowConnection(Connection target) {
