@@ -166,6 +166,10 @@ public class BlocklyEventTest {
                 BlocklyXmlHelper.loadOneBlockFromXml(deserializedEvent.getXml(), mBlockFactory);
         assertThat(deserializedBlock.getId()).isEqualTo(BLOCK_ID);
         assertThat(mBlock.getType()).isEqualTo(BLOCK_TYPE);
-        assertThat(mBlock.getPosition()).isEqualTo(NEW_POSITION);
+
+        // PointF.equals(other) did not exist before API 17. Compare components for 16.
+        WorkspacePoint position = mBlock.getPosition();
+        assertThat(position.x).isEqualTo(NEW_POSITION.x);
+        assertThat(position.y).isEqualTo(NEW_POSITION.y);
     }
 }
