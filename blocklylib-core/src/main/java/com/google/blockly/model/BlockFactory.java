@@ -591,17 +591,20 @@ public class BlockFactory {
         }
     }
 
+    /**
+     * Extension of BlockTemplate that includes child blocks. This class is private, because child
+     * block references in templates are strictly limited to one use, and this class in not intended
+     * for use outside XML deserialization.
+     */
     private class XmlBlockTemplate extends BlockTemplate {
         /** Ordered list of input names and blocks, as loaded during XML deserialization. */
         protected List<InputValue> mInputValues;
 
 
         /**
-         * Sets a field's value immediately after creation.
-         * Generally only used during XML deserialization.
-         *
-         * This method is package private because the API of this method is subject to change. Do
-         * not use it in application code.
+         * Sets a block input's child block and shadow. Child blocks in templates are only good
+         * once, as the second time the child already has a parent. Only used during XML
+         * deserialization.
          *
          * @param inputName The name of the field.
          * @param child The deserialized child block.
@@ -611,7 +614,7 @@ public class BlockFactory {
          *                               not configured as such; if child or shadow overwrites a
          *                               prior value.
          */
-        XmlBlockTemplate withInputValue(String inputName, Block child, Block shadow)
+        private XmlBlockTemplate withInputValue(String inputName, Block child, Block shadow)
                 throws BlockLoadingException {
             if (inputName == null
                     || (inputName = inputName.trim()).length() == 0) {  // Trim and test name
@@ -653,11 +656,8 @@ public class BlockFactory {
         }
 
         /**
-         * Sets a block next children immediately after creation.
-         * Generally only used during XML deserialization.
-         *
-         * This method is package private because the API of this method is subject to change. Do
-         * not use it in application code.
+         * Sets a block's next children. Child blocks in templates are only good once, as the second
+         * time the child already has a parent. Only used during XML deserialization.
          *
          * @param child The deserialized child block.
          * @param shadow The deserialized shadow block.
@@ -666,7 +666,8 @@ public class BlockFactory {
          *                               not configured as such; if child or shadow overwrites a
          *                               prior value.
          */
-        XmlBlockTemplate withNextChild(Block child, Block shadow) throws BlockLoadingException {
+        private XmlBlockTemplate withNextChild(Block child, Block shadow)
+                throws BlockLoadingException {
             if (child != null && (child.isShadow() || child.getPreviousConnection() == null)) {
                 throw new BlockLoadingException("Invalid next child block.");
             }
@@ -679,6 +680,7 @@ public class BlockFactory {
             return this;
         }
 
+        /** Appends child blocks after the rest of the template state. */
         @Override
         public void applyMutableState(Block block) throws BlockLoadingException {
             super.applyMutableState(block);

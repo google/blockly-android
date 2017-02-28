@@ -126,8 +126,9 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
     }
 
     /**
-     * Applies the mutable state described by a template. Called after extensions are applied to the
-     * block (and thus event handles and mutators have been registered).
+     * Applies the mutable state (block object values that can be updated after construction)
+     * described by a template. Called after extensions are applied to the block (and thus event
+     * handles and mutators have been registered).
      * @param block The block to update.
      * @throws BlockLoadingException
      */
@@ -186,7 +187,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate ofType(String definitionName) {
-        checkDefinitionAndCopySourceUnset();  // Throws if already set.
+        checkDefinitionAndCopySourceNotSet();  // Throws if already set.
         mTypeName = definitionName;
         return this;
     }
@@ -205,7 +206,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate fromDefinition(BlockDefinition definition) {
-        checkDefinitionAndCopySourceUnset();  // Throws if already set.
+        checkDefinitionAndCopySourceNotSet();  // Throws if already set.
         mDefinition = definition;
         return this;
     }
@@ -224,7 +225,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate fromJson(String json) {
-        checkDefinitionAndCopySourceUnset();  // Throws if already set.
+        checkDefinitionAndCopySourceNotSet();  // Throws if already set.
         try {
             mDefinition = new BlockDefinition(json);
             return this;
@@ -247,7 +248,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate fromJson(JSONObject json) {
-        checkDefinitionAndCopySourceUnset();  // Throws if already set.
+        checkDefinitionAndCopySourceNotSet();  // Throws if already set.
         try {
             mDefinition = new BlockDefinition(json);
             return this;
@@ -269,7 +270,7 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
      * @return This block descriptor, for chaining.
      */
     public BlockTemplate copyOf(Block source) {
-        checkDefinitionAndCopySourceUnset();  // Throws if already set.
+        checkDefinitionAndCopySourceNotSet();  // Throws if already set.
         mCopySource = source;
         return this;
     }
@@ -291,8 +292,10 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
     }
 
     /**
-     * Declares the new block will be a shadow block. This is a literate API shorthand for
-     * {@code template.shadow(true);}.
+     * Declares the new block will be a shadow block. This is true, even if the template copies
+     * a non-shadow block via {@link #copyOf(Block)}.
+     *
+     * This is a fluent API shorthand for {@code template.shadow(true);}.
      *
      * <pre>
      * {@code blockFactory.obtain(block().shadow().ofType("math_number"));}
@@ -397,14 +400,19 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
     }
 
     /**
-     * @return
+     * @return a string describing this template.
      */
     public String toString() {
         return toString("BlockTemplate");
     }
 
-    public String toString(String prefix) {
-        String msg = prefix;
+    /**
+     * Constructs a string that describes this template, using the provided descriptive noun.
+     * @param nounPrefix A generic noun, usually "BlockTemplate" or "Block".
+     * @return a string describing this template, using the noun as a prefix.
+     */
+    public String toString(String nounPrefix) {
+        String msg = nounPrefix;
         if (mTypeName != null) {
             msg += " \"" + mTypeName + "\"";
         } else if (mDefinition != null && mDefinition.getTypeName() != null) {
@@ -414,12 +422,6 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
             msg += " (id=\"" + mId + "\")";
         }
         return msg;
-    }
-
-    /** Correctly typed reference to this for return values. */
-    @SuppressWarnings("unchecked")
-    protected T getThis() {
-        return (T) this;
     }
 
     /**
@@ -442,7 +444,12 @@ public class BlockTemplate<T extends BlockTemplate<T>> {
         return this;
     }
 
-    private void checkDefinitionAndCopySourceUnset() {
+    /**
+     * Checks that this template has yet been configured with a BlockDefinition, whether directly,
+     * via name, or via block to copy.
+     * @throws IllegalStateException If the BlockDefinition has already been assigned.
+     */
+    private void checkDefinitionAndCopySourceNotSet() {
         if (mDefinition != null || mTypeName != null || mCopySource != null) {
             throw new IllegalStateException("Definition or copy source already set.");
         }

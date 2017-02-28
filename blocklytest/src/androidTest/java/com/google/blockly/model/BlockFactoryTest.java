@@ -85,7 +85,11 @@ public class BlockFactoryTest {
     public void testSuccessfulLoadFromXml() throws BlockLoadingException {
         Block loaded = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK);
         assertThat(loaded.getType()).isEqualTo("frankenblock");
-        assertThat(loaded.getPosition()).isEqualTo(new WorkspacePoint(37, 13));
+
+        // PointF.equals(other) fails on API 16. Compare components individually.
+        WorkspacePoint position = loaded.getPosition();
+        assertThat(position.x).isEqualTo(37f);
+        assertThat(position.y).isEqualTo(13f);
     }
 
     @Test
