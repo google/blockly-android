@@ -211,14 +211,10 @@ public class BlockTemplate {
      * @param json The JSON definition of the block.
      * @return This block descriptor, for chaining.
      */
-    public BlockTemplate fromJson(String json) {
+    public BlockTemplate fromJson(String json) throws BlockLoadingException {
         checkDefinitionAndCopySourceNotSet();  // Throws if already set.
-        try {
-            mDefinition = new BlockDefinition(json);
-            return this;
-        } catch (JSONException e) {
-            throw new IllegalArgumentException("Failed to load definition.", e);
-        }
+        mDefinition = new BlockDefinition(json);
+        return this;
     }
 
     /**
@@ -234,14 +230,10 @@ public class BlockTemplate {
      * @param json The JSON definition of the block.
      * @return This block descriptor, for chaining.
      */
-    public BlockTemplate fromJson(JSONObject json) {
+    public BlockTemplate fromJson(JSONObject json) throws BlockLoadingException {
         checkDefinitionAndCopySourceNotSet();  // Throws if already set.
-        try {
-            mDefinition = new BlockDefinition(json);
-            return this;
-        } catch (JSONException e) {
-            throw new IllegalArgumentException(e);
-        }
+        mDefinition = new BlockDefinition(json);
+        return this;
     }
 
     /**

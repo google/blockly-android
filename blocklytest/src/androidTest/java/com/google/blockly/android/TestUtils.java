@@ -27,6 +27,7 @@ import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.Field;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -104,7 +105,7 @@ public final class TestUtils {
                     ProcedureManager.PROCEDURE_DEFINITION_PREFIX + procedureName,
                     procedureName);
             return new BlockDefinition(json);
-        } catch (JSONException e) {
+        } catch (JSONException | BlockLoadingException e) {
             // Shouldn't ever happen
             throw new IllegalStateException("Failed to create and parse JSON block definition.");
         }
@@ -122,7 +123,7 @@ public final class TestUtils {
                     ProcedureManager.PROCEDURE_REFERENCE_PREFIX + procedureName,
                     procedureName);
             return new BlockDefinition(json);
-        } catch (JSONException e) {
+        } catch (JSONException | BlockLoadingException e) {
             // Shouldn't ever happen
             throw new IllegalStateException("Failed to create and parse JSON block definition.");
         }
