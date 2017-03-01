@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -26,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,16 +43,19 @@ public final class BlockDefinition {
     }
 
     // TODO(#542): Parse into List<InputDefinition> and discard JSON. Include FieldDropdown.Options.
-    private final JSONObject mJson;  // Saved to parse inputs and field at creation time.
-    private final String mTypeName;
+    private final @NonNull JSONObject mJson;  // Saved to parse inputs and field at creation time.
+    private final @NonNull String mTypeName;
     private final int mColor;
     private final boolean mHasOutput;
     private final boolean mHasPrevious;
     private final boolean mHasNext;
-    private final String[] mOutputChecks;
-    private final String[] mPreviousChecks;
-    private final String[] mNextChecks;
+    private final @Nullable String[] mOutputChecks;
+    private final @Nullable String[] mPreviousChecks;
+    private final @Nullable String[] mNextChecks;
     private final boolean mInputsInlineDefault;
+
+    private final @Nullable String mMutatorName;
+    private final @NonNull List<String> mExtensionNames;
 
     /**
      * Initializes the definition from a string of JSON.
@@ -76,7 +81,7 @@ public final class BlockDefinition {
             // Generate definition name that will be consistent across runs
             int jsonHash = json.toString().hashCode();
             tmpName = "auto-" + Integer.toHexString(jsonHash);
-        } else if(isValidType(tmpName)) {
+        } else if (isValidType(tmpName)) {
             logPrefix = "Type \"" + tmpName + "\": ";
         } else {
             String valueQuotedAndEscaped = JSONObject.quote(tmpName);
@@ -84,22 +89,30 @@ public final class BlockDefinition {
         }
         mTypeName = tmpName;
 
-        // A block can have either an output connection or previous connection, but it can always
-        // have a next connection.
-        mHasOutput = mJson.has("output");
-        mHasPrevious = mJson.has("previousStatement");
-        mHasNext = mJson.has("nextStatement");
-        if (mHasOutput && mHasPrevious) {
-            throw new BlockLoadingException(
-                    logPrefix + "Block cannot have both \"output\" and \"previousStatement\".");
-        }
-        // Each connection may have a list of allow connection checks / types.
-        mOutputChecks = mHasOutput ? Input.getChecksFromJson(mJson, "output") : null;
-        mPreviousChecks = mHasPrevious ? Input.getChecksFromJson(mJson, "previousStatement") : null;
-        mNextChecks = mHasNext ? Input.getChecksFromJson(mJson, "nextStatement") : null;
+        try {
+            // A block can have either an output connection or previous connection, but it can always
+            // have a next connection.
+            mHasOutput = mJson.has("output");
+            mHasPrevious = mJson.has("previousStatement");
+            mHasNext = mJson.has("nextStatement");
+            if (mHasOutput && mHasPrevious) {
+                throw new BlockLoadingException(
+                        logPrefix + "Block cannot have both \"output\" and \"previousStatement\".");
+            }
+            // Each connection may have a list of allow connection checks / types.
+            mOutputChecks = mHasOutput ? Input.getChecksFromJson(mJson, "output") : null;
+            mPreviousChecks = mHasPrevious ? Input.getChecksFromJson(mJson, "previousStatement") : null;
+            mNextChecks = mHasNext ? Input.getChecksFromJson(mJson, "nextStatement") : null;
 
-        mColor = parseColour(logPrefix, mJson);
-        mInputsInlineDefault = parseInputsInline(logPrefix, mJson);
+            mColor = parseColour(logPrefix, mJson);
+            mInputsInlineDefault = parseInputsInline(logPrefix, mJson);
+
+            mMutatorName = json.has("mutator") ? json.getString("mutator") : null;
+            mExtensionNames = parseExtensions(json);
+        } catch (JSONException e) {
+            throw new BlockLoadingException(
+                    "Cannot load BlockDefinition \"" + mTypeName + "\" from JSON.", e);
+        }
     }
 
     /**
@@ -255,6 +268,23 @@ public final class BlockDefinition {
     }
 
     /**
+     * @return The name of the {@link Mutator} add to all instances of this BlockDefinition, if any.
+     *         Otherwise, null.
+     */
+    @Nullable
+    public String getMutatorName() {
+        return mMutatorName;
+    }
+
+    /**
+     * @return A list of extensions names to apply to all instances of this BlockDefinition.
+     */
+    @NonNull
+    public List<String> getExtensionNames() {
+        return mExtensionNames;
+    }
+
+    /**
      * Attempts to parse a string as JSON.
      * @throws BlockLoadingException If the string is not valid JSON.
      */
@@ -310,5 +340,39 @@ public final class BlockDefinition {
             }
         }
         return inputsInline;
+    }
+
+    /**
+     * @param json The JSON block definition.
+     * @return A list of extension names if provided. Otherwise, null.
+     * @throws BlockLoadingException If "extensions" attribute is not an array.
+     * @throws JSONException If JSON is array does not contain strings.
+     */
+    private List<String> parseExtensions(JSONObject json)
+            throws JSONException, BlockLoadingException {
+        if (!json.has("extensions")) {
+            return Collections.EMPTY_LIST;
+        }
+
+        // While we expect an array, permissively grab an Object in case it is just a string.
+        Object extensionsObj = json.get("extensions");
+        if (extensionsObj instanceof JSONArray) {
+            JSONArray array = (JSONArray) extensionsObj;
+            int count = array.length();
+            List<String> extensionNames = new ArrayList<>(count);
+            for (int i = 0; i < count; ++i) {
+                extensionNames.add(array.getString(i).trim());
+            }
+            return Collections.unmodifiableList(extensionNames);
+        } else if (extensionsObj instanceof String) {
+            Log.w(TAG,
+                    "Type \"" + mTypeName + "\": Extensions attribute in JSON should be an array.");
+            return Collections.unmodifiableList(
+                    Collections.singletonList((String) extensionsObj));
+        } else {
+            throw new BlockLoadingException(
+                    "Type \"" + mTypeName + "\": Extensions attribute in JSON expected an array, "
+                    + "and found " + extensionsObj.getClass().getName());
+        }
     }
 }

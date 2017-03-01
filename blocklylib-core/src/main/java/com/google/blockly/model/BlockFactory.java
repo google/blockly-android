@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -59,8 +60,10 @@ import java.util.UUID;
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
 
-    private final HashMap<String, BlockDefinition> mDefinitions = new HashMap<>();
-    private final HashMap<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
+    private final Map<String, BlockDefinition> mDefinitions = new HashMap<>();
+    private final Map<String, MutatorFactory> mMutatorFactories = new HashMap<>();
+    private final Map<String, BlockExtension> mExtensions = new HashMap<>();
+    private final Map<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
     /**
      * The global list of dropdown options available to each field matching the
@@ -187,14 +190,87 @@ public class BlockFactory {
     }
 
     /**
-     * Removes a block type definition from the factory. If any block of this type is still in use,
+     * Registers a {@link MutatorFactory} for future blocks.
+     * @param mutatorFactory The factory for the new mutator.
+     */
+    public void registerMutator(MutatorFactory mutatorFactory) {
+        String mutatorName = mutatorFactory.getMutatorName();
+        if (mMutatorFactories.containsKey(mutatorName)) {
+            if (mBlockRefs.isEmpty()) {
+                Log.w(TAG, "Replacing reference to Mutator \"" + mutatorName + "\".");
+            } else {
+                throw new IllegalStateException(
+                        "Mutator \"" + mutatorName + "\" already registered, and may be referenced "
+                        + "by a block. Must call removeMutator() first .");
+            }
+        }
+        mMutatorFactories.put(mutatorName, mutatorFactory);
+    }
+
+
+    /**
+     * Registers a {@link MutatorFactory} for Blocks.
+     * @param extension The new extension.
+     */
+    public void registerExtension(BlockExtension extension) {
+        String extensionName = extension.getExtensionName();
+        if (mMutatorFactories.containsKey(extensionName)) {
+            if (mBlockRefs.isEmpty()) {
+                Log.w(TAG, "Replacing reference to BlockExtension \"" + extensionName + "\".");
+            } else {
+                throw new IllegalStateException(
+                        "Mutator \"" + extensionName + "\" already registered, and may be "
+                        + "referenced by a block. Must call removeExtension() first .");
+            }
+        }
+        mExtensions.put(extensionName, extension);
+    }
+
+    /**
+     * Removes a block type definition from this factory. If any block of this type is still in use,
      * this may cause a crash if the user tries to load a new block of this type, including copies.
      *
-     * @param definitionName The name of the block to remove.
-     * @return True if the definition was found and removed. Otherwise, false.
+     * @param definitionName The name of the block definition to remove.
+     * @return True if the block definition was found and removed. Otherwise, false.
      */
     public boolean removeDefinition(String definitionName) {
-        return mDefinitions.remove(definitionName) != null;
+        boolean result = (mDefinitions.remove(definitionName) != null);
+        if (result && !mBlockRefs.isEmpty()) {
+            Log.w(TAG, "Removing BlockDefinition \"" + definitionName + "\" while blocks active.");
+        }
+        return result;
+    }
+
+    /**
+     * Removes a {@link MutatorFactory} from this block factory. If any block of this type is still
+     * in use, this may cause a crash if the user tries to load a new block of this type, including
+     * copies.
+     *
+     * @param mutatorName The name of the mutator to remove.
+     * @return True if the mutator factory was found and removed. Otherwise, false.
+     */
+    public boolean removeMutator(String mutatorName) {
+        boolean result = (mMutatorFactories.remove(mutatorName) != null);
+        if (result && !mBlockRefs.isEmpty()) {
+            Log.w(TAG, "Removing MutatorFactory \"" + mutatorName + "\" while blocks active.");
+        }
+        return result;
+    }
+
+    /**
+     * Removes a {@link BlockExtension} from this block factory. If any block of this type is still
+     * in use, this may cause a crash if the user tries to load a new block of this type, including
+     * copies.
+     *
+     * @param extensionName The name of the extension to remove.
+     * @return True if the extension was found and removed. Otherwise, false.
+     */
+    public boolean removeExtension(String extensionName) {
+        boolean result = (mExtensions.remove(extensionName) != null);
+        if (result && !mBlockRefs.isEmpty()) {
+            Log.w(TAG, "Removing BlockExtension \"" + extensionName + "\" while blocks active.");
+        }
+        return result;
     }
 
     /**
@@ -276,7 +352,6 @@ public class BlockFactory {
             }
 
             block = new Block(this, definition, id, isShadow);
-            // TODO(#529): Apply Extensions.
         }
 
         // Apply mutable state last.
@@ -359,6 +434,19 @@ public class BlockFactory {
                 break;
         }
         return field;
+    }
+
+    /**
+     * Applies the named extension to the provided block.
+     * @param extensionName The name / id of the extension, as seen in the JSON extensions attribute
+     * @param block The block to apply it to.
+     */
+    public void applyExtension(String extensionName, Block block) throws BlockLoadingException {
+        BlockExtension extension = mExtensions.get(extensionName);
+        if (extension == null) {
+            throw new BlockLoadingException("Unknown BlockExtension \"" + extension + "\".");
+        }
+        extension.applyTo(block);
     }
 
     /**
@@ -455,7 +543,8 @@ public class BlockFactory {
                                         "<" + tagname + "> must have a name attribute.");
                             }
                         } else if (tagname.equalsIgnoreCase("mutation")) {
-                            // TODO(#530): Handle mutations.
+                            String elementStr = BlocklyXmlHelper.captureElement(parser);
+                            template.withMutation(elementStr);
                         }
                         break;
 
@@ -558,6 +647,8 @@ public class BlockFactory {
      */
     public void clear() {
         mDefinitions.clear();
+        mMutatorFactories.clear();
+        mExtensions.clear();
         mDropdownOptions.clear();
         mBlockRefs.clear();
     }
@@ -589,6 +680,22 @@ public class BlockFactory {
             id = UUID.randomUUID().toString();
         }
         return id;
+    }
+
+    /**
+     * Creates a new Mutator instance.
+     * @param mutatorName The name / id of the mutator to apply.
+     * @param block The block to pair it with.
+     * @return The new Mutator, already paired.
+     * @throws BlockLoadingException If the mutator name is unrecognized, or other problems occur.
+     */
+    public Mutator createMutatorForBlock(String mutatorName, Block block)
+            throws BlockLoadingException {
+        MutatorFactory factory = mMutatorFactories.get(mutatorName);
+        if (factory == null) {
+            throw new BlockLoadingException("Unknown Mutator \"" + mutatorName + "\".");
+        }
+        return factory.createForBlock(block);
     }
 
     /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */

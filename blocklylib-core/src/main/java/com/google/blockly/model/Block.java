@@ -23,6 +23,7 @@ import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.ColorUtils;
 
+import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public class Block {
     private final ArrayList<Connection> mConnectionList = new ArrayList<>();
     private final ArrayList<Input> mInputList;
     private boolean mIsShadow;
+    protected Mutator mMutator;
 
     // These values can be changed after creating the block
     private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
@@ -76,7 +78,7 @@ public class Block {
             throws BlockLoadingException {
         if (factory == null || definition == null || id == null) {
             throw new IllegalArgumentException(
-                    "Tried to instantiate ablock but factory, definition, or id was null.");
+                    "Tried to instantiate a block but factory, definition, or id was null.");
         }
         mFactory = factory;
         mId = id;
@@ -99,6 +101,18 @@ public class Block {
         setShadow(isShadow);
 
         rebuildConnectionList();
+
+        String mutatorName = definition.getMutatorName();
+        if (mutatorName != null) {
+            mMutator = factory.createMutatorForBlock(mutatorName, this);
+            if (mMutator == null) {
+                throw new BlockLoadingException("Unknown mutator " + JSONObject.quote(mutatorName));
+            }
+        }
+        List<String> extensionNames = definition.getExtensionNames();
+        for (String name : extensionNames) {
+            factory.applyExtension(name, this);
+        }
     }
 
     /**
@@ -561,6 +575,10 @@ public class Block {
             serializer.startTag(null, "next");
             getNextBlock().serialize(serializer, false, options);
             serializer.endTag(null, "next");
+        }
+
+        if (mMutator != null) {
+            mMutator.serialize(serializer);
         }
 
         serializer.endTag(null, mIsShadow ? "shadow" : "block");

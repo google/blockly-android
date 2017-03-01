@@ -17,6 +17,7 @@ package com.google.blockly.utils;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Xml;
 
 import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.model.Block;
@@ -24,6 +25,7 @@ import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.IOOptions;
+import com.google.blockly.model.Mutator;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -33,6 +35,7 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -362,6 +365,91 @@ public final class BlocklyXmlHelper {
         }
         if (reader != null) {
             reader.close();
+        }
+    }
+
+    /**
+     * Serializes the current element and all child nodes as a String.
+     * @param parser The parser to pull from.
+     * @return The composed element string.
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
+    public static String captureElement(XmlPullParser parser)
+            throws XmlPullParserException, IOException
+    {
+        int event = parser.getEventType();
+        if (event != XmlPullParser.START_TAG) {
+            throw new XmlPullParserException("Expected cal to begin at START_TAG");
+        }
+        int depth = -1;  // Will be increment below, at START_TAG:
+
+        StringWriter sw = new StringWriter();
+        XmlSerializer serializer = PARSER_FACTORY.newSerializer();
+        serializer.setOutput(sw);
+
+        String namespace, prefix;
+        while (event != XmlPullParser.END_DOCUMENT) {
+            switch (event) {
+                case XmlPullParser.START_TAG:
+                    ++depth;
+                    namespace = parser.getNamespace();
+                    prefix = parser.getPrefix();
+                    if (namespace != null && prefix != null) {
+                        serializer.setPrefix(prefix, namespace);
+                    }
+                    serializer.startTag(namespace, parser.getName());
+                    int attrCount = parser.getAttributeCount();
+                    for (int i = 0; i < attrCount; ++i) {
+                        namespace = parser.getAttributeNamespace(i);
+                        prefix = parser.getAttributePrefix(i);
+                        if (namespace != null && prefix != null) {
+                            serializer.setPrefix(prefix, namespace);
+                        }
+                        serializer.attribute(namespace, parser.getName(),
+                                parser.getAttributeValue(i));
+                    }
+                    break;
+
+                case XmlPullParser.TEXT:
+                case XmlPullParser.IGNORABLE_WHITESPACE:
+                    serializer.text(parser.getText());
+                    break;
+
+                case XmlPullParser.CDSECT:
+                    serializer.cdsect(parser.getText());
+                    break;
+
+                case XmlPullParser.END_TAG:
+                    namespace = parser.getNamespace();
+                    if (namespace != null) {
+                        serializer.setPrefix(parser.getPrefix(), namespace);
+                    }
+                    serializer.endTag(namespace, parser.getName());
+                    --depth;
+                    break;
+            }
+            if (depth < 0) {
+                serializer.flush();
+                return sw.toString();
+            }
+
+            event = parser.next();
+        }
+        throw new IOException("Unexpected end of document.");
+    }
+
+    public static void updateMutator(
+            @NonNull Block block, @NonNull Mutator mutator, @NonNull String mutation)
+            throws BlockLoadingException
+    {
+        try {
+            Reader reader = new StringReader(mutation);
+            XmlPullParser parser = PARSER_FACTORY.newPullParser();
+            parser.setInput(reader);
+            mutator.update(block, parser);
+        } catch (XmlPullParserException e) {
+            throw new BlockLoadingException("Failed to parse mutation: " + mutation, e);
         }
     }
 
