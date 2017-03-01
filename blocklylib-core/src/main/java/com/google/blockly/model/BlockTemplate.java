@@ -123,9 +123,9 @@ public class BlockTemplate {
     public void applyMutableState(Block block) throws BlockLoadingException {
         if (mMutation != null) {
             if (block.mMutator != null) {
-                BlocklyXmlHelper.updateMutator(block, mMutation);
+                BlocklyXmlHelper.updateMutator(block, block.mMutator, mMutation);
             } else {
-                Log.w(TAG, toString() + ": Ignoring <mutation> without mutator.");
+                Log.w(TAG, toString() + ": Ignoring <mutation> on " + this + " without mutator.");
             }
         }
 

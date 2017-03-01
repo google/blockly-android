@@ -16,10 +16,15 @@ package com.google.blockly.model;
 
 import com.google.blockly.utils.BlockLoadingException;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * A BlockExtension is ...  ???
  */
 public interface BlockExtension {
-    String getExtensionName();
+    public static final Map<String, BlockExtension> STANDARD_EXTENSIONS =
+            Collections.EMPTY_MAP;  // TODO
+
     void applyTo(Block block) throws BlockLoadingException;
 }

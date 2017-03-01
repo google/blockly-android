@@ -17,6 +17,7 @@ package com.google.blockly.android;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -32,6 +33,7 @@ import com.google.blockly.android.ui.BlockListUI;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DefaultVariableCallback;
 import com.google.blockly.android.ui.WorkspaceHelper;
+import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Workspace;
@@ -41,7 +43,9 @@ import com.google.blockly.utils.StringOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class to facilitate Blockly setup on an Activity.
@@ -89,9 +93,7 @@ public class BlocklyActivityHelper {
      * @throws IllegalStateException If error occurs during initialization. Assumes all initial
      *                               compile-time assets are known to be valid.
      */
-    public BlocklyActivityHelper(AppCompatActivity activity,
-                                 List<String> blockDefinitionJsonPaths,
-                                 String toolboxPath) {
+    public BlocklyActivityHelper(AppCompatActivity activity) {
         mActivity = activity;
 
         onCreateFragments();
@@ -109,8 +111,6 @@ public class BlocklyActivityHelper {
                 .setWorkspaceHelper(mWorkspaceHelper)
                 .setBlockViewFactory(mBlockViewFactory)
                 .setWorkspaceFragment(mWorkspaceFragment)
-                .addBlockDefinitionsFromAssets(blockDefinitionJsonPaths)
-                .setToolboxConfigurationAsset(toolboxPath)
                 .setTrashUi(mTrashBlockList)
                 .setToolboxUi(mToolboxBlockList, mCategoryFragment);
         mController = builder.build();
@@ -471,20 +471,31 @@ public class BlocklyActivityHelper {
     }
 
     /**
-     * Reloads the set of block definions from a set of JSON files in assets.
+     * Resets the {@link BlockFactory} with the provided mutators, extensions, and block
+     * definitions.
      * @param blockDefinitionsJsonPaths The list of definition asset paths.
+     * @param blockExtensions The extensions supporting the block definitions.
      * @throws IllegalStateException On any issues with the input.
      */
-    public void reloadBlockDefinitions(List<String> blockDefinitionsJsonPaths) {
+    public void resetBlockFactory(
+            @Nullable List<String> blockDefinitionsJsonPaths,
+            @Nullable Map<String, BlockExtension> blockExtensions) {
         AssetManager assets = mActivity.getAssets();
         BlockFactory factory = mController.getBlockFactory();
         factory.clear();
 
         String assetPath = null;
         try {
-            for (String path : blockDefinitionsJsonPaths) {
-                assetPath = path;
-                factory.addJsonDefinitions(assets.open(path));
+            if (blockExtensions != null) {
+                for (String id : blockExtensions.keySet()) {
+                    factory.registerExtension(id, blockExtensions.get(id));
+                }
+            }
+            if (blockDefinitionsJsonPaths != null) {
+                for (String path : blockDefinitionsJsonPaths) {
+                    assetPath = path;
+                    factory.addJsonDefinitions(assets.open(path));
+                }
             }
         } catch (IOException | BlockLoadingException e) {
             throw new IllegalStateException(

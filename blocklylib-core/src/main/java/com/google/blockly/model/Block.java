@@ -18,6 +18,7 @@ package com.google.blockly.model;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -104,14 +105,11 @@ public class Block {
 
         String mutatorName = definition.getMutatorName();
         if (mutatorName != null) {
-            mMutator = factory.createMutatorForBlock(mutatorName, this);
-            if (mMutator == null) {
-                throw new BlockLoadingException("Unknown mutator " + JSONObject.quote(mutatorName));
-            }
+            factory.applyExtension(mutatorName, this, true);
         }
         List<String> extensionNames = definition.getExtensionNames();
         for (String name : extensionNames) {
-            factory.applyExtension(name, this);
+            factory.applyExtension(name, this, false);
         }
     }
 
@@ -715,6 +713,17 @@ public class Block {
 
         // State change is valid. Proceed.
         mIsShadow = isShadow;
+    }
+
+    /**
+     * Sets the {@link Mutator} for this block.  Should be called from a {@link BlockExtension}, and
+     * must only be called once.
+     */
+    public final void setMutator(Mutator mutator) throws BlockLoadingException {
+        if (mMutator != null) {
+            throw new BlockLoadingException("Mutator is already assigned.");
+        }
+        mMutator = mutator;
     }
 
     /**

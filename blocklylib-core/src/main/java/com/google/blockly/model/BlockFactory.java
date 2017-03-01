@@ -17,6 +17,7 @@ package com.google.blockly.model;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -61,7 +62,6 @@ public class BlockFactory {
     private static final String TAG = "BlockFactory";
 
     private final Map<String, BlockDefinition> mDefinitions = new HashMap<>();
-    private final Map<String, MutatorFactory> mMutatorFactories = new HashMap<>();
     private final Map<String, BlockExtension> mExtensions = new HashMap<>();
     private final Map<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
@@ -190,40 +190,26 @@ public class BlockFactory {
     }
 
     /**
-     * Registers a {@link MutatorFactory} for future blocks.
-     * @param mutatorFactory The factory for the new mutator.
-     */
-    public void registerMutator(MutatorFactory mutatorFactory) {
-        String mutatorName = mutatorFactory.getMutatorName();
-        if (mMutatorFactories.containsKey(mutatorName)) {
-            if (mBlockRefs.isEmpty()) {
-                Log.w(TAG, "Replacing reference to Mutator \"" + mutatorName + "\".");
-            } else {
-                throw new IllegalStateException(
-                        "Mutator \"" + mutatorName + "\" already registered, and may be referenced "
-                        + "by a block. Must call removeMutator() first .");
-            }
-        }
-        mMutatorFactories.put(mutatorName, mutatorFactory);
-    }
-
-
-    /**
-     * Registers a {@link MutatorFactory} for Blocks.
+     * Registers a {@link BlockExtension} for Blocks.
+     * @param extensionId The identifier used in BlockDefinition and JSON references.
      * @param extension The new extension.
      */
-    public void registerExtension(BlockExtension extension) {
-        String extensionName = extension.getExtensionName();
-        if (mMutatorFactories.containsKey(extensionName)) {
+    public void registerExtension(String extensionId, BlockExtension extension) {
+        BlockExtension old = mExtensions.get(extensionId);
+        if (extension == old) {
+            return;
+        }
+        if (extension != null && old != null) {
             if (mBlockRefs.isEmpty()) {
-                Log.w(TAG, "Replacing reference to BlockExtension \"" + extensionName + "\".");
+                Log.w(TAG, "Replacing reference to BlockExtension \"" + extensionId + "\".");
             } else {
+                // Make this explicit
                 throw new IllegalStateException(
-                        "Mutator \"" + extensionName + "\" already registered, and may be "
+                        "BlockExtension \"" + extensionId + "\" already registered, and may be "
                         + "referenced by a block. Must call removeExtension() first .");
             }
         }
-        mExtensions.put(extensionName, extension);
+        mExtensions.put(extensionId, extension);
     }
 
     /**
@@ -237,22 +223,6 @@ public class BlockFactory {
         boolean result = (mDefinitions.remove(definitionName) != null);
         if (result && !mBlockRefs.isEmpty()) {
             Log.w(TAG, "Removing BlockDefinition \"" + definitionName + "\" while blocks active.");
-        }
-        return result;
-    }
-
-    /**
-     * Removes a {@link MutatorFactory} from this block factory. If any block of this type is still
-     * in use, this may cause a crash if the user tries to load a new block of this type, including
-     * copies.
-     *
-     * @param mutatorName The name of the mutator to remove.
-     * @return True if the mutator factory was found and removed. Otherwise, false.
-     */
-    public boolean removeMutator(String mutatorName) {
-        boolean result = (mMutatorFactories.remove(mutatorName) != null);
-        if (result && !mBlockRefs.isEmpty()) {
-            Log.w(TAG, "Removing MutatorFactory \"" + mutatorName + "\" while blocks active.");
         }
         return result;
     }
@@ -437,16 +407,28 @@ public class BlockFactory {
     }
 
     /**
-     * Applies the named extension to the provided block.
+     * Applies the named extension to the provided block. Checks that the extensions behaves
+     * accordingly, per {@code isMutator}.
      * @param extensionName The name / id of the extension, as seen in the JSON extensions attribute
      * @param block The block to apply it to.
      */
-    public void applyExtension(String extensionName, Block block) throws BlockLoadingException {
+    public void applyExtension(String extensionName, Block block, boolean isMutator)
+            throws BlockLoadingException {
         BlockExtension extension = mExtensions.get(extensionName);
         if (extension == null) {
             throw new BlockLoadingException("Unknown BlockExtension \"" + extension + "\".");
         }
+        Mutator old = block.mMutator;
+        if (isMutator && old != null) {
+            throw new BlockLoadingException("Mutator on " + block + " already defined. "
+                    + "Cannot apply \"" + extensionName + "\".");
+        }
         extension.applyTo(block);
+        if (!isMutator && block.mMutator != old) {
+            // The mutator changed, but it didn't throw, so it must not have had a previous.
+            Log.w(TAG, "Extension \"" + extensionName + "\" modified block "
+                    + "mutator. Use \"mutator\" attribute in JSON definition.");
+        }
     }
 
     /**
@@ -646,11 +628,10 @@ public class BlockFactory {
      * Removes all blocks from the factory.
      */
     public void clear() {
+        mBlockRefs.clear();  // What if these blocks exist on the workspace?
         mDefinitions.clear();
-        mMutatorFactories.clear();
         mExtensions.clear();
         mDropdownOptions.clear();
-        mBlockRefs.clear();
     }
 
     /**
@@ -680,22 +661,6 @@ public class BlockFactory {
             id = UUID.randomUUID().toString();
         }
         return id;
-    }
-
-    /**
-     * Creates a new Mutator instance.
-     * @param mutatorName The name / id of the mutator to apply.
-     * @param block The block to pair it with.
-     * @return The new Mutator, already paired.
-     * @throws BlockLoadingException If the mutator name is unrecognized, or other problems occur.
-     */
-    public Mutator createMutatorForBlock(String mutatorName, Block block)
-            throws BlockLoadingException {
-        MutatorFactory factory = mMutatorFactories.get(mutatorName);
-        if (factory == null) {
-            throw new BlockLoadingException("Unknown Mutator \"" + mutatorName + "\".");
-        }
-        return factory.createForBlock(block);
     }
 
     /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */

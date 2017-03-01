@@ -448,7 +448,7 @@ public final class BlocklyXmlHelper {
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
             parser.setInput(reader);
             mutator.update(block, parser);
-        } catch (XmlPullParserException e) {
+        } catch (XmlPullParserException | IOException e) {
             throw new BlockLoadingException("Failed to parse mutation: " + mutation, e);
         }
     }
