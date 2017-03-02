@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model;
 
+import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.util.Collections;
@@ -24,10 +25,19 @@ import java.util.Map;
  * behaviors to be added to blocks. They are also the preferred mechanism to create and set
  * {@link Mutator}s on blocks.
  * <p/>
- * BlockExtensions must be registered using {@link BlockFactory#registerExtension}. Block
- * definitions can refer to the extension using the {@code "extension"} JSON attribute, an array of
- * extension names. When a block is constructed, {@link #applyTo(Block)} will be called on the new
- * block.
+ * BlockExtensions must be registered using {@link BlockFactory#registerExtension}. For convenience,
+ * implementations of {@link AbstractBlocklyActivity} can override the
+ * {@link AbstractBlocklyActivity#getBlockExtensions()} to register several extensions at start up.
+ * <p/>
+ * All extensions used by the blocks found in {@code src/main/assets/default/} are defined in
+ * {@link #STANDARD_EXTENSIONS}, the default return value of
+ * {@linkplain AbstractBlocklyActivity#getBlockExtensions()}.
+ * <p/>
+ * Block definitions can refer to these extensions two ways. If a extension installs a
+ * {@linkplain Mutator} on a block, the block definition should declare its use with the
+ * {@code "mutation"} JSON attribute. There can only be one mutator extension. All other extensions
+ * must use the {@code "extension"} JSON attribute, an array of extension names. When a block is
+ * constructed, {@link #applyTo(Block)} will be called on the new block.
  * <p/>
  * See <a href="https://developers.google.com/blockly/guides/create-custom-blocks/mutators">guide on
  * extensions and mutators</a>.
