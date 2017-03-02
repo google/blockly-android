@@ -717,11 +717,19 @@ public class Block {
      * Sets the {@link Mutator} for this block.  Should be called from a {@link BlockExtension}, and
      * must only be called once.
      */
-    public final void setMutator(Mutator mutator) throws BlockLoadingException {
+    public final void setMutator(@NonNull Mutator mutator) throws BlockLoadingException {
         if (mMutator != null) {
             throw new BlockLoadingException("Mutator is already assigned.");
         }
         mMutator = mutator;
+    }
+
+    /**
+     * @return The block's {@link Mutator}, if any.
+     */
+    @Nullable
+    public final Mutator getMutator() {
+        return mMutator;
     }
 
     /**

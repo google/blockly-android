@@ -405,7 +405,7 @@ public final class BlocklyXmlHelper {
                         if (namespace != null && prefix != null) {
                             serializer.setPrefix(prefix, namespace);
                         }
-                        serializer.attribute(namespace, parser.getName(),
+                        serializer.attribute(namespace, parser.getAttributeName(i),
                                 parser.getAttributeValue(i));
                     }
                     break;

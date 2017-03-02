@@ -20,11 +20,25 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * A BlockExtension is ...  ???
+ * A BlockExtension allows programmatic configuration of blocks, extra initialization, or custom
+ * behaviors to be added to blocks. They are also the preferred mechanism to create and set
+ * {@link Mutator}s on blocks.
+ * <p/>
+ * BlockExtensions must be registered using {@link BlockFactory#registerExtension}. Block
+ * definitions can refer to the extension using the {@code "extension"} JSON attribute, an array of
+ * extension names. When a block is constructed, {@link #applyTo(Block)} will be called on the new
+ * block.
+ * <p/>
+ * See <a href="https://developers.google.com/blockly/guides/create-custom-blocks/mutators">guide on
+ * extensions and mutators</a>.
  */
 public interface BlockExtension {
-    public static final Map<String, BlockExtension> STANDARD_EXTENSIONS =
-            Collections.EMPTY_MAP;  // TODO
+    Map<String, BlockExtension> STANDARD_EXTENSIONS = Collections.EMPTY_MAP;  // TODO
 
+    /**
+     * Applies the extension to the provided block.
+     * @param block The block to update
+     * @throws BlockLoadingException
+     */
     void applyTo(Block block) throws BlockLoadingException;
 }

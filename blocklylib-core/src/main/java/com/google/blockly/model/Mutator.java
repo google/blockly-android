@@ -23,25 +23,37 @@ import java.io.IOException;
 /**
  * Interface for mutators, platform specific hooks into blocks that manage the {@code <mutation>}
  * serialized state and any related block updates.
+ * <p/>
+ * Mutators can be added to blocks via the {@link Block#setMutator} method, which should be called
+ * from a {@link BlockExtension} during construction.
+ * <p/>
+ * See <a href="https://developers.google.com/blockly/guides/create-custom-blocks/mutators">guide on
+ * extensions and mutators</a>.
  */
-public interface Mutator {
+public abstract class Mutator {
     /**
      * Serializes the Mutator's state to an XML {@code <mutation>} element.
      *
-     * Compare with {@code block.domToMutation()} on web Blockly (added by extensions or mixins),
+     * Compare with {@code block.mutationToDom()} on web Blockly (added by extensions or mixins),
      * or {@code Mutator.toXMLElement()} on blockly-ios.
      *
      * @param serializer
      * @throws IOException
      */
-    void serialize(XmlSerializer serializer) throws IOException;
+    public abstract void serialize(XmlSerializer serializer) throws IOException;
 
     /**
-     * Updates the mutator state from the provided {@code <mutation>} XML.
+     * Updates the mutator state from the provided {@code <mutation>} XML. The parser state is such
+     * that {@code parser.next()} will return {@code START_TAG}, the beginning of the
+     * {@code <mutation>} element.
+     *
+     * Compare with {@code block.domToMutation()} on web Blockly (added by extensions or mixins),
+     * or {@code Mutator.update()} on blockly-ios.
      * @param block The block with the mutator.
      * @param parser The parser with the {@code <mutation>} element.
      * @throws IOException
      * @throws XmlPullParserException
      */
-    void update(Block block, XmlPullParser parser) throws IOException, XmlPullParserException;
+    public abstract void update(Block block, XmlPullParser parser)
+            throws IOException, XmlPullParserException;
 }
