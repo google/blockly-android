@@ -18,13 +18,11 @@ package com.google.blockly.model;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.ColorUtils;
 
-import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;

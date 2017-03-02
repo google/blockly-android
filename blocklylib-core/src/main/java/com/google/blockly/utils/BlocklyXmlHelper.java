@@ -17,7 +17,6 @@ package com.google.blockly.utils;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Xml;
 
 import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.model.Block;

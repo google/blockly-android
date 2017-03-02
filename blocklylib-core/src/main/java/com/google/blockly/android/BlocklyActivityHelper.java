@@ -43,7 +43,6 @@ import com.google.blockly.utils.StringOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
