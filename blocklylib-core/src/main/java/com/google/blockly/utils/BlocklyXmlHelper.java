@@ -316,58 +316,6 @@ public final class BlocklyXmlHelper {
     }
 
     /**
-     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
-     * contained in it or descending from it.
-     *
-     * @param inStream The input stream to read blocks from. Maybe null.
-     * @param inString The xml string to read blocks from if {@code insStream} is null.
-     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
-     * @param result An list (usually empty) to append new top-level Blocks to.
-     *
-     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
-     *                               or XmlPullParserException as a root cause.
-     */
-    private static void loadBlocksFromXml(
-            InputStream inStream, String inString, BlockFactory blockFactory, List<Block> result)
-            throws BlockLoadingException {
-        StringReader reader = null;
-        try {
-            XmlPullParser parser = PARSER_FACTORY.newPullParser();
-            if (inStream != null) {
-                parser.setInput(inStream, null);
-            } else {
-                reader = new StringReader(inString);
-                parser.setInput(reader);
-            }
-            int eventType = parser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                switch (eventType) {
-                    case XmlPullParser.START_TAG:
-                        if (parser.getName() == null) {
-                            throw new BlockLoadingException("Malformed XML; aborting.");
-                        }
-                        if (parser.getName().equalsIgnoreCase("block")) {
-                            result.add(blockFactory.fromXml(parser));
-                        } else if (parser.getName().equalsIgnoreCase("shadow")) {
-                            throw new IllegalArgumentException(
-                                    "Shadow blocks may not be top level blocks.");
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-                eventType = parser.next();
-            }
-        } catch (XmlPullParserException | IOException e) {
-            throw new BlockLoadingException(e);
-        }
-        if (reader != null) {
-            reader.close();
-        }
-    }
-
-    /**
      * Serializes the current element and all child nodes as a String.
      * @param parser The parser to pull from.
      * @return The composed element string.
@@ -457,6 +405,58 @@ public final class BlocklyXmlHelper {
             mutator.update(block, parser);
         } catch (XmlPullParserException | IOException e) {
             throw new BlockLoadingException("Failed to parse mutation: " + mutation, e);
+        }
+    }
+
+    /**
+     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
+     * contained in it or descending from it.
+     *
+     * @param inStream The input stream to read blocks from. Maybe null.
+     * @param inString The xml string to read blocks from if {@code insStream} is null.
+     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     * @param result An list (usually empty) to append new top-level Blocks to.
+     *
+     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
+     *                               or XmlPullParserException as a root cause.
+     */
+    private static void loadBlocksFromXml(
+            InputStream inStream, String inString, BlockFactory blockFactory, List<Block> result)
+            throws BlockLoadingException {
+        StringReader reader = null;
+        try {
+            XmlPullParser parser = PARSER_FACTORY.newPullParser();
+            if (inStream != null) {
+                parser.setInput(inStream, null);
+            } else {
+                reader = new StringReader(inString);
+                parser.setInput(reader);
+            }
+            int eventType = parser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        if (parser.getName() == null) {
+                            throw new BlockLoadingException("Malformed XML; aborting.");
+                        }
+                        if (parser.getName().equalsIgnoreCase("block")) {
+                            result.add(blockFactory.fromXml(parser));
+                        } else if (parser.getName().equalsIgnoreCase("shadow")) {
+                            throw new IllegalArgumentException(
+                                    "Shadow blocks may not be top level blocks.");
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+                eventType = parser.next();
+            }
+        } catch (XmlPullParserException | IOException e) {
+            throw new BlockLoadingException(e);
+        }
+        if (reader != null) {
+            reader.close();
         }
     }
 
