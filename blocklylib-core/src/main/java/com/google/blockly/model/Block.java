@@ -101,7 +101,7 @@ public class Block {
 
         rebuildConnectionList();
 
-        String mutatorName = definition.getMutatorName();
+        String mutatorName = definition.getMutatorExtensionName();
         if (mutatorName != null) {
             factory.applyExtension(mutatorName, this, true);
         }

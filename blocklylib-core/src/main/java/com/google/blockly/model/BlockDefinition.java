@@ -268,16 +268,16 @@ public final class BlockDefinition {
     }
 
     /**
-     * @return The name of the {@link Mutator} add to all instances of this BlockDefinition, if any.
-     *         Otherwise, null.
+     * @return The name of the {@link BlockExtension} (if any) which will add a {@link Mutator}
+     *         to all Block instances of this type. Otherwise, null.
      */
     @Nullable
-    public String getMutatorName() {
+    public String getMutatorExtensionName() {
         return mMutatorName;
     }
 
     /**
-     * @return A list of extensions names to apply to all instances of this BlockDefinition.
+     * @return A list of extension names to apply to all instances of this BlockDefinition.
      */
     @NonNull
     public List<String> getExtensionNames() {
@@ -346,7 +346,7 @@ public final class BlockDefinition {
      * @param json The JSON block definition.
      * @return A list of extension names if provided. Otherwise, null.
      * @throws BlockLoadingException If "extensions" attribute is not an array.
-     * @throws JSONException If JSON is array does not contain strings.
+     * @throws JSONException If {@code json}'s {@code "extensions"} is not an array of strings.
      */
     private List<String> parseExtensions(JSONObject json)
             throws JSONException, BlockLoadingException {

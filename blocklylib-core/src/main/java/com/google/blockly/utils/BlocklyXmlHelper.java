@@ -379,9 +379,9 @@ public final class BlocklyXmlHelper {
     {
         int event = parser.getEventType();
         if (event != XmlPullParser.START_TAG) {
-            throw new XmlPullParserException("Expected cal to begin at START_TAG");
+            throw new XmlPullParserException("Expected call to begin at START_TAG");
         }
-        int depth = -1;  // Will be increment below, at START_TAG:
+        int depth = 0;
 
         StringWriter sw = new StringWriter();
         XmlSerializer serializer = PARSER_FACTORY.newSerializer();
@@ -428,7 +428,7 @@ public final class BlocklyXmlHelper {
                     --depth;
                     break;
             }
-            if (depth < 0) {
+            if (depth <= 0) {
                 serializer.flush();
                 return sw.toString();
             }
@@ -438,6 +438,14 @@ public final class BlocklyXmlHelper {
         throw new IOException("Unexpected end of document.");
     }
 
+    /**
+     * Performs the XML IO boilerplate used to update {@code mutator} with the {@code <mutation>}
+     * element provided in {@code mutation}.
+     * @param block The block containing the Mutator.
+     * @param mutator The Mutator to be updated.
+     * @param mutation The {@code <mutation>} element as a string.
+     * @throws BlockLoadingException
+     */
     public static void updateMutator(
             @NonNull Block block, @NonNull Mutator mutator, @NonNull String mutation)
             throws BlockLoadingException
