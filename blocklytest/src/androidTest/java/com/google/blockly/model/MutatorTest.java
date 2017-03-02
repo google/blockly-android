@@ -16,7 +16,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests Mutator and related classes.
+ * Tests {@link Mutator} and related classes.
  */
 public class MutatorTest {
     private static final String BLOCK_TYPE = "block type";
@@ -42,6 +42,10 @@ public class MutatorTest {
         );
     }
 
+    /**
+     * Tests the full Mutator life cycle, from extension registration, block construction via JSON
+     * definition, serialization, and deserialization.
+     */
     @Test
     public void testMutatorLifecycle() throws BlockLoadingException, BlocklySerializerException {
         mFactory.registerExtension(MUTATOR_ID, mMutatorExtension);
@@ -67,7 +71,7 @@ public class MutatorTest {
         assertThat(copyMutator.mText).isEqualTo(UPDATED_TEXT);
     }
 
-    public static class ExampleMutator extends Mutator {
+    static class ExampleMutator extends Mutator {
         String mAttrib = STARTING_VALUE;
         String mText = STARTING_VALUE;
 
@@ -91,7 +95,7 @@ public class MutatorTest {
         }
     }
 
-    public static class ExampleMutatorExtension implements BlockExtension {
+    static class ExampleMutatorExtension implements BlockExtension {
         List<ExampleMutator> mMutatorsCreated = new ArrayList<>();
 
         @Override

@@ -470,8 +470,7 @@ public class BlocklyActivityHelper {
     }
 
     /**
-     * Resets the {@link BlockFactory} with the provided mutators, extensions, and block
-     * definitions.
+     * Resets the {@link BlockFactory} with the provided block definitions and extensions.
      * @param blockDefinitionsJsonPaths The list of definition asset paths.
      * @param blockExtensions The extensions supporting the block definitions.
      * @throws IllegalStateException On any issues with the input.
