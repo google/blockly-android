@@ -61,6 +61,7 @@ public class BlockFactory {
     private static final String TAG = "BlockFactory";
 
     private final Map<String, BlockDefinition> mDefinitions = new HashMap<>();
+    private final Map<String, Mutator.Factory> mMutatorFactories = new HashMap<>();
     private final Map<String, BlockExtension> mExtensions = new HashMap<>();
     private final Map<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
@@ -186,6 +187,29 @@ public class BlockFactory {
         }
 
         return blockAddedCount;
+    }
+
+    /**
+     * Registers a {@link Mutator.Factory} for the named mutator type.
+     * @param mutatorId The name / id of this mutator type.
+     * @param mutatorFactory The factory for this mutator type.
+     */
+    public void registerMutator(String mutatorId, Mutator.Factory mutatorFactory) {
+        Mutator.Factory old = mMutatorFactories.get(mutatorId);
+        if (mutatorFactory == old) {
+            return;
+        }
+        if (mutatorId != null && old != null) {
+            if (mBlockRefs.isEmpty()) {
+                Log.w(TAG, "Replacing reference to mutator \"" + mutatorId + "\".");
+            } else {
+                // Make this explicit
+                throw new IllegalStateException(
+                        "Mutator \"" + mutatorId + "\" already registered, and may be "
+                        + "referenced by a block. Must call removeMutator() first .");
+            }
+        }
+        mMutatorFactories.put(mutatorId, mutatorFactory);
     }
 
     /**
@@ -406,27 +430,41 @@ public class BlockFactory {
     }
 
     /**
-     * Applies the named extension to the provided block. Checks that the extensions behaves
-     * accordingly, per {@code isMutator}.
-     * @param extensionName The name / id of the extension, as seen in the JSON extensions attribute
+     * Applies the named mutator to the provided block.
+     */
+    public void applyMutator(String mutatorId, Block block) throws BlockLoadingException {
+        Mutator.Factory factory = mMutatorFactories.get(mutatorId);
+        if (factory == null) {
+            throw new BlockLoadingException("Unknown mutator \"" + mutatorId + "\".");
+        }
+        if (block.mMutator != null) {
+            throw new BlockLoadingException(
+                    "Mutator \"" + block.mMutatorId + "\" already applied.");
+        }
+        Mutator mutator = factory.newMutator();
+        block.mMutatorId = mutatorId;
+        block.mMutator = mutator;
+        mutator.onAttached(block);
+    }
+
+
+    /**
+     * Applies the named extension to the provided block.
+     * @param extensionId The name / id of the extension, as seen in the JSON extensions attribute.
      * @param block The block to apply it to.
      */
-    public void applyExtension(String extensionName, Block block, boolean isMutator)
+    public void applyExtension(String extensionId, Block block)
             throws BlockLoadingException {
-        BlockExtension extension = mExtensions.get(extensionName);
+        BlockExtension extension = mExtensions.get(extensionId);
         if (extension == null) {
-            throw new BlockLoadingException("Unknown BlockExtension \"" + extension + "\".");
+            throw new BlockLoadingException("Unknown extension \"" + extensionId + "\".");
         }
         Mutator old = block.mMutator;
-        if (isMutator && old != null) {
-            throw new BlockLoadingException("Mutator on " + block + " already defined. "
-                    + "Cannot apply \"" + extensionName + "\".");
-        }
         extension.applyTo(block);
-        if (!isMutator && block.mMutator != old) {
-            // The mutator changed, but it didn't throw, so it must not have had a previous.
-            Log.w(TAG, "Extension \"" + extensionName + "\" modified block "
-                    + "mutator. Use \"mutator\" attribute in JSON definition.");
+        if (block.mMutator != old) {
+            // Unlike web, Android mutators are not assigned by extensions.
+            Log.w(TAG, "Extensions are not allowed to assign mutators. "
+                    + "Use Mutator and Mutator.Factory class.");
         }
     }
 

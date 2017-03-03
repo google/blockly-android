@@ -24,13 +24,35 @@ import java.io.IOException;
  * Interface for mutators, platform specific hooks into blocks that manage the {@code <mutation>}
  * serialized state and any related block updates.
  * <p/>
- * Mutators can be added to blocks via the {@link Block#setMutator} method, which should be called
- * from a {@link BlockExtension} during construction.
+ * Mutators can be added to blocks by setting the {@code "mutator"} attribute in JSON block
+ * definition. With this, the block constructor will call
+ * {@link BlockFactory#applyMutator(String, Block)}.
  * <p/>
  * See <a href="https://developers.google.com/blockly/guides/create-custom-blocks/mutators">guide on
  * extensions and mutators</a>.
  */
 public abstract class Mutator {
+    /**
+     * The factory class for this type of mutator.
+     * @param <T> The type of Mutator constructed.
+     */
+    public interface Factory<T extends Mutator> {
+        /**
+         * @return The new Mutator instance.
+         */
+        T newMutator();
+    }
+
+    /**
+     * Called immediately after the mutator is attached to the block. Can be used to perform
+     * additional block initialization related to this mutator.
+     */
+    public void onAttached(Block block) {
+        // Do nothing by default.
+    }
+
+    // TODO: onAttachToWorkspace(Block, Workspace) and onDetachFromWorkspace(Block, Workspace)
+
     /**
      * Serializes the Mutator's state to an XML {@code <mutation>} element.
      *

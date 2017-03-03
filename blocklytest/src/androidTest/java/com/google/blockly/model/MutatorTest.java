@@ -1,3 +1,17 @@
+/*
+ *  Copyright 2017 Google Inc. All Rights Reserved.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.google.blockly.model;
 
 import com.google.blockly.utils.BlockLoadingException;
@@ -5,13 +19,12 @@ import com.google.blockly.utils.BlocklyXmlHelper;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -26,20 +39,21 @@ public class MutatorTest {
     private static final String UPDATED_TEXT = "updated text";
 
     BlockFactory mFactory;
-    BlockExtension mMutatorExtension;
-    BlockDefinition mDefinition;
+    Mutator.Factory mMutatorFactory;
 
     @Before
-    public void setUp() throws BlockLoadingException {
+    public void setUp() throws BlockLoadingException, IOException {
         assertThat(STARTING_VALUE).isNotEqualTo(UPDATED_ATTR);
         assertThat(STARTING_VALUE).isNotEqualTo(UPDATED_TEXT);
 
         mFactory = new BlockFactory();
-        mMutatorExtension = new ExampleMutatorExtension();
-        mDefinition = new BlockDefinition(
-                "{\"type\": \"" + BLOCK_TYPE + "\","
-                + "\"mutator\": \"" + MUTATOR_ID + "\"}"
+        mFactory.addJsonDefinitions(
+                "[{\"type\": \"" + BLOCK_TYPE + "\","
+                + "\"mutator\": \"" + MUTATOR_ID + "\"}]"
         );
+
+        mMutatorFactory = new ExampleMutator.Factory();
+        mFactory.registerMutator(MUTATOR_ID, mMutatorFactory);
     }
 
     /**
@@ -48,14 +62,13 @@ public class MutatorTest {
      */
     @Test
     public void testMutatorLifecycle() throws BlockLoadingException, BlocklySerializerException {
-        mFactory.registerExtension(MUTATOR_ID, mMutatorExtension);
-        mFactory.addDefinition(mDefinition);
         Block block = mFactory.obtainBlockFrom(new BlockTemplate().ofType(BLOCK_TYPE));
 
         ExampleMutator mutator = (ExampleMutator) block.getMutator();
         assertThat(mutator).isNotNull();
         assertThat(mutator.mAttrib).isEqualTo(STARTING_VALUE);
         assertThat(mutator.mText).isEqualTo(STARTING_VALUE);
+        Mockito.verify(mutator).onAttached(block);
 
         mutator.mAttrib = UPDATED_ATTR;
         mutator.mText = UPDATED_TEXT;
@@ -64,14 +77,22 @@ public class MutatorTest {
         assertThat(xml).contains(UPDATED_ATTR);
         assertThat(xml).contains(UPDATED_TEXT);
 
-        Block copy = BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
-        ExampleMutator copyMutator = (ExampleMutator) copy.getMutator();
-        assertThat(copyMutator).isNotNull();
-        assertThat(copyMutator.mAttrib).isEqualTo(UPDATED_ATTR);
-        assertThat(copyMutator.mText).isEqualTo(UPDATED_TEXT);
+        Block blockCopy = BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
+        ExampleMutator mutatorCopy = (ExampleMutator) blockCopy.getMutator();
+        assertThat(mutatorCopy).isNotNull();
+        assertThat(mutatorCopy.mAttrib).isEqualTo(UPDATED_ATTR);
+        assertThat(mutatorCopy.mText).isEqualTo(UPDATED_TEXT);
+        Mockito.verify(mutatorCopy).onAttached(blockCopy);
     }
 
-    static class ExampleMutator extends Mutator {
+    public static class ExampleMutator extends Mutator {
+        static class Factory implements Mutator.Factory<ExampleMutator> {
+            @Override
+            public ExampleMutator newMutator() {
+                return Mockito.spy(new ExampleMutator());
+            }
+        }
+
         String mAttrib = STARTING_VALUE;
         String mText = STARTING_VALUE;
 
@@ -92,17 +113,6 @@ public class MutatorTest {
             assertThat(parser.next()).isEqualTo(XmlPullParser.TEXT);
             mText = parser.getText();
             assertThat(parser.next()).isEqualTo(XmlPullParser.END_TAG);
-        }
-    }
-
-    static class ExampleMutatorExtension implements BlockExtension {
-        List<ExampleMutator> mMutatorsCreated = new ArrayList<>();
-
-        @Override
-        public void applyTo(Block block) throws BlockLoadingException {
-            ExampleMutator mutator = new ExampleMutator();
-            mMutatorsCreated.add(mutator);
-            block.setMutator(mutator);
         }
     }
 }

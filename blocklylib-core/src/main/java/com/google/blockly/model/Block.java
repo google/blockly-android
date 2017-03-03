@@ -42,7 +42,10 @@ public class Block {
     private final ArrayList<Connection> mConnectionList = new ArrayList<>();
     private final ArrayList<Input> mInputList;
     private boolean mIsShadow;
-    protected Mutator mMutator;
+
+    // Set by BlockFactory.applyMutator(). May only be set once.
+    /* package */ String mMutatorId = null;
+    /* package */ Mutator mMutator = null;
 
     // These values can be changed after creating the block
     private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
@@ -101,13 +104,13 @@ public class Block {
 
         rebuildConnectionList();
 
-        String mutatorName = definition.getMutatorExtensionName();
-        if (mutatorName != null) {
-            factory.applyExtension(mutatorName, this, true);
+        mMutatorId = definition.getMutatorId();
+        if (mMutatorId != null) {
+            factory.applyMutator(mMutatorId, this);
         }
         List<String> extensionNames = definition.getExtensionNames();
         for (String name : extensionNames) {
-            factory.applyExtension(name, this, false);
+            factory.applyExtension(name, this);
         }
     }
 
@@ -714,18 +717,17 @@ public class Block {
     }
 
     /**
-     * Sets the {@link Mutator} for this block.  Should be called from a {@link BlockExtension}, and
-     * must only be called once.
+     * @return The block's {@link Mutator} id, if any. Otherwise null.
+     * @see BlockFactory#applyMutator(String, Block)
      */
-    public final void setMutator(@NonNull Mutator mutator) throws BlockLoadingException {
-        if (mMutator != null) {
-            throw new BlockLoadingException("Mutator is already assigned.");
-        }
-        mMutator = mutator;
+    @Nullable
+    public final String getMutatorId() {
+        return mMutatorId;
     }
 
     /**
-     * @return The block's {@link Mutator}, if any.
+     * @return The block's {@link Mutator}, if any. Otherwise null.
+     * @see BlockFactory#applyMutator(String, Block)
      */
     @Nullable
     public final Mutator getMutator() {

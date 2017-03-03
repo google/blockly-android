@@ -272,7 +272,7 @@ public final class BlockDefinition {
      *         to all Block instances of this type. Otherwise, null.
      */
     @Nullable
-    public String getMutatorExtensionName() {
+    public String getMutatorId() {
         return mMutatorName;
     }
 
