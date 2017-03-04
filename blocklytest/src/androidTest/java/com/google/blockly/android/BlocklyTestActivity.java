@@ -71,9 +71,7 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
 
     @Override
     public BlocklyActivityHelper onCreateActivityHelper() {
-        return new BlocklyActivityHelper(this,
-                getBlockDefinitionsJsonPaths(),
-                getToolboxContentsXmlPath()) {
+        return new BlocklyActivityHelper(this) {
             @Override
             public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper workspaceHelper) {
                 return new VerticalBlockViewFactory(

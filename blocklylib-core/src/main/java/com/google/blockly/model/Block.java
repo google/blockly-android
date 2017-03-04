@@ -43,6 +43,10 @@ public class Block {
     private final ArrayList<Input> mInputList;
     private boolean mIsShadow;
 
+    // Set by BlockFactory.applyMutator(). May only be set once.
+    /* package */ String mMutatorId = null;
+    /* package */ Mutator mMutator = null;
+
     // These values can be changed after creating the block
     private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
     private Connection mOutputConnection;
@@ -76,7 +80,7 @@ public class Block {
             throws BlockLoadingException {
         if (factory == null || definition == null || id == null) {
             throw new IllegalArgumentException(
-                    "Tried to instantiate ablock but factory, definition, or id was null.");
+                    "Tried to instantiate a block but factory, definition, or id was null.");
         }
         mFactory = factory;
         mId = id;
@@ -99,6 +103,15 @@ public class Block {
         setShadow(isShadow);
 
         rebuildConnectionList();
+
+        mMutatorId = definition.getMutatorId();
+        if (mMutatorId != null) {
+            factory.applyMutator(mMutatorId, this);
+        }
+        List<String> extensionNames = definition.getExtensionNames();
+        for (String name : extensionNames) {
+            factory.applyExtension(name, this);
+        }
     }
 
     /**
@@ -563,6 +576,10 @@ public class Block {
             serializer.endTag(null, "next");
         }
 
+        if (mMutator != null) {
+            mMutator.serialize(serializer);
+        }
+
         serializer.endTag(null, mIsShadow ? "shadow" : "block");
     }
 
@@ -697,6 +714,24 @@ public class Block {
 
         // State change is valid. Proceed.
         mIsShadow = isShadow;
+    }
+
+    /**
+     * @return The block's {@link Mutator} id, if any. Otherwise null.
+     * @see BlockFactory#applyMutator(String, Block)
+     */
+    @Nullable
+    public final String getMutatorId() {
+        return mMutatorId;
+    }
+
+    /**
+     * @return The block's {@link Mutator}, if any. Otherwise null.
+     * @see BlockFactory#applyMutator(String, Block)
+     */
+    @Nullable
+    public final Mutator getMutator() {
+        return mMutator;
     }
 
     /**

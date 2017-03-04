@@ -18,8 +18,8 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.BlocklyXmlHelper;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -65,6 +65,7 @@ public class BlockTemplate {
     protected Boolean mInlineInputs = null;
     protected Boolean mIsMovable = null;
     protected String mCommentText = null;
+    protected String mMutation = null;
 
     /** Ordered list of field names and string values, as loaded during XML deserialization. */
     protected List<FieldValue> mFieldValues;
@@ -120,6 +121,14 @@ public class BlockTemplate {
      * @throws BlockLoadingException
      */
     public void applyMutableState(Block block) throws BlockLoadingException {
+        if (mMutation != null) {
+            if (block.mMutator != null) {
+                BlocklyXmlHelper.updateMutator(block, block.mMutator, mMutation);
+            } else {
+                Log.w(TAG, toString() + ": Ignoring <mutation> on " + this + " without mutator.");
+            }
+        }
+
         if (mFieldValues != null) {
             for (BlockTemplate.FieldValue fieldValue : mFieldValues) {
                 Field field = block.getFieldByName(fieldValue.mName);
@@ -376,6 +385,13 @@ public class BlockTemplate {
     public BlockTemplate withComment(String commentText) {
         mCommentText = commentText;
         return this;
+    }
+
+    /**
+     * @param mutationString The mutator's serialized state. I.e, the {@code <mutation>} element.
+     */
+    public void withMutation(String mutationString) {
+        mMutation = mutationString;
     }
 
     /**

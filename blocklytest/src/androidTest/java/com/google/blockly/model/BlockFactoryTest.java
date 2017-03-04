@@ -322,6 +322,7 @@ public class BlockFactoryTest {
                 "A <shadow> containing a variable field (at any depth) must fail to load.");
     }
 
+    @SuppressWarnings("deprecation") // testing against older API
     @Test
     public void testObtainBlock() {
         Block emptyBlock = mBlockFactory.obtainBlock("empty_block", null);
