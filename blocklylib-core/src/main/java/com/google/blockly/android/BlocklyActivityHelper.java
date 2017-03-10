@@ -245,6 +245,11 @@ public class BlocklyActivityHelper {
                         codeGenerationCallback,
                         blockDefinitionsJsonPaths,
                         generatorsJsPaths));
+        try {
+            serialized.close();
+        } catch (IOException e) {
+            // Ignore error on close().
+        }
     }
 
 
