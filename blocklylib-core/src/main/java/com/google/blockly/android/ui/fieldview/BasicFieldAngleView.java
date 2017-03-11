@@ -21,6 +21,7 @@ import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
+import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldAngle;
 
@@ -29,21 +30,16 @@ import com.google.blockly.model.FieldAngle;
  */
 public class BasicFieldAngleView extends TextView implements FieldView {
     private static final char DEGREE_SYMBOL = '\u00B0';
+    protected WorkspaceHelper mHelper;
 
     protected Field.Observer mFieldObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field angleField, String oldValue, String newValue) {
             assert (angleField == mAngleField);
 
-            CharSequence curDisplayText = getText();
-            int len = curDisplayText.length();
-
-            // Trim the degree symbol
-            if (len > 0 && curDisplayText.charAt(len - 1) == DEGREE_SYMBOL) {
-                curDisplayText = curDisplayText.subSequence(0, len - 1);
-            }
+            String curDisplayText = removeSymbol(getText().toString());
             if (!newValue.contentEquals(curDisplayText)) {
-                setText(newValue + DEGREE_SYMBOL);
+                setValue(newValue);
             }
         }
     };
@@ -63,6 +59,41 @@ public class BasicFieldAngleView extends TextView implements FieldView {
     public BasicFieldAngleView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initTextWatcher();
+    }
+
+    public void setWorkspaceHelper(WorkspaceHelper helper){
+        mHelper = helper;
+        setValue(getCleanValue());
+    }
+
+    public String getCleanValue(){
+        if(mAngleField!=null){
+            return Float.toString(mAngleField.getAngle());
+        }
+        return removeSymbol(getText().toString());
+    }
+
+    private String removeSymbol(String string){
+        int len = string.length();
+
+        // Trim the degree symbol
+        if (len > 0){
+            if(string.charAt(len - 1) == DEGREE_SYMBOL) {
+                string = string.substring(0, len - 1);
+            }else if(string.charAt(0) == DEGREE_SYMBOL){
+                string = string.substring(1);
+            }
+        }
+
+        return string;
+    }
+
+    private void setValue(String value){
+        if(mHelper!=null && mHelper.useRtl()) {
+            setText(DEGREE_SYMBOL + value);
+        }else{
+            setText(value + DEGREE_SYMBOL);
+        }
     }
 
     private void initTextWatcher() {
@@ -96,8 +127,7 @@ public class BasicFieldAngleView extends TextView implements FieldView {
         }
         mAngleField = angleField;
         if (mAngleField != null) {
-            // TODO(#438): Degree symbol on the left in RTL modes
-            setText(Float.toString(mAngleField.getAngle()) + DEGREE_SYMBOL);
+            setValue(Float.toString(mAngleField.getAngle()));
             mAngleField.registerObserver(mFieldObserver);
         } else {
             setText("");
