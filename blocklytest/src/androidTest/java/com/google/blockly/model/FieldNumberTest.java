@@ -20,6 +20,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
@@ -177,53 +180,66 @@ public class FieldNumberTest {
         final double MAX = FieldNumber.NO_CONSTRAINT;
         final double PRECISION = 0.25;  // Two significant digits
         mField.setConstraints(MIN, MAX, PRECISION);
+        NumberFormat periodDecimal = mField.getNumberFormatForLocale(new Locale("en", "us"));
+        NumberFormat commaDecimal = mField.getNumberFormatForLocale(new Locale("es", "es"));
 
         assertThat(mField.isInteger()).isFalse();
 
         // Exact values
         mField.setValue(0.0);
         assertThat(mField.getValue()).isEqualTo(0.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("0");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("0");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("0");
 
         mField.setValue(0.25);
         assertThat(mField.getValue()).isEqualTo(0.25);
-        assertThat(mField.getFormattedValue()).isEqualTo("0.25");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("0.25");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("0,25");
 
         mField.setValue(1.0);
         assertThat(mField.getValue()).isEqualTo(1.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("1");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("1");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("1");
 
         mField.setValue(1.25);
         assertThat(mField.getValue()).isEqualTo(1.25);
-        assertThat(mField.getFormattedValue()).isEqualTo("1.25");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("1.25");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("1,25");
 
         mField.setValue(2.50);
         assertThat(mField.getValue()).isEqualTo(2.5);
-        assertThat(mField.getFormattedValue()).isEqualTo("2.5");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("2.5");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("2,5");
 
         mField.setValue(25);
         assertThat(mField.getValue()).isEqualTo(25.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("25");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("25");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("25");
 
         mField.setValue(-0.25);
         assertThat(mField.getValue()).isEqualTo(-0.25);
-        assertThat(mField.getFormattedValue()).isEqualTo("-0.25");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("-0.25");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("-0,25");
 
         mField.setValue(-1.0);
         assertThat(mField.getValue()).isEqualTo(-1.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-1");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("-1");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("-1");
 
         mField.setValue(-1.25);
         assertThat(mField.getValue()).isEqualTo(-1.25);
-        assertThat(mField.getFormattedValue()).isEqualTo("-1.25");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("-1.25");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("-1,25");
 
         mField.setValue(-2.50);
         assertThat(mField.getValue()).isEqualTo(-2.5);
-        assertThat(mField.getFormattedValue()).isEqualTo("-2.5");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("-2.5");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("-2,5");
 
         mField.setValue(-25);
         assertThat(mField.getValue()).isEqualTo(-25.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-25");
+        assertThat(periodDecimal.format(mField.getValue())).isEqualTo("-25");
+        assertThat(commaDecimal.format(mField.getValue())).isEqualTo("-25");
 
         // Rounded Values
         mField.setValue(0.2);
@@ -248,6 +264,8 @@ public class FieldNumberTest {
         final double MAX = FieldNumber.NO_CONSTRAINT;
         final double PRECISION = 1;
         mField.setConstraints(MIN, MAX, PRECISION);
+        NumberFormat commaMarker = mField.getNumberFormatForLocale(new Locale("en", "us"));
+        NumberFormat periodMarker = mField.getNumberFormatForLocale(new Locale("es", "es"));
 
         assertThat(mField.isInteger()).isTrue();
 
@@ -257,55 +275,69 @@ public class FieldNumberTest {
         // Exact values
         mField.setValue(0.0);
         assertThat(mField.getValue()).isEqualTo(0.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("0");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("0");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("0");
 
         mField.setValue(1.0);
         assertThat(mField.getValue()).isEqualTo(1.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("1");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("1");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("1");
 
         mField.setValue(2.0);
         assertThat(mField.getValue()).isEqualTo(2.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("2");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("2");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("2");
 
         mField.setValue(7.0);
         assertThat(mField.getValue()).isEqualTo(7.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("7");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("7");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("7");
 
         mField.setValue(10.0);
         assertThat(mField.getValue()).isEqualTo(10.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("10");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("10");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("10");
 
         mField.setValue(100.0);
         assertThat(mField.getValue()).isEqualTo(100.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("100");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("100");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("100");
 
+        // Large numbers render with grouping markers
         mField.setValue(1000000.0);
         assertThat(mField.getValue()).isEqualTo(1000000.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("1000000");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("1,000,000");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("1.000.000");
 
         mField.setValue(-1.0);
         assertThat(mField.getValue()).isEqualTo(-1.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-1");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("-1");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("-1");
 
         mField.setValue(-2.0);
         assertThat(mField.getValue()).isEqualTo(-2.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-2");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("-2");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("-2");
 
         mField.setValue(-7.0);
         assertThat(mField.getValue()).isEqualTo(-7.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-7");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("-7");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("-7");
 
         mField.setValue(-10.0);
         assertThat(mField.getValue()).isEqualTo(-10.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-10");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("-10");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("-10");
 
         mField.setValue(-100.0);
         assertThat(mField.getValue()).isEqualTo(-100.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-100");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("-100");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("-100");
 
         mField.setValue(-1000000.0);
         assertThat(mField.getValue()).isEqualTo(-1000000.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-1000000");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("-1,000,000");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("-1.000.000");
 
 
         // Rounded Values
@@ -346,33 +378,41 @@ public class FieldNumberTest {
         final double MAX = FieldNumber.NO_CONSTRAINT;
         final double PRECISION = 2;
         mField.setConstraints(MIN, MAX, PRECISION);
+        NumberFormat commaMarker = mField.getNumberFormatForLocale(new Locale("en", "us"));
+        NumberFormat periodMarker = mField.getNumberFormatForLocale(new Locale("es", "es"));
 
         assertThat(mField.isInteger()).isTrue();
 
         // Exact values
         mField.setValue(0.0);
         assertThat(mField.getValue()).isEqualTo(0.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("0");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("0");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("0");
 
         mField.setValue(2.0);
         assertThat(mField.getValue()).isEqualTo(2.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("2");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("2");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("2");
 
         mField.setValue(8.0);
         assertThat(mField.getValue()).isEqualTo(8.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("8");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("8");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("8");
 
         mField.setValue(10.0);
         assertThat(mField.getValue()).isEqualTo(10.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("10");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("10");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("10");
 
         mField.setValue(-2.0);
         assertThat(mField.getValue()).isEqualTo(-2.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-2");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("-2");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("-2");
 
         mField.setValue(-8.0);
         assertThat(mField.getValue()).isEqualTo(-8.0);
-        assertThat(mField.getFormattedValue()).isEqualTo("-8");
+        assertThat(commaMarker.format(mField.getValue())).isEqualTo("-8");
+        assertThat(periodMarker.format(mField.getValue())).isEqualTo("-8");
 
         // Rounded Values
         mField.setValue(0.2);

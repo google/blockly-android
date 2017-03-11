@@ -26,6 +26,7 @@ import org.json.JSONObject;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -197,6 +198,34 @@ public final class FieldNumber extends Field {
     }
 
     /**
+     * Retrieves (possibly constructing) a NumberFormat configured for both the field constraints
+     * and the provided Locale.
+     * @param locale The locale to construct a number formatter for.
+     * @return A NumberFormat configured for both the field constraints and the Locale.
+     */
+    public NumberFormat getNumberFormatForLocale(Locale locale) {
+        if (!hasPrecision()) {
+            return NumberFormat.getInstance(locale);
+        }
+        if (mIntegerPrecision) {
+            return NumberFormat.getIntegerInstance(locale);
+        }
+
+        String precisionStr = NAIVE_DECIMAL_FORMAT.format(mPrecision);
+        int decimalChar = precisionStr.indexOf('.');
+        if (decimalChar == -1) {
+            return NumberFormat.getIntegerInstance(locale);
+        }
+
+        int significantDigits = precisionStr.length() - decimalChar;
+        StringBuilder sb = new StringBuilder("0.");
+        char[] sigDigitsFormat = new char[significantDigits];
+        Arrays.fill(sigDigitsFormat, '#');
+        sb.append(sigDigitsFormat);
+        return new DecimalFormat(sb.toString(), new DecimalFormatSymbols(locale));
+    }
+
+    /**
      * Sets the value from a string.  As long as the text can be parsed as a number, the value will
      * be accepted.  The actual value assigned might be modified to fit the min, max, and precision
      * constraints.
@@ -230,13 +259,6 @@ public final class FieldNumber extends Field {
      */
     public double getValue() {
         return mValue;
-    }
-
-    /**
-     * @return The formatted (human readable) string version of the input.
-     */
-    public CharSequence getFormattedValue() {
-        return mFormatter.format(mValue);
     }
 
     /**
