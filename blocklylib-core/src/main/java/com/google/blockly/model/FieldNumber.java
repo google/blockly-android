@@ -25,7 +25,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * A 'field_number' type of field, for an editable number.
@@ -35,6 +38,8 @@ public final class FieldNumber extends Field {
 
     public static final double NO_CONSTRAINT = Double.NaN;
 
+    private static final DecimalFormatSymbols PERIOD_AS_DECIMAL =
+            new DecimalFormatSymbols(new Locale("en", "us"));
     /**
      * This formatter is used by fields without precision, and to count precision's significant
      * digits past the decimal point.  Unlike {@link Double#toString}, it displays as many
@@ -42,10 +47,13 @@ public final class FieldNumber extends Field {
      */
     private static final DecimalFormat NAIVE_DECIMAL_FORMAT;
     static {
+        // Force as many significant digits as possible in a naive decimal format, using the period
+        // as the decimal.
         char[] sigDigts = new char[100];
         Arrays.fill(sigDigts, '#');
         NAIVE_DECIMAL_FORMAT
-                = new DecimalFormat(new StringBuffer("0.").append(sigDigts).toString());
+                = new DecimalFormat(new StringBuffer("0.").append(sigDigts).toString(),
+                        PERIOD_AS_DECIMAL);
     }
 
     /**
@@ -182,11 +190,39 @@ public final class FieldNumber extends Field {
                 char[] sigDigitsFormat = new char[significantDigits];
                 Arrays.fill(sigDigitsFormat, '#');
                 sb.append(sigDigitsFormat);
-                mFormatter = new DecimalFormat(sb.toString());
+                mFormatter = new DecimalFormat(sb.toString(), PERIOD_AS_DECIMAL);
             }
         }
 
         setValueImpl(mValue, true);
+    }
+
+    /**
+     * Retrieves (possibly constructing) a NumberFormat configured for both the field constraints
+     * and the provided Locale.
+     * @param locale The locale to construct a number formatter for.
+     * @return A NumberFormat configured for both the field constraints and the Locale.
+     */
+    public NumberFormat getNumberFormatForLocale(Locale locale) {
+        if (!hasPrecision()) {
+            return NumberFormat.getInstance(locale);
+        }
+        if (mIntegerPrecision) {
+            return NumberFormat.getIntegerInstance(locale);
+        }
+
+        String precisionStr = NAIVE_DECIMAL_FORMAT.format(mPrecision);
+        int decimalChar = precisionStr.indexOf('.');
+        if (decimalChar == -1) {
+            return NumberFormat.getIntegerInstance(locale);
+        }
+
+        int significantDigits = precisionStr.length() - decimalChar;
+        StringBuilder sb = new StringBuilder("0.");
+        char[] sigDigitsFormat = new char[significantDigits];
+        Arrays.fill(sigDigitsFormat, '#');
+        sb.append(sigDigitsFormat);
+        return new DecimalFormat(sb.toString(), new DecimalFormatSymbols(locale));
     }
 
     /**
@@ -223,13 +259,6 @@ public final class FieldNumber extends Field {
      */
     public double getValue() {
         return mValue;
-    }
-
-    /**
-     * @return The formatted (human readable) string version of the input.
-     */
-    public CharSequence getFormattedValue() {
-        return mFormatter.format(mValue);
     }
 
     /**
