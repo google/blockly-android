@@ -16,10 +16,10 @@
 package com.google.blockly.android;
 
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -37,11 +37,13 @@ import android.widget.FrameLayout;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
-import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockExtension;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Base class for a Blockly activity that use a material design style tool bar, and optionally a
@@ -66,7 +68,7 @@ import java.util.List;
  * {@link BlocklyActivityHelper#onCreateBlockViewFactory}. An initial workspace can be loaded during
  * {@link #onLoadInitialWorkspace()}.
  * <p/>
- * The block definitions can be updated at any time by calling {@link #reloadBlockDefinitions()},
+ * The block definitions can be updated at any time by calling {@link #resetBlockFactory()},
  * which triggers another call to {@link #getBlockDefinitionsJsonPaths()}.  Similarly, The toolbox
  * can be reloaded by calling  {@link #reloadToolbox()}, which triggers another call to
  * {@link #getToolboxContentsXmlPath()}.
@@ -163,15 +165,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link #getWorkspaceSavePath()}.
      */
     public void onSaveWorkspace() {
-        mBlockly.saveWorkspaceToAppDir(getWorkspaceSavePath());
+        mBlockly.saveWorkspaceToAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Save the workspace to the given file in the application's private data directory.
-     * @deprecated Call {@code mBlockly.saveWorkspaceToAppDir(filename)}.
+     * @deprecated Call {@code mBlockly.saveWorkspaceToAppDir(filename)} or
+     *             {@code mBlockly.saveWorkspaceToAppDirSafely(filename)}.
      */
     public void saveWorkspaceToAppDir(String filename) {
-        mBlockly.saveWorkspaceToAppDir(filename);
+        mBlockly.saveWorkspaceToAppDirSafely(filename);
     }
 
     /**
@@ -179,15 +182,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
      */
     public void onLoadWorkspace() {
-        mBlockly.loadWorkspaceFromAppDir(getWorkspaceSavePath());
+        mBlockly.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Loads the workspace from the given file in the application's private data directory.
-     * @deprecated Call {@code mBlockly.loadWorkspaceFromAppDir(filename)}
+     * @deprecated Call {@code mBlockly.loadWorkspaceFromAppDir(filename)} or
+     *             {@code mBlockly.loadWorkspaceFromAppDirSafely(filename)}.
      */
+    @Deprecated
     public void loadWorkspaceFromAppDir(String filename) {
-        mBlockly.loadWorkspaceFromAppDir(filename);
+        mBlockly.loadWorkspaceFromAppDirSafely(filename);
     }
 
     /**
@@ -253,6 +258,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
             throw new IllegalStateException("BlocklyActivityHelper is null. "
                     + "onCreateActivityHelper must return a instance.");
         }
+        resetBlockFactory();  // Initial load of block definitions, extensions, and mutators.
+        reloadToolbox();
 
         // Load the workspace.
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
@@ -265,10 +272,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      * Create a {@link BlocklyActivityHelper} to use for this Activity.
      */
-    public BlocklyActivityHelper onCreateActivityHelper() {
-        return new BlocklyActivityHelper(this,
-                getBlockDefinitionsJsonPaths(),
-                getToolboxContentsXmlPath());
+    protected BlocklyActivityHelper onCreateActivityHelper() {
+        return new BlocklyActivityHelper(this);
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
@@ -386,6 +391,19 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     abstract protected List<String> getBlockDefinitionsJsonPaths();
 
     /**
+     * Loads the list of {@link BlockExtension}s that support the block definitions in this
+     * activity. By default, returns {@link BlockExtension#STANDARD_EXTENSIONS}. Called from
+     * {@link #resetBlockFactory()}.
+     *
+     * @return The list of extensions to use for future blocks. Null is treated like an empty list.
+     */
+    @Nullable
+    protected Map<String, BlockExtension> getBlockExtensions() {
+        // Create a new instance so it is easy to append by subclasses.  Not called very often.
+        return new HashMap<>(BlockExtension.STANDARD_EXTENSIONS);
+    }
+
+    /**
      * Returns the asset file paths to the generators (JS files) to use for the most
      * recently requested "Run" action. Called from {@link #onRunCode()}. This is expected to be a
      * list of JavaScript files that contain the block generators.
@@ -474,8 +492,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                 Gravity.START);
         // Add navigation drawer above the content view, as the first drawer.
         mDrawerLayout.addView(mNavigationDrawer, 1, lp);
-        // TODO(#362): Replace NAVIGATION_MODE_STANDARD, expose Up versus Back alternatives.
-        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
         // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow,
@@ -553,45 +569,23 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Reloads the block definitions and toolbox contents.
-     * @see #getToolboxContentsXmlPath()
+     * Reloads the toolbox contents using the path provided by {@link #getToolboxContentsXmlPath()}.
      */
     protected void reloadToolbox() {
-        AssetManager assetManager = getAssets();
-        String toolboxPath = getToolboxContentsXmlPath();
-
-        BlocklyController controller = getController();
-        try {
-            controller.loadToolboxContents(assetManager.open(getToolboxContentsXmlPath()));
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Error opening toolbox at " + toolboxPath, e);
-        }
+        mBlockly.reloadToolbox(getToolboxContentsXmlPath());
     }
 
     /**
-     * Reloads the block definitions.
-     * @see #getBlockDefinitionsJsonPaths()
+     * Reloads the block definitions, including extensions and mutators. Calls
+     * {@link #getBlockDefinitionsJsonPaths()} and {@link #getBlockExtensions()}.
+     *
+     * @throws IOException If there is a fundamental problem with the input.
+     * @throws BlockLoadingException If the definition is malformed.
      */
-    protected void reloadBlockDefinitions() {
-        AssetManager assetManager = getAssets();
-        List<String> blockDefsPaths = getBlockDefinitionsJsonPaths();
-
-        BlockFactory factory = getController().getBlockFactory();
-        factory.clear();
-
-        String blockDefsPath;
-        Iterator<String> iter = blockDefsPaths.iterator();
-        while (iter.hasNext()) {
-            blockDefsPath = iter.next();
-            try {
-                factory.addBlocks(assetManager.open(blockDefsPath));
-            } catch (IOException e) {
-                factory.clear();  // Clear any partial loaded block sets.
-                // Compile-time bundled assets are assumed to be valid.
-                throw new IllegalStateException("Failed to load block definitions from asset: "
-                        + blockDefsPath, e);
-            }
-        }
+    protected void resetBlockFactory() {
+        mBlockly.resetBlockFactory(
+                getBlockDefinitionsJsonPaths(),
+                getBlockExtensions());
     }
 
     /**

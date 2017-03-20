@@ -23,6 +23,7 @@ import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,13 +46,13 @@ public class AbstractBlockViewTest extends BlocklyTestCase {
 
     @Before
      public void setUp() throws Exception {
-
         mMockConnectionManager = mock(ConnectionManager.class);
         mMockHelper = mock(WorkspaceHelper.class);
         mMockViewFactory = mock(BlockViewFactory.class);
 
+        // TODO(#435): Replace R.raw.test_blocks
         BlockFactory mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        mEmptyBlock = mBlockFactory.obtainBlock("empty_block", "fake_id");
+        mEmptyBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("empty_block"));
     }
 
     // Verify correct object state after construction.

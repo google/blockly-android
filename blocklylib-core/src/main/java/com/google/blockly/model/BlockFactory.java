@@ -22,7 +22,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
-import com.google.blockly.utils.ColorUtils;
+import com.google.blockly.utils.BlocklyXmlHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,27 +30,40 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.UUID;
 
 /**
- * Helper class for building a set of master blocks and then obtaining copies of them for use in
- * a workspace or toolbar.
+ * The BlockFactory is responsible for managing the set of BlockDefinitions, and instantiating
+ * {@link Block}s from those definitions.
+ *
+ * Add new definitions to the factory via {@link #addJsonDefinitions}. Create new Blocks by calling
+ * {@link #obtainBlockFrom(BlockTemplate)}.  Using {@link BlockTemplate}'s chaining methods, this
+ * can look like:
+ *
+ * <pre>{@code
+ * // Add definition.
+ * factory.addJsonDefinition(getAssets().open("default/math_blocks.json"));
+ * // Create blocks.
+ * Block pi = factory.obtainBlockFrom(new BlockTemplate().ofType("math_number").withId("PI"));
+ * factory.obtainBlockFrom(new BlockTemplate().copyOf(pi).shadow().withId("PI-shadow"));
+ * }</pre>
  */
 public class BlockFactory {
     private static final String TAG = "BlockFactory";
 
-    /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
-    private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
-
-    private Resources mResources;
-    private final HashMap<String, Block> mBlockTemplates = new HashMap<>();
-    private final HashMap<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
+    private final Map<String, BlockDefinition> mDefinitions = new HashMap<>();
+    private final Map<String, Mutator.Factory> mMutatorFactories = new HashMap<>();
+    private final Map<String, BlockExtension> mExtensions = new HashMap<>();
+    private final Map<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
     /**
      * The global list of dropdown options available to each field matching the
@@ -59,302 +72,293 @@ public class BlockFactory {
     protected final HashMap<BlockTypeFieldName, WeakReference<FieldDropdown.Options>>
             mDropdownOptions = new HashMap<>();
 
+    /** Default constructor. */
+    public BlockFactory() {}
 
     /**
      * Create a factory with an initial set of blocks from json resources.
+     * Block definitions from resources are not currently passed to generators
+     * (https://github.com/google/blockly-android/issues/525). Instead, use
+     * {@link #addJsonDefinitions(String)} to load from assets.
+     * @deprecated Call default constructor, and prefer block definitions in assets over resources.
      *
      * @param context The context for loading resources.
-     * @param blockSourceIds A list of JSON resources containing blocks.
+     * @param rawJsonBlockDefinitionResIds List of raw JSON resources containing block definitions.
      * @throws IllegalStateException if any block definitions fail to load.
      */
-    public BlockFactory(Context context, int[] blockSourceIds) {
-        this(context);
-        if (blockSourceIds != null) {
-            for (int i = 0; i < blockSourceIds.length; i++) {
-                addBlocks(blockSourceIds[i]);
-            }
-        }
-    }
+    @Deprecated
+    public BlockFactory(Context context, int[] rawJsonBlockDefinitionResIds) {
+        // TODO(#525): Remove deprecation and warning when supported in CodeGenerators.
+        Log.w(TAG, "WARNING: Loading block definitions into BlockFactory from resources does not "
+                + "yet load the definitions into the code generators.");
 
-    /**
-     * Create a factory.
-     *
-     * @param context The context for loading resources.
-     */
-    public BlockFactory(Context context) {
-        mResources = context.getResources();
-    }
-
-    public BlockFactory(final InputStream source) throws IOException {
-        loadBlocks(source);
-    }
-
-    /**
-     * Adds a block to the set of blocks that can be created.
-     *
-     * @param block The master block to add.
-     */
-    public void addBlockTemplate(Block block) {
-        if (mBlockTemplates.containsKey(block.getType())) {
-            Log.i(TAG, "Replacing block: " + block.getType());
-        }
-        mBlockTemplates.put(block.getType(), new Block.Builder(block).build());
-    }
-
-    /**
-     * Removes a block type from the factory. If the Block is still in use by the workspace this
-     * could cause a crash if the user tries to load a new block of this type.
-     *
-     * @param prototypeName The name of the block to remove.
-     *
-     * @return The master block that was removed or null if it wasn't found.
-     */
-    public Block removeBlockTemplate(String prototypeName) {
-        return mBlockTemplates.remove(prototypeName);
-    }
-
-    /**
-     * Creates a block of the specified type using one of the master blocks known to this factory.
-     * If the prototypeName is not one of the known block types null will be returned instead.
-     *
-     * @param prototypeName The name of the block type to create.
-     * @param uuid The id of the block if loaded from XML; null otherwise.
-     *
-     * @return A new block of that type or null.
-     */
-    public Block obtainBlock(String prototypeName, @Nullable String uuid) {
-        // First search for any existing instance
-        Block block;
-        if (uuid != null) {
-            WeakReference<Block> ref = mBlockRefs.get(uuid);
-            if (ref != null) {
-                block = ref.get();
-                if (block != null) {
-                    throw new IllegalArgumentException("Block with given UUID \"" + uuid
-                            + "\" already exists. Duplicate UUIDs not allowed.");
+        Resources resources = context.getResources();
+        try {
+            if (rawJsonBlockDefinitionResIds != null) {
+                for (int i = 0; i < rawJsonBlockDefinitionResIds.length; i++) {
+                    InputStream in = resources.openRawResource(rawJsonBlockDefinitionResIds[i]);
+                    addJsonDefinitions(in);
                 }
             }
+        } catch (IOException | BlockLoadingException e) {
+            // Resources are assumed to be valid. Throw this error as RuntimeException.
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @param id The id to check.
+     * @returns True if a block with the given id exists. Otherwise, false.
+     */
+    public boolean isBlockIdInUse(String id) {
+        WeakReference<Block> priorBlockRef = mBlockRefs.get(id);
+        return priorBlockRef != null && priorBlockRef.get() != null;
+    }
+
+    /**
+     * Registers a new BlockDefinition with the factory.
+     * @param definition The new definition.
+     * @throws IllegalArgumentException If type name is already defined.
+     */
+    public void addDefinition(BlockDefinition definition) {
+        String typeName = definition.getTypeName();
+        if (mDefinitions.containsKey(typeName)) {
+            throw new IllegalArgumentException(
+                    "Definition \"" + typeName + "\" already defined. Prior must remove first.");
+        }
+        mDefinitions.put(typeName, definition);
+    }
+
+    /**
+     * Loads and adds block definitions from a JSON array in an input stream.
+     *
+     * @param jsonStream The stream containing the JSON block definitions.
+     *
+     * @return A count of definitions added.
+     * @throws IOException If there is a fundamental problem with the input.
+     * @throws BlockLoadingException If the definition is malformed.
+     */
+    public int addJsonDefinitions(InputStream jsonStream)
+            throws IOException, BlockLoadingException {
+        // Read stream as single string.
+        String inString = new Scanner( jsonStream ).useDelimiter("\\A").next();
+        return addJsonDefinitions(inString);
+    }
+
+    /**
+     * Loads and adds block definition from a JSON array string. These definitions will replace
+     * existing definitions, if the type names conflict.
+     *
+     * @param jsonString The InputStream containing the JSON block definitions.
+     *
+     * @return A count of definitions added.
+     * @throws IOException If there is a fundamental problem with the input.
+     * @throws BlockLoadingException If the definition is malformed.
+     */
+    public int addJsonDefinitions(String jsonString) throws IOException, BlockLoadingException {
+        // Parse JSON first, avoiding side effects (partially added file) in the case of an error.
+        List<BlockDefinition> defs;
+        int arrayIndex = 0;  // definition index
+        try {
+            JSONArray jsonArray = new JSONArray(jsonString);
+            defs = new ArrayList<>(jsonArray.length());
+            for (arrayIndex = 0; arrayIndex < jsonArray.length(); arrayIndex++) {
+                JSONObject jsonDef = jsonArray.getJSONObject(arrayIndex);
+                defs.add(new BlockDefinition(jsonDef));
+            }
+        } catch (JSONException e) {
+            String msg = "Block definition #" + arrayIndex + ": " + e.getMessage();
+            throw new BlockLoadingException(msg, e);
         }
 
-        // Existing instance not found.  Constructing a new one.
-        if (!mBlockTemplates.containsKey(prototypeName)) {
-            Log.w(TAG, "Block " + prototypeName + " not found.");
+        // Attempt to add each definition, catching redefinition errors.
+        int blockAddedCount = 0;
+        for (arrayIndex = 0; arrayIndex < defs.size(); ++arrayIndex) {
+            BlockDefinition def = defs.get(arrayIndex);
+            String typeName = def.getTypeName();
+
+            // Replace prior definition with warning, mimicking web behavior.
+            if (removeDefinition(typeName)) {
+                Log.w(TAG, "Block definition #" + arrayIndex +
+                        " in JSON array replaces prior definition of \"" + typeName + "\".");
+            }
+            addDefinition(def);
+            blockAddedCount++;
+        }
+
+        return blockAddedCount;
+    }
+
+    /**
+     * Registers a {@link Mutator.Factory} for the named mutator type.
+     * @param mutatorId The name / id of this mutator type.
+     * @param mutatorFactory The factory for this mutator type.
+     */
+    public void registerMutator(String mutatorId, Mutator.Factory mutatorFactory) {
+        Mutator.Factory old = mMutatorFactories.get(mutatorId);
+        if (mutatorFactory == old) {
+            return;
+        }
+        if (mutatorId != null && old != null) {
+            if (mBlockRefs.isEmpty()) {
+                Log.w(TAG, "Replacing reference to mutator \"" + mutatorId + "\".");
+            } else {
+                // Make this explicit
+                throw new IllegalStateException(
+                        "Mutator \"" + mutatorId + "\" already registered, and may be "
+                        + "referenced by a block. Must call removeMutator() first .");
+            }
+        }
+        mMutatorFactories.put(mutatorId, mutatorFactory);
+    }
+
+    /**
+     * Registers a {@link BlockExtension} for Blocks.
+     * @param extensionId The identifier used in BlockDefinition and JSON references.
+     * @param extension The new extension.
+     */
+    public void registerExtension(String extensionId, BlockExtension extension) {
+        BlockExtension old = mExtensions.get(extensionId);
+        if (extension == old) {
+            return;
+        }
+        if (extension != null && old != null) {
+            if (mBlockRefs.isEmpty()) {
+                Log.w(TAG, "Replacing reference to BlockExtension \"" + extensionId + "\".");
+            } else {
+                // Make this explicit
+                throw new IllegalStateException(
+                        "BlockExtension \"" + extensionId + "\" already registered, and may be "
+                        + "referenced by a block. Must call removeExtension() first .");
+            }
+        }
+        mExtensions.put(extensionId, extension);
+    }
+
+    /**
+     * Removes a block type definition from this factory. If any block of this type is still in use,
+     * this may cause a crash if the user tries to load a new block of this type, including copies.
+     *
+     * @param definitionName The name of the block definition to remove.
+     * @return True if the block definition was found and removed. Otherwise, false.
+     */
+    public boolean removeDefinition(String definitionName) {
+        boolean result = (mDefinitions.remove(definitionName) != null);
+        if (result && !mBlockRefs.isEmpty()) {
+            Log.w(TAG, "Removing BlockDefinition \"" + definitionName + "\" while blocks active.");
+        }
+        return result;
+    }
+
+    /**
+     * Removes a {@link BlockExtension} from this block factory. If any block of this type is still
+     * in use, this may cause a crash if the user tries to load a new block of this type, including
+     * copies.
+     *
+     * @param extensionName The name of the extension to remove.
+     * @return True if the extension was found and removed. Otherwise, false.
+     */
+    public boolean removeExtension(String extensionName) {
+        boolean result = (mExtensions.remove(extensionName) != null);
+        if (result && !mBlockRefs.isEmpty()) {
+            Log.w(TAG, "Removing BlockExtension \"" + extensionName + "\" while blocks active.");
+        }
+        return result;
+    }
+
+    /**
+     * Creates a block of the specified type using a {@link BlockDefinition} registered with this
+     * factory. If the {@code definitionName} is not one of the known block types null will be
+     * returned instead.
+     *
+     * @deprecated Prefer using {@code obtain(new BlockTemplate().ofType(definitionName).withId(id));}
+     *
+     * @param definitionName The name of the block type to create.
+     * @param id The id of the block if loaded from XML; null otherwise.
+     * @return A new block of that type or null.
+     * @throws IllegalArgumentException If id is not null and already refers to a block.
+     */
+    @Deprecated
+    public Block obtainBlock(String definitionName, @Nullable String id) {
+        // Validate id is available.
+        if (id != null && isBlockIdInUse(id)) {
+            throw new IllegalArgumentException("Block id \"" + id + "\" already in use.");
+        }
+
+        // Verify definition is defined.
+        if (!mDefinitions.containsKey(definitionName)) {
+            Log.w(TAG, "Block " + definitionName + " not found.");
             return null;
         }
-        Block.Builder builder = new Block.Builder(mBlockTemplates.get(prototypeName));
-        if (uuid != null) {
-            builder.setUuid(uuid);
+        try {
+            return obtainBlockFrom(new BlockTemplate().ofType(definitionName).withId(id));
+        } catch (BlockLoadingException e) {
+            return null;
         }
-        block = builder.build();
-        mBlockRefs.put(block.getId(), new WeakReference<Block>(block));
+    }
+
+    /**
+     * Creates the {@link Block} described by the template.
+     *
+     * <pre>{@code
+     * blockFactory.obtainBlockFrom(new BlockTemplate().shadow().ofType("math_number"));
+     * }</pre>
+     *
+     * @param template A template of the block to create.
+     * @return A new block, or null if not able to construct it.
+     */
+    public Block obtainBlockFrom(BlockTemplate template) throws BlockLoadingException {
+        String id = getCheckedId(template.mId);
+
+        // Existing instance not found. Constructing a new Block.
+        BlockDefinition definition;
+        boolean isShadow = template.mIsShadow == null ? false : template.mIsShadow;
+        Block block;
+        if (template.mCopySource != null) {
+            try {
+                // TODO: Improve copy overhead. Template from copy to avoid XML I/O?
+                String xml = BlocklyXmlHelper.writeBlockToXml(template.mCopySource,
+                        IOOptions.WRITE_ROOT_ONLY_WITHOUT_ID);
+                String escapedId = BlocklyXmlHelper.escape(id);
+                xml = xml.replace("<block", "<block id=\"" + escapedId + "\"");
+                block = BlocklyXmlHelper.loadOneBlockFromXml(xml, this);
+            } catch (BlocklySerializerException e) {
+                throw new BlockLoadingException(
+                        "Failed to serialize original " + template.mCopySource, e);
+            }
+        } else {
+            // Start a new block from a block definition.
+            if (template.mDefinition != null) {
+                if (template.mTypeName != null
+                        && !template.mTypeName.equals(template.mDefinition.getTypeName())) {
+                    throw new BlockLoadingException("Conflicting block definitions referenced.");
+                }
+                definition = template.mDefinition;
+            } else if (template.mTypeName != null) {
+                definition = mDefinitions.get(template.mTypeName.trim());
+                if (definition == null) {
+                    throw new BlockLoadingException("Block definition named \""
+                            + template.mTypeName + "\" not found.");
+                }
+            } else {
+                throw new BlockLoadingException(template.toString() + " missing block definition.");
+            }
+
+            block = new Block(this, definition, id, isShadow);
+        }
+
+        // Apply mutable state last.
+        template.applyMutableState(block);
+        mBlockRefs.put(block.getId(), new WeakReference<>(block));
+
         return block;
     }
 
     /**
-     * @return The list of known blocks that can be created.
+     * @return The list of known blocks types.
      */
-    public List<Block> getAllBlocks() {
-        return new ArrayList<>(mBlockTemplates.values());
-    }
-
-    /**
-     * Loads and adds block templates from a resource.
-     *
-     * @param resId The id of the JSON resource to load blocks from.
-     *
-     * @return Number of blocks added to the factory.
-     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
-     */
-    public int addBlocks(int resId) {
-        InputStream blockIs = mResources.openRawResource(resId);
-        try {
-            return loadBlocks(blockIs);
-        } catch (IOException e) {
-            // Compile time resources are expected to always be valid.
-            throw new IllegalStateException("Failed to load block defintions from resource: "
-                    + mResources.getResourceEntryName(resId));
-        }
-    }
-
-    /**
-     * Loads and adds block templates from a string.
-     *
-     * @param json_string The JSON string to load blocks from.
-     *
-     * @return Number of blocks added to the factory.
-     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
-     */
-    public int addBlocks(String json_string) throws IOException {
-        final InputStream blockIs = new ByteArrayInputStream(json_string.getBytes());
-        return loadBlocks(blockIs);
-    }
-
-
-    /**
-     * Loads and adds block templates from an input stream.
-     *
-     * @param is The json stream to read blocks from.
-     *
-     * @return Number of blocks added to the factory.
-     * @throws BlockLoadingException if error occurs when parsing JSON or block definitions.
-     */
-    public int addBlocks(InputStream is) throws IOException {
-        return loadBlocks(is);
-    }
-
-    /**
-     * Generate a {@link Block} from JSON, including all inputs and fields within the block.
-     *
-     * @param type The type id of the block.
-     * @param json The JSON to generate the block from.
-     *
-     * @return The generated Block.
-     * @throws BlockLoadingException if the json is malformed.
-     */
-    public Block fromJson(String type, JSONObject json) throws BlockLoadingException {
-        if (TextUtils.isEmpty(type)) {
-            throw new IllegalArgumentException("Block type may not be null or empty.");
-        }
-        if (json == null) {
-            throw new IllegalArgumentException("Json may not be null.");
-        }
-        Block.Builder builder = new Block.Builder(type);
-
-        if (json.has("output") && json.has("previousStatement")) {
-            throw new BlockLoadingException(
-                    "Block cannot have both an output and a previous statement.");
-        }
-
-        // Parse any connections that are present.
-        if (json.has("output")) {
-            String[] checks = Input.getChecksFromJson(json, "output");
-            Connection output = new Connection(Connection.CONNECTION_TYPE_OUTPUT, checks);
-            builder.setOutput(output);
-        } else if (json.has("previousStatement")) {
-            String[] checks = Input.getChecksFromJson(json, "previousStatement");
-            Connection previous = new Connection(Connection.CONNECTION_TYPE_PREVIOUS, checks);
-            builder.setPrevious(previous);
-        }
-        // A block can have either an output connection or previous connection, but it can always
-        // have a next connection.
-        if (json.has("nextStatement")) {
-            String[] checks = Input.getChecksFromJson(json, "nextStatement");
-            Connection next = new Connection(Connection.CONNECTION_TYPE_NEXT, checks);
-            builder.setNext(next);
-        }
-        if (json.has("inputsInline")) {
-            try {
-                builder.setInputsInline(json.getBoolean("inputsInline"));
-            } catch (JSONException e) {
-                // Do nothing and it will remain false.
-            }
-        }
-
-        int blockColor = ColorUtils.DEFAULT_BLOCK_COLOR;
-        if (json.has("colour")) {
-            try {
-                String colourString = json.getString("colour");
-                blockColor = ColorUtils.parseColor(colourString, TEMP_IO_THREAD_FLOAT_ARRAY,
-                        ColorUtils.DEFAULT_BLOCK_COLOR);
-            } catch (JSONException e) {
-                // Won't get here. Checked above.
-            }
-        }
-        builder.setColor(blockColor);
-
-        ArrayList<Input> inputs = new ArrayList<>();
-        ArrayList<Field> fields = new ArrayList<>();
-        for (int i = 0; ; i++) {
-            String messageKey = "message" + i;
-            String argsKey = "args" + i;
-            String lastDummyAlignKey = "lastDummyAlign" + i;
-            if (!json.has(messageKey)) {
-                break;
-            }
-            String message = json.optString(messageKey);
-            JSONArray args = json.optJSONArray(argsKey);
-            if (args == null) {
-                // If there's no args for this message use an empty array.
-                args = new JSONArray();
-            }
-
-            if (message.matches("^%[a-zA-Z][a-zA-Z_0-9]*$")) {
-                // TODO(#83): load the message from resources.
-            }
-            // Split on all argument indices of the form "%N" where N is a number from 1 to
-            // the number of args without removing them.
-            List<String> tokens = Block.tokenizeMessage(message);
-            int indexCount = 0;
-            // Indices start at 1, make the array 1 bigger so we don't have to offset things
-            boolean[] seenIndices = new boolean[args.length() + 1];
-
-            for (String token : tokens) {
-                // Check if this token is an argument index of the form "%N"
-                if (token.matches("^%\\d+$")) {
-                    int index = Integer.parseInt(token.substring(1));
-                    if (index < 1 || index > args.length()) {
-                        throw new BlockLoadingException("Message index " + index
-                                + " is out of range.");
-                    }
-                    if (seenIndices[index]) {
-                        throw new BlockLoadingException(("Message index " + index
-                                + " is duplicated"));
-                    }
-                    seenIndices[index] = true;
-
-                    JSONObject element;
-                    try {
-                        element = args.getJSONObject(index - 1);
-                    } catch (JSONException e) {
-                        throw new BlockLoadingException("Error reading arg %" + index, e);
-                    }
-                    while (element != null) {
-                        String elementType = element.optString("type");
-                        if (TextUtils.isEmpty(elementType)) {
-                            throw new BlockLoadingException("No type for arg %" + index);
-                        }
-
-                        if (Field.isFieldType(elementType)) {
-                            fields.add(loadFieldFromJson(type, element));
-                            break;
-                        } else if (Input.isInputType(elementType)) {
-                            Input input = Input.fromJson(element);
-                            input.addAll(fields);
-                            fields.clear();
-                            inputs.add(input);
-                            break;
-                        } else {
-                            // Try getting the fallback block if it exists
-                            Log.w(TAG, "Unknown element type: " + elementType);
-                            element = element.optJSONObject("alt");
-                        }
-                    }
-                } else {
-                    token = token.replace("%%", "%").trim();
-                    if (!TextUtils.isEmpty(token)) {
-                        fields.add(new FieldLabel(null, token));
-                    }
-                }
-            }
-
-            // Verify every argument was used
-            for (int j = 1; j < seenIndices.length; j++) {
-                if (!seenIndices[j]) {
-                    throw new BlockLoadingException("Argument " + j + " was never used.");
-                }
-            }
-            // If there were leftover fields we need to add a dummy input to hold them.
-            if (fields.size() != 0) {
-                String align = json.optString(lastDummyAlignKey, Input.ALIGN_LEFT_STRING);
-                Input input = new Input.InputDummy(null, align);
-                input.addAll(fields);
-                inputs.add(input);
-                fields.clear();
-            }
-        }
-
-        builder.setInputs(inputs);
-        return builder.build();
+    public List<BlockDefinition> getAllBlockDefinitions() {
+        return new ArrayList<>(mDefinitions.values());
     }
 
     /**
@@ -426,216 +430,210 @@ public class BlockFactory {
     }
 
     /**
+     * Applies the named mutator to the provided block.
+     */
+    public void applyMutator(String mutatorId, Block block) throws BlockLoadingException {
+        Mutator.Factory factory = mMutatorFactories.get(mutatorId);
+        if (factory == null) {
+            throw new BlockLoadingException("Unknown mutator \"" + mutatorId + "\".");
+        }
+        if (block.mMutator != null) {
+            throw new BlockLoadingException(
+                    "Mutator \"" + block.mMutatorId + "\" already applied.");
+        }
+        Mutator mutator = factory.newMutator();
+        block.mMutatorId = mutatorId;
+        block.mMutator = mutator;
+        mutator.onAttached(block);
+    }
+
+
+    /**
+     * Applies the named extension to the provided block.
+     * @param extensionId The name / id of the extension, as seen in the JSON extensions attribute.
+     * @param block The block to apply it to.
+     */
+    public void applyExtension(String extensionId, Block block)
+            throws BlockLoadingException {
+        BlockExtension extension = mExtensions.get(extensionId);
+        if (extension == null) {
+            throw new BlockLoadingException("Unknown extension \"" + extensionId + "\".");
+        }
+        Mutator old = block.mMutator;
+        extension.applyTo(block);
+        if (block.mMutator != old) {
+            // Unlike web, Android mutators are not assigned by extensions.
+            Log.w(TAG, "Extensions are not allowed to assign mutators. "
+                    + "Use Mutator and Mutator.Factory class.");
+        }
+    }
+
+    /**
      * Load a block and all of its children from XML.
      *
      * @param parser An XmlPullParser pointed at the start tag of this block.
-     *
      * @return The loaded block.
-     *
-     * @throws XmlPullParserException
-     * @throws IOException
-     * @throws BlocklyParserException
+     * @throws BlockLoadingException If unable to load the block or child. May contain a
+     *                               XmlPullParserException or IOException as a root cause.
      */
-    public Block fromXml(XmlPullParser parser)
-            throws XmlPullParserException, IOException, BlocklyParserException {
-        String type = parser.getAttributeValue(null, "type");   // prototype name
-        String id = parser.getAttributeValue(null, "id");
-        if (type == null || type.isEmpty()) {
-            throw new BlocklyParserException("Block was missing a type.");
-        }
-        // If the id was empty the BlockFactory will just generate one.
-
-        Block resultBlock = obtainBlock(type, id);
-        if (resultBlock == null) {
-            throw new BlocklyParserException("Tried to obtain a block of an unknown type " + type);
-        }
-
-        String collapsedString = parser.getAttributeValue(null, "collapsed");
-        if (collapsedString != null) {
-            resultBlock.setCollapsed(Boolean.parseBoolean(collapsedString));
-        }
-
-        String deletableString = parser.getAttributeValue(null, "deletable");
-        if (deletableString != null) {
-            resultBlock.setDeletable(Boolean.parseBoolean(deletableString));
-        }
-
-        String disabledString = parser.getAttributeValue(null, "disabled");
-        if (disabledString != null) {
-            resultBlock.setDisabled(Boolean.parseBoolean(disabledString));
-        }
-
-        String editableString = parser.getAttributeValue(null, "editable");
-        if (editableString != null) {
-            resultBlock.setEditable(Boolean.parseBoolean(editableString));
-        }
-
-        String inputsInlineString = parser.getAttributeValue(null, "inline");
-        if (inputsInlineString != null) {
-            resultBlock.setInputsInline(Boolean.parseBoolean(inputsInlineString));
-        }
-
-        String movableString = parser.getAttributeValue(null, "movable");
-        if (movableString != null) {
-            resultBlock.setMovable(Boolean.parseBoolean(movableString));
-        }
-
-        // Set position.  Only if this is a top level block.
-        String x = parser.getAttributeValue(null, "x");
-        String y = parser.getAttributeValue(null, "y");
-        if (x != null && y != null) {
-            resultBlock.setPosition(Float.parseFloat(x), Float.parseFloat(y));
-        }
-
-        int eventType = parser.next();
-        String text = "";
-        String fieldName = "";
-        Block childBlock = null;
-        Block childShadow = null;
-        Input valueInput = null;
-        Input statementInput = null;
-
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            String tagname = parser.getName();
-            switch (eventType) {
-                case XmlPullParser.START_TAG:
-                    text = ""; // Ignore text from parent (or prior) block.
-                    if (tagname.equalsIgnoreCase("block")) {
-                        childBlock = fromXml(parser);
-                    } else if (tagname.equalsIgnoreCase("shadow")) {
-                        childShadow = fromXml(parser);
-                    } else if (tagname.equalsIgnoreCase("field")) {
-                        fieldName = parser.getAttributeValue(null, "name");
-                    } else if (tagname.equalsIgnoreCase("value")) {
-                        valueInput = resultBlock.getInputByName(
-                                parser.getAttributeValue(null, "name"));
-                        if (valueInput == null) {
-                            throw new BlocklyParserException("The value input was null at line "
-                                    + parser.getLineNumber() + "!");
-                        }
-                    } else if (tagname.equalsIgnoreCase("statement")) {
-                        statementInput = resultBlock.getInputByName(
-                                parser.getAttributeValue(null, "name"));
-                    } else if (tagname.equalsIgnoreCase("mutation")) {
-                        // TODO(fenichel): Handle mutations.
-                    }
-                    break;
-
-                case XmlPullParser.TEXT:
-                    text = parser.getText();
-                    break;
-
-                case XmlPullParser.END_TAG:
-                    Connection parentConnection = null;
-
-                    if (tagname.equalsIgnoreCase("block")) {
-                        if (resultBlock == null) {
-                            throw new BlocklyParserException(
-                                    "Created a null block. This should never happen.");
-                        }
-                        return resultBlock;
-                    } else if (tagname.equalsIgnoreCase("shadow")) {
-                        if (resultBlock == null) {
-                            throw new BlocklyParserException(
-                                    "Created a null block. This should never happen.");
-                        }
-                        try {
-                            resultBlock.setShadow(true);
-                        } catch (IllegalStateException e) {
-                            throw new BlocklyParserException(e);
-                        }
-                        return resultBlock;
-                    }else if (tagname.equalsIgnoreCase("field")) {
-                        Field toSet = resultBlock.getFieldByName(fieldName);
-                        if (toSet != null) {
-                            if (!toSet.setFromString(text)) {
-                                throw new BlocklyParserException(
-                                        "Failed to set a field's value from XML.");
-                            }
-                        }
-                    } else if (tagname.equalsIgnoreCase("comment")) {
-                        resultBlock.setComment(text);
-                    } else if (tagname.equalsIgnoreCase("value")) {
-                        if (valueInput != null) {
-                            parentConnection = valueInput.getConnection();
-                            if (parentConnection == null) {
-                                throw new BlocklyParserException("The input connection was null.");
-                            }
-                        } else {
-                            throw new BlocklyParserException(
-                                    "A value input was null.");
-                        }
-                    } else if (tagname.equalsIgnoreCase("statement")) {
-                        if (statementInput != null) {
-                            parentConnection = statementInput.getConnection();
-                            if (parentConnection == null) {
-                                throw new BlocklyParserException(
-                                        "The statement connection was null.");
-                            }
-                        } else {
-                            throw new BlocklyParserException(
-                                    "A statement input was null.");
-                        }
-                    } else if (tagname.equalsIgnoreCase("next")) {
-                        parentConnection = resultBlock.getNextConnection();
-                        if (parentConnection == null) {
-                            throw new BlocklyParserException("A next connection was null");
-                        }
-                    }
-                    // If we finished a parent connection (statement, value, or next)
-                    if (parentConnection != null) {
-                        // Connect its child if one exists
-                        if (childBlock != null) {
-                            Connection childConnection = childBlock.getPreviousConnection();
-                            if (childConnection == null) {
-                                childConnection = childBlock.getOutputConnection();
-                            }
-                            if (childConnection == null) {
-                                throw new BlocklyParserException(
-                                        "The child block's connection was null.");
-                            }
-                            if (parentConnection.isConnected()) {
-                                throw new BlocklyParserException("Duplicated " + tagname
-                                        + " in block.");
-                            }
-                            parentConnection.connect(childConnection);
-                        }
-                        // Then connect its shadow if one exists
-                        if (childShadow != null) {
-                            Connection shadowConnection = childShadow.getPreviousConnection();
-                            if (shadowConnection == null) {
-                                shadowConnection = childShadow.getOutputConnection();
-                            }
-                            if (shadowConnection == null) {
-                                throw new BlocklyParserException(
-                                        "The shadow block connection was null.");
-                            }
-                            if (parentConnection.getShadowConnection() != null) {
-                                throw new BlocklyParserException("Duplicated " + tagname
-                                        + " in block.");
-                            }
-                            parentConnection.setShadowConnection(shadowConnection);
-                            if (!parentConnection.isConnected()) {
-                                // If there was no standard block connect the shadow
-                                parentConnection.connect(shadowConnection);
-                            }
-                        }
-                        // And clear out all the references for this tag
-                        childBlock = null;
-                        childShadow = null;
-                        valueInput = null;
-                        statementInput = null;
-                    }
-                    break;
-
-                default:
-                    break;
+    public Block fromXml(XmlPullParser parser) throws BlockLoadingException {
+        int startLine = parser.getLineNumber();
+        BlockLoadingException childException = null;
+        final XmlBlockTemplate template = new XmlBlockTemplate();
+        try {
+            String type = parser.getAttributeValue(null, "type");   // prototype name
+            if (type == null || (type = type.trim()).isEmpty()) {
+                throw new BlockLoadingException("Block is missing a type.");
             }
-            eventType = parser.next();
+            template.ofType(type);
+            template.withId(parser.getAttributeValue(null, "id"));
+            // If the id was empty the BlockFactory will just generate one.
+
+            String collapsedString = parser.getAttributeValue(null, "collapsed");
+            if (collapsedString != null) {
+                template.collapsed(Boolean.parseBoolean(collapsedString));
+            }
+
+            String deletableString = parser.getAttributeValue(null, "deletable");
+            if (deletableString != null) {
+                template.deletable(Boolean.parseBoolean(deletableString));
+            }
+
+            String disabledString = parser.getAttributeValue(null, "disabled");
+            if (disabledString != null) {
+                template.disabled(Boolean.parseBoolean(disabledString));
+            }
+
+            String editableString = parser.getAttributeValue(null, "editable");
+            if (editableString != null) {
+                template.editable(Boolean.parseBoolean(editableString));
+            }
+
+            String inputsInlineString = parser.getAttributeValue(null, "inline");
+            if (inputsInlineString != null) {
+                template.withInlineInputs(Boolean.parseBoolean(inputsInlineString));
+            }
+
+            String movableString = parser.getAttributeValue(null, "movable");
+            if (movableString != null) {
+                template.movable(Boolean.parseBoolean(movableString));
+            }
+
+            // Set position.  Only if this is a top level block.
+            String x = parser.getAttributeValue(null, "x");
+            String y = parser.getAttributeValue(null, "y");
+            if (x != null && y != null) {
+                template.atPosition(Float.parseFloat(x), Float.parseFloat(y));
+            }
+
+            int eventType = parser.next();
+            String text = "";
+            String fieldName = "";
+            Block childBlock = null;
+            Block childShadow = null;
+            String inputName = null;
+
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                String tagname = parser.getName();
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        text = ""; // Ignore text from parent (or prior) block.
+                        if (tagname.equalsIgnoreCase("block")) {
+                            try {
+                                childBlock = fromXml(parser);
+                            } catch (BlockLoadingException e) {
+                                childException = e;  // Save reference to pass through outer catch
+                                throw e;
+                            }
+                        } else if (tagname.equalsIgnoreCase("shadow")) {
+                            try {
+                                childShadow = fromXml(parser);
+                            } catch (BlockLoadingException e) {
+                                childException = e;  // Save reference to pass through outer catch
+                                throw e;
+                            }
+                        } else if (tagname.equalsIgnoreCase("field")) {
+                            fieldName = parser.getAttributeValue(null, "name");
+                        } else if (tagname.equalsIgnoreCase("value")
+                                || tagname.equalsIgnoreCase("statement")) {
+                            inputName = parser.getAttributeValue(null, "name");
+                            if (TextUtils.isEmpty(inputName)) {
+                                throw new BlockLoadingException(
+                                        "<" + tagname + "> must have a name attribute.");
+                            }
+                        } else if (tagname.equalsIgnoreCase("mutation")) {
+                            String elementStr = BlocklyXmlHelper.captureElement(parser);
+                            template.withMutation(elementStr);
+                        }
+                        break;
+
+                    case XmlPullParser.TEXT:
+                        text = parser.getText();
+                        break;
+
+                    case XmlPullParser.END_TAG:
+                        if (tagname.equalsIgnoreCase("block")) {
+                            return obtainBlockFrom(template);
+                        } else if (tagname.equalsIgnoreCase("shadow")) {
+                            template.shadow();
+                            return obtainBlockFrom(template);
+                        } else if (tagname.equalsIgnoreCase("field")) {
+                            if (TextUtils.isEmpty(fieldName)) {
+                                Log.w(TAG, "Ignoring unnamed field in " +
+                                        template.toString("block"));
+                            } else {
+                                template.withFieldValue(fieldName, text);
+                            }
+                            fieldName = null;
+                            text = "";
+                        } else if (tagname.equalsIgnoreCase("comment")) {
+                            template.withComment(text);
+                            text = "";
+                        } else if (tagname.equalsIgnoreCase("value") ||
+                                tagname.equalsIgnoreCase("statement")) {
+                            if (inputName == null) {
+                                // Start tag missing input name. Should catch this above.
+                                throw new BlockLoadingException("Missing inputName.");
+                            }
+                            try {
+                                template.withInputValue(inputName, childBlock, childShadow);
+                            } catch (IllegalArgumentException e) {
+                                throw new BlockLoadingException(template.toString("Block")
+                                        + " input \"" + inputName + "\": " + e.getMessage());
+                            }
+                            childBlock = null;
+                            childShadow = null;
+                            inputName = null;
+                        } else if (tagname.equalsIgnoreCase("next")) {
+                            template.withNextChild(childBlock, childShadow);
+                            childBlock = null;
+                            childShadow = null;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+                eventType = parser.next();
+            }
+            throw new BlockLoadingException("Reached the END_DOCUMENT before end of block.");
+        } catch (BlockLoadingException | XmlPullParserException | IOException e) {
+            if (e == childException) {
+                throw (BlockLoadingException) e; // Pass through unchanged.
+            }
+
+            String msg = "Error";
+            int errorLine = parser.getLineNumber();
+            if (errorLine > -1) {
+                int errorCol = parser.getColumnNumber();
+                msg += " at line " + errorLine + ", col " + errorCol;
+            }
+            msg += " loading " + template.toString("block");
+            if (startLine > -1) {
+                msg += " starting at line " + startLine;
+            }
+            throw new BlockLoadingException(msg + ": " + e.getMessage(), e);
         }
-        // Should never reach here, since this is called from a workspace fromXml function.
-        throw new BlocklyParserException(
-                "Reached the end of Block.fromXml. This should never happen.");
     }
 
     /**
@@ -667,9 +665,10 @@ public class BlockFactory {
      * Removes all blocks from the factory.
      */
     public void clear() {
-        mBlockTemplates.clear();
+        mBlockRefs.clear();  // What if these blocks exist on the workspace?
+        mDefinitions.clear();
+        mExtensions.clear();
         mDropdownOptions.clear();
-        mBlockRefs.clear();
     }
 
     /**
@@ -680,31 +679,165 @@ public class BlockFactory {
         mBlockRefs.clear();
     }
 
-    /** @return Number of blocks added to the factory. */
-    private int loadBlocks(InputStream blockIs) throws IOException {
-        int blockAddedCount = 0;
-        try {
-            int size = blockIs.available();
-            byte[] buffer = new byte[size];
-            blockIs.read(buffer);
+    /**
+     * Returns an id that is statistically unique.
+     * @param requested The requested id.
+     * @return The allowed id.
+     * @throws BlockLoadingException If a collision occurs when the id is required.
+     */
+    private String getCheckedId(String requested) throws BlockLoadingException {
+        if (requested != null) {
+            if (isBlockIdInUse(requested)) {
+                throw new BlockLoadingException(
+                        "Block id \"" + requested + "\" is already in use.");
+            }
+            return requested;
+        }
+        String id = UUID.randomUUID().toString();
+        while(mBlockRefs.containsKey(id)) {  // Exceptionally unlikely, but...
+            id = UUID.randomUUID().toString();
+        }
+        return id;
+    }
 
-            String json = new String(buffer, "UTF-8");
-            JSONArray blocks = new JSONArray(json);
-            for (int i = 0; i < blocks.length(); i++) {
-                JSONObject block = blocks.getJSONObject(i);
-                String type = block.optString("type");
-                if (!TextUtils.isEmpty(type)) {
-                    mBlockTemplates.put(type, fromJson(type, block));
-                    ++blockAddedCount;
-                } else {
-                    throw new BlockLoadingException(
-                            "Block " + i + " has no type and cannot be loaded.");
+    /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */
+    private static class InputValue {
+        /** The name of the input */
+        final String mName;
+        /** The child block. */
+        final Block mChild;
+        /** The connected shadow block. */
+        final Block mShadow;
+
+        InputValue(String name, Block child, Block shadow) {
+            mName = name;
+            mChild = child;
+            mShadow = shadow;
+        }
+    }
+
+    /**
+     * Extension of BlockTemplate that includes child blocks. This class is private, because child
+     * block references in templates are strictly limited to one use, and this class in not intended
+     * for use outside XML deserialization.
+     */
+    private class XmlBlockTemplate extends BlockTemplate {
+        /** Ordered list of input names and blocks, as loaded during XML deserialization. */
+        protected List<InputValue> mInputValues;
+
+
+        /**
+         * Sets a block input's child block and shadow. Child blocks in templates are only good
+         * once, as the second time the child already has a parent. Only used during XML
+         * deserialization.
+         *
+         * @param inputName The name of the field.
+         * @param child The deserialized child block.
+         * @param shadow The deserialized shadow block.
+         * @return This block descriptor, for chaining.
+         * @throws BlockLoadingException If inputName is not a valid name; if child or shadow are
+         *                               not configured as such; if child or shadow overwrites a
+         *                               prior value.
+         */
+        private XmlBlockTemplate withInputValue(String inputName, Block child, Block shadow)
+                throws BlockLoadingException {
+            if (inputName == null
+                    || (inputName = inputName.trim()).length() == 0) {  // Trim and test name
+                throw new BlockLoadingException("Invalid input value name.");
+            }
+            // Validate child block shadow state and upward connection.
+            if (child != null && (child.isShadow() || child.getUpwardsConnection() == null)) {
+                throw new BlockLoadingException("Invalid input value block.");
+            }
+            if (shadow != null && (!shadow.isShadow() || shadow.getUpwardsConnection() == null)) {
+                throw new BlockLoadingException("Invalid input shadow block.");
+            }
+
+            if (mInputValues == null) {
+                mInputValues = new ArrayList<>();
+            } else {
+                // Check for prior assignments to the same input value.
+                Iterator<InputValue> iter = mInputValues.iterator();
+                while (iter.hasNext()) {
+                    InputValue priorValue = iter.next();
+                    if (priorValue.mName.equals(inputName)) {
+                        boolean overwriteChild = child != null
+                                && priorValue.mChild != null && child != priorValue.mChild;
+                        boolean overwriteShadow = shadow != null
+                                & priorValue.mShadow != null && shadow != priorValue.mShadow;
+
+                        if (overwriteChild || overwriteShadow) {
+                            throw new IllegalArgumentException(
+                                    "Input \"" + inputName + "\" already assigned.");
+                        }
+                        child = (child == null ? priorValue.mChild : child);
+                        shadow = (shadow == null ? priorValue.mShadow : shadow);
+                        iter.remove();  // Replaced below
+                    }
                 }
             }
-        } catch (JSONException e) {
-            throw new BlockLoadingException(e);
+            mInputValues.add(new InputValue(inputName, child, shadow));
+            return this;
         }
 
-        return blockAddedCount;
+        /**
+         * Sets a block's next children. Child blocks in templates are only good once, as the second
+         * time the child already has a parent. Only used during XML deserialization.
+         *
+         * @param child The deserialized child block.
+         * @param shadow The deserialized shadow block.
+         * @return This block descriptor, for chaining.
+         * @throws BlockLoadingException If inputName is not a valid name; if child or shadow are
+         *                               not configured as such; if child or shadow overwrites a
+         *                               prior value.
+         */
+        private XmlBlockTemplate withNextChild(Block child, Block shadow)
+                throws BlockLoadingException {
+            if (child != null && (child.isShadow() || child.getPreviousConnection() == null)) {
+                throw new BlockLoadingException("Invalid next child block.");
+            }
+            if (shadow != null && (!shadow.isShadow() || shadow.getPreviousConnection() == null)) {
+                throw new BlockLoadingException("Invalid next child shadow.");
+
+            }
+            mNextChild = child;
+            mNextShadow = shadow;
+            return this;
+        }
+
+        /** Appends child blocks after the rest of the template state. */
+        @Override
+        public void applyMutableState(Block block) throws BlockLoadingException {
+            super.applyMutableState(block);
+
+            // TODO: Use the controller for the following block connections, in order to fire
+            //       events.
+            if (mInputValues != null) {
+                for (InputValue inputValue : mInputValues) {
+                    Input input = block.getInputByName(inputValue.mName);
+                    if (input == null) {
+                        throw new BlockLoadingException(
+                                toString() + ": No input with name \"" + inputValue.mName + "\"");
+                    }
+                    Connection connection = input.getConnection();
+                    if (connection == null) {
+                        throw new BlockLoadingException(
+                                "Input \"" + inputValue.mName + "\" does not have a connection.");
+                    }
+                    block.connectOrThrow(
+                            input.getType() == Input.TYPE_STATEMENT ? "statement" : "value",
+                            connection, inputValue.mChild, inputValue.mShadow);
+                }
+            }
+
+            if (mNextChild != null || mNextShadow != null) {
+                Connection connection = block.getNextConnection();
+                if (connection == null) {
+                    throw new BlockLoadingException(
+                            this + "does not have a connection for next child.");
+                }
+                block.connectOrThrow("next", connection, mNextChild, mNextShadow);
+            }
+        }
     }
 }

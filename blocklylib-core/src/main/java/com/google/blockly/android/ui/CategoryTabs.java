@@ -29,13 +29,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.google.blockly.android.R;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@code CategoryTabs} view shows the list of available {@link FlyoutCategory}s as tabs.
+ * A {@code CategoryTabs} view shows the list of available {@link BlocklyCategory}s as tabs.
  * <p/>
  * The view can be configured in either {@link #HORIZONTAL} (default) or {@link #VERTICAL}
  * orientation. If there is not enough space, the tabs will scroll in the same direction.
@@ -51,7 +51,7 @@ public class CategoryTabs extends RecyclerView {
 
     private final LinearLayoutManager mLayoutManager;
     private final CategoryAdapter mAdapter;
-    protected final List<FlyoutCategory> mCategories = new ArrayList<>();
+    protected final List<BlocklyCategory> mCategories = new ArrayList<>();
 
     protected @Rotation.Enum int mLabelRotation = Rotation.NONE;
     protected boolean mTapSelectedDeselects = false;
@@ -59,7 +59,7 @@ public class CategoryTabs extends RecyclerView {
     private LabelAdapter mLabelAdapter;
     protected @Nullable CategorySelectorUI.Callback mCallback;
     protected @Nullable
-    FlyoutCategory mCurrentCategory;
+    BlocklyCategory mCurrentCategory;
 
     public CategoryTabs(Context context) {
         this(context, null, 0);
@@ -139,11 +139,11 @@ public class CategoryTabs extends RecyclerView {
     }
 
     /**
-     * Sets the list of {@link FlyoutCategory}s used to populate the tab labels.
+     * Sets the list of {@link BlocklyCategory}s used to populate the tab labels.
      *
-     * @param categories The list of {@link FlyoutCategory}s used to populate the tab labels.
+     * @param categories The list of {@link BlocklyCategory}s used to populate the tab labels.
      */
-    public void setCategories(List<FlyoutCategory> categories) {
+    public void setCategories(List<BlocklyCategory> categories) {
         mCategories.clear();
         mCategories.addAll(categories);
         mAdapter.notifyDataSetChanged();
@@ -155,7 +155,7 @@ public class CategoryTabs extends RecyclerView {
      *
      * @param category
      */
-    public void setSelectedCategory(@Nullable FlyoutCategory category) {
+    public void setSelectedCategory(@Nullable BlocklyCategory category) {
         if (mCurrentCategory == category) {
             return;
         }
@@ -183,7 +183,7 @@ public class CategoryTabs extends RecyclerView {
     /**
      * @return The currently highlighted category or null.
      */
-    public FlyoutCategory getSelectedCategory() {
+    public BlocklyCategory getSelectedCategory() {
         return mCurrentCategory;
     }
 
@@ -191,13 +191,13 @@ public class CategoryTabs extends RecyclerView {
         return mCategories.size();
     }
 
-    private void onCategoryClicked(FlyoutCategory category) {
+    private void onCategoryClicked(BlocklyCategory category) {
         if (mCallback != null) {
             mCallback.onCategoryClicked(category);
         }
     }
 
-    private TabLabelHolder getTabLabelHolder(FlyoutCategory category) {
+    private TabLabelHolder getTabLabelHolder(BlocklyCategory category) {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; ++i) {
             View child = getChildAt(i);
@@ -225,7 +225,7 @@ public class CategoryTabs extends RecyclerView {
 
         @Override
         public void onBindViewHolder(TabLabelHolder holder, int tabPosition) {
-            final FlyoutCategory category = mCategories.get(tabPosition);
+            final BlocklyCategory category = mCategories.get(tabPosition);
             boolean isSelected = (category == mCurrentCategory);
             // These may throw a NPE, but that is an illegal state checked above.
             mLabelAdapter.onBindLabel(holder.mLabel, category, tabPosition);
@@ -262,11 +262,11 @@ public class CategoryTabs extends RecyclerView {
          * the text {@link R.string#blockly_toolbox_default_category_name} ("Blocks" in English).
          *
          * @param labelView The view used as the label.
-         * @param category The {@link FlyoutCategory}.
+         * @param category The {@link BlocklyCategory}.
          * @param position The ordering position of the tab.
          */
         @Override
-        public void onBindLabel(View labelView, FlyoutCategory category, int position) {
+        public void onBindLabel(View labelView, BlocklyCategory category, int position) {
             String labelText = category.getCategoryName();
             if (TextUtils.isEmpty(labelText)) {
                 labelText = getContext().getString(R.string.blockly_toolbox_default_category_name);
@@ -284,13 +284,13 @@ public class CategoryTabs extends RecyclerView {
         public abstract View onCreateLabel();
 
         /**
-         * Bind a {@link FlyoutCategory} to a label view, with any appropriate styling.
+         * Bind a {@link BlocklyCategory} to a label view, with any appropriate styling.
          *
          * @param labelView The tab's label view.
          * @param category The category to bind to.
          * @param position The position of the category in the list of tabs.
          */
-        public abstract void onBindLabel(View labelView, FlyoutCategory category, int position);
+        public abstract void onBindLabel(View labelView, BlocklyCategory category, int position);
 
         /**
          * Called when a label is bound or when clicking results in a selection change. Responsible
@@ -305,7 +305,7 @@ public class CategoryTabs extends RecyclerView {
          * @param isSelected the new selection state.
          */
         public void onSelectionChanged(
-                View labelView, FlyoutCategory category, int position, boolean isSelected) {
+                View labelView, BlocklyCategory category, int position, boolean isSelected) {
             labelView.setSelected(isSelected);
         }
     }
@@ -317,7 +317,7 @@ public class CategoryTabs extends RecyclerView {
         public final RotatedViewGroup mRotator;
         public final View mLabel;
 
-        public FlyoutCategory mCategory;
+        public BlocklyCategory mCategory;
 
         TabLabelHolder(View label) {
             super(new RotatedViewGroup(label.getContext()));

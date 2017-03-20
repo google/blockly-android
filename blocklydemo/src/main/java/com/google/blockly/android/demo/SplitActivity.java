@@ -18,13 +18,19 @@ package com.google.blockly.android.demo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.utils.BlocklyXmlHelper;
+import com.google.blockly.utils.StringOutputStream;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +60,27 @@ public class SplitActivity extends AbstractBlocklyActivity {
                     });
                 }
             };
+
+    @Override
+    protected void onRunCode() {
+        final StringOutputStream serialized = new StringOutputStream();
+        try {
+            getController().getWorkspace().serializeToXml(serialized);
+            mGeneratedTextView.setText(serialized.toString());
+        } catch (BlocklySerializerException e) {
+            // Not using a string resource because no non-developer should see this.
+            String msg = "Failed to serialize workspace during code generation.";
+            Log.wtf(TAG, msg, e);
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+            throw new IllegalStateException(msg, e);
+        } finally {
+            try {
+                serialized.close();
+            } catch (IOException e) {
+                // Ignore error on close().
+            }
+        }
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -108,11 +135,6 @@ public class SplitActivity extends AbstractBlocklyActivity {
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
-    }
-
-    @Override
-    protected void onInitBlankWorkspace() {
-        TurtleActivity.addDefaultVariables(getController());
     }
 
     @Override

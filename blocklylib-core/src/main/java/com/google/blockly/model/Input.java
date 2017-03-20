@@ -86,6 +86,25 @@ public abstract class Input implements Cloneable {
         INPUT_TYPES.add(TYPE_DUMMY_STRING);
     }
 
+    /**
+     * Acquires the Connection on {@code block} that matches the connection type for {@code input}
+     * as a parent, or null if none exist. That is, if input is a value input, return the output
+     * connection of the block. If input is a statement input, return the previous connection of
+     * block.
+     *
+     * @param input The potential parent input.
+     * @param block The potential child block.
+     * @return The Connection on block (output or previous).
+     */
+    public static Connection getPotentialConnection(Input input, Block block) {
+        if (input.getType() == TYPE_VALUE) {
+            return block.getOutputConnection();
+        } else if (input.getType() == TYPE_STATEMENT) {
+            return block.getPreviousConnection();
+        }
+        return null; // No potential conneciton.
+    }
+
     private final ArrayList<Field> mFields = new ArrayList<>();
     private final String mName;
     private final Connection mConnection;
@@ -166,15 +185,17 @@ public abstract class Input implements Cloneable {
 
     /**
      * Writes the value of the Input and all of its Fields as a string. By default only fields are
-     * written. Subclasses should override this and call {@link #serialize(XmlSerializer, String)}
-     * with the correct tag to also serialize any connected blocks.
+     * written. Subclasses should override this and call
+     * {@link #serializeImpl(XmlSerializer, String, IOOptions)} with the correct tag to also
+     * serialize any connected blocks.
      *
      * @param serializer The XmlSerializer to write to.
+     * @param options The options to configure writing.
      *
      * @throws IOException
      */
-    public void serialize(XmlSerializer serializer) throws IOException {
-        serialize(serializer, null);
+    public void serialize(XmlSerializer serializer, IOOptions options) throws IOException {
+        serializeImpl(serializer, null, options);
     }
 
     /**
@@ -183,28 +204,31 @@ public abstract class Input implements Cloneable {
      *
      * @param serializer The XmlSerializer to write to.
      * @param tag The xml tag to use for wrapping the block connected to the input or null.
+     * @param options The I/O options.
      *
      * @throws IOException
      */
-    public void serialize(XmlSerializer serializer, @Nullable String tag) throws IOException {
-        if (tag != null && getConnection() != null && (getConnection().isConnected()
-                || getConnection().getShadowBlock() != null)) {
+    protected void serializeImpl(XmlSerializer serializer, @Nullable String tag, IOOptions options)
+            throws IOException {
+        if (tag != null
+                && options.isBlockChildWritten()
+                && getConnection() != null
+                && (getConnection().isConnected() || getConnection().getShadowBlock() != null)) {
             serializer.startTag(null, tag)
                     .attribute(null, "name", getName());
 
             // Serialize the connection's shadow if it has one
             Block block = getConnection().getShadowBlock();
             if (block != null) {
-                block.serialize(serializer, false);
+                block.serialize(serializer, /* root block */ false, options);
             }
             // Then serialize its non-shadow target if it has one
             if (block != getConnection().getTargetBlock()) {
                 block = getConnection().getTargetBlock();
                 if (block != null) {
-                    block.serialize(serializer, false);
+                    block.serialize(serializer, /* root block */ false, options);
                 }
             }
-
             serializer.endTag(null, tag);
         }
 
@@ -447,8 +471,8 @@ public abstract class Input implements Cloneable {
         }
 
         @Override
-        public void serialize(XmlSerializer serializer) throws IOException {
-            serialize(serializer, "value");
+        public void serialize(XmlSerializer serializer, IOOptions options) throws IOException {
+            serializeImpl(serializer, "value", options);
         }
     }
 
@@ -483,8 +507,8 @@ public abstract class Input implements Cloneable {
         }
 
         @Override
-        public void serialize(XmlSerializer serializer) throws IOException {
-            serialize(serializer, "statement");
+        public void serialize(XmlSerializer serializer, IOOptions options) throws IOException {
+            serializeImpl(serializer, "statement", options);
         }
     }
 

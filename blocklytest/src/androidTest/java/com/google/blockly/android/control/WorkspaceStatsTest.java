@@ -15,15 +15,18 @@
 
 package com.google.blockly.android.control;
 
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockDefinition;
+import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
-import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldInput;
-import com.google.blockly.model.FieldVariable;
-import com.google.blockly.model.Input;
+import com.google.blockly.utils.BlockLoadingException;
 
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,61 +38,61 @@ import static org.mockito.Mockito.verify;
  * Tests for {@link WorkspaceStats}.
  */
 public class WorkspaceStatsTest {
+    private BlockFactory mFactory;
     private WorkspaceStats mStats;
-    private Input mFieldInput;
-    private Input mVariableFieldsInput;
     private ConnectionManager mConnectionManager;
     private ProcedureManager mMockProcedureManager;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        Context context = InstrumentationRegistry.getTargetContext();
+        mFactory = new BlockFactory();
+
+        // TODO: Do we need this? We don't use Mockito in this test.
+        //       http://stackoverflow.com/a/22402631/152543
         System.setProperty(
                 "dexmaker.dexcache",
-                InstrumentationRegistry.getTargetContext().getCacheDir().getPath());
+                context.getCacheDir().getPath());
         mMockProcedureManager = mock(ProcedureManager.class);
-        mFieldInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
-        Field field = new FieldInput("name", "nameid");
-        field.setFromString("new procedure");
-        mFieldInput.add(field);
-
-        mVariableFieldsInput = new Input.InputDummy("name input", Input.ALIGN_LEFT);
-        field = new FieldVariable("field name", "nameid");
-        field.setFromString("variable name");
-        mVariableFieldsInput.add(field);
-        field = new FieldVariable("field name 2", "nameid2");
-        field.setFromString("variable name");
-        mVariableFieldsInput.add(field);
-
         mConnectionManager = new ConnectionManager();
         mStats = new WorkspaceStats(
                 new NameManager.VariableNameManager(), mMockProcedureManager, mConnectionManager);
     }
 
     @Test
-    public void testCollectProcedureStats() {
-        Block.Builder blockBuilder = new Block.Builder(
-                ProcedureManager.PROCEDURE_DEFINITION_PREFIX + "test");
-        blockBuilder.addInput(mFieldInput);
-        Block blockUnderTest = blockBuilder.build();
+    public void testCollectProcedureStats() throws BlockLoadingException {
+        Block blockUnderTest = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(
+                TestUtils.getProcedureDefinitionBlockDefinition("test")));
 
         mStats.collectStats(blockUnderTest, false);
         verify(mMockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
-        blockBuilder = new Block.Builder(ProcedureManager.PROCEDURE_REFERENCE_PREFIX + "test");
-        blockBuilder.addInput(mFieldInput);
-        Block procedureReference = blockBuilder.build();
+        Block procedureReference = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(
+                TestUtils.getProcedureReferenceBlockDefinition("test")));
 
         mStats.collectStats(procedureReference, false);
         verify(mMockProcedureManager).addReference(procedureReference);
     }
 
     @Test
-    public void testCollectVariableStats() {
-        Block.Builder blockBuilder = new Block.Builder("test");
-
-        blockBuilder.addInput(mVariableFieldsInput);
-        Block variableReference = blockBuilder.build();
+    public void testCollectVariableStats() throws JSONException, BlockLoadingException {
+        BlockDefinition def = new BlockDefinition(
+                "{" +
+                    "\"type\":\"two variable references\"," +
+                    "\"message0\":\"%1 %2\"," +
+                    "\"args0\":[{" +
+                        "\"type\":\"field_variable\"," +
+                        "\"name\":\"field name\"," +
+                        "\"variable\":\"variable name\"" +
+                    "},{" +
+                        "\"type\":\"field_variable\"," +
+                        "\"name\":\"field name 2\"," +
+                        "\"variable\":\"variable name\"" +
+                    "}]" +
+                "}"
+        );
+        Block variableReference = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(def));
         mStats.collectStats(variableReference, false);
 
         assertThat(mStats.getVariableNameManager().contains("variable name")).isTrue();
@@ -106,36 +109,57 @@ public class WorkspaceStatsTest {
     }
 
     @Test
-    public void testCollectConnectionStatsRecursive() {
-        // Make sure we're only recursing on next and input connections, not output or previous.
-        Block.Builder blockBuilder = new Block.Builder("first block");
-        blockBuilder.addInput(mVariableFieldsInput);
-        blockBuilder.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
-        Block firstBlock = blockBuilder.build();
+    public void testCollectConnectionStatsNextPrevStatementRecursion()
+            throws JSONException, BlockLoadingException {
 
-        blockBuilder = new Block.Builder("second block");
-        blockBuilder.addInput(mFieldInput);
-        blockBuilder.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
-        blockBuilder.setNext(new Connection(Connection.CONNECTION_TYPE_NEXT, null));
+        BlockDefinition variableWithNext = new BlockDefinition(
+            "{" +
+                "\"type\":\"parent variableWithNext\"," +
+                "\"message0\":\"%1\"," +
+                "\"args0\":[{" +
+                    "\"type\":\"field_variable\"," +
+                    "\"name\":\"nameid\"," +
+                    "\"variable\":\"variable on parent\"" +
+                "}]," +
+                "\"nextStatement\":null" +
+            "}"
+        );
+        BlockDefinition nextAndPrev = new BlockDefinition(
+            "{" +
+                "\"type\":\"test target nextAndPrev\"," +
+                "\"message0\":\"label on dummy input\"," +
+                "\"previousStatement\":null," +
+                "\"nextStatement\":null" +
+            "}"
+        );
+        BlockDefinition variableWithPrev = new BlockDefinition(
+            "{" +
+                "\"type\":\"child variableWithPrev\"," +
+                "\"message0\":\"%1\"," +
+                "\"args0\":[{" +
+                    "\"type\":\"field_variable\"," +
+                    "\"name\":\"nameid\"," +
+                    "\"variable\":\"variable on child\"" +
+                "}]," +
+                "\"previousStatement\":null" +
+            "}"
+        );
 
-        Block secondBlock = blockBuilder.build();
-        secondBlock.getPreviousConnection().connect(firstBlock.getNextConnection());
+        // Make sure we're only recursing on next, not previous.
+        Block parentBlock = mFactory.obtainBlockFrom(
+                new BlockTemplate().fromDefinition(variableWithNext));
 
-        blockBuilder = new Block.Builder("third block");
+        Block middleTestBlock = mFactory.obtainBlockFrom(
+                new BlockTemplate().fromDefinition(nextAndPrev));
+        middleTestBlock.getPreviousConnection().connect(parentBlock.getNextConnection());
 
-        Input in = new Input.InputDummy("name input", Input.ALIGN_LEFT);
-        Field field = new FieldVariable( "nameid", "third block field name");
-        field.setFromString("third block variable name");
-        in.add(field);
-        blockBuilder.addInput(in);
-        blockBuilder.setPrevious(new Connection(Connection.CONNECTION_TYPE_PREVIOUS, null));
+        Block childBlock = mFactory.obtainBlockFrom(
+                new BlockTemplate().fromDefinition(variableWithPrev));
+        childBlock.getPreviousConnection().connect(middleTestBlock.getNextConnection());
 
-        Block thirdBlock = blockBuilder.build();
-        thirdBlock.getPreviousConnection().connect(secondBlock.getNextConnection());
-
-        mStats.collectStats(secondBlock, true);
-        assertThat(mStats.getVariableNameManager().contains("third block variable name")).isTrue();
-        assertThat(mStats.getVariableNameManager().contains("variable name")).isFalse();
+        mStats.collectStats(middleTestBlock, true);
+        assertThat(mStats.getVariableNameManager().contains("variable on child")).isTrue();
+        assertThat(mStats.getVariableNameManager().contains("variable on parent")).isFalse();
         assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty())
                 .isTrue();
         assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty())
@@ -145,6 +169,11 @@ public class WorkspaceStatsTest {
         assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_NEXT).size())
                 .isEqualTo(1);
     }
+
+    // TODO: testCollectConnectionStatsValueInputRecursion()
+
+    // TODO: testCollectConnectionStatsStatementInputRecursion()
+
 
     @Test
     public void testRemoveConnection() {

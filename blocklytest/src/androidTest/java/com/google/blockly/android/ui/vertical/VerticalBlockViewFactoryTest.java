@@ -24,6 +24,8 @@ import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +48,7 @@ public class VerticalBlockViewFactoryTest extends BlocklyTestCase {
      public void setUp() throws Exception {
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mMockConnectionManager = mock(ConnectionManager.class);
+        // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
         mViewFactory = new VerticalBlockViewFactory(getContext(), mMockWorkspaceHelper);
         mBlockGroup = mViewFactory.buildBlockGroup();
@@ -53,9 +56,9 @@ public class VerticalBlockViewFactoryTest extends BlocklyTestCase {
 
     // Verify construction of a BlockView for a Block with inputs.
     @Test
-    public void testBuildBlockViewWithInputs() {
-        final Block block = mBlockFactory.obtainBlock(
-                "test_block_one_input_each_type", "TestBlock");
+    public void testBuildBlockViewWithInputs() throws BlockLoadingException {
+        final Block block = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("test_block_one_input_each_type"));
         final BlockView blockView = makeBlockView(block);
         assertThat(block).isNotNull();
 

@@ -70,15 +70,4 @@ public class SimpleActivity extends AbstractBlocklyActivity {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
     }
-
-    @Override
-    protected void onInitBlankWorkspace() {
-        // Initialize variable names.
-        // TODO: (#22) Remove this override when variables are supported properly
-        getController().addVariable("item");
-        getController().addVariable("leo");
-        getController().addVariable("don");
-        getController().addVariable("mike");
-        getController().addVariable("raf");
-    }
 }

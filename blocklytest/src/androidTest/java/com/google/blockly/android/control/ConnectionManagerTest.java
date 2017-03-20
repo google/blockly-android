@@ -15,10 +15,15 @@
 
 package com.google.blockly.android.control;
 
-import com.google.blockly.model.Block;
+import android.support.test.InstrumentationRegistry;
+
+import com.google.blockly.android.test.R;
+import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,10 +37,14 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link ConnectionManager}
  */
 public class ConnectionManagerTest {
+    private BlockFactory factory;
     private ConnectionManager manager;
 
     @Before
     public void setUp() {
+        factory = new BlockFactory(
+                InstrumentationRegistry.getTargetContext(),
+                new int[] {R.raw.test_blocks});
         manager = new ConnectionManager();
     }
 
@@ -120,19 +129,20 @@ public class ConnectionManagerTest {
         two.setBlock(one.getBlock());
         assertThat(manager.isConnectionAllowed(one, two, 1000.0, false)).isFalse();
 
-        Connection five = createConnection(0, 0,
+        Connection shadowParentInput = createConnection(0, 0,
                 Connection.CONNECTION_TYPE_INPUT, /* shadow */ true);
-        Connection six = createConnection(0, 0,
+        Connection shadowOutput = createConnection(0, 0,
                 Connection.CONNECTION_TYPE_OUTPUT, /* shadow */ true);
-        Connection seven = createConnection(0, 0,
+        Connection output = createConnection(0, 0,
                 Connection.CONNECTION_TYPE_OUTPUT, /* shadow */ false);
 
         // Verify that shadows can be parents of other shadows
-        assertThat(manager.isConnectionAllowed(five, six, 1000.0, false)).isTrue();
+        assertThat(manager.isConnectionAllowed(shadowParentInput, shadowOutput, 1000.0, false))
+                .isTrue();
         // But not parents of non-shadows
-        assertThat(manager.isConnectionAllowed(five, seven, 1000.0, false)).isFalse();
+        assertThat(manager.isConnectionAllowed(shadowParentInput, output, 1000.0, false)).isFalse();
         // Unless shadow parents are explicitly allowed
-        assertThat(manager.isConnectionAllowed(five, seven, 1000.0, true)).isTrue();
+        assertThat(manager.isConnectionAllowed(shadowParentInput, output, 1000.0, true)).isTrue();
     }
 
     @Test
@@ -287,7 +297,6 @@ public class ConnectionManagerTest {
 
     @Test
     public void testGetNeighbours() {
-
         ConnectionManager.YSortedList list =
                 manager.getConnections(Connection.CONNECTION_TYPE_PREVIOUS);
 
@@ -351,10 +360,32 @@ public class ConnectionManagerTest {
                 radius);
     }
 
-    private Connection createConnection(float x, float y, int type, boolean shadow) {
-        Connection conn = new Connection(type, null);
+    private Connection createConnection(float x, float y, int connectionType, boolean shadow) {
+        String blockType;
+        switch (connectionType) {
+            case Connection.CONNECTION_TYPE_INPUT:
+            case Connection.CONNECTION_TYPE_OUTPUT:
+                blockType = "simple_input_output";
+                break;
+
+            case Connection.CONNECTION_TYPE_PREVIOUS:
+            case Connection.CONNECTION_TYPE_NEXT:
+                blockType = "statement_no_input";
+                break;
+
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        Connection conn = new Connection(connectionType, null);
         conn.setPosition(x, y);
-        conn.setBlock(new Block.Builder("test").setShadow(shadow).build());
+        try {
+            conn.setBlock(factory.obtainBlockFrom(
+                    new BlockTemplate().shadow(shadow).ofType(blockType)));
+        } catch (BlockLoadingException e) {
+            throw new RuntimeException(
+                    "Unexpected error obtaining \"" + blockType + "\" block.", e);
+        }
         return conn;
     }
 }

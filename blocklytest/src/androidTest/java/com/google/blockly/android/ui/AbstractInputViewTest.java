@@ -23,6 +23,7 @@ import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Input;
 
 import org.junit.Before;
@@ -50,9 +51,11 @@ public class AbstractInputViewTest extends BlocklyTestCase {
     public void setUp() throws Exception {
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         // Use the BlockFactory to make sure we have real inputs.
+        // TODO(#435): Replace R.raw.test_blocks
         BlockFactory factory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
-        Block block = factory.obtainBlock("test_block_one_input_each_type", "fake_id");
+        Block block = factory.obtainBlockFrom(new BlockTemplate()
+                .ofType("test_block_one_input_each_type"));
         mDummyInput = block.getInputs().get(0);
         assertThat(mDummyInput.getType()).isEqualTo(Input.TYPE_DUMMY);
     }

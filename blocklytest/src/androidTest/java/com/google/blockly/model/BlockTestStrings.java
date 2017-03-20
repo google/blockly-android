@@ -21,7 +21,7 @@ public class BlockTestStrings {
     public static final WorkspacePoint DEFAULT_POSITION = new WorkspacePoint(37, 13);
 
     public static final String TEST_JSON_STRING = "{"
-            + "  \"id\": \"test_block\","
+            + "  \"type\": \"test_block\","
             + "  \"message0\": \"%1 %2 %3 %4  %5 for each %6 %7 in %8 do %9\","
             + "  \"args0\": ["
             + "    {"
@@ -92,134 +92,138 @@ public class BlockTestStrings {
 
     public static final String BLOCK_END = "</block>";
     public static final String SIMPLE_BLOCK =
-            "<block type=\"frankenblock\" id=\"SIMPLE_BLOCK\" x=\"37.0\" y=\"13.0\">"
-            + "<field name=\"text_input\">item</field>"
-            + "</block>";
+            "<block type=\"frankenblock\" id=\"SIMPLE_BLOCK\" x=\"37.0\" y=\"13.0\">" +
+              "<field name=\"text_input\">item</field>" +
+            "</block>";
     public static final String SIMPLE_SHADOW =
-            "<shadow type=\"math_number\" id=\"SIMPLE_BLOCK\" x=\"37\" y=\"13\">"
-            + "<field name=\"NUM\">42</field>"
-            + "</shadow>";
+            "<shadow type=\"math_number\" id=\"SIMPLE_BLOCK\" x=\"37\" y=\"13\">" +
+              "<field name=\"NUM\">42</field>" +
+            "</shadow>";
     public static final String SIMPLE_BLOCK_INLINE_END =
-            "<block type=\"frankenblock\" id=\"INLINE_END\" x=\"37\" y=\"13\" inline=\"true\">"
-                    + "<field name=\"text_input\">item</field>"
-                    + "</block>";
+            "<block type=\"frankenblock\" id=\"INLINE_END\" x=\"37\" y=\"13\" inline=\"true\">" +
+              "<field name=\"text_input\">item</field>" +
+            "</block>";
     public static final String SIMPLE_BLOCK_INLINE_BEGINNING =
-            "<block type=\"frankenblock\" id=\"INLINE_START\" inline=\"true\" x=\"37\" y=\"13\">"
-                    + "<field name=\"text_input\">item</field>"
-                    + "</block>";
+            "<block type=\"frankenblock\" id=\"INLINE_START\" inline=\"true\" x=\"37\" y=\"13\">" +
+              "<field name=\"text_input\">item</field>" +
+            "</block>";
     public static final String SIMPLE_BLOCK_INLINE_FALSE =
-            "<block type=\"frankenblock\" id=\"INLINE_FALSE\" x=\"37\" y=\"13\" inline=\"false\">"
-                    + "<field name=\"text_input\">item</field>"
-                    + "</block>";
+            "<block type=\"frankenblock\" id=\"INLINE_FALSE\" x=\"37\" y=\"13\" inline=\"false\">" +
+              "<field name=\"text_input\">item</field>" +
+            "</block>";
 
     public static final String NO_BLOCK_TYPE =
-            "<block id=\"364\" x=\"37\" y=\"13\">"
-            + "<field name=\"text_input\">item</field>"
-            + "</block>";
+            "<block id=\"364\" x=\"37\" y=\"13\">" +
+              "<field name=\"text_input\">item</field>" +
+            "</block>";
 
     public static final String NO_BLOCK_ID =
-            "<block type=\"frankenblock\" x=\"37\" y=\"13\">"
-            + "<field name=\"text_input\">item</field>"
-            + "</block>";
+            "<block type=\"frankenblock\" x=\"37\" y=\"13\">" +
+              "<field name=\"text_input\">item</field>" +
+            "</block>";
 
     public static final String NO_BLOCK_POSITION =
-            "<block type=\"frankenblock\" id=\"NO_BLOCK_POSITION\">"
-            + "<field name=\"text_input\">item</field>"
-            + "</block>";
+            "<block type=\"frankenblock\" id=\"NO_BLOCK_POSITION\">" +
+            "<field name=\"text_input\">item</field>" +
+            "</block>";
 
     public static final String FIELD_HAS_NAME = "<field name=\"text_input\">item</field>";
     public static final String FIELD_MISSING_NAME = "<field>item</field>";
     public static final String FIELD_UNKNOWN_NAME = "<field name=\"not_a_field\">item</field>";
     public static final String FIELD_MISSING_TEXT = "<field name=\"text_input\"></field>";
 
-    public static final String VALUE_GOOD = "<value name=\"value_input\">" +
-            "<block type=\"output_foo\" id=\"VALUE_GOOD\" />" +
+    public static final String VALUE_GOOD =
+            "<value name=\"value_input\">" +
+              "<block type=\"output_foo\" id=\"VALUE_GOOD\" />" +
             "</value>";
-    public static final String VALUE_BAD_NAME = "<value name=\"not_a_name\">" +
-            "      <block type=\"output_foo\" id=\"VALUE_BAD_NAME\">" +
-            "      </block>" +
-            "    </value>";
-    public static final String VALUE_NO_CHILD = "<value name=\"value_input\">" +
-            "    </value>";
-    public static final String VALUE_NO_OUTPUT = "<value name=\"value_input\">" +
-            "      <block type=\"no_output\" id=\"VALUE_NO_OUTPUT\">" +
-            "      </block>" +
-            "    </value>";
-    public static final String VALUE_REPEATED = "<value name=\"value_input\">" +
-            "      <block type=\"output_foo\" id=\"VALUE_REPEATED1\">" +
-            "      </block>" +
-            "    </value>" +
-            "    <value name=\"value_input\">" +
-            "      <block type=\"output_foo\" id=\"VALUE_REPEATED2\">" +
-            "      </block>" +
-            "    </value>";
-
-    public static final String VALUE_SHADOW = "<value name=\"value_input\">" +
-            "<shadow type=\"output_foo\" id=\"VALUE_GOOD\" />" +
+    public static final String VALUE_BAD_NAME =
+            "<value name=\"not_a_name\">" +
+              "<block type=\"output_foo\" id=\"VALUE_BAD_NAME\" />" +
             "</value>";
-    public static final String VALUE_SHADOW_VARIABLE = "<value name=\"value_input\">" +
-            "<shadow type=\"get_variable\" id=\"VALUE_VARIABLE\" />" +
+    public static final String VALUE_NO_CHILD =
+            "<value name=\"value_input\"></value>";
+    public static final String VALUE_NO_OUTPUT =
+            "<value name=\"value_input\">" +
+              "<block type=\"no_output\" id=\"VALUE_NO_OUTPUT\" />" +
             "</value>";
-    public static final String VALUE_SHADOW_GOOD = "<value name=\"value_input\">" +
-            "<shadow type=\"output_foo\" id=\"VALUE_SHADOW\" />" +
-            "<block type=\"output_foo\" id=\"VALUE_REAL\" />" +
-            "</value>";
-
-    public static final String VALUE_NESTED_SHADOW = "<value name=\"value_input\">" +
-            "<shadow type=\"simple_input_output\" id=\"SHADOW1\">" +
-            "<value name=\"value\">" +
-            "<shadow type=\"simple_input_output\" id=\"SHADOW2\" />"  +
+    public static final String VALUE_REPEATED =
+            "<value name=\"value_input\">" +
+              "<block type=\"output_foo\" id=\"VALUE_REPEATED1\" />" +
             "</value>" +
-            "</shadow>" +
+            "<value name=\"value_input\">" +
+              "<block type=\"output_foo\" id=\"VALUE_REPEATED2\" />" +
             "</value>";
 
-    public static final String VALUE_NESTED_SHADOW_BLOCK = "<value name=\"value_input\">" +
-            "      <shadow type=\"simple_input_output\" id=\"SHADOW1\">" +
-            "        <value name=\"value\">" +
-            "          <shadow type=\"simple_input_output\" id=\"SHADOW2\"/>"  +
-            "          <block type=\"simple_input_output\" id=\"BLOCK_INNER\"/>"  +
-            "        </value>" +
-            "      </shadow>" +
-            "    </value>";
+    public static final String VALUE_SHADOW =
+            "<value name=\"value_input\">" +
+              "<shadow type=\"output_foo\" id=\"VALUE_GOOD\" />" +
+            "</value>";
+    public static final String VALUE_SHADOW_VARIABLE =
+            "<value name=\"value_input\">" +
+              "<shadow type=\"get_variable\" id=\"VALUE_VARIABLE\" />" +
+            "</value>";
+    public static final String VALUE_SHADOW_GOOD =
+            "<value name=\"value_input\">" +
+              "<shadow type=\"output_foo\" id=\"VALUE_SHADOW\" />" +
+              "<block type=\"output_foo\" id=\"VALUE_REAL\" />" +
+            "</value>";
 
-    public static final String STATEMENT_GOOD = "<statement name=\"NAME\">" +
-            "<block type=\"frankenblock\" id=\"STATEMENT_GOOD\">" +
-            "</block>" +
+    public static final String VALUE_NESTED_SHADOW =
+            "<value name=\"value_input\">" +
+              "<shadow type=\"simple_input_output\" id=\"SHADOW1\">" +
+                "<value name=\"value\">" +
+                  "<shadow type=\"simple_input_output\" id=\"SHADOW2\" />"  +
+                "</value>" +
+              "</shadow>" +
+            "</value>";
+
+    public static final String VALUE_SHADOW_BLOCK_WITH_NESTED_NORMAL_BLOCK =
+            "<value name=\"value_input\">" +
+              "<shadow type=\"simple_input_output\" id=\"SHADOW1\">" +
+                "<value name=\"value\">" +
+                  "<shadow type=\"simple_input_output\" id=\"SHADOW2\"/>"  +
+                  "<block type=\"simple_input_output\" id=\"BLOCK_INNER\"/>"  +
+                "</value>" +
+              "</shadow>" +
+            "</value>";
+
+    public static final String STATEMENT_GOOD =
+            "<statement name=\"NAME\">" +
+            "  <block type=\"frankenblock\" id=\"STATEMENT_GOOD\" />" +
             "</statement>";
-    public static final String STATEMENT_NO_CHILD = "<statement name=\"NAME\">" +
-            "    </statement>";
-    public static final String STATEMENT_BAD_NAME = "<statement name=\"not_a_name\">" +
-            "      <block type=\"frankenblock\" id=\"STATEMENT_BAD_NAME\">" +
-            "      </block>" +
-            "    </statement>";
-    public static final String STATEMENT_BAD_CHILD = "<statement name=\"NAME\">" +
-            "      <block type=\"no_output\" id=\"STATEMENT_BAD_CHILD\">" +
-            "      </block>" +
-            "    </statement>";
-    public static final String STATEMENT_SHADOW = "<statement name=\"NAME\">" +
-            "<shadow type=\"statement_value_input\" id=\"STATEMENT_SHADOW\">" +
-            "</shadow>" +
+    public static final String STATEMENT_NO_CHILD =
+            "<statement name=\"NAME\"></statement>";
+    public static final String STATEMENT_BAD_NAME =
+            "<statement name=\"not_a_name\">" +
+              "<block type=\"frankenblock\" id=\"STATEMENT_BAD_NAME\" />" +
             "</statement>";
-    public static final String STATEMENT_SHADOW_GOOD = "<statement name=\"NAME\">" +
-            "<shadow type=\"statement_value_input\" id=\"STATEMENT_SHADOW\">" +
-            "</shadow>" +
-            "<block type=\"frankenblock\" id=\"STATEMENT_REAL\">" +
-            "</block>" +
+    public static final String STATEMENT_BAD_CHILD =
+            "<statement name=\"NAME\">" +
+              "<block type=\"no_output\" id=\"STATEMENT_BAD_CHILD\" />" +
+            "</statement>";
+    public static final String STATEMENT_SHADOW =
+            "<statement name=\"NAME\">" +
+              "<shadow type=\"statement_value_input\" id=\"STATEMENT_SHADOW\" />" +
+            "</statement>";
+    public static final String STATEMENT_SHADOW_GOOD =
+            "<statement name=\"NAME\">" +
+              "<shadow type=\"statement_value_input\" id=\"STATEMENT_SHADOW\" />" +
+              "<block type=\"frankenblock\" id=\"STATEMENT_REAL\" />" +
             "</statement>";
 
-    public static final String COMMENT_GOOD = "<comment pinned=\"true\" h=\"80\" w=\"160\">" +
-            "    Calm</comment>";
-    public static final String COMMENT_NO_TEXT= "<comment pinned=\"true\" h=\"80\" w=\"160\">" +
-            "    </comment>";
+    public static final String COMMENT_GOOD =
+            "<comment pinned=\"true\" h=\"80\" w=\"160\">    Calm</comment>";
+    public static final String COMMENT_NO_TEXT=
+            "<comment pinned=\"true\" h=\"80\" w=\"160\">    </comment>";
 
     public static final String FRANKENBLOCK_DEFAULT_VALUES_START =
-            "<field name=\"text_input\">something</field>"
-            + "<field name=\"checkbox\">TRUE</field>";
+            "<field name=\"text_input\">something</field>" +
+            "<field name=\"checkbox\">TRUE</field>";
     public static final String FRANKENBLOCK_DEFAULT_VALUES_END =
-            "<field name=\"dropdown\">OPTIONNAME1</field>"
-            + "<field name=\"variable\">item</field>"
-            + "<field name=\"angle\">90</field>"
-            + "<field name=\"colour\">#ff0000</field>";
+            "<field name=\"dropdown\">OPTIONNAME1</field>" +
+            "<field name=\"variable\">item</field>" +
+            "<field name=\"angle\">90</field>" +
+            "<field name=\"colour\">#ff0000</field>";
     public static final String FRANKENBLOCK_DEFAULT_VALUES = FRANKENBLOCK_DEFAULT_VALUES_START
             + FRANKENBLOCK_DEFAULT_VALUES_END;
 

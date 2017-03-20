@@ -16,6 +16,7 @@
 package com.google.blockly.android.control;
 
 import android.support.annotation.Nullable;
+import android.content.Context;
 import android.view.View;
 
 import com.google.blockly.android.ui.BlockListUI;
@@ -24,7 +25,8 @@ import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.FlyoutCallback;
 import com.google.blockly.android.ui.OnDragToTrashListener;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
+import com.google.blockly.model.VariableCategoryFactory;
 import com.google.blockly.model.WorkspacePoint;
 
 import java.util.List;
@@ -42,14 +44,14 @@ public class FlyoutController {
     /** The fragment for displaying blocks in the current category. */
     protected BlockListUI mToolbox;
     /** The root of the toolbox tree, containing either blocks or subcategories (not both). */
-    protected FlyoutCategory mToolboxRoot;
+    protected BlocklyCategory mToolboxRoot;
 
     /** Whether the trash is closeable, depending on configuration. */
     protected boolean mTrashIsCloseable = true;
     /** The UI for displaying blocks in the trash. */
     protected BlockListUI mTrashUi;
     /** The category backing the trash's list of blocks. */
-    protected FlyoutCategory mTrashCategory;
+    protected BlocklyCategory mTrashCategory;
 
     /** Main controller for any actions that require wider state changes. */
     protected BlocklyController mController;
@@ -57,9 +59,8 @@ public class FlyoutController {
     /** Callbacks for user actions on the toolbox's flyout. */
     protected FlyoutCallback mToolboxCallback = new FlyoutCallback() {
         @Override
-        public void onButtonClicked(View v, String action, FlyoutCategory category) {
-            // TODO (#503): Switch to using the view's tag to determine behavior
-            if (category != null && category.isVariableCategory() && mController != null) {
+        public void onButtonClicked(View v, String action, BlocklyCategory category) {
+            if (action == VariableCategoryFactory.ACTION_CREATE_VARIABLE && mController != null) {
                 mController.requestAddVariable("item");
             }
         }
@@ -78,8 +79,8 @@ public class FlyoutController {
     /** Callback for user category selection. */
     protected CategorySelectorUI.Callback mCategoriesCallback = new CategorySelectorUI.Callback() {
         @Override
-        public void onCategoryClicked(FlyoutCategory category) {
-            FlyoutCategory currCategory = mCategorySelectorUi.getCurrentCategory();
+        public void onCategoryClicked(BlocklyCategory category) {
+            BlocklyCategory currCategory = mCategorySelectorUi.getCurrentCategory();
             if (category == currCategory) {
                 // Clicked the open category, close it if closeable.
                 closeToolbox();
@@ -94,7 +95,7 @@ public class FlyoutController {
     /** Callbacks for user actions on the trash's flyout. */
     protected FlyoutCallback mTrashCallback = new FlyoutCallback() {
         @Override
-        public void onButtonClicked(View v, String action, FlyoutCategory category) {
+        public void onButtonClicked(View v, String action, BlocklyCategory category) {
             // No actions recognized by the trash
         }
 
@@ -104,7 +105,7 @@ public class FlyoutController {
             Block copy = blockInList.deepCopy();
             copy.setPosition(initialBlockPosition.x, initialBlockPosition.y);
             BlockGroup copyView = mController.addRootBlock(copy);
-            mTrashCategory.removeBlock(blockInList);
+            mTrashCategory.removeItem(index);
             closeTrash();
             return copyView;
         }
@@ -124,8 +125,10 @@ public class FlyoutController {
         }
     };
 
-    public FlyoutController(BlocklyController controller) {
+    public FlyoutController(Context context, BlocklyController controller) {
         mController = controller;
+        BlocklyCategory.CATEGORY_FACTORIES.put("VARIABLE",
+                new VariableCategoryFactory(context, controller));
     }
 
     /**
@@ -160,7 +163,7 @@ public class FlyoutController {
      *
      * @param root The root category for the toolbox.
      */
-    public void setToolboxRoot(FlyoutCategory root) {
+    public void setToolboxRoot(BlocklyCategory root) {
         mToolboxRoot = root;
         if (mToolboxRoot == null) {
             if (mCategorySelectorUi != null) {
@@ -212,7 +215,7 @@ public class FlyoutController {
     /**
      * @param trashContents The category with the set of blocks for display in the trash.
      */
-    public void setTrashContents(FlyoutCategory trashContents) {
+    public void setTrashContents(BlocklyCategory trashContents) {
         mTrashCategory = trashContents;
         if (mTrashUi != null && mTrashUi.isOpen()) {
             mTrashUi.setCurrentCategory(trashContents);
@@ -241,14 +244,14 @@ public class FlyoutController {
         if (mToolboxRoot == null) {
             return;
         }
-        List<FlyoutCategory> subCats = mToolboxRoot.getSubcategories();
-        List<Block> topBlocks = mToolboxRoot.getBlocks();
-        if (subCats.size() > 0 && topBlocks.size() > 0) {
+        List<BlocklyCategory> subCats = mToolboxRoot.getSubcategories();
+        List<BlocklyCategory.CategoryItem> topItems = mToolboxRoot.getItems();
+        if (subCats.size() > 0 && topItems.size() > 0) {
             throw new IllegalArgumentException(
                     "Toolbox root cannot have both blocks and subcategories.");
         }
         if (mToolboxRoot.getSubcategories().size() == 0) {
-            FlyoutCategory newRoot = new FlyoutCategory();
+            BlocklyCategory newRoot = new BlocklyCategory();
             newRoot.addSubcategory(mToolboxRoot);
             mToolboxRoot = newRoot;
         }
@@ -267,7 +270,7 @@ public class FlyoutController {
      *
      * @param category The category to set.
      */
-    private void setToolboxCategory(@Nullable FlyoutCategory category) {
+    private void setToolboxCategory(@Nullable BlocklyCategory category) {
         if (mToolbox != null) {
             if (category != null) {
                 mToolbox.setCurrentCategory(category);

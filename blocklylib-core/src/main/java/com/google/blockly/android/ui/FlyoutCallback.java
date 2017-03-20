@@ -18,16 +18,15 @@ import android.view.View;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.FlyoutCategory;
+import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.WorkspacePoint;
 
 /**
  * Callback for determining the behavior of user actions in a flyout that affect the workspace. Use
  * {@link com.google.blockly.android.FlyoutFragment#init(BlocklyController, FlyoutCallback)} to
- * define this behavior.
- * {@link BlockRecyclerViewHelper#init(BlocklyController, FlyoutCallback)} may be used instead if not using
- * a FlyoutFragment.
+ * define this behavior. {@link BlockRecyclerViewHelper#init(BlocklyController, FlyoutCallback)} may
+ * be used instead if not using a FlyoutFragment.
  */
 public abstract class FlyoutCallback {
     /**
@@ -37,7 +36,7 @@ public abstract class FlyoutCallback {
      * @param action The callback key associated with the clicked button.
      * @param category The category that this action was in.
      */
-    public abstract void onButtonClicked(View v, String action, FlyoutCategory category);
+    public abstract void onButtonClicked(View v, String action, BlocklyCategory category);
 
     /**
      * Handles the selection of the draggable {@link BlockGroup}, including possibly adding the

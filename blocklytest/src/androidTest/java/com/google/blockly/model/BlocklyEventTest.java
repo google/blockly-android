@@ -2,8 +2,8 @@ package com.google.blockly.model;
 
 import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.android.control.BlocklyEvent;
 import com.google.blockly.android.test.R;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
 import org.json.JSONException;
@@ -37,9 +37,11 @@ public class BlocklyEventTest {
     @Before
     public void setUp() throws Exception {
         mMockWorkspace = mock(Workspace.class);
+        // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
-        mBlock = mBlockFactory.obtainBlock(BLOCK_TYPE, BLOCK_ID);
+        mBlock = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType(BLOCK_TYPE).withId(BLOCK_ID));
         mField = mBlock.getFieldByName(FIELD_NAME);
         mBlock.setPosition(NEW_POSITION_X, NEW_POSITION_Y);
 
@@ -140,7 +142,7 @@ public class BlocklyEventTest {
     }
 
     @Test
-    public void testCreateEvent() throws JSONException {
+    public void testCreateEvent() throws JSONException, BlockLoadingException {
         BlocklyEvent.CreateEvent event = new BlocklyEvent.CreateEvent(mMockWorkspace, mBlock);
 
         assertThat(event.getTypeId()).isSameAs(BlocklyEvent.TYPE_CREATE);
@@ -167,6 +169,10 @@ public class BlocklyEventTest {
                 BlocklyXmlHelper.loadOneBlockFromXml(deserializedEvent.getXml(), mBlockFactory);
         assertThat(deserializedBlock.getId()).isEqualTo(BLOCK_ID);
         assertThat(mBlock.getType()).isEqualTo(BLOCK_TYPE);
-        assertThat(mBlock.getPosition()).isEqualTo(NEW_POSITION);
+
+        // PointF.equals(other) did not exist before API 17. Compare components for 16.
+        WorkspacePoint position = mBlock.getPosition();
+        assertThat(position.x).isEqualTo(NEW_POSITION.x);
+        assertThat(position.y).isEqualTo(NEW_POSITION.y);
     }
 }

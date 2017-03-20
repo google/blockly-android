@@ -20,6 +20,7 @@
     <string name="toast_workspace_saved">Saved workspace contents.</string>
     <string name="toast_workspace_not_saved">Couldn\'t save workspace.</string>
     <string name="toast_workspace_file_not_found">Couldn\'t find saved workspace.</string>
+    <string name="toast_workspace_load_failed">Failed to load workspace.</string>
 
     <string name="blockly_toolbox_default_category_name">Blocks</string>
     <string name="rename_variable">Rename variable\u2026"</string>

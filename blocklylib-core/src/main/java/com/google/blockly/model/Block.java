@@ -15,9 +15,12 @@
 
 package com.google.blockly.model;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.ColorUtils;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -25,7 +28,6 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Base class for a Blockly Block.
@@ -33,31 +35,32 @@ import java.util.UUID;
 public class Block {
     private static final String TAG = "Block";
 
-    /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
-    private static final float[] TEMP_IO_THREAD_FLOAT_ARRAY = new float[3];
-
     // These values are immutable once a block is created
-    private final String mUuid;
+    private final BlockFactory mFactory;
+    private final String mId;
     private final String mType;
-    private final int mCategory;
-    private final Connection mOutputConnection;
-    private final Connection mNextConnection;
-    private final Connection mPreviousConnection;
+    private final ArrayList<Connection> mConnectionList = new ArrayList<>();
     private final ArrayList<Input> mInputList;
-    private final ArrayList<Connection> mConnectionList;
-    private final int mColor;
     private boolean mIsShadow;
 
+    // Set by BlockFactory.applyMutator(). May only be set once.
+    /* package */ String mMutatorId = null;
+    /* package */ Mutator mMutator = null;
+
     // These values can be changed after creating the block
-    private String mTooltip;
-    private String mComment;
-    private boolean mHasContextMenu;
-    private boolean mDeletable;
-    private boolean mMovable;
-    private boolean mEditable;
-    private boolean mCollapsed;
-    private boolean mDisabled;
-    private boolean mInputsInline;
+    private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
+    private Connection mOutputConnection;
+    private Connection mNextConnection;
+    private Connection mPreviousConnection;
+    private String mTooltip = null;
+    private String mComment = null;
+    private boolean mHasContextMenu = true;
+    private boolean mDeletable = true;
+    private boolean mMovable = true;
+    private boolean mEditable = true;
+    private boolean mCollapsed = false;
+    private boolean mDisabled = false;
+    private boolean mInputsInline = false;
 
     // Keep track of whether inputsInline has ever been changed.
     private boolean mInputsInlineModified = false;
@@ -65,49 +68,49 @@ public class Block {
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
 
-    private Block(@Nullable String uuid, String name, int category, int color,
-                  Connection outputConnection, Connection nextConnection,
-                  Connection previousConnection, ArrayList<Input> inputList, boolean inputsInline,
-                  boolean inputsInlineModified) {
-        mUuid = (uuid != null) ? uuid : UUID.randomUUID().toString();
-        mType = name;
-        mCategory = category;
+    /**
+     * @param factory The factory creating this block.
+     * @param definition The definition this block instantiates.
+     * @param id The globally unique identifier for this block.
+     * @param isShadow Whether the block should be a shadow block (default input value block).
+     * @throws BlockLoadingException When the {@link BlockDefinition} throws errors.
+     */
+    Block(@NonNull BlockFactory factory, @NonNull BlockDefinition definition, @NonNull String id,
+          boolean isShadow)
+            throws BlockLoadingException {
+        if (factory == null || definition == null || id == null) {
+            throw new IllegalArgumentException(
+                    "Tried to instantiate a block but factory, definition, or id was null.");
+        }
+        mFactory = factory;
+        mId = id;
 
-        // This constructor reuses Connections and Inputs instead of copying them.  Consider using
-        // a BlockFactory and Builders instead of creating Blocks directly.
-        mOutputConnection = outputConnection;
-        mNextConnection = nextConnection;
-        mPreviousConnection = previousConnection;
+        mType = definition.getTypeName();
+        mColor = definition.getColor();
 
-        mInputList = inputList;
-        mInputsInline = inputsInline;
-        mInputsInlineModified = inputsInlineModified;
+        mOutputConnection = definition.createOutputConnection();
+        mPreviousConnection = definition.createPreviousConnection();
+        mNextConnection = definition.createNextConnection();
+        mInputList = definition.createInputList(factory);
+        if (isShadow && containsVariableField()) {
+            throw new BlockLoadingException("Shadow blocks may not contain variable fields.");
+        }
+
+        mInputsInline = definition.isInputsInlineDefault();
+        mInputsInlineModified = false;
+
         mPosition = new WorkspacePoint(0, 0);
+        setShadow(isShadow);
 
-        mColor = color;
+        rebuildConnectionList();
 
-        mConnectionList = new ArrayList<>();
-
-        if (mInputList != null) {
-            for (int i = 0; i < mInputList.size(); i++) {
-                Input in = mInputList.get(i);
-                in.setBlock(this);
-                if (in.getConnection() != null) {
-                    mConnectionList.add(in.getConnection());
-                }
-            }
+        mMutatorId = definition.getMutatorId();
+        if (mMutatorId != null) {
+            factory.applyMutator(mMutatorId, this);
         }
-        if (mOutputConnection != null) {
-            mOutputConnection.setBlock(this);
-            mConnectionList.add(mOutputConnection);
-        }
-        if (mPreviousConnection != null) {
-            mPreviousConnection.setBlock(this);
-            mConnectionList.add(mPreviousConnection);
-        }
-        if (mNextConnection != null) {
-            mNextConnection.setBlock(this);
-            mConnectionList.add(mNextConnection);
+        List<String> extensionNames = definition.getExtensionNames();
+        for (String name : extensionNames) {
+            factory.applyExtension(name, this);
         }
     }
 
@@ -122,7 +125,7 @@ public class Block {
      * @return The unique identifier of the block. Not for display.
      */
     public String getId() {
-        return mUuid;
+        return mId;
     }
 
     /**
@@ -332,6 +335,9 @@ public class Block {
      * @param y The workspace y position.
      */
     public void setPosition(float x, float y) {
+        if (Float.isNaN(x) || Float.isInfinite(x) || Float.isNaN(y) || Float.isInfinite(y)) {
+            throw new IllegalArgumentException("Position must be a real, finite number.");
+        }
         mPosition.x = x;
         mPosition.y = y;
     }
@@ -502,37 +508,32 @@ public class Block {
      * @return A new block tree with a copy of this block as the root.
      */
     public Block deepCopy() {
-        // Build a copy of this block
-        Block copy = new Block.Builder(this).build();
-
-        // Build and connect a copy of the blocks attached to next
-        if (mNextConnection != null) {
-            copyConnection(mNextConnection, copy.mNextConnection);
+        try {
+            String xml = BlocklyXmlHelper.writeBlockToXml(this,
+                    IOOptions.WRITE_ALL_BLOCKS_WITHOUT_ID);
+            return BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
+        } catch (BlocklySerializerException | BlockLoadingException e) {
+            // This error indicates something is very wrong with the serialization / deserialization
+            // framework.  Allow this to bubble up as a RuntimeException.
+            throw new IllegalStateException("Failed to copy blocks.", e);
         }
-        // Build and connect a copy of the blocks attached to the inputs
-        for (int i = 0; i < mInputList.size(); i++) {
-            Input sourceInput = mInputList.get(i);
-            if (sourceInput.getConnection() == null) {
-                continue;
-            }
-            Input destInput = copy.getInputByName(sourceInput.getName());
-            copyConnection(sourceInput.getConnection(), destInput.getConnection());
-        }
-        return copy;
     }
 
     /**
      * Writes information about the editable parts of the block as XML.
      *
      * @param serializer The XmlSerializer to write to.
-     * @param rootBlock True if the block is a top level block, false otherwise.
+     * @param options I/O options.
      *
      * @throws IOException
      */
-    public void serialize(XmlSerializer serializer, boolean rootBlock) throws IOException {
+    public void serialize(XmlSerializer serializer, boolean rootBlock, IOOptions options)
+            throws IOException {
         serializer.startTag(null, mIsShadow ? "shadow" : "block")
-                .attribute(null, "type", mType)
-                .attribute(null, "id", mUuid);
+                .attribute(null, "type", mType);
+        if (options.isBlockIdWritten()) {
+            serializer.attribute(null, "id", mId);
+        }
 
         // The position of the block only needs to be saved if it is a top level block.
         if (rootBlock) {
@@ -565,14 +566,18 @@ public class Block {
 
         for (int i = 0; i < mInputList.size(); i++) {
             if (mInputList.get(i) != null) {
-                mInputList.get(i).serialize(serializer);
+                mInputList.get(i).serialize(serializer, options);
             }
         }
 
-        if (getNextBlock() != null) {
+        if (options.isBlockChildWritten() && getNextBlock() != null) {
             serializer.startTag(null, "next");
-            getNextBlock().serialize(serializer, false);
+            getNextBlock().serialize(serializer, false, options);
             serializer.endTag(null, "next");
+        }
+
+        if (mMutator != null) {
+            mMutator.serialize(serializer);
         }
 
         serializer.endTag(null, mIsShadow ? "shadow" : "block");
@@ -674,11 +679,11 @@ public class Block {
 
     /**
      * Configures whether this block should be a shadow block. This should only be called during
-     * creation of the block.
+     * block initialization.
      *
-     * @param isShadow
+     * @param isShadow If true the block will act as a shadow.
      */
-    void setShadow(boolean isShadow) {
+    public void setShadow(boolean isShadow) {
         if (mIsShadow == isShadow) {
             return;
         }
@@ -709,6 +714,108 @@ public class Block {
 
         // State change is valid. Proceed.
         mIsShadow = isShadow;
+    }
+
+    /**
+     * @return The block's {@link Mutator} id, if any. Otherwise null.
+     * @see BlockFactory#applyMutator(String, Block)
+     */
+    @Nullable
+    public final String getMutatorId() {
+        return mMutatorId;
+    }
+
+    /**
+     * @return The block's {@link Mutator}, if any. Otherwise null.
+     * @see BlockFactory#applyMutator(String, Block)
+     */
+    @Nullable
+    public final Mutator getMutator() {
+        return mMutator;
+    }
+
+    /**
+     * This method returns a string describing this Block in developer terms (type
+     * name and ID; English only). Intended to on be used in console logs and errors.
+     * @return The description.
+     */
+    public String toString() {
+        String description = (mIsShadow ? "shadow" : "block");
+        if (mType != null) {
+            description = "\"" + mType + "\" " + description;  // Prefix
+        }
+        if (mId != null) {
+            description += " (id=\"" + mId + "\")"; // Postfix
+        }
+        return description;
+    };
+
+    /**
+     * Updates {@link #mConnectionList} to reflect the latest state of all connections on this block
+     * (inputs, next, previous, and output).
+     */
+    private void rebuildConnectionList() {
+        mConnectionList.clear();
+        if (mInputList != null) {
+            for (int i = 0; i < mInputList.size(); i++) {
+                Input in = mInputList.get(i);
+                in.setBlock(this);
+                if (in.getConnection() != null) {
+                    mConnectionList.add(in.getConnection());
+                }
+            }
+        }
+        if (mOutputConnection != null) {
+            mOutputConnection.setBlock(this);
+            mConnectionList.add(mOutputConnection);
+        }
+        if (mPreviousConnection != null) {
+            mPreviousConnection.setBlock(this);
+            mConnectionList.add(mPreviousConnection);
+        }
+        if (mNextConnection != null) {
+            mNextConnection.setBlock(this);
+            mConnectionList.add(mNextConnection);
+        }
+    }
+
+    /**
+     * Connects to given child and shadow (even if occluded), or throws a descriptive
+     * BlockLoadingException for an invalid connection.
+     * @param tagName The string name of the connection, as seen in XML.
+     * @param thisConn The connection point on this block.
+     * @param child The child block to connect.
+     * @param shadow The child shadow to connect.
+     * @throws BlockLoadingException If any connection fails.
+     */
+    void connectOrThrow(String tagName, Connection thisConn, Block child, Block shadow)
+            throws BlockLoadingException {
+        if (child != null) {
+            if (mIsShadow) {
+                throw new BlockLoadingException(
+                        this + " cannot be a parent to non-shadow " + child);
+            }
+            Connection childConn = child.getUpwardsConnection();
+            try {
+                thisConn.connect(childConn);
+            } catch (IllegalArgumentException e) {
+                throw new BlockLoadingException(
+                        this + ": Invalid " + tagName + " connection to " + child, e);
+            }
+        }
+        if (shadow != null) {
+            Connection shadowConn = shadow.getUpwardsConnection();
+            try {
+                thisConn.setShadowConnection(shadowConn);
+                if (!thisConn.isConnected()) {
+                    // If there is no standard child block, so connect the shadow
+                    thisConn.connect(shadowConn);
+                }
+            } catch (IllegalArgumentException e) {
+                throw new BlockLoadingException(
+                        this + ": Invalid " + tagName + " shadow connection to " + child, e);
+            }
+        }
     }
 
     /**
@@ -758,10 +865,9 @@ public class Block {
      * % is escaped (eg "Escaped %%5 has no args")
      *
      * @param message The message to tokenize.
-     *
      * @return A list of Strings that are either an arg or plain text.
      */
-    /*package*/
+    // package scoped
     static List<String> tokenizeMessage(String message) {
         ArrayList<String> result = new ArrayList<>();
         if (TextUtils.isEmpty(message)) {
@@ -847,211 +953,4 @@ public class Block {
         }
         return false;
     }
-
-    public static class Builder {
-        private final WorkspacePoint mPosition;
-        // These values are immutable once a block is created
-        private String mUuid;
-        private String mType;
-        private int mCategory;
-        private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
-        private Connection mOutputConnection;
-        private Connection mNextConnection;
-        private Connection mPreviousConnection;
-        private ArrayList<Input> mInputs;
-        // These values can be changed after creating the block
-        private String mTooltip;
-        private String mComment;
-        private boolean mHasContextMenu = false;
-        private boolean mInputsInline = false;
-        private boolean mInputsInlineModified = false;
-        private boolean mIsShadow = false;
-        private boolean mDeletable = true;
-        private boolean mMovable = true;
-        private boolean mEditable = true;
-        private boolean mCollapsed = false;
-        private boolean mDisabled = false;
-
-        public Builder(String type) {
-            mType = type;
-            mInputs = new ArrayList<>();
-            mPosition = new WorkspacePoint(0, 0);
-        }
-
-        public Builder(Block block) {
-            this(block.mType);
-            mColor = block.mColor;
-            mCategory = block.mCategory;
-
-            mOutputConnection = Connection.cloneConnection(block.mOutputConnection);
-            mNextConnection = Connection.cloneConnection(block.mNextConnection);
-            mPreviousConnection = Connection.cloneConnection(block.mPreviousConnection);
-
-            mInputs = new ArrayList<>();
-            Input newInput;
-            for (int i = 0; i < block.mInputList.size(); i++) {
-                Input oldInput = block.mInputList.get(i);
-                newInput = oldInput.clone();
-                if (newInput != null) {
-                    mInputs.add(newInput);
-                }
-            }
-
-            mInputsInline = block.mInputsInline;
-            mInputsInlineModified = block.mInputsInlineModified;
-
-            // TODO: Reconsider the defaults for these
-            mTooltip = block.mTooltip;
-            mComment = block.mComment;
-            mHasContextMenu = block.mHasContextMenu;
-            mIsShadow = block.mIsShadow;
-            mDeletable = block.mDeletable;
-            mMovable = block.mMovable;
-            mEditable = block.mEditable;
-            mCollapsed = block.mCollapsed;
-            mDisabled = block.mDisabled;
-            mPosition.x = block.mPosition.x;
-            mPosition.y = block.mPosition.y;
-        }
-
-        public Builder setType(String type) {
-            mType = type;
-            return this;
-        }
-
-        public Builder setUuid(String uuid) {
-            mUuid = uuid;
-            return this;
-        }
-
-        public Builder setColorHue(int hue) {
-            mColor = ColorUtils.getBlockColorForHue(hue, TEMP_IO_THREAD_FLOAT_ARRAY);
-            return this;
-        }
-
-        public Builder setColor(int color) {
-            mColor = color;
-            return this;
-        }
-
-        public Builder setCategory(int category) {
-            mCategory = category;
-            return this;
-        }
-
-        public Builder setOutput(Connection outputConnection) {
-            if (this.mPreviousConnection != null) {
-                throw new IllegalStateException(
-                        "Block cannot have both output and previous connection.");
-            }
-            this.mOutputConnection = outputConnection;
-            return this;
-        }
-
-        public Builder setNext(Connection nextConnection) {
-            this.mNextConnection = nextConnection;
-            return this;
-        }
-
-        public Builder setPrevious(Connection previousConnection) {
-            if (this.mOutputConnection != null) {
-                throw new IllegalStateException(
-                        "Block cannot have both previous and output connection.");
-            }
-            this.mPreviousConnection = previousConnection;
-            return this;
-        }
-
-        public Builder addInput(Input input) {
-            mInputs.add(input);
-            return this;
-        }
-
-        public Builder setInputs(ArrayList<Input> inputs) {
-            if (inputs == null) {
-                throw new IllegalArgumentException("Inputs may not be null.");
-            }
-            this.mInputs = inputs;
-            return this;
-        }
-
-        public Builder setInputsInline(boolean inputsInline) {
-            this.mInputsInline = inputsInline;
-            this.mInputsInlineModified = true;
-            return this;
-        }
-
-        public Builder setTooltip(String tooltip) {
-            mTooltip = tooltip;
-            return this;
-        }
-
-        public Builder setComment(String comment) {
-            mComment = comment;
-            return this;
-        }
-
-        public Builder setHasContextMenu(boolean hasContextMenu) {
-            mHasContextMenu = hasContextMenu;
-            return this;
-        }
-
-        public Builder setShadow(boolean isShadow) {
-            mIsShadow = isShadow;
-            return this;
-        }
-
-        public Builder setDeletable(boolean canDelete) {
-            mDeletable = canDelete;
-            return this;
-        }
-
-        public Builder setMovable(boolean canMove) {
-            mMovable = canMove;
-            return this;
-        }
-
-        public Builder setEditable(boolean canEdit) {
-            mEditable = canEdit;
-            return this;
-        }
-
-        public Builder setCollapsed(boolean collapsed) {
-            mCollapsed = collapsed;
-            return this;
-        }
-
-        public Builder setDisabled(boolean disabled) {
-            mDisabled = disabled;
-            return this;
-        }
-
-        public Builder setPosition(int x, int y) {
-            mPosition.x = x;
-            mPosition.y = y;
-            return this;
-        }
-
-        public Block build() {
-            if (mIsShadow && containsVariableField(mInputs)) {
-                throw new IllegalArgumentException("Shadow blocks cannot contain variables");
-            }
-            Block b = new Block(mUuid, mType, mCategory, mColor, mOutputConnection, mNextConnection,
-                    mPreviousConnection, mInputs, mInputsInline, mInputsInlineModified);
-            b.mTooltip = mTooltip;
-            b.mComment = mComment;
-            b.mHasContextMenu = mHasContextMenu;
-            b.mIsShadow = mIsShadow;
-            b.mDeletable = mDeletable;
-            b.mMovable = mMovable;
-            b.mEditable = mEditable;
-            b.mCollapsed = mCollapsed;
-            b.mDisabled = mDisabled;
-            b.mPosition = mPosition;
-
-            return b;
-        }
-
-    }
-
 }

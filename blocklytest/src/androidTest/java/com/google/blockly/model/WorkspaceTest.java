@@ -20,6 +20,7 @@ import android.support.test.InstrumentationRegistry;
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -62,14 +63,14 @@ public class WorkspaceTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSimpleXmlParsing() {
+    public void testSimpleXmlParsing() throws BlockLoadingException {
         mWorkspace.loadWorkspaceContents(assembleWorkspace(BlockTestStrings.SIMPLE_BLOCK));
         assertWithMessage("Workspace should have one block")
                 .that(mWorkspace.getRootBlocks()).hasSize(1);
     }
 
     @Test
-    public void testEmptyXmlParsing() {
+    public void testEmptyXmlParsing() throws BlockLoadingException {
         // Normal end tag.
         mWorkspace.loadWorkspaceContents(assembleWorkspace(""));
         assertWithMessage("Workspace should be empty").that(mWorkspace.getRootBlocks()).hasSize(0);
@@ -80,8 +81,9 @@ public class WorkspaceTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testBadXmlParsing() {
-        thrown.expect(BlocklyParserException.class);
+    public void testBadXmlParsing() throws BlockLoadingException {
+        thrown.expect(BlockLoadingException.class);
+        thrown.reportMissingExceptionWithMessage("Bad workspace XML will will fail to load.");
         mWorkspace.loadWorkspaceContents(assembleWorkspace(BAD_XML));
     }
 

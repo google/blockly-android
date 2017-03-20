@@ -54,8 +54,7 @@ public abstract class NameManager extends DataSetObservable {
             }
         }
         if (addName) {
-            mUsedNames.put(name.toLowerCase(), "UNUSED");
-            notifyChanged();
+            addName(name);
         }
         return name;
     }
