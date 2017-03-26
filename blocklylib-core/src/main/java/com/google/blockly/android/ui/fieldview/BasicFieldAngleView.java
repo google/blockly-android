@@ -23,7 +23,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 
-import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldAngle;
 
@@ -32,7 +31,6 @@ import com.google.blockly.model.FieldAngle;
  */
 public class BasicFieldAngleView extends AppCompatTextView implements FieldView {
     private static final char DEGREE_SYMBOL = '\u00B0';
-    protected WorkspaceHelper mHelper;
 
     /** Whether the degree symbol comes before the numeric text, the RTL standard. */
     protected boolean mDegreeAtStart = false;
