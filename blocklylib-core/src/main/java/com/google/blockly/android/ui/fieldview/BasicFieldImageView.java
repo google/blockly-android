@@ -37,7 +37,8 @@ import java.util.regex.Pattern;
 /**
  * Renders an image bitmap.
  */
-public class BasicFieldImageView extends ImageView implements FieldView {
+public class BasicFieldImageView extends android.support.v7.widget.AppCompatImageView implements
+        FieldView {
     private static String TAG = "BasicFieldImageView";
 
     private static final Pattern HTTP_URL_PATTERN = Pattern.compile("https?://.*");

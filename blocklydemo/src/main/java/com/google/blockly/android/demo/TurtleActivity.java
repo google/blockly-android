@@ -32,12 +32,15 @@ import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.DefaultBlocks;
+import com.google.blockly.model.mutator.IfElseMutator;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -230,5 +233,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @Override
     protected String getWorkspaceSavePath() {
         return SAVED_WORKSPACE_FILENAME;
+    }
+
+    @Override
+    protected Map<String, Mutator.Factory> getBlockMutators() {
+        Map<String, Mutator.Factory> mutators = super.getBlockMutators();
+        mutators.put("controls_if_mutator", new IfElseMutator.Factory(this, getController()));
+        return mutators;
     }
 }
