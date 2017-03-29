@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.control.ConnectionManager;
@@ -26,8 +27,8 @@ import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
-import com.google.blockly.android.ui.fieldview.BasicFieldAngleView;
 import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
+import com.google.blockly.android.ui.fieldview.BasicFieldIconView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
@@ -165,6 +166,22 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
         return mVariableAdapter;
     }
 
+    @Override
+    protected FieldView buildIconFieldView(View.OnClickListener listener, int resId) {
+        BasicFieldIconView iconView = null;
+
+        int layoutResId = getLayoutForField(Field.TYPE_ICON);
+        // If we have a layout for this field type load that and return it
+        if (layoutResId != 0) {
+            iconView = (BasicFieldIconView) mLayoutInflater.inflate(layoutResId, null);
+        } else {
+            iconView = new BasicFieldIconView(mContext);
+        }
+        iconView.setOnClickListener(listener);
+        iconView.setImageResource(resId);
+        return iconView;
+    }
+
     /**
      * Sets a layout to inflate for the given field type. The layout file must contain a subclass
      * of the appropriate field as its only top element. Setting the resource id to 0 will clear
@@ -215,6 +232,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             setFieldLayout(Field.TYPE_COLOR, R.layout.default_field_color);
             setFieldLayout(Field.TYPE_INPUT, R.layout.default_field_input);
             setFieldLayout(Field.TYPE_VARIABLE, R.layout.default_field_variable);
+            setFieldLayout(Field.TYPE_ICON, R.layout.default_field_icon);
         } finally {
             styles.recycle();
         }

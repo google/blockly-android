@@ -21,6 +21,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -38,6 +39,8 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.model.BlockExtension;
+import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
@@ -81,6 +84,13 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
 
     private static final String TAG = "AbstractBlocklyActivity";
+
+    public static final Map<String, BlockExtension> DEFAULT_EXTENSIONS = new ArrayMap<>();
+    public static final Map<String, Mutator.Factory> DEFAULT_MUTATORS = new ArrayMap<>();
+
+    static {
+        // TODO Set up default extensions and mutators
+    }
 
     protected BlocklyActivityHelper mBlockly;
 
@@ -403,6 +413,15 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         return new HashMap<>(BlockExtension.STANDARD_EXTENSIONS);
     }
 
+
+    /**
+     * @return
+     */
+    @Nullable
+    protected Map<String, Mutator.Factory> getBlockMutators() {
+        return new HashMap<>(Mutator.STANDARD_MUTATORS);
+    }
+
     /**
      * Returns the asset file paths to the generators (JS files) to use for the most
      * recently requested "Run" action. Called from {@link #onRunCode()}. This is expected to be a
@@ -585,7 +604,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected void resetBlockFactory() {
         mBlockly.resetBlockFactory(
                 getBlockDefinitionsJsonPaths(),
-                getBlockExtensions());
+                getBlockExtensions(),
+                getBlockMutators());
     }
 
     /**

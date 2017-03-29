@@ -18,6 +18,7 @@ package com.google.blockly.android.demo;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.v4.util.ArrayMap;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,12 +32,15 @@ import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.ui.vertical.IfElseMutatorUI;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -229,5 +233,15 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @Override
     protected String getWorkspaceSavePath() {
         return SAVED_WORKSPACE_FILENAME;
+    }
+
+    @Override
+    protected Map<String, Mutator.Factory> getBlockMutators() {
+        Map<String, Mutator.Factory> mutators = super.getBlockMutators();
+        if (mutators == null) {
+            mutators = new ArrayMap<>();
+        }
+        mutators.put("turtle_mutator", new IfElseMutatorUI.Factory());
+        return mutators;
     }
 }

@@ -18,9 +18,11 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.content.res.Resources;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.blockly.android.R;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
@@ -72,8 +74,12 @@ public class BlockFactory {
     protected final HashMap<BlockTypeFieldName, WeakReference<FieldDropdown.Options>>
             mDropdownOptions = new HashMap<>();
 
+    protected final String mMutatorAltText;
+
     /** Default constructor. */
-    public BlockFactory() {}
+    public BlockFactory(Context context) {
+        mMutatorAltText = context.getResources().getString(R.string.mutator_icon_alt_text);
+    }
 
     /**
      * Create a factory with an initial set of blocks from json resources.
@@ -93,6 +99,7 @@ public class BlockFactory {
                 + "yet load the definitions into the code generators.");
 
         Resources resources = context.getResources();
+        mMutatorAltText = resources.getString(R.string.mutator_icon_alt_text);
         try {
             if (rawJsonBlockDefinitionResIds != null) {
                 for (int i = 0; i < rawJsonBlockDefinitionResIds.length; i++) {
@@ -104,6 +111,13 @@ public class BlockFactory {
             // Resources are assumed to be valid. Throw this error as RuntimeException.
             throw new IllegalStateException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Constructor that doesn't depend on a context for testing.
+     */
+    @VisibleForTesting BlockFactory() {
+        mMutatorAltText = "Test mutator alt text";
     }
 
     /**

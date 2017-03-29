@@ -1890,7 +1890,7 @@ public class BlocklyController {
                 blockClipDataHelper = SingleMimeTypeClipDataHelper.getDefault(mContext);
             }
 
-            BlockFactory factory = new BlockFactory();
+            BlockFactory factory = new BlockFactory(mContext);
             loadBlockDefinitionsFromResources(factory, mBlockDefResources);
             loadBlockDefinitionsFromAssets(factory, mBlockDefAssets);
             BlocklyController controller = new BlocklyController(

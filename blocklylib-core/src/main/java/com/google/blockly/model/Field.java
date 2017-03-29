@@ -41,10 +41,11 @@ public abstract class Field extends Observable<Field.Observer> implements Clonea
     public static final int TYPE_DROPDOWN = 7;
     public static final int TYPE_IMAGE = 8;
     public static final int TYPE_NUMBER = 9;
+    public static final int TYPE_ICON = 10;
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({TYPE_UNKNOWN, TYPE_LABEL, TYPE_INPUT, TYPE_ANGLE, TYPE_CHECKBOX, TYPE_COLOR,
-            TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE, TYPE_NUMBER})
+            TYPE_DATE, TYPE_VARIABLE, TYPE_DROPDOWN, TYPE_IMAGE, TYPE_NUMBER, TYPE_ICON})
     public @interface FieldType {}
     // When adding fields, also update stringToFieldType() below.
 
@@ -58,6 +59,7 @@ public abstract class Field extends Observable<Field.Observer> implements Clonea
     public static final String TYPE_DROPDOWN_STRING = "field_dropdown";
     public static final String TYPE_IMAGE_STRING = "field_image";
     public static final String TYPE_NUMBER_STRING = "field_number";
+    // Icon fields are not explicitly declared, so they have no string representation
 
     /**
      * Observer for listening to changes to a field.
@@ -95,7 +97,7 @@ public abstract class Field extends Observable<Field.Observer> implements Clonea
      * @throws IOException
      */
     public void serialize(XmlSerializer serializer) throws IOException {
-        if (mType == TYPE_LABEL || mType == TYPE_IMAGE) {
+        if (mType == TYPE_LABEL || mType == TYPE_IMAGE || mType == TYPE_ICON) {
             return;
         }
         serializer.startTag(null, "field").attribute(null, "name", mName);

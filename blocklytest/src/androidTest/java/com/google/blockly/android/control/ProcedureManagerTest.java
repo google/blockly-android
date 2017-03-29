@@ -15,6 +15,10 @@
 
 package com.google.blockly.android.control;
 
+import android.content.Context;
+import android.test.mock.MockContext;
+
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -34,7 +38,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link ProcedureManager}.
  */
-public class ProcedureManagerTest {
+public class ProcedureManagerTest extends BlocklyTestCase {
     private static final String PROCEDURE_NAME = "procedure name";
 
     private BlockFactory mFactory;
@@ -44,7 +48,7 @@ public class ProcedureManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        mFactory = new BlockFactory();
+        mFactory = new BlockFactory(getContext());
         mProcedureManager = new ProcedureManager();
 
         mProcedureDefinition = mFactory.obtainBlockFrom(

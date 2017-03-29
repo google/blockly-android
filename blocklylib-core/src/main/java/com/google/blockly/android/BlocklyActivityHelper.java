@@ -36,6 +36,7 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.StringOutputStream;
@@ -482,7 +483,8 @@ public class BlocklyActivityHelper {
      */
     public void resetBlockFactory(
             @Nullable List<String> blockDefinitionsJsonPaths,
-            @Nullable Map<String, BlockExtension> blockExtensions) {
+            @Nullable Map<String, BlockExtension> blockExtensions,
+            @Nullable Map<String, Mutator.Factory> blockMutators) {
         AssetManager assets = mActivity.getAssets();
         BlockFactory factory = mController.getBlockFactory();
         factory.clear();
@@ -492,6 +494,11 @@ public class BlocklyActivityHelper {
             if (blockExtensions != null) {
                 for (String id : blockExtensions.keySet()) {
                     factory.registerExtension(id, blockExtensions.get(id));
+                }
+            }
+            if (blockMutators != null) {
+                for (String id : blockMutators.keySet()) {
+                    factory.registerMutator(id, blockMutators.get(id));
                 }
             }
             if (blockDefinitionsJsonPaths != null) {

@@ -87,6 +87,7 @@ public class Block extends Observable<Block.Observer> {
     // Set by BlockFactory.applyMutator(). May only be set once.
     /* package */ String mMutatorId = null;
     /* package */ Mutator mMutator = null;
+    /* package */ Field mMutatorField = null;
 
     // These values can be changed after creating the block
     private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
@@ -143,7 +144,6 @@ public class Block extends Observable<Block.Observer> {
         mPosition = new WorkspacePoint(0, 0);
         setShadow(isShadow);
 
-        rebuildConnectionList();
 
         mMutatorId = definition.getMutatorId();
         if (mMutatorId != null) {
@@ -153,6 +153,8 @@ public class Block extends Observable<Block.Observer> {
         for (String name : extensionNames) {
             factory.applyExtension(name, this);
         }
+
+        rebuildConnectionList();
     }
 
     /**
@@ -424,6 +426,13 @@ public class Block extends Observable<Block.Observer> {
      */
     public List<Input> getInputs() {
         return mInputList;
+    }
+
+    /**
+     * @return The input for the mutator button if one exists.
+     */
+    public Field getMutatorField() {
+        return mMutatorField;
     }
 
     /**
@@ -833,6 +842,9 @@ public class Block extends Observable<Block.Observer> {
      */
     private void rebuildConnectionList() {
         mConnectionList.clear();
+        if (mMutatorField != null) {
+            mMutatorField.setBlock(this);
+        }
         if (mInputList != null) {
             for (int i = 0; i < mInputList.size(); i++) {
                 Input in = mInputList.get(i);
