@@ -18,6 +18,7 @@ package com.google.blockly.android.control;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockDefinition;
@@ -38,9 +39,8 @@ import static org.mockito.Mockito.verify;
 /**
  * Tests for {@link WorkspaceStats}.
  */
-public class WorkspaceStatsTest {
+public class WorkspaceStatsTest extends BlocklyTestCase {
     private BlocklyController mMockController;
-
     private BlockFactory mFactory;
     private WorkspaceStats mStats;
     private ConnectionManager mConnectionManager;
@@ -51,7 +51,7 @@ public class WorkspaceStatsTest {
         mMockController = Mockito.mock(BlocklyController.class);
 
         Context context = InstrumentationRegistry.getTargetContext();
-        mFactory = new BlockFactory();
+        mFactory = new BlockFactory(getContext());
         mFactory.setController(mMockController);
 
         // TODO: Do we need this? We don't use Mockito in this test.

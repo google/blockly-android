@@ -40,4 +40,8 @@
     <string name="name_variable_negative">Cancel</string>
 
     <string name="blockly_clipdata_label_default">Blockly blocks</string>
+    <string name="mutator_icon_alt_text">Modify the block\'s shape.</string>
+
+    <string name="mutator_if_else_ifelse_count">if else count: %d</string>
+    <string name="mutator_if_else_else_count">else</string>
 </resources>
