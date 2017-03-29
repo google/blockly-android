@@ -46,6 +46,7 @@ public class Block {
     // Set by BlockFactory.applyMutator(). May only be set once.
     /* package */ String mMutatorId = null;
     /* package */ Mutator mMutator = null;
+    /* package */ Field mMutatorField = null;
 
     // These values can be changed after creating the block
     private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
@@ -102,7 +103,6 @@ public class Block {
         mPosition = new WorkspacePoint(0, 0);
         setShadow(isShadow);
 
-        rebuildConnectionList();
 
         mMutatorId = definition.getMutatorId();
         if (mMutatorId != null) {
@@ -112,6 +112,8 @@ public class Block {
         for (String name : extensionNames) {
             factory.applyExtension(name, this);
         }
+
+        rebuildConnectionList();
     }
 
     /**
@@ -363,6 +365,13 @@ public class Block {
      */
     public List<Input> getInputs() {
         return mInputList;
+    }
+
+    /**
+     * @return The input for the mutator button if one exists.
+     */
+    public Field getMutatorField() {
+        return mMutatorField;
     }
 
     /**
@@ -750,12 +759,24 @@ public class Block {
         return description;
     };
 
+    /*package private*/ void setMutator(Mutator mutator, String id, Field mutatorField) {
+        if (mMutator != null) {
+            throw new IllegalStateException("Cannot change mutators on a block.");
+        }
+        mMutator = mutator;
+        mMutatorId = id;
+        mMutatorField = mutatorField;
+    }
+
     /**
      * Updates {@link #mConnectionList} to reflect the latest state of all connections on this block
      * (inputs, next, previous, and output).
      */
     private void rebuildConnectionList() {
         mConnectionList.clear();
+        if (mMutatorField != null) {
+            mMutatorField.setBlock(this);
+        }
         if (mInputList != null) {
             for (int i = 0; i < mInputList.size(); i++) {
                 Input in = mInputList.get(i);

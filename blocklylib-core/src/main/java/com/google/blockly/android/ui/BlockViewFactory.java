@@ -33,22 +33,13 @@ import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
 import com.google.blockly.android.ui.fieldview.BasicFieldImageView;
 import com.google.blockly.android.ui.fieldview.BasicFieldInputView;
 import com.google.blockly.android.ui.fieldview.BasicFieldLabelView;
+import com.google.blockly.android.ui.fieldview.BasicFieldMutatorView;
 import com.google.blockly.android.ui.fieldview.BasicFieldNumberView;
 import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldAngle;
-import com.google.blockly.model.FieldCheckbox;
-import com.google.blockly.model.FieldColor;
-import com.google.blockly.model.FieldDate;
-import com.google.blockly.model.FieldDropdown;
-import com.google.blockly.model.FieldImage;
-import com.google.blockly.model.FieldInput;
-import com.google.blockly.model.FieldLabel;
-import com.google.blockly.model.FieldNumber;
-import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Workspace;
 
@@ -161,12 +152,22 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
 
         List<Input> inputs = block.getInputs();
         final int inputCount = inputs.size();
+        Field mutatorField = block.getMutatorField();
+
         List<InputView> inputViews = new ArrayList<>(inputCount);
         for (int i = 0; i < inputCount; i++) {
             Input input = inputs.get(i);
             List<Field> fields = input.getFields();
-            List<FieldView> fieldViews = new ArrayList<>(fields.size());
-            for (int  j = 0; j < fields.size(); j++) {
+            List<FieldView> fieldViews;
+            int j = 0;
+            if (i == 0 && mutatorField != null) {
+                fieldViews = new ArrayList<>(fields.size() + 1);
+                fieldViews.add(buildFieldView(mutatorField));
+                j++;
+            } else {
+                fieldViews = new ArrayList<>(fields.size());
+            }
+            for (; j < fields.size(); j++) {
                 fieldViews.add(buildFieldView(fields.get(j)));
             }
             InputView inputView = buildInputView(input, fieldViews);
@@ -182,6 +183,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             }
             inputViews.add(inputView);
         }
+
         blockView = buildBlockView(block, inputViews, connectionManager, touchHandler);
 
         // TODO(#137): Move to ViewPool class.
@@ -277,56 +279,61 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         switch (type) {
             case Field.TYPE_ANGLE: {
                 BasicFieldAngleView fieldAngleView = new BasicFieldAngleView(mContext);
-                fieldAngleView.setField((FieldAngle) field);
+                fieldAngleView.setField(field);
                 fieldAngleView.setWorkspaceHelper(mHelper);
                 return fieldAngleView;
             }
             case Field.TYPE_CHECKBOX: {
                 BasicFieldCheckboxView fieldCheckboxView = new BasicFieldCheckboxView(mContext);
-                fieldCheckboxView.setField((FieldCheckbox) field);
+                fieldCheckboxView.setField(field);
                 return fieldCheckboxView;
             }
             case Field.TYPE_COLOR: {
                 BasicFieldColorView fieldColorView = new BasicFieldColorView(mContext);
-                fieldColorView.setField((FieldColor) field);
+                fieldColorView.setField(field);
                 return fieldColorView;
             }
             case Field.TYPE_DATE: {
                 BasicFieldDateView fieldDateView = new BasicFieldDateView(mContext);
-                fieldDateView.setField((FieldDate) field);
+                fieldDateView.setField(field);
                 return fieldDateView;
             }
             case Field.TYPE_DROPDOWN: {
                 BasicFieldDropdownView fieldDropdownView = new BasicFieldDropdownView(mContext);
-                fieldDropdownView.setField((FieldDropdown) field);
+                fieldDropdownView.setField(field);
                 return fieldDropdownView;
             }
             case Field.TYPE_IMAGE: {
                 BasicFieldImageView fieldImageView = new BasicFieldImageView(mContext);
-                fieldImageView.setField((FieldImage) field);
+                fieldImageView.setField(field);
                 return fieldImageView;
             }
             case Field.TYPE_INPUT: {
                 BasicFieldInputView fieldInputView = new BasicFieldInputView(mContext);
-                fieldInputView.setField((FieldInput) field);
+                fieldInputView.setField(field);
                 return fieldInputView;
             }
             case Field.TYPE_LABEL: {
                 BasicFieldLabelView fieldLabelView = new BasicFieldLabelView(mContext);
-                fieldLabelView.setField((FieldLabel) field);
+                fieldLabelView.setField(field);
                 return fieldLabelView;
             }
             case Field.TYPE_VARIABLE: {
                 BasicFieldVariableView fieldVariableView = new BasicFieldVariableView(mContext);
                 fieldVariableView.setAdapter(getVariableAdapter());
-                fieldVariableView.setField((FieldVariable) field);
+                fieldVariableView.setField(field);
                 fieldVariableView.setVariableRequestCallback(mVariableCallback);
                 return fieldVariableView;
             }
             case Field.TYPE_NUMBER: {
                 BasicFieldNumberView fieldNumberView = new BasicFieldNumberView(mContext);
-                fieldNumberView.setField((FieldNumber) field);
+                fieldNumberView.setField(field);
                 return fieldNumberView;
+            }
+            case Field.TYPE_MUTATOR: {
+                BasicFieldMutatorView fieldMutatorView = new BasicFieldMutatorView(mContext);
+                fieldMutatorView.setField(field);
+                return fieldMutatorView;
             }
 
             case Field.TYPE_UNKNOWN:
