@@ -16,6 +16,7 @@
 package com.google.blockly.android.ui;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.support.annotation.NonNull;
@@ -91,6 +92,14 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     public VirtualWorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        TypedArray a = context.getTheme().obtainStyledAttributes(attrs,
+                R.styleable.VirtualWorkspaceView, 0, 0);
+        try {
+            mDrawGrid = a.getBoolean(R.styleable.VirtualWorkspaceView_drawGrid,
+                    mDrawGrid);
+        } finally {
+            a.recycle();
+        }
     }
 
     @Override
@@ -158,6 +167,10 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     public boolean isScrollable() {
         return mScrollable;
+    }
+
+    public void setDrawGrid(boolean drawGrid){
+        mDrawGrid = drawGrid;
     }
 
     public void setZoomBehavior(ZoomBehavior zoomBehavior){
