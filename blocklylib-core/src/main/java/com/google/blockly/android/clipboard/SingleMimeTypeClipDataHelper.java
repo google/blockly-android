@@ -99,6 +99,9 @@ public class SingleMimeTypeClipDataHelper implements BlockClipDataHelper {
      */
     @Override
     public PendingDrag getPendingDrag(DragEvent event) {
+        if (!isBlockData(event.getClipDescription())) {
+            return null;
+        }
         // In the future, this will support drags across application boundaries, constructing a new
         // PendingDrag as necessary. For now, it just extracts the PendingData from the local state.
         return (PendingDrag) event.getLocalState();
