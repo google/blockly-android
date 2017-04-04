@@ -29,9 +29,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.DragEvent;
 
-import com.google.blockly.android.AbstractBlocklyActivity;
-import com.google.blockly.android.clipboard.BlockClipDataHelper;
-import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldNumber;
 
@@ -215,16 +213,9 @@ public class BasicFieldNumberView extends AppCompatEditText implements FieldView
      */
     @Override
     public boolean onDragEvent(DragEvent event) {
-        // Don't let block groups be dropped into text fields.
-        Context context = getContext();
-        BlocklyController controller = (context instanceof AbstractBlocklyActivity) ?
-                ((AbstractBlocklyActivity) context).getController() : null;
-        BlockClipDataHelper clipHelper =
-                (controller == null) ? null : controller.getClipDataHelper();
-        if (clipHelper != null && clipHelper.isBlockData(event.getClipDescription())) {
+        if (WorkspaceHelper.isBlockDrag(getContext(), event)) {
             return false;
         }
-
         return super.onDragEvent(event);
     }
 
