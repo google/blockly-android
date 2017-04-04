@@ -12,11 +12,13 @@ easier integration in Android apps.
 Google is proud to offer Blockly for Android for free and open source
 under the [Apache License, version 2.0][4].
 
-Blockly has an active [developer forum][5]. Please drop by and say hello. Show us your prototypes
-early; collectively we have a lot of experience and can offer hints which will save you time.
+Blockly has an active [developer forum][5]. Please drop by and say hello. Show
+us your prototypes early; collectively we have a lot of experience and can
+offer hints which will save you time.
 
-Help us focus our development efforts by telling us [what you are doing with Blockly][6]. The
-questionnaire only takes a few minutes and will help us better the Blockly community.
+Help us focus our development efforts by telling us [what you are doing with
+Blockly][6]. The questionnaire only takes a few minutes and will help us better
+the Blockly community.
 
 Want to contribute? Great! First, read [our guidelines for contributors][7].
 
