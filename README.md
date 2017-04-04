@@ -18,7 +18,7 @@ offer hints which will save you time.
 
 Help us focus our development efforts by telling us [what you are doing with
 Blockly][6]. The questionnaire only takes a few minutes and will help us better
-the Blockly community.
+support the Blockly community.
 
 Want to contribute? Great! First, read [our guidelines for contributors][7].
 
