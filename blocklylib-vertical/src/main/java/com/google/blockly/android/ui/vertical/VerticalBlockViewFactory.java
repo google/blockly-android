@@ -134,11 +134,6 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
                 colorView.setWorkspaceHelper(mHelper);
                 break;
             }
-            case Field.TYPE_ANGLE: {
-                BasicFieldAngleView angleView = (BasicFieldAngleView) fieldView;
-                angleView.setWorkspaceHelper(mHelper);
-                break;
-            }
             case Field.TYPE_VARIABLE: {
                 BasicFieldVariableView varView = (BasicFieldVariableView) fieldView;
                 varView.setAdapter(getVariableAdapter());

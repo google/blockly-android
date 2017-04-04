@@ -15,7 +15,9 @@
 
 package com.google.blockly.android.ui;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -26,10 +28,14 @@ import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.View;
 import android.view.ViewParent;
 
+import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.ZoomBehavior;
+import com.google.blockly.android.clipboard.BlockClipDataHelper;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.WorkspacePoint;
 
@@ -81,6 +87,24 @@ public class WorkspaceHelper {
     private BlockViewFactory mViewFactory;
     private float mDensity;
     private boolean mRtl;
+
+    /**
+     * Determine if {@code dragEvent} is a block drag.
+     * @param viewContext The context of the view receiving the drag event.
+     * @param dragEvent The drag event in question.
+     * @return True if the drag represents a block drag. Otherwise false.
+     */
+    public static boolean isBlockDrag(Context viewContext, DragEvent dragEvent) {
+        // Unwrap ContextWrappers until the Activity is found.
+        while (viewContext instanceof ContextWrapper && !(viewContext instanceof Activity)) {
+            viewContext = ((ContextWrapper) viewContext).getBaseContext();
+        }
+        BlocklyController controller = (viewContext instanceof AbstractBlocklyActivity) ?
+                ((AbstractBlocklyActivity) viewContext).getController() : null;
+        BlockClipDataHelper clipHelper =
+                (controller == null) ? null : controller.getClipDataHelper();
+        return (clipHelper != null && clipHelper.isBlockData(dragEvent.getClipDescription()));
+    }
 
     /**
      * Create a helper for creating and doing calculations for views in the workspace.
