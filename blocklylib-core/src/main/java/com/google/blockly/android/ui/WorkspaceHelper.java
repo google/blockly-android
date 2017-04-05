@@ -581,4 +581,8 @@ public class WorkspaceHelper {
             mRtl = false;  // RTL not supported.
         }
     }
+
+    public void setGridColor(int color) {
+        mVirtualWorkspaceView.setGridColor(color);
+    }
 }

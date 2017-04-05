@@ -17,6 +17,10 @@ android {
         }
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
     packagingOptions {
       // Suppress file collision error from hamcrest-core and hamcrest-integration JARs.
       exclude 'LICENSE.txt'

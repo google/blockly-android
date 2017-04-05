@@ -26,7 +26,7 @@ import android.graphics.Shader;
  * Renders the workspace coordinate grid.
  */
 // TODO(#134): Make this a drawable. Assign as a background.
-class WorkspaceGridRenderer {
+public class WorkspaceGridRenderer {
     // Constants for drawing the coordinate grid.
     private static int GRID_SPACING = 48;
     private static int GRID_COLOR = 0xffa0a0a0;
@@ -86,8 +86,9 @@ class WorkspaceGridRenderer {
         GRID_SPACING = gridSpacing;
     }
 
-    public static void setGridColor(int gridColor) {
+    public void setGridColor(int gridColor) {
         GRID_COLOR = gridColor;
+				mCirclePaint.setColor(GRID_COLOR);
     }
 
     public static void setGridRadius(int gridRadius) {
