@@ -12,6 +12,7 @@
               android:layout_below="@+id/blockly_toolbox"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              blockly:drawGrid="false"
         />
 
     <LinearLayout

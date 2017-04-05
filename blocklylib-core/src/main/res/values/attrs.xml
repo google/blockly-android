@@ -40,17 +40,13 @@
         </attr>
     </declare-styleable>
 
-    <declare-styleable name="VirtualWorkspaceView">
-        <attr name="drawGrid" format="boolean"/>
-    </declare-styleable>
-
     <declare-styleable name="BasicFieldDropdownView">
         <attr name="itemLayout" format="reference"/>
         <attr name="dropdownItemLayout" format="reference"/>
     </declare-styleable>
 
     <declare-styleable name="WorkspaceFragment">
-
+        <attr name="drawGrid" format="boolean"/>
     </declare-styleable>
 
     <!-- Styles for flyouts. TODO RENAME. -->

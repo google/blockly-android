@@ -15,8 +15,11 @@
 
 package com.google.blockly.android;
 
+import android.content.Context;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +55,21 @@ public class WorkspaceFragment extends Fragment {
     private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
 
+    private boolean mDrawGrid = true;
+
+    @Override
+    public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
+        super.onInflate(context, attrs, savedInstanceState);
+        TypedArray a = context.getTheme().obtainStyledAttributes(attrs,
+                R.styleable.WorkspaceFragment, 0, 0);
+        try {
+            mDrawGrid = a.getBoolean(R.styleable.WorkspaceFragment_drawGrid,
+                    mDrawGrid);
+        } finally {
+            a.recycle();
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -62,6 +80,7 @@ public class WorkspaceFragment extends Fragment {
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
 
+        mVirtualWorkspaceView.setDrawGrid(mDrawGrid);
         if (mController != null) {
             mVirtualWorkspaceView.setZoomBehavior(
                     mController.getWorkspaceHelper().getZoomBehavior());

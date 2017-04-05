@@ -92,14 +92,6 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
 
     public VirtualWorkspaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        TypedArray a = context.getTheme().obtainStyledAttributes(attrs,
-                R.styleable.VirtualWorkspaceView, 0, 0);
-        try {
-            mDrawGrid = a.getBoolean(R.styleable.VirtualWorkspaceView_drawGrid,
-                    mDrawGrid);
-        } finally {
-            a.recycle();
-        }
     }
 
     @Override
