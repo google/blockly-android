@@ -55,7 +55,7 @@ public class WorkspaceFragment extends Fragment {
     private VirtualWorkspaceView mVirtualWorkspaceView;
     private WorkspaceView mWorkspaceView;
 
-    private boolean mDrawGrid;
+    private boolean mDrawGrid = true;
 
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
