@@ -46,7 +46,7 @@
     </declare-styleable>
 
     <declare-styleable name="WorkspaceFragment">
-
+        <attr name="drawGrid" format="boolean"/>
     </declare-styleable>
 
     <!-- Styles for flyouts. TODO RENAME. -->
