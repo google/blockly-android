@@ -15,6 +15,8 @@
 
 package com.google.blockly.model;
 
+import android.support.v4.util.Pair;
+
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
@@ -31,6 +33,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,6 +48,15 @@ import static com.google.common.truth.Truth.assertWithMessage;
 public class BlockTest extends BlocklyTestCase {
     private XmlPullParserFactory xmlPullParserFactory;
     private BlockFactory mBlockFactory;
+
+    private List<Pair<Block, Integer>> mObserverCallArgs = new LinkedList<>();
+    private Block.Observer mBlockObserver = new Block.Observer() {
+        @Override
+        public void onBlockUpdated(Block block, @Block.UpdateState int changeMask) {
+            mObserverCallArgs.add(Pair.create(block, changeMask));
+        }
+    };
+
 
     @Before
     public void setUp() throws Exception {
@@ -692,6 +704,265 @@ public class BlockTest extends BlocklyTestCase {
         assertThat(matcher.find()).isTrue();
         assertThat(matcher.group()).isEqualTo(
                 "less than &lt; greater than &gt; ampersand &amp; quote \" apostrophe ' end");
+    }
+
+    @Test
+    public void testSetComment_withObserver() throws BlockLoadingException {
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        block.registerObserver(mBlockObserver);
+
+        final String newComment = "New comment.";
+        final String updatedComment = "Updated comment.";
+
+        // Preconditions
+        assertThat(block.getComment()).isNull();
+        assertThat(newComment).isNotEqualTo(updatedComment);
+
+        // Test overwrite null with null
+        mObserverCallArgs.clear();
+        block.setComment(null);
+        assertThat(block.getComment()).isNull();
+        assertWithMessage("Observer is not called with null comment (same as before)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test overwrite null with new value
+        mObserverCallArgs.clear();
+        block.setComment(newComment);
+        assertThat(block.getComment()).isEqualTo(newComment);
+        assertWithMessage("Observer is called once during .setComment(newComment)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+
+        // Test overwrite comment value with equal value
+        mObserverCallArgs.clear();
+        block.setComment(new String(newComment));
+        assertThat(block.getComment()).isEqualTo(newComment);
+        assertWithMessage("Observer is not called when .setComment() called with same comment")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test overwrite comment with different value
+        mObserverCallArgs.clear();
+        block.setComment(updatedComment);
+        assertThat(block.getComment()).isEqualTo(updatedComment);
+        assertWithMessage("Observer is called once during .setComment(updatedComment)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+
+        // Test delete value (overwrite with null)
+        mObserverCallArgs.clear();
+        block.setComment(null);
+        assertThat(block.getComment()).isNull();
+        assertWithMessage("Observer is called once during .setComment(null) deletion")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+    }
+
+    @Test
+    public void testSetShadow_withObserver() throws BlockLoadingException {
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        block.registerObserver(mBlockObserver);
+
+        // Preconditions
+        assertThat(block.isShadow()).isFalse();
+
+        // Test false -> false
+        mObserverCallArgs.clear();
+        block.setShadow(false);
+        assertThat(block.isShadow()).isFalse();
+        assertWithMessage("Observer is not called when non-shadow .setShadow(false)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test false -> true
+        mObserverCallArgs.clear();
+        block.setShadow(true);
+        assertThat(block.isShadow()).isTrue();
+        assertWithMessage("Observer is called when non-shadow .setShadow(true)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_SHADOW);
+
+        // Test true -> true
+        mObserverCallArgs.clear();
+        block.setShadow(true);
+        assertThat(block.isShadow()).isTrue();
+        assertWithMessage("Observer is not called when shadow .setShadow(true)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test true -> false
+        mObserverCallArgs.clear();
+        block.setShadow(false);
+        assertThat(block.isShadow()).isFalse();
+        assertWithMessage("Observer is called when shadow .setShadow(false)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_SHADOW);
+    }
+
+    @Test
+    public void testSetDisabled_withObserver() throws BlockLoadingException {
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        block.registerObserver(mBlockObserver);
+
+        // Preconditions
+        assertThat(block.isDisabled()).isFalse();
+
+        // Test false -> false
+        mObserverCallArgs.clear();
+        block.setDisabled(false);
+        assertThat(block.isDisabled()).isFalse();
+        assertWithMessage("Observer is not called when non-disabled block .setDisabled(false)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test false -> true
+        mObserverCallArgs.clear();
+        block.setDisabled(true);
+        assertThat(block.isDisabled()).isTrue();
+        assertWithMessage("Observer is called when non-disabled block .setDisabled(false)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_DISABLED);
+
+        // Test true -> true
+        mObserverCallArgs.clear();
+        block.setDisabled(true);
+        assertThat(block.isDisabled()).isTrue();
+        assertWithMessage("Observer is not called when disabled block .setDisabled(true)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test true -> false
+        mObserverCallArgs.clear();
+        block.setDisabled(false);
+        assertThat(block.isDisabled()).isFalse();
+        assertWithMessage("Observer is called when disabled block .setDisabled(false)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_DISABLED);
+    }
+
+    @Test
+    public void testSetCollapsed_withObserver() throws BlockLoadingException {
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        block.registerObserver(mBlockObserver);
+
+        // Preconditions
+        assertThat(block.isCollapsed()).isFalse();
+
+        // Test false -> false
+        mObserverCallArgs.clear();
+        block.setCollapsed(false);
+        assertThat(block.isCollapsed()).isFalse();
+        assertWithMessage("Observer is not called when non-collapsed block .setCollapsed(false)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test false -> true
+        mObserverCallArgs.clear();
+        block.setCollapsed(true);
+        assertThat(block.isCollapsed()).isTrue();
+        assertWithMessage("Observer is called when non-collapsed block .setCollapsed(true)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_COLLAPSED);
+
+        // Test true -> true
+        mObserverCallArgs.clear();
+        block.setCollapsed(true);
+        assertThat(block.isCollapsed()).isTrue();
+        assertWithMessage("Observer is not called when collapsed block .setCollapsed(true)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test true -> false
+        mObserverCallArgs.clear();
+        block.setCollapsed(false);
+        assertThat(block.isCollapsed()).isFalse();
+        assertWithMessage("Observer is called when collapsed block .setCollapsed(false)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_COLLAPSED);
+    }
+
+    @Test
+    public void testSetEditable_withObserver() throws BlockLoadingException {
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        block.registerObserver(mBlockObserver);
+
+        // Preconditions
+        assertThat(block.isEditable()).isTrue();
+
+        // Test true -> true
+        mObserverCallArgs.clear();
+        block.setEditable(true);
+        assertThat(block.isEditable()).isTrue();
+        assertWithMessage("Observer is not called when editable block .setEditable(true)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test true -> false
+        mObserverCallArgs.clear();
+        block.setEditable(false);
+        assertThat(block.isEditable()).isFalse();
+        assertWithMessage("Observer is called when editable block .setEditable(false)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_EDITABLE);
+
+        // Test false -> false
+        mObserverCallArgs.clear();
+        block.setEditable(false);
+        assertThat(block.isEditable()).isFalse();
+        assertWithMessage("Observer is not called when non-editable block .setEditable(false)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test false -> true
+        mObserverCallArgs.clear();
+        block.setEditable(true);
+        assertThat(block.isEditable()).isTrue();
+        assertWithMessage("Observer is called when non-editable block .setEditable(true)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_EDITABLE);
+    }
+
+    @Test
+    public void testSetDeletable_withObserver() throws BlockLoadingException {
+        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        block.registerObserver(mBlockObserver);
+
+        // Preconditions
+        assertThat(block.isDeletable()).isTrue();
+
+        // Test true -> true
+        mObserverCallArgs.clear();
+        block.setDeletable(true);
+        assertThat(block.isDeletable()).isTrue();
+        assertWithMessage("Observer is not called when deletable block .setDeletable(true)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test true -> false
+        mObserverCallArgs.clear();
+        block.setDeletable(false);
+        assertThat(block.isDeletable()).isFalse();
+        assertWithMessage("Observer is called when deletable block .setDeletable(false)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_DELETABLE);
+
+        // Test false -> false
+        mObserverCallArgs.clear();
+        block.setDeletable(false);
+        assertThat(block.isDeletable()).isFalse();
+        assertWithMessage("Observer is not called when non-deletable block .setDeletable(false)")
+                .that(mObserverCallArgs).isEmpty();
+
+        // Test false -> true
+        mObserverCallArgs.clear();
+        block.setDeletable(true);
+        assertThat(block.isDeletable()).isTrue();
+        assertWithMessage("Observer is called when non-deletable block .setDeletable(true)")
+                .that(mObserverCallArgs).hasSize(1);
+        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_DELETABLE);
     }
 
     private String toXml(Block block) {
