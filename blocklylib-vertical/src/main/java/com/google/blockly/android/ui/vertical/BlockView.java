@@ -50,6 +50,10 @@ public class BlockView extends AbstractBlockView<InputView> {
     private static final float SHADOW_SATURATION_MULTIPLIER = 0.4f;
     private static final float SHADOW_VALUE_MULTIPLIER = 1.2f;
 
+    private static final int UPDATES_THAT_CAUSE_REINIT =
+            Block.UPDATE_INPUTS_FIELDS | Block.UPDATE_IS_COLLAPSED | Block.UPDATE_IS_DISABLED
+            | Block.UPDATE_IS_SHADOW;
+
     // TODO(#86): Determine from 9-patch measurements.
     private final int mMinBlockWidth;
 
@@ -117,6 +121,15 @@ public class BlockView extends AbstractBlockView<InputView> {
         setWillNotDraw(false);
 
         initDrawingObjects();
+
+        block.registerObserver(new Block.Observer() {
+            @Override
+            public void onBlockUpdated(Block block, @Block.UpdateState int updateMask) {
+                if ((updateMask & UPDATES_THAT_CAUSE_REINIT) != 0) {
+                    onBlockStructureUpdated();
+                }
+            }
+        });
     }
 
     @Override
@@ -226,6 +239,15 @@ public class BlockView extends AbstractBlockView<InputView> {
      */
     public ColorFilter getColorFilter() {
         return mBlockColorFilter;
+    }
+
+    /**
+     * Called when a block's inputs, fields, comment, or mutator is/are updated, and thus the
+     * shape may have changed.
+     */
+    protected void onBlockStructureUpdated() {
+        // TODO(AnmAtAnm): Mark view for full recalc?
+        requestLayout();
     }
 
     /**
