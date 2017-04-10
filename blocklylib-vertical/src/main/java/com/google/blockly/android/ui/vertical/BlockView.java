@@ -117,6 +117,13 @@ public class BlockView extends AbstractBlockView<InputView> {
         setWillNotDraw(false);
 
         initDrawingObjects();
+
+        block.registerObserver(new Block.Observer() {
+            @Override
+            public void onStructureUpdated(Block block) {
+                onBlockStructureUpdated();
+            }
+        });
     }
 
     @Override
@@ -226,6 +233,15 @@ public class BlockView extends AbstractBlockView<InputView> {
      */
     public ColorFilter getColorFilter() {
         return mBlockColorFilter;
+    }
+
+    /**
+     * Called when a block's inputs, fields, comment, or mutator is/are updated, and thus the
+     * shape may have changed.
+     */
+    protected void onBlockStructureUpdated() {
+        // TODO(AnmAtAnm): Mark view for full recalc?
+        requestLayout();
     }
 
     /**

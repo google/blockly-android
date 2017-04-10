@@ -15,6 +15,8 @@
 
 package com.google.blockly.model;
 
+import android.database.Observable;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -26,14 +28,52 @@ import com.google.blockly.utils.ColorUtils;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
  * Base class for a Blockly Block.
  */
-public class Block {
+public class Block extends Observable<Block.Observer> {
     private static final String TAG = "Block";
+
+    @Retention(SOURCE)
+    @IntDef({
+            UPDATE_INPUTS_FIELDS, UPDATE_MUTATOR, UPDATE_COMMENT, UPDATE_IS_SHADOW,
+            UPDATE_IS_DISABLED, UPDATE_IS_COLLAPSED, UPDATE_IS_EDITABLE, UPDATE_IS_DELETABLE
+    })
+    public @interface UpdateState {}
+    public static final int UPDATE_INPUTS_FIELDS = 0x01;  // TODO
+    public static final int UPDATE_MUTATOR = 0x02;  // TODO
+    public static final int UPDATE_COMMENT = 0x04;
+    public static final int UPDATE_IS_SHADOW = 0x08;
+    public static final int UPDATE_IS_DISABLED = 0x10;
+    public static final int UPDATE_IS_COLLAPSED = 0x20;
+    public static final int UPDATE_IS_EDITABLE = 0x40;
+    public static final int UPDATE_IS_DELETABLE = 0x80;
+
+    public interface Observer {
+        /**
+         * Called when any of the following block structural elements have changed.
+         * <ul>
+         *     <li>Inputs</li>
+         *     <li>Fields</li>
+         *     <li>Mutator</li>
+         *     <li>Comment</li>
+         *     <li>Shadow state</li>
+         *     <li>Disabled state</li>
+         *     <li>Collapsed state</li>
+         *     <li>Editable state</li>
+         *     <li>Deletable state</li>
+         * </ul>
+         * @param block The block updated.
+         * @param whatChanged The bit flags identifying the changed state.
+         */
+        void onUpdated(Block block, @UpdateState int whatChanged);
+    }
 
     // These values are immutable once a block is created
     private final BlockFactory mFactory;
@@ -178,7 +218,11 @@ public class Block {
      * @param editable
      */
     public void setEditable(boolean editable) {
+        if (editable == mEditable) {
+            return;
+        }
         mEditable = editable;
+        fireUpdate(UPDATE_IS_EDITABLE);
     }
 
     /**
@@ -218,7 +262,11 @@ public class Block {
      * @param deletable
      */
     public void setDeletable(boolean deletable) {
+        if (mDeletable != deletable) {
+            return;
+        }
         mDeletable = deletable;
+        fireUpdate(UPDATE_IS_DELETABLE);
     }
 
     /**
@@ -259,7 +307,11 @@ public class Block {
      * @param disabled
      */
     public void setDisabled(boolean disabled) {
+        if (mDisabled == disabled) {
+            return;
+        }
         mDisabled = disabled;
+        fireUpdate(UPDATE_IS_DISABLED);
     }
 
     /**
@@ -278,7 +330,11 @@ public class Block {
      * @param collapsed Whether the block should be collapsed.
      */
     public void setCollapsed(boolean collapsed) {
+        if (collapsed == mCollapsed) {
+            return;
+        }
         mCollapsed = collapsed;
+        fireUpdate(UPDATE_IS_COLLAPSED);
     }
 
     /**
@@ -355,7 +411,11 @@ public class Block {
      * @param comment The text of the comment.
      */
     public void setComment(String comment) {
+        if (comment == mComment || (comment != null && comment.equals(mComment))) {
+            return;
+        }
         mComment = comment;
+        fireUpdate(UPDATE_COMMENT);
     }
 
     /**
@@ -714,6 +774,7 @@ public class Block {
 
         // State change is valid. Proceed.
         mIsShadow = isShadow;
+        fireUpdate(UPDATE_IS_SHADOW);
     }
 
     /**
@@ -931,6 +992,15 @@ public class Block {
      */
     boolean containsVariableField() {
         return containsVariableField(mInputList);
+    }
+
+    /**
+     * Notifies Observers of a structure change.
+     */
+    protected void fireUpdate(@UpdateState int whatChanged) {
+        for (Observer observer: mObservers) {
+            observer.onUpdated(this, whatChanged);
+        }
     }
 
     /**
