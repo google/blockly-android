@@ -70,9 +70,9 @@ public class Block extends Observable<Block.Observer> {
          *     <li>Deletable state</li>
          * </ul>
          * @param block The block updated.
-         * @param whatChanged The bit flags identifying the changed state.
+         * @param updateStateMask A bit mask of {@link UpdateState} bits for the updated parts.
          */
-        void onUpdated(Block block, @UpdateState int whatChanged);
+        void onBlockUpdated(Block block, @UpdateState int updateStateMask);
     }
 
     // These values are immutable once a block is created
@@ -262,7 +262,7 @@ public class Block extends Observable<Block.Observer> {
      * @param deletable
      */
     public void setDeletable(boolean deletable) {
-        if (mDeletable != deletable) {
+        if (mDeletable == deletable) {
             return;
         }
         mDeletable = deletable;
@@ -410,7 +410,7 @@ public class Block extends Observable<Block.Observer> {
      *
      * @param comment The text of the comment.
      */
-    public void setComment(String comment) {
+    public void setComment(@Nullable String comment) {
         if (comment == mComment || (comment != null && comment.equals(mComment))) {
             return;
         }
@@ -996,10 +996,11 @@ public class Block extends Observable<Block.Observer> {
 
     /**
      * Notifies Observers of a structure change.
+     * @param updateStateMask A bit mask of {@link UpdateState} bits for the updated parts.
      */
-    protected void fireUpdate(@UpdateState int whatChanged) {
+    protected void fireUpdate(@UpdateState int updateStateMask) {
         for (Observer observer: mObservers) {
-            observer.onUpdated(this, whatChanged);
+            observer.onBlockUpdated(this, updateStateMask);
         }
     }
 
