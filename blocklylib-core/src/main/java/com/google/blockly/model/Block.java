@@ -30,6 +30,7 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
@@ -42,11 +43,11 @@ public class Block extends Observable<Block.Observer> {
 
     @Retention(SOURCE)
     @IntDef({
-            UPDATE_INPUTS_FIELDS, UPDATE_MUTATOR, UPDATE_COMMENT, UPDATE_IS_SHADOW,
+            UPDATE_INPUTS_FIELDS_CONNECTIONS, UPDATE_MUTATOR, UPDATE_COMMENT, UPDATE_IS_SHADOW,
             UPDATE_IS_DISABLED, UPDATE_IS_COLLAPSED, UPDATE_IS_EDITABLE, UPDATE_IS_DELETABLE
     })
     public @interface UpdateState {}
-    public static final int UPDATE_INPUTS_FIELDS = 0x01;  // TODO
+    public static final int UPDATE_INPUTS_FIELDS_CONNECTIONS = 0x01;
     public static final int UPDATE_MUTATOR = 0x02;  // TODO
     public static final int UPDATE_COMMENT = 0x04;
     public static final int UPDATE_IS_SHADOW = 0x08;
@@ -54,6 +55,7 @@ public class Block extends Observable<Block.Observer> {
     public static final int UPDATE_IS_COLLAPSED = 0x20;
     public static final int UPDATE_IS_EDITABLE = 0x40;
     public static final int UPDATE_IS_DELETABLE = 0x80;
+    // TODO(Anm): Tooltip, Context menu, Color
 
     public interface Observer {
         /**
@@ -80,8 +82,6 @@ public class Block extends Observable<Block.Observer> {
     private final BlockFactory mFactory;
     private final String mId;
     private final String mType;
-    private final ArrayList<Connection> mConnectionList = new ArrayList<>();
-    private final ArrayList<Input> mInputList;
     private boolean mIsShadow;
 
     // Set by BlockFactory.applyMutator(). May only be set once.
@@ -90,9 +90,11 @@ public class Block extends Observable<Block.Observer> {
 
     // These values can be changed after creating the block
     private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
+    private List<Input> mInputList = Collections.EMPTY_LIST;
     private Connection mOutputConnection;
     private Connection mNextConnection;
     private Connection mPreviousConnection;
+    private List<Connection> mConnectionList = Collections.EMPTY_LIST;
     private String mTooltip = null;
     private String mComment = null;
     private boolean mHasContextMenu = true;
@@ -129,10 +131,10 @@ public class Block extends Observable<Block.Observer> {
         mType = definition.getTypeName();
         mColor = definition.getColor();
 
-        mOutputConnection = definition.createOutputConnection();
-        mPreviousConnection = definition.createPreviousConnection();
-        mNextConnection = definition.createNextConnection();
-        mInputList = definition.createInputList(factory);
+        reshape(definition.createInputList(factory),
+                definition.createOutputConnection(),
+                definition.createPreviousConnection(),
+                definition.createNextConnection());
         if (isShadow && containsVariableField()) {
             throw new BlockLoadingException("Shadow blocks may not contain variable fields.");
         }
@@ -142,8 +144,6 @@ public class Block extends Observable<Block.Observer> {
 
         mPosition = new WorkspacePoint(0, 0);
         setShadow(isShadow);
-
-        rebuildConnectionList();
 
         mMutatorId = definition.getMutatorId();
         if (mMutatorId != null) {
@@ -797,6 +797,104 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
+     * {@code reshape()} updates the inputs and all connections with potentially new values,
+     * changing the shape of the block. This method should only be called by the constructor, or
+     * {@link Mutator}s.
+     * <p/>
+     * Changes to {@link Input} and their {@link Field} change by updating the whole input list.
+     * Inputs can be reused, and must be reused if blocks are to remain connected to a block.
+     * Removed inputs must be previously disconnected (moved or deleted), and added inputs must also
+     * be empty (i.e., not connect to child blocks).
+     * <p/>
+     * Similarly, {@link Connection}s that should remain connected should be reused, and
+     * added/removed connections must not be connected to another block. All connections must be
+     * constructed with the correct connection type for their position.
+     *
+     * @param newInputList The new list of inputs.
+     * @param updatedOutput The updated output connection, if any.
+     * @param updatedPrev The updated previous connection, if any.
+     * @param updatedNext The updated next connection, if any.
+     */
+    public void reshape(@Nullable List<Input> newInputList,
+                        @Nullable Connection updatedOutput,
+                        @Nullable Connection updatedPrev,
+                        @Nullable Connection updatedNext) {
+        if (updatedOutput != null) {
+            if (updatedPrev != null) {
+                throw new IllegalArgumentException(
+                        "A block cannot have both an output connection and a previous connection.");
+            }
+            if (updatedOutput.getType() != Connection.CONNECTION_TYPE_OUTPUT) {
+                throw new IllegalArgumentException(
+                        "updatedOutput Connection type is not CONNECTION_TYPE_OUTPUT");
+            }
+        }
+        if (updatedPrev != null && updatedPrev.getType() != Connection.CONNECTION_TYPE_PREVIOUS) {
+            throw new IllegalArgumentException(
+                    "updatedPrev Connection type is not CONNECTION_TYPE_PREVIOUS");
+        }
+        if (updatedNext != null && updatedNext.getType() != Connection.CONNECTION_TYPE_NEXT) {
+            throw new IllegalArgumentException(
+                    "updatedNext Connection type is not CONNECTION_TYPE_NEXT");
+        }
+
+        if (newInputList == null) {
+            newInputList = Collections.EMPTY_LIST;
+        }
+
+        List<Connection> connectionList = new ArrayList<>();
+        List<Input> oldInputs = mInputList;
+
+        for (Input in : oldInputs) {
+            if (!newInputList.contains(in)) {
+                if (in.getConnectedBlock() != null) {
+                    // This is a critical failure, as it may leave inputs in an invalid state if
+                    // another input was already removed (i.e., setBlock(null) was already called).
+                    throw new IllegalStateException(
+                            "Cannot remove input \"" + in.getName() + "\" while connected.");
+                }
+                in.setBlock(null); // Reset the block reference in removed Inputs and Fields.
+            }
+        }
+        for (Input in : newInputList) {
+            if (!oldInputs.contains(in)) {
+                if (in.getConnectedBlock() != null) {
+                    // This is a critical failure, as it may leave inputs in an invalid state if
+                    // an old input was removed above (i.e., setBlock(null) was already called).
+                    throw new IllegalStateException(
+                            "Cannot add input \"" + in.getName() + "\" while connected.");
+                }
+                in.setBlock(this);
+            }
+            Connection inputConn = in.getConnection();
+            if (inputConn != null) {
+                connectionList.add(inputConn);
+            }
+        }
+
+        if (updatedOutput != null) {
+            updatedOutput.setBlock(this);
+            connectionList.add(updatedOutput);
+        }
+        if (updatedPrev != null) {
+            updatedPrev.setBlock(this);
+            connectionList.add(updatedPrev);
+        }
+        if (updatedNext != null) {
+            updatedNext.setBlock(this);
+            connectionList.add(updatedNext);
+        }
+
+        mInputList = Collections.unmodifiableList(newInputList);
+        mOutputConnection = updatedOutput;
+        mPreviousConnection = updatedPrev;
+        mNextConnection = updatedNext;
+        mConnectionList = Collections.unmodifiableList(connectionList);
+
+        fireUpdate(UPDATE_INPUTS_FIELDS_CONNECTIONS);
+    }
+
+    /**
      * This method returns a string describing this Block in developer terms (type
      * name and ID; English only). Intended to on be used in console logs and errors.
      * @return The description.
@@ -825,35 +923,6 @@ public class Block extends Observable<Block.Observer> {
         mMutator = mutator;
         mMutatorId = id;
         mutator.onAttached(this);
-    }
-
-    /**
-     * Updates {@link #mConnectionList} to reflect the latest state of all connections on this block
-     * (inputs, next, previous, and output).
-     */
-    private void rebuildConnectionList() {
-        mConnectionList.clear();
-        if (mInputList != null) {
-            for (int i = 0; i < mInputList.size(); i++) {
-                Input in = mInputList.get(i);
-                in.setBlock(this);
-                if (in.getConnection() != null) {
-                    mConnectionList.add(in.getConnection());
-                }
-            }
-        }
-        if (mOutputConnection != null) {
-            mOutputConnection.setBlock(this);
-            mConnectionList.add(mOutputConnection);
-        }
-        if (mPreviousConnection != null) {
-            mPreviousConnection.setBlock(this);
-            mConnectionList.add(mPreviousConnection);
-        }
-        if (mNextConnection != null) {
-            mNextConnection.setBlock(this);
-            mConnectionList.add(mNextConnection);
-        }
     }
 
     /**
@@ -1024,7 +1093,7 @@ public class Block extends Observable<Block.Observer> {
      * @param inputs {@link Input}s to check for variable fields.
      * @return True if any input in {@code inputs} includes a variable field. Otherwise false.
      */
-    private static boolean containsVariableField(ArrayList<Input> inputs) {
+    private static boolean containsVariableField(List<Input> inputs) {
         // Verify there's not a variable field
         int inputCount = inputs.size();
         for (int i = 0; i < inputCount; i++) {

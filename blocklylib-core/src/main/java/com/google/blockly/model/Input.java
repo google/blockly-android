@@ -305,6 +305,12 @@ public abstract class Input implements Cloneable {
      * @param block The block that owns this input.
      */
     public void setBlock(Block block) {
+        if (block == mBlock) {
+            return;
+        }
+        if (block != null && mBlock != null) {
+            throw new IllegalStateException("Input is already a member of another block.");
+        }
         mBlock = block;
         if (mConnection != null) {
             mConnection.setBlock(block);
