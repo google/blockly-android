@@ -442,9 +442,7 @@ public class BlockFactory {
                     "Mutator \"" + block.mMutatorId + "\" already applied.");
         }
         Mutator mutator = factory.newMutator();
-        block.mMutatorId = mutatorId;
-        block.mMutator = mutator;
-        mutator.onAttached(block);
+        block.setMutator(mutator, mutatorId);
     }
 
 

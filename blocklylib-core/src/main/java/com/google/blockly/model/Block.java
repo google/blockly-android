@@ -57,7 +57,8 @@ public class Block extends Observable<Block.Observer> {
 
     public interface Observer {
         /**
-         * Called when any of the following block structural elements have changed.
+         * Called when any of the following block elements have changed, possibly triggering a
+         * change in the BlockView.
          * <ul>
          *     <li>Inputs</li>
          *     <li>Fields</li>
@@ -810,6 +811,21 @@ public class Block extends Observable<Block.Observer> {
         }
         return description;
     };
+
+    /**
+     * Sets the mutator for this block.  Called from BlockFractory, and can only be called once (for
+     * now).
+     * @param mutator The mutator implementation.
+     * @param id The mutator id, used to pair with a UI implementation.
+     */
+    /*package private*/ void setMutator(@NonNull Mutator mutator, String id) {
+        if (mMutator != null) {
+            throw new IllegalStateException("Cannot change mutators on a block.");
+        }
+        mMutator = mutator;
+        mMutatorId = id;
+        mutator.onAttached(this);
+    }
 
     /**
      * Updates {@link #mConnectionList} to reflect the latest state of all connections on this block
