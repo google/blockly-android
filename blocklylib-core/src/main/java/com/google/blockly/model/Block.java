@@ -839,7 +839,7 @@ public class Block extends Observable<Block.Observer> {
         }
 
         if (newInputList == null) {
-            newInputList = Collections.EMPTY_LIST;
+            newInputList = Collections.<Input>emptyList();
         }
 
         List<Connection> connectionList = new ArrayList<>();
