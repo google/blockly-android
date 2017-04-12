@@ -55,7 +55,7 @@ public class Block extends Observable<Block.Observer> {
     public static final int UPDATE_IS_COLLAPSED = 0x20;
     public static final int UPDATE_IS_EDITABLE = 0x40;
     public static final int UPDATE_IS_DELETABLE = 0x80;
-    // TODO(Anm): Tooltip, Context menu, Color
+    // TODO(Anm): Tooltip, Context menu, Block color
 
     public interface Observer {
         /**
@@ -90,11 +90,11 @@ public class Block extends Observable<Block.Observer> {
 
     // These values can be changed after creating the block
     private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
-    private List<Input> mInputList = Collections.EMPTY_LIST;
+    private List<Input> mInputList = Collections.<Input>emptyList();
     private Connection mOutputConnection;
     private Connection mNextConnection;
     private Connection mPreviousConnection;
-    private List<Connection> mConnectionList = Collections.EMPTY_LIST;
+    private List<Connection> mConnectionList = Collections.<Connection>emptyList();
     private String mTooltip = null;
     private String mComment = null;
     private boolean mHasContextMenu = true;

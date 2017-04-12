@@ -29,14 +29,28 @@ import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * An input on a Blockly block. This generally wraps one or more {@link Field fields}. An input can
- * be created by calling {@link #fromJson(JSONObject) Input.fromJson} or by creating a new instance
- * of a concrete input class and adding fields to it.
+ * An input on a Blockly block. Inputs come in three varieties:
+ * <ul>
+ *     <li>{@link InputValue} which can connect to a block's output. Values are rendered (at least,
+ *     by {@code blocklylib-vertical}) as either an external connection, or a embedded block (i.e.,
+ *     inline input).</li>
+ *     <li>{@link InputStatement} which connect to a block's previous connector. Statements are
+ *     rendered as a stack of blocks, partially wrapped. For instance, consider loops or "if"
+ *     blocks.</li>
+ *     <li>{@link InputDummy} which lacks a connection to a child block. These act as simple field
+ *     containers.</li>
+ * </ul>
+ * <p/>
+ * In addition, most inputs also include a list of {@link Field fields} preceding any connected
+ * block.
+ * <p/>
+ * The list of fields, and block type are immutable for a given Input.
  */
 public abstract class Input implements Cloneable {
     private static final String TAG = "Input";
@@ -86,27 +100,8 @@ public abstract class Input implements Cloneable {
         INPUT_TYPES.add(TYPE_DUMMY_STRING);
     }
 
-    /**
-     * Acquires the Connection on {@code block} that matches the connection type for {@code input}
-     * as a parent, or null if none exist. That is, if input is a value input, return the output
-     * connection of the block. If input is a statement input, return the previous connection of
-     * block.
-     *
-     * @param input The potential parent input.
-     * @param block The potential child block.
-     * @return The Connection on block (output or previous).
-     */
-    public static Connection getPotentialConnection(Input input, Block block) {
-        if (input.getType() == TYPE_VALUE) {
-            return block.getOutputConnection();
-        } else if (input.getType() == TYPE_STATEMENT) {
-            return block.getPreviousConnection();
-        }
-        return null; // No potential conneciton.
-    }
-
-    private final ArrayList<Field> mFields = new ArrayList<>();
     private final String mName;
+    private List<Field> mFields;
     private final Connection mConnection;
     @InputType
     private final int mType;
@@ -123,9 +118,12 @@ public abstract class Input implements Cloneable {
      * @param align The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
-    public Input(String name, @InputType int type, @Alignment int align, Connection connection) {
+    public Input(String name, @InputType int type, @Nullable List<Field> fields,
+                 @Alignment int align, Connection connection) {
         mName = name;
         mType = type;
+        mFields = (fields == null) ? Collections.<Field>emptyList()
+                : Collections.unmodifiableList(new ArrayList<Field>(fields));
         mAlign = align;
         mConnection = connection;
 
@@ -142,8 +140,9 @@ public abstract class Input implements Cloneable {
      * @param alignString The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
-    public Input(String name, @InputType int type, String alignString, Connection connection) {
-        this(name, type, stringToAlignment(alignString), connection);
+    public Input(String name, @InputType int type, @Nullable List<Field> fields, String alignString,
+                 Connection connection) {
+        this(name, type, fields, stringToAlignment(alignString), connection);
     }
 
     /**
@@ -254,24 +253,6 @@ public abstract class Input implements Cloneable {
     }
 
     /**
-     * Adds all of the given fields to this input.
-     *
-     * @param fields The fields to add.
-     */
-    public void addAll(List<Field> fields) {
-        mFields.addAll(fields);
-    }
-
-    /**
-     * Adds a single field to the end of this input.
-     *
-     * @param field The field to add.
-     */
-    public void add(Field field) {
-        mFields.add(field);
-    }
-
-    /**
      * @return The list of fields in this input.
      */
     public List<Field> getFields() {
@@ -354,7 +335,7 @@ public abstract class Input implements Cloneable {
      *
      * @return An instance of {@link Input} generated from the json.
      */
-    public static Input fromJson(JSONObject json) {
+    public static Input fromJson(JSONObject json, List<Field> fields) {
         String type = null;
         try {
             type = json.getString("type");
@@ -364,11 +345,11 @@ public abstract class Input implements Cloneable {
 
         switch (type) {
             case TYPE_VALUE_STRING:
-                return new InputValue(json);
+                return new InputValue(json, fields);
             case TYPE_STATEMENT_STRING:
-                return new InputStatement(json);
+                return new InputStatement(json, fields);
             case TYPE_DUMMY_STRING:
-                return new InputDummy(json);
+                return new InputDummy(json, fields);
             default:
                 throw new IllegalArgumentException("Unknown input type: " + type);
         }
@@ -452,13 +433,15 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputValue extends Input implements Cloneable {
 
-        public InputValue(String name, String alignString, String[] checks) {
-            super(name, TYPE_VALUE, alignString,
+        public InputValue(String name, @Nullable List<Field> fields, String alignString,
+                          String[] checks) {
+            super(name, TYPE_VALUE, fields, alignString,
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
 
-        public InputValue(String name, @Alignment int align, String[] checks) {
-            super(name, TYPE_VALUE, align,
+        public InputValue(String name, @Nullable List<Field> fields, @Alignment int align,
+                          String[] checks) {
+            super(name, TYPE_VALUE, fields, align,
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
 
@@ -466,8 +449,8 @@ public abstract class Input implements Cloneable {
             super(inv);
         }
 
-        private InputValue(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("align"),
+        private InputValue(JSONObject json, List<Field> fields) {
+            this(json.optString("name", "NAME"), fields, json.optString("align"),
                     getChecksFromJson(json, "check"));
         }
 
@@ -488,13 +471,15 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputStatement extends Input implements Cloneable {
 
-        public InputStatement(String name, String alignString, String[] checks) {
-            super(name, TYPE_STATEMENT, alignString,
+        public InputStatement(String name, @Nullable List<Field> fields, String alignString,
+                              String[] checks) {
+            super(name, TYPE_STATEMENT, fields, alignString,
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
 
-        public InputStatement(String name, @Alignment int align, String[] checks) {
-            super(name, TYPE_STATEMENT, align,
+        public InputStatement(String name, @Nullable List<Field> fields, @Alignment int align,
+                              String[] checks) {
+            super(name, TYPE_STATEMENT, fields, align,
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
 
@@ -502,8 +487,8 @@ public abstract class Input implements Cloneable {
             super(ins);
         }
 
-        private InputStatement(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("align"),
+        private InputStatement(JSONObject json, List<Field> fields) {
+            this(json.optString("name", "NAME"), fields, json.optString("align"),
                     getChecksFromJson(json, "check"));
         }
 
@@ -523,20 +508,20 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputDummy extends Input implements Cloneable {
 
-        public InputDummy(String name, String alignString) {
-            super(name, TYPE_DUMMY, alignString, null);
+        public InputDummy(String name, @Nullable List<Field> fields, String alignString) {
+            super(name, TYPE_DUMMY, fields, alignString, null);
         }
 
-        public InputDummy(String name, @Alignment int align) {
-            super(name, TYPE_DUMMY, align, null);
+        public InputDummy(String name, @Nullable List<Field> fields, @Alignment int align) {
+            super(name, TYPE_DUMMY, fields, align, null);
         }
 
         private InputDummy(InputDummy ind) {
             super(ind);
         }
 
-        private InputDummy(JSONObject json) {
-            this(json.optString("name", "NAME"), json.optString("align"));
+        private InputDummy(JSONObject json, @Nullable List<Field> fields) {
+            this(json.optString("name", "NAME"), fields, json.optString("align"));
         }
 
         @Override
