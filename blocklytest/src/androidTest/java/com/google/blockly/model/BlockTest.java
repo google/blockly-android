@@ -313,15 +313,14 @@ public class BlockTest extends BlocklyTestCase {
     @Test
     public void testGetAllConnections() throws BlockLoadingException {
         Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("frankenblock"));
-        List<Connection> allConnections = block.getAllConnections();
+        List<Connection> allConnections = new ArrayList<>();
+        block.getAllConnections(allConnections);
         assertThat(allConnections.size()).isEqualTo(4);
 
         block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("frankenblock"));
         allConnections.clear();
         block.getAllConnections(allConnections);
         assertThat(allConnections.size()).isEqualTo(4);
-
-        allConnections.clear();
 
         Block ivb = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("simple_input_output"));
@@ -331,6 +330,7 @@ public class BlockTest extends BlocklyTestCase {
         Block smb = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("statement_no_input"));
         block.getInputs().get(1).getConnection().connect(smb.getPreviousConnection());
 
+        allConnections.clear();
         block.getAllConnectionsRecursive(allConnections);
         assertThat(allConnections.size()).isEqualTo(9);
     }

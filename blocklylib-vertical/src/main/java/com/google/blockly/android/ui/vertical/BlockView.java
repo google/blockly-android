@@ -50,9 +50,9 @@ public class BlockView extends AbstractBlockView<InputView> {
     private static final float SHADOW_SATURATION_MULTIPLIER = 0.4f;
     private static final float SHADOW_VALUE_MULTIPLIER = 1.2f;
 
-    private static final int UPDATES_THAT_CAUSE_REINIT =
-            Block.UPDATE_INPUTS_FIELDS | Block.UPDATE_IS_COLLAPSED | Block.UPDATE_IS_DISABLED
-            | Block.UPDATE_IS_SHADOW;
+    private static final int UPDATES_THAT_CAUSE_RELOAD_SHAPE_ASSETS =
+            Block.UPDATE_INPUTS_FIELDS_CONNECTIONS | Block.UPDATE_IS_COLLAPSED
+            | Block.UPDATE_IS_DISABLED | Block.UPDATE_IS_SHADOW;
 
     // TODO(#86): Determine from 9-patch measurements.
     private final int mMinBlockWidth;
@@ -125,7 +125,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         block.registerObserver(new Block.Observer() {
             @Override
             public void onBlockUpdated(Block block, @Block.UpdateState int updateMask) {
-                if ((updateMask & UPDATES_THAT_CAUSE_REINIT) != 0) {
+                if ((updateMask & UPDATES_THAT_CAUSE_RELOAD_SHAPE_ASSETS) != 0) {
                     onBlockStructureUpdated();
                 }
             }
