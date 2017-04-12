@@ -149,11 +149,13 @@ public class ConnectionManagerTest {
     public void testIsConnectionAllowedNext() {
         Connection one = createConnection(0, 0,
                 Connection.CONNECTION_TYPE_NEXT, /* shadow */ false);
-        one.setInput(new Input.InputValue("test input", "" /* align */, null /* checks */));
+        one.setInput(new Input.InputValue("test input",
+                null /* fields */, "" /* align */, null /* checks */));
 
         Connection two = createConnection(0, 0,
                 Connection.CONNECTION_TYPE_NEXT, /* shadow */ false);
-        two.setInput(new Input.InputValue("test input", "" /* align */, null /* checks */));
+        two.setInput(new Input.InputValue("test input",
+                null /* fields */, "" /* align */, null /* checks */));
 
         // Don't offer to connect the bottom of a statement block to one that's already connected.
         Connection three = createConnection(0, 0,

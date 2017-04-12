@@ -43,7 +43,8 @@ import java.util.Map;
  * extensions and mutators</a>.
  */
 public interface BlockExtension {
-    Map<String, BlockExtension> STANDARD_EXTENSIONS = Collections.EMPTY_MAP;  // TODO
+    Map<String, BlockExtension> STANDARD_EXTENSIONS =
+            Collections.<String, BlockExtension>emptyMap();  // TODO
 
     /**
      * Applies the extension to the provided block.

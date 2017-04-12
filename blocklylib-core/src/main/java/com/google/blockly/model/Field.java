@@ -152,6 +152,12 @@ public abstract class Field extends Observable<Field.Observer> implements Clonea
      * @param block The parent block for this field.
      */
     protected void setBlock(Block block) {
+        if (block == mBlock) {
+            return;
+        }
+        if (block != null && mBlock != null) {
+            throw new IllegalStateException("Field is already a member of another block.");
+        }
         mBlock = block;
     }
 

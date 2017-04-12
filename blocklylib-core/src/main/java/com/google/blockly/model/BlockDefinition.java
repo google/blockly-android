@@ -222,8 +222,7 @@ public final class BlockDefinition {
                             fields.add(factory.loadFieldFromJson(mTypeName, element));
                             break;
                         } else if (Input.isInputType(elementType)) {
-                            Input input = Input.fromJson(element);
-                            input.addAll(fields);
+                            Input input = Input.fromJson(element, fields);
                             fields.clear();
                             inputs.add(input);
                             break;
@@ -250,8 +249,7 @@ public final class BlockDefinition {
             // If there were leftover fields we need to add a dummy input to hold them.
             if (fields.size() != 0) {
                 String align = mJson.optString(lastDummyAlignKey, Input.ALIGN_LEFT_STRING);
-                Input input = new Input.InputDummy(null, align);
-                input.addAll(fields);
+                Input input = new Input.InputDummy(null, fields, align);
                 inputs.add(input);
                 fields.clear();
             }
@@ -351,7 +349,7 @@ public final class BlockDefinition {
     private List<String> parseExtensions(JSONObject json)
             throws JSONException, BlockLoadingException {
         if (!json.has("extensions")) {
-            return Collections.EMPTY_LIST;
+            return Collections.<String>emptyList();
         }
 
         // While we expect an array, permissively grab an Object in case it is just a string.
