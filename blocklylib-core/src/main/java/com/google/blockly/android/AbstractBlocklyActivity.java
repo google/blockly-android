@@ -405,9 +405,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * activity. By default, returns {@link BlockExtension#STANDARD_EXTENSIONS}. Called from
      * {@link #resetBlockFactory()}.
      *
-     * @return The list of extensions to use for future blocks. Null is treated like an empty list.
+     * @return The list of extensions to use for future blocks.
      */
-    @Nullable
+    @NonNull
     protected Map<String, BlockExtension> getBlockExtensions() {
         // Create a new instance so it is easy to append by subclasses.  Not called very often.
         return new HashMap<>(BlockExtension.STANDARD_EXTENSIONS);
@@ -415,9 +415,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
 
     /**
-     * @return
+     * @return The list of {@link Mutator Mutators} to use for building blocks.
      */
-    @Nullable
+    @NonNull
     protected Map<String, Mutator.Factory> getBlockMutators() {
         return new HashMap<>(Mutator.STANDARD_MUTATORS);
     }

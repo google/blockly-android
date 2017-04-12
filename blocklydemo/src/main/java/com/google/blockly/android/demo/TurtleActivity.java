@@ -238,9 +238,6 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @Override
     protected Map<String, Mutator.Factory> getBlockMutators() {
         Map<String, Mutator.Factory> mutators = super.getBlockMutators();
-        if (mutators == null) {
-            mutators = new ArrayMap<>();
-        }
         mutators.put("turtle_mutator", new IfElseMutatorUI.Factory());
         return mutators;
     }
