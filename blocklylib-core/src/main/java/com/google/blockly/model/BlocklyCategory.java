@@ -38,6 +38,7 @@ import java.util.List;
  * A category of a toolbox, which holds zero or more blocks or zero or more subcategories. Not both.
  * {@link FlyoutFragment} is responsible for displaying this.
  */
+// TODO(567): Implement BlockContainer.
 public class BlocklyCategory {
     private static final String TAG = "BlocklyCategory";
 

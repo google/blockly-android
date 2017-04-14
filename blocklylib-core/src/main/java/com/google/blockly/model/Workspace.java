@@ -37,7 +37,7 @@ import java.util.UUID;
 /**
  * The root class for the Blockly model.  Keeps track of all the global state used in the workspace.
  */
-public class Workspace {
+public class Workspace implements BlockContainer {
     private static final String TAG = "Workspace";
 
     private final Context mContext;
@@ -76,8 +76,19 @@ public class Workspace {
         mId = UUID.randomUUID().toString();
     }
 
+    @Override
     public String getId() {
         return mId;
+    }
+
+    @Override
+    public boolean isRootContainer() {
+        return true;
+    }
+
+    @Override
+    public BlockContainer getParentContainer() {
+        return null;
     }
 
     /**

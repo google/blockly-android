@@ -143,7 +143,7 @@ public abstract class BlocklyEvent {
     @EventType
     protected final int mTypeId;
     protected final String mBlockId;
-    protected final String mWorkspaceId;
+    protected final String mRootContainerId;
 
     protected String mGroupId;
 
@@ -151,18 +151,19 @@ public abstract class BlocklyEvent {
      * Base constructor for all BlocklyEvents.
      *
      * @param typeId The {@link EventType}.
-     * @param workspaceId The id string of the Blockly workspace.
+     * @param rootContainerId The id string of the Blockly workspace, if any. This should be null
+     *                        for blocks that are not attached to any workspace.
      * @param groupId The id string of the event group. Usually null for local events (assigned
      *                later); non-null for remote events.
      * @param blockId The id string of the block affected. Null for a few event types (e.g., toolbox
      *                category).
      */
-    protected BlocklyEvent(@EventType int typeId, @NonNull String workspaceId,
+    protected BlocklyEvent(@EventType int typeId, @Nullable String rootContainerId,
                            @Nullable String groupId, @Nullable String blockId) {
         validateEventType(typeId);
         mTypeId = typeId;
         mBlockId = blockId;
-        mWorkspaceId = workspaceId;
+        mRootContainerId = rootContainerId;
         mGroupId = groupId;
     }
 
@@ -176,7 +177,7 @@ public abstract class BlocklyEvent {
     protected BlocklyEvent(@EventType int typeId, JSONObject json) throws JSONException {
         validateEventType(typeId);
         mTypeId = typeId;
-        mWorkspaceId = json.optString(JSON_WORKSPACE_ID);
+        mRootContainerId = json.optString(JSON_WORKSPACE_ID);
         mGroupId = json.optString(JSON_GROUP_ID);
         mBlockId = json.optString(JSON_BLOCK_ID);
     }
@@ -198,11 +199,15 @@ public abstract class BlocklyEvent {
     }
 
     /**
-     * @return The identifier for the workspace that triggered this event.
+     * This is the id of the root {@link BlockContainer} where this event occurred. This may refer
+     * to a {@link Workspace}, a tool box, or the trash (the latter two being
+     * {@link BlocklyCategory}s).
+     *
+     * @return The identifier for the root container where this event occured.
      */
     @Nullable
-    public String getWorkspaceId() {
-        return mWorkspaceId;
+    public String getRootContainerId() {
+        return mRootContainerId;
     }
 
     /**
@@ -253,14 +258,12 @@ public abstract class BlocklyEvent {
         /**
          * Creates a ChangeEvent reflecting a change in the block's collapsed state.
          *
-         * @param workspace The workspace containing the block.
          * @param block The block where the state changed.
          * @return The new ChangeEvent.
          */
-        public static ChangeEvent newCollapsedStateEvent(@NonNull Workspace workspace,
-                                                         @NonNull Block block) {
+        public static ChangeEvent newCollapsedStateEvent(@NonNull Block block) {
             boolean collapsed = block.isCollapsed();
-            return new ChangeEvent(ELEMENT_COLLAPSED, workspace, block, null,
+            return new ChangeEvent(ELEMENT_COLLAPSED, block, null,
                     /* oldValue */ !collapsed ? "true" : "false",
                     /* newValue */ collapsed ? "true" : "false");
         }
@@ -268,29 +271,25 @@ public abstract class BlocklyEvent {
         /**
          * Creates a ChangeEvent reflecting a change in the block's comment text.
          *
-         * @param workspace The workspace containing the block.
          * @param block The block where the state changed.
          * @param oldValue The prior comment text.
          * @param newValue The updated comment text.
          * @return The new ChangeEvent.
          */
         public static ChangeEvent newCommentTextEvent(
-                @NonNull Workspace workspace, @NonNull Block block,
-                @Nullable String oldValue, @Nullable String newValue) {
-            return new ChangeEvent(ELEMENT_COMMENT, workspace, block, null, oldValue, newValue);
+                @NonNull Block block, @Nullable String oldValue, @Nullable String newValue) {
+            return new ChangeEvent(ELEMENT_COMMENT, block, null, oldValue, newValue);
         }
 
         /**
          * Creates a ChangeEvent reflecting a change in the block's disabled state.
          *
-         * @param workspace The workspace containing the block.
          * @param block The block where the state changed.
          * @return The new ChangeEvent.
          */
-        public static ChangeEvent newDisabledStateEvent(@NonNull Workspace workspace,
-                                                        @NonNull Block block) {
+        public static ChangeEvent newDisabledStateEvent(@NonNull Block block) {
             boolean disabled = block.isDisabled();
-            return new ChangeEvent(ELEMENT_DISABLED, workspace, block, null,
+            return new ChangeEvent(ELEMENT_DISABLED, block, null,
                     /* oldValue */ !disabled ? "true" : "false",
                     /* newValue */ disabled ? "true" : "false");
         }
@@ -298,7 +297,6 @@ public abstract class BlocklyEvent {
         /**
          * Creates a ChangeEvent reflecting a change in a field's value.
          *
-         * @param workspace The workspace containing the block.
          * @param block The block where the state changed.
          * @param field The field with the changed value.
          * @param oldValue The prior value.
@@ -306,22 +304,20 @@ public abstract class BlocklyEvent {
          * @return The new ChangeEvent.
          */
         public static ChangeEvent newFieldValueEvent(
-                @NonNull Workspace workspace, @NonNull Block block, @NonNull Field field,
-                @NonNull String oldValue, @NonNull String newValue) {
-            return new ChangeEvent(ELEMENT_FIELD, workspace, block, field, oldValue, newValue);
+                @NonNull Block block, @NonNull Field field, @NonNull String oldValue,
+                @NonNull String newValue) {
+            return new ChangeEvent(ELEMENT_FIELD, block, field, oldValue, newValue);
         }
 
         /**
          * Creates a ChangeEvent reflecting a change in the block's inlined inputs state.
          *
-         * @param workspace The workspace containing the block.
          * @param block The block where the state changed.
          * @return The new ChangeEvent.
          */
-        public static ChangeEvent newInlineStateEvent(@NonNull Workspace workspace,
-                                                      @NonNull Block block) {
+        public static ChangeEvent newInlineStateEvent(@NonNull Block block) {
             boolean inline = block.getInputsInline();
-            return new ChangeEvent(ELEMENT_INLINE, workspace, block, null,
+            return new ChangeEvent(ELEMENT_INLINE, block, null,
                     /* oldValue */ !inline ? "true" : "false",
                     /* newValue */ inline ? "true" : "false");
         }
@@ -329,16 +325,14 @@ public abstract class BlocklyEvent {
         /**
          * Creates a ChangeEvent reflecting a change in the block's mutation state.
          *
-         * @param workspace The workspace containing the block.
          * @param block The block where the state changed.
          * @param oldValue The serialized version of the prior mutation state.
          * @param newValue The serialized version of the updated mutation state.
          * @return The new ChangeEvent.
          */
         public static ChangeEvent newMutateEvent(
-                @NonNull Workspace workspace, @NonNull Block block,
-                @Nullable String oldValue, @Nullable String newValue) {
-            return new ChangeEvent(ELEMENT_MUTATE, workspace, block, null, oldValue, newValue);
+                @NonNull Block block, @Nullable String oldValue, @Nullable String newValue) {
+            return new ChangeEvent(ELEMENT_MUTATE, block, null, oldValue, newValue);
         }
 
         @NonNull @ChangeElement
@@ -353,17 +347,16 @@ public abstract class BlocklyEvent {
         /**
          * Constructs a ChangeEvent, signifying {@code block}'s value changed.
          *
-         * @param workspace The workspace containing the change.
          * @param block The block containing the change.
          * @param field The field containing the change, if the change is a field value. Otherwise
          *              null.
          * @param oldValue The original value.
          * @param newValue The new value.
          */
-        public ChangeEvent(@ChangeElement String element, @NonNull Workspace workspace,
-                            @NonNull Block block, @Nullable Field field,
-                            @Nullable String oldValue, @Nullable String newValue) {
-            super(TYPE_CHANGE, workspace.getId(), null, block.getId());
+        public ChangeEvent(@ChangeElement String element, @NonNull Block block,
+                           @Nullable Field field,  @Nullable String oldValue,
+                           @Nullable String newValue) {
+            super(TYPE_CHANGE, getRootContainerId(block), null, block.getId());
             mElementChanged = validateChangeElement(element);
             if (mElementChanged == ELEMENT_FIELD) {
                 mFieldName = field.getName();
@@ -436,11 +429,10 @@ public abstract class BlocklyEvent {
         /**
          * Constructs a {@code CreateEvent} for the given block.
          *
-         * @param workspace The workspace containing the new block.
          * @param block The newly created block.
          */
-        public CreateEvent(@NonNull Workspace workspace, @NonNull Block block) {
-            super(TYPE_CREATE, workspace.getId(), null, block.getId());
+        public CreateEvent(@NonNull Block block) {
+            super(TYPE_CREATE, getRootContainerId(block), null, block.getId());
             try {
                 mXml = BlocklyXmlHelper.writeBlockToXml(block, IOOptions.WRITE_ALL_DATA);
             } catch (BlocklySerializerException e) {
@@ -865,6 +857,11 @@ public abstract class BlocklyEvent {
         }
     }
 
+    @Nullable
+    static String getRootContainerId(@NonNull Block block) {
+        BlockContainer container = block.getRootContainer();
+        return container == null ? null : container.getId();
+    }
 
     /**
      * Ensures {@code typeId} is a singular valid event id.
