@@ -351,11 +351,12 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
             public void run() {
                 boolean oldValue = mDisabled;
                 mDisabled = disabled;
-                fireUpdate(UPDATE_IS_DISABLED); // Block.Observers
+
+                // Add change event before notifying observers, that might add their own events.
                 mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
                         BlocklyEvent.ChangeEvent.ELEMENT_DISABLED, Block.this, /* field */ null,
                         Boolean.toString(oldValue), Boolean.toString(mDisabled)));
-
+                fireUpdate(UPDATE_IS_DISABLED); // Block.Observers
             }
         });
     }
@@ -375,12 +376,23 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
      *
      * @param collapsed Whether the block should be collapsed.
      */
-    public void setCollapsed(boolean collapsed) {
+    public void setCollapsed(final boolean collapsed) {
         if (collapsed == mCollapsed) {
             return;
         }
-        mCollapsed = collapsed;
-        fireUpdate(UPDATE_IS_COLLAPSED);
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                boolean oldValue = mCollapsed;
+                mCollapsed = collapsed;
+
+                // Add change event before notifying observers, that might add their own events.
+                mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
+                        BlocklyEvent.ChangeEvent.ELEMENT_COLLAPSED, Block.this, /* field */ null,
+                        Boolean.toString(oldValue), Boolean.toString(mCollapsed)));
+                fireUpdate(UPDATE_IS_COLLAPSED);
+            }
+        });
     }
 
     /**
