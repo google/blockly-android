@@ -209,6 +209,7 @@ public class BlocklyController {
         mContext = context;
         mMainLooper = context.getMainLooper();
         mModelFactory = blockModelFactory;
+        mModelFactory.setController(this);
         mHelper = workspaceHelper;
         mViewFactory = blockViewFactory;
 

@@ -22,6 +22,7 @@ import android.view.View;
 
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.TestWorkspaceViewActivity;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.mock;
 public class BlockViewInActivityTest {
     private TestWorkspaceViewActivity mActivity;
     private Instrumentation mInstrumentation;
+    private BlocklyController mController;
     private BlockFactory mBlockFactory;
     private WorkspaceHelper mHelper;
     private BlockViewFactory mViewFactory;
@@ -74,8 +76,11 @@ public class BlockViewInActivityTest {
         System.setProperty("dexmaker.dexcache", mActivity.getCacheDir().getPath());
         MockitoAnnotations.initMocks(this);
 
-        // TODO(#435): Replace R.raw.test_blocks
-        mBlockFactory = new BlockFactory(mActivity.mThemeWrapper, new int[]{R.raw.test_blocks});
+
+        mController = new BlocklyController.Builder(mActivity.mThemeWrapper)
+                .addBlockDefinitions(R.raw.test_blocks)  // TODO(#435): Replace R.raw.test_blocks
+                .build();
+        mBlockFactory = mController.getBlockFactory();
         mHelper = mActivity.mWorkspaceHelper;
         mViewFactory = mActivity.mViewFactory;
     }

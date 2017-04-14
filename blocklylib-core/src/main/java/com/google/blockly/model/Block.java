@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.ColorUtils;
@@ -79,6 +80,7 @@ public class Block extends Observable<Block.Observer> {
     }
 
     // These values are immutable once a block is created
+    private final BlocklyController mController;
     private final BlockFactory mFactory;
     private final String mId;
     private final String mType;
@@ -118,13 +120,15 @@ public class Block extends Observable<Block.Observer> {
      * @param isShadow Whether the block should be a shadow block (default input value block).
      * @throws BlockLoadingException When the {@link BlockDefinition} throws errors.
      */
-    Block(@NonNull BlockFactory factory, @NonNull BlockDefinition definition, @NonNull String id,
-          boolean isShadow)
+    Block(@Nullable BlocklyController controller, @NonNull BlockFactory factory,
+          @NonNull BlockDefinition definition, @NonNull String id, boolean isShadow)
             throws BlockLoadingException {
-        if (factory == null || definition == null || id == null) {
+        if (controller == null || factory == null || definition == null || id == null) {
             throw new IllegalArgumentException(
-                    "Tried to instantiate a block but factory, definition, or id was null.");
+                    "Tried to instantiate a block but controller, factory, definition, or id was "
+                    + "null.");
         }
+        mController = controller;
         mFactory = factory;
         mId = id;
 

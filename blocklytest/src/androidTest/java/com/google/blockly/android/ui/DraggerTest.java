@@ -147,6 +147,7 @@ public class DraggerTest extends BlocklyTestCase {
             public void run() {
                 // TODO(#435): Replace R.raw.test_blocks
                 mBlockFactory = new BlockFactory(mMockContext, new int[]{R.raw.test_blocks});
+                mBlockFactory.setController(mMockController);
                 mWorkspaceView = new WorkspaceView(mMockContext);
                 mWorkspaceHelper = new WorkspaceHelper(mMockContext);
                 mWorkspaceHelper.setWorkspaceView(mWorkspaceView);

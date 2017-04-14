@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
@@ -38,6 +39,8 @@ public class MutatorTest {
     private static final String UPDATED_ATTR = "updated attrib";
     private static final String UPDATED_TEXT = "updated text";
 
+    BlocklyController mMockController;
+
     BlockFactory mFactory;
     Mutator.Factory mMutatorFactory;
 
@@ -46,7 +49,10 @@ public class MutatorTest {
         assertThat(STARTING_VALUE).isNotEqualTo(UPDATED_ATTR);
         assertThat(STARTING_VALUE).isNotEqualTo(UPDATED_TEXT);
 
+        mMockController = Mockito.mock(BlocklyController.class);
+
         mFactory = new BlockFactory();
+        mFactory.setController(mMockController);
         mFactory.addJsonDefinitions(
                 "[{\"type\": \"" + BLOCK_TYPE + "\","
                 + "\"mutator\": \"" + MUTATOR_ID + "\"}]"

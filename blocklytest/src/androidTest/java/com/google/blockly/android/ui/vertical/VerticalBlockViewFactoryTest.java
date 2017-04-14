@@ -18,6 +18,7 @@ package com.google.blockly.android.ui.vertical;
 import android.support.annotation.NonNull;
 
 import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.BlockGroup;
@@ -29,6 +30,7 @@ import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -41,15 +43,19 @@ public class VerticalBlockViewFactoryTest extends BlocklyTestCase {
     private BlockFactory mBlockFactory;
     private VerticalBlockViewFactory mViewFactory;
     private BlockGroup mBlockGroup;
+
+    private BlocklyController mMockController;
     private WorkspaceHelper mMockWorkspaceHelper;
     private ConnectionManager mMockConnectionManager;
 
     @Before
      public void setUp() throws Exception {
+        mMockController = Mockito.mock(BlocklyController.class);
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mMockConnectionManager = mock(ConnectionManager.class);
         // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        mBlockFactory.setController(mMockController);
         mViewFactory = new VerticalBlockViewFactory(getContext(), mMockWorkspaceHelper);
         mBlockGroup = mViewFactory.buildBlockGroup();
     }
