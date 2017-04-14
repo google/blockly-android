@@ -39,7 +39,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 /**
  * Base class for a Blockly Block.
  */
-public class Block extends Observable<Block.Observer> {
+public class Block extends Observable<Block.Observer> implements BlockContainer {
     private static final String TAG = "Block";
 
     @Retention(SOURCE)
@@ -110,6 +110,8 @@ public class Block extends Observable<Block.Observer> {
     // Keep track of whether inputsInline has ever been changed.
     private boolean mInputsInlineModified = false;
 
+    private BlockContainer mParentContainer = null;
+
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
 
@@ -169,8 +171,31 @@ public class Block extends Observable<Block.Observer> {
     /**
      * @return The unique identifier of the block. Not for display.
      */
+    @Override
     public String getId() {
         return mId;
+    }
+
+    @Override
+    public boolean isRootContainer() {
+        return false;
+    }
+
+    @Override
+    public BlockContainer getParentContainer() {
+        return mParentContainer;  // TODO & WARNING: This value is never set.
+    }
+
+    /**
+     * @return The root {@link BlockContainer}, if this block is attached to one.
+     */
+    // TODO & WARNING: This value will always be null until mParentContainer is set appropriately.
+    public BlockContainer getRootContainer() {
+        BlockContainer container = mParentContainer;
+        while (container != null && !container.isRootContainer()) {
+            container = container.getParentContainer();
+        }
+        return container;
     }
 
     /**
@@ -226,6 +251,7 @@ public class Block extends Observable<Block.Observer> {
         if (editable == mEditable) {
             return;
         }
+        // TODO: Event support? No current spec for changes to "editable".
         mEditable = editable;
         fireUpdate(UPDATE_IS_EDITABLE);
     }
@@ -247,6 +273,10 @@ public class Block extends Observable<Block.Observer> {
      * @param movable
      */
     public void setMovable(boolean movable) {
+        if (mMovable == movable) {
+            return;
+        }
+        // TODO: Event support? No current spec for changes to "moveable".
         mMovable = movable;
     }
 
@@ -270,6 +300,7 @@ public class Block extends Observable<Block.Observer> {
         if (mDeletable == deletable) {
             return;
         }
+        // TODO: Event support? No current spec for changes to "deletable".
         mDeletable = deletable;
         fireUpdate(UPDATE_IS_DELETABLE);
     }
@@ -311,12 +342,22 @@ public class Block extends Observable<Block.Observer> {
      *
      * @param disabled
      */
-    public void setDisabled(boolean disabled) {
+    public void setDisabled(final boolean disabled) {
         if (mDisabled == disabled) {
             return;
         }
-        mDisabled = disabled;
-        fireUpdate(UPDATE_IS_DISABLED);
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                boolean oldValue = mDisabled;
+                mDisabled = disabled;
+                fireUpdate(UPDATE_IS_DISABLED); // Block.Observers
+                mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
+                        BlocklyEvent.ChangeEvent.ELEMENT_DISABLED, Block.this, /* field */ null,
+                        Boolean.toString(oldValue), Boolean.toString(mDisabled)));
+
+            }
+        });
     }
 
     /**
@@ -927,6 +968,19 @@ public class Block extends Observable<Block.Observer> {
         mMutator = mutator;
         mMutatorId = id;
         mutator.onAttached(this);
+    }
+
+    /**
+     * Sets the block's parent {@link BlockContainer}.
+     *
+     * @param container
+     */
+    // TODO(567): Call when root block is added to a workspace
+    // TODO(567): Call when attached to parent block next, statement, or previous
+    // TODO(567): Call when attached as root block toolbox BlocklyCategory
+    // TODO(567): Call when attached as root block trash BlocklyCategory
+    /*package private*/ void setBlockContainer(BlockContainer container) {
+        mParentContainer = container;
     }
 
     /**

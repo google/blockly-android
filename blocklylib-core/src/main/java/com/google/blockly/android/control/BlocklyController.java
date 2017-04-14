@@ -106,12 +106,12 @@ public class BlocklyController {
     private final Workspace mWorkspace;
     private final ConnectionManager mConnectionManager;
     private final ArrayList<EventsCallback> mListeners = new ArrayList<>();
-    private final ArrayList<BlocklyEvent> mPendingEvents = new ArrayList<>();
 
     // Whether the current call stack is actively executing code intended to group and fire events.
     // See groupAndFireEvents(Runnable)
     private boolean mInEventGroup = false;
 
+    private ArrayList<BlocklyEvent> mPendingEvents;
     private int mPendingEventsMask = 0;
     private int mEventCallbackMask = 0;
 
@@ -550,6 +550,10 @@ public class BlocklyController {
         if (mMainLooper != Looper.myLooper()) {
             throw new IllegalStateException("addPendingEvent() must be called from main thread.");
         }
+
+        if (mPendingEvents == null) {
+            mPendingEvents = new ArrayList<>();
+        }
         mPendingEvents.add(event);
         mPendingEventsMask |= event.getTypeId();
 
@@ -974,7 +978,7 @@ public class BlocklyController {
             mWorkspaceView.addView(bg);
         }
         if (hasCallback(BlocklyEvent.TYPE_CREATE)) {
-            addPendingEvent(new BlocklyEvent.CreateEvent(mWorkspace, previouslyTrashedBlock));
+            addPendingEvent(new BlocklyEvent.CreateEvent(previouslyTrashedBlock));
         }
         return bg;
     }
@@ -1105,7 +1109,7 @@ public class BlocklyController {
             mWorkspaceView.addView(bg);
         }
         if (isNewBlock && hasCallback(BlocklyEvent.TYPE_CREATE)) {
-            addPendingEvent(new BlocklyEvent.CreateEvent(mWorkspace, block));
+            addPendingEvent(new BlocklyEvent.CreateEvent(block));
         }
         return bg;
     }
@@ -1179,8 +1183,7 @@ public class BlocklyController {
             for (FieldVariable field : varRefs) {
                 field.setVariable(newVariable);
                 BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
-                        .newFieldValueEvent(getWorkspace(), field.getBlock(), field,
-                                variable, newVariable);
+                        .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
                 addPendingEvent(change);
             }
         }
@@ -1761,7 +1764,7 @@ public class BlocklyController {
             }
         }
 
-        mPendingEvents.clear();
+        mPendingEvents = null;
         mPendingEventsMask = 0;
     }
 

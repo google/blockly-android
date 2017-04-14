@@ -18,6 +18,7 @@ package com.google.blockly.android.control;
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
@@ -57,10 +58,7 @@ import static org.mockito.Mockito.mock;
  * Unit tests for {@link BlocklyController}.
  */
 public class BlocklyControllerTest extends BlocklyTestCase {
-    private HandlerThread mThread;
-    private Handler mHandler;
     private Context mMockContext;
-    private Throwable mExceptionInThread = null;
 
     // Controller under test.
     BlocklyController mController;
@@ -90,12 +88,10 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     public void setUp() throws Exception {
         configureForThemes();
         configureForUIThread();
-        mThread = new HandlerThread("BlocklyControllerTest");
-        mThread.start();
-        mHandler = new Handler(mThread.getLooper());
 
         mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(getContext()));
-        doReturn(mThread.getLooper()).when(mMockContext).getMainLooper();
+        doReturn(InstrumentationRegistry.getTargetContext().getMainLooper())
+                .when(mMockContext).getMainLooper();
 
         mHelper = new WorkspaceHelper(mMockContext);
         mViewFactory = new TestableBlockViewFactory(mMockContext, mHelper);
@@ -1667,37 +1663,6 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         for (int i = 0; i < blocks.length; ++i) {
             ((TestableBlockGroup) mHelper.getRootBlockGroup(blocks[i]))
                     .setWorkspaceView(mWorkspaceView);
-        }
-    }
-
-    private void runAndSync(final Runnable runnable) {
-        assertThat(mExceptionInThread).isNull();
-
-        final CountDownLatch latch = new CountDownLatch(1);
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    runnable.run();
-                } catch (Throwable e) {
-                    mExceptionInThread = e;
-                }
-                latch.countDown();
-            }
-        });
-        awaitTimeout(latch);
-
-        if (mExceptionInThread != null) {
-            throw new IllegalStateException("Unhandled exception in mock main thread.",
-                    mExceptionInThread);
-        }
-    }
-
-    private void awaitTimeout(CountDownLatch latch) {
-        try {
-            latch.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException("Timeout exceeded.", e);
         }
     }
 
