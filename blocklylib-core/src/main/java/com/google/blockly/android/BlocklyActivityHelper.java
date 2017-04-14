@@ -17,8 +17,11 @@ package com.google.blockly.android;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -77,6 +80,7 @@ public class BlocklyActivityHelper {
     protected BlockListUI mToolboxBlockList;
     protected BlockListUI mTrashBlockList;
     protected CategorySelectorFragment mCategoryFragment;
+    protected DialogFragment mDialogFragment;
 
     protected BlocklyController mController;
     protected CodeGeneratorManager mCodeGeneratorManager;
@@ -208,11 +212,11 @@ public class BlocklyActivityHelper {
     }
 
     /**
-     * @return True if the action was handled to close a previously open (and closable) toolbox or
-     *         trash UI. Otherwise false.
+     * @return True if the action was handled to close a previously open (and closable) toolbox,
+     *         trash UI, or dialog. Otherwise false.
      */
     public boolean onBackToCloseFlyouts() {
-        return mController.closeFlyouts();
+        return closeDialogFragment() || mController.closeFlyouts();
     }
 
     /**
@@ -283,6 +287,43 @@ public class BlocklyActivityHelper {
      */
     public void onDestroy() {
         // Do nothing.
+    }
+
+    /**
+     * Shows a dialog UI to the user. Only one dialog will be shown at a time and if there is
+     * already an existing one it will be replaced. This can be used for showing application or
+     * block specific UIs, such as a mutator UI. When the user finishes using the fragment
+     * {@link #closeDialogFragment()} should be called.
+     *
+     * @param fragment The fragment to show.
+     */
+    public void showDialogFragment(@NonNull DialogFragment fragment) {
+        if (fragment == mDialogFragment) {
+            return;
+        }
+
+        FragmentTransaction ft = mActivity.getSupportFragmentManager().beginTransaction();
+        if (mDialogFragment != null) {
+            ft.remove(mDialogFragment);
+        }
+        fragment.show(ft, "blockly_dialog");
+        mDialogFragment = fragment;
+    }
+
+    /**
+     * Closes the currently open {@link DialogFragment} if there is one.
+     *
+     * @return True if there was a dialog and it was closed. False otherwise.
+     */
+    public boolean closeDialogFragment() {
+        if (mDialogFragment != null) {
+            FragmentTransaction ft = mActivity.getSupportFragmentManager().beginTransaction();
+            ft.remove(mDialogFragment);
+            ft.commit();
+            mDialogFragment = null;
+            return true;
+        }
+        return false;
     }
 
     /**
