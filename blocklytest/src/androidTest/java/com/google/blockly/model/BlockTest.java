@@ -561,29 +561,57 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testCollapsed() throws BlockLoadingException {
-        Block block = mBlockFactory.obtainBlockFrom(
+        configureEventsCallback();
+
+        final Block block = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("statement_no_input"));
-        assertWithMessage("By default, blocks are not collapsed.")
-                .that(block.isCollapsed()).isFalse();
 
-        String blockXml = toXml(block);
-        assertWithMessage("Default state is not stored in XML")
-                .that(blockXml.contains("collapsed")).isFalse();
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                // Check default
+                assertWithMessage("By default, blocks are not collapsed.")
+                        .that(block.isCollapsed()).isFalse();
 
-        Block blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("By default, blocks loaded from XML are not collapsed.")
-                .that(blockFromXml.isCollapsed()).isFalse();
+                // No attribute when saved with default value
+                String blockXml = toXml(block);
+                assertWithMessage("Default state is not stored in XML")
+                        .that(blockXml).doesNotContain("collapsed");
 
-        block.setCollapsed(true);
-        assertWithMessage("Collapsed state can change.").that(block.isCollapsed()).isTrue();
+                // Check default for blocks loaded from XML
+                Block blockFromXml = fromXmlWithoutId(blockXml);
+                assertWithMessage("By default, blocks loaded from XML are not collapsed.")
+                        .that(blockFromXml.isCollapsed()).isFalse();
 
-        blockXml = toXml(block);
-        assertWithMessage("Collapsed state is stored in XML.")
-                .that(blockXml.contains("collapsed=\"true\"")).isTrue();
+                // false -> false
+                mBlocklyEventGroups.clear();
+                block.setCollapsed(false);
+                assertThat(mBlocklyEventGroups).hasSize(0);
 
-        blockFromXml = fromXmlWithoutId(blockXml);
-        assertWithMessage("Collapsed state set from XML.")
-                .that(blockFromXml.isCollapsed()).isTrue();
+                // false -> true
+                mBlocklyEventGroups.clear();
+                block.setCollapsed(true);
+                assertWithMessage("Collapsed state can change.").that(block.isCollapsed()).isTrue();
+                assertThat(mBlocklyEventGroups).hasSize(1);         // One event group
+                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);  // with a single message
+                BlocklyEvent.ChangeEvent changeEvent =
+                        (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_COLLAPSED);
+                assertThat(changeEvent.getFieldName()).isNull();
+                assertThat(changeEvent.getOldValue()).isEqualTo("false");
+                assertThat(changeEvent.getNewValue()).isEqualTo("true");
+
+                // collapsed attribute in XML when value is true
+                blockXml = toXml(block);
+                assertWithMessage("Collapsed state is stored in XML.")
+                        .that(blockXml.contains("collapsed=\"true\"")).isTrue();
+
+                // loads correctly from XML
+                blockFromXml = fromXmlWithoutId(blockXml);
+                assertWithMessage("Collapsed state set from XML.")
+                        .that(blockFromXml.isCollapsed()).isTrue();
+            }
+        });
     }
 
     @Test
@@ -626,6 +654,11 @@ public class BlockTest extends BlocklyTestCase {
                 assertWithMessage("By default, blocks are not disabled.")
                         .that(block.isDisabled()).isFalse();
 
+                // No disabled attribute if disabled is false (the default)
+                String blockXml = toXml(block);
+                assertWithMessage("Disabled state is stored in XML.")
+                        .that(blockXml).doesNotContain("disabled");
+
                 // false -> false
                 mBlocklyEventGroups.clear();
                 block.setDisabled(false);
@@ -633,7 +666,7 @@ public class BlockTest extends BlocklyTestCase {
                                   "(false -> false) does not generate events.")
                         .that(mBlocklyEventGroups).hasSize(0);
 
-                String blockXml = toXml(block);
+                blockXml = toXml(block);
                 assertWithMessage("Default state is not stored in XML")
                         .that(blockXml.contains("disabled")).isFalse();
 
@@ -683,11 +716,6 @@ public class BlockTest extends BlocklyTestCase {
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isEqualTo("true");
                 assertThat(changeEvent.getNewValue()).isEqualTo("false");
-
-                // No disabled attribute if disabled is false (the default)
-                blockXml = toXml(block);
-                assertWithMessage("Disabled state is stored in XML.")
-                        .that(blockXml).doesNotContain("disabled");
             }
         });
     }
@@ -910,43 +938,51 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSetCollapsed_withObserver() throws BlockLoadingException {
-        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        configureEventsCallback();
+
+        final Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         block.registerObserver(mBlockObserver);
 
-        // Preconditions
-        assertThat(block.isCollapsed()).isFalse();
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                // Preconditions
+                assertThat(block.isCollapsed()).isFalse();
 
-        // Test false -> false
-        mObserverCallArgs.clear();
-        block.setCollapsed(false);
-        assertThat(block.isCollapsed()).isFalse();
-        assertWithMessage("Observer is not called when non-collapsed block .setCollapsed(false)")
-                .that(mObserverCallArgs).isEmpty();
+                // Test false -> false
+                mObserverCallArgs.clear();
+                block.setCollapsed(false);
+                assertThat(block.isCollapsed()).isFalse();
+                assertWithMessage(
+                        "Observer is not called when non-collapsed block .setCollapsed(false)")
+                        .that(mObserverCallArgs).isEmpty();
 
-        // Test false -> true
-        mObserverCallArgs.clear();
-        block.setCollapsed(true);
-        assertThat(block.isCollapsed()).isTrue();
-        assertWithMessage("Observer is called when non-collapsed block .setCollapsed(true)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_COLLAPSED);
+                // Test false -> true
+                mObserverCallArgs.clear();
+                block.setCollapsed(true);
+                assertThat(block.isCollapsed()).isTrue();
+                assertWithMessage("Observer is called when non-collapsed block .setCollapsed(true)")
+                        .that(mObserverCallArgs).hasSize(1);
+                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_COLLAPSED);
 
-        // Test true -> true
-        mObserverCallArgs.clear();
-        block.setCollapsed(true);
-        assertThat(block.isCollapsed()).isTrue();
-        assertWithMessage("Observer is not called when collapsed block .setCollapsed(true)")
-                .that(mObserverCallArgs).isEmpty();
+                // Test true -> true
+                mObserverCallArgs.clear();
+                block.setCollapsed(true);
+                assertThat(block.isCollapsed()).isTrue();
+                assertWithMessage("Observer is not called when collapsed block .setCollapsed(true)")
+                        .that(mObserverCallArgs).isEmpty();
 
-        // Test true -> false
-        mObserverCallArgs.clear();
-        block.setCollapsed(false);
-        assertThat(block.isCollapsed()).isFalse();
-        assertWithMessage("Observer is called when collapsed block .setCollapsed(false)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_COLLAPSED);
+                // Test true -> false
+                mObserverCallArgs.clear();
+                block.setCollapsed(false);
+                assertThat(block.isCollapsed()).isFalse();
+                assertWithMessage("Observer is called when collapsed block .setCollapsed(false)")
+                        .that(mObserverCallArgs).hasSize(1);
+                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_COLLAPSED);
+            }
+        });
     }
 
     @Test

@@ -256,19 +256,6 @@ public abstract class BlocklyEvent {
      */
     public static final class ChangeEvent extends BlocklyEvent {
         /**
-         * Creates a ChangeEvent reflecting a change in the block's collapsed state.
-         *
-         * @param block The block where the state changed.
-         * @return The new ChangeEvent.
-         */
-        public static ChangeEvent newCollapsedStateEvent(@NonNull Block block) {
-            boolean collapsed = block.isCollapsed();
-            return new ChangeEvent(ELEMENT_COLLAPSED, block, null,
-                    /* oldValue */ !collapsed ? "true" : "false",
-                    /* newValue */ collapsed ? "true" : "false");
-        }
-
-        /**
          * Creates a ChangeEvent reflecting a change in the block's comment text.
          *
          * @param block The block where the state changed.
@@ -279,19 +266,6 @@ public abstract class BlocklyEvent {
         public static ChangeEvent newCommentTextEvent(
                 @NonNull Block block, @Nullable String oldValue, @Nullable String newValue) {
             return new ChangeEvent(ELEMENT_COMMENT, block, null, oldValue, newValue);
-        }
-
-        /**
-         * Creates a ChangeEvent reflecting a change in the block's disabled state.
-         *
-         * @param block The block where the state changed.
-         * @return The new ChangeEvent.
-         */
-        public static ChangeEvent newDisabledStateEvent(@NonNull Block block) {
-            boolean disabled = block.isDisabled();
-            return new ChangeEvent(ELEMENT_DISABLED, block, null,
-                    /* oldValue */ !disabled ? "true" : "false",
-                    /* newValue */ disabled ? "true" : "false");
         }
 
         /**

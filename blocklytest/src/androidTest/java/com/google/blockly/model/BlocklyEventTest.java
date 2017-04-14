@@ -55,34 +55,12 @@ public class BlocklyEventTest {
     }
 
     @Test
-    public void testChangeEvent_collapsedState() throws JSONException {
-        boolean newValue = mBlock.isCollapsed();
-        boolean oldValue = !newValue;
-        BlocklyEvent.ChangeEvent event =
-                BlocklyEvent.ChangeEvent.newCollapsedStateEvent(mBlock);
-        testChangeEvent(BlocklyEvent.ELEMENT_COLLAPSED, event,
-                        oldValue ? "true" : "false",
-                        newValue ? "true" : "false");
-    }
-
-    @Test
     public void testChangeEvent_commentText() throws JSONException {
         String oldValue = "old comment";
         String newValue = "new comment";
         BlocklyEvent.ChangeEvent event = BlocklyEvent.ChangeEvent.newCommentTextEvent(
                 mBlock, oldValue, newValue);
         testChangeEvent(BlocklyEvent.ELEMENT_COMMENT, event, oldValue, newValue);
-    }
-
-    @Test
-    public void testChangeEvent_disabledState() throws JSONException {
-        boolean newValue = mBlock.isDisabled();
-        boolean oldValue = !newValue;
-        BlocklyEvent.ChangeEvent event =
-                BlocklyEvent.ChangeEvent.newDisabledStateEvent(mBlock);
-        testChangeEvent(BlocklyEvent.ELEMENT_DISABLED, event,
-                oldValue ? "true" : "false",
-                newValue ? "true" : "false");
     }
 
     @Test
