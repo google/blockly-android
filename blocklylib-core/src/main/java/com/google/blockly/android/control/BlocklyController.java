@@ -66,6 +66,10 @@ import java.util.List;
 /**
  * Controller to coordinate the state among all the major Blockly components: Workspace, Toolbox,
  * Trash, models, and views.
+ * <p/>
+ * All calls are expected to be called in the main thread/looper, because they create events that
+ * are processed immediately. Several methods will throw an IllegalStateExceptions if called on a
+ * different thread.
  */
 public class BlocklyController {
     private static final String TAG = "BlocklyController";
