@@ -42,14 +42,16 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 public class Block extends Observable<Block.Observer> implements BlockContainer {
     private static final String TAG = "Block";
 
+    // Observable attributes of possible concern to BlockViews.
     @Retention(SOURCE)
     @IntDef({
-            UPDATE_INPUTS_FIELDS_CONNECTIONS, UPDATE_MUTATOR, UPDATE_COMMENT, UPDATE_IS_SHADOW,
-            UPDATE_IS_DISABLED, UPDATE_IS_COLLAPSED, UPDATE_IS_EDITABLE, UPDATE_IS_DELETABLE
+            UPDATE_INPUTS_FIELDS_CONNECTIONS, UPDATE_COLOR, UPDATE_COMMENT, UPDATE_IS_SHADOW,
+            UPDATE_IS_DISABLED, UPDATE_IS_COLLAPSED, UPDATE_IS_EDITABLE, UPDATE_IS_DELETABLE,
+            UPDATE_TOOLTIP, UPDATE_CONTEXT_MENU, UPDATE_INPUTS_INLINE
     })
     public @interface UpdateState {}
     public static final int UPDATE_INPUTS_FIELDS_CONNECTIONS = 0x01;
-    public static final int UPDATE_MUTATOR = 0x02;  // TODO
+    public static final int UPDATE_COLOR = 0x02;  // TODO
     public static final int UPDATE_COMMENT = 0x04;
     public static final int UPDATE_IS_SHADOW = 0x08;
     public static final int UPDATE_IS_DISABLED = 0x10;
@@ -58,7 +60,7 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     public static final int UPDATE_IS_DELETABLE = 0x80;
     public static final int UPDATE_TOOLTIP = 0x0100;  // TODO
     public static final int UPDATE_CONTEXT_MENU = 0x0200;  // TODO
-    public static final int UPDATE_COLOR = 0x0400;  // TODO
+    public static final int UPDATE_INPUTS_INLINE = 0x0400;
 
     public interface Observer {
         /**
@@ -351,13 +353,11 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
         mController.groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
-                boolean oldValue = mDisabled;
                 mDisabled = disabled;
 
                 // Add change event before notifying observers that might add their own events.
                 mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
-                        BlocklyEvent.ChangeEvent.ELEMENT_DISABLED, Block.this, /* field */ null,
-                        Boolean.toString(oldValue), Boolean.toString(mDisabled)));
+                        BlocklyEvent.ChangeEvent.ELEMENT_DISABLED, Block.this, mDisabled));
                 fireUpdate(UPDATE_IS_DISABLED); // Block.Observers
             }
         });
@@ -385,13 +385,11 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
         mController.groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
-                boolean oldValue = mCollapsed;
                 mCollapsed = collapsed;
 
                 // Add change event before notifying observers that might add their own events.
                 mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
-                        BlocklyEvent.ChangeEvent.ELEMENT_COLLAPSED, Block.this, /* field */ null,
-                        Boolean.toString(oldValue), Boolean.toString(mCollapsed)));
+                        BlocklyEvent.ChangeEvent.ELEMENT_COLLAPSED, Block.this, mCollapsed));
                 fireUpdate(UPDATE_IS_COLLAPSED);
             }
         });
@@ -518,11 +516,27 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     }
 
     /**
-     * Set flag for displaying inputs in-line.
+     * Set whether value inputs should be displayed inline (true), or on separate rows (false).
+     * @param inputsInline True if value inputs should be show in a single line. Otherwise, false.
      */
-    public void setInputsInline(boolean inputsInline) {
+    public void setInputsInline(final boolean inputsInline) {
+        // Mark modified state for next serialization.
         mInputsInlineModified = true;
-        mInputsInline = inputsInline;
+
+        if (inputsInline == mInputsInline) {
+            return;
+        }
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                mInputsInline = inputsInline;
+
+                // Add change event before notifying observers that might add their own events.
+                mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
+                        BlocklyEvent.ELEMENT_INLINE, Block.this, mInputsInline));
+                fireUpdate(UPDATE_INPUTS_INLINE);
+            }
+        });
     }
 
     /**

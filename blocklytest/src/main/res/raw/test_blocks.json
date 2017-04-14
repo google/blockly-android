@@ -34,6 +34,64 @@
     "colour": 160
   },
   {
+    "type": "math_arithmetic",
+    "message0": "%1 %2 %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "A",
+        "check": "Number"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "OP",
+        "options": [
+          ["+", "ADD"],
+          ["-", "MINUS"],
+          ["×", "MULTIPLY"],
+          ["÷", "DIVIDE"],
+          ["^", "POWER"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "B",
+        "check": "Number"
+      }
+    ],
+    "inputsInline": true,
+    "output": "Number",
+    "colour": 230,
+    "helpUrl": "https://en.wikipedia.org/wiki/Arithmetic"
+  },
+  {
+    "type": "logic_ternary",
+    "message0": "test %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "IF",
+        "check": "Boolean"
+      }
+    ],
+    "message1": "if true %1",
+    "args1": [
+      {
+        "type": "input_value",
+        "name": "THEN"
+      }
+    ],
+    "message2": "if false %1",
+    "args2": [
+      {
+        "type": "input_value",
+        "name": "ELSE"
+      }
+    ],
+    "output": null,
+    "colour": "210"
+  },
+  {
     "type": "frankenblock",
     "message0": "text %1 %2 %3 %4 %5 %6 %7 %8 %9",
     "args0": [

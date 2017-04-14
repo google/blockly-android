@@ -182,29 +182,39 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSerializeInputsInline() throws IOException, BlockLoadingException {
-        Block block = mBlockFactory.obtainBlockFrom(
+        final Block block = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("empty_block").withId(BlockTestStrings.EMPTY_BLOCK_ID));
-        block.setPosition(37, 13);
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        XmlSerializer serializer = getXmlSerializer(os);
 
-        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
-        serializer.flush();
-        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION);
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    block.setPosition(37, 13);
+                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+                    XmlSerializer serializer = getXmlSerializer(os);
 
-        block.setInputsInline(false);
-        os = new ByteArrayOutputStream();
-        serializer = getXmlSerializer(os);
-        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
-        serializer.flush();
-        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_INLINE_FALSE);
+                    block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
+                    serializer.flush();
+                    assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_WITH_POSITION);
 
-        block.setInputsInline(true);
-        os = new ByteArrayOutputStream();
-        serializer = getXmlSerializer(os);
-        block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
-        serializer.flush();
-        assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_INLINE_TRUE);
+                    block.setInputsInline(false);
+                    os = new ByteArrayOutputStream();
+                    serializer = getXmlSerializer(os);
+                    block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
+                    serializer.flush();
+                    assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_INLINE_FALSE);
+
+                    block.setInputsInline(true);
+                    os = new ByteArrayOutputStream();
+                    serializer = getXmlSerializer(os);
+                    block.serialize(serializer, /* root block */ true, IOOptions.WRITE_ALL_DATA);
+                    serializer.flush();
+                    assertThat(os.toString()).isEqualTo(BlockTestStrings.EMPTY_BLOCK_INLINE_TRUE);
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
     }
 
     @Test
@@ -746,6 +756,116 @@ public class BlockTest extends BlocklyTestCase {
         blockFromXml = fromXmlWithoutId(blockXml);
         assertWithMessage("Editable state set from XML.")
                 .that(blockFromXml.isEditable()).isFalse();
+    }
+
+    @Test
+    public void testSetInputsInline() throws BlockLoadingException {
+        final Block blockDefaultInline = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("math_arithmetic"));
+        final Block blockDefaultExternal = mBlockFactory.obtainBlockFrom(
+                new BlockTemplate().ofType("logic_ternary"));
+
+        configureEventsCallback();
+        blockDefaultExternal.registerObserver(mBlockObserver);
+        blockDefaultInline.registerObserver(mBlockObserver);
+
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                assertWithMessage("By default, arithmetic block has inline inputs.")
+                        .that(blockDefaultInline.getInputsInline()).isTrue();
+                assertWithMessage("By default, ternary block has external inputs.")
+                        .that(blockDefaultExternal.getInputsInline()).isFalse();
+
+                // No inline attribute if value is the default
+                String blockXml = toXml(blockDefaultInline);
+                assertWithMessage("Default inline state (true) is stored in XML.")
+                        .that(blockXml).doesNotContain("inline");
+                Block blockFromXml = fromXmlWithoutId(blockXml);
+                assertWithMessage("By default, arithmetic blocks loaded from XML are inline.")
+                        .that(blockFromXml.getInputsInline()).isTrue();
+
+                blockXml = toXml(blockDefaultExternal);
+                assertWithMessage("Default inline state (false) is stored in XML.")
+                        .that(blockXml).doesNotContain("inline");
+                blockFromXml = fromXmlWithoutId(blockXml);
+                assertWithMessage("By default, ternary blocks loaded from XML are not inline.")
+                        .that(blockFromXml.getInputsInline()).isFalse();
+
+                // true -> true
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                blockDefaultInline.setInputsInline(true);
+                assertWithMessage("Rewriting the true state with the same value " +
+                                  "does not generate observer.")
+                        .that(mObserverCallArgs).hasSize(0);
+                assertWithMessage("Rewriting the true state with the same value " +
+                                  "does not generate blockly events.")
+                        .that(mBlocklyEventGroups).hasSize(0);
+
+                // false -> false
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                blockDefaultExternal.setInputsInline(false);
+                assertWithMessage("Rewriting the false state with the same value " +
+                        "does not generate observer.")
+                        .that(mObserverCallArgs).hasSize(0);
+                assertWithMessage("Rewriting the false state with the same value " +
+                        "does not generate blockly events.")
+                        .that(mBlocklyEventGroups).hasSize(0);
+
+                // true -> false
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                blockDefaultInline.setInputsInline(false);
+                assertWithMessage("Inline inputs state can change.")
+                        .that(blockDefaultInline.getInputsInline()).isFalse();
+                assertThat(mObserverCallArgs).hasSize(1);
+                assertThat(mObserverCallArgs.get(0).first).isSameAs(blockDefaultInline);
+                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_INPUTS_INLINE);
+                assertThat(mBlocklyEventGroups).hasSize(1);
+                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);
+                BlocklyEvent.ChangeEvent changeEvent =
+                        (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_INLINE);
+                assertThat(changeEvent.getFieldName()).isNull();
+                assertThat(changeEvent.getOldValue()).isEqualTo("true");
+                assertThat(changeEvent.getNewValue()).isEqualTo("false");
+
+                // false -> true
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                blockDefaultExternal.setInputsInline(true);
+                assertWithMessage("Inline inputs state can change.")
+                        .that(blockDefaultExternal.getInputsInline()).isTrue();
+                assertThat(mObserverCallArgs).hasSize(1);
+                assertThat(mObserverCallArgs.get(0).first).isSameAs(blockDefaultExternal);
+                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_INPUTS_INLINE);
+                assertThat(mBlocklyEventGroups).hasSize(1);
+                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);
+                changeEvent = (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_INLINE);
+                assertThat(changeEvent.getFieldName()).isNull();
+                assertThat(changeEvent.getOldValue()).isEqualTo("false");
+                assertThat(changeEvent.getNewValue()).isEqualTo("true");
+
+                // A changed-to-true value saved to XML
+                blockXml = toXml(blockDefaultExternal);
+                assertWithMessage("Inline true state is stored in XML if the default is false")
+                        .that(blockXml).contains("inline=\"true\"");
+                blockFromXml = fromXmlWithoutId(blockXml);
+                assertWithMessage("Inline state set from XML.")
+                        .that(blockFromXml.getInputsInline()).isTrue();
+
+                // A changed-to-false value saved to XML
+                blockXml = toXml(blockDefaultInline);
+                assertWithMessage("Inline false state is stored in XML if the default is true")
+                        .that(blockXml).contains("inline=\"false\"");
+                blockFromXml = fromXmlWithoutId(blockXml);
+                assertWithMessage("Inline state set from XML.")
+                        .that(blockFromXml.getInputsInline()).isFalse();
+            }
+        });
     }
 
     @Test

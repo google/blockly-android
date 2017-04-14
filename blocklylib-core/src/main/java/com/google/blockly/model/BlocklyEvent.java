@@ -342,6 +342,17 @@ public abstract class BlocklyEvent {
         }
 
         /**
+         * Constructs a ChangeEvent for a boolean parameter.
+         *
+         * @param block The block containing the change.
+         * @param newValue The new value. The old value is assumed to be the opposite.
+         */
+        public ChangeEvent(@ChangeElement String element, @NonNull Block block, boolean newValue) {
+            this(element, block, /* field */ null,
+                 Boolean.toString(!newValue), Boolean.toString(newValue));
+        }
+
+        /**
          * Constructs a ChangeEvent from the JSON serialized representation.
          *
          * @param json The serialized ChangeEvent.
