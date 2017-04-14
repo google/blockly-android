@@ -66,19 +66,12 @@ import java.util.List;
 /**
  * Controller to coordinate the state among all the major Blockly components: Workspace, Toolbox,
  * Trash, models, and views.
- *
- * Note: Only public methods should call {@link #firePendingEvents()} and only Impl methods should
- * call {@link #addPendingEvent(BlocklyEvent)}. This is to make it easier to maintain events.
  */
 public class BlocklyController {
     private static final String TAG = "BlocklyController";
 
     private static final String SNAPSHOT_BUNDLE_KEY = "com.google.blockly.snapshot";
     private static final String SERIALIZED_WORKSPACE_KEY = "SERIALIZED_WORKSPACE";
-
-    // Debugging flag to enable the check whether mPendingEvents is empty at the beginning of public
-    // method calls..
-    private static final boolean DEBUG_CHECK_EVENT_GROUP = true;
 
     /**
      * Callback interface for {@link BlocklyEvent}s.
@@ -572,7 +565,7 @@ public class BlocklyController {
             throw new IllegalArgumentException("New root block must not be connected.");
         }
 
-        final BlockGroup newRootGroup[] = new BlockGroup[1];
+        final BlockGroup newRootGroup[] = new BlockGroup[] { null };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -668,7 +661,7 @@ public class BlocklyController {
      * @return The actual variable name that was created.
      */
     public String addVariable(final String variable) {
-        final String[] resultVarName = new String[1];
+        final String[] resultVarName = new String[] { null };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -688,7 +681,7 @@ public class BlocklyController {
      * @return The variable name that was created or null if creation was not allowed.
      */
     public String requestAddVariable(final String variable) {
-        final String resultVarName[] = new String[1];
+        final String resultVarName[] = new String[] { null };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -706,7 +699,7 @@ public class BlocklyController {
      * @return True if the variable existed and was deleted, false otherwise.
      */
     public boolean deleteVariable(final String variable) {
-        final boolean resultSuccess[] = new boolean[1];
+        final boolean resultSuccess[] = new boolean[] { false };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -725,7 +718,7 @@ public class BlocklyController {
      * @return True if the variable existed and was deleted, false otherwise.
      */
     public boolean requestDeleteVariable(final String variable) {
-        final boolean[] resultSuccess = new boolean[1];
+        final boolean[] resultSuccess = new boolean[] { false };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -746,7 +739,7 @@ public class BlocklyController {
      * @return The new variable name that was saved.
      */
     public String renameVariable(final String variable, final String newVariable) {
-        final String resultVarName[] = new String[1];
+        final String resultVarName[] = new String[] { null };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -768,7 +761,7 @@ public class BlocklyController {
      * @return The new variable name that was saved.
      */
     public String requestRenameVariable(final String variable, final String newVariable) {
-        final String resultVarName[] = new String[1];
+        final String resultVarName[] = new String[] { null };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -865,7 +858,7 @@ public class BlocklyController {
      */
     // TODO(#493): Sound Effect.
     public boolean trashRootBlock(final Block block) {
-        final boolean rootFoundAndRemoved[] = new boolean[1];
+        final boolean rootFoundAndRemoved[] = new boolean[] { false };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -884,7 +877,7 @@ public class BlocklyController {
      * @return True if the block was removed, false otherwise.
      */
     public boolean trashRootBlockIgnoringDeletable(final Block block) {
-        final boolean rootFoundAndRemoved[] = new boolean[1];
+        final boolean rootFoundAndRemoved[] = new boolean[] { false };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -938,7 +931,7 @@ public class BlocklyController {
      * @throws IllegalArgumentException If {@code trashedBlock} is not found in the trashed blocks.
      */
     public BlockGroup addBlockFromTrash(final @NonNull Block previouslyTrashedBlock) {
-        final BlockGroup trashedGroupRoot[] = new BlockGroup[1];
+        final BlockGroup trashedGroupRoot[] = new BlockGroup[] { null };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -1765,12 +1758,6 @@ public class BlocklyController {
 
         mPendingEvents.clear();
         mPendingEventsMask = 0;
-    }
-
-    private void checkPendingEventsEmpty() {
-        if (DEBUG_CHECK_EVENT_GROUP && !mPendingEvents.isEmpty()) {
-            throw new IllegalStateException("Expecting empty mPendingEvents.");
-        }
     }
 
     /**
