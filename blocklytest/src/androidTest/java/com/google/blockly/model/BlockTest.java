@@ -794,57 +794,97 @@ public class BlockTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testSetComment_withObserver() throws BlockLoadingException {
-        Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+    public void testSetComment() throws BlockLoadingException {
+        configureEventsCallback();
+
+        final Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         block.registerObserver(mBlockObserver);
 
         final String newComment = "New comment.";
         final String updatedComment = "Updated comment.";
 
-        // Preconditions
-        assertThat(block.getComment()).isNull();
-        assertThat(newComment).isNotEqualTo(updatedComment);
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                // Preconditions
+                assertThat(block.getComment()).isNull();
+                assertThat(newComment).isNotEqualTo(updatedComment);
 
-        // Test overwrite null with null
-        mObserverCallArgs.clear();
-        block.setComment(null);
-        assertThat(block.getComment()).isNull();
-        assertWithMessage("Observer is not called with null comment (same as before)")
-                .that(mObserverCallArgs).isEmpty();
+                // Test overwrite null with null
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                block.setComment(null);
+                assertThat(block.getComment()).isNull();
+                assertWithMessage("Observer is not called with null comment (same as before)")
+                        .that(mObserverCallArgs).isEmpty();
+                assertThat(mBlocklyEventGroups).isEmpty();
 
-        // Test overwrite null with new value
-        mObserverCallArgs.clear();
-        block.setComment(newComment);
-        assertThat(block.getComment()).isEqualTo(newComment);
-        assertWithMessage("Observer is called once during .setComment(newComment)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                // Test overwrite null with new value
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                block.setComment(newComment);
+                assertThat(block.getComment()).isEqualTo(newComment);
+                assertWithMessage("Observer is called once during .setComment(newComment)")
+                        .that(mObserverCallArgs).hasSize(1);
+                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                assertWithMessage("EventsCallback is called once during .setComment(newComment)")
+                        .that(mBlocklyEventGroups).hasSize(1);      // One group
+                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);  // with one event
+                BlocklyEvent.ChangeEvent changeEvent =
+                        (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_COMMENT);
+                assertThat(changeEvent.getFieldName()).isNull();
+                assertThat(changeEvent.getOldValue()).isNull();
+                assertThat(changeEvent.getNewValue()).isSameAs(newComment);
 
-        // Test overwrite comment value with equal value
-        mObserverCallArgs.clear();
-        block.setComment(new String(newComment));
-        assertThat(block.getComment()).isEqualTo(newComment);
-        assertWithMessage("Observer is not called when .setComment() called with same comment")
-                .that(mObserverCallArgs).isEmpty();
+                // Test overwrite comment value with equal value
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                block.setComment(new String(newComment));
+                assertThat(block.getComment()).isEqualTo(newComment);
+                assertWithMessage("Observer is not called when .setComment() called with same comment")
+                        .that(mObserverCallArgs).isEmpty();
+                assertWithMessage("EventsCallback is not called when .setComment() called with same comment")
+                        .that(mBlocklyEventGroups).isEmpty();
 
-        // Test overwrite comment with different value
-        mObserverCallArgs.clear();
-        block.setComment(updatedComment);
-        assertThat(block.getComment()).isEqualTo(updatedComment);
-        assertWithMessage("Observer is called once during .setComment(updatedComment)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                // Test overwrite comment with different value
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                block.setComment(updatedComment);
+                assertThat(block.getComment()).isEqualTo(updatedComment);
+                assertWithMessage("Observer is called once during .setComment(updatedComment)")
+                        .that(mObserverCallArgs).hasSize(1);
+                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                assertWithMessage("EventsCallback is called once during .setComment(updatedComment)")
+                        .that(mBlocklyEventGroups).hasSize(1);      // One call / event group
+                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);  // with one event
+                changeEvent = (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_COMMENT);
+                assertThat(changeEvent.getFieldName()).isNull();
+                assertThat(changeEvent.getOldValue()).isEqualTo(newComment);
+                assertThat(changeEvent.getNewValue()).isSameAs(updatedComment);
 
-        // Test delete value (overwrite with null)
-        mObserverCallArgs.clear();
-        block.setComment(null);
-        assertThat(block.getComment()).isNull();
-        assertWithMessage("Observer is called once during .setComment(null) deletion")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                // Test delete value (overwrite with null)
+                mBlocklyEventGroups.clear();
+                mObserverCallArgs.clear();
+                block.setComment(null);
+                assertThat(block.getComment()).isNull();
+                assertWithMessage("Observer is called once during .setComment(null) deletion")
+                        .that(mObserverCallArgs).hasSize(1);
+                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
+                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                assertWithMessage("EventsCallback is called once during .setComment(null)")
+                        .that(mBlocklyEventGroups).hasSize(1);      // One call / event group
+                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);  // with one event
+                changeEvent = (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_COMMENT);
+                assertThat(changeEvent.getFieldName()).isNull();
+                assertThat(changeEvent.getOldValue()).isEqualTo(updatedComment);
+                assertThat(changeEvent.getNewValue()).isNull();
+            }
+        });
     }
 
     @Test

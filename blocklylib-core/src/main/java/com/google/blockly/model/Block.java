@@ -56,7 +56,9 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     public static final int UPDATE_IS_COLLAPSED = 0x20;
     public static final int UPDATE_IS_EDITABLE = 0x40;
     public static final int UPDATE_IS_DELETABLE = 0x80;
-    // TODO(Anm): Tooltip, Context menu, Block color
+    public static final int UPDATE_TOOLTIP = 0x0100;  // TODO
+    public static final int UPDATE_CONTEXT_MENU = 0x0200;  // TODO
+    public static final int UPDATE_COLOR = 0x0400;  // TODO
 
     public interface Observer {
         /**
@@ -352,7 +354,7 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
                 boolean oldValue = mDisabled;
                 mDisabled = disabled;
 
-                // Add change event before notifying observers, that might add their own events.
+                // Add change event before notifying observers that might add their own events.
                 mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
                         BlocklyEvent.ChangeEvent.ELEMENT_DISABLED, Block.this, /* field */ null,
                         Boolean.toString(oldValue), Boolean.toString(mDisabled)));
@@ -386,7 +388,7 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
                 boolean oldValue = mCollapsed;
                 mCollapsed = collapsed;
 
-                // Add change event before notifying observers, that might add their own events.
+                // Add change event before notifying observers that might add their own events.
                 mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
                         BlocklyEvent.ChangeEvent.ELEMENT_COLLAPSED, Block.this, /* field */ null,
                         Boolean.toString(oldValue), Boolean.toString(mCollapsed)));
@@ -468,12 +470,23 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
      *
      * @param comment The text of the comment.
      */
-    public void setComment(@Nullable String comment) {
+    public void setComment(@Nullable final String comment) {
         if (comment == mComment || (comment != null && comment.equals(mComment))) {
             return;
         }
-        mComment = comment;
-        fireUpdate(UPDATE_COMMENT);
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                String oldValue = mComment;
+                mComment = comment;
+
+                // Add change event before notifying observers that might add their own events.
+                mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
+                        BlocklyEvent.ELEMENT_COMMENT, Block.this, /* field */ null,
+                        oldValue, mComment));
+                fireUpdate(UPDATE_COMMENT);
+            }
+        });
     }
 
     /**
