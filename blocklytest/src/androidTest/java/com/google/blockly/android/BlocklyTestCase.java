@@ -26,6 +26,11 @@ import com.google.blockly.android.ui.vertical.R;
  * Base class for Android tests with Mockito.
  */
 public class BlocklyTestCase {
+    /**
+     * Default timeout of 1 second, which should be plenty for most UI actions.  Anything longer
+     * is an error.  However, to step through this code with a debugger, use a much longer duration.
+     */
+    protected static final long TEST_TIMEOUT_MILLIS = 1000L;
 
     private Context mThemeContext;
 
