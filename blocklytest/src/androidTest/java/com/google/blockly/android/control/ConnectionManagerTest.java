@@ -27,6 +27,7 @@ import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,14 +38,19 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link ConnectionManager}
  */
 public class ConnectionManagerTest {
+    private BlocklyController mMockController;
+
     private BlockFactory factory;
     private ConnectionManager manager;
 
     @Before
     public void setUp() {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         factory = new BlockFactory(
                 InstrumentationRegistry.getTargetContext(),
                 new int[] {R.raw.test_blocks});
+        factory.setController(mMockController);
         manager = new ConnectionManager();
     }
 

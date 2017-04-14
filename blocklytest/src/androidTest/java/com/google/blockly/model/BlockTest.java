@@ -18,6 +18,7 @@ package com.google.blockly.model;
 import android.support.v4.util.Pair;
 
 import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -25,6 +26,7 @@ import com.google.blockly.utils.StringOutputStream;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
@@ -46,6 +48,8 @@ import static com.google.common.truth.Truth.assertWithMessage;
  * Tests for {@link Block}.
  */
 public class BlockTest extends BlocklyTestCase {
+    private BlocklyController mMockController;
+
     private XmlPullParserFactory xmlPullParserFactory;
     private BlockFactory mBlockFactory;
 
@@ -60,9 +64,12 @@ public class BlockTest extends BlocklyTestCase {
 
     @Before
     public void setUp() throws Exception {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
         // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        mBlockFactory.setController(mMockController);
     }
 
     @Test

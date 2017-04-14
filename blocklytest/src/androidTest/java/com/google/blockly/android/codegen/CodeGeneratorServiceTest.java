@@ -3,6 +3,7 @@ package com.google.blockly.android.codegen;
 import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -14,6 +15,7 @@ import com.google.blockly.utils.StringOutputStream;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,12 +27,16 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class CodeGeneratorServiceTest {
     private BlockFactory mBlockFactory;
+    private BlocklyController mMockController;
 
     @Before
     public void setUp() throws Exception {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
+        mBlockFactory.setController(mMockController);
     }
 
     /**

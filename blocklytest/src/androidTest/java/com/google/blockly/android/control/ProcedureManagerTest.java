@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -37,6 +38,8 @@ import static com.google.common.truth.Truth.assertThat;
 public class ProcedureManagerTest {
     private static final String PROCEDURE_NAME = "procedure name";
 
+    private BlocklyController mMockController;
+
     private BlockFactory mFactory;
     private ProcedureManager mProcedureManager;
     private Block mProcedureDefinition;
@@ -44,7 +47,10 @@ public class ProcedureManagerTest {
 
     @Before
     public void setUp() throws Exception {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         mFactory = new BlockFactory();
+        mFactory.setController(mMockController);
         mProcedureManager = new ProcedureManager();
 
         mProcedureDefinition = mFactory.obtainBlockFrom(

@@ -18,6 +18,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.logging.LogLogcatRule;
 import android.support.test.rule.logging.RuleLoggingUtils;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -26,6 +27,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -44,6 +46,8 @@ import static com.google.common.truth.Truth.assertWithMessage;
  * Tests for {@link BlockFactory}.
  */
 public class BlockFactoryTest {
+    private BlocklyController mMockController;
+
     private XmlPullParserFactory xmlPullParserFactory;
     private BlockFactory mBlockFactory;
 
@@ -55,10 +59,13 @@ public class BlockFactoryTest {
 
     @Before
     public void setUp() throws Exception {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
         // TODO(#84): Move test_blocks.json to the testapp's resources.
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
             new int[]{R.raw.test_blocks});
+        mBlockFactory.setController(mMockController);
     }
 
     @Test

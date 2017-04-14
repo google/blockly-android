@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.view.MotionEvent;
 
 import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
@@ -40,18 +41,21 @@ public class AbstractBlockViewTest extends BlocklyTestCase {
 
     private Block mEmptyBlock;
 
+    private BlocklyController mMockController;
     private ConnectionManager mMockConnectionManager;
     private WorkspaceHelper mMockHelper;
     private BlockViewFactory mMockViewFactory;
 
     @Before
      public void setUp() throws Exception {
+        mMockController = mock(BlocklyController.class);
         mMockConnectionManager = mock(ConnectionManager.class);
         mMockHelper = mock(WorkspaceHelper.class);
         mMockViewFactory = mock(BlockViewFactory.class);
 
         // TODO(#435): Replace R.raw.test_blocks
         BlockFactory mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        mBlockFactory.setController(mMockController);
         mEmptyBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("empty_block"));
     }
 

@@ -2,6 +2,7 @@ package com.google.blockly.model;
 
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -29,6 +30,7 @@ public class BlocklyEventTest {
     private static final WorkspacePoint NEW_POSITION =
             new WorkspacePoint(NEW_POSITION_X, NEW_POSITION_Y);
 
+    private BlocklyController mMockController;
     private Workspace mMockWorkspace;
     private BlockFactory mBlockFactory;
     private Block mBlock;
@@ -36,10 +38,13 @@ public class BlocklyEventTest {
 
     @Before
     public void setUp() throws Exception {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         mMockWorkspace = mock(Workspace.class);
         // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
+        mBlockFactory.setController(mMockController);
         mBlock = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType(BLOCK_TYPE).withId(BLOCK_ID));
         mField = mBlock.getFieldByName(FIELD_NAME);
