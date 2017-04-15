@@ -47,20 +47,21 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     @IntDef({
             UPDATE_INPUTS_FIELDS_CONNECTIONS, UPDATE_COLOR, UPDATE_COMMENT, UPDATE_IS_SHADOW,
             UPDATE_IS_DISABLED, UPDATE_IS_COLLAPSED, UPDATE_IS_EDITABLE, UPDATE_IS_DELETABLE,
-            UPDATE_TOOLTIP, UPDATE_CONTEXT_MENU, UPDATE_INPUTS_INLINE
+            UPDATE_TOOLTIP, UPDATE_CONTEXT_MENU, UPDATE_INPUTS_INLINE, UPDATE_IS_MOVEABLE
     })
     public @interface UpdateState {}
-    public static final int UPDATE_INPUTS_FIELDS_CONNECTIONS = 0x01;
-    public static final int UPDATE_COLOR = 0x02;  // TODO
-    public static final int UPDATE_COMMENT = 0x04;
-    public static final int UPDATE_IS_SHADOW = 0x08;
-    public static final int UPDATE_IS_DISABLED = 0x10;
-    public static final int UPDATE_IS_COLLAPSED = 0x20;
-    public static final int UPDATE_IS_EDITABLE = 0x40;
-    public static final int UPDATE_IS_DELETABLE = 0x80;
-    public static final int UPDATE_TOOLTIP = 0x0100;  // TODO
-    public static final int UPDATE_CONTEXT_MENU = 0x0200;  // TODO
-    public static final int UPDATE_INPUTS_INLINE = 0x0400;
+    public static final int UPDATE_INPUTS_FIELDS_CONNECTIONS = 1 << 0;
+    public static final int UPDATE_COLOR = 1 << 1;  // TODO
+    public static final int UPDATE_COMMENT = 1 << 2;
+    public static final int UPDATE_IS_SHADOW = 1 << 3;
+    public static final int UPDATE_IS_DISABLED = 1 << 4;
+    public static final int UPDATE_IS_COLLAPSED = 1 << 5;
+    public static final int UPDATE_IS_EDITABLE = 1 << 6;
+    public static final int UPDATE_IS_DELETABLE = 1 << 7;
+    public static final int UPDATE_TOOLTIP = 1 << 8;  // TODO
+    public static final int UPDATE_CONTEXT_MENU = 1 << 9;  // TODO
+    public static final int UPDATE_INPUTS_INLINE = 1 << 10;
+    public static final int UPDATE_IS_MOVEABLE = 1 << 11;
 
     public interface Observer {
         /**
@@ -187,13 +188,13 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
 
     @Override
     public BlockContainer getParentContainer() {
-        return mParentContainer;  // TODO & WARNING: This value is never set.
+        return mParentContainer;  // TODO(#567) & WARNING: This value is never set.
     }
 
     /**
      * @return The root {@link BlockContainer}, if this block is attached to one.
      */
-    // TODO & WARNING: This value will always be null until mParentContainer is set appropriately.
+    // TODO(#567) & WARNING: This value will always be null until mParentContainer is set.
     public BlockContainer getRootContainer() {
         BlockContainer container = mParentContainer;
         while (container != null && !container.isRootContainer()) {
@@ -282,6 +283,7 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
         }
         // TODO: Event support? No current spec for changes to "moveable".
         mMovable = movable;
+        fireUpdate(UPDATE_IS_MOVEABLE);
     }
 
     /**
@@ -1012,13 +1014,17 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     /**
      * Sets the block's parent {@link BlockContainer}.
      *
-     * @param container
+     * @param container The immediate parent container
      */
-    // TODO(567): Call when root block is added to a workspace
-    // TODO(567): Call when attached to parent block next, statement, or previous
-    // TODO(567): Call when attached as root block toolbox BlocklyCategory
-    // TODO(567): Call when attached as root block trash BlocklyCategory
-    /*package private*/ void setBlockContainer(BlockContainer container) {
+    // TODO(#567): Call when root block is added to a workspace.
+    // TODO(#567): Call with null when root block is removed to a workspace.
+    // TODO(#567): Call when attached to parent block's next, statement, or previous
+    // TODO(#567): Call with null when detached from a parent block's next, statement, or previous.
+    // TODO(#567): Call when attached as root block toolbox BlocklyCategory.
+    // TODO(#567): Call with null when detached as root block toolbox BlocklyCategory.
+    // TODO(#567): Call when attached as root block trash BlocklyCategory.
+    // TODO(#567): Call with null when detached as root block trash BlocklyCategory.
+    /* package private */ void setBlockContainer(BlockContainer container) {
         mParentContainer = container;
     }
 
