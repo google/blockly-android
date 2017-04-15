@@ -51,15 +51,15 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     })
     public @interface UpdateState {}
     public static final int UPDATE_INPUTS_FIELDS_CONNECTIONS = 1 << 0;
-    public static final int UPDATE_COLOR = 1 << 1;  // TODO
+    public static final int UPDATE_COLOR = 1 << 1;  // TODO: Not implemented/emitted
     public static final int UPDATE_COMMENT = 1 << 2;
     public static final int UPDATE_IS_SHADOW = 1 << 3;
     public static final int UPDATE_IS_DISABLED = 1 << 4;
     public static final int UPDATE_IS_COLLAPSED = 1 << 5;
     public static final int UPDATE_IS_EDITABLE = 1 << 6;
     public static final int UPDATE_IS_DELETABLE = 1 << 7;
-    public static final int UPDATE_TOOLTIP = 1 << 8;  // TODO
-    public static final int UPDATE_CONTEXT_MENU = 1 << 9;  // TODO
+    public static final int UPDATE_TOOLTIP = 1 << 8;  // TODO: Not implemented/emitted
+    public static final int UPDATE_CONTEXT_MENU = 1 << 9;  // TODO: Not implemented/emitted
     public static final int UPDATE_INPUTS_INLINE = 1 << 10;
     public static final int UPDATE_IS_MOVEABLE = 1 << 11;
 
