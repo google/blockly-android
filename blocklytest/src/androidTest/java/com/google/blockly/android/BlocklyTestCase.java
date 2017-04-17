@@ -53,7 +53,7 @@ public class BlocklyTestCase {
 
     // TODO: Investigate whether use of getContext() (and associated getMainLooper()) fixes the need
     //       for Looper.prepare().
-    protected void configureForUIThread() throws Exception {
+    protected void configureForUIThread() {
         // Espresso support requires AndroidJUnitRunner, and that doesn't run tests on in the main
         // thread (and thus, not in a Looper).  Adding a Looper allows normal unit tests to run
         // correctly.

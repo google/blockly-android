@@ -93,8 +93,9 @@ public class Block extends Observable<Block.Observer> {
     private boolean mIsShadow;
 
     // Set by BlockFactory.applyMutator(). May only be set once.
-    /* package */ String mMutatorId = null;
-    /* package */ Mutator mMutator = null;
+    private String mMutatorId = null;
+    private Mutator mMutator = null;
+    private String mMutation = null;
 
     // These values can be changed after creating the block
     private int mColor = ColorUtils.DEFAULT_BLOCK_COLOR;
@@ -914,6 +915,51 @@ public class Block extends Observable<Block.Observer> {
     @Nullable
     public final Mutator getMutator() {
         return mMutator;
+    }
+
+    /**
+     * Updates the mutation value of the block. It requires the block to have an assigned
+     * {@link Mutator}, and the mutator must be able to parse the assigned string, or a
+     * {@link BlockLoadingException} will be thrown. The mutation string is a XML &lt;mutation&gt;
+     * tag in its serialized string form.
+     *
+     * @param newValue The new mutation value, a &lt;mutation&gt; tag in string form.
+     * @throws BlockLoadingException If the mutator is not able to parse the mutation.
+     */
+    public final void setMutation(@Nullable final String newValue) throws BlockLoadingException {
+        if (mMutator == null) {
+            throw new IllegalStateException("No mutator attached.");
+        }
+        final String oldValue = mMutation;
+        if (oldValue == newValue || (oldValue != null && oldValue.equals(newValue))) {
+            return;
+        }
+        final BlockLoadingException[] loadingException = {null};
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    BlocklyXmlHelper.updateMutator(Block.this, mMutator, newValue);
+                    mMutation = newValue;
+                    mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
+                            BlocklyEvent.ELEMENT_MUTATE, Block.this, /* field */ null,
+                            oldValue, newValue));
+                } catch (BlockLoadingException e) {
+                    loadingException[0] = e; // Runnable interface does not support exceptions
+                }
+            }
+        });
+        if (loadingException[0] != null) {
+            throw loadingException[0];
+        }
+    }
+
+    /**
+     * @return The string form of the mutation.
+     */
+    @Nullable
+    public final String getMutation() {
+        return mMutation;
     }
 
     /**

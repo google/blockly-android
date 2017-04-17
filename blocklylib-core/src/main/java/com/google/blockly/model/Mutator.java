@@ -14,6 +14,8 @@
  */
 package com.google.blockly.model;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
@@ -73,9 +75,10 @@ public abstract class Mutator {
      * or {@code Mutator.update()} on blockly-ios.
      * @param block The block with the mutator.
      * @param parser The parser with the {@code <mutation>} element.
-     * @throws IOException
-     * @throws XmlPullParserException
+     * @throws IOException If the parser cannot read its source.
+     * @throws XmlPullParserException If the parser cannot parse into XML.
+     * @throws BlockLoadingException If the XML is not what the mutator expected.
      */
     public abstract void update(Block block, XmlPullParser parser)
-            throws IOException, XmlPullParserException;
+            throws BlockLoadingException, IOException, XmlPullParserException;
 }
