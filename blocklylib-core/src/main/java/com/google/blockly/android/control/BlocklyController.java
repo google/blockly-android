@@ -1104,6 +1104,9 @@ public class BlocklyController {
      */
     private BlockGroup addRootBlockImpl(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
         mWorkspace.addRootBlock(block, isNewBlock);
+        if (isNewBlock) {
+            addPendingEvent(new BlocklyEvent.CreateEvent(block));
+        }
         if (mWorkspaceView != null) {
             if (bg == null) {
                 bg = mViewFactory.buildBlockGroupTree(block, mWorkspace.getConnectionManager(),

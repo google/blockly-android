@@ -101,7 +101,6 @@ public class Workspace {
         if (isNewBlock) {
             block.setEventWorkspaceId(getId());
             mStats.collectStats(block, true);
-            mController.addPendingEvent(new BlocklyEvent.CreateEvent(block));
         }
     }
 
