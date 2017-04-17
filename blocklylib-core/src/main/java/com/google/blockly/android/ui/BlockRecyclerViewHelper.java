@@ -193,7 +193,7 @@ public class BlockRecyclerViewHelper {
         mTempWorkspacePoint.offset(-wsOffsetX, -wsOffsetY);
 
         BlockGroup dragGroup = mCallback.getDraggableBlockGroup(
-                mCurrentCategory.getItems().indexOf(rootBlock), rootBlock,
+                mCurrentCategory.indexOf(rootBlock), rootBlock,
                 mTempWorkspacePoint);
         return Pair.create(dragGroup, touchOffset);
     }
