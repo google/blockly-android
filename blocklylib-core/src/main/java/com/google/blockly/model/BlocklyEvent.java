@@ -735,37 +735,37 @@ public abstract class BlocklyEvent {
         private final String mNewValue;
 
         public UIEvent newBlockClickedEvent(@NonNull Workspace workspace, @NonNull Block block) {
-            return new UIEvent(ELEMENT_CLICK, workspace, block, null, null);
+            return new UIEvent(ELEMENT_CLICK, block, null, null);
         }
 
         public UIEvent newBlockCommentEvent(@NonNull Workspace workspace, @NonNull Block block,
                                             boolean openedBefore, boolean openedAfter) {
-            return new UIEvent(ELEMENT_COMMENT_OPEN, workspace, block,
+            return new UIEvent(ELEMENT_COMMENT_OPEN, block,
                     openedBefore ? "true" : "false", openedAfter ? "true" : "false");
         }
 
         public UIEvent newBlockMutatorEvent(@NonNull Workspace workspace, @NonNull Block block,
                                             boolean openedBefore, boolean openedAfter) {
-            return new UIEvent(ELEMENT_MUTATOR_OPEN, workspace, block,
+            return new UIEvent(ELEMENT_MUTATOR_OPEN, block,
                     openedBefore ? "true" : "false", openedAfter ? "true" : "false");
         }
 
         public UIEvent newBlockSelectedEvent(@NonNull Workspace workspace, @NonNull Block block,
                                             boolean selectedBefore, boolean selectedAfter) {
-            return new UIEvent(ELEMENT_SELECTED, workspace, block,
+            return new UIEvent(ELEMENT_SELECTED, block,
                                selectedBefore ? "true" : "false", selectedAfter ? "true" : "false");
         }
 
         public UIEvent newBlockWarningEvent(@NonNull Workspace workspace, @NonNull Block block,
                                             boolean openedBefore, boolean openedAfter) {
-            return new UIEvent(ELEMENT_WARNING_OPEN, workspace, block,
+            return new UIEvent(ELEMENT_WARNING_OPEN, block,
                     openedBefore ? "true" : "false", openedAfter ? "true" : "false");
         }
 
         public UIEvent newToolboxCategoryEvent(@NonNull Workspace workspace,
                                                @Nullable String oldValue,
                                                @Nullable String newValue) {
-            return new UIEvent(ELEMENT_CATEGORY, workspace, null, oldValue, newValue);
+            return new UIEvent(ELEMENT_CATEGORY, null, oldValue, newValue);
         }
 
         /**
@@ -773,13 +773,12 @@ public abstract class BlocklyEvent {
          * opened, or warning opened.
          *
          * @param element The UI element that changed.
-         * @param workspace The workspace containing the moved blocks.
          * @param block The related block. Null for toolbox category events.
          * @param oldValue The value before the event. Booleans are mapped to "true" and "false".
          * @param newValue The value after the event. Booleans are mapped to "true" and "false".
          */
-        public UIEvent(@BlocklyEvent.UIElement String element, @NonNull Workspace workspace,
-                        @Nullable Block block, String oldValue, String newValue) {
+        public UIEvent(@BlocklyEvent.UIElement String element, @Nullable Block block,
+                       String oldValue, String newValue) {
             super(TYPE_UI,
                     block == null ? null : block.getEventWorkspaceId(),
                     /* group id */ null,
