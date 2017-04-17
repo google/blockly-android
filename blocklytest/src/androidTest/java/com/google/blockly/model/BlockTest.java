@@ -15,6 +15,7 @@
 
 package com.google.blockly.model;
 
+import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
 import com.google.blockly.android.BlocklyTestCase;
@@ -26,7 +27,6 @@ import com.google.blockly.utils.StringOutputStream;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
@@ -575,6 +575,7 @@ public class BlockTest extends BlocklyTestCase {
 
         final Block block = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("statement_no_input"));
+        block.setEventWorkspaceId("Mock workspace id");
 
         runAndSync(new Runnable() {
             @Override
@@ -654,9 +655,11 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testDisabled() throws BlockLoadingException {
+        configureEventsCallback();
+
         final Block block = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("statement_no_input"));
-        configureEventsCallback();
+        block.setEventWorkspaceId("Mock workspace id");
 
         runAndSync(new Runnable() {
             @Override
@@ -764,6 +767,9 @@ public class BlockTest extends BlocklyTestCase {
                 new BlockTemplate().ofType("math_arithmetic"));
         final Block blockDefaultExternal = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("logic_ternary"));
+
+        blockDefaultInline.setEventWorkspaceId("Mock workspace id");
+        blockDefaultExternal.setEventWorkspaceId("Mock workspace id");
 
         configureEventsCallback();
         blockDefaultExternal.registerObserver(mBlockObserver);
@@ -918,6 +924,7 @@ public class BlockTest extends BlocklyTestCase {
         configureEventsCallback();
 
         final Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        block.setEventWorkspaceId("Mock workspace id");
         block.registerObserver(mBlockObserver);
 
         final String newComment = "New comment.";

@@ -39,7 +39,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 /**
  * Base class for a Blockly Block.
  */
-public class Block extends Observable<Block.Observer> implements BlockContainer {
+public class Block extends Observable<Block.Observer> {
     private static final String TAG = "Block";
 
     // Observable attributes of possible concern to BlockViews.
@@ -115,12 +115,13 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     // Keep track of whether inputsInline has ever been changed.
     private boolean mInputsInlineModified = false;
 
-    private BlockContainer mParentContainer = null;
+    private String mEventWorkspaceId = null;
 
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
 
     /**
+     * @param controller The controller for this Blockly instance.
      * @param factory The factory creating this block.
      * @param definition The definition this block instantiates.
      * @param id The globally unique identifier for this block.
@@ -176,31 +177,58 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     /**
      * @return The unique identifier of the block. Not for display.
      */
-    @Override
     public String getId() {
         return mId;
     }
 
-    @Override
-    public boolean isRootContainer() {
-        return false;
-    }
-
-    @Override
-    public BlockContainer getParentContainer() {
-        return mParentContainer;  // TODO(#567) & WARNING: This value is never set.
+    /**
+     * {@code getEventWorkspaceId} returns the id of the "workspace", as seen by the event
+     * framework. This might be the {@link Workspace#getId() workspace id}, if attached to a
+     * {@link Workspace}. It may also be {@link BlocklyEvent#WORKSPACE_ID_TOOLBOX} or
+     * {@link BlocklyEvent#WORKSPACE_ID_TRASH}. If the block is not attached to to any of these
+     * (directly or indirectly), the event workspace should be {@code null}.
+     *
+     * @return The id of the "workspace", as seen by the event framework. Null if not attached.
+     */
+    // TODO(#567) & WARNING: This value is not set appropriately in all cases.
+    @Nullable
+    public String getEventWorkspaceId() {
+        return mEventWorkspaceId;
     }
 
     /**
-     * @return The root {@link BlockContainer}, if this block is attached to one.
+     * Sets the block's "workspace" id, for the purposes of events. If the block is on a proper
+     * {@link Workspace}, it should be the {@link Workspace#getId()}. If the block is in the
+     * toolbox or trash, the value should be {@link BlocklyEvent#WORKSPACE_ID_TOOLBOX} or
+     * {@link BlocklyEvent#WORKSPACE_ID_TRASH}, respectively. When the block is detached, the event
+     * workspace should be set to {@code null}.
+     *
+     * Setting this values recursively sets the value on all child blocks.
+     *
+     * @param eventWorkspaceId The workspace id, as defined by event framework.
      */
-    // TODO(#567) & WARNING: This value will always be null until mParentContainer is set.
-    public BlockContainer getRootContainer() {
-        BlockContainer container = mParentContainer;
-        while (container != null && !container.isRootContainer()) {
-            container = container.getParentContainer();
+    // TODO(#567): Test it is called when root block is added to a workspace.
+    // TODO(#567): Test it is called with null when root block is removed to a workspace.
+    // TODO(#567): Call when attached as root block to the toolbox's root BlocklyCategory.
+    // TODO(#567): Call with null when detached as root block from the toolbox's root
+    //             BlocklyCategory.
+    // TODO(#567): Call when attached as root block to the trash's root BlocklyCategory.
+    // TODO(#567): Call with null when detached as root block from the trash's root BlocklyCategory.
+    public void setEventWorkspaceId(String eventWorkspaceId) {
+        mEventWorkspaceId = eventWorkspaceId;
+
+        for (Input input : mInputList) {
+            Block child = input.getConnectedBlock();
+            if (child != null) {
+                child.setEventWorkspaceId(eventWorkspaceId);
+            }
         }
-        return container;
+        if (mNextConnection != null) {
+            Block child = mNextConnection.getTargetBlock();
+            if (child != null) {
+                child.setEventWorkspaceId(eventWorkspaceId);
+            }
+        }
     }
 
     /**
@@ -352,14 +380,13 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
         if (mDisabled == disabled) {
             return;
         }
-        mController.groupAndFireEvents(new Runnable() {
+        groupAndMaybeFireEvents(new Runnable() {
             @Override
             public void run() {
                 mDisabled = disabled;
 
                 // Add change event before notifying observers that might add their own events.
-                mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
-                        BlocklyEvent.ChangeEvent.ELEMENT_DISABLED, Block.this, mDisabled));
+                maybeAddPendingChangeEvent(BlocklyEvent.ELEMENT_DISABLED, mDisabled);
                 fireUpdate(UPDATE_IS_DISABLED); // Block.Observers
             }
         });
@@ -384,14 +411,13 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
         if (collapsed == mCollapsed) {
             return;
         }
-        mController.groupAndFireEvents(new Runnable() {
+        groupAndMaybeFireEvents(new Runnable() {
             @Override
             public void run() {
                 mCollapsed = collapsed;
 
                 // Add change event before notifying observers that might add their own events.
-                mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
-                        BlocklyEvent.ChangeEvent.ELEMENT_COLLAPSED, Block.this, mCollapsed));
+                maybeAddPendingChangeEvent(BlocklyEvent.ELEMENT_COLLAPSED, mCollapsed);
                 fireUpdate(UPDATE_IS_COLLAPSED);
             }
         });
@@ -474,16 +500,15 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
         if (comment == mComment || (comment != null && comment.equals(mComment))) {
             return;
         }
-        mController.groupAndFireEvents(new Runnable() {
+        groupAndMaybeFireEvents(new Runnable() {
             @Override
             public void run() {
                 String oldValue = mComment;
                 mComment = comment;
 
                 // Add change event before notifying observers that might add their own events.
-                mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
-                        BlocklyEvent.ELEMENT_COMMENT, Block.this, /* field */ null,
-                        oldValue, mComment));
+                maybeAddPendingChangeEvent(
+                        BlocklyEvent.ELEMENT_COMMENT, /* field */ null, oldValue, mComment);
                 fireUpdate(UPDATE_COMMENT);
             }
         });
@@ -522,20 +547,19 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
      * @param inputsInline True if value inputs should be show in a single line. Otherwise, false.
      */
     public void setInputsInline(final boolean inputsInline) {
-        // Mark modified state for next serialization.
+        // Mark modified state for next serialization, even if the value didn't actually change.
         mInputsInlineModified = true;
 
         if (inputsInline == mInputsInline) {
             return;
         }
-        mController.groupAndFireEvents(new Runnable() {
+        groupAndMaybeFireEvents(new Runnable() {
             @Override
             public void run() {
                 mInputsInline = inputsInline;
 
                 // Add change event before notifying observers that might add their own events.
-                mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
-                        BlocklyEvent.ELEMENT_INLINE, Block.this, mInputsInline));
+                maybeAddPendingChangeEvent(BlocklyEvent.ELEMENT_INLINE, mInputsInline);
                 fireUpdate(UPDATE_INPUTS_INLINE);
             }
         });
@@ -1012,23 +1036,6 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     }
 
     /**
-     * Sets the block's parent {@link BlockContainer}.
-     *
-     * @param container The immediate parent container
-     */
-    // TODO(#567): Call when root block is added to a workspace.
-    // TODO(#567): Call with null when root block is removed to a workspace.
-    // TODO(#567): Call when attached to parent block's next, statement, or previous
-    // TODO(#567): Call with null when detached from a parent block's next, statement, or previous.
-    // TODO(#567): Call when attached as root block toolbox BlocklyCategory.
-    // TODO(#567): Call with null when detached as root block toolbox BlocklyCategory.
-    // TODO(#567): Call when attached as root block trash BlocklyCategory.
-    // TODO(#567): Call with null when detached as root block trash BlocklyCategory.
-    /* package private */ void setBlockContainer(BlockContainer container) {
-        mParentContainer = container;
-    }
-
-    /**
      * Connects to given child and shadow (even if occluded), or throws a descriptive
      * BlockLoadingException for an invalid connection.
      * @param tagName The string name of the connection, as seen in XML.
@@ -1116,7 +1123,7 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
      * @param message The message to tokenize.
      * @return A list of Strings that are either an arg or plain text.
      */
-    // package scoped
+    // package scoped for testing
     static List<String> tokenizeMessage(String message) {
         ArrayList<String> result = new ArrayList<>();
         if (TextUtils.isEmpty(message)) {
@@ -1178,7 +1185,7 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
     /**
      * @return True if any input in this block includes a variable field. Otherwise false.
      */
-    boolean containsVariableField() {
+    private boolean containsVariableField() {
         return containsVariableField(mInputList);
     }
 
@@ -1186,9 +1193,45 @@ public class Block extends Observable<Block.Observer> implements BlockContainer 
      * Notifies Observers of a structure change.
      * @param updateStateMask A bit mask of {@link UpdateState} bits for the updated parts.
      */
-    protected void fireUpdate(@UpdateState int updateStateMask) {
+    private void fireUpdate(@UpdateState int updateStateMask) {
         for (Observer observer: mObservers) {
             observer.onBlockUpdated(this, updateStateMask);
+        }
+    }
+
+    /**
+     * Runs the provided closure. If {@link #mEventWorkspaceId} is set, it will run it through
+     * {@link BlocklyController#groupAndFireEvents(Runnable)}.
+     * @param runnable Code to run.
+     */
+    private void groupAndMaybeFireEvents(Runnable runnable) {
+        if (mEventWorkspaceId == null) {
+            runnable.run();
+        } else {
+            mController.groupAndFireEvents(runnable);
+        }
+    }
+
+    /**
+     * Creates and emits a {@link BlocklyEvent.ChangeEvent} only if {@link #mEventWorkspaceId} is
+     * set.
+     */
+    private void maybeAddPendingChangeEvent(
+            String element, Field field, String oldValue, String newValue) {
+        if (mEventWorkspaceId != null) {
+            mController.addPendingEvent(
+                    new BlocklyEvent.ChangeEvent(element, this, field, oldValue, newValue));
+        }
+    }
+
+    /**
+     * Creates and emits a {@link BlocklyEvent.ChangeEvent} only if {@link #mEventWorkspaceId} is
+     * set.
+     */
+    private void maybeAddPendingChangeEvent(String element, boolean newValue) {
+        if (mEventWorkspaceId != null) {
+            mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
+                    element, this, null, Boolean.toString(!newValue), Boolean.toString(newValue)));
         }
     }
 

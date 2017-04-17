@@ -37,7 +37,7 @@ import java.util.UUID;
 /**
  * The root class for the Blockly model.  Keeps track of all the global state used in the workspace.
  */
-public class Workspace implements BlockContainer {
+public class Workspace {
     private static final String TAG = "Workspace";
 
     private final Context mContext;
@@ -76,19 +76,8 @@ public class Workspace implements BlockContainer {
         mId = UUID.randomUUID().toString();
     }
 
-    @Override
     public String getId() {
         return mId;
-    }
-
-    @Override
-    public boolean isRootContainer() {
-        return true;
-    }
-
-    @Override
-    public BlockContainer getParentContainer() {
-        return null;
     }
 
     /**
@@ -110,7 +99,9 @@ public class Workspace implements BlockContainer {
         }
         mRootBlocks.add(block);
         if (isNewBlock) {
+            block.setEventWorkspaceId(getId());
             mStats.collectStats(block, true);
+            mController.addPendingEvent(new BlocklyEvent.CreateEvent(block));
         }
     }
 
@@ -124,8 +115,11 @@ public class Workspace implements BlockContainer {
      */
     public boolean removeRootBlock(Block block, boolean cleanupStats) {
         boolean foundAndRemoved = mRootBlocks.remove(block);
-        if (foundAndRemoved && cleanupStats) {
-            mStats.cleanupStats(block);
+        if (foundAndRemoved) {
+            block.setEventWorkspaceId(null);
+            if (cleanupStats) {
+                mStats.cleanupStats(block);
+            }
         }
         return foundAndRemoved;
     }
