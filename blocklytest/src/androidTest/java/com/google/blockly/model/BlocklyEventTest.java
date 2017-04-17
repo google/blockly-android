@@ -2,6 +2,7 @@ package com.google.blockly.model;
 
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Unit tests for {@link BlocklyEvent} classes.
  */
-public class BlocklyEventTest {
+public class BlocklyEventTest extends BlocklyTestCase {
     private static final String BLOCK_TYPE = "controls_whileUntil";
     private static final String BLOCK_ID = "block";
     private static final String FIELD_NAME = "MODE";
@@ -37,14 +38,21 @@ public class BlocklyEventTest {
 
     @Before
     public void setUp() throws Exception {
+        configureForUIThread();
+
         mMockController = Mockito.mock(BlocklyController.class);
 
-        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
+        mBlockFactory = new BlockFactory(getContext(),
                 new int[]{R.raw.test_blocks});  // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory.setController(mMockController);
         mBlock = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType(BLOCK_TYPE).withId(BLOCK_ID));
-        mBlock.setEventWorkspaceId(WORKSPACE_ID);
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                mBlock.setEventWorkspaceId(WORKSPACE_ID);
+            }
+        });
 
         mField = mBlock.getFieldByName(FIELD_NAME);
         mBlock.setPosition(NEW_POSITION_X, NEW_POSITION_Y);

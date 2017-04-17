@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.database.Observable;
+import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -215,6 +216,15 @@ public class Block extends Observable<Block.Observer> {
     // TODO(#567): Call when attached as root block to the trash's root BlocklyCategory.
     // TODO(#567): Call with null when detached as root block from the trash's root BlocklyCategory.
     public void setEventWorkspaceId(String eventWorkspaceId) {
+        if (eventWorkspaceId == mEventWorkspaceId
+                || (mEventWorkspaceId != null && mEventWorkspaceId.equals(eventWorkspaceId))) {
+            return; // No-op
+        }
+        if (Looper.getMainLooper() != Looper.myLooper()) {
+            throw new IllegalStateException(
+                    "setEventWorkspaceId(..) must be called from main thread.");
+        }
+
         mEventWorkspaceId = eventWorkspaceId;
 
         for (Input input : mInputList) {

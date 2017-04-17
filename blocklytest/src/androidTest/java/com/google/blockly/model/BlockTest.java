@@ -48,6 +48,8 @@ import static com.google.common.truth.Truth.assertWithMessage;
  * Tests for {@link Block}.
  */
 public class BlockTest extends BlocklyTestCase {
+    private static final String FAKE_WORKSPACE_ID = "FAKE_WORKSPACE_ID";
+
     private XmlPullParserFactory xmlPullParserFactory;
     private BlockFactory mBlockFactory;
     private BlocklyController mController;
@@ -575,11 +577,12 @@ public class BlockTest extends BlocklyTestCase {
 
         final Block block = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("statement_no_input"));
-        block.setEventWorkspaceId("Mock workspace id");
 
         runAndSync(new Runnable() {
             @Override
             public void run() {
+                block.setEventWorkspaceId(FAKE_WORKSPACE_ID);
+
                 // Check default
                 assertWithMessage("By default, blocks are not collapsed.")
                         .that(block.isCollapsed()).isFalse();
@@ -659,11 +662,12 @@ public class BlockTest extends BlocklyTestCase {
 
         final Block block = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("statement_no_input"));
-        block.setEventWorkspaceId("Mock workspace id");
 
         runAndSync(new Runnable() {
             @Override
             public void run() {
+                block.setEventWorkspaceId(FAKE_WORKSPACE_ID);
+
                 assertWithMessage("By default, blocks are not disabled.")
                         .that(block.isDisabled()).isFalse();
 
@@ -768,9 +772,6 @@ public class BlockTest extends BlocklyTestCase {
         final Block blockDefaultExternal = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("logic_ternary"));
 
-        blockDefaultInline.setEventWorkspaceId("Mock workspace id");
-        blockDefaultExternal.setEventWorkspaceId("Mock workspace id");
-
         configureEventsCallback();
         blockDefaultExternal.registerObserver(mBlockObserver);
         blockDefaultInline.registerObserver(mBlockObserver);
@@ -778,6 +779,9 @@ public class BlockTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
+                blockDefaultInline.setEventWorkspaceId(FAKE_WORKSPACE_ID);
+                blockDefaultExternal.setEventWorkspaceId(FAKE_WORKSPACE_ID);
+
                 assertWithMessage("By default, arithmetic block has inline inputs.")
                         .that(blockDefaultInline.getInputsInline()).isTrue();
                 assertWithMessage("By default, ternary block has external inputs.")
@@ -924,7 +928,6 @@ public class BlockTest extends BlocklyTestCase {
         configureEventsCallback();
 
         final Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
-        block.setEventWorkspaceId("Mock workspace id");
         block.registerObserver(mBlockObserver);
 
         final String newComment = "New comment.";
@@ -933,6 +936,8 @@ public class BlockTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
+                block.setEventWorkspaceId(FAKE_WORKSPACE_ID);
+
                 // Preconditions
                 assertThat(block.getComment()).isNull();
                 assertThat(newComment).isNotEqualTo(updatedComment);
