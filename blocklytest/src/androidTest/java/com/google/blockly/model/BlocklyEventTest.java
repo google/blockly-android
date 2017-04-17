@@ -31,7 +31,6 @@ public class BlocklyEventTest {
             new WorkspacePoint(NEW_POSITION_X, NEW_POSITION_Y);
 
     private BlocklyController mMockController;
-    private BlockContainer mMockContainer;
     private BlockFactory mBlockFactory;
     private Block mBlock;
     private Field mField;
@@ -40,18 +39,15 @@ public class BlocklyEventTest {
     public void setUp() throws Exception {
         mMockController = Mockito.mock(BlocklyController.class);
 
-        mMockContainer = mock(BlockContainer.class);
-        // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
-                new int[]{R.raw.test_blocks});
+                new int[]{R.raw.test_blocks});  // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory.setController(mMockController);
         mBlock = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType(BLOCK_TYPE).withId(BLOCK_ID));
+        mBlock.setEventWorkspaceId(WORKSPACE_ID);
+
         mField = mBlock.getFieldByName(FIELD_NAME);
         mBlock.setPosition(NEW_POSITION_X, NEW_POSITION_Y);
-
-
-        Mockito.when(mMockContainer.getId()).thenReturn(WORKSPACE_ID);
     }
 
     @Test
@@ -99,7 +95,8 @@ public class BlocklyEventTest {
             throws JSONException {
         assertThat(event.getTypeId()).isSameAs(BlocklyEvent.TYPE_CHANGE);
         assertThat(event.getTypeName()).isSameAs(BlocklyEvent.TYPENAME_CHANGE);
-        // TODO(567): Assign the Block's parent/root BlockContainer, and check against WORKSPACE_ID.
+        assertThat(event.getWorkspaceId()).isEqualTo(WORKSPACE_ID);
+        // TODO(567): Assign the Block's parent/root EventWorkspace, and check against WORKSPACE_ID.
         // Group id is assigned by the BlocklyController, not tested here.
         assertThat(event.getElement()).isEqualTo(element);
         assertThat(event.getOldValue()).isEqualTo(oldValue);
@@ -130,7 +127,7 @@ public class BlocklyEventTest {
 
         assertThat(event.getTypeId()).isSameAs(BlocklyEvent.TYPE_CREATE);
         assertThat(event.getTypeName()).isSameAs(BlocklyEvent.TYPENAME_CREATE);
-        // TODO(567): Assign the Block's parent/root BlockContainer, and check against WORKSPACE_ID.
+        // TODO(567): Assign the Block's parent/root EventWorkspace, and check against WORKSPACE_ID.
         // Group id is assigned by the BlocklyController, not tested here.
         assertThat(event.getIds().size()).isEqualTo(1);
         assertThat(event.getIds().get(0)).isEqualTo(BLOCK_ID);
