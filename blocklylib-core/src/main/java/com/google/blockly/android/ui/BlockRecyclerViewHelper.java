@@ -192,8 +192,8 @@ public class BlockRecyclerViewHelper {
                 pendingDrag.getTouchDownWorkspaceCoordinates());
         mTempWorkspacePoint.offset(-wsOffsetX, -wsOffsetY);
 
-        BlockGroup dragGroup = mCallback.getDraggableBlockGroup(
-                mCurrentCategory.getItems().indexOf(rootBlock), rootBlock,
+        int itemIndex = mCurrentCategory.indexOf(rootBlock); // Should never be -1
+        BlockGroup dragGroup = mCallback.getDraggableBlockGroup(itemIndex, rootBlock,
                 mTempWorkspacePoint);
         return Pair.create(dragGroup, touchOffset);
     }
