@@ -452,12 +452,7 @@ public class BlockFactory {
         if (factory == null) {
             throw new BlockLoadingException("Unknown mutator \"" + mutatorId + "\".");
         }
-        if (block.mMutator != null) {
-            throw new BlockLoadingException(
-                    "Mutator \"" + block.mMutatorId + "\" already applied.");
-        }
-        Mutator mutator = factory.newMutator();
-        block.setMutator(mutator, mutatorId);
+        block.setMutator(factory.newMutator(), mutatorId);
     }
 
 
@@ -472,9 +467,9 @@ public class BlockFactory {
         if (extension == null) {
             throw new BlockLoadingException("Unknown extension \"" + extensionId + "\".");
         }
-        Mutator old = block.mMutator;
+        Mutator old = block.getMutator();
         extension.applyTo(block);
-        if (block.mMutator != old) {
+        if (block.getMutator() != old) {
             // Unlike web, Android mutators are not assigned by extensions.
             Log.w(TAG, "Extensions are not allowed to assign mutators. "
                     + "Use Mutator and Mutator.Factory class.");

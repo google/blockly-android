@@ -121,9 +121,11 @@ public class BlockTemplate {
      * @throws BlockLoadingException
      */
     public void applyMutableState(Block block) throws BlockLoadingException {
+        // Must apply mutation first, to ensure the block inputs, fields, and connectors, etc. are
+        // updated and ready for the latter mutable state.
         if (mMutation != null) {
-            if (block.mMutator != null) {
-                BlocklyXmlHelper.updateMutator(block, block.mMutator, mMutation);
+            if (block.getMutator() != null) {
+                block.setMutation(mMutation);
             } else {
                 Log.w(TAG, toString() + ": Ignoring <mutation> on " + this + " without mutator.");
             }

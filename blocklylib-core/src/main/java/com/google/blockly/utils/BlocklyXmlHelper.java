@@ -395,11 +395,11 @@ public final class BlocklyXmlHelper {
      * @throws BlockLoadingException
      */
     public static void updateMutator(
-            @NonNull Block block, @NonNull Mutator mutator, @NonNull String mutation)
+            @NonNull Block block, @NonNull Mutator mutator, @Nullable String mutation)
             throws BlockLoadingException
     {
         try {
-            Reader reader = new StringReader(mutation);
+            Reader reader = new StringReader(mutation == null ? "<mutation></mutation>" : mutation);
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
             parser.setInput(reader);
             mutator.update(block, parser);
