@@ -106,12 +106,12 @@ public class BlocklyController {
     private final Workspace mWorkspace;
     private final ConnectionManager mConnectionManager;
     private final ArrayList<EventsCallback> mListeners = new ArrayList<>();
-    private final ArrayList<BlocklyEvent> mPendingEvents = new ArrayList<>();
 
     // Whether the current call stack is actively executing code intended to group and fire events.
     // See groupAndFireEvents(Runnable)
     private boolean mInEventGroup = false;
 
+    private ArrayList<BlocklyEvent> mPendingEvents;
     private int mPendingEventsMask = 0;
     private int mEventCallbackMask = 0;
 
@@ -209,6 +209,7 @@ public class BlocklyController {
         mContext = context;
         mMainLooper = context.getMainLooper();
         mModelFactory = blockModelFactory;
+        mModelFactory.setController(this);
         mHelper = workspaceHelper;
         mViewFactory = blockViewFactory;
 
@@ -549,6 +550,10 @@ public class BlocklyController {
         if (mMainLooper != Looper.myLooper()) {
             throw new IllegalStateException("addPendingEvent() must be called from main thread.");
         }
+
+        if (mPendingEvents == null) {
+            mPendingEvents = new ArrayList<>();
+        }
         mPendingEvents.add(event);
         mPendingEventsMask |= event.getTypeId();
 
@@ -569,7 +574,7 @@ public class BlocklyController {
             throw new IllegalArgumentException("New root block must not be connected.");
         }
 
-        final BlockGroup newRootGroup[] = new BlockGroup[] { null };
+        final BlockGroup newRootGroup[] = {null};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -665,7 +670,7 @@ public class BlocklyController {
      * @return The actual variable name that was created.
      */
     public String addVariable(final String variable) {
-        final String[] resultVarName = new String[] { null };
+        final String[] resultVarName = { null };
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -685,7 +690,7 @@ public class BlocklyController {
      * @return The variable name that was created or null if creation was not allowed.
      */
     public String requestAddVariable(final String variable) {
-        final String resultVarName[] = new String[] { null };
+        final String resultVarName[] = {null};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -703,7 +708,7 @@ public class BlocklyController {
      * @return True if the variable existed and was deleted, false otherwise.
      */
     public boolean deleteVariable(final String variable) {
-        final boolean resultSuccess[] = new boolean[] { false };
+        final boolean resultSuccess[] = {false};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -722,7 +727,7 @@ public class BlocklyController {
      * @return True if the variable existed and was deleted, false otherwise.
      */
     public boolean requestDeleteVariable(final String variable) {
-        final boolean[] resultSuccess = new boolean[] { false };
+        final boolean[] resultSuccess = {false};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -743,7 +748,7 @@ public class BlocklyController {
      * @return The new variable name that was saved.
      */
     public String renameVariable(final String variable, final String newVariable) {
-        final String resultVarName[] = new String[] { null };
+        final String resultVarName[] = {null};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -765,7 +770,7 @@ public class BlocklyController {
      * @return The new variable name that was saved.
      */
     public String requestRenameVariable(final String variable, final String newVariable) {
-        final String resultVarName[] = new String[] { null };
+        final String resultVarName[] = {null};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -862,7 +867,7 @@ public class BlocklyController {
      */
     // TODO(#493): Sound Effect.
     public boolean trashRootBlock(final Block block) {
-        final boolean rootFoundAndRemoved[] = new boolean[] { false };
+        final boolean rootFoundAndRemoved[] = {false};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -881,7 +886,7 @@ public class BlocklyController {
      * @return True if the block was removed, false otherwise.
      */
     public boolean trashRootBlockIgnoringDeletable(final Block block) {
-        final boolean rootFoundAndRemoved[] = new boolean[] { false };
+        final boolean rootFoundAndRemoved[] = {false};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -915,7 +920,7 @@ public class BlocklyController {
             unlinkViews(block);
 
             if (hasCallback(BlocklyEvent.TYPE_DELETE)) {
-                addPendingEvent(new BlocklyEvent.DeleteEvent(mWorkspace, block));
+                addPendingEvent(new BlocklyEvent.DeleteEvent(mWorkspace.getId(), block));
             }
         }
 
@@ -935,7 +940,7 @@ public class BlocklyController {
      * @throws IllegalArgumentException If {@code trashedBlock} is not found in the trashed blocks.
      */
     public BlockGroup addBlockFromTrash(final @NonNull Block previouslyTrashedBlock) {
-        final BlockGroup trashedGroupRoot[] = new BlockGroup[] { null };
+        final BlockGroup trashedGroupRoot[] = {null};
         groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
@@ -973,7 +978,7 @@ public class BlocklyController {
             mWorkspaceView.addView(bg);
         }
         if (hasCallback(BlocklyEvent.TYPE_CREATE)) {
-            addPendingEvent(new BlocklyEvent.CreateEvent(mWorkspace, previouslyTrashedBlock));
+            addPendingEvent(new BlocklyEvent.CreateEvent(previouslyTrashedBlock));
         }
         return bg;
     }
@@ -1067,10 +1072,15 @@ public class BlocklyController {
      * Removes all blocks from the {@link WorkspaceView} and puts them in the trash.
      */
     public void trashAllBlocks() {
-        List<Block> rootBlocks = new ArrayList<>(mWorkspace.getRootBlocks());
-        for (Block block: rootBlocks) {
-            trashRootBlockImpl(block, true);
-        }
+        groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                List<Block> rootBlocks = new ArrayList<>(mWorkspace.getRootBlocks());
+                for (Block block: rootBlocks) {
+                    trashRootBlockImpl(block, true);
+                }
+            }
+        });
     }
 
     /**
@@ -1094,6 +1104,9 @@ public class BlocklyController {
      */
     private BlockGroup addRootBlockImpl(Block block, @Nullable BlockGroup bg, boolean isNewBlock) {
         mWorkspace.addRootBlock(block, isNewBlock);
+        if (isNewBlock) {
+            addPendingEvent(new BlocklyEvent.CreateEvent(block));
+        }
         if (mWorkspaceView != null) {
             if (bg == null) {
                 bg = mViewFactory.buildBlockGroupTree(block, mWorkspace.getConnectionManager(),
@@ -1102,9 +1115,6 @@ public class BlocklyController {
                 bg.setTouchHandler(mTouchHandler);
             }
             mWorkspaceView.addView(bg);
-        }
-        if (isNewBlock && hasCallback(BlocklyEvent.TYPE_CREATE)) {
-            addPendingEvent(new BlocklyEvent.CreateEvent(mWorkspace, block));
         }
         return bg;
     }
@@ -1178,8 +1188,7 @@ public class BlocklyController {
             for (FieldVariable field : varRefs) {
                 field.setVariable(newVariable);
                 BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
-                        .newFieldValueEvent(getWorkspace(), field.getBlock(), field,
-                                variable, newVariable);
+                        .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
                 addPendingEvent(change);
             }
         }
@@ -1201,7 +1210,7 @@ public class BlocklyController {
         extractBlockAsRootImpl(block, false);
         if (removeRootBlockImpl(block, true)) {
             unlinkViews(block);
-            addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace(), block));
+            addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace().getId(), block));
         }
     }
 
@@ -1229,7 +1238,7 @@ public class BlocklyController {
         boolean result = removeRootBlockImpl(block, true);
         unlinkViews(block);
         if (result) {
-            addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace(), block));
+            addPendingEvent(new BlocklyEvent.DeleteEvent(getWorkspace().getId(), block));
         }
         return true;
     }
@@ -1760,7 +1769,7 @@ public class BlocklyController {
             }
         }
 
-        mPendingEvents.clear();
+        mPendingEvents = null;
         mPendingEventsMask = 0;
     }
 

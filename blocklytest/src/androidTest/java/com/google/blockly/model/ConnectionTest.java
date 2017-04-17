@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
@@ -21,6 +22,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import static com.google.blockly.model.Connection.CAN_CONNECT;
 import static com.google.blockly.model.Connection.CONNECTION_TYPE_OUTPUT;
@@ -37,6 +39,8 @@ import static com.google.blockly.utils.ConnectionSubject.assertThat;
  * Tests for {@link Connection}.
  */
 public class ConnectionTest {
+    private BlocklyController mMockController;
+
     private BlockFactory factory;
     private BlockTemplate dummyBlock;
     private BlockTemplate shadowBlock;
@@ -55,7 +59,10 @@ public class ConnectionTest {
 
     @Before
     public void setUp() throws JSONException, BlockLoadingException {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         factory = new BlockFactory();
+        factory.setController(mMockController);
         factory.addDefinition(new BlockDefinition("{\"type\": \"dummyBlock\"}"));
         dummyBlock = new BlockTemplate().ofType("dummyBlock");
         shadowBlock = new BlockTemplate(dummyBlock).shadow();

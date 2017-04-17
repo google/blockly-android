@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
@@ -29,12 +30,16 @@ public class BlockExtensionTest {
     private static final String BLOCK_TYPE = "block type";
     private static final String EXTENSION_ID = "mock extension";
 
+    BlocklyController mMockController;
     BlockFactory mBlockFactory;
     BlockExtension mMockExtension;
 
     @Before
     public void setUp() throws BlockLoadingException, IOException {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         mBlockFactory = new BlockFactory();
+        mBlockFactory.setController(mMockController);
         mBlockFactory.addJsonDefinitions(
                 "[{\"type\": \"" + BLOCK_TYPE + "\","
                 + "\"extensions\": [\"" + EXTENSION_ID + "\"]}]"

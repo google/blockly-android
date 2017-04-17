@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
@@ -65,6 +66,8 @@ public class BlockFactory {
     private final Map<String, BlockExtension> mExtensions = new HashMap<>();
     private final Map<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
+    protected BlocklyController mController;
+
     /**
      * The global list of dropdown options available to each field matching the
      * {@link BlockTypeFieldName} key.
@@ -104,6 +107,14 @@ public class BlockFactory {
             // Resources are assumed to be valid. Throw this error as RuntimeException.
             throw new IllegalStateException(e.getMessage(), e);
         }
+    }
+
+    public void setController(BlocklyController controller) {
+        if (mController != null && controller != mController) {
+            throw new IllegalStateException(
+                    "BlockFactory is already associated with another BlocklyController.");
+        }
+        mController = controller;
     }
 
     /**
@@ -308,11 +319,15 @@ public class BlockFactory {
      * @return A new block, or null if not able to construct it.
      */
     public Block obtainBlockFrom(BlockTemplate template) throws BlockLoadingException {
+        if (mController == null) {
+            throw new IllegalStateException("Must set BlockController before creating block.");
+        }
+
         String id = getCheckedId(template.mId);
 
         // Existing instance not found. Constructing a new Block.
         BlockDefinition definition;
-        boolean isShadow = template.mIsShadow == null ? false : template.mIsShadow;
+        boolean isShadow = (template.mIsShadow == null) ? false : template.mIsShadow;
         Block block;
         if (template.mCopySource != null) {
             try {
@@ -344,7 +359,7 @@ public class BlockFactory {
                 throw new BlockLoadingException(template.toString() + " missing block definition.");
             }
 
-            block = new Block(this, definition, id, isShadow);
+            block = new Block(mController, this, definition, id, isShadow);
         }
 
         // Apply mutable state last.

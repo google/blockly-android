@@ -99,6 +99,7 @@ public class Workspace {
         }
         mRootBlocks.add(block);
         if (isNewBlock) {
+            block.setEventWorkspaceId(getId());
             mStats.collectStats(block, true);
         }
     }
@@ -113,8 +114,11 @@ public class Workspace {
      */
     public boolean removeRootBlock(Block block, boolean cleanupStats) {
         boolean foundAndRemoved = mRootBlocks.remove(block);
-        if (foundAndRemoved && cleanupStats) {
-            mStats.cleanupStats(block);
+        if (foundAndRemoved) {
+            block.setEventWorkspaceId(null);
+            if (cleanupStats) {
+                mStats.cleanupStats(block);
+            }
         }
         return foundAndRemoved;
     }

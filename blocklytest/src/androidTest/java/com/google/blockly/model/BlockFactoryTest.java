@@ -18,6 +18,8 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.logging.LogLogcatRule;
 import android.support.test.rule.logging.RuleLoggingUtils;
 
+import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -26,6 +28,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -43,8 +46,9 @@ import static com.google.common.truth.Truth.assertWithMessage;
 /**
  * Tests for {@link BlockFactory}.
  */
-public class BlockFactoryTest {
+public class BlockFactoryTest extends BlocklyTestCase {
     private XmlPullParserFactory xmlPullParserFactory;
+    private BlocklyController mController;
     private BlockFactory mBlockFactory;
 
     @Rule
@@ -55,10 +59,13 @@ public class BlockFactoryTest {
 
     @Before
     public void setUp() throws Exception {
+        configureForUIThread();
+
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
-        // TODO(#84): Move test_blocks.json to the testapp's resources.
-        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
-            new int[]{R.raw.test_blocks});
+        mController = new BlocklyController.Builder(getContext())
+                .addBlockDefinitions(R.raw.test_blocks) // TODO(#84): Move test_blocks.json out of res/
+                .build();
+        mBlockFactory = mController.getBlockFactory();
     }
 
     @Test
@@ -78,7 +85,7 @@ public class BlockFactoryTest {
     public void testLoadBlocks() {
         List<BlockDefinition> definitions = mBlockFactory.getAllBlockDefinitions();
         assertWithMessage("BlockFactory failed to load all blocks.")
-                .that(definitions.size()).isEqualTo(21);
+                .that(definitions.size()).isEqualTo(23);
     }
 
     @Test
@@ -143,15 +150,33 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testBlockWithGoodComment() throws BlockLoadingException {
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "6",
-            BlockTestStrings.COMMENT_GOOD));
+    public void testBlockWithGoodComment() {
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "6",
+                            BlockTestStrings.COMMENT_GOOD));
+                } catch (BlockLoadingException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
     }
 
     @Test
-    public void testBlockWithEmptyComment() throws BlockLoadingException {
-        parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "7",
-            BlockTestStrings.COMMENT_NO_TEXT));
+    public void testBlockWithEmptyComment() {
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "7",
+                            BlockTestStrings.COMMENT_NO_TEXT));
+                } catch (BlockLoadingException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
     }
 
     @Test
@@ -216,17 +241,35 @@ public class BlockFactoryTest {
     }
 
     @Test
-    public void testLoadFromXmlInlineTagAtStart() throws BlockLoadingException {
-        Block inlineAtStart = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_BEGINNING);
-        assertThat(inlineAtStart.getInputsInline()).isTrue();
-        assertThat(inlineAtStart.getInputsInlineModified()).isTrue();
+    public void testLoadFromXmlInlineTagAtStart() {
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Block inlineAtStart = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_BEGINNING);
+                    assertThat(inlineAtStart.getInputsInline()).isTrue();
+                    assertThat(inlineAtStart.getInputsInlineModified()).isTrue();
+                } catch (BlockLoadingException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
     }
 
     @Test
-    public void testLoadFromXmlInlineTagAtEnd() throws BlockLoadingException {
-        Block inlineAtEnd = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_END);
-        assertThat(inlineAtEnd.getInputsInline()).isTrue();
-        assertThat(inlineAtEnd.getInputsInlineModified()).isTrue();
+    public void testLoadFromXmlInlineTagAtEnd() {
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Block inlineAtEnd = parseBlockFromXml(BlockTestStrings.SIMPLE_BLOCK_INLINE_END);
+                    assertThat(inlineAtEnd.getInputsInline()).isTrue();
+                    assertThat(inlineAtEnd.getInputsInlineModified()).isTrue();
+                } catch (BlockLoadingException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
     }
 
     @Test

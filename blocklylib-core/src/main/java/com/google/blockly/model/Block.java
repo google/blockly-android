@@ -16,11 +16,13 @@
 package com.google.blockly.model;
 
 import android.database.Observable;
+import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.ColorUtils;
@@ -41,21 +43,26 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 public class Block extends Observable<Block.Observer> {
     private static final String TAG = "Block";
 
+    // Observable attributes of possible concern to BlockViews.
     @Retention(SOURCE)
     @IntDef({
-            UPDATE_INPUTS_FIELDS_CONNECTIONS, UPDATE_MUTATOR, UPDATE_COMMENT, UPDATE_IS_SHADOW,
-            UPDATE_IS_DISABLED, UPDATE_IS_COLLAPSED, UPDATE_IS_EDITABLE, UPDATE_IS_DELETABLE
+            UPDATE_INPUTS_FIELDS_CONNECTIONS, UPDATE_COLOR, UPDATE_COMMENT, UPDATE_IS_SHADOW,
+            UPDATE_IS_DISABLED, UPDATE_IS_COLLAPSED, UPDATE_IS_EDITABLE, UPDATE_IS_DELETABLE,
+            UPDATE_TOOLTIP, UPDATE_CONTEXT_MENU, UPDATE_INPUTS_INLINE, UPDATE_IS_MOVEABLE
     })
     public @interface UpdateState {}
-    public static final int UPDATE_INPUTS_FIELDS_CONNECTIONS = 0x01;
-    public static final int UPDATE_MUTATOR = 0x02;  // TODO
-    public static final int UPDATE_COMMENT = 0x04;
-    public static final int UPDATE_IS_SHADOW = 0x08;
-    public static final int UPDATE_IS_DISABLED = 0x10;
-    public static final int UPDATE_IS_COLLAPSED = 0x20;
-    public static final int UPDATE_IS_EDITABLE = 0x40;
-    public static final int UPDATE_IS_DELETABLE = 0x80;
-    // TODO(Anm): Tooltip, Context menu, Block color
+    public static final int UPDATE_INPUTS_FIELDS_CONNECTIONS = 1 << 0;
+    public static final int UPDATE_COLOR = 1 << 1;  // TODO: Not implemented/emitted
+    public static final int UPDATE_COMMENT = 1 << 2;
+    public static final int UPDATE_IS_SHADOW = 1 << 3;
+    public static final int UPDATE_IS_DISABLED = 1 << 4;
+    public static final int UPDATE_IS_COLLAPSED = 1 << 5;
+    public static final int UPDATE_IS_EDITABLE = 1 << 6;
+    public static final int UPDATE_IS_DELETABLE = 1 << 7;
+    public static final int UPDATE_TOOLTIP = 1 << 8;  // TODO: Not implemented/emitted
+    public static final int UPDATE_CONTEXT_MENU = 1 << 9;  // TODO: Not implemented/emitted
+    public static final int UPDATE_INPUTS_INLINE = 1 << 10;
+    public static final int UPDATE_IS_MOVEABLE = 1 << 11;
 
     public interface Observer {
         /**
@@ -79,6 +86,7 @@ public class Block extends Observable<Block.Observer> {
     }
 
     // These values are immutable once a block is created
+    private final BlocklyController mController;
     private final BlockFactory mFactory;
     private final String mId;
     private final String mType;
@@ -108,23 +116,28 @@ public class Block extends Observable<Block.Observer> {
     // Keep track of whether inputsInline has ever been changed.
     private boolean mInputsInlineModified = false;
 
+    private String mEventWorkspaceId = null;
+
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
 
     /**
+     * @param controller The controller for this Blockly instance.
      * @param factory The factory creating this block.
      * @param definition The definition this block instantiates.
      * @param id The globally unique identifier for this block.
      * @param isShadow Whether the block should be a shadow block (default input value block).
      * @throws BlockLoadingException When the {@link BlockDefinition} throws errors.
      */
-    Block(@NonNull BlockFactory factory, @NonNull BlockDefinition definition, @NonNull String id,
-          boolean isShadow)
+    Block(@Nullable BlocklyController controller, @NonNull BlockFactory factory,
+          @NonNull BlockDefinition definition, @NonNull String id, boolean isShadow)
             throws BlockLoadingException {
-        if (factory == null || definition == null || id == null) {
+        if (controller == null || factory == null || definition == null || id == null) {
             throw new IllegalArgumentException(
-                    "Tried to instantiate a block but factory, definition, or id was null.");
+                    "Tried to instantiate a block but controller, factory, definition, or id was "
+                    + "null.");
         }
+        mController = controller;
         mFactory = factory;
         mId = id;
 
@@ -167,6 +180,65 @@ public class Block extends Observable<Block.Observer> {
      */
     public String getId() {
         return mId;
+    }
+
+    /**
+     * {@code getEventWorkspaceId} returns the id of the "workspace", as seen by the event
+     * framework. This might be the {@link Workspace#getId() workspace id}, if attached to a
+     * {@link Workspace}. It may also be {@link BlocklyEvent#WORKSPACE_ID_TOOLBOX} or
+     * {@link BlocklyEvent#WORKSPACE_ID_TRASH}. If the block is not attached to to any of these
+     * (directly or indirectly), the event workspace should be {@code null}.
+     *
+     * @return The id of the "workspace", as seen by the event framework. Null if not attached.
+     */
+    // TODO(#567) & WARNING: This value is not set appropriately in all cases.
+    @Nullable
+    public String getEventWorkspaceId() {
+        return mEventWorkspaceId;
+    }
+
+    /**
+     * Sets the block's "workspace" id, for the purposes of events. If the block is on a proper
+     * {@link Workspace}, it should be the {@link Workspace#getId()}. If the block is in the
+     * toolbox or trash, the value should be {@link BlocklyEvent#WORKSPACE_ID_TOOLBOX} or
+     * {@link BlocklyEvent#WORKSPACE_ID_TRASH}, respectively. When the block is detached, the event
+     * workspace should be set to {@code null}.
+     *
+     * Setting this values recursively sets the value on all child blocks.
+     *
+     * @param eventWorkspaceId The workspace id, as defined by event framework.
+     */
+    // TODO(#567): Test it is called when root block is added to a workspace.
+    // TODO(#567): Test it is called with null when root block is removed to a workspace.
+    // TODO(#567): Call when attached as root block to the toolbox's root BlocklyCategory.
+    // TODO(#567): Call with null when detached as root block from the toolbox's root
+    //             BlocklyCategory.
+    // TODO(#567): Call when attached as root block to the trash's root BlocklyCategory.
+    // TODO(#567): Call with null when detached as root block from the trash's root BlocklyCategory.
+    public void setEventWorkspaceId(String eventWorkspaceId) {
+        if (eventWorkspaceId == mEventWorkspaceId
+                || (mEventWorkspaceId != null && mEventWorkspaceId.equals(eventWorkspaceId))) {
+            return; // No-op
+        }
+        if (Looper.getMainLooper() != Looper.myLooper()) {
+            throw new IllegalStateException(
+                    "setEventWorkspaceId(..) must be called from main thread.");
+        }
+
+        mEventWorkspaceId = eventWorkspaceId;
+
+        for (Input input : mInputList) {
+            Block child = input.getConnectedBlock();
+            if (child != null) {
+                child.setEventWorkspaceId(eventWorkspaceId);
+            }
+        }
+        if (mNextConnection != null) {
+            Block child = mNextConnection.getTargetBlock();
+            if (child != null) {
+                child.setEventWorkspaceId(eventWorkspaceId);
+            }
+        }
     }
 
     /**
@@ -222,6 +294,7 @@ public class Block extends Observable<Block.Observer> {
         if (editable == mEditable) {
             return;
         }
+        // TODO: Event support? No current spec for changes to "editable".
         mEditable = editable;
         fireUpdate(UPDATE_IS_EDITABLE);
     }
@@ -243,7 +316,12 @@ public class Block extends Observable<Block.Observer> {
      * @param movable
      */
     public void setMovable(boolean movable) {
+        if (mMovable == movable) {
+            return;
+        }
+        // TODO: Event support? No current spec for changes to "moveable".
         mMovable = movable;
+        fireUpdate(UPDATE_IS_MOVEABLE);
     }
 
     /**
@@ -266,6 +344,7 @@ public class Block extends Observable<Block.Observer> {
         if (mDeletable == deletable) {
             return;
         }
+        // TODO: Event support? No current spec for changes to "deletable".
         mDeletable = deletable;
         fireUpdate(UPDATE_IS_DELETABLE);
     }
@@ -307,12 +386,20 @@ public class Block extends Observable<Block.Observer> {
      *
      * @param disabled
      */
-    public void setDisabled(boolean disabled) {
+    public void setDisabled(final boolean disabled) {
         if (mDisabled == disabled) {
             return;
         }
-        mDisabled = disabled;
-        fireUpdate(UPDATE_IS_DISABLED);
+        groupAndMaybeFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                mDisabled = disabled;
+
+                // Add change event before notifying observers that might add their own events.
+                maybeAddPendingChangeEvent(BlocklyEvent.ELEMENT_DISABLED, mDisabled);
+                fireUpdate(UPDATE_IS_DISABLED); // Block.Observers
+            }
+        });
     }
 
     /**
@@ -330,12 +417,20 @@ public class Block extends Observable<Block.Observer> {
      *
      * @param collapsed Whether the block should be collapsed.
      */
-    public void setCollapsed(boolean collapsed) {
+    public void setCollapsed(final boolean collapsed) {
         if (collapsed == mCollapsed) {
             return;
         }
-        mCollapsed = collapsed;
-        fireUpdate(UPDATE_IS_COLLAPSED);
+        groupAndMaybeFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                mCollapsed = collapsed;
+
+                // Add change event before notifying observers that might add their own events.
+                maybeAddPendingChangeEvent(BlocklyEvent.ELEMENT_COLLAPSED, mCollapsed);
+                fireUpdate(UPDATE_IS_COLLAPSED);
+            }
+        });
     }
 
     /**
@@ -411,12 +506,22 @@ public class Block extends Observable<Block.Observer> {
      *
      * @param comment The text of the comment.
      */
-    public void setComment(@Nullable String comment) {
+    public void setComment(@Nullable final String comment) {
         if (comment == mComment || (comment != null && comment.equals(mComment))) {
             return;
         }
-        mComment = comment;
-        fireUpdate(UPDATE_COMMENT);
+        groupAndMaybeFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                String oldValue = mComment;
+                mComment = comment;
+
+                // Add change event before notifying observers that might add their own events.
+                maybeAddPendingChangeEvent(
+                        BlocklyEvent.ELEMENT_COMMENT, /* field */ null, oldValue, mComment);
+                fireUpdate(UPDATE_COMMENT);
+            }
+        });
     }
 
     /**
@@ -448,11 +553,26 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
-     * Set flag for displaying inputs in-line.
+     * Set whether value inputs should be displayed inline (true), or on separate rows (false).
+     * @param inputsInline True if value inputs should be show in a single line. Otherwise, false.
      */
-    public void setInputsInline(boolean inputsInline) {
+    public void setInputsInline(final boolean inputsInline) {
+        // Mark modified state for next serialization, even if the value didn't actually change.
         mInputsInlineModified = true;
-        mInputsInline = inputsInline;
+
+        if (inputsInline == mInputsInline) {
+            return;
+        }
+        groupAndMaybeFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                mInputsInline = inputsInline;
+
+                // Add change event before notifying observers that might add their own events.
+                maybeAddPendingChangeEvent(BlocklyEvent.ELEMENT_INLINE, mInputsInline);
+                fireUpdate(UPDATE_INPUTS_INLINE);
+            }
+        });
     }
 
     /**
@@ -1013,7 +1133,7 @@ public class Block extends Observable<Block.Observer> {
      * @param message The message to tokenize.
      * @return A list of Strings that are either an arg or plain text.
      */
-    // package scoped
+    // package scoped for testing
     static List<String> tokenizeMessage(String message) {
         ArrayList<String> result = new ArrayList<>();
         if (TextUtils.isEmpty(message)) {
@@ -1075,7 +1195,7 @@ public class Block extends Observable<Block.Observer> {
     /**
      * @return True if any input in this block includes a variable field. Otherwise false.
      */
-    boolean containsVariableField() {
+    private boolean containsVariableField() {
         return containsVariableField(mInputList);
     }
 
@@ -1083,9 +1203,45 @@ public class Block extends Observable<Block.Observer> {
      * Notifies Observers of a structure change.
      * @param updateStateMask A bit mask of {@link UpdateState} bits for the updated parts.
      */
-    protected void fireUpdate(@UpdateState int updateStateMask) {
+    private void fireUpdate(@UpdateState int updateStateMask) {
         for (Observer observer: mObservers) {
             observer.onBlockUpdated(this, updateStateMask);
+        }
+    }
+
+    /**
+     * Runs the provided closure. If {@link #mEventWorkspaceId} is set, it will run it through
+     * {@link BlocklyController#groupAndFireEvents(Runnable)}.
+     * @param runnable Code to run.
+     */
+    private void groupAndMaybeFireEvents(Runnable runnable) {
+        if (mEventWorkspaceId == null) {
+            runnable.run();
+        } else {
+            mController.groupAndFireEvents(runnable);
+        }
+    }
+
+    /**
+     * Creates and emits a {@link BlocklyEvent.ChangeEvent} only if {@link #mEventWorkspaceId} is
+     * set.
+     */
+    private void maybeAddPendingChangeEvent(
+            String element, Field field, String oldValue, String newValue) {
+        if (mEventWorkspaceId != null) {
+            mController.addPendingEvent(
+                    new BlocklyEvent.ChangeEvent(element, this, field, oldValue, newValue));
+        }
+    }
+
+    /**
+     * Creates and emits a {@link BlocklyEvent.ChangeEvent} only if {@link #mEventWorkspaceId} is
+     * set.
+     */
+    private void maybeAddPendingChangeEvent(String element, boolean newValue) {
+        if (mEventWorkspaceId != null) {
+            mController.addPendingEvent(new BlocklyEvent.ChangeEvent(
+                    element, this, null, Boolean.toString(!newValue), Boolean.toString(newValue)));
         }
     }
 

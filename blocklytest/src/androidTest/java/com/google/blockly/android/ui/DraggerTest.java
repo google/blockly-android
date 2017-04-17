@@ -76,10 +76,6 @@ public class DraggerTest extends BlocklyTestCase {
     private DragEvent mDragLocationEvent;
     private DragEvent mDropEvent;
 
-    private HandlerThread mThread;
-    private Handler mHandler;
-    private Throwable mExceptionInThread = null;
-
     private ViewPoint mTempViewPoint = new ViewPoint();
     private WorkspaceHelper mWorkspaceHelper;
     private BlockViewFactory mViewFactory;
@@ -127,12 +123,10 @@ public class DraggerTest extends BlocklyTestCase {
     @Before
     public void setUp() throws Exception {
         configureForThemes();
-        mThread = new HandlerThread("DraggerTest");
-        mThread.start();
-        mHandler = new Handler(mThread.getLooper());
+        configureForUIThread();
 
         mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(getContext()));
-        doReturn(mThread.getLooper()).when(mMockContext).getMainLooper();
+        doReturn(mTargetMainLooper).when(mMockContext).getMainLooper();
 
         mMockController = mock(BlocklyController.class);
         mMockBlockClipDataHelper = mock(BlockClipDataHelper.class);
@@ -147,6 +141,7 @@ public class DraggerTest extends BlocklyTestCase {
             public void run() {
                 // TODO(#435): Replace R.raw.test_blocks
                 mBlockFactory = new BlockFactory(mMockContext, new int[]{R.raw.test_blocks});
+                mBlockFactory.setController(mMockController);
                 mWorkspaceView = new WorkspaceView(mMockContext);
                 mWorkspaceHelper = new WorkspaceHelper(mMockContext);
                 mWorkspaceHelper.setWorkspaceView(mWorkspaceView);
@@ -181,11 +176,6 @@ public class DraggerTest extends BlocklyTestCase {
             }
         });
 
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        mThread.getLooper().quit();
     }
 
     // This set of tests covers the full sequence of dragging operations.
@@ -440,36 +430,5 @@ public class DraggerTest extends BlocklyTestCase {
                 mDragger.getDragEventListener().onDrag(mWorkspaceView, mDropEvent);
             }
         });
-    }
-
-    private void runAndSync(final Runnable runnable) {
-        assertThat(mExceptionInThread).isNull();
-
-        final CountDownLatch latch = new CountDownLatch(1);
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    runnable.run();
-                } catch (Throwable e) {
-                    mExceptionInThread = e;
-                }
-                latch.countDown();
-            }
-        });
-        awaitTimeout(latch);
-
-        if (mExceptionInThread != null) {
-            throw new IllegalStateException("Unhandled exception in mock main thread.",
-                    mExceptionInThread);
-        }
-    }
-
-    private void awaitTimeout(CountDownLatch latch) {
-        try {
-            latch.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException("Timeout exceeded.", e);
-        }
     }
 }

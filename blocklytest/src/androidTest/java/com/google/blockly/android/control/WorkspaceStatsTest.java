@@ -29,6 +29,7 @@ import com.google.blockly.utils.BlockLoadingException;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -38,6 +39,8 @@ import static org.mockito.Mockito.verify;
  * Tests for {@link WorkspaceStats}.
  */
 public class WorkspaceStatsTest {
+    private BlocklyController mMockController;
+
     private BlockFactory mFactory;
     private WorkspaceStats mStats;
     private ConnectionManager mConnectionManager;
@@ -45,8 +48,11 @@ public class WorkspaceStatsTest {
 
     @Before
     public void setUp() {
+        mMockController = Mockito.mock(BlocklyController.class);
+
         Context context = InstrumentationRegistry.getTargetContext();
         mFactory = new BlockFactory();
+        mFactory.setController(mMockController);
 
         // TODO: Do we need this? We don't use Mockito in this test.
         //       http://stackoverflow.com/a/22402631/152543
