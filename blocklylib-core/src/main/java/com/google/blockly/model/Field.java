@@ -243,14 +243,14 @@ public abstract class Field extends Observable<Field.Observer> implements Clonea
     }
 
     /**
-     * Run the closure immediately, as an event group if connected to a block & controller.
-     * @param closure
+     * Runs the runnable immediately, as an event group if connected to a block & controller.
+     * @param runnable
      */
-    private void runAsPossibleEventGroup(Runnable closure) {
+    private void runAsPossibleEventGroup(Runnable runnable) {
         if (mBlock != null) {
-            mBlock.getController().groupAndFireEvents(closure);
+            mBlock.runAsPossibleEventGroup(runnable);
         } else {
-            closure.run();
+            runnable.run();
         }
     }
 }

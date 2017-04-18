@@ -167,7 +167,7 @@ public class WorkspaceHelper {
      */
     @Nullable
     public BlockView getView(Block block) {
-        return mViewFactory.getView(block);
+        return (mViewFactory == null) ? null : mViewFactory.getView(block);
     }
 
     /**
