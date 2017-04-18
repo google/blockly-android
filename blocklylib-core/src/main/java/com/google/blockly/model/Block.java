@@ -184,6 +184,14 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
+     * @return The controller for this Blockly instance.
+     */
+    @NonNull
+    public BlocklyController getController() {
+        return mController;
+    }
+
+    /**
      * {@code getEventWorkspaceId} returns the id of the "workspace", as seen by the event
      * framework. This might be the {@link Workspace#getId() workspace id}, if attached to a
      * {@link Workspace}. It may also be {@link BlocklyEvent#WORKSPACE_ID_TOOLBOX} or
@@ -1270,9 +1278,9 @@ public class Block extends Observable<Block.Observer> {
 
     /**
      * Creates and emits a {@link BlocklyEvent.ChangeEvent} only if {@link #mEventWorkspaceId} is
-     * set.
+     * set. Accessed by Field.
      */
-    private void maybeAddPendingChangeEvent(
+    /* package private */ void maybeAddPendingChangeEvent(
             String element, Field field, String oldValue, String newValue) {
         if (mEventWorkspaceId != null) {
             mController.addPendingEvent(
