@@ -171,16 +171,34 @@ public class BlocklyCategory {
      * @return true if an item with that block was found and removed, false otherwise.
      */
     public boolean removeBlock(Block block) {
+        int index = indexOf(block);
+        if (index != -1) {
+            return removeItem(index);
+        }
+        return false;
+    }
+
+    /**
+     * @return The index of the given item or -1 if it's not in this category.
+     */
+    public int indexOf(CategoryItem item) {
+        return mItems.indexOf(item);
+    }
+
+    /**
+     * @return The index of the item containing the given block or -1 if it's not in this category.
+     */
+    public int indexOf(Block rootBlock) {
         for (int i = 0; i < mItems.size(); i++) {
             CategoryItem item = mItems.get(i);
             if (item.getType() == CategoryItem.TYPE_BLOCK) {
                 Block currBlock = ((BlockItem)item).getBlock();
-                if (currBlock == block) {
-                    return removeItem(i);
+                if (currBlock == rootBlock) {
+                    return i;
                 }
             }
         }
-        return false;
+        return -1;
     }
 
     /**
