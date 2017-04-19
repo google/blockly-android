@@ -14,7 +14,6 @@
  */
 package com.google.blockly.model;
 
-import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.logging.LogLogcatRule;
 import android.support.test.rule.logging.RuleLoggingUtils;
 
@@ -28,7 +27,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -181,9 +179,10 @@ public class BlockFactoryTest extends BlocklyTestCase {
 
     @Test
     public void testBlockWithGoodFields() throws BlockLoadingException {
-        Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock("block", "8",
-            BlockTestStrings.FIELD_HAS_NAME));
-        assertThat(((FieldInput) loaded.getFieldByName("text_input")).getText()).isEqualTo("item");
+        Block loaded = parseBlockFromXml(BlockTestStrings.assembleFrankenblock(
+                "block", "8", BlockTestStrings.FIELD_HAS_NAME));
+        assertThat(((FieldInput) loaded.getFieldByName("text_input")).getText())
+                .isEqualTo("item");
     }
 
     @Test

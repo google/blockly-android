@@ -184,6 +184,14 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
+     * @return The controller for this Blockly instance.
+     */
+    @NonNull
+    public BlocklyController getController() {
+        return mController;
+    }
+
+    /**
      * {@code getEventWorkspaceId} returns the id of the "workspace", as seen by the event
      * framework. This might be the {@link Workspace#getId() workspace id}, if attached to a
      * {@link Workspace}. It may also be {@link BlocklyEvent#WORKSPACE_ID_TOOLBOX} or
@@ -391,7 +399,7 @@ public class Block extends Observable<Block.Observer> {
         if (mDisabled == disabled) {
             return;
         }
-        groupAndMaybeFireEvents(new Runnable() {
+        runAsPossibleEventGroup(new Runnable() {
             @Override
             public void run() {
                 mDisabled = disabled;
@@ -422,7 +430,7 @@ public class Block extends Observable<Block.Observer> {
         if (collapsed == mCollapsed) {
             return;
         }
-        groupAndMaybeFireEvents(new Runnable() {
+        runAsPossibleEventGroup(new Runnable() {
             @Override
             public void run() {
                 mCollapsed = collapsed;
@@ -511,7 +519,7 @@ public class Block extends Observable<Block.Observer> {
         if (comment == mComment || (comment != null && comment.equals(mComment))) {
             return;
         }
-        groupAndMaybeFireEvents(new Runnable() {
+        runAsPossibleEventGroup(new Runnable() {
             @Override
             public void run() {
                 String oldValue = mComment;
@@ -564,7 +572,7 @@ public class Block extends Observable<Block.Observer> {
         if (inputsInline == mInputsInline) {
             return;
         }
-        groupAndMaybeFireEvents(new Runnable() {
+        runAsPossibleEventGroup(new Runnable() {
             @Override
             public void run() {
                 mInputsInline = inputsInline;
@@ -1258,9 +1266,11 @@ public class Block extends Observable<Block.Observer> {
     /**
      * Runs the provided closure. If {@link #mEventWorkspaceId} is set, it will run it through
      * {@link BlocklyController#groupAndFireEvents(Runnable)}.
+     * @see Field#runAsPossibleEventGroup(Runnable)
+     *
      * @param runnable Code to run.
      */
-    private void groupAndMaybeFireEvents(Runnable runnable) {
+    /* package private */ void runAsPossibleEventGroup(Runnable runnable) {
         if (mEventWorkspaceId == null) {
             runnable.run();
         } else {
@@ -1271,8 +1281,12 @@ public class Block extends Observable<Block.Observer> {
     /**
      * Creates and emits a {@link BlocklyEvent.ChangeEvent} only if {@link #mEventWorkspaceId} is
      * set.
+     * @param element The identifying element type string.
+     * @param field The field changed, if any.
+     * @param oldValue The prior value, in serialized string form.
+     * @param newValue The new value, in serialized string form.
      */
-    private void maybeAddPendingChangeEvent(
+    /* package private */ void maybeAddPendingChangeEvent(
             String element, Field field, String oldValue, String newValue) {
         if (mEventWorkspaceId != null) {
             mController.addPendingEvent(
