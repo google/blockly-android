@@ -1253,7 +1253,8 @@ public class BlockTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
-                mController.addRootBlock(block);
+                assertThat(mController.getCallbackCount()).isEqualTo(0);
+                block.setEventWorkspaceId("Fake Workspace Id");
 
                 // Reference the event list directly, for later verification.
                 List<List<BlocklyEvent>> eventsReceived = mEventsCallback.mEventsReceived;
@@ -1265,6 +1266,7 @@ public class BlockTest extends BlocklyTestCase {
 
                 // Set callback and attempt to remove the direct reference to the callback.
                 block.setEventCallback(mEventsCallback);
+                assertThat(mController.getCallbackCount()).isEqualTo(1);
                 mEventsCallback = null;
                 System.gc();
                 try {
@@ -1282,6 +1284,8 @@ public class BlockTest extends BlocklyTestCase {
                 block.setEventCallback(null);
                 mController.addPendingEvent(event);
                 assertThat(eventsReceived).isEmpty();
+
+                assertThat(mController.getCallbackCount()).isEqualTo(0);
             }
         });
     }
