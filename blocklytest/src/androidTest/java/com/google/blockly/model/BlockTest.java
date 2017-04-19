@@ -1244,8 +1244,36 @@ public class BlockTest extends BlocklyTestCase {
                 .isEqualTo(Block.UPDATE_IS_DELETABLE);
     }
 
-    public void testSetEventCallback() {
-        
+    @Test
+    public void testSetEventCallback() throws BlockLoadingException {
+        final Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        final BlocklyEvent event = new BlocklyEvent.ChangeEvent(
+                BlocklyEvent.ELEMENT_MUTATE, block, null, "", "");
+
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                mController.addRootBlock(block);
+                mEventsCallback.mEventsReceived.clear();
+
+                // Send event before setting block callback
+                mController.addPendingEvent(event);
+                assertThat(mEventsCallback.mEventsReceived).isEmpty();
+
+                // Set callback and try again
+                block.setEventCallback(mEventsCallback);
+                mController.addPendingEvent(event);
+                assertThat(mEventsCallback.mEventsReceived).hasSize(1);         // One event group
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);  // One event
+                assertThat(mEventsCallback.mEventsReceived.get(0).get(0)).isSameAs(event);
+
+                // Unset callback and try again
+                mEventsCallback.mEventsReceived.clear();
+                block.setEventCallback(null);
+                mController.addPendingEvent(event);
+                assertThat(mEventsCallback.mEventsReceived).isEmpty();
+            }
+        });
     }
 
     private String toXml(Block block) {
