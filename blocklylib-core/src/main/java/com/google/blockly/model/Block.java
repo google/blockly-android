@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.database.Observable;
+import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -119,7 +120,8 @@ public class Block extends Observable<Block.Observer> {
     private boolean mInputsInlineModified = false;
 
     private String mEventWorkspaceId = null;
-    private BlocklyController.EventsCallback mEventCallbackWrapper = null;
+    private BlocklyController.EventsCallback mEventCallback = null;
+    private BlocklyController.EventsCallback mMemSafeCallback = null;
 
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
@@ -879,13 +881,14 @@ public class Block extends Observable<Block.Observer> {
      * @param callback The block's callback, or null to unset.
      */
     public void setEventCallback(@Nullable BlocklyController.EventsCallback callback) {
-        if (mEventCallbackWrapper != null) {
-            mController.removeCallback(mEventCallbackWrapper);
-            mEventCallbackWrapper = null;
+        if (mMemSafeCallback != null) {
+            mController.removeCallback(mMemSafeCallback);
+            mMemSafeCallback = null;
         }
-        if (callback != null) {
-            mEventCallbackWrapper = new EventsCallbackWrapper(this, callback);
-            mController.addCallback(mEventCallbackWrapper);
+        mEventCallback = callback;
+        if (mEventCallback != null) {
+            mMemSafeCallback = new MemSafeEventsCallback(this);
+            mController.addCallback(mMemSafeCallback);
         }
     }
 
@@ -1348,34 +1351,53 @@ public class Block extends Observable<Block.Observer> {
         return false;
     }
 
-    private static class EventsCallbackWrapper implements BlocklyController.EventsCallback {
+    /**
+     * This {@link BlocklyController.EventsCallback} implementation is designed to prevent
+     * {@link #setEventCallback the block's EventCallback} from creating a reference from the
+     * {@link BlocklyController controller} that prevents garbage collection. If the block or the
+     * block's callback disappear, this callback will disappear.
+     */
+    private static class MemSafeEventsCallback implements BlocklyController.EventsCallback {
         private final BlocklyController mController;
         private final WeakReference<Block> mBlockRef;
-        private final BlocklyController.EventsCallback mCallback;
+        // Do not refer to the inner callback directly.
 
-        EventsCallbackWrapper(
-                @NonNull Block block, @NonNull BlocklyController.EventsCallback callback) {
+        MemSafeEventsCallback(@NonNull Block block) {
             mController = block.getController();
-            mCallback = callback;
-
             mBlockRef = new WeakReference<Block>(block);
         }
 
         @Override
         public int getTypesBitmask() {
-            return mCallback.getTypesBitmask();
+            Block block = mBlockRef.get();
+            if (block != null && block.mEventCallback != null) {
+                // I feel fantastic and I'm.... still alive.
+                return block.mEventCallback.getTypesBitmask();
+            } else {
+                removeSelf();
+                return 0;
+            }
         }
 
         @Override
         public void onEventGroup(List<BlocklyEvent> events) {
-            if (mBlockRef.get() != null) {
-                // I feel fantastic and I'm
-                // still alive.
-
-                mCallback.onEventGroup(events);
+            Block block = mBlockRef.get();
+            if (block != null && block.mEventCallback != null) {
+                // And believe me I am... still alive.
+                block.mEventCallback.onEventGroup(events);
             } else {
-                mController.removeCallback(this);
+                removeSelf();
             }
+        }
+
+        private void removeSelf() {
+            // Don't change the listener while the listener list is being processed.
+            new Handler().post(new Runnable() {
+                @Override
+                public void run() {
+                    mController.removeCallback(MemSafeEventsCallback.this);
+                }
+            });
         }
     }
 }
