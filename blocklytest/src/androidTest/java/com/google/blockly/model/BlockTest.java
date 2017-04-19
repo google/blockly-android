@@ -1244,6 +1244,52 @@ public class BlockTest extends BlocklyTestCase {
                 .isEqualTo(Block.UPDATE_IS_DELETABLE);
     }
 
+    @Test
+    public void testSetEventCallback() throws BlockLoadingException {
+        final Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
+        final BlocklyEvent event = new BlocklyEvent.ChangeEvent(
+                BlocklyEvent.ELEMENT_MUTATE, block, null, "", "");
+
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                assertThat(mController.getCallbackCount()).isEqualTo(0);
+                block.setEventWorkspaceId("Fake Workspace Id");
+
+                // Reference the event list directly, for later verification.
+                List<List<BlocklyEvent>> eventsReceived = mEventsCallback.mEventsReceived;
+                eventsReceived.clear();
+
+                // Send event before setting block callback
+                mController.addPendingEvent(event);
+                assertThat(mEventsCallback.mEventsReceived).isEmpty();
+
+                // Set callback and attempt to remove the direct reference to the callback.
+                block.setEventCallback(mEventsCallback);
+                assertThat(mController.getCallbackCount()).isEqualTo(1);
+                mEventsCallback = null;
+                System.gc();
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {} // Ignored.
+
+                // Try another event.
+                mController.addPendingEvent(event);
+                assertThat(eventsReceived).hasSize(1);         // One event group
+                assertThat(eventsReceived.get(0)).hasSize(1);  // One event
+                assertThat(eventsReceived.get(0).get(0)).isSameAs(event);
+
+                // Unset callback and try again
+                eventsReceived.clear();
+                block.setEventCallback(null);
+                mController.addPendingEvent(event);
+                assertThat(eventsReceived).isEmpty();
+
+                assertThat(mController.getCallbackCount()).isEqualTo(0);
+            }
+        });
+    }
+
     private String toXml(Block block) {
         StringOutputStream out = new StringOutputStream();
         try {

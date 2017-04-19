@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -507,6 +508,14 @@ public class BlocklyController {
             recalculateListenerEventMask();
         }
         return found;
+    }
+
+    /**
+     * @return A count of registered {@link EventsCallback}s.
+     */
+    @VisibleForTesting
+    public int getCallbackCount() {
+        return mListeners.size();
     }
 
     /**
