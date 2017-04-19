@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.database.Observable;
+import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -31,6 +32,7 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -118,6 +120,8 @@ public class Block extends Observable<Block.Observer> {
     private boolean mInputsInlineModified = false;
 
     private String mEventWorkspaceId = null;
+    private BlocklyController.EventsCallback mEventCallback = null;
+    private BlocklyController.EventsCallback mMemSafeCallback = null;
 
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
@@ -697,6 +701,7 @@ public class Block extends Observable<Block.Observer> {
      *
      * @return A new block tree with a copy of this block as the root.
      */
+    @NonNull
     public Block deepCopy() {
         try {
             String xml = BlocklyXmlHelper.writeBlockToXml(this,
@@ -776,6 +781,7 @@ public class Block extends Observable<Block.Observer> {
     /**
      * @return The {@link Block} for the last non-shadow child in this sequence, possibly itself.
      */
+    @NonNull
     public Block getLastBlockInSequence() {
         Block last = this;
         Block next = this.getNextBlock();
@@ -796,6 +802,7 @@ public class Block extends Observable<Block.Observer> {
      *
      * @return the {@link Connection} on the only input on the last block in the chain.
      */
+    @Nullable
     public Connection getLastUnconnectedInputConnection() {
         Block block = this;
 
@@ -824,6 +831,7 @@ public class Block extends Observable<Block.Observer> {
      *
      * @return The highest block found.
      */
+    @NonNull
     public Block getRootBlock() {
         Block block = this;
         Block parent = block.getParentBlock();
@@ -862,9 +870,26 @@ public class Block extends Observable<Block.Observer> {
      * @return The block connected to the output or previous {@link Connection}, if present.
      *         Otherwise null.
      */
+    @Nullable
     public Block getParentBlock() {
         Connection parentConnection = getParentConnection();
         return parentConnection == null ? null : parentConnection.getBlock();
+    }
+
+    /**
+     * Sets an event callback that will receive {@link BlocklyEvent}s for the lifetime of the block.
+     * @param callback The block's callback, or null to unset.
+     */
+    public void setEventCallback(@Nullable BlocklyController.EventsCallback callback) {
+        if (mMemSafeCallback != null) {
+            mController.removeCallback(mMemSafeCallback);
+            mMemSafeCallback = null;
+        }
+        mEventCallback = callback;
+        if (mEventCallback != null) {
+            mMemSafeCallback = new MemSafeEventsCallback(this);
+            mController.addCallback(mMemSafeCallback);
+        }
     }
 
     /**
@@ -1324,5 +1349,55 @@ public class Block extends Observable<Block.Observer> {
             }
         }
         return false;
+    }
+
+    /**
+     * This {@link BlocklyController.EventsCallback} implementation is designed to prevent
+     * {@link #setEventCallback the block's EventCallback} from creating a reference from the
+     * {@link BlocklyController controller} that prevents garbage collection. If the block or the
+     * block's callback disappear, this callback will disappear.
+     */
+    private static class MemSafeEventsCallback implements BlocklyController.EventsCallback {
+        private final BlocklyController mController;
+        private final WeakReference<Block> mBlockRef;
+        // Do not refer to the inner callback directly.
+
+        MemSafeEventsCallback(@NonNull Block block) {
+            mController = block.getController();
+            mBlockRef = new WeakReference<Block>(block);
+        }
+
+        @Override
+        public int getTypesBitmask() {
+            Block block = mBlockRef.get();
+            if (block != null && block.mEventCallback != null) {
+                // I feel fantastic and I'm.... still alive.
+                return block.mEventCallback.getTypesBitmask();
+            } else {
+                removeSelf();
+                return 0;
+            }
+        }
+
+        @Override
+        public void onEventGroup(List<BlocklyEvent> events) {
+            Block block = mBlockRef.get();
+            if (block != null && block.mEventCallback != null) {
+                // And believe me I am... still alive.
+                block.mEventCallback.onEventGroup(events);
+            } else {
+                removeSelf();
+            }
+        }
+
+        private void removeSelf() {
+            // Don't change the listener while the listener list is being processed.
+            new Handler().post(new Runnable() {
+                @Override
+                public void run() {
+                    mController.removeCallback(MemSafeEventsCallback.this);
+                }
+            });
+        }
     }
 }
