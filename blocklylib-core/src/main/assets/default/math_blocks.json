@@ -153,30 +153,13 @@
         "type": "field_dropdown",
         "name": "PROPERTY",
         "options": [
-          [
-            "even",
-            "EVEN"
-          ],
-          [
-            "odd",
-            "ODD"
-          ],
-          [
-            "prime",
-            "PRIME"
-          ],
-          [
-            "whole",
-            "WHOLE"
-          ],
-          [
-            "positive",
-            "POSITIVE"
-          ],
-          [
-            "negative",
-            "NEGATIVE"
-          ]
+          ["even", "EVEN"],
+          ["odd", "ODD"],
+          ["prime", "PRIME"],
+          ["whole", "WHOLE"],
+          ["positive", "POSITIVE"],
+          ["negative", "NEGATIVE"],
+          ["divisible by", "DIVISIBLE_BY"]
         ]
       }
     ],
@@ -184,7 +167,8 @@
     "colour": 230,
     "output": "Boolean",
     "tooltip": "Check if a number is an even, odd, prime, whole, positive, or negative. Returns true or false.",
-    "TODO(#376)": "https://github.com/google/blockly-android/issues/376"
+    "TODO(#376)": "https://github.com/google/blockly-android/issues/376",
+    "mutator": "math_is_divisibleby_mutator"
   },
   {
     "type": "math_change",
