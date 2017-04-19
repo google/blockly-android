@@ -877,7 +877,7 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
-     * Sets a event callback that will receive {@link BlocklyEvent}s for the lifetime of the block.
+     * Sets an event callback that will receive {@link BlocklyEvent}s for the lifetime of the block.
      * @param callback The block's callback, or null to unset.
      */
     public void setEventCallback(@Nullable BlocklyController.EventsCallback callback) {
