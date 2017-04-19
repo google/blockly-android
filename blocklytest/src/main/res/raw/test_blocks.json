@@ -187,10 +187,12 @@
         "type": "input_dummy"
       },
       {
-        "type": "input_value"
+        "type": "input_value",
+        "name": "the_value"
       },
       {
-        "type": "input_statement"
+        "type": "input_statement",
+        "name": "the_statement"
       }
     ]
   },
