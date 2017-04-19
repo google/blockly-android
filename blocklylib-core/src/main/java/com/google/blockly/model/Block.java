@@ -118,6 +118,7 @@ public class Block extends Observable<Block.Observer> {
     private boolean mInputsInlineModified = false;
 
     private String mEventWorkspaceId = null;
+    private BlocklyController.EventsCallback mEventCallback = null;
 
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
@@ -697,6 +698,7 @@ public class Block extends Observable<Block.Observer> {
      *
      * @return A new block tree with a copy of this block as the root.
      */
+    @NonNull
     public Block deepCopy() {
         try {
             String xml = BlocklyXmlHelper.writeBlockToXml(this,
@@ -776,6 +778,7 @@ public class Block extends Observable<Block.Observer> {
     /**
      * @return The {@link Block} for the last non-shadow child in this sequence, possibly itself.
      */
+    @NonNull
     public Block getLastBlockInSequence() {
         Block last = this;
         Block next = this.getNextBlock();
@@ -796,6 +799,7 @@ public class Block extends Observable<Block.Observer> {
      *
      * @return the {@link Connection} on the only input on the last block in the chain.
      */
+    @Nullable
     public Connection getLastUnconnectedInputConnection() {
         Block block = this;
 
@@ -824,6 +828,7 @@ public class Block extends Observable<Block.Observer> {
      *
      * @return The highest block found.
      */
+    @NonNull
     public Block getRootBlock() {
         Block block = this;
         Block parent = block.getParentBlock();
@@ -862,9 +867,29 @@ public class Block extends Observable<Block.Observer> {
      * @return The block connected to the output or previous {@link Connection}, if present.
      *         Otherwise null.
      */
+    @Nullable
     public Block getParentBlock() {
         Connection parentConnection = getParentConnection();
         return parentConnection == null ? null : parentConnection.getBlock();
+    }
+
+    /**
+     * Sets a event callback that will follow the block to any workspace (or workspace equivalent:
+     * toolbox or trash) it is attached to. This get called on all events.
+     * @param callback The block's callback or null
+     */
+    public void setEventCallback(@Nullable BlocklyController.EventsCallback callback) {
+        if (mEventCallback != null) {
+            mController.removeCallback(mEventCallback);
+        }
+        mEventCallback = callback;
+        if (mEventCallback != null) {
+            mController.addCallback(mEventCallback);
+        }
+    }
+
+    public BlocklyController.EventsCallback getEventCallback() {
+        return mEventCallback;
     }
 
     /**

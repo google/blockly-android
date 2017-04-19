@@ -1244,6 +1244,10 @@ public class BlockTest extends BlocklyTestCase {
                 .isEqualTo(Block.UPDATE_IS_DELETABLE);
     }
 
+    public void testSetEventCallback() {
+        
+    }
+
     private String toXml(Block block) {
         StringOutputStream out = new StringOutputStream();
         try {
