@@ -31,6 +31,7 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -118,7 +119,7 @@ public class Block extends Observable<Block.Observer> {
     private boolean mInputsInlineModified = false;
 
     private String mEventWorkspaceId = null;
-    private BlocklyController.EventsCallback mEventCallback = null;
+    private BlocklyController.EventsCallback mEventCallbackWrapper = null;
 
     /** Position of the block in the workspace. Only serialized for the root block. */
     private WorkspacePoint mPosition;
@@ -874,22 +875,18 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
-     * Sets a event callback that will follow the block to any workspace (or workspace equivalent:
-     * toolbox or trash) it is attached to. This get called on all events.
-     * @param callback The block's callback or null
+     * Sets a event callback that will receive {@link BlocklyEvent}s for the lifetime of the block.
+     * @param callback The block's callback, or null to unset.
      */
     public void setEventCallback(@Nullable BlocklyController.EventsCallback callback) {
-        if (mEventCallback != null) {
-            mController.removeCallback(mEventCallback);
+        if (mEventCallbackWrapper != null) {
+            mController.removeCallback(mEventCallbackWrapper);
+            mEventCallbackWrapper = null;
         }
-        mEventCallback = callback;
-        if (mEventCallback != null) {
-            mController.addCallback(mEventCallback);
+        if (callback != null) {
+            mEventCallbackWrapper = new EventsCallbackWrapper(this, callback);
+            mController.addCallback(mEventCallbackWrapper);
         }
-    }
-
-    public BlocklyController.EventsCallback getEventCallback() {
-        return mEventCallback;
     }
 
     /**
@@ -1349,5 +1346,36 @@ public class Block extends Observable<Block.Observer> {
             }
         }
         return false;
+    }
+
+    private static class EventsCallbackWrapper implements BlocklyController.EventsCallback {
+        private final BlocklyController mController;
+        private final WeakReference<Block> mBlockRef;
+        private final BlocklyController.EventsCallback mCallback;
+
+        EventsCallbackWrapper(
+                @NonNull Block block, @NonNull BlocklyController.EventsCallback callback) {
+            mController = block.getController();
+            mCallback = callback;
+
+            mBlockRef = new WeakReference<Block>(block);
+        }
+
+        @Override
+        public int getTypesBitmask() {
+            return mCallback.getTypesBitmask();
+        }
+
+        @Override
+        public void onEventGroup(List<BlocklyEvent> events) {
+            if (mBlockRef.get() != null) {
+                // I feel fantastic and I'm
+                // still alive.
+
+                mCallback.onEventGroup(events);
+            } else {
+                mController.removeCallback(this);
+            }
+        }
     }
 }
