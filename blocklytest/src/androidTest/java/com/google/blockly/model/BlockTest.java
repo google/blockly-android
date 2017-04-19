@@ -1254,24 +1254,34 @@ public class BlockTest extends BlocklyTestCase {
             @Override
             public void run() {
                 mController.addRootBlock(block);
-                mEventsCallback.mEventsReceived.clear();
+
+                // Reference the event list directly, for later verification.
+                List<List<BlocklyEvent>> eventsReceived = mEventsCallback.mEventsReceived;
+                eventsReceived.clear();
 
                 // Send event before setting block callback
                 mController.addPendingEvent(event);
                 assertThat(mEventsCallback.mEventsReceived).isEmpty();
 
-                // Set callback and try again
+                // Set callback and attempt to remove the direct reference to the callback.
                 block.setEventCallback(mEventsCallback);
+                mEventsCallback = null;
+                System.gc();
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {} // Ignored.
+
+                // Try another event.
                 mController.addPendingEvent(event);
-                assertThat(mEventsCallback.mEventsReceived).hasSize(1);         // One event group
-                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);  // One event
-                assertThat(mEventsCallback.mEventsReceived.get(0).get(0)).isSameAs(event);
+                assertThat(eventsReceived).hasSize(1);         // One event group
+                assertThat(eventsReceived.get(0)).hasSize(1);  // One event
+                assertThat(eventsReceived.get(0).get(0)).isSameAs(event);
 
                 // Unset callback and try again
-                mEventsCallback.mEventsReceived.clear();
+                eventsReceived.clear();
                 block.setEventCallback(null);
                 mController.addPendingEvent(event);
-                assertThat(mEventsCallback.mEventsReceived).isEmpty();
+                assertThat(eventsReceived).isEmpty();
             }
         });
     }
