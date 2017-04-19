@@ -18,6 +18,8 @@ package com.google.blockly.model;
 import android.database.Observable;
 import android.support.annotation.IntDef;
 
+import com.google.blockly.model.BlocklyEvent.ChangeEvent;
+
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
@@ -30,6 +32,9 @@ import java.lang.annotation.RetentionPolicy;
  */
 public abstract class Field extends Observable<Field.Observer> implements Cloneable {
     private static final String TAG = "Field";
+
+    // TODO: These FieldTypes are not extensible without editing this file. It should be possible
+    //       to add a new field type by extending BlockFactory and BlockViewFactory.
     public static final int TYPE_UNKNOWN = -1;
     public static final int TYPE_LABEL = 0;
     public static final int TYPE_INPUT = 1;
@@ -214,9 +219,38 @@ public abstract class Field extends Observable<Field.Observer> implements Clonea
         }
     }
 
-    protected void fireValueChanged(String oldText, String newText) {
-        for (int i = 0; i < mObservers.size(); i++) {
-            mObservers.get(i).onValueChanged(this, oldText, newText);
+    /**
+     * Triggers events (both {@link ChangeEvent}s and {@link Observer}s) in response to a value
+     * change. If the field is attached to a event workspace (workspace, toolbox, or trash), must be
+     * called on the main thread.
+     *
+     * @param oldText Old value in serialized string form.
+     * @param newText New value in serialized string form.
+     */
+    protected void fireValueChanged(final String oldText, final String newText) {
+        runAsPossibleEventGroup(new Runnable() {
+            @Override
+            public void run() {
+                if (mBlock != null) {
+                    mBlock.maybeAddPendingChangeEvent(
+                            BlocklyEvent.ELEMENT_FIELD, Field.this, oldText, newText);
+                }
+                for (int i = 0; i < mObservers.size(); i++) {
+                    mObservers.get(i).onValueChanged(Field.this, oldText, newText);
+                }
+            }
+        });
+    }
+
+    /**
+     * Runs the runnable immediately, as an event group if connected to a block & controller.
+     * @param runnable
+     */
+    private void runAsPossibleEventGroup(Runnable runnable) {
+        if (mBlock != null) {
+            mBlock.runAsPossibleEventGroup(runnable);
+        } else {
+            runnable.run();
         }
     }
 }

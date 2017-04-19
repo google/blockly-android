@@ -15,15 +15,14 @@
 
 package com.google.blockly.model;
 
-import android.support.annotation.NonNull;
-import android.support.v4.util.Pair;
-
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
+import com.google.blockly.utils.TestBlockObserver;
+import com.google.blockly.utils.TestEventsCallback;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +34,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,16 +52,8 @@ public class BlockTest extends BlocklyTestCase {
     private BlockFactory mBlockFactory;
     private BlocklyController mController;
 
-    private List<Pair<Block, Integer>> mObserverCallArgs = new LinkedList<>();
-    private Block.Observer mBlockObserver = new Block.Observer() {
-        @Override
-        public void onBlockUpdated(Block block, @Block.UpdateState int changeMask) {
-            mObserverCallArgs.add(Pair.create(block, changeMask));
-        }
-    };
-
-    private List<List<BlocklyEvent>> mBlocklyEventGroups = new LinkedList<>();
-    private BlocklyController.EventsCallback mEventsCallback;
+    private TestBlockObserver mBlockObserver = new TestBlockObserver();
+    private TestEventsCallback mEventsCallback = new TestEventsCallback();
 
     @Before
     public void setUp() throws Exception {
@@ -573,7 +563,7 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testCollapsed() throws BlockLoadingException {
-        configureEventsCallback();
+        mController.addCallback(mEventsCallback);
 
         final Block block = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("statement_no_input"));
@@ -598,18 +588,18 @@ public class BlockTest extends BlocklyTestCase {
                         .that(blockFromXml.isCollapsed()).isFalse();
 
                 // false -> false
-                mBlocklyEventGroups.clear();
+                mEventsCallback.mEventsReceived.clear();
                 block.setCollapsed(false);
-                assertThat(mBlocklyEventGroups).hasSize(0);
+                assertThat(mEventsCallback.mEventsReceived).hasSize(0);
 
                 // false -> true
-                mBlocklyEventGroups.clear();
+                mEventsCallback.mEventsReceived.clear();
                 block.setCollapsed(true);
                 assertWithMessage("Collapsed state can change.").that(block.isCollapsed()).isTrue();
-                assertThat(mBlocklyEventGroups).hasSize(1);         // One event group
-                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);  // with a single message
+                assertThat(mEventsCallback.mEventsReceived).hasSize(1);         // One event group
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);  // a single message
                 BlocklyEvent.ChangeEvent changeEvent =
-                        (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                        (BlocklyEvent.ChangeEvent) mEventsCallback.mEventsReceived.get(0).get(0);
                 assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_COLLAPSED);
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isEqualTo("false");
@@ -658,7 +648,7 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testDisabled() throws BlockLoadingException {
-        configureEventsCallback();
+        mController.addCallback(mEventsCallback);
 
         final Block block = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("statement_no_input"));
@@ -677,11 +667,11 @@ public class BlockTest extends BlocklyTestCase {
                         .that(blockXml).doesNotContain("disabled");
 
                 // false -> false
-                mBlocklyEventGroups.clear();
+                mEventsCallback.mEventsReceived.clear();
                 block.setDisabled(false);
                 assertWithMessage("Overwriting the disabled state with the same value " +
                                   "(false -> false) does not generate events.")
-                        .that(mBlocklyEventGroups).hasSize(0);
+                        .that(mEventsCallback.mEventsReceived).hasSize(0);
 
                 blockXml = toXml(block);
                 assertWithMessage("Default state is not stored in XML")
@@ -692,25 +682,25 @@ public class BlockTest extends BlocklyTestCase {
                         .that(blockFromXml.isDisabled()).isFalse();
 
                 // false -> true
-                mBlocklyEventGroups.clear();
+                mEventsCallback.mEventsReceived.clear();
                 block.setDisabled(true);
                 assertWithMessage("Disabled state can change.")
                         .that(block.isDisabled()).isTrue();
-                assertThat(mBlocklyEventGroups).hasSize(1);
-                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);
+                assertThat(mEventsCallback.mEventsReceived).hasSize(1);
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);
                 BlocklyEvent.ChangeEvent changeEvent =
-                        (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                        (BlocklyEvent.ChangeEvent) mEventsCallback.mEventsReceived.get(0).get(0);
                 assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_DISABLED);
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isEqualTo("false");
                 assertThat(changeEvent.getNewValue()).isEqualTo("true");
 
                 // true -> true
-                mBlocklyEventGroups.clear();
+                mEventsCallback.mEventsReceived.clear();
                 block.setDisabled(true);
                 assertWithMessage("Overwriting the disabled state with the same value " +
                                   "(true -> true)does not generate events.")
-                        .that(mBlocklyEventGroups).hasSize(0);
+                        .that(mEventsCallback.mEventsReceived).hasSize(0);
 
                 // True value saved to XML
                 blockXml = toXml(block);
@@ -723,12 +713,12 @@ public class BlockTest extends BlocklyTestCase {
                         .that(blockFromXml.isDisabled()).isTrue();
 
                 // true -> false
-                mBlocklyEventGroups.clear();
+                mEventsCallback.mEventsReceived.clear();
                 block.setDisabled(false);
                 assertThat(block.isDisabled()).isFalse();
-                assertThat(mBlocklyEventGroups).hasSize(1);
-                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);
-                changeEvent = (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                assertThat(mEventsCallback.mEventsReceived).hasSize(1);
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);
+                changeEvent = (BlocklyEvent.ChangeEvent) mEventsCallback.mEventsReceived.get(0).get(0);
                 assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_DISABLED);
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isEqualTo("true");
@@ -772,7 +762,7 @@ public class BlockTest extends BlocklyTestCase {
         final Block blockDefaultExternal = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("logic_ternary"));
 
-        configureEventsCallback();
+        mController.addCallback(mEventsCallback);
         blockDefaultExternal.registerObserver(mBlockObserver);
         blockDefaultInline.registerObserver(mBlockObserver);
 
@@ -803,57 +793,60 @@ public class BlockTest extends BlocklyTestCase {
                         .that(blockFromXml.getInputsInline()).isFalse();
 
                 // true -> true
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 blockDefaultInline.setInputsInline(true);
                 assertWithMessage("Rewriting the true state with the same value " +
                                   "does not generate observer.")
-                        .that(mObserverCallArgs).hasSize(0);
+                        .that(mBlockObserver.mObservations).hasSize(0);
                 assertWithMessage("Rewriting the true state with the same value " +
                                   "does not generate blockly events.")
-                        .that(mBlocklyEventGroups).hasSize(0);
+                        .that(mEventsCallback.mEventsReceived).hasSize(0);
 
                 // false -> false
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 blockDefaultExternal.setInputsInline(false);
                 assertWithMessage("Rewriting the false state with the same value " +
                         "does not generate observer.")
-                        .that(mObserverCallArgs).hasSize(0);
+                        .that(mBlockObserver.mObservations).hasSize(0);
                 assertWithMessage("Rewriting the false state with the same value " +
                         "does not generate blockly events.")
-                        .that(mBlocklyEventGroups).hasSize(0);
+                        .that(mEventsCallback.mEventsReceived).hasSize(0);
 
                 // true -> false
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 blockDefaultInline.setInputsInline(false);
                 assertWithMessage("Inline inputs state can change.")
                         .that(blockDefaultInline.getInputsInline()).isFalse();
-                assertThat(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(blockDefaultInline);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_INPUTS_INLINE);
-                assertThat(mBlocklyEventGroups).hasSize(1);
-                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);
+                assertThat(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(blockDefaultInline);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_INPUTS_INLINE);
+                assertThat(mEventsCallback.mEventsReceived).hasSize(1);
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);
                 BlocklyEvent.ChangeEvent changeEvent =
-                        (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                        (BlocklyEvent.ChangeEvent) mEventsCallback.mEventsReceived.get(0).get(0);
                 assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_INLINE);
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isEqualTo("true");
                 assertThat(changeEvent.getNewValue()).isEqualTo("false");
 
                 // false -> true
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 blockDefaultExternal.setInputsInline(true);
                 assertWithMessage("Inline inputs state can change.")
                         .that(blockDefaultExternal.getInputsInline()).isTrue();
-                assertThat(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(blockDefaultExternal);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_INPUTS_INLINE);
-                assertThat(mBlocklyEventGroups).hasSize(1);
-                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);
-                changeEvent = (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                assertThat(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock)
+                        .isSameAs(blockDefaultExternal);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_INPUTS_INLINE);
+                assertThat(mEventsCallback.mEventsReceived).hasSize(1);
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);
+                changeEvent = (BlocklyEvent.ChangeEvent) mEventsCallback.mEventsReceived.get(0).get(0);
                 assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_INLINE);
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isEqualTo("false");
@@ -925,7 +918,7 @@ public class BlockTest extends BlocklyTestCase {
 
     @Test
     public void testSetComment() throws BlockLoadingException {
-        configureEventsCallback();
+        mController.addCallback(mEventsCallback);
 
         final Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         block.registerObserver(mBlockObserver);
@@ -943,74 +936,77 @@ public class BlockTest extends BlocklyTestCase {
                 assertThat(newComment).isNotEqualTo(updatedComment);
 
                 // Test overwrite null with null
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 block.setComment(null);
                 assertThat(block.getComment()).isNull();
                 assertWithMessage("Observer is not called with null comment (same as before)")
-                        .that(mObserverCallArgs).isEmpty();
-                assertThat(mBlocklyEventGroups).isEmpty();
+                        .that(mBlockObserver.mObservations).isEmpty();
+                assertThat(mEventsCallback.mEventsReceived).isEmpty();
 
                 // Test overwrite null with new value
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 block.setComment(newComment);
                 assertThat(block.getComment()).isEqualTo(newComment);
                 assertWithMessage("Observer is called once during .setComment(newComment)")
-                        .that(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                        .that(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_COMMENT);
                 assertWithMessage("EventsCallback is called once during .setComment(newComment)")
-                        .that(mBlocklyEventGroups).hasSize(1);      // One group
-                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);  // with one event
+                        .that(mEventsCallback.mEventsReceived).hasSize(1);      // One group
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);  // with one event
                 BlocklyEvent.ChangeEvent changeEvent =
-                        (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                        (BlocklyEvent.ChangeEvent) mEventsCallback.mEventsReceived.get(0).get(0);
                 assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_COMMENT);
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isNull();
                 assertThat(changeEvent.getNewValue()).isSameAs(newComment);
 
                 // Test overwrite comment value with equal value
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 block.setComment(new String(newComment));
                 assertThat(block.getComment()).isEqualTo(newComment);
                 assertWithMessage("Observer is not called when .setComment() called with same comment")
-                        .that(mObserverCallArgs).isEmpty();
+                        .that(mBlockObserver.mObservations).isEmpty();
                 assertWithMessage("EventsCallback is not called when .setComment() called with same comment")
-                        .that(mBlocklyEventGroups).isEmpty();
+                        .that(mEventsCallback.mEventsReceived).isEmpty();
 
                 // Test overwrite comment with different value
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 block.setComment(updatedComment);
                 assertThat(block.getComment()).isEqualTo(updatedComment);
                 assertWithMessage("Observer is called once during .setComment(updatedComment)")
-                        .that(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                        .that(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_COMMENT);
                 assertWithMessage("EventsCallback is called once during .setComment(updatedComment)")
-                        .that(mBlocklyEventGroups).hasSize(1);      // One call / event group
-                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);  // with one event
-                changeEvent = (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                        .that(mEventsCallback.mEventsReceived).hasSize(1);      // One call / event group
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);  // with one event
+                changeEvent = (BlocklyEvent.ChangeEvent) mEventsCallback.mEventsReceived.get(0).get(0);
                 assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_COMMENT);
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isEqualTo(newComment);
                 assertThat(changeEvent.getNewValue()).isSameAs(updatedComment);
 
                 // Test delete value (overwrite with null)
-                mBlocklyEventGroups.clear();
-                mObserverCallArgs.clear();
+                mEventsCallback.mEventsReceived.clear();
+                mBlockObserver.mObservations.clear();
                 block.setComment(null);
                 assertThat(block.getComment()).isNull();
                 assertWithMessage("Observer is called once during .setComment(null) deletion")
-                        .that(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_COMMENT);
+                        .that(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_COMMENT);
                 assertWithMessage("EventsCallback is called once during .setComment(null)")
-                        .that(mBlocklyEventGroups).hasSize(1);      // One call / event group
-                assertThat(mBlocklyEventGroups.get(0)).hasSize(1);  // with one event
-                changeEvent = (BlocklyEvent.ChangeEvent) mBlocklyEventGroups.get(0).get(0);
+                        .that(mEventsCallback.mEventsReceived).hasSize(1);      // One call / event group
+                assertThat(mEventsCallback.mEventsReceived.get(0)).hasSize(1);  // with one event
+                changeEvent = (BlocklyEvent.ChangeEvent) mEventsCallback.mEventsReceived.get(0).get(0);
                 assertThat(changeEvent.getElement()).isSameAs(BlocklyEvent.ELEMENT_COMMENT);
                 assertThat(changeEvent.getFieldName()).isNull();
                 assertThat(changeEvent.getOldValue()).isEqualTo(updatedComment);
@@ -1028,36 +1024,38 @@ public class BlockTest extends BlocklyTestCase {
         assertThat(block.isShadow()).isFalse();
 
         // Test false -> false
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setShadow(false);
         assertThat(block.isShadow()).isFalse();
         assertWithMessage("Observer is not called when non-shadow .setShadow(false)")
-                .that(mObserverCallArgs).isEmpty();
+                .that(mBlockObserver.mObservations).isEmpty();
 
         // Test false -> true
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setShadow(true);
         assertThat(block.isShadow()).isTrue();
         assertWithMessage("Observer is called when non-shadow .setShadow(true)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_SHADOW);
+                .that(mBlockObserver.mObservations).hasSize(1);
+        assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+        assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                .isEqualTo(Block.UPDATE_IS_SHADOW);
 
         // Test true -> true
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setShadow(true);
         assertThat(block.isShadow()).isTrue();
         assertWithMessage("Observer is not called when shadow .setShadow(true)")
-                .that(mObserverCallArgs).isEmpty();
+                .that(mBlockObserver.mObservations).isEmpty();
 
         // Test true -> false
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setShadow(false);
         assertThat(block.isShadow()).isFalse();
         assertWithMessage("Observer is called when shadow .setShadow(false)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_SHADOW);
+                .that(mBlockObserver.mObservations).hasSize(1);
+        assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+        assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                .isEqualTo(Block.UPDATE_IS_SHADOW);
     }
 
     @Test
@@ -1073,44 +1071,46 @@ public class BlockTest extends BlocklyTestCase {
                 assertThat(block.isDisabled()).isFalse();
 
                 // Test false -> false
-                mObserverCallArgs.clear();
+                mBlockObserver.mObservations.clear();
                 block.setDisabled(false);
                 assertThat(block.isDisabled()).isFalse();
                 assertWithMessage(
                         "Observer is not called when non-disabled block .setDisabled(false)")
-                        .that(mObserverCallArgs).isEmpty();
+                        .that(mBlockObserver.mObservations).isEmpty();
 
                 // Test false -> true
-                mObserverCallArgs.clear();
+                mBlockObserver.mObservations.clear();
                 block.setDisabled(true);
                 assertThat(block.isDisabled()).isTrue();
                 assertWithMessage("Observer is called when non-disabled block .setDisabled(false)")
-                        .that(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_DISABLED);
+                        .that(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_IS_DISABLED);
 
                 // Test true -> true
-                mObserverCallArgs.clear();
+                mBlockObserver.mObservations.clear();
                 block.setDisabled(true);
                 assertThat(block.isDisabled()).isTrue();
                 assertWithMessage("Observer is not called when disabled block .setDisabled(true)")
-                        .that(mObserverCallArgs).isEmpty();
+                        .that(mBlockObserver.mObservations).isEmpty();
 
                 // Test true -> false
-                mObserverCallArgs.clear();
+                mBlockObserver.mObservations.clear();
                 block.setDisabled(false);
                 assertThat(block.isDisabled()).isFalse();
                 assertWithMessage("Observer is called when disabled block .setDisabled(false)")
-                        .that(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_DISABLED);
+                        .that(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_IS_DISABLED);
             }
         });
     }
 
     @Test
     public void testSetCollapsed_withObserver() throws BlockLoadingException {
-        configureEventsCallback();
+        mController.addCallback(mEventsCallback);
 
         final Block block = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("text"));
         block.registerObserver(mBlockObserver);
@@ -1122,37 +1122,39 @@ public class BlockTest extends BlocklyTestCase {
                 assertThat(block.isCollapsed()).isFalse();
 
                 // Test false -> false
-                mObserverCallArgs.clear();
+                mBlockObserver.mObservations.clear();
                 block.setCollapsed(false);
                 assertThat(block.isCollapsed()).isFalse();
                 assertWithMessage(
                         "Observer is not called when non-collapsed block .setCollapsed(false)")
-                        .that(mObserverCallArgs).isEmpty();
+                        .that(mBlockObserver.mObservations).isEmpty();
 
                 // Test false -> true
-                mObserverCallArgs.clear();
+                mBlockObserver.mObservations.clear();
                 block.setCollapsed(true);
                 assertThat(block.isCollapsed()).isTrue();
                 assertWithMessage("Observer is called when non-collapsed block .setCollapsed(true)")
-                        .that(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_COLLAPSED);
+                        .that(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_IS_COLLAPSED);
 
                 // Test true -> true
-                mObserverCallArgs.clear();
+                mBlockObserver.mObservations.clear();
                 block.setCollapsed(true);
                 assertThat(block.isCollapsed()).isTrue();
                 assertWithMessage("Observer is not called when collapsed block .setCollapsed(true)")
-                        .that(mObserverCallArgs).isEmpty();
+                        .that(mBlockObserver.mObservations).isEmpty();
 
                 // Test true -> false
-                mObserverCallArgs.clear();
+                mBlockObserver.mObservations.clear();
                 block.setCollapsed(false);
                 assertThat(block.isCollapsed()).isFalse();
                 assertWithMessage("Observer is called when collapsed block .setCollapsed(false)")
-                        .that(mObserverCallArgs).hasSize(1);
-                assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-                assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_COLLAPSED);
+                        .that(mBlockObserver.mObservations).hasSize(1);
+                assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+                assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                        .isEqualTo(Block.UPDATE_IS_COLLAPSED);
             }
         });
     }
@@ -1166,36 +1168,38 @@ public class BlockTest extends BlocklyTestCase {
         assertThat(block.isEditable()).isTrue();
 
         // Test true -> true
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setEditable(true);
         assertThat(block.isEditable()).isTrue();
         assertWithMessage("Observer is not called when editable block .setEditable(true)")
-                .that(mObserverCallArgs).isEmpty();
+                .that(mBlockObserver.mObservations).isEmpty();
 
         // Test true -> false
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setEditable(false);
         assertThat(block.isEditable()).isFalse();
         assertWithMessage("Observer is called when editable block .setEditable(false)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_EDITABLE);
+                .that(mBlockObserver.mObservations).hasSize(1);
+        assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+        assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                .isEqualTo(Block.UPDATE_IS_EDITABLE);
 
         // Test false -> false
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setEditable(false);
         assertThat(block.isEditable()).isFalse();
         assertWithMessage("Observer is not called when non-editable block .setEditable(false)")
-                .that(mObserverCallArgs).isEmpty();
+                .that(mBlockObserver.mObservations).isEmpty();
 
         // Test false -> true
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setEditable(true);
         assertThat(block.isEditable()).isTrue();
         assertWithMessage("Observer is called when non-editable block .setEditable(true)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_EDITABLE);
+                .that(mBlockObserver.mObservations).hasSize(1);
+        assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+        assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                .isEqualTo(Block.UPDATE_IS_EDITABLE);
     }
 
     @Test
@@ -1207,51 +1211,37 @@ public class BlockTest extends BlocklyTestCase {
         assertThat(block.isDeletable()).isTrue();
 
         // Test true -> true
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setDeletable(true);
         assertThat(block.isDeletable()).isTrue();
         assertWithMessage("Observer is not called when deletable block .setDeletable(true)")
-                .that(mObserverCallArgs).isEmpty();
+                .that(mBlockObserver.mObservations).isEmpty();
 
         // Test true -> false
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setDeletable(false);
         assertThat(block.isDeletable()).isFalse();
         assertWithMessage("Observer is called when deletable block .setDeletable(false)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_DELETABLE);
+                .that(mBlockObserver.mObservations).hasSize(1);
+        assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+        assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask).isEqualTo(Block.UPDATE_IS_DELETABLE);
 
         // Test false -> false
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setDeletable(false);
         assertThat(block.isDeletable()).isFalse();
         assertWithMessage("Observer is not called when non-deletable block .setDeletable(false)")
-                .that(mObserverCallArgs).isEmpty();
+                .that(mBlockObserver.mObservations).isEmpty();
 
         // Test false -> true
-        mObserverCallArgs.clear();
+        mBlockObserver.mObservations.clear();
         block.setDeletable(true);
         assertThat(block.isDeletable()).isTrue();
         assertWithMessage("Observer is called when non-deletable block .setDeletable(true)")
-                .that(mObserverCallArgs).hasSize(1);
-        assertThat(mObserverCallArgs.get(0).first).isSameAs(block);
-        assertThat(mObserverCallArgs.get(0).second).isEqualTo(Block.UPDATE_IS_DELETABLE);
-    }
-
-    private void configureEventsCallback() {
-        mEventsCallback = new BlocklyController.EventsCallback() {
-            @Override
-            public int getTypesBitmask() {
-                return BlocklyEvent.TYPE_ALL;
-            }
-
-            @Override
-            public void onEventGroup(List<BlocklyEvent> events) {
-                mBlocklyEventGroups.add(events);
-            }
-        };
-        mController.addCallback(mEventsCallback);
+                .that(mBlockObserver.mObservations).hasSize(1);
+        assertThat(mBlockObserver.mObservations.get(0).mBlock).isSameAs(block);
+        assertThat(mBlockObserver.mObservations.get(0).mUpdateStateMask)
+                .isEqualTo(Block.UPDATE_IS_DELETABLE);
     }
 
     private String toXml(Block block) {

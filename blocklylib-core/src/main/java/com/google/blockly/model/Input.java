@@ -16,9 +16,12 @@
 package com.google.blockly.model;
 
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.util.Pair;
 
 import com.google.blockly.android.ui.InputView;
+import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -100,7 +103,7 @@ public abstract class Input implements Cloneable {
         INPUT_TYPES.add(TYPE_DUMMY_STRING);
     }
 
-    private final String mName;
+    private final @Nullable String mName;
     private List<Field> mFields;
     private final Connection mConnection;
     @InputType
@@ -118,7 +121,7 @@ public abstract class Input implements Cloneable {
      * @param align The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
-    public Input(String name, @InputType int type, @Nullable List<Field> fields,
+    public Input(@Nullable String name, @InputType int type, @Nullable List<Field> fields,
                  @Alignment int align, Connection connection) {
         mName = name;
         mType = type;
@@ -335,12 +338,12 @@ public abstract class Input implements Cloneable {
      *
      * @return An instance of {@link Input} generated from the json.
      */
-    public static Input fromJson(JSONObject json, List<Field> fields) {
+    public static Input fromJson(JSONObject json, List<Field> fields) throws BlockLoadingException {
         String type = null;
         try {
             type = json.getString("type");
         } catch (JSONException e) {
-            throw new RuntimeException("Error getting the field type.", e);
+            throw new BlockLoadingException("Input definition missing \"type\".", e);
         }
 
         switch (type) {
@@ -413,6 +416,14 @@ public abstract class Input implements Cloneable {
         return ALIGN_LEFT;
     }
 
+    private static String getInputName(JSONObject json) throws BlockLoadingException {
+        try {
+            return json.getString("name");
+        } catch (JSONException e) {
+            throw new BlockLoadingException("Input definition missing \"name\" attribute.");
+        }
+    }
+
     @Nullable
     public Block getConnectedBlock() {
         return (mConnection == null) ? null : mConnection.getTargetBlock();
@@ -433,13 +444,13 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputValue extends Input implements Cloneable {
 
-        public InputValue(String name, @Nullable List<Field> fields, String alignString,
+        public InputValue(@NonNull String name, @Nullable List<Field> fields, String alignString,
                           String[] checks) {
             super(name, TYPE_VALUE, fields, alignString,
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
 
-        public InputValue(String name, @Nullable List<Field> fields, @Alignment int align,
+        public InputValue(@NonNull String name, @Nullable List<Field> fields, @Alignment int align,
                           String[] checks) {
             super(name, TYPE_VALUE, fields, align,
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
@@ -449,8 +460,8 @@ public abstract class Input implements Cloneable {
             super(inv);
         }
 
-        private InputValue(JSONObject json, List<Field> fields) {
-            this(json.optString("name", "NAME"), fields, json.optString("align"),
+        private InputValue(JSONObject json, List<Field> fields) throws BlockLoadingException {
+            this(getInputName(json), fields, json.optString("align"),
                     getChecksFromJson(json, "check"));
         }
 
@@ -471,14 +482,16 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputStatement extends Input implements Cloneable {
 
-        public InputStatement(String name, @Nullable List<Field> fields, String alignString,
-                              String[] checks) {
+        public InputStatement(
+                @NonNull String name, @Nullable List<Field> fields, String alignString,
+                String[] checks) {
             super(name, TYPE_STATEMENT, fields, alignString,
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
 
-        public InputStatement(String name, @Nullable List<Field> fields, @Alignment int align,
-                              String[] checks) {
+        public InputStatement(
+                @NonNull String name, @Nullable List<Field> fields, @Alignment int align,
+                String[] checks) {
             super(name, TYPE_STATEMENT, fields, align,
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
@@ -487,8 +500,8 @@ public abstract class Input implements Cloneable {
             super(ins);
         }
 
-        private InputStatement(JSONObject json, List<Field> fields) {
-            this(json.optString("name", "NAME"), fields, json.optString("align"),
+        private InputStatement(JSONObject json, List<Field> fields) throws BlockLoadingException {
+            this(getInputName(json), fields, json.optString("align"),
                     getChecksFromJson(json, "check"));
         }
 
@@ -508,11 +521,12 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputDummy extends Input implements Cloneable {
 
-        public InputDummy(String name, @Nullable List<Field> fields, String alignString) {
+        public InputDummy(@Nullable String name, @Nullable List<Field> fields, String alignString) {
             super(name, TYPE_DUMMY, fields, alignString, null);
         }
 
-        public InputDummy(String name, @Nullable List<Field> fields, @Alignment int align) {
+        public InputDummy(
+                @Nullable String name, @Nullable List<Field> fields, @Alignment int align) {
             super(name, TYPE_DUMMY, fields, align, null);
         }
 

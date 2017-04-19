@@ -35,7 +35,6 @@ import static com.google.common.truth.Truth.assertThat;
 public class BlocklyTestCase {
     protected Looper mTargetMainLooper = null;  // set during configureForUIThread()
     private Handler mHandler;
-    private Throwable mExceptionInThread = null;
 
     /**
      * Default timeout of 1 second, which should be plenty for most UI actions.  Anything longer
@@ -76,8 +75,7 @@ public class BlocklyTestCase {
      * @param runnable The code to run.
      */
     protected void runAndSync(final Runnable runnable) {
-        assertThat(mExceptionInThread).isNull();
-
+        final Throwable[] thrownRef = {null};
         final CountDownLatch latch = new CountDownLatch(1);
         mHandler.post(new Runnable() {
             @Override
@@ -85,16 +83,16 @@ public class BlocklyTestCase {
                 try {
                     runnable.run();
                 } catch (Throwable e) {
-                    mExceptionInThread = e;
+                    thrownRef[0] = e;
                 }
                 latch.countDown();
             }
         });
         awaitTimeout(latch);
 
-        if (mExceptionInThread != null) {
+        if (thrownRef[0] != null) {
             throw new IllegalStateException("Unhandled exception in mock main thread.",
-                    mExceptionInThread);
+                    thrownRef[0]);
         }
     }
 
