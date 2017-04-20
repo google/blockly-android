@@ -88,7 +88,7 @@ public class Connection implements Cloneable {
     private Connection mTargetShadowConnection;
     private boolean mInDragMode = false;
 
-    public Connection(@ConnectionType int type, String[] checks) {
+    public Connection(@ConnectionType int type, @Nullable String[] checks) {
         mConnectionType = type;
         mConnectionChecks = checks;
     }
