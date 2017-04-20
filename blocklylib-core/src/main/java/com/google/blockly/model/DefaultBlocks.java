@@ -62,6 +62,7 @@ public final class DefaultBlocks {
     public static Map<String, BlockExtension> getExtensions() {
         if (DEFAULT_EXTENSIONS == null) {
             Map<String, BlockExtension> temp = new ArrayMap<>();
+            // TODO: Put new BlockExtensions
             DEFAULT_EXTENSIONS = Collections.unmodifiableMap(temp);
         }
         return DEFAULT_EXTENSIONS;
@@ -75,6 +76,7 @@ public final class DefaultBlocks {
     public static Map<String, Mutator.Factory> getMutators() {
         if (DEFAULT_MUTATORS == null) {
             Map<String, Mutator.Factory> temp = new ArrayMap<>();
+            // TODO: Put new Mutator.Factorys
             DEFAULT_MUTATORS = Collections.unmodifiableMap(temp);
         }
         return DEFAULT_MUTATORS;
