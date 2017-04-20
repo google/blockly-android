@@ -2,6 +2,8 @@ package com.google.blockly.model;
 
 import android.support.v4.util.ArrayMap;
 
+import com.google.blockly.model.mutator.MathIsDivisibleByMutator;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -76,7 +78,8 @@ public final class DefaultBlocks {
     public static Map<String, Mutator.Factory> getMutators() {
         if (DEFAULT_MUTATORS == null) {
             Map<String, Mutator.Factory> temp = new ArrayMap<>();
-            // TODO: Put new Mutator.Factorys
+            temp.put(MathIsDivisibleByMutator.MUTATOR_ID, new MathIsDivisibleByMutator.Factory());
+            // TODO: Put other Mutator.Factorys
             DEFAULT_MUTATORS = Collections.unmodifiableMap(temp);
         }
         return DEFAULT_MUTATORS;

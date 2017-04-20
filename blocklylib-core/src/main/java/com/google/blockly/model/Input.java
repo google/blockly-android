@@ -143,8 +143,8 @@ public abstract class Input implements Cloneable {
      * @param alignString The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
-    public Input(String name, @InputType int type, @Nullable List<Field> fields, String alignString,
-                 Connection connection) {
+    protected Input(String name, @InputType int type, @Nullable List<Field> fields,
+                    @Nullable String alignString, @Nullable Connection connection) {
         this(name, type, fields, stringToAlignment(alignString), connection);
     }
 
@@ -444,8 +444,8 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputValue extends Input implements Cloneable {
 
-        public InputValue(@NonNull String name, @Nullable List<Field> fields, String alignString,
-                          String[] checks) {
+        public InputValue(@NonNull String name, @Nullable List<Field> fields,
+                          @Nullable String alignString, @Nullable String[] checks) {
             super(name, TYPE_VALUE, fields, alignString,
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
@@ -482,16 +482,15 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputStatement extends Input implements Cloneable {
 
-        public InputStatement(
-                @NonNull String name, @Nullable List<Field> fields, String alignString,
-                String[] checks) {
+        public InputStatement(@NonNull String name, @Nullable List<Field> fields,
+                              @Nullable String alignString, @Nullable String[] checks) {
             super(name, TYPE_STATEMENT, fields, alignString,
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
 
         public InputStatement(
                 @NonNull String name, @Nullable List<Field> fields, @Alignment int align,
-                String[] checks) {
+                @Nullable String[] checks) {
             super(name, TYPE_STATEMENT, fields, align,
                     new Connection(Connection.CONNECTION_TYPE_NEXT, checks));
         }
@@ -521,7 +520,8 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputDummy extends Input implements Cloneable {
 
-        public InputDummy(@Nullable String name, @Nullable List<Field> fields, String alignString) {
+        public InputDummy(@Nullable String name, @Nullable List<Field> fields,
+                          @Nullable String alignString) {
             super(name, TYPE_DUMMY, fields, alignString, null);
         }
 
