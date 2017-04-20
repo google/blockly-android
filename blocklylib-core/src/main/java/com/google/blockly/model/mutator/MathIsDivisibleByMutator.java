@@ -1,8 +1,11 @@
 package com.google.blockly.model.mutator;
 
+import android.support.annotation.VisibleForTesting;
+
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlocklyEvent;
+import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldDropdown;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
@@ -18,11 +21,14 @@ import java.util.List;
 
 /**
  * Implements <code>math_is_divisibleby_mutator</code> {@link Mutator} for the
- * <code>math_number_property</code> block. This mutator has no serialized state.
+ * <code>math_number_property</code> block, which adds the {@code DIVISOR} input if the property is
+ * "is divisible by". This mutator has no serialized state.
  */
 public final class MathIsDivisibleByMutator extends Mutator {
     private static final String[] NUMBER_CHECK = {"Number"};
     private static final String DIVISIBLE_BY = "DIVISIBLE_BY";
+
+    public static final String MUTATOR_ID = "math_is_divisibleby_mutator";
 
     public static final class Factory implements Mutator.Factory<MathIsDivisibleByMutator> {
         @Override
@@ -32,7 +38,7 @@ public final class MathIsDivisibleByMutator extends Mutator {
     }
 
     private Block mBlock;
-    private FieldDropdown mDropdown;
+    @VisibleForTesting FieldDropdown mDropdown;
 
     private Input mDivisorInput =
             new Input.InputValue("DIVISOR", /* fields */ null, /* alignment */ null, NUMBER_CHECK);
@@ -45,11 +51,15 @@ public final class MathIsDivisibleByMutator extends Mutator {
         if (mBlock != null) {
             throw new IllegalStateException("Cannot reuse mutator.");
         }
+        Field propertyField = block.getFieldByName("PROPERTY");
+        if (propertyField == null || !(propertyField instanceof FieldDropdown)) {
+            throw new IllegalStateException("FieldDropDown \"PROPERTY\" not found.");
+        }
+
         mBlock = block;
-        mDropdown = (FieldDropdown) block.getFieldByName("NUMBER_TO_CHECK");
+        mDropdown = (FieldDropdown) propertyField;
 
         mInputsWithoutDivisor = mBlock.getInputs();
-
         mInputsWithDivisor = new ArrayList<>(mInputsWithoutDivisor.size() + 1);
         mInputsWithDivisor.addAll(mInputsWithoutDivisor);
         mInputsWithDivisor.add(mDivisorInput);
