@@ -70,7 +70,7 @@ public final class DefaultBlocks {
 
     /**
      * Returns the default list of factories for the default {@link Mutator}s. This list is loaded
-     * lazily, so it will not the related classes if never called.
+     * lazily, so it will not load the related classes if never called.
      * @return The map of factories for the default mutators, keyed by mutator id.
      */
     public static Map<String, Mutator.Factory> getMutators() {
