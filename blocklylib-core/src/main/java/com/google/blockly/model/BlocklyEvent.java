@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringDef;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.google.blockly.android.control.BlocklyController;
@@ -56,6 +57,20 @@ public abstract class BlocklyEvent {
     private static final String JSON_TYPE = "type";
     private static final String JSON_WORKSPACE_ID = "workspaceId"; // Rarely used.
     private static final String JSON_XML = "xml";
+
+    /**
+     * Helper method for logging event groups.
+     * @param loggingTag The tag for this log message.
+     * @param prefix A string to prefix the event group.
+     * @param eventGroup The events received in one update.
+     */
+    public static void log(String loggingTag, String prefix, List<BlocklyEvent> eventGroup) {
+        StringBuilder sb = new StringBuilder(prefix);
+        for (BlocklyEvent event : eventGroup) {
+            sb.append("\n\t").append(event);
+        }
+        Log.d(loggingTag, sb.toString());
+    }
 
     @IntDef(flag = true,
             value = {TYPE_CHANGE, TYPE_CREATE, TYPE_DELETE, TYPE_MOVE, TYPE_UI})
@@ -381,6 +396,18 @@ public abstract class BlocklyEvent {
 
         public String getNewValue() {
             return mNewValue;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("ChangeEvent{")
+                    .append(mElementChanged);
+            if (mFieldName != null) {
+                sb.append(", field \"").append(mFieldName).append("\"");
+            }
+            sb.append(", old=\"").append(mOldValue)
+                    .append("\", new=\"").append(mNewValue).append("\"}");
+            return sb.toString();
         }
 
         protected void writeJsonAttributes(JSONStringer out) throws JSONException {
