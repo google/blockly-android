@@ -30,7 +30,7 @@ import java.util.Map;
  * {@link AbstractBlocklyActivity#getBlockExtensions()} to register several extensions at start up.
  * <p/>
  * All extensions used by the blocks found in {@code src/main/assets/default/} are defined in
- * {@link #STANDARD_EXTENSIONS}, the default return value of
+ * {@link DefaultBlocks#getExtensions()}, the default return value of
  * {@linkplain AbstractBlocklyActivity#getBlockExtensions()}.
  * <p/>
  * Block definitions can refer to these extensions two ways. If a extension installs a
@@ -43,9 +43,6 @@ import java.util.Map;
  * extensions and mutators</a>.
  */
 public interface BlockExtension {
-    Map<String, BlockExtension> STANDARD_EXTENSIONS =
-            Collections.<String, BlockExtension>emptyMap();  // TODO
-
     /**
      * Applies the extension to the provided block.
      * @param block The block to update

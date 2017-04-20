@@ -29,6 +29,7 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
@@ -47,12 +48,12 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     public static final String SAVED_WORKSPACE_FILENAME = "dev_tests_workspace.xml";
     private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
             Arrays.asList(
-                    "default/list_blocks.json",
-                    "default/logic_blocks.json",
-                    "default/loop_blocks.json",
-                    "default/math_blocks.json",
-                    "default/text_blocks.json",
-                    "default/variable_blocks.json",
+                    DefaultBlocks.LIST_BLOCKS_PATH,
+                    DefaultBlocks.LOGIC_BLOCKS_PATH,
+                    DefaultBlocks.LOOP_BLOCKS_PATH,
+                    DefaultBlocks.MATH_BLOCKS_PATH,
+                    DefaultBlocks.TEXT_BLOCKS_PATH,
+                    DefaultBlocks.VARIABLE_BLOCKS_PATH,
                     "default/test_blocks.json",
                     "sample_sections/mock_block_definitions.json"
             ));
