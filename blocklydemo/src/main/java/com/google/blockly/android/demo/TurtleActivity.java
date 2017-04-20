@@ -31,6 +31,7 @@ import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -47,12 +48,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     public static final String SAVED_WORKSPACE_FILENAME = "turtle_workspace.xml";
     static final List<String> TURTLE_BLOCK_DEFINITIONS = Arrays.asList(
-            "default/logic_blocks.json",
-            "default/loop_blocks.json",
-            "default/math_blocks.json",
-            "default/variable_blocks.json",
-            "default/colour_blocks.json",
-            "default/text_blocks.json",
+            DefaultBlocks.COLOR_BLOCKS_PATH,
+            DefaultBlocks.LOGIC_BLOCKS_PATH,
+            DefaultBlocks.LOOP_BLOCKS_PATH,
+            DefaultBlocks.MATH_BLOCKS_PATH,
+            DefaultBlocks.TEXT_BLOCKS_PATH,
+            DefaultBlocks.VARIABLE_BLOCKS_PATH,
             "turtle/turtle_blocks.json"
     );
     static final List<String> TURTLE_BLOCK_GENERATORS = Arrays.asList(

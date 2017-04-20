@@ -21,6 +21,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -38,6 +39,8 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.model.BlockExtension;
+import com.google.blockly.model.DefaultBlocks;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
@@ -392,15 +395,33 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Loads the list of {@link BlockExtension}s that support the block definitions in this
-     * activity. By default, returns {@link BlockExtension#STANDARD_EXTENSIONS}. Called from
-     * {@link #resetBlockFactory()}.
+     * activity. By default, returns a mutable version of {@link DefaultBlocks#getExtensions()} so
+     * subclasses can easily append their own extensions. Called from {@link #resetBlockFactory()}.
      *
-     * @return The list of extensions to use for future blocks. Null is treated like an empty list.
+     * @return A list of extensions to use for future blocks. Null is treated like an empty list.
      */
     @Nullable
     protected Map<String, BlockExtension> getBlockExtensions() {
         // Create a new instance so it is easy to append by subclasses.  Not called very often.
-        return new HashMap<>(BlockExtension.STANDARD_EXTENSIONS);
+        Map<String, BlockExtension> extensions = new ArrayMap<>();
+        extensions.putAll(DefaultBlocks.getExtensions());
+        return extensions;
+    }
+
+    /**
+     * Loads the list of {@link Mutator.Factory}s that support the block definitions in this
+     * activity. By default, returns a mutable versions of {@link DefaultBlocks#getMutators()} so
+     * subclasses can easily append their own mutators. Called from {@link #resetBlockFactory()}.
+     *
+     * @return A list of mutator factories to use for future blocks. Null is treated like an empty
+     *         list.
+     */
+    @Nullable
+    protected Map<String, Mutator.Factory> getMutators() {
+        // Create a new instance so it is easy to append by subclasses.  Not called very often.
+        Map<String, Mutator.Factory> mutators = new ArrayMap<>();
+        mutators.putAll(DefaultBlocks.getMutators());
+        return mutators;
     }
 
     /**
@@ -585,7 +606,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected void resetBlockFactory() {
         mBlockly.resetBlockFactory(
                 getBlockDefinitionsJsonPaths(),
-                getBlockExtensions());
+                getBlockExtensions(),
+                getMutators());
     }
 
     /**
