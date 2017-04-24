@@ -40,7 +40,6 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.DefaultBlocks;
-import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -418,7 +417,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Loads the list of {@link Mutator.Factory}s that support the block definitions in this
-     * activity. By default, returns a mutable versions of {@link DefaultBlocks#getMutators()} so
+     * activity. By default, returns a mutable versions of {@link DefaultBlocks#getMutators(android.content.Context, BlocklyController)} so
      * subclasses can easily append their own mutators. Called from {@link #resetBlockFactory()}.
      *
      * @return A list of mutator factories to use for future blocks. Null is treated like an empty
@@ -428,7 +427,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected Map<String, Mutator.Factory> getMutators() {
         // Create a new instance so it is easy to append by subclasses.  Not called very often.
         Map<String, Mutator.Factory> mutators = new ArrayMap<>();
-        mutators.putAll(DefaultBlocks.getMutators());
+        mutators.putAll(DefaultBlocks.getMutators(this, getController()));
         return mutators;
     }
 
