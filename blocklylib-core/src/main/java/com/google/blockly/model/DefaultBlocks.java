@@ -1,7 +1,10 @@
 package com.google.blockly.model;
 
+import android.content.Context;
 import android.support.v4.util.ArrayMap;
 
+import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.model.mutator.IfElseMutator;
 import com.google.blockly.model.mutator.MathIsDivisibleByMutator;
 
 import java.util.Arrays;
@@ -74,11 +77,16 @@ public final class DefaultBlocks {
      * Returns the default list of factories for the default {@link Mutator}s. This list is loaded
      * lazily, so it will not load the related classes if never called.
      * @return The map of factories for the default mutators, keyed by mutator id.
+     *
+     * @param context The context for any UI that the mutator needs to generate.
+     * @param controller The {@link BlocklyController} to make changes through.
      */
-    public static Map<String, Mutator.Factory> getMutators() {
+    public static Map<String, Mutator.Factory> getMutators(Context context,
+            BlocklyController controller) {
         if (DEFAULT_MUTATORS == null) {
             Map<String, Mutator.Factory> temp = new ArrayMap<>();
             temp.put(MathIsDivisibleByMutator.MUTATOR_ID, new MathIsDivisibleByMutator.Factory());
+            temp.put(IfElseMutator.MUTATOR_ID, new IfElseMutator.Factory(context, controller));
             // TODO: Put other Mutator.Factorys
             DEFAULT_MUTATORS = Collections.unmodifiableMap(temp);
         }

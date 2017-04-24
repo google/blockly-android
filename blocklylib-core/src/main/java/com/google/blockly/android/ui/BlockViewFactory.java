@@ -18,6 +18,7 @@ package com.google.blockly.android.ui;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v13.view.ViewCompat;
+import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.widget.SpinnerAdapter;
 
@@ -81,6 +82,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected VariableRequestCallback mVariableCallback;
 
     private SpinnerAdapter mVariableAdapter;
+    private MutatorToggleListener mMutatorListener;
 
     // TODO(#137): Move to ViewPool class.
     protected final Map<String,WeakReference<BlockView>> mBlockIdToView
@@ -99,6 +101,16 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      */
     public void setVariableRequestCallback(VariableRequestCallback callback) {
         mVariableCallback = callback;
+    }
+
+    /**
+     * Sets the listener to call when the user toggles a mutator. This is typically in response to
+     * a mutator button being tapped on a block.
+     *
+     * @param listener The listener to call when a user toggles a mutator.
+     */
+    public void setMutatorToggleListener(MutatorToggleListener listener) {
+        mMutatorListener = listener;
     }
 
     public WorkspaceHelper getWorkspaceHelper() {
@@ -161,15 +173,13 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             Input input = inputs.get(i);
             List<Field> fields = input.getFields();
             List<FieldView> fieldViews;
-            int j = 0;
             if (i == 0 && showMutatorUi) {
                 fieldViews = new ArrayList<>(fields.size() + 1);
                 fieldViews.add(buildMutatorFieldView(mutator));
-                j++;
             } else {
                 fieldViews = new ArrayList<>(fields.size());
             }
-            for (; j < fields.size(); j++) {
+            for (int j = 0; j < fields.size(); j++) {
                 fieldViews.add(buildFieldView(fields.get(j)));
             }
             InputView inputView = buildInputView(input, fieldViews);
@@ -350,7 +360,9 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mutator.showUI();
+                if (mMutatorListener != null) {
+                    mMutatorListener.onMutatorToggled(mutator);
+                }
             }
         };
         return buildIconFieldView(listener, R.drawable.mutator_icon_24dp);
@@ -405,5 +417,13 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             flags |= 0x00000100;  // View.DRAG_FLAG_GLOBAL
         }
         return flags;
+    }
+
+    /**
+     * Handles a user toggling the UI for a mutator. This is typically done through a mutator button
+     * on a block, but other UIs may trigger it in other ways.
+     */
+    public interface MutatorToggleListener {
+        void onMutatorToggled(Mutator mutator);
     }
 }

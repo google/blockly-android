@@ -14,6 +14,8 @@
  */
 package com.google.blockly.model;
 
+import android.support.annotation.Nullable;
+
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -48,6 +50,27 @@ public abstract class Mutator {
          * @return The new Mutator instance.
          */
         T newMutator();
+    }
+
+    protected Block mBlock;
+
+    public final void attachToBlock(Block block) {
+        mBlock = block;
+        onAttached(block);
+    }
+
+    public final void detachFromBlock() {
+        final Block block = mBlock;
+        onDetached(block);
+        mBlock = null;
+    }
+
+    /**
+     * @return The block this mutator is currently attached to.
+     */
+    @Nullable
+    public Block getBlock() {
+        return mBlock;
     }
 
     /**
