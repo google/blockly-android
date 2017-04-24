@@ -17,12 +17,12 @@
             android:id="@+id/add_if_else"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/blockly_trash"/>
+            android:src="@drawable/ic_add_grey600_48dp"/>
         <ImageView
             android:id="@+id/remove_if_else"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/blockly_trash"/>
+            android:src="@drawable/ic_remove_grey600_48dp"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"

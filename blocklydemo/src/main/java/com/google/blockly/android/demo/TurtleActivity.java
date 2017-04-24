@@ -234,11 +234,4 @@ public class TurtleActivity extends BlocklySectionsActivity {
     protected String getWorkspaceSavePath() {
         return SAVED_WORKSPACE_FILENAME;
     }
-
-    @Override
-    protected Map<String, Mutator.Factory> getBlockMutators() {
-        Map<String, Mutator.Factory> mutators = super.getBlockMutators();
-        mutators.put("controls_if_mutator", new IfElseMutator.Factory(this, getController()));
-        return mutators;
-    }
 }
