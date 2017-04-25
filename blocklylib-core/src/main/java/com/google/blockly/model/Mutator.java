@@ -127,12 +127,11 @@ public abstract class Mutator {
      *
      * Compare with {@code block.domToMutation()} on web Blockly (added by extensions or mixins),
      * or {@code Mutator.update()} on blockly-ios.
-     * @param block The block with the mutator.
      * @param parser The parser with the {@code <mutation>} element.
      * @throws IOException If the parser cannot read its source.
      * @throws XmlPullParserException If the parser cannot parse into XML.
      * @throws BlockLoadingException If the XML is not what the mutator expected.
      */
-    public abstract void update(Block block, XmlPullParser parser)
+    public abstract void update(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException;
 }

@@ -22,6 +22,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
@@ -1166,7 +1167,6 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
->>>>>>> Minor fixes to mutator UI APIs
      * Connects to given child and shadow (even if occluded), or throws a descriptive
      * BlockLoadingException for an invalid connection.
      * @param tagName The string name of the connection, as seen in XML.
