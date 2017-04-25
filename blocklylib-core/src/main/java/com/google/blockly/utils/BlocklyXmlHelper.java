@@ -17,6 +17,7 @@ package com.google.blockly.utils;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.model.Block;
@@ -402,7 +403,7 @@ public final class BlocklyXmlHelper {
             Reader reader = new StringReader(mutation == null ? "<mutation></mutation>" : mutation);
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
             parser.setInput(reader);
-            mutator.update(block, parser);
+            mutator.update(parser);
         } catch (XmlPullParserException | IOException e) {
             throw new BlockLoadingException("Failed to parse mutation: " + mutation, e);
         }

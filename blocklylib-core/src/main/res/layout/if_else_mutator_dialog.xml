@@ -12,17 +12,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/mutator_if_else_ifelse_count"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:layout_weight="1"/>
         <ImageView
-            android:id="@+id/add_if_else"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_add_grey600_48dp"/>
-        <ImageView
-            android:id="@+id/remove_if_else"
+            android:id="@+id/remove_else_if"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_remove_grey600_48dp"/>
+        <ImageView
+            android:id="@+id/add_else_if"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add_grey600_48dp"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,9 +34,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/mutator_if_else_else_count"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:layout_weight="1"/>
         <CheckBox
-            android:id="@+id/add_remove_else"
+            android:id="@+id/else_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>

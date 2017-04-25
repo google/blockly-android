@@ -45,5 +45,8 @@
     <string name="mutator_if_else_title">Update if else block</string>
     <string name="mutator_if_else_ifelse_count">if else count: %d</string>
     <string name="mutator_if_else_else_count">else</string>
+    <string name="mutator_if_else_if_label">if</string>
+    <string name="mutator_if_else_then_label">do</string>
+    <string name="mutator_if_else_else_label">else</string>
     <string name="mutator_done">Done</string>
 </resources>
