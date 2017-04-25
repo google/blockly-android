@@ -135,7 +135,7 @@ public class MutatorTest extends BlocklyTestCase {
         }
 
         @Override
-        public void update(Block block, XmlPullParser parser)
+        public void update(XmlPullParser parser)
                 throws IOException, XmlPullParserException {
             // Crude parse
             assertThat(parser.next()).isEqualTo(XmlPullParser.START_TAG);

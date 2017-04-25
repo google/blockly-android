@@ -83,7 +83,7 @@ public final class MathIsDivisibleByMutator extends Mutator {
     }
 
     @Override
-    public void update(Block block, XmlPullParser parser)
+    public void update(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
         // Do nothing. No serialized state.
     }
