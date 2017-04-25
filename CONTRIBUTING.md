@@ -1,4 +1,7 @@
-Want to contribute? Great! First, read this page (including the small print at the end).
+Want to contribute? Great!
+- First, read this page (including the small print at the end).
+- Second, please make pull requests against develop, not master. If your patch
+  needs to go into master immediately, include a note in your PR.
 
 ### Before you contribute
 Before we can use your code, you must sign the
