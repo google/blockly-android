@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -92,6 +93,31 @@ public class WorkspaceTest extends BlocklyTestCase {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         mWorkspace.serializeToXml(os);
         assertThat(os.toString()).isEqualTo(EMPTY_WORKSPACE);
+    }
+
+    @Test
+    public void testWorkspaceIdSetOnNewRootBlocks() {
+        // given
+        Block mockBlock = Mockito.mock(Block.class);
+
+        // when
+        mWorkspace.addRootBlock(mockBlock, true);
+
+        // then
+        Mockito.verify(mockBlock, Mockito.times(1)).setEventWorkspaceId(mWorkspace.getId());
+    }
+
+    @Test
+    public void testWorkspaceIdUnsetOnRootBlockRemoved() {
+        // given
+        Block mockBlock = Mockito.mock(Block.class);
+        mWorkspace.addRootBlock(mockBlock, true);
+
+        // when
+        mWorkspace.removeRootBlock(mockBlock, false);
+
+        // then
+        Mockito.verify(mockBlock, Mockito.times(1)).setEventWorkspaceId(null);
     }
 
     private static ByteArrayInputStream assembleWorkspace(String interior) {

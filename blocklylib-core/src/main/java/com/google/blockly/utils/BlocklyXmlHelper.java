@@ -22,6 +22,7 @@ import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
+import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.IOOptions;
 import com.google.blockly.model.Mutator;
@@ -59,17 +60,19 @@ public final class BlocklyXmlHelper {
      *
      * @param is The input stream from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     * @param workspaceId The workspaceId to set on all blocks attached to this Category.
      *
      * @return The top-level category in the toolbox.
      * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
      *                               or XmlPullParserException as a root cause.
      */
-    public static BlocklyCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory)
+    public static BlocklyCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory,
+                                                     String workspaceId)
             throws BlockLoadingException {
         try {
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
             parser.setInput(is, null);
-            return BlocklyCategory.fromXml(parser, blockFactory);
+            return BlocklyCategory.fromXml(parser, blockFactory, workspaceId);
         } catch (XmlPullParserException e) {
             throw new BlockLoadingException(e);
         }
