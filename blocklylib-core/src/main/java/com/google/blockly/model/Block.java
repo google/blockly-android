@@ -1094,6 +1094,16 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
+     * Convenience form of {@link #reshape(List, Connection, Connection, Connection)} that preserves
+     * output, previous, and next connections. This method should only be called by
+     * {@link Mutator}s.
+     * @param newInputList The new list of inputs.
+     */
+    public void reshape(@Nullable List<Input> newInputList) {
+        reshape(newInputList, mOutputConnection, mPreviousConnection, mNextConnection);
+    }
+
+    /**
      * This method returns a string describing this Block in developer terms (type
      * name and ID; English only). Intended to on be used in console logs and errors.
      * @return The description.

@@ -92,11 +92,7 @@ public final class MathIsDivisibleByMutator extends Mutator {
         boolean isSelected = mDropdown.getSelectedValue().equals(DIVISIBLE_BY);
         boolean isShown = mDivisorInput.getBlock() != null;
         if (isSelected != isShown) {
-            mBlock.reshape(
-                    isSelected ? mInputsWithDivisor : mInputsWithoutDivisor,
-                    mBlock.getOutputConnection(),
-                    mBlock.getPreviousConnection(),
-                    mBlock.getNextConnection());
+            mBlock.reshape(isSelected ? mInputsWithDivisor : mInputsWithoutDivisor);
         }
     }
 }
