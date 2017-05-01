@@ -22,7 +22,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Mutator for the if/else if/else block. This class modifies the block model, but is not
+ * responsible for updating the view hierarchy or showing an editor to the user.
+ * @see IfElseMutatorFragment
+ */
 public class IfElseMutator extends Mutator {
     public static final String TAG = "IfElseMutator";
     public static final String MUTATOR_ID = "controls_if_mutator";
@@ -45,6 +49,12 @@ public class IfElseMutator extends Mutator {
     private String mElseLabel;
     private String[] mChecks = {"Boolean"};
 
+    /**
+     * Create a new mutator for the given context and controller.
+     *
+     * @param context Used to load strings and other configuration.
+     * @param controller Controller for sending events.
+     */
     public IfElseMutator(Context context, BlocklyController controller) {
         mContext = context;
         mController = controller;
@@ -102,14 +112,26 @@ public class IfElseMutator extends Mutator {
         return dialog;
     }
 
+    /**
+     * @return The number of else if inputs on this block.
+     */
     public int getElseIfCount() {
         return mElseIfCount;
     }
 
+    /**
+     * @return True if this block has an else statement at the end, false otherwise.
+     */
     public boolean hasElse() {
         return mElseStatement;
     }
 
+    /**
+     * Updates the block's model to the given number of else if inputs and else input.
+     *
+     * @param elseIfCount The number of else if inputs for this block.
+     * @param hasElse True if this block should have a final else statement.
+     */
     public void update(final int elseIfCount, final boolean hasElse) {
 
         mController.groupAndFireEvents(new Runnable() {
@@ -120,6 +142,13 @@ public class IfElseMutator extends Mutator {
         });
     }
 
+    /**
+     * Performs the model changes for the given count. This will reuse as many inputs as possible,
+     * creating new inputs if necessary. Leftover inputs will be disconnected and thrown away.
+     *
+     * @param elseIfCount The number of else if inputs for this block.
+     * @param hasElse True if this block should have a final else statement.
+     */
     private void updateImpl(int elseIfCount, boolean hasElse) {
         List<Input> oldInputs = new ArrayList<>(mBlock.getInputs());
         List<Input> newInputs = new ArrayList<>();
