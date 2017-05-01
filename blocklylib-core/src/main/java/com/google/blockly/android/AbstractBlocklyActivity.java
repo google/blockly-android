@@ -85,9 +85,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     private static final String TAG = "AbstractBlocklyActivity";
 
-    public static final Map<String, BlockExtension> DEFAULT_EXTENSIONS = new ArrayMap<>();
-    public static final Map<String, Mutator.Factory> DEFAULT_MUTATORS = new ArrayMap<>();
-
     static {
         // TODO Set up default extensions and mutators
     }
