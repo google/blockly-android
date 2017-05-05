@@ -32,7 +32,7 @@ public final class MathIsDivisibleByMutator extends Mutator {
 
     public static final class Factory implements Mutator.Factory<MathIsDivisibleByMutator> {
         @Override
-        public MathIsDivisibleByMutator newMutator() {
+        public MathIsDivisibleByMutator newMutator(BlocklyController controller) {
             return new MathIsDivisibleByMutator();
         }
     }
@@ -86,6 +86,11 @@ public final class MathIsDivisibleByMutator extends Mutator {
     public void update(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
         // Do nothing. No serialized state.
+    }
+
+    @Override
+    public String getMutatorId() {
+        return MUTATOR_ID;
     }
 
     private void updateShape() {

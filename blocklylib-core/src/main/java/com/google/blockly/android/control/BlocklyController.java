@@ -23,7 +23,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import android.support.v4.app.DialogFragment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -2006,7 +2005,7 @@ public class BlocklyController {
                 blockClipDataHelper = SingleMimeTypeClipDataHelper.getDefault(mContext);
             }
 
-            BlockFactory factory = new BlockFactory(mContext);
+            BlockFactory factory = new BlockFactory();
             loadBlockDefinitionsFromResources(factory, mBlockDefResources);
             loadBlockDefinitionsFromAssets(factory, mBlockDefAssets);
             BlocklyController controller = new BlocklyController(

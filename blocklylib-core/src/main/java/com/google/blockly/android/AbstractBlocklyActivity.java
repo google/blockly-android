@@ -38,13 +38,13 @@ import android.widget.FrameLayout;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
+import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,11 +85,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     private static final String TAG = "AbstractBlocklyActivity";
 
-    static {
-        // TODO Set up default extensions and mutators
-    }
-
-    protected BlocklyActivityHelper mBlockly;
+    protected BlocklyActivityHelper mActivityHelper;
 
     protected ActionBar mActionBar;
     protected DrawerLayout mDrawerLayout;
@@ -172,16 +168,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link #getWorkspaceSavePath()}.
      */
     public void onSaveWorkspace() {
-        mBlockly.saveWorkspaceToAppDirSafely(getWorkspaceSavePath());
+        mActivityHelper.saveWorkspaceToAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Save the workspace to the given file in the application's private data directory.
-     * @deprecated Call {@code mBlockly.saveWorkspaceToAppDir(filename)} or
-     *             {@code mBlockly.saveWorkspaceToAppDirSafely(filename)}.
+     * @deprecated Call {@code mActivityHelper.saveWorkspaceToAppDir(filename)} or
+     *             {@code mActivityHelper.saveWorkspaceToAppDirSafely(filename)}.
      */
     public void saveWorkspaceToAppDir(String filename) {
-        mBlockly.saveWorkspaceToAppDirSafely(filename);
+        mActivityHelper.saveWorkspaceToAppDirSafely(filename);
     }
 
     /**
@@ -189,17 +185,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
      */
     public void onLoadWorkspace() {
-        mBlockly.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
+        mActivityHelper.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Loads the workspace from the given file in the application's private data directory.
-     * @deprecated Call {@code mBlockly.loadWorkspaceFromAppDir(filename)} or
-     *             {@code mBlockly.loadWorkspaceFromAppDirSafely(filename)}.
+     * @deprecated Call {@code mActivityHelper.loadWorkspaceFromAppDir(filename)} or
+     *             {@code mActivityHelper.loadWorkspaceFromAppDirSafely(filename)}.
      */
     @Deprecated
     public void loadWorkspaceFromAppDir(String filename) {
-        mBlockly.loadWorkspaceFromAppDirSafely(filename);
+        mActivityHelper.loadWorkspaceFromAppDirSafely(filename);
     }
 
     /**
@@ -227,7 +223,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @return The {@link BlocklyController} controlling the workspace in this activity.
      */
     public final BlocklyController getController() {
-        return mBlockly.getController();
+        return mActivityHelper.getController();
     }
 
     /**
@@ -240,7 +236,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         // Try to close any open drawer / toolbox before backing out of the Activity.
-        if (!onBackToCloseNavMenu() && !mBlockly.onBackToCloseFlyouts()) {
+        if (!onBackToCloseNavMenu() && !mActivityHelper.onBackToCloseFlyouts()) {
             super.onBackPressed();
         }
     }
@@ -260,8 +256,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         onCreateActivityRootView();
-        mBlockly = onCreateActivityHelper();
-        if (mBlockly == null) {
+        mActivityHelper = onCreateActivityHelper();
+        if (mActivityHelper == null) {
             throw new IllegalStateException("BlocklyActivityHelper is null. "
                     + "onCreateActivityHelper must return a instance.");
         }
@@ -287,21 +283,21 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        mBlockly.onStart();
+        mActivityHelper.onStart();
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
     @Override
     protected void onPause() {
         super.onPause();
-        mBlockly.onPause();
+        mActivityHelper.onPause();
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
     @Override
     protected void onResume() {
         super.onResume();
-        mBlockly.onResume();
+        mActivityHelper.onResume();
 
         if (mNavigationDrawer != null) {
             // Read in the flag indicating whether or not the user has demonstrated awareness of the
@@ -318,14 +314,14 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        mBlockly.onStop();
+        mActivityHelper.onStop();
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
     @Override
     protected void onRestart() {
         super.onRestart();
-        mBlockly.onRestart();
+        mActivityHelper.onRestart();
     }
 
     /**
@@ -398,43 +394,27 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     abstract protected List<String> getBlockDefinitionsJsonPaths();
 
     /**
-     * Loads the list of {@link BlockExtension}s that support the block definitions in this
-     * activity. By default, returns a mutable version of {@link DefaultBlocks#getExtensions()} so
-     * subclasses can easily append their own extensions. Called from {@link #resetBlockFactory()}.
-     *
-     * @return A list of extensions to use for future blocks. Null is treated like an empty list.
+     * Sets up the list of {@link BlockExtension}s that support the block definitions in this
+     * activity. By default, adds all extensions in {@link DefaultBlocks#getExtensions()} to the
+     * block factory.
+     * <p/>
+     * Extensions with the same key will replace existing extensions, so it is safe
+     * to call super and then update specific extensions. Called from {@link #resetBlockFactory()}.
      */
-    @Nullable
-    protected Map<String, BlockExtension> getBlockExtensions() {
-        // Create a new instance so it is easy to append by subclasses.  Not called very often.
-        Map<String, BlockExtension> extensions = new ArrayMap<>();
-        extensions.putAll(DefaultBlocks.getExtensions());
-        return extensions;
+    protected void configureBlockExtensions() {
+        mActivityHelper.configureExtensions();
     }
 
     /**
-     * Loads the list of {@link Mutator.Factory}s that support the block definitions in this
-     * activity. By default, returns a mutable versions of {@link DefaultBlocks#getMutators(android.content.Context, BlocklyController)} so
-     * subclasses can easily append their own mutators. Called from {@link #resetBlockFactory()}.
-     *
-     * @return A list of mutator factories to use for future blocks. Null is treated like an empty
-     *         list.
+     * Sets up the list of {@link Mutator.Factory}s and {@link MutatorFragment.Factory}s that
+     * support the block definitions in this activity. By default, adds the mutators in
+     * {@DefaultBlocks} to the BlockFactory.
+     * <p/>
+     * Mutators with the same key will replace existing mutators, so it is safe
+     * to call super and then update specific mutators. Called from {@link #resetBlockFactory()}.
      */
-    @Nullable
-    protected Map<String, Mutator.Factory> getMutators() {
-        // Create a new instance so it is easy to append by subclasses.  Not called very often.
-        Map<String, Mutator.Factory> mutators = new ArrayMap<>();
-        mutators.putAll(DefaultBlocks.getMutators(this, getController()));
-        return mutators;
-    }
-
-
-    /**
-     * @return The list of {@link Mutator Mutators} to use for building blocks.
-     */
-    @NonNull
-    protected Map<String, Mutator.Factory> getBlockMutators() {
-        return new HashMap<>(Mutator.STANDARD_MUTATORS);
+    protected void configureMutators() {
+        mActivityHelper.configureMutators();
     }
 
     /**
@@ -583,7 +563,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @see #getCodeGenerationCallback()
      */
     protected void onRunCode() {
-        mBlockly.requestCodeGeneration(
+        mActivityHelper.requestCodeGeneration(
             getBlockDefinitionsJsonPaths(),
             getGeneratorsJsPaths(),
             getCodeGenerationCallback());
@@ -606,21 +586,22 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * Reloads the toolbox contents using the path provided by {@link #getToolboxContentsXmlPath()}.
      */
     protected void reloadToolbox() {
-        mBlockly.reloadToolbox(getToolboxContentsXmlPath());
+        mActivityHelper.reloadToolbox(getToolboxContentsXmlPath());
     }
 
     /**
      * Reloads the block definitions, including extensions and mutators. Calls
-     * {@link #getBlockDefinitionsJsonPaths()} and {@link #getBlockExtensions()}.
+     * {@link #getBlockDefinitionsJsonPaths()} and {@link #configureBlockExtensions()}.
      *
      * @throws IOException If there is a fundamental problem with the input.
      * @throws BlockLoadingException If the definition is malformed.
      */
     protected void resetBlockFactory() {
-        mBlockly.resetBlockFactory(
-                getBlockDefinitionsJsonPaths(),
-                getBlockExtensions(),
-                getMutators());
+        mActivityHelper.resetBlockFactory(
+                getBlockDefinitionsJsonPaths());
+
+        configureBlockExtensions();
+        configureMutators();
     }
 
     /**

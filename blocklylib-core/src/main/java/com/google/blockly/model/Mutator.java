@@ -16,6 +16,7 @@ package com.google.blockly.model;
 
 import android.support.annotation.Nullable;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -39,8 +40,6 @@ import java.util.Map;
  * extensions and mutators</a>.
  */
 public abstract class Mutator {
-
-    public static final Map<String, Factory> STANDARD_MUTATORS = Collections.EMPTY_MAP;  // TODO
     /**
      * The factory class for this type of mutator.
      * @param <T> The type of Mutator constructed.
@@ -49,7 +48,7 @@ public abstract class Mutator {
         /**
          * @return The new Mutator instance.
          */
-        T newMutator();
+        T newMutator(BlocklyController controller);
     }
 
     protected Block mBlock;
@@ -64,6 +63,8 @@ public abstract class Mutator {
         onDetached(block);
         mBlock = null;
     }
+
+    public abstract String getMutatorId();
 
     /**
      * @return The block this mutator is currently attached to.
@@ -87,24 +88,6 @@ public abstract class Mutator {
      */
     public void onDetached(Block block) {
         // Do nothing by default
-    }
-
-    /**
-     * @return true if this Mutator has an editor UI.
-     */
-    public boolean hasUI() {
-        return false;
-    }
-
-    /**
-     * Called only if {@link #hasUI()} is true. This usually happens due to the user tapping an edit
-     * button.
-     *
-     * @return A {@link MutatorFragment} that contains the edit UI for this block.
-     */
-    public MutatorFragment getMutatorFragment() {
-        // Do nothing by default.
-        return null;
     }
 
     // TODO: onAttachToWorkspace(Block, Workspace) and onDetachFromWorkspace(Block, Workspace)

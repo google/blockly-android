@@ -53,7 +53,7 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     public void setUp() throws Exception {
         mMockController = Mockito.mock(BlocklyController.class);
 
-        mFactory = new BlockFactory(getContext());
+        mFactory = new BlockFactory();
         mFactory.setController(mMockController);
         mProcedureManager = new ProcedureManager();
 

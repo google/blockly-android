@@ -51,7 +51,7 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
         mMockController = Mockito.mock(BlocklyController.class);
 
         Context context = InstrumentationRegistry.getTargetContext();
-        mFactory = new BlockFactory(getContext());
+        mFactory = new BlockFactory();
         mFactory.setController(mMockController);
 
         // TODO: Do we need this? We don't use Mockito in this test.

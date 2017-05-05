@@ -1136,37 +1136,6 @@ public class Block extends Observable<Block.Observer> {
     }
 
     /**
-<<<<<<< HEAD
-=======
-     * Updates {@link #mConnectionList} to reflect the latest state of all connections on this block
-     * (inputs, next, previous, and output).
-     */
-    private void rebuildConnectionList() {
-        mConnectionList.clear();
-        if (mInputList != null) {
-            for (int i = 0; i < mInputList.size(); i++) {
-                Input in = mInputList.get(i);
-                in.setBlock(this);
-                if (in.getConnection() != null) {
-                    mConnectionList.add(in.getConnection());
-                }
-            }
-        }
-        if (mOutputConnection != null) {
-            mOutputConnection.setBlock(this);
-            mConnectionList.add(mOutputConnection);
-        }
-        if (mPreviousConnection != null) {
-            mPreviousConnection.setBlock(this);
-            mConnectionList.add(mPreviousConnection);
-        }
-        if (mNextConnection != null) {
-            mNextConnection.setBlock(this);
-            mConnectionList.add(mNextConnection);
-        }
-    }
-
-    /**
      * Connects to given child and shadow (even if occluded), or throws a descriptive
      * BlockLoadingException for an invalid connection.
      * @param tagName The string name of the connection, as seen in XML.
