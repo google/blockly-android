@@ -118,13 +118,18 @@ public class MutatorTest extends BlocklyTestCase {
     public static class ExampleMutator extends Mutator {
         static class Factory implements Mutator.Factory<ExampleMutator> {
             @Override
-            public ExampleMutator newMutator() {
+            public ExampleMutator newMutator(BlocklyController controller) {
                 return Mockito.spy(new ExampleMutator());
             }
         }
 
         String mAttrib = STARTING_VALUE;
         String mText = STARTING_VALUE;
+
+        @Override
+        public String getMutatorId() {
+            return MUTATOR_ID;
+        }
 
         @Override
         public void serialize(XmlSerializer serializer) throws IOException {

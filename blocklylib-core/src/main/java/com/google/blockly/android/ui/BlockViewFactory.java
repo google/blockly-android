@@ -18,12 +18,10 @@ package com.google.blockly.android.ui;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v13.view.ViewCompat;
-import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.FlyoutFragment;
-import com.google.blockly.android.R;
 import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.control.NameManager;
@@ -35,7 +33,6 @@ import com.google.blockly.android.ui.fieldview.BasicFieldDropdownView;
 import com.google.blockly.android.ui.fieldview.BasicFieldImageView;
 import com.google.blockly.android.ui.fieldview.BasicFieldInputView;
 import com.google.blockly.android.ui.fieldview.BasicFieldLabelView;
-import com.google.blockly.android.ui.fieldview.BasicFieldIconView;
 import com.google.blockly.android.ui.fieldview.BasicFieldNumberView;
 import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
 import com.google.blockly.android.ui.fieldview.FieldView;
@@ -80,9 +77,13 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      * The callback to use for views that can request changes to the list of variables.
      */
     protected VariableRequestCallback mVariableCallback;
+    /**
+     * The callback to use when something triggers showing or hiding a block's mutator.
+     */
+    protected MutatorToggleListener mMutatorListener;
 
     private SpinnerAdapter mVariableAdapter;
-    private MutatorToggleListener mMutatorListener;
+    private final Map<String, MutatorFragment.Factory> mMutatorUiFactories = new HashMap<>();
 
     // TODO(#137): Move to ViewPool class.
     protected final Map<String,WeakReference<BlockView>> mBlockIdToView
@@ -127,6 +128,44 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     }
 
     /**
+     * Registers a {@link MutatorFragment.Factory} for the named mutator type. Mutators that have a
+     * UI registered will display a user affordance for opening and closing the UI.
+     *
+     * @param mutatorId The name / id of this mutator type.
+     * @param mutatorUiFactory The factory that builds fragments for this mutator type.
+     */
+    public void registerMutatorUi(String mutatorId, MutatorFragment.Factory mutatorUiFactory) {
+        MutatorFragment.Factory old = mMutatorUiFactories.get(mutatorId);
+        if (mutatorUiFactory == old) {
+            return;
+        }
+        mMutatorUiFactories.put(mutatorId, mutatorUiFactory);
+    }
+
+    /**
+     * @return True if there is a UI registered for the given mutator id.
+     */
+    public boolean hasUiForMutator(String mutatorId) {
+        return mMutatorUiFactories.get(mutatorId) != null;
+    }
+
+    /**
+     * Retrieves a {@link MutatorFragment} for the given mutator. They fragment may be displayed to
+     * the user. If a fragment could not be found null is returned instead.
+     *
+     * @param mutator The mutator to return a fragment for.
+     * @return A {@link MutatorFragment} that can be shown to the user.
+     */
+    @Nullable
+    public MutatorFragment getMutatorFragment(Mutator mutator) {
+        MutatorFragment.Factory factory = mMutatorUiFactories.get(mutator.getMutatorId());
+        if (factory == null) {
+            return null;
+        }
+        return factory.newMutatorFragment(mutator);
+    }
+
+    /**
      * Creates a {@link BlockGroup} for the given block and its children using the workspace's
      * default style.
      *
@@ -165,20 +204,13 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
 
         List<Input> inputs = block.getInputs();
         final int inputCount = inputs.size();
-        Mutator mutator = block.getMutator();
-        boolean showMutatorUi = mutator != null && mutator.hasUI();
 
         List<InputView> inputViews = new ArrayList<>(inputCount);
         for (int i = 0; i < inputCount; i++) {
             Input input = inputs.get(i);
             List<Field> fields = input.getFields();
             List<FieldView> fieldViews;
-            if (i == 0 && showMutatorUi) {
-                fieldViews = new ArrayList<>(fields.size() + 1);
-                fieldViews.add(buildMutatorFieldView(mutator));
-            } else {
-                fieldViews = new ArrayList<>(fields.size());
-            }
+            fieldViews = new ArrayList<>(fields.size());
             for (int j = 0; j < fields.size(); j++) {
                 fieldViews.add(buildFieldView(fields.get(j)));
             }
@@ -348,42 +380,6 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         }
     }
 
-    /**
-     * Create a field view for a mutator's icon. The default implementation just calls
-     * {@link #buildIconFieldView(View.OnClickListener, int)} with a listener that toggles the
-     * mutator UI.
-     *
-     * @param mutator The mutator to create the view for.
-     * @return A {@link FieldView} for the mutator open icon.
-     */
-    protected FieldView buildMutatorFieldView(final Mutator mutator) {
-        View.OnClickListener listener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mMutatorListener != null) {
-                    mMutatorListener.onMutatorToggled(mutator);
-                }
-            }
-        };
-        return buildIconFieldView(listener, R.drawable.mutator_icon_24dp);
-    }
-
-    /**
-     * Build and populate a clickable icon. This is used for mutators, comments, or other icons
-     * that are placed on the block.
-     *
-     *
-     * @param listener An {@link android.view.View.OnClickListener} to fire when the icon is tapped.
-     * @param resId The resource id for the icon.
-     * @return The new {@link FieldView} for the icon.
-     */
-    protected FieldView buildIconFieldView(View.OnClickListener listener, int resId) {
-        BasicFieldIconView iconView = new BasicFieldIconView(mContext);
-        iconView.setOnClickListener(listener);
-        iconView.setImageResource(resId);
-        return iconView;
-    }
-
     protected SpinnerAdapter getVariableAdapter() {
         if (mVariableNameManager == null) {
             throw new IllegalStateException("NameManager must be set before variable field is "
@@ -420,10 +416,10 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     }
 
     /**
-     * Handles a user toggling the UI for a mutator. This is typically done through a mutator button
-     * on a block, but other UIs may trigger it in other ways.
+     * Handles a user toggling the UI for a mutator on a block. This is typically done through a
+     * mutator button on a block, but other UIs may trigger it in other ways.
      */
     public interface MutatorToggleListener {
-        void onMutatorToggled(Mutator mutator);
+        void onMutatorToggled(Block block);
     }
 }

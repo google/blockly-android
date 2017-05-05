@@ -58,6 +58,7 @@ public class IfElseMutator extends Mutator {
     public IfElseMutator(Context context, BlocklyController controller) {
         mContext = context;
         mController = controller;
+        // TODO: Replace with Blockly string table/TranslationsManager call
         mIfLabel = mContext.getString(R.string.mutator_if_else_if_label);
         mThenLabel = mContext.getString(R.string.mutator_if_else_then_label);
         mElseLabel = mContext.getString(R.string.mutator_if_else_else_label);
@@ -75,6 +76,9 @@ public class IfElseMutator extends Mutator {
 
     @Override
     public void serialize(XmlSerializer serializer) throws IOException {
+        if (mElseIfCount == 0 && !hasElse()) {
+            return;
+        }
         serializer.startTag(null, "mutation").attribute(null, "elseif",
                 String.valueOf(mElseIfCount)).attribute(null, "else", mElseStatement ? "1" : "0");
         serializer.endTag(null, "mutation");
@@ -101,15 +105,8 @@ public class IfElseMutator extends Mutator {
     }
 
     @Override
-    public boolean hasUI() {
-        return true;
-    }
-
-    @Override
-    public MutatorFragment getMutatorFragment() {
-        IfElseMutatorFragment dialog = new IfElseMutatorFragment();
-        dialog.init(this);
-        return dialog;
+    public String getMutatorId() {
+        return MUTATOR_ID;
     }
 
     /**
@@ -211,25 +208,17 @@ public class IfElseMutator extends Mutator {
             }
         }
 
-        mBlock.reshape(newInputs, mBlock.getOutputConnection(), mBlock.getPreviousConnection(),
-                mBlock.getNextConnection());
+        mBlock.reshape(newInputs);
 
         mElseIfCount = elseIfCount;
         mElseStatement = hasElse;
     }
 
     public static class Factory implements Mutator.Factory<IfElseMutator> {
-        private final Context mContext;
-        private final BlocklyController mController;
-
-        public Factory(Context context, BlocklyController controller) {
-            mContext = context;
-            mController = controller;
-        }
 
         @Override
-        public IfElseMutator newMutator() {
-            return new IfElseMutator(mContext, mController);
+        public IfElseMutator newMutator(BlocklyController controller) {
+            return new IfElseMutator(controller.getContext(), controller);
         }
     }
 }

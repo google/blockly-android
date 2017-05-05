@@ -1,3 +1,17 @@
+/*
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.google.blockly.android.ui.mutator;
 
 import android.app.AlertDialog;
@@ -16,10 +30,15 @@ import android.widget.TextView;
 import com.google.blockly.android.R;
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.model.mutator.IfElseMutator;
 
 import org.xmlpull.v1.XmlPullParser;
 
+/**
+ * Standard fragment UI for editing an if-else block. This fragment does not support restoring
+ * across activity restarts and should not be included in the back stack.
+ */
 public class IfElseMutatorFragment extends MutatorFragment {
     private IfElseMutator mMutator;
     private Block mBlock;
@@ -31,6 +50,13 @@ public class IfElseMutatorFragment extends MutatorFragment {
     private ImageView mRemoveElseIfButton;
     private TextView mElseIfCountView;
 
+    /**
+     * This must be called after the fragment is created with the mutator that it should show UI
+     * for. Because of this extra initialization this fragment should not be restored across
+     * activity recreations and should not be added to the back stack.
+     *
+     * @param mutator The mutator to show UI for.
+     */
     public void init(IfElseMutator mutator) {
         mMutator = mutator;
         mBlock = mutator.getBlock();
@@ -112,5 +138,15 @@ public class IfElseMutatorFragment extends MutatorFragment {
     private void finishMutation() {
         mMutator.update(mElseIfCount, mHasElse);
         dismiss();
+    }
+
+    public static class Factory implements MutatorFragment.Factory {
+
+        @Override
+        public MutatorFragment newMutatorFragment(Mutator mutator) {
+            IfElseMutatorFragment fragment = new IfElseMutatorFragment();
+            fragment.init((IfElseMutator) mutator);
+            return fragment;
+        }
     }
 }

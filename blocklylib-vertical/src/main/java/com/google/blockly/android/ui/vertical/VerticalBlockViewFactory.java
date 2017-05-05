@@ -28,7 +28,7 @@ import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.fieldview.BasicFieldVariableView;
-import com.google.blockly.android.ui.fieldview.BasicFieldIconView;
+import com.google.blockly.android.ui.fieldview.BasicIconView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
@@ -49,6 +49,8 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     private boolean mUseHats = false;
     private BasicFieldVariableView.VariableViewAdapter mVariableAdapter;
 
+    protected final String mMutatorAltText;
+
     public VerticalBlockViewFactory(Context context, WorkspaceHelper helper) {
         this(context, helper, 0);
     }
@@ -63,6 +65,8 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
 
         loadStyleData(workspaceTheme);
 
+        mMutatorAltText = context.getResources()
+                .getString(com.google.blockly.android.R.string.mutator_icon_alt_text);
         mPatchManager = new PatchManager(mContext, helper.useRtl(), mUseHats);
         mLayoutInflater = LayoutInflater.from(context);
     }
@@ -102,13 +106,25 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
         return mUseHats;
     }
 
+    /**
+     * Sets the listener to call when the user toggles a mutator. This is typically in response to
+     * a mutator button being tapped on a block.
+     *
+     * @param listener The listener to call when a user toggles a mutator.
+     */
+    public void setMutatorToggleListener(MutatorToggleListener listener) {
+        mMutatorListener = listener;
+    }
+
     /** Implements {@link BlockViewFactory#buildBlockView}. */
     @Override
     protected BlockView buildBlockView(Block block, List<InputView> inputViews,
                                        ConnectionManager connectionManager,
                                        BlockTouchHandler touchHandler) {
-        return new BlockView(mContext, mHelper, this, block, inputViews,
+        BlockView bv =  new BlockView(mContext, mHelper, this, block, inputViews,
                              connectionManager, touchHandler);
+        bv.setIconsView(buildIconsView(block));
+        return bv;
     }
 
     /** Implements {@link BlockViewFactory#buildInputView}. */
@@ -166,16 +182,45 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
         return mVariableAdapter;
     }
 
-    @Override
-    protected FieldView buildIconFieldView(View.OnClickListener listener, int resId) {
-        BasicFieldIconView iconView = null;
 
-        int layoutResId = getLayoutForField(Field.TYPE_ICON);
+
+    protected View buildIconsView(Block block) {
+        // TODO: Support warning and comment icons and put all icons into a wrapper view.
+        if (block.getMutator() != null && hasUiForMutator(block.getMutatorId())) {
+            return buildMutatorFieldView(block);
+        }
+        return null;
+    }
+
+    /**
+     * Create a field view for a mutator's icon. The default implementation just calls
+     * {@link #buildIconFieldView(View.OnClickListener, int)} with a listener that toggles the
+     * mutator UI.
+     *
+     * @param block The block to to create the view for.
+     * @return A {@link FieldView} for the mutator open icon.
+     */
+    protected View buildMutatorFieldView(final Block block) {
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mMutatorListener != null) {
+                    mMutatorListener.onMutatorToggled(block);
+                }
+            }
+        };
+        return buildIconFieldView(listener, com.google.blockly.android.R.drawable.mutator_icon_24dp);
+    }
+
+    protected View buildIconFieldView(View.OnClickListener listener, int resId) {
+        BasicIconView iconView = null;
+
+        int layoutResId = R.layout.default_icon;
         // If we have a layout for this field type load that and return it
         if (layoutResId != 0) {
-            iconView = (BasicFieldIconView) mLayoutInflater.inflate(layoutResId, null);
+            iconView = (BasicIconView) mLayoutInflater.inflate(layoutResId, null);
         } else {
-            iconView = new BasicFieldIconView(mContext);
+            iconView = new BasicIconView(mContext);
         }
         iconView.setOnClickListener(listener);
         iconView.setImageResource(resId);
@@ -232,7 +277,6 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             setFieldLayout(Field.TYPE_COLOR, R.layout.default_field_color);
             setFieldLayout(Field.TYPE_INPUT, R.layout.default_field_input);
             setFieldLayout(Field.TYPE_VARIABLE, R.layout.default_field_variable);
-            setFieldLayout(Field.TYPE_ICON, R.layout.default_field_icon);
         } finally {
             styles.recycle();
         }

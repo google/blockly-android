@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.v4.util.ArrayMap;
 
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.ui.MutatorFragment;
+import com.google.blockly.android.ui.mutator.IfElseMutatorFragment;
 import com.google.blockly.model.mutator.IfElseMutator;
 import com.google.blockly.model.mutator.MathIsDivisibleByMutator;
 
@@ -38,6 +40,7 @@ public final class DefaultBlocks {
     private static List<String> ALL_BLOCK_DEFINITIONS = null;
     private static Map<String, BlockExtension> DEFAULT_EXTENSIONS  = null;
     private static Map<String, Mutator.Factory> DEFAULT_MUTATORS = null;
+    private static Map<String, MutatorFragment.Factory> DEFAULT_MUTATOR_UIS = null;
 
     /**
      * Returns the default list of {@link BlockExtension}s. This list is loaded lazily, so it will
@@ -78,19 +81,26 @@ public final class DefaultBlocks {
      * lazily, so it will not load the related classes if never called.
      * @return The map of factories for the default mutators, keyed by mutator id.
      *
-     * @param context The context for any UI that the mutator needs to generate.
-     * @param controller The {@link BlocklyController} to make changes through.
      */
-    public static Map<String, Mutator.Factory> getMutators(Context context,
-            BlocklyController controller) {
+    public static Map<String, Mutator.Factory> getMutators() {
         if (DEFAULT_MUTATORS == null) {
             Map<String, Mutator.Factory> temp = new ArrayMap<>();
             temp.put(MathIsDivisibleByMutator.MUTATOR_ID, new MathIsDivisibleByMutator.Factory());
-            temp.put(IfElseMutator.MUTATOR_ID, new IfElseMutator.Factory(context, controller));
+            temp.put(IfElseMutator.MUTATOR_ID, new IfElseMutator.Factory());
             // TODO: Put other Mutator.Factorys
             DEFAULT_MUTATORS = Collections.unmodifiableMap(temp);
         }
         return DEFAULT_MUTATORS;
+    }
+
+    public static Map<String, MutatorFragment.Factory> getMutatorUis(Context context,
+            BlocklyController controller) {
+        if (DEFAULT_MUTATOR_UIS == null) {
+            Map<String, MutatorFragment.Factory> temp = new ArrayMap<>();
+            temp.put(IfElseMutator.MUTATOR_ID, new IfElseMutatorFragment.Factory());
+            DEFAULT_MUTATOR_UIS = Collections.unmodifiableMap(temp);
+        }
+        return DEFAULT_MUTATOR_UIS;
     }
 
     // Not for instantiation.
