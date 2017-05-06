@@ -125,6 +125,13 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
             }
         }
         addInputViewsToViewHierarchy();
+
+        block.registerObserver(new Block.Observer() {
+            @Override
+            public void onBlockUpdated(Block block, @Block.UpdateState int updateMask) {
+                AbstractBlockView.this.onBlockUpdated(updateMask);
+            }
+        });
     }
 
     /**
@@ -225,6 +232,22 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     @Override
     public WorkspaceView getWorkspaceView() {
         return mWorkspaceView;
+    }
+
+    /**
+     * @return The ConnectionManager managing the connections of this view.
+     */
+    @Override
+    public ConnectionManager getConnectionManager() {
+        return mConnectionManager;
+    }
+
+    /**
+     * @return The touch handler for handling the touch and drag events for this view.
+     */
+    @Override
+    public BlockTouchHandler getTouchHandler() {
+        return mTouchHandler;
     }
 
     /**
@@ -380,6 +403,10 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      */
     protected boolean isEntireBlockHighlighted() {
         return isPressed() || isFocused() || isSelected();
+    }
+
+    protected void onBlockUpdated(@Block.UpdateState int updateMask) {
+        // Default, always rebuild view.
     }
 
     /**

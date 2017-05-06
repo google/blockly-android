@@ -16,9 +16,13 @@
 package com.google.blockly.android.ui;
 
 import android.content.Context;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v13.view.ViewCompat;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.SpinnerAdapter;
 
 import com.google.blockly.android.FlyoutFragment;
@@ -202,44 +206,18 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             throw new IllegalStateException("BlockView already created.");
         }
 
-        List<Input> inputs = block.getInputs();
-        final int inputCount = inputs.size();
-
-        List<InputView> inputViews = new ArrayList<>(inputCount);
-        for (int i = 0; i < inputCount; i++) {
-            Input input = inputs.get(i);
-            List<Field> fields = input.getFields();
-            List<FieldView> fieldViews;
-            fieldViews = new ArrayList<>(fields.size());
-            for (int j = 0; j < fields.size(); j++) {
-                fieldViews.add(buildFieldView(fields.get(j)));
-            }
-            InputView inputView = buildInputView(input, fieldViews);
-
-            if (input.getType() != Input.TYPE_DUMMY) {
-                Block targetBlock = input.getConnection().getTargetBlock();
-                if (targetBlock != null) {
-                    // Blocks connected to inputs live in their own BlockGroups.
-                    BlockGroup subgroup = buildBlockGroupTree(
-                            targetBlock, connectionManager, touchHandler);
-                    inputView.setConnectedBlockGroup(subgroup);
-                }
-            }
-            inputViews.add(inputView);
-        }
-
+        List<InputView> inputViews = buildInputViews(block, connectionManager, touchHandler);
         blockView = buildBlockView(block, inputViews, connectionManager, touchHandler);
 
         // TODO(#137): Move to ViewPool class.
-        mBlockIdToView.put(block.getId(), new WeakReference<BlockView>(blockView));
+        mBlockIdToView.put(block.getId(), new WeakReference<>(blockView));
 
         parentGroup.addView((View) blockView);
 
         Block next = block.getNextBlock();
         if (next != null) {
-            // Next blocks live in the same BlockGroup.
-            buildBlockViewTree(next, parentGroup, connectionManager, touchHandler);
             // Recursively calls buildBlockViewTree(..) for the rest of the sequence.
+            buildBlockViewTree(next, parentGroup, connectionManager, touchHandler);
         }
 
         return blockView;
@@ -269,6 +247,42 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      */
     public BlockGroup buildBlockGroup() {
         return new BlockGroup(mContext, mHelper);
+    }
+
+    /**
+     *
+     * @param original
+     * @return
+     * @throws ClassCastException If original is connected to a parent that is not a ViewGroup.
+     */
+    // TODO: Replace with in-place view shaping, to preserve view state (open dropdowns, text
+    //       selection, etc.) and minimize risk of breaking object references.
+    public BlockView rebuildBlockView(BlockView original) {
+        if (Looper.getMainLooper() != Looper.myLooper()) {
+            throw new IllegalStateException("rebuildBlockView() must run on the main thread.");
+        }
+
+        // Get parent as ViewGroup first, so any failure to cast fails early.
+        ViewGroup parent = (ViewGroup) original.getParent();
+
+        Block model = original.getBlock();
+        ConnectionManager connectionManager = original.getConnectionManager();
+        BlockTouchHandler touchHandler = original.getTouchHandler();
+
+        original.unlinkModel();
+
+        List<InputView> inputViews = buildInputViews(model, connectionManager, touchHandler);
+        BlockView newBlockView = buildBlockView(model, inputViews, connectionManager, touchHandler);
+
+        if (parent != null) {
+            View originalView = (View) original;
+            int viewIndex = getIndexOfChild(parent, originalView);
+            ViewGroup.LayoutParams lp = ((View) original).getLayoutParams();
+
+            parent.removeView(originalView);
+            parent.addView((View) newBlockView, viewIndex, lp);
+        }
+        return newBlockView;
     }
 
     /**
@@ -392,6 +406,60 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         return mVariableAdapter;
     }
 
+    @NonNull
+    protected List<InputView> buildInputViews(
+            Block block, ConnectionManager connectionManager, BlockTouchHandler touchHandler) {
+        List<Input> inputs = block.getInputs();
+        final int inputCount = inputs.size();
+        List<InputView> inputViews = new ArrayList<>(inputCount);
+        for (int i = 0; i < inputCount; i++) {
+            Input input = inputs.get(i);
+            List<Field> fields = input.getFields();
+            List<FieldView> fieldViews = new ArrayList<>(fields.size());
+            for (int  j = 0; j < fields.size(); j++) {
+                fieldViews.add(buildFieldView(fields.get(j)));
+            }
+            InputView inputView = buildInputView(input, fieldViews);
+
+            if (input.getType() != Input.TYPE_DUMMY) {
+                Block targetBlock = input.getConnection().getTargetBlock();
+                if (targetBlock != null) {
+                    // Blocks connected to inputs live in their own BlockGroups.
+                    BlockGroup subgroup;
+                    BlockView targetBlockView = getView(targetBlock);
+                    if (targetBlockView == null) {
+                        subgroup =
+                                buildBlockGroupTree(targetBlock, connectionManager, touchHandler);
+                    } else {
+                        // BlockViews might already exist, especially in the case of
+                        ViewParent targetBlockViewParent = targetBlockView.getParent();
+                        if (targetBlockViewParent == null) {
+                            subgroup = buildBlockGroup();
+                            subgroup.addView((View) targetBlockView);
+                        } else if (targetBlockViewParent instanceof BlockGroup) {
+                            if (targetBlockViewParent.getParent() != null) {
+                                throw new IllegalStateException(
+                                        "BlockView parent is already attached.");
+                            }
+                            if (((ViewGroup) targetBlockViewParent).getChildAt(0)
+                                    != targetBlockView) {
+                                throw new IllegalStateException(
+                                        "Input BlockView is not first in parent BlockGroup.");
+                            }
+                            subgroup = (BlockGroup) targetBlockViewParent;
+                        } else {
+                            throw new IllegalStateException(
+                                    "Unexpected BlockView parent is not a BlockGroup.");
+                        }
+                    }
+                    inputView.setConnectedBlockGroup(subgroup);
+                }
+            }
+            inputViews.add(inputView);
+        }
+        return inputViews;
+    }
+
     /**
      * Removes the mapping to this view from its block.  This should only be called from
      * {@link BlockView#unlinkModel()}, which is already handled in {@link AbstractBlockView}.
@@ -413,6 +481,19 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             flags |= 0x00000100;  // View.DRAG_FLAG_GLOBAL
         }
         return flags;
+    }
+
+    /**
+     * @return The index of the provided child view.
+     */
+    private static int getIndexOfChild(ViewGroup parent, View child) {
+        int childCount = parent.getChildCount();
+        for (int viewIndex = 0; viewIndex < childCount; ++viewIndex) {
+            if (parent.getChildAt(viewIndex) == child) {
+                return viewIndex;
+            }
+        }
+        throw new IllegalStateException("Child View not found.");
     }
 
     /**

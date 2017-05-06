@@ -66,6 +66,7 @@ public class Block extends Observable<Block.Observer> {
     public static final int UPDATE_CONTEXT_MENU = 1 << 9;  // TODO: Not implemented/emitted
     public static final int UPDATE_INPUTS_INLINE = 1 << 10;
     public static final int UPDATE_IS_MOVEABLE = 1 << 11;
+    public static final int UPDATE_WARNING = 1 << 12; // TODO: Not implemented/emitted
 
     public interface Observer {
         /**
