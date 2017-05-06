@@ -284,7 +284,9 @@ public class BlocklyCategory {
                             result.addSubcategory(BlocklyCategory.fromXml(parser, factory,
                                 workspaceId));
                         } else if (parser.getName().equalsIgnoreCase("block")) {
-                            result.addItem(new BlockItem(factory.fromXml(parser), workspaceId));
+                            BlockItem blockItem = new BlockItem(factory.fromXml(parser));
+                            blockItem.getBlock().setEventWorkspaceId(workspaceId);
+                            result.addItem(blockItem);
                         } else if (parser.getName().equalsIgnoreCase("shadow")) {
                             throw new IllegalArgumentException(
                                     "Shadow blocks may not be top level toolbox blocks.");
@@ -372,11 +374,6 @@ public class BlocklyCategory {
         public BlockItem(Block block) {
             super(TYPE_BLOCK);
             mBlock = block;
-        }
-
-        public BlockItem(Block block, String workspaceId) {
-            this(block);
-            mBlock.setEventWorkspaceId(workspaceId);
         }
 
         public Block getBlock() {

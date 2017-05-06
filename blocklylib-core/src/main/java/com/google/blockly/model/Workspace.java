@@ -130,7 +130,9 @@ public class Workspace {
      */
     // TODO(#56): Make sure the block doesn't have a parent.
     public void addBlockToTrash(Block block) {
-        mTrashCategory.addItem(0, new BlocklyCategory.BlockItem(block, BlocklyEvent.WORKSPACE_ID_TRASH));
+        BlocklyCategory.BlockItem blockItem = new BlocklyCategory.BlockItem(block);
+        blockItem.getBlock().setEventWorkspaceId(BlocklyEvent.WORKSPACE_ID_TRASH);
+        mTrashCategory.addItem(0, blockItem);
     }
 
     /**
