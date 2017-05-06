@@ -95,31 +95,6 @@ public class WorkspaceTest extends BlocklyTestCase {
         assertThat(os.toString()).isEqualTo(EMPTY_WORKSPACE);
     }
 
-    @Test
-    public void testWorkspaceIdSetOnNewRootBlocks() {
-        // given
-        Block mockBlock = Mockito.mock(Block.class);
-
-        // when
-        mWorkspace.addRootBlock(mockBlock, true);
-
-        // then
-        Mockito.verify(mockBlock, Mockito.times(1)).setEventWorkspaceId(mWorkspace.getId());
-    }
-
-    @Test
-    public void testWorkspaceIdUnsetOnRootBlockRemoved() {
-        // given
-        Block mockBlock = Mockito.mock(Block.class);
-        mWorkspace.addRootBlock(mockBlock, true);
-
-        // when
-        mWorkspace.removeRootBlock(mockBlock, false);
-
-        // then
-        Mockito.verify(mockBlock, Mockito.times(1)).setEventWorkspaceId(null);
-    }
-
     private static ByteArrayInputStream assembleWorkspace(String interior) {
         return new ByteArrayInputStream(
                 (WORKSPACE_XML_START + interior + WORKSPACE_XML_END).getBytes());
