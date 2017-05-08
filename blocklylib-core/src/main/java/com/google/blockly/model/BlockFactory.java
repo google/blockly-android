@@ -18,7 +18,6 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.content.res.Resources;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -454,7 +453,7 @@ public class BlockFactory {
         if (factory == null) {
             throw new BlockLoadingException("Unknown mutator \"" + mutatorId + "\".");
         }
-        block.setMutator(factory.newMutator(mController), mutatorId);
+        block.setMutator(factory.newMutator(mController));
     }
 
 

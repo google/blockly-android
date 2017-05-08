@@ -49,22 +49,51 @@ public abstract class Mutator {
          * @return The new Mutator instance.
          */
         T newMutator(BlocklyController controller);
+
+        /**
+         * @return The id used to register this mutator.
+         */
+        String getMutatorId();
     }
 
     protected Block mBlock;
 
+    private final String mMutatorId;
+
+    /**
+     * Mutators are required to be initialized with the factory used to create them.
+     */
+    protected Mutator(Factory factory) {
+        mMutatorId = factory.getMutatorId();
+    }
+
+    /**
+     * This is called when a mutator is attached to a block. Developers wishing to perform
+     * setup on the block should override {@link #onAttached(Block)}.
+     *
+     * @param block The block this mutator is attached to.
+     */
     public final void attachToBlock(Block block) {
         mBlock = block;
         onAttached(block);
     }
 
+    /**
+     * This is called when a mutator is detached from a block. Developers wishing to perform
+     * teardown on the block should override {@link #onDetached(Block)}.
+     */
     public final void detachFromBlock() {
         final Block block = mBlock;
         onDetached(block);
         mBlock = null;
     }
 
-    public abstract String getMutatorId();
+    /**
+     * @return The id that was used to register this mutator's factory.
+     */
+    public final String getMutatorId() {
+        return mMutatorId;
+    }
 
     /**
      * @return The block this mutator is currently attached to.

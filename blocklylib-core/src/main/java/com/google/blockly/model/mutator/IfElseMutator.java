@@ -52,10 +52,14 @@ public class IfElseMutator extends Mutator {
     /**
      * Create a new mutator for the given context and controller.
      *
+     * @param factory The factory used to create this mutator.
      * @param context Used to load strings and other configuration.
      * @param controller Controller for sending events.
      */
-    public IfElseMutator(Context context, BlocklyController controller) {
+    public IfElseMutator(Mutator.Factory<IfElseMutator> factory, Context context,
+            BlocklyController controller) {
+        super(factory);
+
         mContext = context;
         mController = controller;
         // TODO: Replace with Blockly string table/TranslationsManager call
@@ -102,11 +106,6 @@ public class IfElseMutator extends Mutator {
             hasElse = true;
         }
         update(elseIfCount, hasElse);
-    }
-
-    @Override
-    public String getMutatorId() {
-        return MUTATOR_ID;
     }
 
     /**
@@ -218,7 +217,12 @@ public class IfElseMutator extends Mutator {
 
         @Override
         public IfElseMutator newMutator(BlocklyController controller) {
-            return new IfElseMutator(controller.getContext(), controller);
+            return new IfElseMutator(this, controller.getContext(), controller);
+        }
+
+        @Override
+        public String getMutatorId() {
+            return MUTATOR_ID;
         }
     }
 }
