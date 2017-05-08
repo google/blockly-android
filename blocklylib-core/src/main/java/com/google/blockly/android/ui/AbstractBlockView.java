@@ -52,6 +52,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
 
     // Child views for the block inputs and their children.
     protected final ArrayList<InputView> mInputViews;
+    // View containing icons for the block, including mutate, warning, and comment icons.
+    protected View mIconsView;
 
     protected WorkspaceView mWorkspaceView;
 
@@ -133,6 +135,26 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         for (int i = 0; i < mInputViews.size(); ++i) {
             addView((View) mInputViews.get(i));
         }
+    }
+
+    /**
+     * Sets a view containing one or more icons for the block, such as the mutate or warning icons.
+     * The view will be added to the view hierarchy, though the concrete BlockView implementation is
+     * responsible for deciding how the icons are laid out and drawn.
+     *
+     * @param iconsView The view containing any icons that are part of this block or null.
+     */
+    public void setIconsView(@Nullable View iconsView) {
+        if (iconsView == mIconsView) {
+            return;
+        }
+        if (mIconsView != null) {
+            removeView(mIconsView);
+        }
+        if (iconsView != null) {
+            addView(iconsView);
+        }
+        mIconsView = iconsView;
     }
 
     /**

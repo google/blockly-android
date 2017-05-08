@@ -14,6 +14,10 @@
  */
 package com.google.blockly.model;
 
+import android.support.annotation.Nullable;
+
+import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -21,6 +25,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Interface for mutators, platform specific hooks into blocks that manage the {@code <mutation>}
@@ -42,7 +48,59 @@ public abstract class Mutator {
         /**
          * @return The new Mutator instance.
          */
-        T newMutator();
+        T newMutator(BlocklyController controller);
+
+        /**
+         * @return The id used to register this mutator.
+         */
+        String getMutatorId();
+    }
+
+    protected Block mBlock;
+
+    private final String mMutatorId;
+
+    /**
+     * Mutators are required to be initialized with the factory used to create them.
+     */
+    protected Mutator(Factory factory) {
+        mMutatorId = factory.getMutatorId();
+    }
+
+    /**
+     * This is called when a mutator is attached to a block. Developers wishing to perform
+     * setup on the block should override {@link #onAttached(Block)}.
+     *
+     * @param block The block this mutator is attached to.
+     */
+    public final void attachToBlock(Block block) {
+        mBlock = block;
+        onAttached(block);
+    }
+
+    /**
+     * This is called when a mutator is detached from a block. Developers wishing to perform
+     * teardown on the block should override {@link #onDetached(Block)}.
+     */
+    public final void detachFromBlock() {
+        final Block block = mBlock;
+        onDetached(block);
+        mBlock = null;
+    }
+
+    /**
+     * @return The id that was used to register this mutator's factory.
+     */
+    public final String getMutatorId() {
+        return mMutatorId;
+    }
+
+    /**
+     * @return The block this mutator is currently attached to.
+     */
+    @Nullable
+    public Block getBlock() {
+        return mBlock;
     }
 
     /**
@@ -51,6 +109,14 @@ public abstract class Mutator {
      */
     public void onAttached(Block block) {
         // Do nothing by default.
+    }
+
+    /**
+     * Called immediately after the mutator is detached from a block, usually as a result of
+     * destroying the block.
+     */
+    public void onDetached(Block block) {
+        // Do nothing by default
     }
 
     // TODO: onAttachToWorkspace(Block, Workspace) and onDetachFromWorkspace(Block, Workspace)
@@ -73,12 +139,11 @@ public abstract class Mutator {
      *
      * Compare with {@code block.domToMutation()} on web Blockly (added by extensions or mixins),
      * or {@code Mutator.update()} on blockly-ios.
-     * @param block The block with the mutator.
      * @param parser The parser with the {@code <mutation>} element.
      * @throws IOException If the parser cannot read its source.
      * @throws XmlPullParserException If the parser cannot parse into XML.
      * @throws BlockLoadingException If the XML is not what the mutator expected.
      */
-    public abstract void update(Block block, XmlPullParser parser)
+    public abstract void update(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException;
 }

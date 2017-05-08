@@ -4,4 +4,5 @@
     <color name="angle_bg">#ffaaaaaa</color>
     <color name="label_text">@android:color/white</color>
     <color name="field_text">#ff212121</color><!-- Material 900 Grey -->
+    <color name="mutator_background_color">#ffbbbbff</color>
 </resources>

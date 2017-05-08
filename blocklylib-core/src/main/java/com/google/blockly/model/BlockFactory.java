@@ -76,7 +76,8 @@ public class BlockFactory {
             mDropdownOptions = new HashMap<>();
 
     /** Default constructor. */
-    public BlockFactory() {}
+    public BlockFactory() {
+    }
 
     /**
      * Create a factory with an initial set of blocks from json resources.
@@ -452,7 +453,7 @@ public class BlockFactory {
         if (factory == null) {
             throw new BlockLoadingException("Unknown mutator \"" + mutatorId + "\".");
         }
-        block.setMutator(factory.newMutator(), mutatorId);
+        block.setMutator(factory.newMutator(mController));
     }
 
 

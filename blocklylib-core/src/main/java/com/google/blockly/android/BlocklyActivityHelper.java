@@ -17,8 +17,11 @@ package com.google.blockly.android;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -32,10 +35,13 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockListUI;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.DefaultVariableCallback;
+import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.android.ui.WorkspaceHelper;
+import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
@@ -77,9 +83,24 @@ public class BlocklyActivityHelper {
     protected BlockListUI mToolboxBlockList;
     protected BlockListUI mTrashBlockList;
     protected CategorySelectorFragment mCategoryFragment;
+    protected Mutator mCurrMutator;
+    protected DialogFragment mDialogFragment;
 
     protected BlocklyController mController;
     protected CodeGeneratorManager mCodeGeneratorManager;
+
+    protected MutatorFragment.DismissListener mMutatorDismissListener = new MutatorFragment
+            .DismissListener() {
+        @Override
+        public void onDismiss(MutatorFragment dialog) {
+            if (dialog == mDialogFragment) {
+                mCurrMutator = null;
+                mDialogFragment = null;
+            } else {
+                Log.d(TAG, "Received dismiss call for unknown dialog");
+            }
+        }
+    };
 
     /**
      * Creates the activity helper and initializes Blockly. Must be called during
@@ -116,6 +137,7 @@ public class BlocklyActivityHelper {
         mController = builder.build();
 
         onCreateVariableCallback();
+        onCreateMutatorListener();
 
         onConfigureTrashIcon();
         onConfigureZoomInButton();
@@ -208,11 +230,11 @@ public class BlocklyActivityHelper {
     }
 
     /**
-     * @return True if the action was handled to close a previously open (and closable) toolbox or
-     *         trash UI. Otherwise false.
+     * @return True if the action was handled to close a previously open (and closable) toolbox,
+     *         trash UI, or dialog. Otherwise false.
      */
     public boolean onBackToCloseFlyouts() {
-        return mController.closeFlyouts();
+        return closeDialogFragment() || mController.closeFlyouts();
     }
 
     /**
@@ -283,6 +305,74 @@ public class BlocklyActivityHelper {
      */
     public void onDestroy() {
         // Do nothing.
+    }
+
+    /**
+     * Default implementation for {@link AbstractBlocklyActivity#configureMutators()}. This adds
+     * all mutators in {@link DefaultBlocks} and their UIs to the {@link BlockFactory} and
+     * {@link BlockViewFactory}.
+     */
+    public void configureMutators() {
+        BlockFactory blockFactory = mController.getBlockFactory();
+        Map<String, Mutator.Factory> defaultMutators = DefaultBlocks.getMutators();
+        for (String key : defaultMutators.keySet()) {
+            blockFactory.registerMutator(key, defaultMutators.get(key));
+        }
+
+        Map<String, MutatorFragment.Factory> defaultMutatorUis = DefaultBlocks
+                .getMutatorUis(mActivity, mController);
+        for (String key : defaultMutatorUis.keySet()) {
+            mBlockViewFactory.registerMutatorUi(key, defaultMutatorUis.get(key));
+        }
+    }
+
+    /**
+     * Default implementation for {@link AbstractBlocklyActivity#configureBlockExtensions()}. This
+     * adds all extensions in {@link DefaultBlocks} to the {@link BlockFactory}.
+     */
+    public void configureExtensions() {
+        BlockFactory blockFactory = mController.getBlockFactory();
+        Map<String, BlockExtension> extensions = DefaultBlocks.getExtensions();
+        for (String key : extensions.keySet()) {
+            blockFactory.registerExtension(key, extensions.get(key));
+        }
+    }
+
+    /**
+     * Shows a dialog UI to the user. Only one dialog will be shown at a time and if there is
+     * already an existing one it will be replaced. This can be used for showing application or
+     * block specific UIs, such as a mutator UI. When the user finishes using the fragment
+     * {@link #closeDialogFragment()} should be called.
+     *
+     * @param fragment The fragment to show.
+     */
+    public void showDialogFragment(@NonNull DialogFragment fragment) {
+        if (fragment == mDialogFragment) {
+            return;
+        }
+
+        FragmentTransaction ft = mActivity.getSupportFragmentManager().beginTransaction();
+        if (mDialogFragment != null) {
+            ft.remove(mDialogFragment);
+        }
+        fragment.show(ft, "blockly_dialog");
+        mDialogFragment = fragment;
+    }
+
+    /**
+     * Closes the currently open {@link DialogFragment} if there is one.
+     *
+     * @return True if there was a dialog and it was closed, false otherwise.
+     */
+    public boolean closeDialogFragment() {
+        if (mDialogFragment != null) {
+            FragmentTransaction ft = mActivity.getSupportFragmentManager().beginTransaction();
+            ft.remove(mDialogFragment);
+            ft.commit();
+            mDialogFragment = null;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -476,32 +566,38 @@ public class BlocklyActivityHelper {
     }
 
     /**
+     * Constructs a {@link BlockViewFactory.MutatorToggleListener} for handling user requests to
+     * show/hide a mutator for a block.
+     * <p/>
+     * By default, this method will remove the open dialog fragment if there is one and show the
+     * mutator's fragment if it wasn't just removed.
+     * <p/>
+     * This method is responsible for calling {@link BlockViewFactory#setMutatorToggleListener}.
+     */
+    protected void onCreateMutatorListener() {
+        BlockViewFactory.MutatorToggleListener mutatorListener = new BlockViewFactory
+                .MutatorToggleListener() {
+            @Override
+            public void onMutatorToggled(Block block) {
+                handleMutatorToggled(block);
+            }
+        };
+        mBlockViewFactory.setMutatorToggleListener(mutatorListener);
+    }
+
+    /**
      * Resets the {@link BlockFactory} with the provided block definitions and extensions.
      * @param blockDefinitionsJsonPaths The list of definition asset paths.
-     * @param blockExtensions The extensions supporting the block definitions.
      * @throws IllegalStateException On any issues with the input.
      */
     public void resetBlockFactory(
-            @Nullable List<String> blockDefinitionsJsonPaths,
-            @Nullable Map<String, BlockExtension> blockExtensions,
-            @Nullable Map<String, Mutator.Factory> mutators) {
+            @Nullable List<String> blockDefinitionsJsonPaths) {
         AssetManager assets = mActivity.getAssets();
         BlockFactory factory = mController.getBlockFactory();
         factory.clear();
 
         String assetPath = null;
         try {
-            // Register Extensions and Mutators before parsing block definition JSON
-            if (blockExtensions != null) {
-                for (String extensionId : blockExtensions.keySet()) {
-                    factory.registerExtension(extensionId, blockExtensions.get(extensionId));
-                }
-            }
-            if (mutators != null) {
-                for (String mutatorId : mutators.keySet()) {
-                    factory.registerMutator(mutatorId, mutators.get(mutatorId));
-                }
-            }
             if (blockDefinitionsJsonPaths != null) {
                 for (String path : blockDefinitionsJsonPaths) {
                     assetPath = path;
@@ -528,5 +624,44 @@ public class BlocklyActivityHelper {
             // compile time assets such as assets are assumed to be good.
             throw new IllegalStateException("Failed to load toolbox XML.", e);
         }
+    }
+
+
+    /**
+     * Decide when and how to show UI for a mutator. This should be called when the user has tried
+     * to toggle a mutator. The method will figure out if the mutator's dialog should be shown,
+     * hidden, or ignored in response.
+     *
+     * @param block The block the user is toggling a mutator for.
+     */
+    private void handleMutatorToggled(Block block) {
+        Mutator mutator = block.getMutator();
+        if (mutator == mCurrMutator) {
+            if (mDialogFragment != null) {
+                FragmentTransaction ft = mActivity.getSupportFragmentManager().beginTransaction();
+                ft.remove(mDialogFragment);
+                ft.commit();
+            } else {
+                Log.w(TAG, "Had a mutator, but no dialog fragment to remove. Cleaning up state.");
+            }
+            mCurrMutator = null;
+        }
+        if (!mBlockViewFactory.hasUiForMutator(mutator.getMutatorId())) {
+            Log.e(TAG, "Mutator without UI toggled.");
+            return;
+        }
+        MutatorFragment fragment = mBlockViewFactory.getMutatorFragment(mutator);
+        if (fragment == null) {
+            throw new IllegalArgumentException("Mutator with UI has no Dialog Fragment to show.");
+        }
+
+        FragmentTransaction ft = mActivity.getSupportFragmentManager().beginTransaction();
+        if (mDialogFragment != null) {
+            ft.remove(mDialogFragment);
+        }
+        fragment.show(ft, "MUTATOR_DIALOG");
+        fragment.setDismissListener(mMutatorDismissListener);
+        mCurrMutator = mutator;
+        mDialogFragment = fragment;
     }
 }

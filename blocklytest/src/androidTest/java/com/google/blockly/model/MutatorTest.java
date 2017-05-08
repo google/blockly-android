@@ -118,13 +118,22 @@ public class MutatorTest extends BlocklyTestCase {
     public static class ExampleMutator extends Mutator {
         static class Factory implements Mutator.Factory<ExampleMutator> {
             @Override
-            public ExampleMutator newMutator() {
-                return Mockito.spy(new ExampleMutator());
+            public ExampleMutator newMutator(BlocklyController controller) {
+                return Mockito.spy(new ExampleMutator(this));
+            }
+
+            @Override
+            public String getMutatorId() {
+                return MUTATOR_ID;
             }
         }
 
         String mAttrib = STARTING_VALUE;
         String mText = STARTING_VALUE;
+
+        protected ExampleMutator(Mutator.Factory factory) {
+            super(factory);
+        }
 
         @Override
         public void serialize(XmlSerializer serializer) throws IOException {
@@ -135,7 +144,7 @@ public class MutatorTest extends BlocklyTestCase {
         }
 
         @Override
-        public void update(Block block, XmlPullParser parser)
+        public void update(XmlPullParser parser)
                 throws IOException, XmlPullParserException {
             // Crude parse
             assertThat(parser.next()).isEqualTo(XmlPullParser.START_TAG);

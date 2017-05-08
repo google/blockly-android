@@ -22,6 +22,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
@@ -95,7 +96,6 @@ public class Block extends Observable<Block.Observer> {
     private boolean mIsShadow;
 
     // Set by BlockFactory.applyMutator(). May only be set once.
-    private String mMutatorId = null;
     private Mutator mMutator = null;
     private String mMutation = null;
 
@@ -163,9 +163,9 @@ public class Block extends Observable<Block.Observer> {
         mPosition = new WorkspacePoint(0, 0);
         setShadow(isShadow);
 
-        mMutatorId = definition.getMutatorId();
-        if (mMutatorId != null) {
-            factory.applyMutator(mMutatorId, this);
+        String mutatorId = definition.getMutatorId();
+        if (mutatorId != null) {
+            factory.applyMutator(mutatorId, this);
         }
         List<String> extensionNames = definition.getExtensionNames();
         for (String name : extensionNames) {
@@ -938,7 +938,7 @@ public class Block extends Observable<Block.Observer> {
      */
     @Nullable
     public final String getMutatorId() {
-        return mMutatorId;
+        return mMutator == null ? null : mMutator.getMutatorId();
     }
 
     /**
@@ -1123,14 +1123,13 @@ public class Block extends Observable<Block.Observer> {
      * Sets the mutator for this block.  Called from BlockFractory, and can only be called once (for
      * now).
      * @param mutator The mutator implementation.
-     * @param id The mutator id, used to pair with a UI implementation.
+     *
      */
-    /*package private*/ void setMutator(@NonNull Mutator mutator, String id) {
+    /*package private*/ void setMutator(@NonNull Mutator mutator) {
         if (mMutator != null) {
             throw new IllegalStateException("Cannot change mutators on a block.");
         }
         mMutator = mutator;
-        mMutatorId = id;
         mutator.onAttached(this);
     }
 

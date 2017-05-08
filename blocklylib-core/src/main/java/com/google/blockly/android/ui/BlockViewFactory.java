@@ -39,17 +39,8 @@ import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldAngle;
-import com.google.blockly.model.FieldCheckbox;
-import com.google.blockly.model.FieldColor;
-import com.google.blockly.model.FieldDate;
-import com.google.blockly.model.FieldDropdown;
-import com.google.blockly.model.FieldImage;
-import com.google.blockly.model.FieldInput;
-import com.google.blockly.model.FieldLabel;
-import com.google.blockly.model.FieldNumber;
-import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.model.Workspace;
 
 import java.lang.ref.WeakReference;
@@ -86,8 +77,13 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      * The callback to use for views that can request changes to the list of variables.
      */
     protected VariableRequestCallback mVariableCallback;
+    /**
+     * The callback to use when something triggers showing or hiding a block's mutator.
+     */
+    protected MutatorToggleListener mMutatorListener;
 
     private SpinnerAdapter mVariableAdapter;
+    private final Map<String, MutatorFragment.Factory> mMutatorUiFactories = new HashMap<>();
 
     // TODO(#137): Move to ViewPool class.
     protected final Map<String,WeakReference<BlockView>> mBlockIdToView
@@ -96,7 +92,6 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     protected BlockViewFactory(Context context, WorkspaceHelper helper) {
         mContext = context;
         mHelper = helper;
-
         helper.setBlockViewFactory(this);
     }
 
@@ -107,6 +102,16 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      */
     public void setVariableRequestCallback(VariableRequestCallback callback) {
         mVariableCallback = callback;
+    }
+
+    /**
+     * Sets the listener to call when the user toggles a mutator. This is typically in response to
+     * a mutator button being tapped on a block.
+     *
+     * @param listener The listener to call when a user toggles a mutator.
+     */
+    public void setMutatorToggleListener(MutatorToggleListener listener) {
+        mMutatorListener = listener;
     }
 
     public WorkspaceHelper getWorkspaceHelper() {
@@ -120,6 +125,44 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      */
     public void setVariableNameManager(NameManager variableNameManager) {
         mVariableNameManager = variableNameManager;
+    }
+
+    /**
+     * Registers a {@link MutatorFragment.Factory} for the named mutator type. Mutators that have a
+     * UI registered will display a user affordance for opening and closing the UI.
+     *
+     * @param mutatorId The name / id of this mutator type.
+     * @param mutatorUiFactory The factory that builds fragments for this mutator type.
+     */
+    public void registerMutatorUi(String mutatorId, MutatorFragment.Factory mutatorUiFactory) {
+        MutatorFragment.Factory old = mMutatorUiFactories.get(mutatorId);
+        if (mutatorUiFactory == old) {
+            return;
+        }
+        mMutatorUiFactories.put(mutatorId, mutatorUiFactory);
+    }
+
+    /**
+     * @return True if there is a UI registered for the given mutator id.
+     */
+    public boolean hasUiForMutator(String mutatorId) {
+        return mMutatorUiFactories.get(mutatorId) != null;
+    }
+
+    /**
+     * Retrieves a {@link MutatorFragment} for the given mutator. They fragment may be displayed to
+     * the user. If a fragment could not be found null is returned instead.
+     *
+     * @param mutator The mutator to return a fragment for.
+     * @return A {@link MutatorFragment} that can be shown to the user.
+     */
+    @Nullable
+    public MutatorFragment getMutatorFragment(Mutator mutator) {
+        MutatorFragment.Factory factory = mMutatorUiFactories.get(mutator.getMutatorId());
+        if (factory == null) {
+            return null;
+        }
+        return factory.newMutatorFragment(mutator);
     }
 
     /**
@@ -161,12 +204,14 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
 
         List<Input> inputs = block.getInputs();
         final int inputCount = inputs.size();
+
         List<InputView> inputViews = new ArrayList<>(inputCount);
         for (int i = 0; i < inputCount; i++) {
             Input input = inputs.get(i);
             List<Field> fields = input.getFields();
-            List<FieldView> fieldViews = new ArrayList<>(fields.size());
-            for (int  j = 0; j < fields.size(); j++) {
+            List<FieldView> fieldViews;
+            fieldViews = new ArrayList<>(fields.size());
+            for (int j = 0; j < fields.size(); j++) {
                 fieldViews.add(buildFieldView(fields.get(j)));
             }
             InputView inputView = buildInputView(input, fieldViews);
@@ -182,6 +227,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             }
             inputViews.add(inputView);
         }
+
         blockView = buildBlockView(block, inputViews, connectionManager, touchHandler);
 
         // TODO(#137): Move to ViewPool class.
@@ -277,54 +323,54 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         switch (type) {
             case Field.TYPE_ANGLE: {
                 BasicFieldAngleView fieldAngleView = new BasicFieldAngleView(mContext);
-                fieldAngleView.setField((FieldAngle) field);
+                fieldAngleView.setField(field);
                 return fieldAngleView;
             }
             case Field.TYPE_CHECKBOX: {
                 BasicFieldCheckboxView fieldCheckboxView = new BasicFieldCheckboxView(mContext);
-                fieldCheckboxView.setField((FieldCheckbox) field);
+                fieldCheckboxView.setField(field);
                 return fieldCheckboxView;
             }
             case Field.TYPE_COLOR: {
                 BasicFieldColorView fieldColorView = new BasicFieldColorView(mContext);
-                fieldColorView.setField((FieldColor) field);
+                fieldColorView.setField(field);
                 return fieldColorView;
             }
             case Field.TYPE_DATE: {
                 BasicFieldDateView fieldDateView = new BasicFieldDateView(mContext);
-                fieldDateView.setField((FieldDate) field);
+                fieldDateView.setField(field);
                 return fieldDateView;
             }
             case Field.TYPE_DROPDOWN: {
                 BasicFieldDropdownView fieldDropdownView = new BasicFieldDropdownView(mContext);
-                fieldDropdownView.setField((FieldDropdown) field);
+                fieldDropdownView.setField(field);
                 return fieldDropdownView;
             }
             case Field.TYPE_IMAGE: {
                 BasicFieldImageView fieldImageView = new BasicFieldImageView(mContext);
-                fieldImageView.setField((FieldImage) field);
+                fieldImageView.setField(field);
                 return fieldImageView;
             }
             case Field.TYPE_INPUT: {
                 BasicFieldInputView fieldInputView = new BasicFieldInputView(mContext);
-                fieldInputView.setField((FieldInput) field);
+                fieldInputView.setField(field);
                 return fieldInputView;
             }
             case Field.TYPE_LABEL: {
                 BasicFieldLabelView fieldLabelView = new BasicFieldLabelView(mContext);
-                fieldLabelView.setField((FieldLabel) field);
+                fieldLabelView.setField(field);
                 return fieldLabelView;
             }
             case Field.TYPE_VARIABLE: {
                 BasicFieldVariableView fieldVariableView = new BasicFieldVariableView(mContext);
                 fieldVariableView.setAdapter(getVariableAdapter());
-                fieldVariableView.setField((FieldVariable) field);
+                fieldVariableView.setField(field);
                 fieldVariableView.setVariableRequestCallback(mVariableCallback);
                 return fieldVariableView;
             }
             case Field.TYPE_NUMBER: {
                 BasicFieldNumberView fieldNumberView = new BasicFieldNumberView(mContext);
-                fieldNumberView.setField((FieldNumber) field);
+                fieldNumberView.setField(field);
                 return fieldNumberView;
             }
 
@@ -367,5 +413,13 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             flags |= 0x00000100;  // View.DRAG_FLAG_GLOBAL
         }
         return flags;
+    }
+
+    /**
+     * Handles a user toggling the UI for a mutator on a block. This is typically done through a
+     * mutator button on a block, but other UIs may trigger it in other ways.
+     */
+    public interface MutatorToggleListener {
+        void onMutatorToggled(Block block);
     }
 }

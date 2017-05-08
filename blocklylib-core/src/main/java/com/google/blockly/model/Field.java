@@ -63,6 +63,7 @@ public abstract class Field extends Observable<Field.Observer> implements Clonea
     public static final String TYPE_DROPDOWN_STRING = "field_dropdown";
     public static final String TYPE_IMAGE_STRING = "field_image";
     public static final String TYPE_NUMBER_STRING = "field_number";
+    // Icon fields are not explicitly declared, so they have no string representation
 
     /**
      * Observer for listening to changes to a field.

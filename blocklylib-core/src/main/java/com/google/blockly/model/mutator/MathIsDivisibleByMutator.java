@@ -32,8 +32,13 @@ public final class MathIsDivisibleByMutator extends Mutator {
 
     public static final class Factory implements Mutator.Factory<MathIsDivisibleByMutator> {
         @Override
-        public MathIsDivisibleByMutator newMutator() {
-            return new MathIsDivisibleByMutator();
+        public MathIsDivisibleByMutator newMutator(BlocklyController controller) {
+            return new MathIsDivisibleByMutator(this);
+        }
+
+        @Override
+        public String getMutatorId() {
+            return MUTATOR_ID;
         }
     }
 
@@ -45,6 +50,10 @@ public final class MathIsDivisibleByMutator extends Mutator {
 
     private List<Input> mInputsWithoutDivisor;
     private List<Input> mInputsWithDivisor;
+
+    protected MathIsDivisibleByMutator(Mutator.Factory factory) {
+        super(factory);
+    }
 
     @Override
     public void onAttached(Block block) {
@@ -83,7 +92,7 @@ public final class MathIsDivisibleByMutator extends Mutator {
     }
 
     @Override
-    public void update(Block block, XmlPullParser parser)
+    public void update(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
         // Do nothing. No serialized state.
     }

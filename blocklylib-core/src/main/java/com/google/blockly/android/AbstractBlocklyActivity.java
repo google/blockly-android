@@ -19,9 +19,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.util.ArrayMap;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -38,15 +36,14 @@ import android.widget.FrameLayout;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
+import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Base class for a Blockly activity that use a material design style tool bar, and optionally a
@@ -394,34 +391,27 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     abstract protected List<String> getBlockDefinitionsJsonPaths();
 
     /**
-     * Loads the list of {@link BlockExtension}s that support the block definitions in this
-     * activity. By default, returns a mutable version of {@link DefaultBlocks#getExtensions()} so
-     * subclasses can easily append their own extensions. Called from {@link #resetBlockFactory()}.
-     *
-     * @return A list of extensions to use for future blocks. Null is treated like an empty list.
+     * Sets up the list of {@link BlockExtension}s that support the block definitions in this
+     * activity. By default, adds all extensions in {@link DefaultBlocks#getExtensions()} to the
+     * block factory.
+     * <p/>
+     * Extensions with the same key will replace existing extensions, so it is safe
+     * to call super and then update specific extensions. Called from {@link #resetBlockFactory()}.
      */
-    @Nullable
-    protected Map<String, BlockExtension> getBlockExtensions() {
-        // Create a new instance so it is easy to append by subclasses.  Not called very often.
-        Map<String, BlockExtension> extensions = new ArrayMap<>();
-        extensions.putAll(DefaultBlocks.getExtensions());
-        return extensions;
+    protected void configureBlockExtensions() {
+        mBlockly.configureExtensions();
     }
 
     /**
-     * Loads the list of {@link Mutator.Factory}s that support the block definitions in this
-     * activity. By default, returns a mutable versions of {@link DefaultBlocks#getMutators()} so
-     * subclasses can easily append their own mutators. Called from {@link #resetBlockFactory()}.
-     *
-     * @return A list of mutator factories to use for future blocks. Null is treated like an empty
-     *         list.
+     * Sets up the list of {@link Mutator.Factory}s and {@link MutatorFragment.Factory}s that
+     * support the block definitions in this activity. By default, adds the mutators in
+     * {@DefaultBlocks} to the BlockFactory.
+     * <p/>
+     * Mutators with the same key will replace existing mutators, so it is safe
+     * to call super and then update specific mutators. Called from {@link #resetBlockFactory()}.
      */
-    @Nullable
-    protected Map<String, Mutator.Factory> getMutators() {
-        // Create a new instance so it is easy to append by subclasses.  Not called very often.
-        Map<String, Mutator.Factory> mutators = new ArrayMap<>();
-        mutators.putAll(DefaultBlocks.getMutators());
-        return mutators;
+    protected void configureMutators() {
+        mBlockly.configureMutators();
     }
 
     /**
@@ -598,16 +588,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Reloads the block definitions, including extensions and mutators. Calls
-     * {@link #getBlockDefinitionsJsonPaths()} and {@link #getBlockExtensions()}.
+     * {@link #getBlockDefinitionsJsonPaths()} and {@link #configureBlockExtensions()}.
      *
      * @throws IOException If there is a fundamental problem with the input.
      * @throws BlockLoadingException If the definition is malformed.
      */
     protected void resetBlockFactory() {
         mBlockly.resetBlockFactory(
-                getBlockDefinitionsJsonPaths(),
-                getBlockExtensions(),
-                getMutators());
+                getBlockDefinitionsJsonPaths());
+
+        configureBlockExtensions();
+        configureMutators();
     }
 
     /**

@@ -444,5 +444,25 @@
     "tooltip": "",
     "colour": 120,
     "helpUrl": "http://www.example.com/"
+  },
+  {
+    "type": "controls_if",
+    "message0": "if %1 do %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "IF0",
+        "check": "Boolean"
+      },
+      {
+        "type": "input_statement",
+        "name": "DO0"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "mutator": "controls_if_mutator",
+    "tooltip": "If a value is true, then do some statements."
   }
 ]

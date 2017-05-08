@@ -83,7 +83,7 @@ public class BlockFactoryTest extends BlocklyTestCase {
     public void testLoadBlocks() {
         List<BlockDefinition> definitions = mBlockFactory.getAllBlockDefinitions();
         assertWithMessage("BlockFactory failed to load all blocks.")
-                .that(definitions.size()).isEqualTo(23);
+                .that(definitions.size()).isEqualTo(24);
     }
 
     @Test
