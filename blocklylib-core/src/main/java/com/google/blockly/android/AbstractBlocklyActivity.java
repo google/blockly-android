@@ -19,9 +19,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.util.ArrayMap;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -46,7 +44,6 @@ import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Base class for a Blockly activity that use a material design style tool bar, and optionally a
@@ -85,7 +82,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     private static final String TAG = "AbstractBlocklyActivity";
 
-    protected BlocklyActivityHelper mActivityHelper;
+    protected BlocklyActivityHelper mBlockly;
 
     protected ActionBar mActionBar;
     protected DrawerLayout mDrawerLayout;
@@ -168,16 +165,16 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link #getWorkspaceSavePath()}.
      */
     public void onSaveWorkspace() {
-        mActivityHelper.saveWorkspaceToAppDirSafely(getWorkspaceSavePath());
+        mBlockly.saveWorkspaceToAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Save the workspace to the given file in the application's private data directory.
-     * @deprecated Call {@code mActivityHelper.saveWorkspaceToAppDir(filename)} or
-     *             {@code mActivityHelper.saveWorkspaceToAppDirSafely(filename)}.
+     * @deprecated Call {@code mBlockly.saveWorkspaceToAppDir(filename)} or
+     *             {@code mBlockly.saveWorkspaceToAppDirSafely(filename)}.
      */
     public void saveWorkspaceToAppDir(String filename) {
-        mActivityHelper.saveWorkspaceToAppDirSafely(filename);
+        mBlockly.saveWorkspaceToAppDirSafely(filename);
     }
 
     /**
@@ -185,17 +182,17 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
      */
     public void onLoadWorkspace() {
-        mActivityHelper.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
+        mBlockly.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
     }
 
     /**
      * Loads the workspace from the given file in the application's private data directory.
-     * @deprecated Call {@code mActivityHelper.loadWorkspaceFromAppDir(filename)} or
-     *             {@code mActivityHelper.loadWorkspaceFromAppDirSafely(filename)}.
+     * @deprecated Call {@code mBlockly.loadWorkspaceFromAppDir(filename)} or
+     *             {@code mBlockly.loadWorkspaceFromAppDirSafely(filename)}.
      */
     @Deprecated
     public void loadWorkspaceFromAppDir(String filename) {
-        mActivityHelper.loadWorkspaceFromAppDirSafely(filename);
+        mBlockly.loadWorkspaceFromAppDirSafely(filename);
     }
 
     /**
@@ -223,7 +220,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @return The {@link BlocklyController} controlling the workspace in this activity.
      */
     public final BlocklyController getController() {
-        return mActivityHelper.getController();
+        return mBlockly.getController();
     }
 
     /**
@@ -236,7 +233,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         // Try to close any open drawer / toolbox before backing out of the Activity.
-        if (!onBackToCloseNavMenu() && !mActivityHelper.onBackToCloseFlyouts()) {
+        if (!onBackToCloseNavMenu() && !mBlockly.onBackToCloseFlyouts()) {
             super.onBackPressed();
         }
     }
@@ -256,8 +253,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         onCreateActivityRootView();
-        mActivityHelper = onCreateActivityHelper();
-        if (mActivityHelper == null) {
+        mBlockly = onCreateActivityHelper();
+        if (mBlockly == null) {
             throw new IllegalStateException("BlocklyActivityHelper is null. "
                     + "onCreateActivityHelper must return a instance.");
         }
@@ -283,21 +280,21 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        mActivityHelper.onStart();
+        mBlockly.onStart();
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
     @Override
     protected void onPause() {
         super.onPause();
-        mActivityHelper.onPause();
+        mBlockly.onPause();
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
     @Override
     protected void onResume() {
         super.onResume();
-        mActivityHelper.onResume();
+        mBlockly.onResume();
 
         if (mNavigationDrawer != null) {
             // Read in the flag indicating whether or not the user has demonstrated awareness of the
@@ -314,14 +311,14 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        mActivityHelper.onStop();
+        mBlockly.onStop();
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
     @Override
     protected void onRestart() {
         super.onRestart();
-        mActivityHelper.onRestart();
+        mBlockly.onRestart();
     }
 
     /**
@@ -402,7 +399,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * to call super and then update specific extensions. Called from {@link #resetBlockFactory()}.
      */
     protected void configureBlockExtensions() {
-        mActivityHelper.configureExtensions();
+        mBlockly.configureExtensions();
     }
 
     /**
@@ -414,7 +411,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * to call super and then update specific mutators. Called from {@link #resetBlockFactory()}.
      */
     protected void configureMutators() {
-        mActivityHelper.configureMutators();
+        mBlockly.configureMutators();
     }
 
     /**
@@ -563,7 +560,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @see #getCodeGenerationCallback()
      */
     protected void onRunCode() {
-        mActivityHelper.requestCodeGeneration(
+        mBlockly.requestCodeGeneration(
             getBlockDefinitionsJsonPaths(),
             getGeneratorsJsPaths(),
             getCodeGenerationCallback());
@@ -586,7 +583,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * Reloads the toolbox contents using the path provided by {@link #getToolboxContentsXmlPath()}.
      */
     protected void reloadToolbox() {
-        mActivityHelper.reloadToolbox(getToolboxContentsXmlPath());
+        mBlockly.reloadToolbox(getToolboxContentsXmlPath());
     }
 
     /**
@@ -597,7 +594,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @throws BlockLoadingException If the definition is malformed.
      */
     protected void resetBlockFactory() {
-        mActivityHelper.resetBlockFactory(
+        mBlockly.resetBlockFactory(
                 getBlockDefinitionsJsonPaths());
 
         configureBlockExtensions();

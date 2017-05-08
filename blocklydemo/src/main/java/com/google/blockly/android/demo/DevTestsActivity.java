@@ -117,12 +117,12 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     @Override
     public void onLoadWorkspace() {
-        mActivityHelper.loadWorkspaceFromAppDirSafely(SAVED_WORKSPACE_FILENAME);
+        mBlockly.loadWorkspaceFromAppDirSafely(SAVED_WORKSPACE_FILENAME);
     }
 
     @Override
     public void onSaveWorkspace() {
-        mActivityHelper.saveWorkspaceToAppDirSafely(SAVED_WORKSPACE_FILENAME);
+        mBlockly.saveWorkspaceToAppDirSafely(SAVED_WORKSPACE_FILENAME);
     }
 
     /**

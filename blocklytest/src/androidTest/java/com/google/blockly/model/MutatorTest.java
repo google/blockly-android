@@ -119,16 +119,20 @@ public class MutatorTest extends BlocklyTestCase {
         static class Factory implements Mutator.Factory<ExampleMutator> {
             @Override
             public ExampleMutator newMutator(BlocklyController controller) {
-                return Mockito.spy(new ExampleMutator());
+                return Mockito.spy(new ExampleMutator(this));
+            }
+
+            @Override
+            public String getMutatorId() {
+                return MUTATOR_ID;
             }
         }
 
         String mAttrib = STARTING_VALUE;
         String mText = STARTING_VALUE;
 
-        @Override
-        public String getMutatorId() {
-            return MUTATOR_ID;
+        protected ExampleMutator(Mutator.Factory factory) {
+            super(factory);
         }
 
         @Override
