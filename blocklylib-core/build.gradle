@@ -25,6 +25,9 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/third_party/main/java'
     }
+    lintOptions {
+          abortOnError false
+    }
 }
 
 dependencies {
