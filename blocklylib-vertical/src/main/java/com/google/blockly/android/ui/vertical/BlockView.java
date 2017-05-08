@@ -270,15 +270,11 @@ public class BlockView extends AbstractBlockView<InputView> {
         if (!isInHorizontalRangeOfBlock(x)) {
             return false;
         }
-
-        for (InputView inputView : mInputViews) {
-            if (inputView.isOnFields(
-                x - getXOffset(mHelper.useRtl(), inputView),
-                y - inputView.getTop())) {
+        for (Rect rect : mFillRects) {
+            if (rect.contains(x, y)) {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -730,14 +726,16 @@ public class BlockView extends AbstractBlockView<InputView> {
             fillRectBySize(xFrom + inputLayoutOrigin.x, inputLayoutOrigin.y,
                     inputView.getFieldLayoutWidth(), inputView.getRowHeight());
 
-            switch (inputView.getInput().getType()) {
+            int inputType = inputView.getInput().getType();
+            boolean isLastInput = (i + 1 == mInputCount);
+            boolean nextIsStatement = !isLastInput
+                    && mInputViews.get(i + 1).getInput().getType() == Input.TYPE_STATEMENT;
+            boolean isEndOfLine = !mBlock.getInputsInline() || isLastInput
+                    || nextIsStatement;
+
+            switch (inputType) {
                 default:
                 case Input.TYPE_DUMMY: {
-                    boolean isLastInput = (i + 1 == mInputCount);
-                    boolean nextIsStatement = !isLastInput
-                            && mInputViews.get(i + 1).getInput().getType() == Input.TYPE_STATEMENT;
-                    boolean isEndOfLine = !mBlock.getInputsInline() || isLastInput
-                            || nextIsStatement;
                     if (isEndOfLine) {
                         addDummyBoundaryPatch(isShadow, xTo, inputView, inputLayoutOrigin);
                     }
@@ -773,6 +771,16 @@ public class BlockView extends AbstractBlockView<InputView> {
                     break;
                 }
             }
+            // If there's leftover space on the right fill it in with a rect
+            if (inputType != Input.TYPE_STATEMENT && isEndOfLine && mBlock.getInputsInline()) {
+                int start = inputLayoutOrigin.x + inputView.getMeasuredWidth();
+                int width = mBlockContentWidth - start;
+                if (width > 0) {
+                    fillRectBySize(start, inputLayoutOrigin.y, width, inputView.getRowHeight());
+                }
+            }
+
+
         }
 
         // Select and position correct patch for bottom and left-hand side of the block, including
