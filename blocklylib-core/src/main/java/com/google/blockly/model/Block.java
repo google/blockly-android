@@ -1015,6 +1015,7 @@ public class Block extends Observable<Block.Observer> {
      * @param updatedPrev The updated previous connection, if any.
      * @param updatedNext The updated next connection, if any.
      */
+    // TODO: Needs lots of tests.
     public void reshape(@Nullable List<Input> newInputList,
                         @Nullable Connection updatedOutput,
                         @Nullable Connection updatedPrev,
@@ -1051,7 +1052,7 @@ public class Block extends Observable<Block.Observer> {
                     // This is a critical failure, as it may leave inputs in an invalid state if
                     // another input was already removed (i.e., setBlock(null) was already called).
                     throw new IllegalStateException(
-                            "Cannot remove input \"" + in.getName() + "\" while connected.");
+                            "Cannot remove input \"" + in.getName() + "\" while connected.");       // TODO: Make test for this
                 }
                 in.setBlock(null); // Reset the block reference in removed Inputs and Fields.
             }
@@ -1062,7 +1063,7 @@ public class Block extends Observable<Block.Observer> {
                     // This is a critical failure, as it may leave inputs in an invalid state if
                     // an old input was removed above (i.e., setBlock(null) was already called).
                     throw new IllegalStateException(
-                            "Cannot add input \"" + in.getName() + "\" while connected.");
+                            "Cannot add input \"" + in.getName() + "\" while connected.");          // TODO: Make test for this
                 }
                 in.setBlock(this);
             }
@@ -1293,7 +1294,9 @@ public class Block extends Observable<Block.Observer> {
      * @param updateStateMask A bit mask of {@link UpdateState} bits for the updated parts.
      */
     private void fireUpdate(@UpdateState int updateStateMask) {
-        for (Observer observer: mObservers) {
+        // Allow mObservers to update while notifying prior observers.
+        ArrayList<Observer> observers = new ArrayList<>(mObservers);
+        for (Observer observer: observers) {
             observer.onBlockUpdated(this, updateStateMask);
         }
     }

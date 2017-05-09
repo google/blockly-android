@@ -274,6 +274,16 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
 
         original.unlinkModel();
 
+        for (Input input : model.getInputs()) {
+            Block childBlock = input.getConnectedBlock();
+            BlockView childBlockView = childBlock == null ? null : getView(childBlock);
+            ViewGroup inputView = childBlockView == null ? null :
+                    (ViewGroup)childBlockView.getParent();
+            if (inputView != null) {
+                inputView.removeView((View) childBlockView);
+            }
+        }
+
         List<InputView> inputViews = buildInputViews(model, connectionManager, touchHandler);
         BlockView newBlockView = buildBlockView(model, inputViews, connectionManager, touchHandler);
 
@@ -436,7 +446,8 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
                         subgroup =
                                 buildBlockGroupTree(targetBlock, connectionManager, touchHandler);
                     } else {
-                        // BlockViews might already exist, especially in the case of
+                        // BlockViews might already exist, especially in the case of children of
+                        // mutated blocks.
                         ViewParent targetBlockViewParent = targetBlockView.getParent();
                         if (targetBlockViewParent == null) {
                             subgroup = buildBlockGroup();
