@@ -29,11 +29,8 @@ import android.widget.TextView;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.ui.MutatorFragment;
-import com.google.blockly.model.Block;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.mutator.IfElseMutator;
-
-import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Standard fragment UI for editing an if-else block. This fragment does not support restoring

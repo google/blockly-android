@@ -83,6 +83,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     // Currently highlighted connection.
     @Nullable protected Connection mHighlightedConnection = null;
 
+    private final MemorySafeBlockObserver mBlockObserver = new MemorySafeBlockObserver(this);
+
     /**
      * Creates a BlockView for the given {@link Block}.
      *
@@ -127,7 +129,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         }
         addInputViewsToViewHierarchy();
 
-        block.registerObserver(new MemorySafeBlockObserver(this));
+        block.registerObserver(mBlockObserver);
     }
 
     /**
@@ -320,6 +322,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      */
     // TODO(#146): Move tree traversal to BlockViewFactory.unregisterView(..)
     public void unlinkModel() {
+        mBlock.unregisterObserver(mBlockObserver);
         mFactory.unregisterView(this); // TODO(#137): factory -> ViewPool
 
         int max = mInputViews.size();
@@ -381,7 +384,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
                 mWorkspaceView = (WorkspaceView) parent;
                 return;
             }
-            parent = ((ViewGroup) parent).getParent();
+            parent = parent.getParent();
         }
     }
 

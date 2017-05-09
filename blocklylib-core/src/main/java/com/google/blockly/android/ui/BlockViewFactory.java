@@ -20,6 +20,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v13.view.ViewCompat;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -65,6 +66,8 @@ import java.util.Map;
  */
 public abstract class BlockViewFactory<BlockView extends com.google.blockly.android.ui.BlockView,
                                        InputView extends com.google.blockly.android.ui.InputView> {
+    private static final String TAG = "BlockViewFactory";
+
     /**
      * Context for creating or loading views.
      */
@@ -265,10 +268,16 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             throw new IllegalStateException("rebuildBlockView() must run on the main thread.");
         }
 
+        Block model = original.getBlock();
+        if (getView(original.getBlock()) != original) {
+            Log.w(TAG, "Refusing to rebuild a BlockView that is not in the current view.");
+            return null;  // This should very rarely happen.
+        }
+
         // Get parent as ViewGroup first, so any failure to cast to ViewGroup fails early.
         ViewGroup parent = (ViewGroup) original.getParent();
 
-        Block model = original.getBlock();
+
         ConnectionManager connectionManager = original.getConnectionManager();
         BlockTouchHandler touchHandler = original.getTouchHandler();
 
