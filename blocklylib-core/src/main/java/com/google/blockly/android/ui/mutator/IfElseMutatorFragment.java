@@ -41,9 +41,7 @@ import org.xmlpull.v1.XmlPullParser;
  */
 public class IfElseMutatorFragment extends MutatorFragment {
     private IfElseMutator mMutator;
-    private Block mBlock;
     private String mElseIfCountString;
-    private String mElseCountString;
     private int mElseIfCount;
     private boolean mHasElse;
 
@@ -59,7 +57,6 @@ public class IfElseMutatorFragment extends MutatorFragment {
      */
     public void init(IfElseMutator mutator) {
         mMutator = mutator;
-        mBlock = mutator.getBlock();
         mElseIfCount = mutator.getElseIfCount();
         mHasElse = mutator.hasElse();
     }
@@ -69,7 +66,6 @@ public class IfElseMutatorFragment extends MutatorFragment {
         super.onAttach(context);
         Resources res = context.getResources();
         mElseIfCountString = res.getString(R.string.mutator_if_else_ifelse_count);
-        mElseCountString = res.getString(R.string.mutator_if_else_else_count);
     }
 
     @Override
@@ -131,7 +127,8 @@ public class IfElseMutatorFragment extends MutatorFragment {
     }
 
     private void updateCountString() {
-        String elseIfCount = String.format(mElseIfCountString, mElseIfCount);
+        // Because the user always sees at least one "if", start the count at one.
+        String elseIfCount = String.format(mElseIfCountString, mElseIfCount + 1);
         mElseIfCountView.setText(elseIfCount);
     }
 
@@ -141,7 +138,6 @@ public class IfElseMutatorFragment extends MutatorFragment {
     }
 
     public static class Factory implements MutatorFragment.Factory {
-
         @Override
         public MutatorFragment newMutatorFragment(Mutator mutator) {
             IfElseMutatorFragment fragment = new IfElseMutatorFragment();

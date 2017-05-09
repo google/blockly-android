@@ -33,6 +33,7 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,12 +127,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         }
         addInputViewsToViewHierarchy();
 
-        block.registerObserver(new Block.Observer() {
-            @Override
-            public void onBlockUpdated(Block block, @Block.UpdateState int updateMask) {
-                AbstractBlockView.this.onBlockUpdated(updateMask);
-            }
-        });
+        block.registerObserver(new MemorySafeBlockObserver(this));
     }
 
     /**
@@ -510,6 +506,23 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
                 && mBlock.getOutputConnection().getTargetBlock() != null)) {
             mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
             mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
+        }
+    }
+
+    private static final class MemorySafeBlockObserver implements Block.Observer {
+        private final WeakReference<AbstractBlockView> mViewRef;
+        public MemorySafeBlockObserver(AbstractBlockView viewRef) {
+            mViewRef = new WeakReference<>(viewRef);
+        }
+
+        @Override
+        public void onBlockUpdated(Block block, @Block.UpdateState int updateMask) {
+            AbstractBlockView view = mViewRef.get();
+            if (view == null || view.mBlock != block) {
+                block.unregisterObserver(this);
+            } else {
+                view.onBlockUpdated(updateMask);
+            }
         }
     }
 }
