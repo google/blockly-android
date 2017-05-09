@@ -80,6 +80,7 @@ public class WorkspaceFragment extends Fragment {
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
 
+        mVirtualWorkspaceView.setDrawGrid(mDrawGrid);
         if (mController != null) {
             mVirtualWorkspaceView.setZoomBehavior(
                     mController.getWorkspaceHelper().getZoomBehavior());
