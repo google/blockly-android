@@ -131,16 +131,6 @@ public class InputView extends AbstractInputView {
     }
 
     /**
-     * @return True if and only if a coordinate is on the fields of this view, including the padding
-     * to the left and right of the fields.  Any connected inputs should handle events themselves
-     * and are thus not allowed here.
-     */
-    public boolean isOnFields(int eventX, int eventY) {
-        return (eventX >= 0 && eventX < (mFieldLayoutWidth + mPatchManager.mBlockTotalPaddingX)) &&
-                eventY >= 0 && eventY < mRowHeight;
-    }
-
-    /**
      * @return Total measured width of all fields in this input, including spacing between them.
      */
     int getTotalFieldWidth() {
