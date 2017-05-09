@@ -405,9 +405,12 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
         return isPressed() || isFocused() || isSelected();
     }
 
-    protected void onBlockUpdated(@Block.UpdateState int updateMask) {
-        // Default, always rebuild view.
-    }
+    /**
+     * Called when the underlying block has been updated. The view implementation should override
+     * this method to appropriately update the view to reflect the new state.
+     * @param updateMask A bit mask denoting {@link Block.UpdateState} changes.
+     */
+    protected abstract void onBlockUpdated(@Block.UpdateState int updateMask);
 
     /**
      * Test whether a {@link MotionEvent} event that has happened on this view is (approximately)
