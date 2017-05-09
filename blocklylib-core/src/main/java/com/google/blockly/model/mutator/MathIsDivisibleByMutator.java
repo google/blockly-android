@@ -1,7 +1,6 @@
 package com.google.blockly.model.mutator;
 
 import android.support.annotation.VisibleForTesting;
-import android.util.Log;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
