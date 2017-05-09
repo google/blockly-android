@@ -250,9 +250,12 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     }
 
     /**
+     * Rebuilds a BlockView based on the latest model state, replacing it in-place in the view tree.
+     * Some minor view state is not propagated (pressed, highlight, text selection, etc.) during the
+     * replacement.
      *
-     * @param original
-     * @return
+     * @param original The original BlockView to be rebuilt and replaced.
+     * @return The newly reconstructed BlockView.
      * @throws ClassCastException If original is connected to a parent that is not a ViewGroup.
      */
     // TODO: Replace with in-place view shaping, to preserve view state (open dropdowns, text
@@ -262,7 +265,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             throw new IllegalStateException("rebuildBlockView() must run on the main thread.");
         }
 
-        // Get parent as ViewGroup first, so any failure to cast fails early.
+        // Get parent as ViewGroup first, so any failure to cast to ViewGroup fails early.
         ViewGroup parent = (ViewGroup) original.getParent();
 
         Block model = original.getBlock();
@@ -282,6 +285,8 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             parent.removeView(originalView);
             parent.addView((View) newBlockView, viewIndex, lp);
         }
+
+        mBlockIdToView.put(model.getId(), new WeakReference<>(newBlockView));
         return newBlockView;
     }
 
