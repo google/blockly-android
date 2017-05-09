@@ -98,6 +98,11 @@ public class AbstractBlockViewTest extends BlocklyTestCase {
             protected void onLayout(boolean changed, int l, int t, int r, int b) {
                 // Fake. Do nothing.
             }
+
+            @Override
+            protected void onBlockUpdated(@Block.UpdateState int updateMask) {
+                // Fake. Do nothing.
+            }
         };
     }
 }
