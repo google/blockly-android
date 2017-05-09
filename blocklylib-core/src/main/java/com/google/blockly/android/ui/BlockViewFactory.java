@@ -261,17 +261,19 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      * @return The newly reconstructed BlockView.
      * @throws ClassCastException If original is connected to a parent that is not a ViewGroup.
      */
-    // TODO: Replace with in-place view shaping, to preserve view state (open dropdowns, text
-    //       selection, etc.) and minimize risk of breaking object references.
+    // TODO(#588): Replace with in-place view shaping, to preserve view state (open dropdowns, text
+    //             selection, etc.) and minimize risk of breaking object references.
+    // TODO(#589): Testing
+    @NonNull
     public BlockView rebuildBlockView(BlockView original) {
         if (Looper.getMainLooper() != Looper.myLooper()) {
             throw new IllegalStateException("rebuildBlockView() must run on the main thread.");
         }
 
         Block model = original.getBlock();
-        if (getView(original.getBlock()) != original) {
-            Log.w(TAG, "Refusing to rebuild a BlockView that is not in the current view.");
-            return null;  // This should very rarely happen.
+        if (getView(model) != original) {
+            throw new IllegalStateException(
+                    "Refusing to rebuild a BlockView that is not the block's current/active view.");
         }
 
         // Get parent as ViewGroup first, so any failure to cast to ViewGroup fails early.
