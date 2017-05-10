@@ -19,6 +19,7 @@
     <string name="level_2">Level 2</string>
     <string name="level_3">Level 3</string>
     <string name="simple_activity_name">Blockly Simple</string>
+    <string name="lua_activity_name">Blockly Lua</string>
     <string name="no_categories_toolbox_activity_name">No Categories Toolbox</string>
     <string name="always_open_toolbox_activity_name">Always Open Toolbox</string>
     <string name="dev_activity_name">Blockly Dev Tests</string>
@@ -28,6 +29,7 @@
     <string name="style_activity_name">Blockly Styles</string>
     <string name="flyout_activity_name">Blockly Flyouts</string>
     <string name="flyout_activity_title">Blockly Flyout Demos</string>
+    <string name="split_generate_message">Run the blocks to see them in code!</string>
 
     <string name="scrollable_menuitem">Scrollable</string>
     <string name="pinch_zoom_menuitem">Pinch Zoom</string>

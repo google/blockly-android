@@ -2,7 +2,10 @@ package com.google.blockly.android.codegen;
 
 import android.os.Build;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.ActivityTestRule;
 
+import com.google.blockly.android.BlocklyTestActivity;
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
@@ -13,10 +16,13 @@ import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
 
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,18 +31,52 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Unit tests for CodeGeneratorService
  */
-public class CodeGeneratorServiceTest {
+public class CodeGeneratorServiceTest extends BlocklyTestCase {
+    private static final String SIMPLE_WORKSPACE_XML =
+            "<xml xmlns=\"http://www.w3.org/1999/xhtml\">"
+                    + "<block type=\"text\"><field name=\"TEXT\">test</field></block>" +
+            "</xml>";
+
     private BlockFactory mBlockFactory;
     private BlocklyController mMockController;
+    private CodeGenerationRequest.CodeGeneratorCallback mCallback;
+    private CodeGeneratorManager mManager;
+
+    @Rule
+    public final ActivityTestRule<BlocklyTestActivity> mActivityRule =
+            new ActivityTestRule<>(BlocklyTestActivity.class);
 
     @Before
     public void setUp() throws Exception {
         mMockController = Mockito.mock(BlocklyController.class);
+        mCallback = Mockito.mock(CodeGenerationRequest.CodeGeneratorCallback.class);
+
+        configureForUIThread();
 
         // TODO(#435): Replace R.raw.test_blocks
         mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
                 new int[]{R.raw.test_blocks});
         mBlockFactory.setController(mMockController);
+        mManager = new CodeGeneratorManager(mActivityRule.getActivity());
+        mManager.onResume();
+    }
+
+    @After
+    public void tearDown() {
+        mManager.onPause();
+    }
+
+    @Test
+    public void testLuaGeneration() {
+        final CodeGenerationRequest request = new CodeGenerationRequest(
+                SIMPLE_WORKSPACE_XML,
+                mCallback,
+                new CodeGenerationRequest
+                        .LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua"),
+                Arrays.asList(new String[] {"default/test_blocks.json"}),
+                Arrays.asList(new String[] {"lua/generators/test_blocks.js"}));
+        mManager.requestCodeGeneration(request);
+        Mockito.verify(mCallback, Mockito.timeout(500)).onFinishCodeGeneration("local _ = 'test'\n");
     }
 
     /**
@@ -55,9 +95,9 @@ public class CodeGeneratorServiceTest {
         block.getFieldByName("TEXT").setFromString("apostrophe ' end");
 
         String xml = toXml(block);
-        String url = CodeGeneratorService.buildCodeGenerationUrl(xml);
+        String url = CodeGeneratorService.buildCodeGenerationUrl(xml, "Blockly.JavaScript");
 
-        Matcher matcher = Pattern.compile("javascript:generate\\('(.*)'\\);",
+        Matcher matcher = Pattern.compile("javascript:generate\\('(.*)', Blockly.JavaScript\\);",
                 Pattern.DOTALL | Pattern.MULTILINE).matcher(url);
         assertThat(matcher.matches()).isTrue();
         String jsString = matcher.group(1);
@@ -79,9 +119,10 @@ public class CodeGeneratorServiceTest {
         block.getFieldByName("TEXT").setFromString("apostrophe ' end");
 
         String xml = toXml(block);
-        String url = CodeGeneratorService.buildCodeGenerationUrl(xml);
+        String url = CodeGeneratorService.buildCodeGenerationUrl(xml, "Blockly.JavaScript");
 
-        Matcher matcher = Pattern.compile("javascript:generateEscaped\\('(.*)'\\);").matcher(url);
+        Matcher matcher = Pattern.compile("javascript:generate\\('(.*)', Blockly.JavaScript\\);")
+                .matcher(url);
         assertThat(matcher.matches()).isTrue();
         String jsString = matcher.group(1);
         assertThat(jsString.contains("apostrophe%20%27%20end")).isTrue();

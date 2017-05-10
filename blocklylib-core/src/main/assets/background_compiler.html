@@ -5,10 +5,19 @@
     <title>Blockly Demo: Headless</title>
     <script src="blockly_compressed.js"></script>
     <script src="blocks_compressed.js"></script>
-    <script src="javascript_compressed.js"></script>
     <script src="msg/js/en.js"></script>
     <!-- Load the app's block definitions and generated code from the correct files.-->
     <script>
+        function import_generator_language(filename) {
+            console.log('importing generator language ' + filename);
+            if (!!filename) {
+                var script = document.createElement('script');
+                script.setAttribute('type', 'text/javascript');
+                script.setAttribute('src', filename);
+                document.head.appendChild(script);
+            }
+        }
+
         function import_generators(filename) {
             if (!!filename) {
                 var files = filename.split(';');
@@ -40,6 +49,7 @@
         }
 
         import_generators(BlocklyJavascriptInterface.getBlockGeneratorsFilenames());
+        import_generator_language(BlocklyJavascriptInterface.getGeneratorLanguageFilename());
         import_definitions(BlocklyJavascriptInterface.getBlockDefinitions());
 
     </script>
@@ -47,7 +57,7 @@
 <body>
 
 <script>
-    function generate(blocklyxml) {
+    function generate(blocklyxml, generator) {
       // Parse the XML into a tree.
       var dom;
       try {
@@ -61,7 +71,7 @@
       var workspace = new Blockly.Workspace();
       try {
         Blockly.Xml.domToWorkspace(dom, workspace);
-        var code = Blockly.JavaScript.workspaceToCode(workspace);
+        var code = generator.workspaceToCode(workspace);
         BlocklyJavascriptInterface.execute(code);
       } catch (e) {
         console.log(e.stack || e);
