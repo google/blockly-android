@@ -60,12 +60,6 @@ public class AlwaysOpenToolboxActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
-        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
-    }
-
-    @NonNull
-    @Override
     protected String getToolboxContentsXmlPath() {
         return "default/toolbox.xml";
     }

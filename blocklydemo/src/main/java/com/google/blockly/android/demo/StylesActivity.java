@@ -42,12 +42,6 @@ public class StylesActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
-        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
-    }
-
-    @NonNull
-    @Override
     protected String getToolboxContentsXmlPath() {
         return "turtle/toolbox_advanced.xml";
     }

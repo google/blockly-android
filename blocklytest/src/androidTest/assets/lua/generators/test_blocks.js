@@ -19,8 +19,7 @@
  */
 
 /**
- * @fileoverview Generating Lua for colour blocks.
- * @author rodrigoq@google.com (Rodrigo Queiro)
+ * @fileoverview Generating Lua for test blocks.
  */
 'use strict';
 

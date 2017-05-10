@@ -15,6 +15,8 @@
 
 package com.google.blockly.android.codegen;
 
+import android.text.TextUtils;
+
 import java.util.List;
 
 /**
@@ -44,6 +46,10 @@ public class CodeGenerationRequest {
         if (xml == null || xml.isEmpty()) {
             throw new IllegalArgumentException("The blockly workspace string must not be empty " +
                     "or null.");
+        }
+        if (generatorsLanguage == null || TextUtils.isEmpty(generatorsLanguage.mLanguageFilename)
+                || TextUtils.isEmpty(generatorsLanguage.mLanguageNamespace)) {
+            throw new IllegalArgumentException("The generator language must be defined.");
         }
         mCallback = callback;
         mBlocklyXml = xml;
@@ -79,29 +85,6 @@ public class CodeGenerationRequest {
          * @param generatedCode The string containing all of the generated code.
          */
         void onFinishCodeGeneration(String generatedCode);
-    }
-
-    /**
-     * Defines the core language file to be used in code generation. To be used by the generator
-     * Blockly needs to know the path to the file and the object namespace that has the generator
-     * functions. For example: {}"javascript_compressed.js", "Blockly.JavaScript"}
-     */
-    public static class LanguageDefinition {
-        public final String mLanguageFilename;
-        public final String mLanguageNamespace;
-
-        /**
-         * Create a language definition with the given filename and object namespace.
-         *
-         * @param filename The path to the language file relative to
-         *                 file:///android_assets/background_compiler.html.
-         * @param namespace The namespace of the object provided by the file, such as
-         *                  "Blockly.JavaScript"
-         */
-        public LanguageDefinition(String filename, String namespace) {
-            mLanguageFilename = filename;
-            mLanguageNamespace = namespace;
-        }
     }
 
 }

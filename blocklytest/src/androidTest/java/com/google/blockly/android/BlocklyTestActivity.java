@@ -18,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.view.ContextThemeWrapper;
 
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
@@ -66,8 +67,8 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
-        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
+    protected LanguageDefinition getBlockGeneratorLanguage() {
+        return DefaultBlocks.LANGUAGE_DEFINITION;
     }
 
     @NonNull

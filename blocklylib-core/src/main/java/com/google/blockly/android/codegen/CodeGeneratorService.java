@@ -59,7 +59,7 @@ public class CodeGeneratorService extends Service {
     private WebView mWebview;
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private Handler mHandler;
-    private CodeGenerationRequest.LanguageDefinition mGeneratorLanguage;
+    private LanguageDefinition mGeneratorLanguage;
     private List<String> mDefinitions = new ArrayList<>();
     private List<String> mGenerators = new ArrayList<>();
     private String mAllBlocks;
@@ -214,7 +214,7 @@ public class CodeGeneratorService extends Service {
         @JavascriptInterface
         public String getGeneratorLanguageFilename() {
             if (mGeneratorLanguage == null) {
-                return "javascript_compressed.js";
+                throw new IllegalStateException("Generator language not specified!");
             }
             return mGeneratorLanguage.mLanguageFilename;
         }
