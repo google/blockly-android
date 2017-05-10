@@ -17,7 +17,6 @@ public class FunctionCategoryFactory extends CategoryFactory {
         BlockFactory factory = mController.getBlockFactory();
 
         BlocklyCategory category = new BlocklyCategory();
-        // TODO: Add blocks.
         return category;
     }
 }
