@@ -16,7 +16,6 @@
 package com.google.blockly.android.control;
 
 import android.support.annotation.Nullable;
-import android.content.Context;
 import android.view.View;
 
 import com.google.blockly.android.ui.BlockListUI;
@@ -125,10 +124,8 @@ public class FlyoutController {
         }
     };
 
-    public FlyoutController(Context context, BlocklyController controller) {
+    public FlyoutController(BlocklyController controller) {
         mController = controller;
-        BlocklyCategory.CATEGORY_FACTORIES.put("VARIABLE",
-                new VariableCategoryFactory(context, controller));
     }
 
     /**

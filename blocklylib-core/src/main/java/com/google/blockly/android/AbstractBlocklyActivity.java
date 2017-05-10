@@ -37,7 +37,9 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.MutatorFragment;
+import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlockExtension;
+import com.google.blockly.model.CategoryFactory;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
@@ -259,6 +261,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
                     + "onCreateActivityHelper must return a instance.");
         }
         resetBlockFactory();  // Initial load of block definitions, extensions, and mutators.
+        configureCategoryFactories();  // After BlockFactory; before Toolbox
         reloadToolbox();
 
         // Load the workspace.
@@ -391,27 +394,50 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     abstract protected List<String> getBlockDefinitionsJsonPaths();
 
     /**
-     * Sets up the list of {@link BlockExtension}s that support the block definitions in this
-     * activity. By default, adds all extensions in {@link DefaultBlocks#getExtensions()} to the
-     * block factory.
+     * This method provides a hook to register {@link BlockExtension}s that support the block
+     * definitions in this activity. By default, it adds all extensions in
+     * {@link DefaultBlocks#getExtensions() DefaultBlocks} to the block factory, via the
+     * {@link #onCreateActivityHelper() BlocklyActivityHelper}
+     * {@link BlocklyActivityHelper#configureExtensions() implementation}.
      * <p/>
      * Extensions with the same key will replace existing extensions, so it is safe
-     * to call super and then update specific extensions. Called from {@link #resetBlockFactory()}.
+     * to call super and then update specific extensions.
+     * <p/>
+     * Called from {@link #resetBlockFactory()}.
      */
     protected void configureBlockExtensions() {
         mBlocklyActivityHelper.configureExtensions();
     }
 
     /**
-     * Sets up the list of {@link Mutator.Factory}s and {@link MutatorFragment.Factory}s that
-     * support the block definitions in this activity. By default, adds the mutators in
-     * {@DefaultBlocks} to the BlockFactory.
+     * This method provides a hook to register {@link Mutator.Factory}s and
+     * {@link MutatorFragment.Factory}s that support the block definitions in this activity. By
+     * default, it adds the mutators in {@link DefaultBlocks#getMutators() DefaultBlocks} to the
+     * BlockFactory, via the {@link #onCreateActivityHelper() BlocklyActivityHelper}
+     * {@link BlocklyActivityHelper#configureMutators() implementation}.
      * <p/>
      * Mutators with the same key will replace existing mutators, so it is safe
-     * to call super and then update specific mutators. Called from {@link #resetBlockFactory()}.
+     * to call super and then update specific mutators.
+     * <p/>
+     * Called from {@link #resetBlockFactory()}.
      */
     protected void configureMutators() {
         mBlocklyActivityHelper.configureMutators();
+    }
+
+    /**
+     * This method provides a hook to register custom {@link CategoryFactory}s that support
+     * the toolboxes in this activity. By default, it registers the categories in
+     * {@link DefaultBlocks}, via the {@link #onCreateActivityHelper() BlocklyActivityHelper}
+     * {@link BlocklyActivityHelper#configureMutators() implementation}.
+     * <p/>
+     * Category factories with the same {@code custom} key will replace existing
+     * {@link CategoryFactory}s, so it is safe to call super and then update specific categories.
+     * <p/>
+     * Called once at activity creation.
+     */
+    protected void configureCategoryFactories() {
+        mBlocklyActivityHelper.configureCategoryFactories();
     }
 
     /**
@@ -599,6 +625,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
         configureBlockExtensions();
         configureMutators();
+        configureCategoryFactories();
+
+        // Reload the toolbox?
     }
 
     /**

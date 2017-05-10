@@ -53,8 +53,6 @@ public class BlocklyCategory {
     private String mCategoryName;
     private String mCustomType;
     private Integer mColor = null;
-    private boolean mIsVariableCategory = false;
-    private boolean mIsFunctionCategory = false;
     private Callback mCallback;
 
     public void setCallback(Callback callback) {
@@ -73,24 +71,6 @@ public class BlocklyCategory {
      */
     public String getCustomType() {
         return mCustomType;
-    }
-
-    /**
-     * Convenience method for checking if this category has the custom "VARIABLE" type.
-     *
-     * @return True if this category has the custom type "VARIABLE"
-     */
-    public boolean isVariableCategory() {
-        return mIsVariableCategory;
-    }
-
-    /**
-     * Convenience method for checking if this category has the custom "FUNCTION" type.
-     *
-     * @return True if this category has the custom type "FUNCTION"
-     */
-    public boolean isFunctionCategory() {
-        return mIsFunctionCategory;
     }
 
     /**
@@ -261,10 +241,6 @@ public class BlocklyCategory {
             }
             result.mCategoryName = parser.getAttributeValue("", "name");
             result.mCustomType = parser.getAttributeValue("", "custom");
-            result.mIsVariableCategory = result.mCustomType != null
-                    && TextUtils.equals("VARIABLE", result.mCustomType.toUpperCase());
-            result.mIsFunctionCategory = result.mCustomType != null
-                    && TextUtils.equals("FUNCTION", result.mCustomType.toUpperCase());
             String colourAttr = parser.getAttributeValue("", "colour");
             if (!TextUtils.isEmpty(colourAttr)) {
                 try {
@@ -309,7 +285,6 @@ public class BlocklyCategory {
     public void addSubcategory(BlocklyCategory subcategory) {
         mSubcategories.add(subcategory);
     }
-
 
     /**
      * Callback class for listening to changes to this category.

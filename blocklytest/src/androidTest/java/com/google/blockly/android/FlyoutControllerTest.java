@@ -58,7 +58,7 @@ public class FlyoutControllerTest extends BlocklyTestCase {
         bob.setTrashUi(mTrashFlyout);
 
         mController = bob.build();
-        mFlyoutController = new FlyoutController(mActivity, mController);
+        mFlyoutController = new FlyoutController(mController);
         mFlyoutController.setToolboxUiComponents(mCategoryFragment, mToolboxFlyout);
         mFlyoutController.setTrashUi(mTrashFlyout);
     }
