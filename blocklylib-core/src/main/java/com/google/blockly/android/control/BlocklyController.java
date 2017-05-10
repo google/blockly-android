@@ -48,8 +48,10 @@ import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.CategoryFactory;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
@@ -238,7 +240,7 @@ public class BlocklyController {
         mDragger = new Dragger(this);
         mTouchHandler = mDragger.buildSloppyBlockTouchHandler(mWorkspaceDragHandler);
 
-        mFlyoutController = new FlyoutController(mContext, this);
+        mFlyoutController = new FlyoutController(this);
     }
 
     /**
@@ -310,6 +312,11 @@ public class BlocklyController {
      */
     public void setVariableCallback(VariableCallback variableCallback) {
         mVariableCallback = variableCallback;
+    }
+
+    public void registerCategoryFactory(String customCategoryName, CategoryFactory factory) {
+        // TODO: Alternative to the static map?
+        BlocklyCategory.CATEGORY_FACTORIES.put(customCategoryName, factory);
     }
 
     /**

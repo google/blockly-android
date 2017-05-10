@@ -18,6 +18,9 @@ import java.util.Map;
  * Constants class for all default block definitions and supporting files.
  */
 public final class DefaultBlocks {
+    public static final String VARIABLE_CATEGORY_NAME = "VARIABLE";
+    public static final String PROCEDURE_CATEGORY_NAME = "PROCEDURE"; // User label "Functions"
+
     /** Path to block definitions for blocks related to colors. */
     public static final String COLOR_BLOCKS_PATH = "default/colour_blocks.json";
     /** Path to block definitions for blocks related to lists. Does not include math on lists. */
@@ -93,14 +96,22 @@ public final class DefaultBlocks {
         return DEFAULT_MUTATORS;
     }
 
-    public static Map<String, MutatorFragment.Factory> getMutatorUis(Context context,
-            BlocklyController controller) {
+    public static Map<String, MutatorFragment.Factory> getMutatorUis() {
         if (DEFAULT_MUTATOR_UIS == null) {
             Map<String, MutatorFragment.Factory> temp = new ArrayMap<>();
             temp.put(IfElseMutator.MUTATOR_ID, new IfElseMutatorFragment.Factory());
             DEFAULT_MUTATOR_UIS = Collections.unmodifiableMap(temp);
         }
         return DEFAULT_MUTATOR_UIS;
+    }
+
+    public static Map<String, CategoryFactory> getToolboxCustomCategories(
+            BlocklyController controller) {
+        // Don't store this map, because of the reference to the controller.
+        Map<String, CategoryFactory> map = new ArrayMap<>(2);
+        map.put(VARIABLE_CATEGORY_NAME, new VariableCategoryFactory(controller));
+        map.put(PROCEDURE_CATEGORY_NAME, new FunctionCategoryFactory(controller));
+        return Collections.unmodifiableMap(map);
     }
 
     // Not for instantiation.
