@@ -32,6 +32,8 @@ public final class DefaultBlocks {
     public static final String LOOP_BLOCKS_PATH = "default/loop_blocks.json";
     /** Path to block definitions for blocks related to math, including math on lists. */
     public static final String MATH_BLOCKS_PATH = "default/math_blocks.json";
+    /** Path to block definitions for blocks related to procedures (user defined functions). */
+    public static final String PROCEDURE_BLOCKS_PATH = "default/procedures.json";
     /** Path to block definitions for blocks related to strings/text. */
     public static final String TEXT_BLOCKS_PATH = "default/text_blocks.json";
     /** Path to block definitions for blocks related to variables. */
@@ -65,6 +67,7 @@ public final class DefaultBlocks {
                     LOGIC_BLOCKS_PATH,
                     LOOP_BLOCKS_PATH,
                     MATH_BLOCKS_PATH,
+                    PROCEDURE_BLOCKS_PATH,
                     TEXT_BLOCKS_PATH,
                     VARIABLE_BLOCKS_PATH
             ));

@@ -680,6 +680,10 @@ public class BlockFactory {
         return id;
     }
 
+    public boolean isDefined(String definitionId) {
+        return mDefinitions.containsKey(definitionId);
+    }
+
     /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */
     private static class InputValue {
         /** The name of the input */
