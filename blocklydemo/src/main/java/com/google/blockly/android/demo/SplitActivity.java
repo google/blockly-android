@@ -87,19 +87,13 @@ public class SplitActivity extends AbstractBlocklyActivity {
 
     @Override
     protected int getActionBarMenuResId() {
-        return R.menu.turtle_actionbar;
+        return R.menu.split_actionbar;
     }
 
     @NonNull
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
         return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
-    }
-
-    @NonNull
-    @Override
-    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
-        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
     }
 
     @NonNull

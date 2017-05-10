@@ -71,12 +71,12 @@ public class CodeGeneratorServiceTest extends BlocklyTestCase {
         final CodeGenerationRequest request = new CodeGenerationRequest(
                 SIMPLE_WORKSPACE_XML,
                 mCallback,
-                new CodeGenerationRequest
-                        .LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua"),
+                new LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua"),
                 Arrays.asList(new String[] {"default/test_blocks.json"}),
                 Arrays.asList(new String[] {"lua/generators/test_blocks.js"}));
         mManager.requestCodeGeneration(request);
-        Mockito.verify(mCallback, Mockito.timeout(500)).onFinishCodeGeneration("local _ = 'test'\n");
+        Mockito.verify(mCallback, Mockito.timeout(1000))
+                .onFinishCodeGeneration("local _ = 'test'\n");
     }
 
     /**

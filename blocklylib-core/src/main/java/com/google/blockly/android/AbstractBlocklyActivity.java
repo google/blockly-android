@@ -34,6 +34,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.MutatorFragment;
@@ -394,7 +395,9 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @return The asset path for the core language file used to generate code.
      */
     @NonNull
-    abstract protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage();
+    protected LanguageDefinition getBlockGeneratorLanguage() {
+        return DefaultBlocks.LANGUAGE_DEFINITION;
+    }
 
     /**
      * Sets up the list of {@link BlockExtension}s that support the block definitions in this

@@ -31,6 +31,7 @@ import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.CodeGeneratorManager;
+import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockListUI;
 import com.google.blockly.android.ui.BlockViewFactory;
@@ -88,7 +89,6 @@ public class BlocklyActivityHelper {
 
     protected BlocklyController mController;
     protected CodeGeneratorManager mCodeGeneratorManager;
-    protected String mCodeGeneratorLanguage = "javascript_compressed.js";
 
     protected MutatorFragment.DismissListener mMutatorDismissListener = new MutatorFragment
             .DismissListener() {
@@ -249,7 +249,7 @@ public class BlocklyActivityHelper {
      *                               upon completion.
      */
     public void requestCodeGeneration(
-            CodeGenerationRequest.LanguageDefinition codeGeneratorLanguage,
+            LanguageDefinition codeGeneratorLanguage,
             List<String> blockDefinitionsJsonPaths,
             List<String> generatorsJsPaths,
             CodeGenerationRequest.CodeGeneratorCallback codeGenerationCallback) {

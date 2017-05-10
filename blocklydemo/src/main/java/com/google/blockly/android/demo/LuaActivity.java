@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2017 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -18,19 +18,15 @@ package com.google.blockly.android.demo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
-import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.model.DefaultBlocks;
-import com.google.blockly.utils.StringOutputStream;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,32 +36,15 @@ import java.util.List;
  * and an arbitrary other view or fragment.
  */
 public class LuaActivity extends AbstractBlocklyActivity {
-    private static final String TAG = "SplitActivity";
+    private static final String TAG = "LuaActivity";
 
     private static final String SAVED_WORKSPACE_FILENAME = "lua_workspace.xml";
     // Add custom blocks to this list.
-    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
-            DefaultBlocks.COLOR_BLOCKS_PATH,
-            DefaultBlocks.LIST_BLOCKS_PATH,
-            DefaultBlocks.LOGIC_BLOCKS_PATH,
-            DefaultBlocks.LOOP_BLOCKS_PATH,
-            DefaultBlocks.MATH_BLOCKS_PATH,
-            DefaultBlocks.TEXT_BLOCKS_PATH,
-            DefaultBlocks.VARIABLE_BLOCKS_PATH
-    );
-    private static final List<String> LUA_GENERATORS = Arrays.asList(
-            "lua/generators/colour.js",
-            "lua/generators/lists.js",
-            "lua/generators/logic.js",
-            "lua/generators/loops.js",
-            "lua/generators/math.js",
-            "lua/generators/procedures.js",
-            "lua/generators/text.js",
-            "lua/generators/variables.js"
-    );
+    private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
+    private static final List<String> LUA_GENERATORS = Arrays.asList();
 
-    private static final CodeGenerationRequest.LanguageDefinition LUA_LANGUAGE_DEF
-            = new CodeGenerationRequest.LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua");
+    private static final LanguageDefinition LUA_LANGUAGE_DEF
+            = new LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua");
 
     private TextView mGeneratedTextView;
     private Handler mHandler;
@@ -111,7 +90,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
 
     @Override
     protected int getActionBarMenuResId() {
-        return R.menu.turtle_actionbar;
+        return R.menu.split_actionbar;
     }
 
     @NonNull
@@ -122,7 +101,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
+    protected LanguageDefinition getBlockGeneratorLanguage() {
         return LUA_LANGUAGE_DEF;
     }
 

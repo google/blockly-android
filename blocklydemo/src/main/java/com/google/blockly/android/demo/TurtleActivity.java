@@ -151,12 +151,6 @@ public class TurtleActivity extends BlocklySectionsActivity {
         return TURTLE_BLOCK_DEFINITIONS;
     }
 
-    @NonNull
-    @Override
-    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
-        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
-    }
-
     @Override
     protected int getActionBarMenuResId() {
         return R.menu.turtle_actionbar;

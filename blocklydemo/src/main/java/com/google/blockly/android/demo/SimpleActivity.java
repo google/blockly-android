@@ -56,12 +56,6 @@ public class SimpleActivity extends AbstractBlocklyActivity {
 
     @NonNull
     @Override
-    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
-        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
-    }
-
-    @NonNull
-    @Override
     protected String getToolboxContentsXmlPath() {
         // Replace with a toolbox that includes application specific blocks.
         return DefaultBlocks.TOOLBOX_PATH;
