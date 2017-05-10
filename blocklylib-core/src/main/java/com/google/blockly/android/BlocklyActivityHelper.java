@@ -92,6 +92,7 @@ public class BlocklyActivityHelper {
 
     protected BlocklyController mController;
     protected CodeGeneratorManager mCodeGeneratorManager;
+    protected String mCodeGeneratorLanguage = "javascript_compressed.js";
 
     protected MutatorFragment.DismissListener mMutatorDismissListener = new MutatorFragment
             .DismissListener() {
@@ -244,6 +245,7 @@ public class BlocklyActivityHelper {
     /**
      * Requests code generation using the blocks in the {@link Workspace}/{@link WorkspaceFragment}.
      *
+     * @param codeGeneratorLanguage The language definition for the generators.
      * @param blockDefinitionsJsonPaths The asset path to the JSON block definitions.
      * @param generatorsJsPaths The asset paths to the JavaScript generators, and optionally the
      *                          JavaScript block extension/mutator sources.
@@ -251,6 +253,7 @@ public class BlocklyActivityHelper {
      *                               upon completion.
      */
     public void requestCodeGeneration(
+            CodeGenerationRequest.LanguageDefinition codeGeneratorLanguage,
             List<String> blockDefinitionsJsonPaths,
             List<String> generatorsJsPaths,
             CodeGenerationRequest.CodeGeneratorCallback codeGenerationCallback) {
@@ -270,6 +273,7 @@ public class BlocklyActivityHelper {
                 new CodeGenerationRequest(
                         serialized.toString(),
                         codeGenerationCallback,
+                        codeGeneratorLanguage,
                         blockDefinitionsJsonPaths,
                         generatorsJsPaths));
         try {

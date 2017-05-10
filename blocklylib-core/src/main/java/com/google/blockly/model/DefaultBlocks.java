@@ -3,6 +3,7 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.support.v4.util.ArrayMap;
 
+import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.android.ui.mutator.IfElseMutatorFragment;
@@ -38,6 +39,13 @@ public final class DefaultBlocks {
 
     /** Path to a toolbox that has most of the default blocks organized into categories. */
     public static final String TOOLBOX_PATH = "default/toolbox.xml";
+
+    /**
+     * Standard definition for the JavaScript language generator.
+     */
+    public static final CodeGenerationRequest.LanguageDefinition JAVASCRIPT_LANGUAGE_DEF
+            = new CodeGenerationRequest.LanguageDefinition("javascript_compressed.js",
+                                                            "Blockly.JavaScript");
 
     // Lazily constructed collections.
     private static List<String> ALL_BLOCK_DEFINITIONS = null;

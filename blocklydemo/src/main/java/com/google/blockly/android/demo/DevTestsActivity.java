@@ -197,6 +197,12 @@ public class DevTestsActivity extends BlocklySectionsActivity {
 
     @NonNull
     @Override
+    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
+        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
+    }
+
+    @NonNull
+    @Override
     protected List<String> getGeneratorsJsPaths() {
         List<String> paths = new ArrayList<String>(1);
         paths.add("sample_sections/generators.js");

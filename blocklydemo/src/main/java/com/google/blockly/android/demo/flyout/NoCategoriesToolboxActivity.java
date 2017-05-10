@@ -8,6 +8,7 @@ import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.demo.R;
+import com.google.blockly.model.DefaultBlocks;
 
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +47,12 @@ public class NoCategoriesToolboxActivity extends AbstractBlocklyActivity {
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
         return BLOCK_DEFINITIONS;
+    }
+
+    @NonNull
+    @Override
+    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
+        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
     }
 
     @NonNull
