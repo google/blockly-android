@@ -28,11 +28,10 @@ import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.DefaultBlocks;
-import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -40,8 +39,33 @@ import java.util.List;
  * Demo activity that programmatically adds a view to split the screen between the Blockly workspace
  * and an arbitrary other view or fragment.
  */
-public class SplitActivity extends AbstractBlocklyActivity {
+public class LuaActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SplitActivity";
+
+    private static final String SAVED_WORKSPACE_FILENAME = "lua_workspace.xml";
+    // Add custom blocks to this list.
+    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
+            DefaultBlocks.COLOR_BLOCKS_PATH,
+            DefaultBlocks.LIST_BLOCKS_PATH,
+            DefaultBlocks.LOGIC_BLOCKS_PATH,
+            DefaultBlocks.LOOP_BLOCKS_PATH,
+            DefaultBlocks.MATH_BLOCKS_PATH,
+            DefaultBlocks.TEXT_BLOCKS_PATH,
+            DefaultBlocks.VARIABLE_BLOCKS_PATH
+    );
+    private static final List<String> LUA_GENERATORS = Arrays.asList(
+            "lua/generators/colour.js",
+            "lua/generators/lists.js",
+            "lua/generators/logic.js",
+            "lua/generators/loops.js",
+            "lua/generators/math.js",
+            "lua/generators/procedures.js",
+            "lua/generators/text.js",
+            "lua/generators/variables.js"
+    );
+
+    private static final CodeGenerationRequest.LanguageDefinition LUA_LANGUAGE_DEF
+            = new CodeGenerationRequest.LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua");
 
     private TextView mGeneratedTextView;
     private Handler mHandler;
@@ -93,27 +117,25 @@ public class SplitActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
-        return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
+        return BLOCK_DEFINITIONS;
     }
 
     @NonNull
     @Override
     protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
-        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
+        return LUA_LANGUAGE_DEF;
     }
 
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "turtle/toolbox_advanced.xml";
+        return DefaultBlocks.TOOLBOX_PATH;
     }
 
     @NonNull
     @Override
     protected List<String> getGeneratorsJsPaths() {
-        List<String> paths = new ArrayList<String>(1);
-        paths.add("turtle/generators.js");
-        return paths;
+        return LUA_GENERATORS;
     }
 
     @NonNull
@@ -158,6 +180,6 @@ public class SplitActivity extends AbstractBlocklyActivity {
     protected String getWorkspaceSavePath() {
         // SplitActivity uses the turtle block definitions, and thus shares the same file as
         // TurtleActivity.
-        return TurtleActivity.SAVED_WORKSPACE_FILENAME;
+        return SAVED_WORKSPACE_FILENAME;
     }
 }

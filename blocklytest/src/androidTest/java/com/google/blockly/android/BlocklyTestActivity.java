@@ -23,6 +23,7 @@ import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.android.ui.vertical.R;
+import com.google.blockly.model.DefaultBlocks;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,6 +62,12 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
         return BLOCK_DEFINITIONS;
+    }
+
+    @NonNull
+    @Override
+    protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage() {
+        return DefaultBlocks.JAVASCRIPT_LANGUAGE_DEF;
     }
 
     @NonNull

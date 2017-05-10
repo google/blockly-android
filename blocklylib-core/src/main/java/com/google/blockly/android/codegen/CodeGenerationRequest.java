@@ -25,19 +25,22 @@ public class CodeGenerationRequest {
     private final String mBlocklyXml;
     private final List<String> mBlockDefinitionsFilenames;
     private final List<String> mBlockGeneratorsFilenames;
+    private final LanguageDefinition mGeneratorLanguage;
 
     /**
      * Constructor for a code generation request.
-     *
      * @param xml The xml of a full workspace for which code should be generated.
      * @param callback A callback specifying what to do with the generated code.
+     * @param generatorsLanguage The {@link LanguageDefinition} for the core language being
+ *                                   used to generate code.
      * @param blockDefinitionsFilenames The paths of the js files containing block definitions,
-     * relative to file:///android_assets/background_compiler.html.
+*                                  relative to file:///android_assets/background_compiler.html.
      * @param blockGeneratorsFilenames The path of the js file containing block generators, relative
-     * to file:///android_assets/background_compiler.html.
+*                                  to file:///android_assets/background_compiler.html.
      */
     public CodeGenerationRequest(String xml, CodeGeneratorCallback callback,
-            List<String> blockDefinitionsFilenames, List<String> blockGeneratorsFilenames) {
+            LanguageDefinition generatorsLanguage, List<String> blockDefinitionsFilenames,
+            List<String> blockGeneratorsFilenames) {
         if (xml == null || xml.isEmpty()) {
             throw new IllegalArgumentException("The blockly workspace string must not be empty " +
                     "or null.");
@@ -46,6 +49,7 @@ public class CodeGenerationRequest {
         mBlocklyXml = xml;
         mBlockDefinitionsFilenames = blockDefinitionsFilenames;
         mBlockGeneratorsFilenames = blockGeneratorsFilenames;
+        mGeneratorLanguage = generatorsLanguage;
     }
 
     public CodeGeneratorCallback getCallback() {
@@ -64,6 +68,10 @@ public class CodeGenerationRequest {
         return mBlockGeneratorsFilenames;
     }
 
+    public LanguageDefinition getGeneratorLanguageDefinition() {
+        return mGeneratorLanguage;
+    }
+
     public interface CodeGeneratorCallback {
         /**
          * Called when finished generating code.
@@ -71,6 +79,39 @@ public class CodeGenerationRequest {
          * @param generatedCode The string containing all of the generated code.
          */
         void onFinishCodeGeneration(String generatedCode);
+    }
+
+    /**
+     * Defines the core language file to be used in code generation. To be used by the generator
+     * Blockly needs to know the path to the file and the object namespace that has the generator
+     * functions. For example: {}"javascript_compressed.js", "Blockly.JavaScript"}
+     */
+    public static class LanguageDefinition {
+        public final String mLanguageFilename;
+        public final String mLanguageNamespace;
+
+        /**
+         * Create a language definition with the given filename and object namespace.
+         *
+         * @param filename The path to the language file relative to
+         *                 file:///android_assets/background_compiler.html.
+         * @param namespace The namespace of the object provided by the file, such as
+         *                  "Blockly.JavaScript"
+         */
+        public LanguageDefinition(String filename, String namespace) {
+            mLanguageFilename = filename;
+            mLanguageNamespace = namespace;
+        }
+
+        /**
+         * @return The default JavaScript language definition. The JavaScript language is included
+         *         in the library by default.
+         */
+        public static LanguageDefinition newJavaScriptDefinition() {
+            return new LanguageDefinition("javascript_compressed.js", "Blockly.JavaScript");
+        }
+
+
     }
 
 }

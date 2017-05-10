@@ -391,6 +391,12 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     abstract protected List<String> getBlockDefinitionsJsonPaths();
 
     /**
+     * @return The asset path for the core language file used to generate code.
+     */
+    @NonNull
+    abstract protected CodeGenerationRequest.LanguageDefinition getBlockGeneratorLanguage();
+
+    /**
      * Sets up the list of {@link BlockExtension}s that support the block definitions in this
      * activity. By default, adds all extensions in {@link DefaultBlocks#getExtensions()} to the
      * block factory.
@@ -561,9 +567,10 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected void onRunCode() {
         mBlocklyActivityHelper.requestCodeGeneration(
-            getBlockDefinitionsJsonPaths(),
-            getGeneratorsJsPaths(),
-            getCodeGenerationCallback());
+                getBlockGeneratorLanguage(),
+                getBlockDefinitionsJsonPaths(),
+                getGeneratorsJsPaths(),
+                getCodeGenerationCallback());
     }
 
     /**
