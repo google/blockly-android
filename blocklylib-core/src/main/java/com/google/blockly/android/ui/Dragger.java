@@ -43,6 +43,7 @@ import com.google.blockly.model.WorkspacePoint;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -144,7 +145,7 @@ public class Dragger {
 
     // Which {@link BlockView} was touched, and possibly may be being dragged.
     private WorkspaceView mWorkspaceView;
-    private BlockView mHighlightedBlockView;
+    private WeakReference<BlockView> mHighlightedBlockViewRef = new WeakReference<>(null);
     //The square of the required touch slop before starting a drag, precomputed to avoid
     // square root operations at runtime.
     private float mTouchSlopSquared = 0.0f;
@@ -322,14 +323,16 @@ public class Dragger {
         updateBlockPosition(event);
 
         // highlight as we go
-        if (mHighlightedBlockView != null) {
-            mHighlightedBlockView.setHighlightedConnection(null);
+        BlockView highlightedBlockView = mHighlightedBlockViewRef.get();
+        if (highlightedBlockView != null) {
+            highlightedBlockView.setHighlightedConnection(null);
         }
         Pair<Connection, Connection> connectionCandidate =
                 findBestConnection(mPendingDrag.getRootDraggedBlock());
         if (connectionCandidate != null) {
-            mHighlightedBlockView = mViewHelper.getView(connectionCandidate.second.getBlock());
-            mHighlightedBlockView.setHighlightedConnection(connectionCandidate.second);
+            highlightedBlockView = mViewHelper.getView(connectionCandidate.second.getBlock());
+            mHighlightedBlockViewRef = new WeakReference<>(highlightedBlockView);
+            highlightedBlockView.setHighlightedConnection(connectionCandidate.second);
         }
 
         mPendingDrag.getDragGroup().requestLayout();
@@ -376,9 +379,10 @@ public class Dragger {
         }
         mDraggedConnections.clear();
 
-        if (mHighlightedBlockView != null) {
-            mHighlightedBlockView.setHighlightedConnection(null);
-            mHighlightedBlockView = null;
+        BlockView highlightedBlockView = mHighlightedBlockViewRef.get();
+        if (highlightedBlockView != null) {
+            highlightedBlockView.setHighlightedConnection(null);
+            mHighlightedBlockViewRef = new WeakReference<>(null);
         }
 
         if (mPendingDrag != null) {

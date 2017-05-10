@@ -33,7 +33,7 @@ public final class MathIsDivisibleByMutator extends Mutator {
     public static final class Factory implements Mutator.Factory<MathIsDivisibleByMutator> {
         @Override
         public MathIsDivisibleByMutator newMutator(BlocklyController controller) {
-            return new MathIsDivisibleByMutator(this);
+            return new MathIsDivisibleByMutator(this, controller);
         }
 
         @Override
@@ -43,6 +43,7 @@ public final class MathIsDivisibleByMutator extends Mutator {
     }
 
     private Block mBlock;
+    private BlocklyController mController;
     @VisibleForTesting FieldDropdown mDropdown;
 
     private Input mDivisorInput =
@@ -51,8 +52,9 @@ public final class MathIsDivisibleByMutator extends Mutator {
     private List<Input> mInputsWithoutDivisor;
     private List<Input> mInputsWithDivisor;
 
-    protected MathIsDivisibleByMutator(Mutator.Factory factory) {
+    protected MathIsDivisibleByMutator(Mutator.Factory factory, BlocklyController controller) {
         super(factory);
+        this.mController = controller;
     }
 
     @Override
@@ -98,10 +100,22 @@ public final class MathIsDivisibleByMutator extends Mutator {
     }
 
     private void updateShape() {
-        boolean isSelected = mDropdown.getSelectedValue().equals(DIVISIBLE_BY);
-        boolean isShown = mDivisorInput.getBlock() != null;
-        if (isSelected != isShown) {
-            mBlock.reshape(isSelected ? mInputsWithDivisor : mInputsWithoutDivisor);
-        }
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                boolean isSelected = mDropdown.getSelectedValue().equals(DIVISIBLE_BY);
+                boolean isShown = mDivisorInput.getBlock() != null;
+                if (isSelected != isShown) {
+                    if (isShown) {
+                        Block connectedBlock = mDivisorInput.getConnectedBlock();
+                        if (connectedBlock != null) {
+                            mController.extractBlockAsRoot(connectedBlock);
+                        }
+
+                    }
+                    mBlock.reshape(isSelected ? mInputsWithDivisor : mInputsWithoutDivisor);
+                }
+            }
+        });
     }
 }

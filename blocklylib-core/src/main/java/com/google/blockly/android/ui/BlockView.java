@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
+import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
@@ -120,4 +121,8 @@ public interface BlockView {
      */
     @Nullable
     InputView getInputView(int n);
+
+    ConnectionManager getConnectionManager();
+
+    BlockTouchHandler getTouchHandler();
 }
