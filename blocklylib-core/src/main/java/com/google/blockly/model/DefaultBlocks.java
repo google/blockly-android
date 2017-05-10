@@ -93,14 +93,21 @@ public final class DefaultBlocks {
         return DEFAULT_MUTATORS;
     }
 
-    public static Map<String, MutatorFragment.Factory> getMutatorUis(Context context,
-            BlocklyController controller) {
+    public static Map<String, MutatorFragment.Factory> getMutatorUis() {
         if (DEFAULT_MUTATOR_UIS == null) {
             Map<String, MutatorFragment.Factory> temp = new ArrayMap<>();
             temp.put(IfElseMutator.MUTATOR_ID, new IfElseMutatorFragment.Factory());
             DEFAULT_MUTATOR_UIS = Collections.unmodifiableMap(temp);
         }
         return DEFAULT_MUTATOR_UIS;
+    }
+
+    public static Map<String, CategoryFactory> getToolboxCustomCategories(BlocklyController controller) {
+        // Don't store this map, because of the reference to the controller.
+        Map<String, CategoryFactory> map = new ArrayMap<>(2);
+        map.put("VARIABLE", new VariableCategoryFactory(controller));
+        map.put("PROCEDURE", new FunctionCategoryFactory(controller));
+        return Collections.unmodifiableMap(map);
     }
 
     // Not for instantiation.

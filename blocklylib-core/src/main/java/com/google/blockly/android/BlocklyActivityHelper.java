@@ -40,9 +40,13 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlocklySerializerException;
+import com.google.blockly.model.CategoryFactory;
 import com.google.blockly.model.DefaultBlocks;
+import com.google.blockly.model.FunctionCategoryFactory;
 import com.google.blockly.model.Mutator;
+import com.google.blockly.model.VariableCategoryFactory;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.StringOutputStream;
@@ -311,6 +315,9 @@ public class BlocklyActivityHelper {
      * Default implementation for {@link AbstractBlocklyActivity#configureMutators()}. This adds
      * all mutators in {@link DefaultBlocks} and their UIs to the {@link BlockFactory} and
      * {@link BlockViewFactory}.
+     * <p/>
+     * Mutators with the same key will replace existing mutators, so it is safe
+     * to call super and then update specific mutators.
      */
     public void configureMutators() {
         BlockFactory blockFactory = mController.getBlockFactory();
@@ -319,8 +326,7 @@ public class BlocklyActivityHelper {
             blockFactory.registerMutator(key, defaultMutators.get(key));
         }
 
-        Map<String, MutatorFragment.Factory> defaultMutatorUis = DefaultBlocks
-                .getMutatorUis(mActivity, mController);
+        Map<String, MutatorFragment.Factory> defaultMutatorUis = DefaultBlocks.getMutatorUis();
         for (String key : defaultMutatorUis.keySet()) {
             mBlockViewFactory.registerMutatorUi(key, defaultMutatorUis.get(key));
         }
@@ -329,12 +335,33 @@ public class BlocklyActivityHelper {
     /**
      * Default implementation for {@link AbstractBlocklyActivity#configureBlockExtensions()}. This
      * adds all extensions in {@link DefaultBlocks} to the {@link BlockFactory}.
+     * <p/>
+     * Extensions with the same key will replace existing extensions, so it is safe
+     * to call super and then update specific extensions.
      */
     public void configureExtensions() {
         BlockFactory blockFactory = mController.getBlockFactory();
         Map<String, BlockExtension> extensions = DefaultBlocks.getExtensions();
         for (String key : extensions.keySet()) {
             blockFactory.registerExtension(key, extensions.get(key));
+        }
+    }
+
+    /**
+     * This method provides a hook to register custom {@link CategoryFactory}s that support
+     * toolboxes in this activity. The default implementation registers
+     * {@link DefaultBlocks#getToolboxCustomCategories the categories in DefaultBlocks}.
+     * <p/>
+     * Most subclasses will want to include these default custom categories, calling
+     * {@code super.configureCategoryFactories()} if overridden. Category factories with the same
+     * {@code custom} key will replace existing {@link CategoryFactory}s, so it is safe to call
+     * super and then update specific categories.
+     */
+    public void configureCategoryFactories() {
+        Map <String, CategoryFactory> factoryMap =
+                DefaultBlocks.getToolboxCustomCategories(mController);
+        for (String key : factoryMap.keySet()) {
+            mController.registerCategoryFactory(key, factoryMap.get(key));
         }
     }
 

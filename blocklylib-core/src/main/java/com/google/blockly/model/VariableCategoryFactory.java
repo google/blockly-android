@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * Class for building {@link BlocklyCategory categories} for variable
+ * Class for building {@link BlocklyCategory categories} for variables blocks.
  */
 public final class VariableCategoryFactory extends CategoryFactory {
     private static final String TAG = "VariableCategoryFactory";
@@ -46,9 +46,9 @@ public final class VariableCategoryFactory extends CategoryFactory {
     private NameManager mVariableNameManager;
     private BlockFactory mBlockFactory;
 
-    public VariableCategoryFactory(Context context, BlocklyController controller) {
-        mContext = context;
+    public VariableCategoryFactory(BlocklyController controller) {
         mController = controller;
+        mContext = controller.getContext();
         mVariableNameManager = mController.getWorkspace().getVariableNameManager();
         mBlockFactory = mController.getBlockFactory();
     }
