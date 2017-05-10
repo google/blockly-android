@@ -105,7 +105,8 @@ public final class DefaultBlocks {
         return DEFAULT_MUTATOR_UIS;
     }
 
-    public static Map<String, CategoryFactory> getToolboxCustomCategories(BlocklyController controller) {
+    public static Map<String, CategoryFactory> getToolboxCustomCategories(
+            BlocklyController controller) {
         // Don't store this map, because of the reference to the controller.
         Map<String, CategoryFactory> map = new ArrayMap<>(2);
         map.put(VARIABLE_CATEGORY_NAME, new VariableCategoryFactory(controller));
