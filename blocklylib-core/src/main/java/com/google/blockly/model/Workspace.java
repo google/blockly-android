@@ -321,6 +321,13 @@ public class Workspace {
     }
 
     /**
+     * @return The {@link ProcedureManager} being used by this workspace.
+     */
+    public ProcedureManager getProcedureManager() {
+        return mProcedureManager;
+    }
+
+    /**
      * Outputs the workspace as an XML string.
      *
      * @param os The output stream to write to.
