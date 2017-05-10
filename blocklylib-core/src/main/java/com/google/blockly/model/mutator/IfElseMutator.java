@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.android.ui.mutator.IfElseMutatorFragment;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
@@ -37,7 +36,6 @@ public class IfElseMutator extends Mutator {
     private static final String[] CHECKS = {"Boolean"};
     private static final int ALIGN = Input.ALIGN_LEFT;
 
-    private final Context mContext;
     private final BlocklyController mController;
 
     private Block mBlock;
@@ -47,7 +45,6 @@ public class IfElseMutator extends Mutator {
     private String mIfLabel;
     private String mThenLabel;
     private String mElseLabel;
-    private String[] mChecks = {"Boolean"};
 
     /**
      * Create a new mutator for the given context and controller.
@@ -60,12 +57,11 @@ public class IfElseMutator extends Mutator {
             BlocklyController controller) {
         super(factory);
 
-        mContext = context;
         mController = controller;
         // TODO: Replace with Blockly string table/TranslationsManager call
-        mIfLabel = mContext.getString(R.string.mutator_if_else_if_label);
-        mThenLabel = mContext.getString(R.string.mutator_if_else_then_label);
-        mElseLabel = mContext.getString(R.string.mutator_if_else_else_label);
+        mIfLabel = context.getString(R.string.mutator_if_else_if_label);
+        mThenLabel = context.getString(R.string.mutator_if_else_then_label);
+        mElseLabel = context.getString(R.string.mutator_if_else_else_label);
     }
 
     @Override

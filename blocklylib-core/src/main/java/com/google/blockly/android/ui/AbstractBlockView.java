@@ -33,6 +33,7 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.WorkspacePoint;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,6 +83,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     // Currently highlighted connection.
     @Nullable protected Connection mHighlightedConnection = null;
 
+    private final MemorySafeBlockObserver mBlockObserver = new MemorySafeBlockObserver(this);
+
     /**
      * Creates a BlockView for the given {@link Block}.
      *
@@ -125,6 +128,8 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
             }
         }
         addInputViewsToViewHierarchy();
+
+        block.registerObserver(mBlockObserver);
     }
 
     /**
@@ -228,6 +233,22 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     }
 
     /**
+     * @return The ConnectionManager managing the connections of this view.
+     */
+    @Override
+    public ConnectionManager getConnectionManager() {
+        return mConnectionManager;
+    }
+
+    /**
+     * @return The touch handler for handling the touch and drag events for this view.
+     */
+    @Override
+    public BlockTouchHandler getTouchHandler() {
+        return mTouchHandler;
+    }
+
+    /**
      * @return The closest view tree ancestor that is a BlockGroup.
      */
     @Override
@@ -301,6 +322,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
      */
     // TODO(#146): Move tree traversal to BlockViewFactory.unregisterView(..)
     public void unlinkModel() {
+        mBlock.unregisterObserver(mBlockObserver);
         mFactory.unregisterView(this); // TODO(#137): factory -> ViewPool
 
         int max = mInputViews.size();
@@ -362,7 +384,7 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
                 mWorkspaceView = (WorkspaceView) parent;
                 return;
             }
-            parent = ((ViewGroup) parent).getParent();
+            parent = parent.getParent();
         }
     }
 
@@ -381,6 +403,13 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
     protected boolean isEntireBlockHighlighted() {
         return isPressed() || isFocused() || isSelected();
     }
+
+    /**
+     * Called when the underlying block has been updated. The view implementation should override
+     * this method to appropriately update the view to reflect the new state.
+     * @param updateMask A bit mask denoting {@link Block.UpdateState} changes.
+     */
+    protected abstract void onBlockUpdated(@Block.UpdateState int updateMask);
 
     /**
      * Test whether a {@link MotionEvent} event that has happened on this view is (approximately)
@@ -480,6 +509,23 @@ public abstract class AbstractBlockView<InputView extends com.google.blockly.and
                 && mBlock.getOutputConnection().getTargetBlock() != null)) {
             mHelper.getWorkspaceCoordinates(this, mTempWorkspacePoint);
             mBlock.setPosition(mTempWorkspacePoint.x, mTempWorkspacePoint.y);
+        }
+    }
+
+    private static final class MemorySafeBlockObserver implements Block.Observer {
+        private final WeakReference<AbstractBlockView> mViewRef;
+        public MemorySafeBlockObserver(AbstractBlockView viewRef) {
+            mViewRef = new WeakReference<>(viewRef);
+        }
+
+        @Override
+        public void onBlockUpdated(Block block, @Block.UpdateState int updateMask) {
+            AbstractBlockView view = mViewRef.get();
+            if (view == null || view.mBlock != block) {
+                block.unregisterObserver(this);
+            } else {
+                view.onBlockUpdated(updateMask);
+            }
         }
     }
 }
