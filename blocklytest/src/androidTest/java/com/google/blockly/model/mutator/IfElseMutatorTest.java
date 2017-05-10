@@ -37,7 +37,7 @@ public class IfElseMutatorTest extends BlocklyTestCase {
 
         mXmlPullParserFactory = XmlPullParserFactory.newInstance();
         mController = new BlocklyController.Builder(getContext())
-                .addBlockDefinitions(R.raw.test_blocks)
+                .addBlockDefinitionsFromAsset("default/test_blocks.json")
                 .build();
         BlockFactory factory = mController.getBlockFactory();
         factory.registerMutator(

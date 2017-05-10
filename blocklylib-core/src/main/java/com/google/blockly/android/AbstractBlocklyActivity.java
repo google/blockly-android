@@ -172,30 +172,11 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Save the workspace to the given file in the application's private data directory.
-     * @deprecated Call {@code mBlocklyActivityHelper.saveWorkspaceToAppDir(filename)} or
-     *             {@code mBlocklyActivityHelper.saveWorkspaceToAppDirSafely(filename)}.
-     */
-    public void saveWorkspaceToAppDir(String filename) {
-        mBlocklyActivityHelper.saveWorkspaceToAppDirSafely(filename);
-    }
-
-    /**
      * Called when the user clicks the load action.  Default implementation delegates handling to
      * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
      */
     public void onLoadWorkspace() {
         mBlocklyActivityHelper.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
-    }
-
-    /**
-     * Loads the workspace from the given file in the application's private data directory.
-     * @deprecated Call {@code mBlocklyActivityHelper.loadWorkspaceFromAppDir(filename)} or
-     *             {@code mBlocklyActivityHelper.loadWorkspaceFromAppDirSafely(filename)}.
-     */
-    @Deprecated
-    public void loadWorkspaceFromAppDir(String filename) {
-        mBlocklyActivityHelper.loadWorkspaceFromAppDirSafely(filename);
     }
 
     /**
@@ -360,18 +341,6 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      */
     protected int getActionBarMenuResId() {
         return R.menu.blockly_default_actionbar;
-    }
-
-    /**
-     * Saves a snapshot of the current workspace.  Called during {@link #onSaveInstanceState}. By
-     * default, it just calls {@link BlocklyController#onSaveSnapshot}, but subclasses can overload
-     * it change the behavior (e.g., only save based on some condition.).
-     *
-     * @param bundle
-     * @deprecated Call {@code getController().onSaveSnapshot(bundle);}
-     */
-    protected void onSaveWorkspaceSnapshot(Bundle bundle) {
-        getController().onSaveSnapshot(bundle);
     }
 
     /**

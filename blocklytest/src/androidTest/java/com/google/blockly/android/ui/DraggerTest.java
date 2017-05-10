@@ -46,6 +46,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -139,8 +140,14 @@ public class DraggerTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
-                // TODO(#435): Replace R.raw.test_blocks
-                mBlockFactory = new BlockFactory(mMockContext, new int[]{R.raw.test_blocks});
+                mBlockFactory = new BlockFactory();
+
+                try {
+                    mBlockFactory.addJsonDefinitions(mMockContext.getAssets()
+                            .open("default/test_blocks.json"));
+                } catch (IOException | BlockLoadingException e) {
+                    throw new RuntimeException(e);
+                }
                 mBlockFactory.setController(mMockController);
                 mWorkspaceView = new WorkspaceView(mMockContext);
                 mWorkspaceHelper = new WorkspaceHelper(mMockContext);

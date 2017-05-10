@@ -94,25 +94,6 @@ public final class BlocklyXmlHelper {
     }
 
     /**
-     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
-     * contained in it or descending from it.
-     *
-     * @param inputXml The input stream of XML from which to read.
-     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
-     * @param stats Unused
-     * @param result The List to add the parsed blocks to.
-     *
-     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
-     *                               or XmlPullParserException as a root cause.
-     */
-    @Deprecated
-    public static void loadFromXml(InputStream inputXml, BlockFactory blockFactory,
-                                   WorkspaceStats stats, List<Block> result)
-            throws BlockLoadingException {
-        loadBlocksFromXml(inputXml, null, blockFactory, result);
-    }
-
-    /**
      * Convenience function that creates a new {@link ArrayList}.
      * @param inputXml The input stream of XML from which to read.
      * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
@@ -123,22 +104,6 @@ public final class BlocklyXmlHelper {
         List<Block> result = new ArrayList<>();
         loadBlocksFromXml(inputXml, null, blockFactory, result);
         return result;
-    }
-
-    /**
-     * Convenient version of {@link #loadFromXml(InputStream, BlockFactory, List)} function that
-     * returns results in a newly created a new {@link ArrayList}.
-     * @param inputXml The input stream of XML from which to read.
-     * @param blockFactory The factory object used to create blocks.
-     * @param stats Unused.
-     * @return A list of the root blocks successfully loaded.
-     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
-     *                               or XmlPullParserException as a root cause.
-     */
-    @Deprecated
-    public static List<Block> loadFromXml(InputStream inputXml, BlockFactory blockFactory,
-                                          WorkspaceStats stats) throws BlockLoadingException {
-        return loadFromXml(inputXml, blockFactory);
     }
 
     /**

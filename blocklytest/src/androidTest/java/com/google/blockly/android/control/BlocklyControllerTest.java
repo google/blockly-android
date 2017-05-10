@@ -98,7 +98,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         mController = new BlocklyController.Builder(mMockContext)
                 .setWorkspaceHelper(mHelper)
                 .setBlockViewFactory(mViewFactory)
-                .addBlockDefinitions(R.raw.test_blocks)
+                .addBlockDefinitionsFromAsset("default/test_blocks.json")
                 .build();
         mController.addCallback(mCallback);
         mController.setVariableCallback(mVariableCallback);

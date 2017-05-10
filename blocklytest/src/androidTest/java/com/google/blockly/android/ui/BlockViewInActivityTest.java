@@ -78,7 +78,7 @@ public class BlockViewInActivityTest {
 
 
         mController = new BlocklyController.Builder(mActivity.mThemeWrapper)
-                .addBlockDefinitions(R.raw.test_blocks)  // TODO(#435): Replace R.raw.test_blocks
+                .addBlockDefinitionsFromAsset("default/test_blocks.json")
                 .build();
         mBlockFactory = mController.getBlockFactory();
         mHelper = mActivity.mWorkspaceHelper;
@@ -95,11 +95,11 @@ public class BlockViewInActivityTest {
             assertThat(mRootBlock).isNotNull();
             mChildInputBlock = mBlockFactory.obtainBlockFrom(
                     new BlockTemplate().ofType("output_no_input"));
-            mRootBlock.getInputByName("TIMES").getConnection()
+            mRootBlock.getInputByName("BOOL").getConnection()
                     .connect(mChildInputBlock.getOutputConnection());
             mChildStatementBlock = mBlockFactory.obtainBlockFrom(
                     new BlockTemplate().ofType("statement_no_input"));
-            mRootBlock.getInputByName("NAME").getConnection()
+            mRootBlock.getInputByName("DO").getConnection()
                     .connect(mChildStatementBlock.getPreviousConnection());
 
             mViewFactory.buildBlockGroupTree(mRootBlock, mMockConnectionManager, null);
