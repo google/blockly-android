@@ -16,6 +16,7 @@
 package com.google.blockly.android.demo;
 
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -31,10 +32,12 @@ import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.BlocklySectionsActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.util.JavascriptUtil;
 import com.google.blockly.utils.BlockLoadingException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +50,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
     private static final String TAG = "TurtleActivity";
 
     public static final String SAVED_WORKSPACE_FILENAME = "turtle_workspace.xml";
+    private static final String TEMP_SAVED_WORKSPACE_FILENAME = "turtle_temp_workspace.xml";
     static final List<String> TURTLE_BLOCK_DEFINITIONS = Arrays.asList(
             DefaultBlocks.COLOR_BLOCKS_PATH,
             DefaultBlocks.LOGIC_BLOCKS_PATH,
@@ -109,6 +113,28 @@ public class TurtleActivity extends BlocklySectionsActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return onDemoItemSelected(item, this) || super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        try {
+            mBlocklyActivityHelper.loadWorkspaceFromAppDir(TEMP_SAVED_WORKSPACE_FILENAME);
+        } catch (IOException e) {
+            Log.d(TAG, "No previously saved workspace.");
+        } catch (BlockLoadingException e) {
+            Log.e(TAG, "Error loading previous workspace.", e);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        try {
+            mBlocklyActivityHelper.saveWorkspaceToAppDir(TEMP_SAVED_WORKSPACE_FILENAME);
+        } catch (FileNotFoundException | BlocklySerializerException e) {
+            Log.d(TAG, "Error saving temporary workspace.", e);
+        }
+        super.onPause();
     }
 
     static boolean onDemoItemSelected(MenuItem item, AbstractBlocklyActivity activity) {
