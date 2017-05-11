@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+    <item android:id="@+id/action_save" android:title="@string/action_save"
+          android:orderInCategory="10" app:showAsAction="ifRoom"
+          android:icon="@drawable/ic_file_download_white_24dp"/>
+    <item android:id="@+id/action_load" android:title="@string/action_load"
+          android:orderInCategory="11" app:showAsAction="ifRoom"
+          android:icon="@drawable/ic_file_upload_white_24dp"/>
+    <item android:id="@+id/action_clear" android:title="@string/action_clear"
+          android:orderInCategory="12" app:showAsAction="ifRoom"
+          android:icon="@drawable/ic_layers_clear_white_24dp"/>
+    <item android:id="@+id/action_run" android:title="@string/action_run"
+          android:orderInCategory="15" app:showAsAction="ifRoom"
+          android:icon="@drawable/ic_play_arrow_white_24dp"/>
+</menu>

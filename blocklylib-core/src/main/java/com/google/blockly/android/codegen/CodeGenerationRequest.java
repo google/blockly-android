@@ -15,6 +15,9 @@
 
 package com.google.blockly.android.codegen;
 
+import android.support.annotation.NonNull;
+import android.text.TextUtils;
+
 import java.util.List;
 
 /**
@@ -25,27 +28,35 @@ public class CodeGenerationRequest {
     private final String mBlocklyXml;
     private final List<String> mBlockDefinitionsFilenames;
     private final List<String> mBlockGeneratorsFilenames;
+    private final LanguageDefinition mGeneratorLanguage;
 
     /**
      * Constructor for a code generation request.
-     *
      * @param xml The xml of a full workspace for which code should be generated.
      * @param callback A callback specifying what to do with the generated code.
+     * @param generatorsLanguage The {@link LanguageDefinition} for the core language being
+ *                                   used to generate code.
      * @param blockDefinitionsFilenames The paths of the js files containing block definitions,
-     * relative to file:///android_assets/background_compiler.html.
+*                                  relative to file:///android_assets/background_compiler.html.
      * @param blockGeneratorsFilenames The path of the js file containing block generators, relative
-     * to file:///android_assets/background_compiler.html.
+*                                  to file:///android_assets/background_compiler.html.
      */
-    public CodeGenerationRequest(String xml, CodeGeneratorCallback callback,
-            List<String> blockDefinitionsFilenames, List<String> blockGeneratorsFilenames) {
+    public CodeGenerationRequest(@NonNull String xml, CodeGeneratorCallback callback,
+            @NonNull LanguageDefinition generatorsLanguage, List<String> blockDefinitionsFilenames,
+            List<String> blockGeneratorsFilenames) {
         if (xml == null || xml.isEmpty()) {
             throw new IllegalArgumentException("The blockly workspace string must not be empty " +
                     "or null.");
+        }
+        if (generatorsLanguage == null || TextUtils.isEmpty(generatorsLanguage.mLanguageFilename)
+                || TextUtils.isEmpty(generatorsLanguage.mGeneratorRef)) {
+            throw new IllegalArgumentException("The generator language must be defined.");
         }
         mCallback = callback;
         mBlocklyXml = xml;
         mBlockDefinitionsFilenames = blockDefinitionsFilenames;
         mBlockGeneratorsFilenames = blockGeneratorsFilenames;
+        mGeneratorLanguage = generatorsLanguage;
     }
 
     public CodeGeneratorCallback getCallback() {
@@ -62,6 +73,10 @@ public class CodeGenerationRequest {
 
     public List<String> getBlockGeneratorsFilenames() {
         return mBlockGeneratorsFilenames;
+    }
+
+    public LanguageDefinition getGeneratorLanguageDefinition() {
+        return mGeneratorLanguage;
     }
 
     public interface CodeGeneratorCallback {

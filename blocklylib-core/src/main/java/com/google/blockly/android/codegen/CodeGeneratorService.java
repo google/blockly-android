@@ -59,6 +59,7 @@ public class CodeGeneratorService extends Service {
     private WebView mWebview;
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private Handler mHandler;
+    private LanguageDefinition mGeneratorLanguage;
     private List<String> mDefinitions = new ArrayList<>();
     private List<String> mGenerators = new ArrayList<>();
     private String mAllBlocks;
@@ -137,12 +138,14 @@ public class CodeGeneratorService extends Service {
                              //back onto the queue until the page is loaded.
                             mDefinitions = request.getBlockDefinitionsFilenames();
                             mGenerators = request.getBlockGeneratorsFilenames();
+                            mGeneratorLanguage = request.getGeneratorLanguageDefinition();
                             mAllBlocks = null;
                             mRequestQueue.addFirst(request);
                             mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
                         } else {
                             String xml = request.getXml();
-                            String codeGenerationURL = buildCodeGenerationUrl(xml);
+                            String codeGenerationURL = buildCodeGenerationUrl(xml,
+                                    mGeneratorLanguage.mGeneratorRef);
                             if (codeGenerationURL != null) {
                                 mWebview.loadUrl(codeGenerationURL);
                             }
@@ -162,7 +165,7 @@ public class CodeGeneratorService extends Service {
      */
     @Nullable
     @VisibleForTesting
-    static String buildCodeGenerationUrl(String xml) {
+    static String buildCodeGenerationUrl(String xml, String generatorObject) {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             // Prior to KitKat a different WebView was used that didn't handle
             // special characters passed in to it. We skip the encoding on
@@ -177,7 +180,7 @@ public class CodeGeneratorService extends Service {
             }
         } else {
             String jsEscapedXml = xml.replace("'", "\\'");
-            return "javascript:generate('" + jsEscapedXml + "');";
+            return "javascript:generate('" + jsEscapedXml + "', " + generatorObject + ");";
         }
     }
 
@@ -206,6 +209,14 @@ public class CodeGeneratorService extends Service {
                 combined.append(mGenerators.get(i));
             }
             return combined.toString();
+        }
+
+        @JavascriptInterface
+        public String getGeneratorLanguageFilename() {
+            if (mGeneratorLanguage == null) {
+                throw new IllegalStateException("Generator language not specified!");
+            }
+            return mGeneratorLanguage.mLanguageFilename;
         }
 
         @JavascriptInterface
