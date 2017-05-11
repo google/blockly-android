@@ -23,6 +23,7 @@ import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTemplate;
+import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.FieldInput;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -54,15 +55,16 @@ public class ProcedureManagerTest extends BlocklyTestCase {
         mMockController = Mockito.mock(BlocklyController.class);
 
         mFactory = new BlockFactory();
+        mFactory.addJsonDefinitions(getContext().getAssets().open(
+                DefaultBlocks.PROCEDURE_BLOCKS_PATH));
+        DefaultBlocks.getMutators();
         mFactory.setController(mMockController);
         mProcedureManager = new ProcedureManager();
 
         mProcedureDefinition = mFactory.obtainBlockFrom(
-                new BlockTemplate().fromDefinition(
-                        TestUtils.getProcedureDefinitionBlockDefinition(PROCEDURE_NAME)));
+                new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE));
         mProcedureReference = mFactory.obtainBlockFrom(
-                new BlockTemplate().fromDefinition(
-                        TestUtils.getProcedureReferenceBlockDefinition(PROCEDURE_NAME)));
+                new BlockTemplate(ProcedureManager.CALL_NO_RETURN_BLOCK_TYPE));
         assertThat(mProcedureDefinition).isNotNull();
         assertThat(mProcedureReference).isNotNull();
     }

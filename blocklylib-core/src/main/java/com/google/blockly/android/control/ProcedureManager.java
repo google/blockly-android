@@ -32,13 +32,10 @@ import java.util.Map;
  * Manages procedure definitions, references and names.
  */
 public class ProcedureManager {
-    public static final String PROCEDURE_DEFINITION_PREFIX = "procedure_def";
-    public static final String PROCEDURE_REFERENCE_PREFIX = "procedure_call";
-
     public static final String DEFINE_NO_RETURN_BLOCK_TYPE = "procedures_defnoreturn";
-    public static final String DEFINE_WITH_RETURN_BLOCK_TEMPLATE = "procedures_defreturn";
-    public static final String CALL_NO_RETURN_BLOCK_TEMPLATE = "procedures_callnoreturn";
-    public static final String CALL_WITH_RETURN_BLOCK_TEMPLATE = "procedures_callreturn";
+    public static final String DEFINE_WITH_RETURN_BLOCK_TYPE = "procedures_defreturn";
+    public static final String CALL_NO_RETURN_BLOCK_TYPE = "procedures_callnoreturn";
+    public static final String CALL_WITH_RETURN_BLOCK_TYPE = "procedures_callreturn";
 
     private final ArrayMap<String, List<Block>> mProcedureReferences = new ArrayMap<>();
     private final ArrayMap<String, Block> mProcedureDefinitions = new ArrayMap<>();
@@ -53,8 +50,8 @@ public class ProcedureManager {
      */
     public static boolean isReference(Block block) {
         String type = block.getType();
-        return type.equals(CALL_NO_RETURN_BLOCK_TEMPLATE)
-                || type.equals(CALL_WITH_RETURN_BLOCK_TEMPLATE);
+        return type.equals(CALL_NO_RETURN_BLOCK_TYPE)
+                || type.equals(CALL_WITH_RETURN_BLOCK_TYPE);
     }
 
     /**
@@ -65,7 +62,7 @@ public class ProcedureManager {
     public static boolean isDefinition(Block block) {
         String type = block.getType();
         return type.equals(DEFINE_NO_RETURN_BLOCK_TYPE)
-                || type.equals(DEFINE_WITH_RETURN_BLOCK_TEMPLATE);
+                || type.equals(DEFINE_WITH_RETURN_BLOCK_TYPE);
     }
 
     public Map<String, Block> getDefinitionBlocks() {
@@ -108,7 +105,7 @@ public class ProcedureManager {
         String procedureName = getProcedureName(block);
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).add(block);
-            if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TEMPLATE)) {
+            if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
                 ++mCountOfReferencesWithReturn;
             }
         } else {
@@ -128,7 +125,7 @@ public class ProcedureManager {
         String procedureName = getProcedureName(block);
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).remove(block);
-            if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TEMPLATE)) {
+            if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
                 --mCountOfReferencesWithReturn;
                 assert (mCountOfReferencesWithReturn >= 0);
             }

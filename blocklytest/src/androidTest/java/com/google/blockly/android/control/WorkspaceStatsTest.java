@@ -67,15 +67,15 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
 
     @Test
     public void testCollectProcedureStats() throws BlockLoadingException {
-        Block blockUnderTest = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(
-                TestUtils.getProcedureDefinitionBlockDefinition("test")));
+        Block blockUnderTest = mFactory.obtainBlockFrom(
+                new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE));
 
         mStats.collectStats(blockUnderTest, false);
         verify(mMockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
-        Block procedureReference = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(
-                TestUtils.getProcedureReferenceBlockDefinition("test")));
+        Block procedureReference = mFactory.obtainBlockFrom(
+                new BlockTemplate(ProcedureManager.CALL_NO_RETURN_BLOCK_TYPE));
 
         mStats.collectStats(procedureReference, false);
         verify(mMockProcedureManager).addReference(procedureReference);
