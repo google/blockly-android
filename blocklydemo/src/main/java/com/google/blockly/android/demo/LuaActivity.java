@@ -38,7 +38,8 @@ import java.util.List;
 public class LuaActivity extends AbstractBlocklyActivity {
     private static final String TAG = "LuaActivity";
 
-    private static final String SAVED_WORKSPACE_FILENAME = "lua_workspace.xml";
+    private static final String SAVE_FILENAME = "lua_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "lua_workspace_temp.xml";
     // Add custom blocks to this list.
     private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
     private static final List<String> LUA_GENERATORS = Arrays.asList();
@@ -154,11 +155,15 @@ public class LuaActivity extends AbstractBlocklyActivity {
         mGeneratedTextView.setMinWidth((int) (maxline * 13 * density));
     }
 
-    @NonNull
     @Override
+    @NonNull
     protected String getWorkspaceSavePath() {
-        // SplitActivity uses the turtle block definitions, and thus shares the same file as
-        // TurtleActivity.
-        return SAVED_WORKSPACE_FILENAME;
+        return SAVE_FILENAME;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return AUTOSAVE_FILENAME;
     }
 }

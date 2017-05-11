@@ -36,6 +36,9 @@ import java.util.List;
 public class SplitActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SplitActivity";
 
+    private static final String SAVE_FILENAME = "split_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "split_workspace_temp.xml";
+
     private TextView mGeneratedTextView;
     private Handler mHandler;
 
@@ -140,11 +143,15 @@ public class SplitActivity extends AbstractBlocklyActivity {
         mGeneratedTextView.setMinWidth((int) (maxline * 13 * density));
     }
 
-    @NonNull
     @Override
+    @NonNull
     protected String getWorkspaceSavePath() {
-        // SplitActivity uses the turtle block definitions, and thus shares the same file as
-        // TurtleActivity.
-        return TurtleActivity.SAVED_WORKSPACE_FILENAME;
+        return SAVE_FILENAME;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return AUTOSAVE_FILENAME;
     }
 }

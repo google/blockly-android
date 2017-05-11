@@ -45,7 +45,8 @@ import java.util.List;
 public class DevTestsActivity extends BlocklySectionsActivity {
     private static final String TAG = "DevTestsActivity";
 
-    public static final String SAVED_WORKSPACE_FILENAME = "dev_tests_workspace.xml";
+    public static final String SAVE_FILENAME = "dev_tests_workspace.xml";
+
     private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
             Arrays.asList(
                     DefaultBlocks.LIST_BLOCKS_PATH,
@@ -113,16 +114,6 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onLoadWorkspace() {
-        mBlocklyActivityHelper.loadWorkspaceFromAppDirSafely(SAVED_WORKSPACE_FILENAME);
-    }
-
-    @Override
-    public void onSaveWorkspace() {
-        mBlocklyActivityHelper.saveWorkspaceToAppDirSafely(SAVED_WORKSPACE_FILENAME);
     }
 
     /**
@@ -263,9 +254,23 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         controller.addVariable("tak");
     }
 
-    @NonNull
     @Override
+    protected void onAutosave() {
+        // Dev tests doesn't autosave/restore the user's workspace by default as we load a specific
+        // workspace in onLoadInitialWorkspace.
+        return;
+    }
+
+    @Override
+    protected boolean onAutoload() {
+        // Dev tests doesn't autosave/restore the user's workspace by default as we load a specific
+        // workspace in onLoadInitialWorkspace.
+        return false;
+    }
+
+    @Override
+    @NonNull
     protected String getWorkspaceSavePath() {
-        return "devtests_workspace.xml";
+        return SAVE_FILENAME;
     }
 }
