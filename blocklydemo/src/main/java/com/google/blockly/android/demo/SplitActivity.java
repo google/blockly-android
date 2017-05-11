@@ -18,20 +18,13 @@ package com.google.blockly.android.demo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
-import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.DefaultBlocks;
-import com.google.blockly.utils.BlocklyXmlHelper;
-import com.google.blockly.utils.StringOutputStream;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 

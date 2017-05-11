@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.codegen;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.util.List;
@@ -40,15 +41,15 @@ public class CodeGenerationRequest {
      * @param blockGeneratorsFilenames The path of the js file containing block generators, relative
 *                                  to file:///android_assets/background_compiler.html.
      */
-    public CodeGenerationRequest(String xml, CodeGeneratorCallback callback,
-            LanguageDefinition generatorsLanguage, List<String> blockDefinitionsFilenames,
+    public CodeGenerationRequest(@NonNull String xml, CodeGeneratorCallback callback,
+            @NonNull LanguageDefinition generatorsLanguage, List<String> blockDefinitionsFilenames,
             List<String> blockGeneratorsFilenames) {
         if (xml == null || xml.isEmpty()) {
             throw new IllegalArgumentException("The blockly workspace string must not be empty " +
                     "or null.");
         }
         if (generatorsLanguage == null || TextUtils.isEmpty(generatorsLanguage.mLanguageFilename)
-                || TextUtils.isEmpty(generatorsLanguage.mLanguageNamespace)) {
+                || TextUtils.isEmpty(generatorsLanguage.mGeneratorRef)) {
             throw new IllegalArgumentException("The generator language must be defined.");
         }
         mCallback = callback;

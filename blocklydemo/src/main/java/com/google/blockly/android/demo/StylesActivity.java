@@ -19,7 +19,6 @@ import android.support.annotation.NonNull;
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
-import com.google.blockly.model.DefaultBlocks;
 
 import java.util.ArrayList;
 import java.util.List;

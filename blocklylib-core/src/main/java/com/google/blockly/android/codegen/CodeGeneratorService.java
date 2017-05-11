@@ -145,7 +145,7 @@ public class CodeGeneratorService extends Service {
                         } else {
                             String xml = request.getXml();
                             String codeGenerationURL = buildCodeGenerationUrl(xml,
-                                    mGeneratorLanguage.mLanguageNamespace);
+                                    mGeneratorLanguage.mGeneratorRef);
                             if (codeGenerationURL != null) {
                                 mWebview.loadUrl(codeGenerationURL);
                             }
