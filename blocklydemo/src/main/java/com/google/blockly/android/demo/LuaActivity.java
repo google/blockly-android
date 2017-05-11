@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2017 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -24,8 +24,10 @@ import android.widget.TextView;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.android.codegen.LanguageDefinition;
+import com.google.blockly.model.DefaultBlocks;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -33,8 +35,16 @@ import java.util.List;
  * Demo activity that programmatically adds a view to split the screen between the Blockly workspace
  * and an arbitrary other view or fragment.
  */
-public class SplitActivity extends AbstractBlocklyActivity {
-    private static final String TAG = "SplitActivity";
+public class LuaActivity extends AbstractBlocklyActivity {
+    private static final String TAG = "LuaActivity";
+
+    private static final String SAVED_WORKSPACE_FILENAME = "lua_workspace.xml";
+    // Add custom blocks to this list.
+    private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
+    private static final List<String> LUA_GENERATORS = Arrays.asList();
+
+    private static final LanguageDefinition LUA_LANGUAGE_DEF
+            = new LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua");
 
     private TextView mGeneratedTextView;
     private Handler mHandler;
@@ -86,21 +96,25 @@ public class SplitActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
-        return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
+        return BLOCK_DEFINITIONS;
+    }
+
+    @NonNull
+    @Override
+    protected LanguageDefinition getBlockGeneratorLanguage() {
+        return LUA_LANGUAGE_DEF;
     }
 
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "turtle/toolbox_advanced.xml";
+        return DefaultBlocks.TOOLBOX_PATH;
     }
 
     @NonNull
     @Override
     protected List<String> getGeneratorsJsPaths() {
-        List<String> paths = new ArrayList<String>(1);
-        paths.add("turtle/generators.js");
-        return paths;
+        return LUA_GENERATORS;
     }
 
     @NonNull
@@ -145,6 +159,6 @@ public class SplitActivity extends AbstractBlocklyActivity {
     protected String getWorkspaceSavePath() {
         // SplitActivity uses the turtle block definitions, and thus shares the same file as
         // TurtleActivity.
-        return TurtleActivity.SAVED_WORKSPACE_FILENAME;
+        return SAVED_WORKSPACE_FILENAME;
     }
 }

@@ -18,11 +18,13 @@ import android.support.annotation.NonNull;
 import android.view.ContextThemeWrapper;
 
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.android.ui.vertical.R;
+import com.google.blockly.model.DefaultBlocks;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,6 +63,12 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
         return BLOCK_DEFINITIONS;
+    }
+
+    @NonNull
+    @Override
+    protected LanguageDefinition getBlockGeneratorLanguage() {
+        return DefaultBlocks.LANGUAGE_DEFINITION;
     }
 
     @NonNull
