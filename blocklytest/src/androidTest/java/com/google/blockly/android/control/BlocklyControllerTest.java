@@ -146,6 +146,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
                 assertThat(mEventsFired.size()).isEqualTo(1);
                 assertThat(mEventsFired.get(0).getTypeId()).isEqualTo(BlocklyEvent.TYPE_DELETE);
                 assertThat(mEventsFired.get(0).getBlockId()).isEqualTo(block.getId());
+                assertThat(block.getEventWorkspaceId()).isEqualTo(BlocklyEvent.WORKSPACE_ID_TRASH);
             }
         });
     }
@@ -210,6 +211,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
                 assertThat(1).isEqualTo(mEventsFired.size());
                 assertThat(BlocklyEvent.TYPE_CREATE).isEqualTo(mEventsFired.get(0).getTypeId());
                 assertThat(block.getId()).isEqualTo(mEventsFired.get(0).getBlockId());
+                assertThat(block.getEventWorkspaceId()).isEqualTo(mWorkspace.getId());
             }
         });
     }
@@ -1650,6 +1652,45 @@ public class BlocklyControllerTest extends BlocklyTestCase {
                 assertThat(mWorkspace.getRootBlocks()).hasSize(0);
                 assertThat(mWorkspace.getTrashCategory().getItems()).hasSize(2);
             }
+        });
+    }
+
+    @Test
+    public void testTrashAllBlocksSetsWorkspaceId() throws BlockLoadingException {
+        // given
+        final Block block = mBlockFactory.obtainBlockFrom(
+            new BlockTemplate().ofType("simple_input_output").withId("connectTarget"));
+        final String expectedWorkspaceId = BlocklyEvent.WORKSPACE_ID_TRASH;
+
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                // when
+                mController.addRootBlock(block);
+                mController.trashAllBlocks();
+
+                // then
+                assertThat(block.getEventWorkspaceId()).isEqualTo(expectedWorkspaceId);
+            }
+        });
+    }
+
+    @Test
+    public void testRemoveBlockTreeSetsWorkspaceId() throws BlockLoadingException {
+        // given
+        final Block block = mBlockFactory.obtainBlockFrom(
+            new BlockTemplate().ofType("simple_input_output").withId("connectTarget"));
+
+        // when
+        runAndSync(new Runnable() {
+           @Override
+           public void run() {
+                mController.addRootBlock(block);
+                mController.removeBlockTree(block);
+
+                // then
+                assertThat(block.getEventWorkspaceId()).isNull();
+           }
         });
     }
 

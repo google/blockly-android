@@ -130,7 +130,9 @@ public class Workspace {
      */
     // TODO(#56): Make sure the block doesn't have a parent.
     public void addBlockToTrash(Block block) {
-        mTrashCategory.addItem(0, new BlocklyCategory.BlockItem(block));
+        BlocklyCategory.BlockItem blockItem = new BlocklyCategory.BlockItem(block);
+        blockItem.getBlock().setEventWorkspaceId(BlocklyEvent.WORKSPACE_ID_TRASH);
+        mTrashCategory.addItem(0, blockItem);
     }
 
     /**
@@ -146,6 +148,7 @@ public class Workspace {
             throw new IllegalArgumentException("trashedBlock not found in mTrashCategory");
         }
         mRootBlocks.add(trashedBlock);
+        trashedBlock.setEventWorkspaceId(getId());
     }
 
     /**
@@ -175,7 +178,7 @@ public class Workspace {
      *                               BlockLoadingException.
      */
     public void loadToolboxContents(InputStream source) throws BlockLoadingException {
-        mFlyoutCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
+        mFlyoutCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory, BlocklyEvent.WORKSPACE_ID_TOOLBOX);
     }
 
     /**
@@ -199,7 +202,7 @@ public class Workspace {
      *                               BlockLoadingException.
      */
     public void loadTrashContents(InputStream source) throws BlockLoadingException {
-        mTrashCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory);
+        mTrashCategory = BlocklyXmlHelper.loadToolboxFromXml(source, mBlockFactory, BlocklyEvent.WORKSPACE_ID_TRASH);
     }
 
     /**
