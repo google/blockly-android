@@ -224,12 +224,14 @@ public class BlocklyCategory {
      *
      * @param parser The {@link XmlPullParser} to read from.
      * @param factory The {@link BlockFactory} to use to generate blocks from their names.
+     * @param workspaceId The workspaceId to set on all blocks attached to this Category.
      *
      * @return A new {@link BlocklyCategory} with the contents given by the XML.
      * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
      *                               or XmlPullParserException as a root cause.
      */
-    public static BlocklyCategory fromXml(XmlPullParser parser, BlockFactory factory)
+    public static BlocklyCategory fromXml(XmlPullParser parser, BlockFactory factory,
+                                          String workspaceId)
             throws BlockLoadingException {
         try {
             BlocklyCategory result;
@@ -255,9 +257,12 @@ public class BlocklyCategory {
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
                         if (parser.getName().equalsIgnoreCase("category")) {
-                            result.addSubcategory(BlocklyCategory.fromXml(parser, factory));
+                            result.addSubcategory(BlocklyCategory.fromXml(parser, factory,
+                                workspaceId));
                         } else if (parser.getName().equalsIgnoreCase("block")) {
-                            result.addItem(new BlockItem(factory.fromXml(parser)));
+                            BlockItem blockItem = new BlockItem(factory.fromXml(parser));
+                            blockItem.getBlock().setEventWorkspaceId(workspaceId);
+                            result.addItem(blockItem);
                         } else if (parser.getName().equalsIgnoreCase("shadow")) {
                             throw new IllegalArgumentException(
                                     "Shadow blocks may not be top level toolbox blocks.");
