@@ -40,11 +40,13 @@ import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlockExtension;
+import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.CategoryFactory;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -267,7 +269,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
         // Load the workspace.
         boolean loadedPriorInstance = checkAllowRestoreBlocklyState(savedInstanceState)
-                && getController().onRestoreSnapshot(savedInstanceState);
+                && (getController().onRestoreSnapshot(savedInstanceState) || onAutoload());
         if (!loadedPriorInstance) {
             onLoadInitialWorkspace();
         }
@@ -292,6 +294,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         mBlocklyActivityHelper.onPause();
+        onAutosave();
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */
@@ -328,10 +331,12 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      *
      * Returns true if the app should proceed to restore the blockly state from the
-     * {@code savedInstanceState} Bundle. By default, it always returns true, but Activity
-     * developers can override this method to add conditional logic.
+     * {@code savedInstanceState} Bundle or the {@link #onAutoload() auto save} file. By default, it
+     * always returns true, but Activity developers can override this method to add conditional
+     * logic.
      * <p/>
-     * This does not prevent the state from saving to a Bundle during {@link #onSaveInstanceState}.
+     * This does not prevent the state from saving to a Bundle during {@link #onSaveInstanceState}
+     * or saving to a file in {@link #onAutosave()}.
      *
      * @param savedInstanceState The Bundle to restore state from.
      * @return True if Blockly state should be restored. Otherwise, null.
@@ -347,6 +352,36 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected void onLoadInitialWorkspace() {
         onInitBlankWorkspace();
         getController().closeFlyouts();
+    }
+
+    /**
+     * Called when an autosave of the workspace is triggered, typically by {@link #onPause()}.
+     * By default this saves the workspace to a file in the app's directory.
+     */
+    protected void onAutosave() {
+        try {
+            mBlocklyActivityHelper.saveWorkspaceToAppDir(getWorkspaceAutosavePath());
+        } catch (FileNotFoundException | BlocklySerializerException e) {
+            Log.e(TAG, "Failed to autosaving workspace.", e);
+        }
+    }
+
+    /**
+     * Called when the activity tries to restore the autosaved workspace, typically by
+     * {@link #onCreate(Bundle)} if there was no workspace data in the bundle.
+     *
+     * @return true if a previously saved workspace was loaded, false otherwise.
+     */
+    protected boolean onAutoload() {
+        try {
+            mBlocklyActivityHelper.loadWorkspaceFromAppDir(getWorkspaceAutosavePath());
+            return true;
+        } catch (FileNotFoundException e) {
+            // No workspace was saved previously.
+        } catch (BlockLoadingException | IOException e) {
+            Log.e(TAG, "Failed to load workspace", e);
+        }
+        return false;
     }
 
     /**
@@ -475,6 +510,15 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     @NonNull
     protected String getWorkspaceSavePath() {
         return "workspace.xml";
+    }
+
+    /**
+     * @return The path to the automatically saved workspace file on the local device. By default,
+     *         "autosave_workspace.xml".
+     */
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return "autosave_workspace.xml";
     }
 
     /**
