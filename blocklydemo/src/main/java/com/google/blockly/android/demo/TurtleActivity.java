@@ -46,7 +46,9 @@ import java.util.List;
 public class TurtleActivity extends BlocklySectionsActivity {
     private static final String TAG = "TurtleActivity";
 
-    public static final String SAVED_WORKSPACE_FILENAME = "turtle_workspace.xml";
+    private static final String SAVE_FILENAME = "turtle_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "turtle_workspace_temp.xml";
+
     static final List<String> TURTLE_BLOCK_DEFINITIONS = Arrays.asList(
             DefaultBlocks.COLOR_BLOCKS_PATH,
             DefaultBlocks.LOGIC_BLOCKS_PATH,
@@ -98,12 +100,12 @@ public class TurtleActivity extends BlocklySectionsActivity {
 
     @Override
     public void onLoadWorkspace() {
-        mBlocklyActivityHelper.loadWorkspaceFromAppDirSafely(SAVED_WORKSPACE_FILENAME);
+        mBlocklyActivityHelper.loadWorkspaceFromAppDirSafely(SAVE_FILENAME);
     }
 
     @Override
     public void onSaveWorkspace() {
-        mBlocklyActivityHelper.saveWorkspaceToAppDirSafely(SAVED_WORKSPACE_FILENAME);
+        mBlocklyActivityHelper.saveWorkspaceToAppDirSafely(SAVE_FILENAME);
     }
 
     @Override
@@ -226,9 +228,15 @@ public class TurtleActivity extends BlocklySectionsActivity {
         controller.addVariable("android");
     }
 
-    @NonNull
     @Override
+    @NonNull
     protected String getWorkspaceSavePath() {
-        return SAVED_WORKSPACE_FILENAME;
+        return SAVE_FILENAME;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return AUTOSAVE_FILENAME;
     }
 }
