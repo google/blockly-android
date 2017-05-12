@@ -30,17 +30,18 @@ public final class MathIsDivisibleByMutator extends Mutator {
 
     public static final String MUTATOR_ID = "math_is_divisibleby_mutator";
 
-    public static final class Factory implements Mutator.Factory<MathIsDivisibleByMutator> {
-        @Override
-        public MathIsDivisibleByMutator newMutator(BlocklyController controller) {
-            return new MathIsDivisibleByMutator(this, controller);
-        }
+    public static final Mutator.Factory<MathIsDivisibleByMutator> FACTORY =
+            new Mutator.Factory<MathIsDivisibleByMutator>() {
+                @Override
+                public String getMutatorId() {
+                    return MUTATOR_ID;
+                }
 
-        @Override
-        public String getMutatorId() {
-            return MUTATOR_ID;
-        }
-    }
+                @Override
+                public MathIsDivisibleByMutator newMutator(BlocklyController controller) {
+                    return new MathIsDivisibleByMutator(this, controller);
+                }
+            };
 
     private Block mBlock;
     private BlocklyController mController;

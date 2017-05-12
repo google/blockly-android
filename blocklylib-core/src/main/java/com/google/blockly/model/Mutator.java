@@ -107,7 +107,7 @@ public abstract class Mutator {
      * Called immediately after the mutator is attached to the block. Can be used to perform
      * additional block initialization related to this mutator.
      */
-    public void onAttached(Block block) {
+    protected void onAttached(Block block) {
         // Do nothing by default.
     }
 
@@ -115,7 +115,7 @@ public abstract class Mutator {
      * Called immediately after the mutator is detached from a block, usually as a result of
      * destroying the block.
      */
-    public void onDetached(Block block) {
+    protected void onDetached(Block block) {
         // Do nothing by default
     }
 

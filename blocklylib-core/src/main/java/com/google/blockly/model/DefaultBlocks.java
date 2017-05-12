@@ -1,6 +1,5 @@
 package com.google.blockly.model;
 
-import android.content.Context;
 import android.support.v4.util.ArrayMap;
 
 import com.google.blockly.android.codegen.LanguageDefinition;
@@ -9,6 +8,11 @@ import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.android.ui.mutator.IfElseMutatorFragment;
 import com.google.blockly.model.mutator.IfElseMutator;
 import com.google.blockly.model.mutator.MathIsDivisibleByMutator;
+import com.google.blockly.model.mutator.ProcedureCallNoReturnMutator;
+import com.google.blockly.model.mutator.ProcedureCallWithReturnMutator;
+import com.google.blockly.model.mutator.ProcedureDefinitionNoReturnMutator;
+import com.google.blockly.model.mutator.ProcedureDefinitionWithReturnMutator;
+import com.google.blockly.model.mutator.ProceduresIfReturnMutator;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -97,10 +101,20 @@ public final class DefaultBlocks {
      */
     public static Map<String, Mutator.Factory> getMutators() {
         if (DEFAULT_MUTATORS == null) {
-            Map<String, Mutator.Factory> temp = new ArrayMap<>();
-            temp.put(MathIsDivisibleByMutator.MUTATOR_ID, new MathIsDivisibleByMutator.Factory());
-            temp.put(IfElseMutator.MUTATOR_ID, new IfElseMutator.Factory());
-            // TODO: Put other Mutator.Factorys
+            Mutator.Factory[] factories = {
+                IfElseMutator.FACTORY,
+                MathIsDivisibleByMutator.FACTORY,
+                ProcedureCallNoReturnMutator.FACTORY,
+                ProcedureCallWithReturnMutator.FACTORY,
+                ProcedureDefinitionNoReturnMutator.FACTORY,
+                ProcedureDefinitionWithReturnMutator.FACTORY,
+                ProceduresIfReturnMutator.FACTORY
+                // TODO: Put other Mutator.Factorys
+            };
+            Map<String, Mutator.Factory> temp = new ArrayMap<>(factories.length);
+            for (Mutator.Factory factory : factories) {
+                temp.put(factory.getMutatorId(), factory);
+            }
             DEFAULT_MUTATORS = Collections.unmodifiableMap(temp);
         }
         return DEFAULT_MUTATORS;
@@ -120,7 +134,7 @@ public final class DefaultBlocks {
         // Don't store this map, because of the reference to the controller.
         Map<String, CategoryFactory> map = new ArrayMap<>(2);
         map.put(VARIABLE_CATEGORY_NAME, new VariableCategoryFactory(controller));
-        map.put(PROCEDURE_CATEGORY_NAME, new FunctionCategoryFactory(controller));
+        map.put(PROCEDURE_CATEGORY_NAME, new ProcedureCategoryFactory(controller));
         return Collections.unmodifiableMap(map);
     }
 

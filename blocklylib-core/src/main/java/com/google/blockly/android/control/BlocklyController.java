@@ -47,6 +47,7 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.android.ui.fieldview.VariableRequestCallback;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlocklyEvent;
@@ -55,6 +56,7 @@ import com.google.blockly.model.CategoryFactory;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -124,7 +126,8 @@ public class BlocklyController {
     private Dragger mDragger;
     private VariableCallback mVariableCallback = null;
 
-    private FlyoutController mFlyoutController;
+    @VisibleForTesting
+    FlyoutController mFlyoutController;
 
     // For use in bumping neighbors; instance variable only to avoid repeated allocation.
     private final ArrayList<Connection> mTempConnections = new ArrayList<>();
@@ -1843,6 +1846,12 @@ public class BlocklyController {
         /**
          * Sets the ui used for the toolbox, including the flyout with blocks and the
          * category tabs.
+         * <p/>
+         * Warning: It is possible this toolbox will be loaded during {@link Builder#build()},
+         * before the application has a chance to register any {@link Mutator}s or
+         * {@link BlockExtension}s. Make sure, if use this convenience {@code Builder} method, the
+         * referenced blocks do not depend upon such features. Otherwise, set the toolbox later by
+         * calling {@link BlocklyController#setToolboxUi} on the controller, post construction.
          *
          * @param toolbox The {@link BlockListUI} to use to display blocks in the current
          *                category.

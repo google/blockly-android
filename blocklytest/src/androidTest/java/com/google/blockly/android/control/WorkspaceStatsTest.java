@@ -16,7 +16,6 @@
 package com.google.blockly.android.control;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.TestUtils;
@@ -30,7 +29,6 @@ import com.google.blockly.utils.BlockLoadingException;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -40,7 +38,7 @@ import static org.mockito.Mockito.verify;
  * Tests for {@link WorkspaceStats}.
  */
 public class WorkspaceStatsTest extends BlocklyTestCase {
-    private BlocklyController mMockController;
+    private BlocklyController mController;
     private BlockFactory mFactory;
     private WorkspaceStats mStats;
     private ConnectionManager mConnectionManager;
@@ -48,11 +46,11 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
 
     @Before
     public void setUp() {
-        mMockController = Mockito.mock(BlocklyController.class);
-
-        Context context = InstrumentationRegistry.getTargetContext();
-        mFactory = new BlockFactory();
-        mFactory.setController(mMockController);
+        Context context = getContext();
+        mController = new BlocklyController.Builder(context).build();
+        mFactory = mController.getBlockFactory();
+        TestUtils.loadProcedureBlocks(mController);
+        mFactory.setController(mController);
 
         // TODO: Do we need this? We don't use Mockito in this test.
         //       http://stackoverflow.com/a/22402631/152543

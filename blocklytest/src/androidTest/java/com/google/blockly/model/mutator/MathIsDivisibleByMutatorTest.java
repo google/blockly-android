@@ -32,7 +32,7 @@ public class MathIsDivisibleByMutatorTest extends BlocklyTestCase {
         BlockFactory factory = mController.getBlockFactory();
         factory.registerMutator(
                 MathIsDivisibleByMutator.MUTATOR_ID,
-                new MathIsDivisibleByMutator.Factory());
+                MathIsDivisibleByMutator.FACTORY);
         mBlock = mController.getBlockFactory().obtainBlockFrom(
                 new BlockTemplate("math_number_property"));
     }

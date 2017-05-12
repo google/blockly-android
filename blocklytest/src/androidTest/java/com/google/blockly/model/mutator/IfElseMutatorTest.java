@@ -40,9 +40,7 @@ public class IfElseMutatorTest extends BlocklyTestCase {
                 .addBlockDefinitionsFromAsset("default/test_blocks.json")
                 .build();
         BlockFactory factory = mController.getBlockFactory();
-        factory.registerMutator(
-                IfElseMutator.MUTATOR_ID,
-                new IfElseMutator.Factory());
+        factory.registerMutator(IfElseMutator.MUTATOR_ID, IfElseMutator.FACTORY);
 
         mBlock = mController.getBlockFactory().obtainBlockFrom(
                 new BlockTemplate("controls_if"));

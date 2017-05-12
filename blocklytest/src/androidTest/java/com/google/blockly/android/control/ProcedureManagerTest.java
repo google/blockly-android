@@ -15,23 +15,19 @@
 
 package com.google.blockly.android.control;
 
-import android.content.Context;
-import android.test.mock.MockContext;
-
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTemplate;
-import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.FieldInput;
+import com.google.blockly.model.FieldLabel;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -43,7 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ProcedureManagerTest extends BlocklyTestCase {
     private static final String PROCEDURE_NAME = "procedure name";
 
-    private BlocklyController mMockController;
+    private BlocklyController mController;
 
     private BlockFactory mFactory;
     private ProcedureManager mProcedureManager;
@@ -52,19 +48,19 @@ public class ProcedureManagerTest extends BlocklyTestCase {
 
     @Before
     public void setUp() throws Exception {
-        mMockController = Mockito.mock(BlocklyController.class);
-
-        mFactory = new BlockFactory();
-        mFactory.addJsonDefinitions(getContext().getAssets().open(
-                DefaultBlocks.PROCEDURE_BLOCKS_PATH));
-        DefaultBlocks.getMutators();
-        mFactory.setController(mMockController);
+        BlocklyController mController = new BlocklyController.Builder(getContext()).build();
+        mFactory = mController.getBlockFactory();
+        TestUtils.loadProcedureBlocks(mController);
         mProcedureManager = new ProcedureManager();
 
         mProcedureDefinition = mFactory.obtainBlockFrom(
                 new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE));
+        ((FieldInput) mProcedureDefinition.getFieldByName("NAME")).setText(PROCEDURE_NAME);
+
         mProcedureReference = mFactory.obtainBlockFrom(
                 new BlockTemplate(ProcedureManager.CALL_NO_RETURN_BLOCK_TYPE));
+        ((FieldLabel) mProcedureReference.getFieldByName("NAME")).setText(PROCEDURE_NAME);
+
         assertThat(mProcedureDefinition).isNotNull();
         assertThat(mProcedureReference).isNotNull();
     }

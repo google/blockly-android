@@ -22,6 +22,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldInput;
+import com.google.blockly.model.FieldLabel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -186,8 +187,10 @@ public class ProcedureManager {
     //       since this is called from so many public methods.
     private static String getProcedureName(Block block) {
         Field nameField = block.getFieldByName("name");
-        if (nameField != null) {
+        if (nameField instanceof FieldInput) {  // Function definition
             return ((FieldInput) nameField).getText();
+        } else if (nameField instanceof FieldLabel) {  // Function call
+                return ((FieldLabel) nameField).getText();
         } else {
             throw new IllegalArgumentException(
                     "Procedure definition block with no procedure name.");
