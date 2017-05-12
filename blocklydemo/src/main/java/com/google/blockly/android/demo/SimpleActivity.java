@@ -34,15 +34,7 @@ public class SimpleActivity extends AbstractBlocklyActivity {
     private static final String AUTOSAVE_FILENAME = "simple_workspace_temp.xml";
 
     // Add custom blocks to this list.
-    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
-            DefaultBlocks.COLOR_BLOCKS_PATH,
-            DefaultBlocks.LIST_BLOCKS_PATH,
-            DefaultBlocks.LOGIC_BLOCKS_PATH,
-            DefaultBlocks.LOOP_BLOCKS_PATH,
-            DefaultBlocks.MATH_BLOCKS_PATH,
-            DefaultBlocks.TEXT_BLOCKS_PATH,
-            DefaultBlocks.VARIABLE_BLOCKS_PATH
-    );
+    private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
     private static final List<String> JAVASCRIPT_GENERATORS = Arrays.asList(
         // Custom block generators go here. Default blocks are already included.
         // TODO(#99): Include Javascript defaults when other languages are supported.

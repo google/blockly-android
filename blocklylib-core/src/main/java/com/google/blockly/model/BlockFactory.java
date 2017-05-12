@@ -53,7 +53,7 @@ import java.util.UUID;
  *
  * <pre>{@code
  * // Add definition.
- * factory.addJsonDefinition(getAssets().open("default/math_blocks.json"));
+ * factory.addJsonDefinitions(getAssets().open("default/math_blocks.json"));
  * // Create blocks.
  * Block pi = factory.obtainBlockFrom(new BlockTemplate().ofType("math_number").withId("PI"));
  * factory.obtainBlockFrom(new BlockTemplate().copyOf(pi).shadow().withId("PI-shadow"));
@@ -427,7 +427,6 @@ public class BlockFactory {
         block.setMutator(factory.newMutator(mController));
     }
 
-
     /**
      * Applies the named extension to the provided block.
      * @param extensionId The name / id of the extension, as seen in the JSON extensions attribute.
@@ -678,6 +677,13 @@ public class BlockFactory {
             id = UUID.randomUUID().toString();
         }
         return id;
+    }
+
+    public boolean isDefined(String definitionId) {
+        return mDefinitions.containsKey(definitionId);
+    }
+
+    public void loadBlockDefinitionFromAssets(String procedureBlocksPath) {
     }
 
     /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */

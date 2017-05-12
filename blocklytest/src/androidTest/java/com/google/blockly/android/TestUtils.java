@@ -15,24 +15,33 @@
 
 package com.google.blockly.android;
 
+import android.content.Context;
+import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
+import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockDefinition;
+import com.google.blockly.model.BlockFactory;
+import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utils for setting up blocks during testing.
@@ -94,62 +103,35 @@ public final class TestUtils {
     }
 
     /**
-     * Creates a {@link BlockDefinition} that is a stub for a procedure definition block.
-     *
-     * @param procedureName The name of the procedure this block defines.
-     * @return The block definition
+     * Loads the block definitions, mutators, and mutator UIs associated with procedure blocks.
      */
-    public static BlockDefinition getProcedureDefinitionBlockDefinition(String procedureName) {
+    public static void loadProcedureBlocks(BlocklyController controller) {
+        Context context = controller.getContext();
+        BlockFactory blockFactory = controller.getBlockFactory();
+        BlockViewFactory viewFactory = controller.getWorkspaceHelper().getBlockViewFactory();
+
         try {
-            String json = getProcedureBlockJson(
-                    ProcedureManager.PROCEDURE_DEFINITION_PREFIX + procedureName,
-                    procedureName);
-            return new BlockDefinition(json);
-        } catch (JSONException | BlockLoadingException e) {
-            // Shouldn't ever happen
-            throw new IllegalStateException("Failed to create and parse JSON block definition.");
+            blockFactory.addJsonDefinitions(context.getAssets().open(
+                    DefaultBlocks.PROCEDURE_BLOCKS_PATH));
+        } catch (IOException|BlockLoadingException e) {
+            throw new IllegalStateException("Unable to load procedure blocks.", e);
+        }
+
+        Map<String, Mutator.Factory> mutators = DefaultBlocks.getMutators();
+        for (String mutatorId : mutators.keySet()) {
+            if (mutatorId.startsWith("procedures_")) {
+                blockFactory.registerMutator(mutatorId, mutators.get(mutatorId));
+            }
+        }
+
+        if (viewFactory != null) {
+            Map<String, MutatorFragment.Factory> mutatorUis = DefaultBlocks.getMutatorUis();
+            for (String mutatorId : mutatorUis.keySet()) {
+                if (mutatorId.startsWith("procedures_")) {
+                    viewFactory.registerMutatorUi(mutatorId, mutatorUis.get(mutatorId));
+                }
+            }
         }
     }
 
-    /**
-     * Creates a {@link BlockDefinition} that is a stub for a procedure reference block.
-     *
-     * @param procedureName The name of the procedure this block references.
-     * @return The block definition
-     */
-    public static BlockDefinition getProcedureReferenceBlockDefinition(String procedureName) {
-        try {
-            String json = getProcedureBlockJson(
-                    ProcedureManager.PROCEDURE_REFERENCE_PREFIX + procedureName,
-                    procedureName);
-            return new BlockDefinition(json);
-        } catch (JSONException | BlockLoadingException e) {
-            // Shouldn't ever happen
-            throw new IllegalStateException("Failed to create and parse JSON block definition.");
-        }
-    }
-
-    /**
-     * Creates the JSON that defines or references a procedure (depending on the prefix in
-     * {@code blockType}), with one field named "name" with a value of {@code procedureName}.
-     *
-     * @param blockType The type name of the block, which should be the procedure name with a prefix
-     * @param procedureName The name of the procedure this block defines/references.
-     * @return A JSON string block definition.
-     * @throws JSONException If JSONStringer cannot quote either parameter.
-     */
-    private static String getProcedureBlockJson(String blockType, String procedureName)
-            throws JSONException
-    {
-        String typeQuotedAndEscaped = JSONObject.quote(blockType);
-        String nameQuotedAndEscaped = JSONObject.quote(procedureName);
-        String prefix = "{\"type\":";  // Quoted block type goes here
-        String middle = ", \"message0\":\"%1\"," +
-                        "\"args0\":[{" +
-                            "\"type\":\"field_input\"," +
-                            "\"name\":\"name\"," +
-                            "\"text\":"; // Quoted procedure name goes here
-        String suffix = "}]}";
-        return prefix + typeQuotedAndEscaped + middle + nameQuotedAndEscaped + suffix;
-    }
 }

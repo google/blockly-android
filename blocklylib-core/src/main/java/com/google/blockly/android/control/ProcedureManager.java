@@ -15,26 +15,62 @@
 
 package com.google.blockly.android.control;
 
+import android.support.v4.util.ArrayMap;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldInput;
+import com.google.blockly.model.FieldLabel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manages procedure definitions, references and names.
  */
 public class ProcedureManager {
-    public static final String PROCEDURE_DEFINITION_PREFIX = "procedure_def";
-    public static final String PROCEDURE_REFERENCE_PREFIX = "procedure_call";
+    public static final String PROCEDURE_NAME_FIELD = "NAME";
 
-    private final SimpleArrayMap<String, List<Block>> mProcedureReferences = new SimpleArrayMap<>();
-    private final SimpleArrayMap<String, Block> mProcedureDefinitions = new SimpleArrayMap<>();
+    public static final String DEFINE_NO_RETURN_BLOCK_TYPE = "procedures_defnoreturn";
+    public static final String DEFINE_WITH_RETURN_BLOCK_TYPE = "procedures_defreturn";
+    public static final String CALL_NO_RETURN_BLOCK_TYPE = "procedures_callnoreturn";
+    public static final String CALL_WITH_RETURN_BLOCK_TYPE = "procedures_callreturn";
+
+    private final ArrayMap<String, List<Block>> mProcedureReferences = new ArrayMap<>();
+    private final ArrayMap<String, Block> mProcedureDefinitions = new ArrayMap<>();
     private final NameManager mProcedureNameManager = new NameManager.ProcedureNameManager();
 
+    private int mCountOfReferencesWithReturn = 0;
+
+    /**
+     * Determines if a block is procedure call.
+     * @param block The block in question.
+     * @return True, if the block type is a recognized type of procedure call.
+     */
+    public static boolean isReference(Block block) {
+        String type = block.getType();
+        return type.equals(CALL_NO_RETURN_BLOCK_TYPE)
+                || type.equals(CALL_WITH_RETURN_BLOCK_TYPE);
+    }
+
+    /**
+     * Determines if a block is procedure definition.
+     * @param block The block in question.
+     * @return True, if the block type is a recognized type of procedure definition.
+     */
+    public static boolean isDefinition(Block block) {
+        String type = block.getType();
+        return type.equals(DEFINE_NO_RETURN_BLOCK_TYPE)
+                || type.equals(DEFINE_WITH_RETURN_BLOCK_TYPE);
+    }
+
+    public Map<String, Block> getDefinitionBlocks() {
+        return Collections.unmodifiableMap(mProcedureDefinitions);
+    }
 
     public List<Block> getReferences(String functionName) {
         return mProcedureReferences.get(functionName);
@@ -58,6 +94,7 @@ public class ProcedureManager {
         mProcedureDefinitions.clear();
         mProcedureReferences.clear();
         mProcedureNameManager.clearUsedNames();
+        mCountOfReferencesWithReturn = 0;
     }
 
     /**
@@ -71,6 +108,9 @@ public class ProcedureManager {
         String procedureName = getProcedureName(block);
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).add(block);
+            if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
+                ++mCountOfReferencesWithReturn;
+            }
         } else {
             throw new IllegalStateException(
                     "Tried to add a reference to a procedure that has not been defined.");
@@ -88,6 +128,10 @@ public class ProcedureManager {
         String procedureName = getProcedureName(block);
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).remove(block);
+            if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
+                --mCountOfReferencesWithReturn;
+                assert (mCountOfReferencesWithReturn >= 0);
+            }
         } else {
             throw new IllegalStateException(
                     "Tried to remove a procedure reference that was not in the list of references");
@@ -137,18 +181,18 @@ public class ProcedureManager {
         }
     }
 
-    public static boolean isReference(Block block) {
-        return block.getType().startsWith(PROCEDURE_REFERENCE_PREFIX);
+    public boolean hasReferenceWithReturn() {
+        return mCountOfReferencesWithReturn > 0;
     }
 
-    public static boolean isDefinition(Block block) {
-        return block.getType().startsWith(PROCEDURE_DEFINITION_PREFIX);
-    }
-
+    // TODO: Better checking errors if the block is not a procedure definition,
+    //       since this is called from so many public methods.
     private static String getProcedureName(Block block) {
-        Field nameField = block.getFieldByName("name");
-        if (nameField != null) {
+        Field nameField = block.getFieldByName(PROCEDURE_NAME_FIELD);
+        if (nameField instanceof FieldInput) {  // Function definition
             return ((FieldInput) nameField).getText();
+        } else if (nameField instanceof FieldLabel) {  // Function call
+                return ((FieldLabel) nameField).getText();
         } else {
             throw new IllegalArgumentException(
                     "Procedure definition block with no procedure name.");
@@ -156,7 +200,7 @@ public class ProcedureManager {
     }
 
     private static void setProcedureName(Block block, String newName) {
-        Field nameField = block.getFieldByName("name");
+        Field nameField = block.getFieldByName(PROCEDURE_NAME_FIELD);
         if (nameField != null) {
             ((FieldInput) nameField).setText(newName);
         } else {

@@ -49,4 +49,6 @@
     <string name="mutator_if_else_then_label">do</string>
     <string name="mutator_if_else_else_label">else</string>
     <string name="mutator_done">Done</string>
+
+    <string name="blockly_default_function_name">Do something</string>
 </resources>
