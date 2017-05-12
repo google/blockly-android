@@ -48,11 +48,42 @@ import java.util.List;
  * parsers and serializers as needed.
  */
 public final class BlocklyXmlHelper {
+    public interface XmlContentWriter {
+        void write(XmlSerializer serializer) throws IOException;
+    }
+
     private static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
     private static final XmlPullParserFactory PARSER_FACTORY = createParseFactory();
 
+    // Do Not Instantiate
+    private BlocklyXmlHelper() {}
 
-    private BlocklyXmlHelper() {
+    public static String writeXml(XmlContentWriter contentWriter) throws IOException {
+        StringWriter sw = new StringWriter();
+        writeXml(sw, contentWriter);
+        return sw.toString();
+    }
+
+    public static void writeXml(Writer output, XmlContentWriter writer) throws IOException {
+        try {
+            XmlSerializer serializer = PARSER_FACTORY.newSerializer();
+            serializer.setOutput(output);
+            writer.write(serializer);
+            serializer.flush();
+        } catch (XmlPullParserException e) {
+            throw new IllegalStateException("Unable to construct XmlSerilaizer");
+        }
+    }
+
+    public static void writeXml(OutputStream output, XmlContentWriter writer) throws IOException {
+        try {
+            XmlSerializer serializer = PARSER_FACTORY.newSerializer();
+            serializer.setOutput(output, /* Encoding = default */ null );
+            writer.write(serializer);
+            serializer.flush();
+        } catch (XmlPullParserException e) {
+            throw new IllegalStateException("Unable to construct XmlSerilaizer");
+        }
     }
 
     /**
@@ -198,29 +229,31 @@ public final class BlocklyXmlHelper {
      *
      * @throws BlocklySerializerException
      */
-    public static void writeToXmlImpl(@NonNull List<Block> toSerialize, @Nullable OutputStream os,
-                                      @Nullable Writer writer, @Nullable IOOptions options)
+    public static void writeToXmlImpl(final @NonNull List<Block> toSerialize,
+                                      @Nullable OutputStream os, @Nullable Writer writer,
+                                      @Nullable IOOptions options)
             throws BlocklySerializerException {
-        if (options == null) {
-            options = IOOptions.WRITE_ALL_DATA;
-        }
-        try {
-            XmlSerializer serializer = PARSER_FACTORY.newSerializer();
-            if (os != null) {
-                serializer.setOutput(os, null);
-            } else {
-                serializer.setOutput(writer);
-            }
-            serializer.setPrefix("", XML_NAMESPACE);
-            serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+        final IOOptions finalOptions = options == null ? IOOptions.WRITE_ALL_DATA : options;
+        XmlContentWriter contentWriter = new XmlContentWriter() {
+            @Override
+            public void write(XmlSerializer serializer) throws IOException {
+                serializer.setPrefix("", XML_NAMESPACE);
+                serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
 
-            serializer.startTag(XML_NAMESPACE, "xml");
-            for (int i = 0; i < toSerialize.size(); i++) {
-                toSerialize.get(i).serialize(serializer, true, options);
+                serializer.startTag(XML_NAMESPACE, "xml");
+                for (int i = 0; i < toSerialize.size(); i++) {
+                    toSerialize.get(i).serialize(serializer, true, finalOptions);
+                }
+                serializer.endTag(XML_NAMESPACE, "xml");
             }
-            serializer.endTag(XML_NAMESPACE, "xml");
-            serializer.flush();
-        } catch (XmlPullParserException | IOException e) {
+        };
+        try {
+            if (os != null) {
+                writeXml(os, contentWriter);
+            } else {
+                writeXml(writer, contentWriter);
+            }
+        } catch (IOException e) {
             throw new BlocklySerializerException(e);
         }
     }

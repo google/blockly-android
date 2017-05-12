@@ -8,16 +8,20 @@ import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.mutator.IfElseMutatorFragment;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldLabel;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
+import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.BlocklyXmlHelper;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +45,27 @@ public class IfElseMutator extends Mutator {
             return new IfElseMutator(this, controller.getContext(), controller);
         }
     };
+
+    /**
+     * Writes an XML mutation string for the provided values.
+     *
+     * @param elseIfCount The count of {@code else if <test> <statement>} sections.
+     * @param hasElseStatement Whether the mutation should include a separate else statement.
+     * @return Serialized XML {@code <mutation>} tag, encoding the values.
+     */
+    public static String writeMutationString(
+            final int elseIfCount, final boolean hasElseStatement) {
+        try {
+            return BlocklyXmlHelper.writeXml(new BlocklyXmlHelper.XmlContentWriter() {
+                @Override
+                public void write(XmlSerializer serializer) throws IOException {
+                    serializeImpl(serializer, elseIfCount, hasElseStatement);
+                }
+            });
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to write mutation string.", e);
+        }
+    }
 
     private static final String ELSE_INPUT_NAME = "ELSE";
     private static final String IF_INPUT_PREFIX = "IF";
@@ -88,12 +113,7 @@ public class IfElseMutator extends Mutator {
 
     @Override
     public void serialize(XmlSerializer serializer) throws IOException {
-        if (mElseIfCount == 0 && !hasElse()) {
-            return;
-        }
-        serializer.startTag(null, "mutation").attribute(null, "elseif",
-                String.valueOf(mElseIfCount)).attribute(null, "else", mElseStatement ? "1" : "0");
-        serializer.endTag(null, "mutation");
+        IfElseMutator.serializeImpl(serializer, mElseIfCount, mElseStatement);
     }
 
     @Override
@@ -113,7 +133,7 @@ public class IfElseMutator extends Mutator {
         if (TextUtils.equals("1", elseValue)) {
             hasElse = true;
         }
-        update(elseIfCount, hasElse);
+        updateImpl(elseIfCount, hasElse);
     }
 
     /**
@@ -137,13 +157,12 @@ public class IfElseMutator extends Mutator {
      * @param hasElse True if this block should have a final else statement.
      */
     public void update(final int elseIfCount, final boolean hasElse) {
-
-        mController.groupAndFireEvents(new Runnable() {
-            @Override
-            public void run() {
-                updateImpl(elseIfCount, hasElse);
-            }
-        });
+        String mutation = writeMutationString(elseIfCount, hasElse);
+        try {
+            mBlock.setMutation(mutation);
+        } catch (BlockLoadingException e) {
+            throw new IllegalStateException("Failed to update from new mutation XML.", e);
+        }
     }
 
     /**
@@ -219,5 +238,16 @@ public class IfElseMutator extends Mutator {
 
         mElseIfCount = elseIfCount;
         mElseStatement = hasElse;
+    }
+
+    private static void serializeImpl(
+            XmlSerializer serializer, int elseIfCount, boolean hasElseStatement)
+            throws IOException {
+        if (elseIfCount == 0 && !hasElseStatement) {
+            return;
+        }
+        serializer.startTag(null, "mutation").attribute(null, "elseif",
+                String.valueOf(elseIfCount)).attribute(null, "else", hasElseStatement ? "1" : "0");
+        serializer.endTag(null, "mutation");
     }
 }
