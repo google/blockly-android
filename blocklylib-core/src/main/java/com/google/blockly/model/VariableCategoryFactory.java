@@ -76,6 +76,13 @@ public final class VariableCategoryFactory extends CategoryFactory {
     }
 
     private void rebuildItems(BlocklyCategory category) {
+        for (BlocklyCategory.CategoryItem item : category.getItems()) {
+            if (item.getType() == BlocklyCategory.CategoryItem.TYPE_BLOCK) {
+                // Clean up the old views
+                BlocklyCategory.BlockItem blockItem = (BlocklyCategory.BlockItem) item;
+                mController.unlinkViews(blockItem.getBlock());
+            }
+        }
         category.clear();
         category.addItem(new BlocklyCategory.ButtonItem(
                 mContext.getString(R.string.create_variable), ACTION_CREATE_VARIABLE));
@@ -83,23 +90,25 @@ public final class VariableCategoryFactory extends CategoryFactory {
         if (variables.size() == 0) {
             return;
         }
+        ArrayList<String> varNames = new ArrayList<>(variables.size());
+        for (int i = 0; i < variables.size(); i++) {
+            varNames.add(variables.keyAt(i));
+        }
+        Collections.sort(varNames);
         try {
             Block setter = mBlockFactory.obtainBlockFrom(SET_VAR_TEMPLATE);
+            setter.getFieldByName(GET_VAR_FIELD).setFromString(varNames.get(0));
             category.addItem(new BlocklyCategory.BlockItem(setter));
         } catch (BlockLoadingException e) {
             Log.e(TAG, "Fail to obtain \"" + SET_VAR_TEMPLATE.mTypeName + "\" block.");
         }
         try {
             Block changer = mBlockFactory.obtainBlockFrom(CHANGE_VAR_TEMPLATE);
+            changer.getFieldByName(GET_VAR_FIELD).setFromString(varNames.get(0));
             category.addItem(new BlocklyCategory.BlockItem(changer));
         } catch (BlockLoadingException e) {
             Log.e(TAG, "Fail to obtain \"" + CHANGE_VAR_TEMPLATE.mTypeName + "\" block.");
         }
-        ArrayList<String> varNames = new ArrayList<>(variables.size());
-        for (int i = 0; i < variables.size(); i++) {
-            varNames.add(variables.keyAt(i));
-        }
-        Collections.sort(varNames);
 
         try {
             for (int i = 0; i < varNames.size(); i++) {
