@@ -83,6 +83,20 @@ public class IfElseMutator extends Mutator {
     private String mThenLabel;
     private String mElseLabel;
 
+    public static String writeMutationString(
+            final int elseIfCount, final boolean hasElseStatement) {
+        try {
+            return BlocklyXmlHelper.writeXml(new BlocklyXmlHelper.XmlContentWriter() {
+                @Override
+                public void write(XmlSerializer serializer) throws IOException {
+                    serializeImpl(serializer, elseIfCount, hasElseStatement);
+                }
+            });
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to write mutation string.", e);
+        }
+    }
+
     /**
      * Create a new mutator for the given context and controller.
      *
