@@ -331,10 +331,12 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     /**
      *
      * Returns true if the app should proceed to restore the blockly state from the
-     * {@code savedInstanceState} Bundle. By default, it always returns true, but Activity
-     * developers can override this method to add conditional logic.
+     * {@code savedInstanceState} Bundle or the {@link #onAutoload() auto save} file. By default, it
+     * always returns true, but Activity developers can override this method to add conditional
+     * logic.
      * <p/>
-     * This does not prevent the state from saving to a Bundle during {@link #onSaveInstanceState}.
+     * This does not prevent the state from saving to a Bundle during {@link #onSaveInstanceState}
+     * or saving to a file in {@link #onAutosave()}.
      *
      * @param savedInstanceState The Bundle to restore state from.
      * @return True if Blockly state should be restored. Otherwise, null.
