@@ -41,6 +41,7 @@ public class CodeGeneratorServiceTest extends BlocklyTestCase {
     private BlocklyController mMockController;
     private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private CodeGeneratorManager mManager;
+    private BlocklyTestActivity mActivity;
 
     @Rule
     public final ActivityTestRule<BlocklyTestActivity> mActivityRule =
@@ -53,11 +54,12 @@ public class CodeGeneratorServiceTest extends BlocklyTestCase {
 
         configureForUIThread();
 
+        mActivity = mActivityRule.getActivity();
         // TODO(#435): Replace R.raw.test_blocks
-        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
-                new int[]{R.raw.test_blocks});
+        mBlockFactory = new BlockFactory();
+        mBlockFactory.addJsonDefinitions(mActivity.getAssets().open("default/test_blocks.json"));
         mBlockFactory.setController(mMockController);
-        mManager = new CodeGeneratorManager(mActivityRule.getActivity());
+        mManager = new CodeGeneratorManager(mActivity);
         mManager.onResume();
     }
 

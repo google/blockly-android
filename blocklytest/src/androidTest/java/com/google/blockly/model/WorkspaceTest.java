@@ -57,7 +57,7 @@ public class WorkspaceTest extends BlocklyTestCase {
         configureForUIThread();
         Context context = InstrumentationRegistry.getContext();
         BlocklyController.Builder builder = new BlocklyController.Builder(context);
-        builder.addBlockDefinitions(R.raw.test_blocks);
+        builder.addBlockDefinitionsFromAsset("default/test_blocks.json");
         BlocklyController controller = builder.build();
         mWorkspace = controller.getWorkspace();
     }

@@ -53,8 +53,9 @@ public class VerticalBlockViewFactoryTest extends BlocklyTestCase {
         mMockController = Mockito.mock(BlocklyController.class);
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mMockConnectionManager = mock(ConnectionManager.class);
-        // TODO(#435): Replace R.raw.test_blocks
-        mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
+        mBlockFactory = new BlockFactory();
+        mBlockFactory.addJsonDefinitions(getContext().getAssets()
+                .open("default/test_blocks.json"));
         mBlockFactory.setController(mMockController);
         mViewFactory = new VerticalBlockViewFactory(getContext(), mMockWorkspaceHelper);
         mBlockGroup = mViewFactory.buildBlockGroup();

@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,12 +45,13 @@ public class ConnectionManagerTest {
     private ConnectionManager manager;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException, BlockLoadingException {
         mMockController = Mockito.mock(BlocklyController.class);
 
-        factory = new BlockFactory(
-                InstrumentationRegistry.getTargetContext(),
-                new int[] {R.raw.test_blocks});
+        factory = new BlockFactory();
+
+        factory.addJsonDefinitions(InstrumentationRegistry.getTargetContext().getAssets()
+                .open("default/test_blocks.json"));
         factory.setController(mMockController);
         manager = new ConnectionManager();
     }
