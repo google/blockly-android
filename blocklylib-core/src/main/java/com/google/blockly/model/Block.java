@@ -1125,7 +1125,7 @@ public class Block extends Observable<Block.Observer> {
             throw new IllegalStateException("Cannot change mutators on a block.");
         }
         mMutator = mutator;
-        mutator.onAttached(this);
+        mutator.attachToBlock(this);
     }
 
     /**
@@ -1355,6 +1355,15 @@ public class Block extends Observable<Block.Observer> {
             }
         }
         return false;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (mMutator != null) {
+            mMutator.detachFromBlock();
+            mMutator = null;
+        }
+        super.finalize();
     }
 
     /**

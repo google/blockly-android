@@ -14,9 +14,11 @@
  */
 package com.google.blockly.model;
 
+import com.google.blockly.utils.BlockLoadingException;
+
 /**
  * Class for returning a BlocklyCategory of a specific type.
  */
 public abstract class CategoryFactory {
-    public abstract BlocklyCategory obtainCategory(String customType);
+    public abstract BlocklyCategory obtainCategory(String customType) throws BlockLoadingException;
 }

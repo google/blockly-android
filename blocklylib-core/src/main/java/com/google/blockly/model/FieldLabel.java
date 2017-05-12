@@ -54,9 +54,10 @@ public final class FieldLabel extends Field {
      * should not be caused by user input. For user editable text fields use
      * {@link FieldInput} instead.
      */
-    public void setText(String text) {
-        if (!TextUtils.equals(text, mText)) {
-            mText = text;
+    public void setText(String newValue) {
+        if (!TextUtils.equals(newValue, mText)) {
+            mText = newValue;
+            // TODO: Notify view without triggering ChangeEvent.
         }
     }
 

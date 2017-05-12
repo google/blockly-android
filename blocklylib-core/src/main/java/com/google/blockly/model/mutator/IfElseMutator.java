@@ -30,6 +30,18 @@ public class IfElseMutator extends Mutator {
     public static final String TAG = "IfElseMutator";
     public static final String MUTATOR_ID = "controls_if_mutator";
 
+    public static final Mutator.Factory FACTORY = new Mutator.Factory<IfElseMutator>() {
+        @Override
+        public String getMutatorId() {
+            return MUTATOR_ID;
+        }
+
+        @Override
+        public IfElseMutator newMutator(BlocklyController controller) {
+            return new IfElseMutator(this, controller.getContext(), controller);
+        }
+    };
+
     private static final String ELSE_INPUT_NAME = "ELSE";
     private static final String IF_INPUT_PREFIX = "IF";
     private static final String DO_INPUT_PREFIX = "DO";
@@ -207,18 +219,5 @@ public class IfElseMutator extends Mutator {
 
         mElseIfCount = elseIfCount;
         mElseStatement = hasElse;
-    }
-
-    public static class Factory implements Mutator.Factory<IfElseMutator> {
-
-        @Override
-        public IfElseMutator newMutator(BlocklyController controller) {
-            return new IfElseMutator(this, controller.getContext(), controller);
-        }
-
-        @Override
-        public String getMutatorId() {
-            return MUTATOR_ID;
-        }
     }
 }

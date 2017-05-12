@@ -35,16 +35,7 @@ import java.util.List;
 public class BlocklyTestActivity extends AbstractBlocklyActivity {
     private static final String TAG = "BlocklyTestActivity";
 
-    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(new String[]{
-            "default/colour_blocks.json",
-            "default/list_blocks.json",
-            "default/logic_blocks.json",
-            "default/loop_blocks.json",
-            "default/math_blocks.json",
-            "default/text_blocks.json",
-            "default/variable_blocks.json",
-            "default/test_blocks.json"
-    });
+    private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
 
     private static final List<String> BLOCK_GENERATORS = Arrays.asList(new String[] {
             "fake/generator.js"
