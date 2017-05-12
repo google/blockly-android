@@ -46,6 +46,27 @@ public class IfElseMutator extends Mutator {
         }
     };
 
+    /**
+     * Writes an XML mutation string for the provided values.
+     *
+     * @param elseIfCount The count of {@code else if <test> <statement>} sections.
+     * @param hasElseStatement Whether the mutation should include a separate else statement.
+     * @return Serialized XML {@code <mutation>} tag, encoding the values.
+     */
+    public static String writeMutationString(
+            final int elseIfCount, final boolean hasElseStatement) {
+        try {
+            return BlocklyXmlHelper.writeXml(new BlocklyXmlHelper.XmlContentWriter() {
+                @Override
+                public void write(XmlSerializer serializer) throws IOException {
+                    serializeImpl(serializer, elseIfCount, hasElseStatement);
+                }
+            });
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to write mutation string.", e);
+        }
+    }
+
     private static final String ELSE_INPUT_NAME = "ELSE";
     private static final String IF_INPUT_PREFIX = "IF";
     private static final String DO_INPUT_PREFIX = "DO";
@@ -61,20 +82,6 @@ public class IfElseMutator extends Mutator {
     private String mIfLabel;
     private String mThenLabel;
     private String mElseLabel;
-
-    public static String writeMutationString(
-            final int elseIfCount, final boolean hasElseStatement) {
-        try {
-            return BlocklyXmlHelper.writeXml(new BlocklyXmlHelper.XmlContentWriter() {
-                @Override
-                public void write(XmlSerializer serializer) throws IOException {
-                    serializeImpl(serializer, elseIfCount, hasElseStatement);
-                }
-            });
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to write mutation string.", e);
-        }
-    }
 
     /**
      * Create a new mutator for the given context and controller.
