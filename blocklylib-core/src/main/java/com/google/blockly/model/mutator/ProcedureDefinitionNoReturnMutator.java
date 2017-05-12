@@ -23,13 +23,15 @@ public class ProcedureDefinitionNoReturnMutator extends AbstractProcedureMutator
                 }
 
                 @Override
-                public ProcedureDefinitionNoReturnMutator newMutator(BlocklyController controller) {
+                public ProcedureDefinitionNoReturnMutator newMutator(
+                        BlocklyController controller) {
                     return new ProcedureDefinitionNoReturnMutator(this, controller);
                 }
             };
 
 
-    public ProcedureDefinitionNoReturnMutator(Mutator.Factory factory, BlocklyController controller) {
+    public ProcedureDefinitionNoReturnMutator(
+            Mutator.Factory factory, BlocklyController controller) {
         super(factory, controller);
     }
 

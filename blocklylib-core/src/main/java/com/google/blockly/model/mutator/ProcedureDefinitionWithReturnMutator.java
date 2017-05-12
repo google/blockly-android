@@ -22,7 +22,8 @@ public class ProcedureDefinitionWithReturnMutator extends AbstractProcedureMutat
                 }
 
                 @Override
-                public ProcedureDefinitionWithReturnMutator newMutator(BlocklyController controller) {
+                public ProcedureDefinitionWithReturnMutator newMutator(
+                        BlocklyController controller) {
                     return new ProcedureDefinitionWithReturnMutator(this, controller);
                 }
             };

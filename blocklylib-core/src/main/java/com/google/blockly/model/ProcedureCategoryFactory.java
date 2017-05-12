@@ -17,7 +17,7 @@ import java.util.TreeSet;
 public class ProcedureCategoryFactory extends CategoryFactory {
     private static final String TAG = "ProcedureCategoryFactor";  // 23 chars max
 
-    private static final String NAME = "NAME"; // Field for procedure name.
+    private static final String NAME = ProcedureManager.PROCEDURE_NAME_FIELD;
 
     private static final BlockTemplate DEFINE_NO_RETURN_BLOCK_TEMPLATE =
             new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE);

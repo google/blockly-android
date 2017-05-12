@@ -21,22 +21,22 @@ import java.util.List;
  * of the mutation state variables and related I/O.
  */
 class AbstractProcedureMutator extends Mutator {
-    protected BlocklyController mController;
-    protected ProcedureManager mProcedureManager;
+    protected final BlocklyController mController;
+    protected final ProcedureManager mProcedureManager;
 
     protected String mProcedureName;
     protected List<String> mArguments;
 
     protected AbstractProcedureMutator(Mutator.Factory factory, BlocklyController controller) {
         super(factory);
+        mController = controller;
+        mProcedureManager = mController.getWorkspace().getProcedureManager();
     }
 
     @Override
     protected void onAttached(Block block) {
         super.onAttached(block);
-        this.mController = block.getController();
-        this.mProcedureManager = mController.getWorkspace().getProcedureManager();
-        Field nameField = block.getFieldByName("NAME");
+        Field nameField = block.getFieldByName(ProcedureManager.PROCEDURE_NAME_FIELD);
         if (nameField instanceof FieldInput) {
             mProcedureName = ((FieldInput) nameField).getText();
         } else {

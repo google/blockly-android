@@ -33,6 +33,8 @@ import java.util.Map;
  * Manages procedure definitions, references and names.
  */
 public class ProcedureManager {
+    public static final String PROCEDURE_NAME_FIELD = "NAME";
+
     public static final String DEFINE_NO_RETURN_BLOCK_TYPE = "procedures_defnoreturn";
     public static final String DEFINE_WITH_RETURN_BLOCK_TYPE = "procedures_defreturn";
     public static final String CALL_NO_RETURN_BLOCK_TYPE = "procedures_callnoreturn";
@@ -186,7 +188,7 @@ public class ProcedureManager {
     // TODO: Better checking errors if the block is not a procedure definition,
     //       since this is called from so many public methods.
     private static String getProcedureName(Block block) {
-        Field nameField = block.getFieldByName("name");
+        Field nameField = block.getFieldByName(PROCEDURE_NAME_FIELD);
         if (nameField instanceof FieldInput) {  // Function definition
             return ((FieldInput) nameField).getText();
         } else if (nameField instanceof FieldLabel) {  // Function call
@@ -198,7 +200,7 @@ public class ProcedureManager {
     }
 
     private static void setProcedureName(Block block, String newName) {
-        Field nameField = block.getFieldByName("name");
+        Field nameField = block.getFieldByName(PROCEDURE_NAME_FIELD);
         if (nameField != null) {
             ((FieldInput) nameField).setText(newName);
         } else {

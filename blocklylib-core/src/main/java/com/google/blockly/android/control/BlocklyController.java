@@ -1847,11 +1847,12 @@ public class BlocklyController {
          * Sets the ui used for the toolbox, including the flyout with blocks and the
          * category tabs.
          * <p/>
-         * Warning: It is possible this toolbox will be loaded during {@link Builder#build()},
-         * before the application has a chance to register any {@link Mutator}s or
-         * {@link BlockExtension}s. Make sure, if use this convenience {@code Builder} method, the
-         * referenced blocks do not depend upon such features. Otherwise, set the toolbox later by
-         * calling {@link BlocklyController#setToolboxUi} on the controller, post construction.
+         * <strong>Warning:</strong> It is possible this toolbox will be loaded during
+         * {@link Builder#build()}, before the application has a chance to register any
+         * {@link Mutator}s or {@link BlockExtension}s. Make sure, if using this convenience
+         * {@code Builder} method, the referenced blocks do not depend upon such features.
+         * Otherwise, set the toolbox later by calling {@link BlocklyController#setToolboxUi} on the
+         * controller, post construction.
          *
          * @param toolbox The {@link BlockListUI} to use to display blocks in the current
          *                category.
