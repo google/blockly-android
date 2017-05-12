@@ -61,7 +61,7 @@ public class BlockTest extends BlocklyTestCase {
 
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
         mController = new BlocklyController.Builder(getContext())
-                .addBlockDefinitions(R.raw.test_blocks)  // TODO(#435): Replace R.raw.test_blocks
+                .addBlockDefinitionsFromAsset("default/test_blocks.json")
                 .build();
         mBlockFactory = mController.getBlockFactory();
     }

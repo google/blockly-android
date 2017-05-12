@@ -61,7 +61,7 @@ public class BlockFactoryTest extends BlocklyTestCase {
 
         xmlPullParserFactory = XmlPullParserFactory.newInstance();
         mController = new BlocklyController.Builder(getContext())
-                .addBlockDefinitions(R.raw.test_blocks) // TODO(#84): Move test_blocks.json out of res/
+                .addBlockDefinitionsFromAsset("default/test_blocks.json")
                 .build();
         mBlockFactory = mController.getBlockFactory();
     }
@@ -83,7 +83,7 @@ public class BlockFactoryTest extends BlocklyTestCase {
     public void testLoadBlocks() {
         List<BlockDefinition> definitions = mBlockFactory.getAllBlockDefinitions();
         assertWithMessage("BlockFactory failed to load all blocks.")
-                .that(definitions.size()).isEqualTo(24);
+                .that(definitions.size()).isEqualTo(26);
     }
 
     @Test

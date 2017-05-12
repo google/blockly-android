@@ -53,10 +53,12 @@ public class AbstractBlockViewTest extends BlocklyTestCase {
         mMockHelper = mock(WorkspaceHelper.class);
         mMockViewFactory = mock(BlockViewFactory.class);
 
-        // TODO(#435): Replace R.raw.test_blocks
-        BlockFactory mBlockFactory = new BlockFactory(getContext(), new int[]{R.raw.test_blocks});
-        mBlockFactory.setController(mMockController);
-        mEmptyBlock = mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("empty_block"));
+        BlockFactory factory = new BlockFactory();
+
+        factory.addJsonDefinitions(getContext().getAssets()
+                .open("default/test_blocks.json"));
+        factory.setController(mMockController);
+        mEmptyBlock = factory.obtainBlockFrom(new BlockTemplate().ofType("empty_block"));
     }
 
     // Verify correct object state after construction.

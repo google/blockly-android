@@ -42,8 +42,9 @@ public class BlocklyEventTest extends BlocklyTestCase {
 
         mMockController = Mockito.mock(BlocklyController.class);
 
-        mBlockFactory = new BlockFactory(getContext(),
-                new int[]{R.raw.test_blocks});  // TODO(#435): Replace R.raw.test_blocks
+        mBlockFactory = new BlockFactory();
+        mBlockFactory.addJsonDefinitions(getContext().getAssets()
+                .open("default/test_blocks.json"));
         mBlockFactory.setController(mMockController);
         mBlock = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType(BLOCK_TYPE).withId(BLOCK_ID));
