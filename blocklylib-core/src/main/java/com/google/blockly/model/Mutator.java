@@ -40,6 +40,9 @@ import java.util.Map;
  * extensions and mutators</a>.
  */
 public abstract class Mutator {
+    /** The tag name for the XML element when serializing and updating Mutators. */
+    public static final String TAG_MUTATION = "mutation";
+
     /**
      * The factory class for this type of mutator.
      * @param <T> The type of Mutator constructed.

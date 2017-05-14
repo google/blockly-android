@@ -130,7 +130,7 @@ public class IfElseMutatorFragment extends MutatorFragment {
     }
 
     private void finishMutation() {
-        mMutator.update(mElseIfCount, mHasElse);
+        mMutator.mutate(mElseIfCount, mHasElse);
         dismiss();
     }
 

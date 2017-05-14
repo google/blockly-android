@@ -72,7 +72,7 @@ public class IfElseMutatorTest extends BlocklyTestCase {
                 os.reset();
 
                 String xml = "<mutation elseif=\"3\" else=\"1\" />";
-                mutator.update(3, true);
+                mutator.mutate(3, true);
                 try {
                     mutator.serialize(serializer);
                     serializer.flush();
@@ -157,7 +157,7 @@ public class IfElseMutatorTest extends BlocklyTestCase {
                 assertThat(mBlock.getInputByName("DO1")).isNull();
                 assertThat(mBlock.getInputByName("ELSE")).isNull();
 
-                mutator.update(2, true);
+                mutator.mutate(2, true);
 
                 for (int i = 0; i <= 2; i++) {
                     assertThat(mBlock.getInputByName("IF" + i)).isNotNull();
@@ -167,7 +167,7 @@ public class IfElseMutatorTest extends BlocklyTestCase {
                 assertThat(mBlock.getInputByName("IF3")).isNull();
                 assertThat(mBlock.getInputByName("DO3")).isNull();
 
-                mutator.update(1, false);
+                mutator.mutate(1, false);
                 for (int i = 0; i <= 1; i++) {
                     assertThat(mBlock.getInputByName("IF" + i)).isNotNull();
                     assertThat(mBlock.getInputByName("DO" + i)).isNotNull();
