@@ -12,7 +12,7 @@ import java.io.IOException;
  * This mutator supports user-defined function calls that return a value
  * ({@code procedures_callreturn} blocks).
  */
-public class ProcedureCallWithReturnMutator extends AbstractProcedureMutator {
+public class ProcedureCallWithReturnMutator extends ProcedureCallMutator {
     public static final String MUTATOR_ID = "procedures_callreturn_mutator";
     public static final Factory<ProcedureCallWithReturnMutator> FACTORY =
             new Factory<ProcedureCallWithReturnMutator>() {
@@ -33,10 +33,7 @@ public class ProcedureCallWithReturnMutator extends AbstractProcedureMutator {
     }
 
     @Override
-    public void update(XmlPullParser parser)
-            throws BlockLoadingException, IOException, XmlPullParserException {
-        super.update(parser);
+    protected void updateBlock() {
 
-        // TODO: Reshape mBlock
     }
 }
