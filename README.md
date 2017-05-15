@@ -27,5 +27,5 @@ Want to contribute? Great! First, read [our guidelines for contributors][7].
 [3]: https://developer.google.com/blockly/guides/get-started/android "Blockly for Android developer tutorial"
 [4]: https://github.com/google/blockly-android/blob/master/COPYING "Apache open source license, version 2.0"
 [5]: https://groups.google.com/forum/#!forum/blockly "Blockly developer forum"
-[6]: https://goo.gl/forms/kZTsO9wGLmpoPXC02 "Blockly developer registration form"
+[6]: https://developers.google.com/blockly/registration "Blockly developer registration form"
 [7]: https://github.com/google/blockly-android/blob/master/CONTRIBUTING "Contributor guidelines"
