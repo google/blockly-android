@@ -2,8 +2,7 @@ package com.google.blockly.model.mutator;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ProcedureManager;
-import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldLabel;
+import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
@@ -15,7 +14,6 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,6 +24,7 @@ import java.util.List;
 abstract class AbstractProcedureMutator extends Mutator {
     private static final String TAG = "AbstractProcedureMutator";
 
+    // Xml strings
     private static final String ATTR_STATEMENTS = "statements";
     private static final String TAG_ARG = "arg";
     private static final String ATTR_ARG_NAME = "name";
@@ -95,10 +94,15 @@ abstract class AbstractProcedureMutator extends Mutator {
         updateBlock();
     }
 
+    @Override
+    protected void onAttached(Block block) {
+        updateBlock();
+    }
+
     protected void parserMutationXml(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
         List<String> argNames = new ArrayList<>();
-        boolean hasStatementInput = false;
+        boolean hasStatementInput = true;
 
         int tokenType = parser.next();
         if (tokenType != XmlPullParser.END_DOCUMENT) {
@@ -144,7 +148,11 @@ abstract class AbstractProcedureMutator extends Mutator {
     /**
      * Applies the mutation to {@code mBlock}.
      */
-    protected abstract void updateBlock();
+    protected void updateBlock() {
+        mBlock.reshape(buildUpdatedInputs());
+    }
+
+    protected abstract List<Input> buildUpdatedInputs();
 
     protected String getArgumentListDescription() {
         StringBuilder sb = new StringBuilder();

@@ -8,10 +8,8 @@ import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.android.ui.mutator.IfElseMutatorFragment;
 import com.google.blockly.model.mutator.IfElseMutator;
 import com.google.blockly.model.mutator.MathIsDivisibleByMutator;
-import com.google.blockly.model.mutator.ProcedureCallNoReturnMutator;
-import com.google.blockly.model.mutator.ProcedureCallWithReturnMutator;
-import com.google.blockly.model.mutator.ProcedureDefinitionNoReturnMutator;
-import com.google.blockly.model.mutator.ProcedureDefinitionWithReturnMutator;
+import com.google.blockly.model.mutator.ProcedureCallMutator;
+import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import com.google.blockly.model.mutator.ProceduresIfReturnMutator;
 
 import java.util.Arrays;
@@ -104,10 +102,10 @@ public final class DefaultBlocks {
             Mutator.Factory[] factories = {
                 IfElseMutator.FACTORY,
                 MathIsDivisibleByMutator.FACTORY,
-                ProcedureCallNoReturnMutator.FACTORY,
-                ProcedureCallWithReturnMutator.FACTORY,
-                ProcedureDefinitionNoReturnMutator.FACTORY,
-                ProcedureDefinitionWithReturnMutator.FACTORY,
+                ProcedureCallMutator.CALLNORETURN_FACTORY,
+                ProcedureCallMutator.CALLRETURN_FACTORY,
+                ProcedureDefinitionMutator.DEFNORETURN_FACTORY,
+                ProcedureDefinitionMutator.DEFRETURN_FACTORY,
                 ProceduresIfReturnMutator.FACTORY
                 // TODO: Put other Mutator.Factorys
             };
