@@ -8,7 +8,6 @@ import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.mutator.IfElseMutatorFragment;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldLabel;
 import com.google.blockly.model.Input;
@@ -21,7 +20,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +73,6 @@ public class IfElseMutator extends Mutator {
 
     private final BlocklyController mController;
 
-    private Block mBlock;
     private int mElseIfCount = 0;
     private boolean mElseStatement = false;
 
@@ -103,12 +100,7 @@ public class IfElseMutator extends Mutator {
 
     @Override
     public void onAttached(Block block) {
-        mBlock = block;
-    }
-
-    @Override
-    public void onDetached(Block block) {
-        mBlock = null;
+        updateImpl(mElseIfCount, mElseStatement);
     }
 
     @Override
@@ -118,20 +110,24 @@ public class IfElseMutator extends Mutator {
 
     @Override
     public void update(XmlPullParser parser) throws IOException, XmlPullParserException {
-        parser.next();
-        String elseIfValue = parser.getAttributeValue(null, "elseif");
         int elseIfCount = 0;
         boolean hasElse = false;
-        if (!TextUtils.isEmpty(elseIfValue)) {
-            try {
-                elseIfCount = Integer.parseInt(elseIfValue);
-            } catch (NumberFormatException e) {
-                Log.e(TAG, "Error reading mutation elseif count.", e);
+
+        int tokenType = parser.next();
+        if (tokenType != XmlPullParser.END_DOCUMENT) {
+            parser.require(XmlPullParser.START_TAG, null, TAG_MUTATION);
+            String elseIfValue = parser.getAttributeValue(null, "elseif");
+            if (!TextUtils.isEmpty(elseIfValue)) {
+                try {
+                    elseIfCount = Integer.parseInt(elseIfValue);
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, "Error reading mutation elseif count.", e);
+                }
             }
-        }
-        String elseValue = parser.getAttributeValue(null, "else");
-        if (TextUtils.equals("1", elseValue)) {
-            hasElse = true;
+            String elseValue = parser.getAttributeValue(null, "else");
+            if (TextUtils.equals("1", elseValue)) {
+                hasElse = true;
+            }
         }
         updateImpl(elseIfCount, hasElse);
     }
@@ -151,17 +147,23 @@ public class IfElseMutator extends Mutator {
     }
 
     /**
-     * Updates the block's model to the given number of else if inputs and else input.
+     * Convenience method for invoking a mutation event programmatically, updating the Mutator with
+     * the provided values.
      *
      * @param elseIfCount The number of else if inputs for this block.
      * @param hasElse True if this block should have a final else statement.
      */
-    public void update(final int elseIfCount, final boolean hasElse) {
-        String mutation = writeMutationString(elseIfCount, hasElse);
-        try {
-            mBlock.setMutation(mutation);
-        } catch (BlockLoadingException e) {
-            throw new IllegalStateException("Failed to update from new mutation XML.", e);
+    public void mutate(int elseIfCount, boolean hasElse) {
+        if (mBlock != null) {
+            String mutation = writeMutationString(elseIfCount, hasElse);
+            try {
+                mBlock.setMutation(mutation);
+            } catch (BlockLoadingException e) {
+                throw new IllegalStateException("Failed to update from new mutation XML.", e);
+            }
+        } else {
+            mElseIfCount = elseIfCount;
+            mElseStatement = hasElse;
         }
     }
 
@@ -246,8 +248,9 @@ public class IfElseMutator extends Mutator {
         if (elseIfCount == 0 && !hasElseStatement) {
             return;
         }
-        serializer.startTag(null, "mutation").attribute(null, "elseif",
-                String.valueOf(elseIfCount)).attribute(null, "else", hasElseStatement ? "1" : "0");
+        serializer.startTag(null, "mutation")
+                .attribute(null, "elseif", String.valueOf(elseIfCount))
+                .attribute(null, "else", hasElseStatement ? "1" : "0");
         serializer.endTag(null, "mutation");
     }
 }

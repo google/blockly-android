@@ -451,7 +451,7 @@ public abstract class Input implements Cloneable {
         }
 
         public InputValue(@NonNull String name, @Nullable List<Field> fields, @Alignment int align,
-                          String[] checks) {
+                          @Nullable String[] checks) {
             super(name, TYPE_VALUE, fields, align,
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }

@@ -48,18 +48,32 @@ public class ProcedureManagerTest extends BlocklyTestCase {
 
     @Before
     public void setUp() throws Exception {
+        this.configureForUIThread();
+
         BlocklyController mController = new BlocklyController.Builder(getContext()).build();
         mFactory = mController.getBlockFactory();
         TestUtils.loadProcedureBlocks(mController);
         mProcedureManager = new ProcedureManager();
 
-        mProcedureDefinition = mFactory.obtainBlockFrom(
-                new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE));
-        ((FieldInput) mProcedureDefinition.getFieldByName("NAME")).setText(PROCEDURE_NAME);
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mProcedureDefinition = mFactory.obtainBlockFrom(
+                            new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE));
+                    ((FieldInput) mProcedureDefinition.getFieldByName("NAME"))
+                            .setText(PROCEDURE_NAME);
 
-        mProcedureReference = mFactory.obtainBlockFrom(
-                new BlockTemplate(ProcedureManager.CALL_NO_RETURN_BLOCK_TYPE));
-        ((FieldLabel) mProcedureReference.getFieldByName("NAME")).setText(PROCEDURE_NAME);
+                    mProcedureReference = mFactory.obtainBlockFrom(
+                            new BlockTemplate(ProcedureManager.CALL_NO_RETURN_BLOCK_TYPE)
+                                    .withMutation("<mutation name=\"" + PROCEDURE_NAME + "\"/>"));
+                    ((FieldLabel) mProcedureReference.getFieldByName("NAME"))
+                            .setText(PROCEDURE_NAME);
+                } catch (BlockLoadingException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
 
         assertThat(mProcedureDefinition).isNotNull();
         assertThat(mProcedureReference).isNotNull();

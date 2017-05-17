@@ -50,8 +50,7 @@ public class Workspace {
     private final NameManager mVariableNameManager = new NameManager.VariableNameManager();
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats mStats =
-            new WorkspaceStats(mVariableNameManager, mProcedureManager,
-                    mConnectionManager);
+            new WorkspaceStats(mVariableNameManager, mProcedureManager, mConnectionManager);
 
     private BlocklyCategory mFlyoutCategory;
     private BlocklyCategory mTrashCategory = new BlocklyCategory();
