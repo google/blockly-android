@@ -52,7 +52,7 @@ import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.CategoryFactory;
+import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
@@ -317,7 +317,7 @@ public class BlocklyController {
         mVariableCallback = variableCallback;
     }
 
-    public void registerCategoryFactory(String customCategoryName, CategoryFactory factory) {
+    public void registerCategoryFactory(String customCategoryName, CustomCategory factory) {
         // TODO: Alternative to the static map?
         BlocklyCategory.CATEGORY_FACTORIES.put(customCategoryName, factory);
     }

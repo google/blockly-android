@@ -55,7 +55,7 @@ abstract class AbstractProcedureMutator extends Mutator {
     protected final BlocklyController mController;
     protected final ProcedureManager mProcedureManager;
 
-    protected List<String> mArguments = Collections.EMPTY_LIST;
+    protected List<String> mArguments = Collections.emptyList();
     protected boolean mHasStatementInput = true;
 
     protected AbstractProcedureMutator(Mutator.Factory factory, BlocklyController controller) {

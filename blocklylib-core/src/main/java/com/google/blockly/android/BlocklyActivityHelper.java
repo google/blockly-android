@@ -42,7 +42,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.CategoryFactory;
+import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.Workspace;
@@ -349,17 +349,17 @@ public class BlocklyActivityHelper {
     }
 
     /**
-     * This method provides a hook to register custom {@link CategoryFactory}s that support
+     * This method provides a hook to register custom {@link CustomCategory}s that support
      * toolboxes in this activity. The default implementation registers
      * {@link DefaultBlocks#getToolboxCustomCategories the categories in DefaultBlocks}.
      * <p/>
      * Most subclasses will want to include these default custom categories, calling
      * {@code super.configureCategoryFactories()} if overridden. Category factories with the same
-     * {@code custom} key will replace existing {@link CategoryFactory}s, so it is safe to call
+     * {@code custom} key will replace existing {@link CustomCategory}s, so it is safe to call
      * super and then update specific categories.
      */
     public void configureCategoryFactories() {
-        Map <String, CategoryFactory> factoryMap =
+        Map <String, CustomCategory> factoryMap =
                 DefaultBlocks.getToolboxCustomCategories(mController);
         for (String key : factoryMap.keySet()) {
             mController.registerCategoryFactory(key, factoryMap.get(key));

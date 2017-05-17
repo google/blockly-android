@@ -14,7 +14,7 @@ import java.util.TreeSet;
  * Class for building {@link BlocklyCategory categories} for procedure blocks (user-defined
  * functions).
  */
-public class ProcedureCategoryFactory extends CategoryFactory {
+public class ProcedureCustomCategory implements CustomCategory {
     private static final String TAG = "ProcedureCategoryFactor";  // 23 chars max
 
     private static final String NAME = ProcedureManager.PROCEDURE_NAME_FIELD;
@@ -31,13 +31,15 @@ public class ProcedureCategoryFactory extends CategoryFactory {
             new BlockTemplate("procedures_ifreturn");
 
     protected final BlocklyController mController;
+    protected final BlockFactory mBlockFactory;
     protected final Workspace mWorkspace;
     protected final ProcedureManager mProcedureManager;
 
     protected final String mDefaultProcedureName;
 
-    public ProcedureCategoryFactory(BlocklyController controller) {
+    public ProcedureCustomCategory(BlocklyController controller) {
         mController = controller;
+        mBlockFactory = mController.getBlockFactory();
         mWorkspace = mController.getWorkspace();
         mProcedureManager = mWorkspace.getProcedureManager();
 
@@ -49,11 +51,9 @@ public class ProcedureCategoryFactory extends CategoryFactory {
         return mController.getContext().getString(R.string.blockly_default_function_name);
     }
 
-
-
     @Override
-    public BlocklyCategory obtainCategory(String customType) throws BlockLoadingException {
-        BlocklyCategory category = new BlocklyCategory();
+    public void initializeCategory(BlocklyCategory category) throws BlockLoadingException {
+        checkRequiredBlocksAreDefined();
         rebuildItems(category);
 
         // TODO: Update toolbox view upon procedure changes.
@@ -71,22 +71,44 @@ public class ProcedureCategoryFactory extends CategoryFactory {
         //        }
         //    }
         //});
-        return category;
+    }
+
+    private void checkRequiredBlocksAreDefined() throws BlockLoadingException {
+        BlockTemplate[] required = {
+                DEFINE_NO_RETURN_BLOCK_TEMPLATE,
+                DEFINE_WITH_RETURN_BLOCK_TEMPLATE,
+                CALL_NO_RETURN_BLOCK_TEMPLATE,
+                CALL_WITH_RETURN_BLOCK_TEMPLATE,
+                IF_RETURN_TEMPLATE
+        };
+
+        StringBuilder sb = null;
+        for (BlockTemplate template : required) {
+            if (!mBlockFactory.isDefined(template.mTypeName)) {
+                if (sb == null) {
+                    sb = new StringBuilder();
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(template.mTypeName);
+            }
+        }
+        if (sb != null) {
+            throw new BlockLoadingException("Missing block definitions: " + sb.toString());
+        }
     }
 
     private void rebuildItems(BlocklyCategory category) throws BlockLoadingException {
-        BlockFactory factory = mController.getBlockFactory();
-
-        Block block = factory.obtainBlockFrom(DEFINE_NO_RETURN_BLOCK_TEMPLATE);
+        Block block = mBlockFactory.obtainBlockFrom(DEFINE_NO_RETURN_BLOCK_TEMPLATE);
         ((FieldInput)block.getFieldByName(NAME)).setText(mDefaultProcedureName);
         category.addItem(new BlocklyCategory.BlockItem(block));
 
-        block = factory.obtainBlockFrom(DEFINE_WITH_RETURN_BLOCK_TEMPLATE);
+        block = mBlockFactory.obtainBlockFrom(DEFINE_WITH_RETURN_BLOCK_TEMPLATE);
         ((FieldInput)block.getFieldByName(NAME)).setText(mDefaultProcedureName);
         category.addItem(new BlocklyCategory.BlockItem(block));
 
         if (!mProcedureManager.hasReferenceWithReturn()) {
-            block = factory.obtainBlockFrom(IF_RETURN_TEMPLATE);
+            block = mBlockFactory.obtainBlockFrom(IF_RETURN_TEMPLATE);
             category.addItem(new BlocklyCategory.BlockItem(block));
         }
 
@@ -118,12 +140,12 @@ public class ProcedureCategoryFactory extends CategoryFactory {
             Block defBlock = definitions.get(procName);
             if (defBlock.getType().equals(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE)) {
                 // New call block, without return value.
-                Block callBlock = factory.obtainBlockFrom(CALL_NO_RETURN_BLOCK_TEMPLATE);
+                Block callBlock = mBlockFactory.obtainBlockFrom(CALL_NO_RETURN_BLOCK_TEMPLATE);
                 ((FieldLabel)callBlock.getFieldByName(NAME)).setText(procName);
                 category.addItem(new BlocklyCategory.BlockItem(callBlock));
             } else {
                 // New call block, with return value.
-                Block callBlock = factory.obtainBlockFrom(CALL_WITH_RETURN_BLOCK_TEMPLATE);
+                Block callBlock = mBlockFactory.obtainBlockFrom(CALL_WITH_RETURN_BLOCK_TEMPLATE);
                 ((FieldLabel)callBlock.getFieldByName(NAME)).setText(procName);
                 category.addItem(new BlocklyCategory.BlockItem(callBlock));
             }

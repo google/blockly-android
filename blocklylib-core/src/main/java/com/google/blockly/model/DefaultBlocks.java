@@ -127,12 +127,12 @@ public final class DefaultBlocks {
         return DEFAULT_MUTATOR_UIS;
     }
 
-    public static Map<String, CategoryFactory> getToolboxCustomCategories(
+    public static Map<String, CustomCategory> getToolboxCustomCategories(
             BlocklyController controller) {
         // Don't store this map, because of the reference to the controller.
-        Map<String, CategoryFactory> map = new ArrayMap<>(2);
-        map.put(VARIABLE_CATEGORY_NAME, new VariableCategoryFactory(controller));
-        map.put(PROCEDURE_CATEGORY_NAME, new ProcedureCategoryFactory(controller));
+        Map<String, CustomCategory> map = new ArrayMap<>(2);
+        map.put(VARIABLE_CATEGORY_NAME, new VariableCustomCategory(controller));
+        map.put(PROCEDURE_CATEGORY_NAME, new ProcedureCustomCategory(controller));
         return Collections.unmodifiableMap(map);
     }
 
