@@ -204,7 +204,7 @@ public class ProcedureManager extends Observable<DataSetObserver> {
     private static String getProcedureName(Block block) {
         Mutator mutator = block.getMutator();
         if (!(mutator instanceof AbstractProcedureMutator)) {
-            throw new IllegalArgumentException("Procedure block with no name field.");
+            throw new IllegalArgumentException("Block does not contain procedure mutator.");
         }
         return ((AbstractProcedureMutator) mutator).getProcedureName();
     }
@@ -212,9 +212,8 @@ public class ProcedureManager extends Observable<DataSetObserver> {
     private static void setProcedureName(Block block, String newName) {
         Mutator mutator = block.getMutator();
         if (!(mutator instanceof AbstractProcedureMutator)) {
-            throw new IllegalArgumentException(
-                    "Procedure definition block with no procedure name.");
+            throw new IllegalArgumentException("Block does not contain procedure mutator.");
         }
-        ((AbstractProcedureMutator) block.getMutator()).setProcedureName(newName);
+        ((AbstractProcedureMutator) mutator).setProcedureName(newName);
     }
 }

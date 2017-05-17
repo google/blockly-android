@@ -182,7 +182,7 @@ public class BlockTemplate {
      * </pre>
      *
      * @param definitionName The name of the definition, as registered with the block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate ofType(String definitionName) {
         checkDefinitionAndCopySourceNotSet();  // Throws if already set.
@@ -201,7 +201,7 @@ public class BlockTemplate {
      * }</pre>
      *
      * @param definition The definition of the block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate fromDefinition(BlockDefinition definition) {
         checkDefinitionAndCopySourceNotSet();  // Throws if already set.
@@ -220,7 +220,7 @@ public class BlockTemplate {
      * }</pre>
      *
      * @param json The JSON definition of the block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate fromJson(String json) throws BlockLoadingException {
         checkDefinitionAndCopySourceNotSet();  // Throws if already set.
@@ -239,7 +239,7 @@ public class BlockTemplate {
      * </pre>
      *
      * @param json The JSON definition of the block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate fromJson(JSONObject json) throws BlockLoadingException {
         checkDefinitionAndCopySourceNotSet();  // Throws if already set.
@@ -257,7 +257,7 @@ public class BlockTemplate {
      * </pre>
      *
      * @param source The JSON definition of the block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate copyOf(Block source) {
         checkDefinitionAndCopySourceNotSet();  // Throws if already set.
@@ -274,7 +274,7 @@ public class BlockTemplate {
      * </pre>
      *
      * @param id The id of the block to be created.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate withId(String id) {
         mId = id;
@@ -291,7 +291,7 @@ public class BlockTemplate {
      * {@code blockFactory.obtainBlockFrom(new BlockTemplate().shadow().ofType("math_number"));}
      * </pre>
      *
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate shadow() {
         mIsShadow = true;
@@ -307,7 +307,7 @@ public class BlockTemplate {
      * }</pre>
      *
      * @param isShadow Whether the block will be a shadow.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate shadow(boolean isShadow) {
         mIsShadow = isShadow;
@@ -319,7 +319,7 @@ public class BlockTemplate {
      *
      * @param x The horizontal coordinate of the workspace position.
      * @param y The vertical coordinate of the workspace position.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate atPosition(float x, float y) {
         mPosition = new WorkspacePoint(x, y);
@@ -328,7 +328,7 @@ public class BlockTemplate {
 
     /**
      * @param isCollapsed The collapsed state of the resulting block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate collapsed(boolean isCollapsed) {
         mIsCollapsed = isCollapsed;
@@ -337,7 +337,7 @@ public class BlockTemplate {
 
     /**
      * @param isDeletable Whether users will be able to delete the resulting block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate deletable(boolean isDeletable) {
         mIsDeletable = isDeletable;
@@ -346,7 +346,7 @@ public class BlockTemplate {
 
     /**
      * @param isDisabled Whether the result block will be disabled.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate disabled(boolean isDisabled) {
         mIsDisabled = isDisabled;
@@ -355,7 +355,7 @@ public class BlockTemplate {
 
     /**
      * @param isEditable Whether fields on the resulting block will be editable.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate editable(boolean isEditable) {
         mIsEditable = isEditable;
@@ -364,7 +364,7 @@ public class BlockTemplate {
 
     /**
      * @param isInline Whether inputs will be inlined on the resulting block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate withInlineInputs(boolean isInline) {
         mInlineInputs = isInline;
@@ -373,7 +373,7 @@ public class BlockTemplate {
 
     /**
      * @param isMovable Whether users will be able to move the resulting block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate movable(boolean isMovable) {
         mIsMovable = isMovable;
@@ -431,7 +431,7 @@ public class BlockTemplate {
      *
      * @param fieldName The name of the field.
      * @param value The serialized field value.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     BlockTemplate withFieldValue(String fieldName, String value) {
         assert(!TextUtils.isEmpty(fieldName));

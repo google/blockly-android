@@ -35,7 +35,6 @@ public interface CustomCategory {
      * method is called once in the lifetime of the category. If the category is dynamic, a
      * reference to the category should be saved for future updates.
      * @param category The category to initialize.
-     * @return
      * @throws BlockLoadingException
      */
     void initializeCategory(BlocklyCategory category) throws BlockLoadingException;
