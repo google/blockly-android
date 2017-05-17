@@ -41,7 +41,7 @@ import java.util.List;
 public class BlocklyCategory {
     private static final String TAG = "BlocklyCategory";
 
-    public static final SimpleArrayMap<String, CustomCategory> CATEGORY_FACTORIES
+    public static final SimpleArrayMap<String, CustomCategory> CUSTOM_CATEGORIES
             = new SimpleArrayMap<>();
 
     /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
@@ -234,8 +234,7 @@ public class BlocklyCategory {
                                           String workspaceId)
             throws BlockLoadingException {
         try {
-            BlocklyCategory category;
-            category = new BlocklyCategory();
+            BlocklyCategory category = new BlocklyCategory();
             String customType = parser.getAttributeValue("", "custom");
             category.mCategoryName = parser.getAttributeValue("", "name");
             String colourAttr = parser.getAttributeValue("", "colour");
@@ -282,6 +281,7 @@ public class BlocklyCategory {
                             }
                             category.addItem(new ButtonItem(text, callbackKey));
                         }
+                        // TODO: Support <sep> separator
                         break;
                     case XmlPullParser.END_TAG:
                         if (tagname.equalsIgnoreCase("category")) {
@@ -295,9 +295,9 @@ public class BlocklyCategory {
             }
 
             // Process custom category.
-            if (customType != null && CATEGORY_FACTORIES.containsKey(customType)) {
+            if (customType != null && CUSTOM_CATEGORIES.containsKey(customType)) {
                 category.mCustomType = customType;
-                CATEGORY_FACTORIES.get(customType).initializeCategory(category);
+                CUSTOM_CATEGORIES.get(customType).initializeCategory(category);
             }
 
             return category;

@@ -17,7 +17,10 @@ package com.google.blockly.model;
 import com.google.blockly.utils.BlockLoadingException;
 
 /**
- * Interface for "custom" {@link BlocklyCategory}s, such as toolbox "Variables" and "Functions".
+ * Interface for custom {@link BlocklyCategory}s, such as
+ * <code>{@link VariableCustomCategory VARIABLES}</code> and
+ * <code>{@link ProcedureCustomCategory PROCEDURE}</code> toolbox categories. Referenced by the
+ * {@code custom} XML attribute and the {@link BlocklyCategory#CUSTOM_CATEGORIES}.
  * <p/>
  * {@link #initializeCategory(BlocklyCategory)} will be called once during load time, where the
  * implementation can configure the category as needed. This is different from the web

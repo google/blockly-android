@@ -319,7 +319,7 @@ public class BlocklyController {
 
     public void registerCategoryFactory(String customCategoryName, CustomCategory factory) {
         // TODO: Alternative to the static map?
-        BlocklyCategory.CATEGORY_FACTORIES.put(customCategoryName, factory);
+        BlocklyCategory.CUSTOM_CATEGORIES.put(customCategoryName, factory);
     }
 
     /**
