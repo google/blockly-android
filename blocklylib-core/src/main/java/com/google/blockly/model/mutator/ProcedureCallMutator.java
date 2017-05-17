@@ -1,12 +1,18 @@
 package com.google.blockly.model.mutator;
 
+import android.text.TextUtils;
+
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldLabel;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
+import org.xmlpull.v1.XmlSerializer;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,8 +35,53 @@ public class ProcedureCallMutator extends AbstractProcedureMutator {
     }
 
     @Override
-    protected void validateBlockForReshape(List<String> argNames, boolean hasStatementInput)
+    public void setProcedureName(final String procName) {
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                mutate(procName, mArguments);
+            }
+        });
+    }
+
+    /**
+     * Convenience method for invoking a mutation event programmatically, updating the Mutator with
+     * the provided values.
+     *
+     * @param procedureName The name of the procedure.
+     * @param argNames The names of the procedure's arguments.
+     */
+    public void mutate(String procedureName, List<String> argNames) {
+        String mutation = writeMutationString(procedureName, argNames, null);
+        try {
+            mBlock.setMutation(mutation);
+        } catch (BlockLoadingException e) {
+            throw new IllegalStateException("Failed to update from new mutation XML.", e);
+        }
+    }
+
+    @Override
+    public void serialize(XmlSerializer serializer) throws IOException {
+        serializeImpl(serializer, mProcedureName, mArguments, null);
+    }
+
+    @Override
+    protected void updateBlock() {
+        super.updateBlock();
+
+        FieldLabel nameField =
+                (FieldLabel) mBlock.getFieldByName(ProcedureManager.PROCEDURE_NAME_FIELD);
+        nameField.setText(mProcedureName);
+    }
+
+    @Override
+    protected void validateBlockForReshape(
+            String procedureName, List<String> argNames, boolean hasStatementInput)
             throws BlockLoadingException {
+        if (TextUtils.isEmpty(procedureName)) {
+            throw new BlockLoadingException("Procedure name must not be empty or missing.");
+        }
+
         List<Input> inputs = mBlock.getInputs();
         int oldCount = mArguments.size();
         int newCount = argNames.size();
@@ -62,7 +113,8 @@ public class ProcedureCallMutator extends AbstractProcedureMutator {
         List<Input> inputs = new ArrayList<>(argCount + 1);
 
         // Header (TOPROW)
-        inputs.add(mBlock.getInputs().get(0));  // First row does not change shape.
+        Input topRow = mBlock.getInputs().get(0);
+        inputs.add(topRow);  // First row does not change shape.
 
         // Argument inputs
         for (int i = 0; i < argCount; ++i) {

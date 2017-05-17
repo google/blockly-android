@@ -108,6 +108,7 @@ public final class VariableCustomCategory implements CustomCategory {
             }
         }
         category.clear();
+
         category.addItem(new BlocklyCategory.ButtonItem(
                 mContext.getString(R.string.create_variable), ACTION_CREATE_VARIABLE));
         SimpleArrayMap<String, String> variables = mVariableNameManager.getUsedNames();

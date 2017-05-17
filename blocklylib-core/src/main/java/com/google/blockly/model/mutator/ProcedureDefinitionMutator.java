@@ -1,12 +1,17 @@
 package com.google.blockly.model.mutator;
 
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.FieldLabel;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
+import org.xmlpull.v1.XmlSerializer;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,13 +31,76 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator {
 
     private static final String STATEMENT_INPUT_NAME = "STACK";
     private static final String RETURN_INPUT_NAME = "RETURN";
+    private Field.Observer mFieldObserver = null;
 
     ProcedureDefinitionMutator(Mutator.Factory factory, BlocklyController controller) {
         super(factory, controller);
     }
 
     @Override
-    protected void validateBlockForReshape(List<String> argNames, boolean hasStatementInput)
+    public String getProcedureName() {
+        return ((FieldInput) mBlock.getFieldByName(NAME_FIELD)).getText();
+    }
+
+    @Override
+    public void setProcedureName(final String procName) {
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                ((FieldInput) mBlock.getFieldByName(NAME_FIELD)).setText(procName);
+            }
+        });
+    }
+
+    /**
+     * Convenience method for invoking a mutation event programmatically, updating the Mutator with
+     * the provided values.
+     *
+     * @param argNames The names of the procedure's arguments.
+     * @param hasStatementInput Whether the procedure definition has an input for statement blocks.
+     *                          Very rarely false for anything other than a
+     *                          {@code procedures_defreturn} blocks.
+     */
+    public void mutate(List<String> argNames, boolean hasStatementInput) {
+        String mutation = writeMutationString(null, argNames, hasStatementInput);
+        try {
+            mBlock.setMutation(mutation);
+        } catch (BlockLoadingException e) {
+            throw new IllegalStateException("Failed to update from new mutation XML.", e);
+        }
+    }
+
+    @Override
+    public void serialize(XmlSerializer serializer) throws IOException {
+        serializeImpl(serializer, null, mArguments, mHasStatementInput);
+    }
+
+    @Override
+    protected void onAttached(final Block block) {
+        super.onAttached(block);
+
+        mProcedureName = getProcedureName();  // Looked up from block field.
+        mFieldObserver = new Field.Observer() {
+            @Override
+            public void onValueChanged(Field field, String oldValue, String newValue) {
+                mProcedureName = newValue;
+            }
+        };
+        mBlock.getFieldByName(NAME_FIELD).registerObserver(mFieldObserver);
+    }
+
+    @Override
+    protected void onDetached(Block block) {
+        if (mFieldObserver != null) {
+            FieldInput nameField = (FieldInput) block.getFieldByName(NAME_FIELD);
+            nameField.unregisterObserver(mFieldObserver);
+        }
+        super.onDetached(block);
+    }
+
+    @Override
+    protected void validateBlockForReshape(
+            String procedureName, List<String> argNames, boolean hasStatementInput)
             throws BlockLoadingException {
         if (mHasStatementInput && !hasStatementInput) {
             Input stack = mBlock.getInputByName(STATEMENT_INPUT_NAME);

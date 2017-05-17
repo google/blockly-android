@@ -225,19 +225,19 @@ public abstract class Field extends Observable<Field.Observer> implements Clonea
      * change. If the field is attached to a event workspace (workspace, toolbox, or trash), must be
      * called on the main thread.
      *
-     * @param oldText Old value in serialized string form.
-     * @param newText New value in serialized string form.
+     * @param oldValueString Old value in serialized string form.
+     * @param newValueString New value in serialized string form.
      */
-    protected void fireValueChanged(final String oldText, final String newText) {
+    protected void fireValueChanged(final String oldValueString, final String newValueString) {
         runAsPossibleEventGroup(new Runnable() {
             @Override
             public void run() {
                 if (mBlock != null) {
                     mBlock.maybeAddPendingChangeEvent(
-                            BlocklyEvent.ELEMENT_FIELD, Field.this, oldText, newText);
+                            BlocklyEvent.ELEMENT_FIELD, Field.this, oldValueString, newValueString);
                 }
                 for (int i = 0; i < mObservers.size(); i++) {
-                    mObservers.get(i).onValueChanged(Field.this, oldText, newText);
+                    mObservers.get(i).onValueChanged(Field.this, oldValueString, newValueString);
                 }
             }
         });
