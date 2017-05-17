@@ -382,7 +382,7 @@ public class BlockTemplate {
 
     /**
      * @param commentText The comment text of the resulting block.
-     * @return This block descriptor, for chaining.
+     * @return This block template, for chaining.
      */
     public BlockTemplate withComment(String commentText) {
         mCommentText = commentText;
@@ -391,9 +391,11 @@ public class BlockTemplate {
 
     /**
      * @param mutationString The mutator's serialized state. I.e, the {@code <mutation>} element.
+     * @return This block template, for chaining.
      */
-    public void withMutation(String mutationString) {
+    public BlockTemplate withMutation(String mutationString) {
         mMutation = mutationString;
+        return this;
     }
 
     /**
