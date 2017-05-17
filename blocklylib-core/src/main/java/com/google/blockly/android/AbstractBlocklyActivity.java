@@ -38,10 +38,9 @@ import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.MutatorFragment;
-import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.CategoryFactory;
+import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
@@ -439,13 +438,13 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * This method provides a hook to register custom {@link CategoryFactory}s that support
+     * This method provides a hook to register custom {@link CustomCategory}s that support
      * the toolboxes in this activity. By default, it registers the categories in
      * {@link DefaultBlocks}, via the {@link #onCreateActivityHelper() BlocklyActivityHelper}
      * {@link BlocklyActivityHelper#configureMutators() implementation}.
      * <p/>
      * Category factories with the same {@code custom} key will replace existing
-     * {@link CategoryFactory}s, so it is safe to call super and then update specific categories.
+     * {@link CustomCategory}s, so it is safe to call super and then update specific categories.
      * <p/>
      * Called once at activity creation.
      */

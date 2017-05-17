@@ -44,9 +44,6 @@ public class CategoryView extends RelativeLayout {
     protected BlocklyCategory mRootCategory;
     protected BlocklyCategory mCurrentCategory;
 
-    protected int mBgAlpha = DEFAULT_CATEGORIES_BACKGROUND_ALPHA;
-    protected int mBgColor = DEFAULT_CATEGORIES_BACKGROUND_COLOR;
-
     // Whether we prefer having toolboxes that are closeable if there are tabs.
     private boolean mPreferCloseable = true;
     // The current state of the toolbox being closeable or not.

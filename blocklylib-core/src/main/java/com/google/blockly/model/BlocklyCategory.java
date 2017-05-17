@@ -41,7 +41,7 @@ import java.util.List;
 public class BlocklyCategory {
     private static final String TAG = "BlocklyCategory";
 
-    public static final SimpleArrayMap<String, CategoryFactory> CATEGORY_FACTORIES
+    public static final SimpleArrayMap<String, CustomCategory> CUSTOM_CATEGORIES
             = new SimpleArrayMap<>();
 
     /** Array used for by {@link ColorUtils#parseColor(String, float[], int)} during I/O. **/
@@ -67,7 +67,7 @@ public class BlocklyCategory {
     }
 
     /**
-     * @return The custome type of this category.
+     * @return The custom type of this category.
      */
     public String getCustomType() {
         return mCustomType;
@@ -234,43 +234,58 @@ public class BlocklyCategory {
                                           String workspaceId)
             throws BlockLoadingException {
         try {
-            BlocklyCategory result;
+            BlocklyCategory category = new BlocklyCategory();
             String customType = parser.getAttributeValue("", "custom");
-            if (CATEGORY_FACTORIES.containsKey(customType)) {
-                result = CATEGORY_FACTORIES.get(customType).obtainCategory(customType);
-            } else {
-                result = new BlocklyCategory();
-            }
-            result.mCategoryName = parser.getAttributeValue("", "name");
-            result.mCustomType = parser.getAttributeValue("", "custom");
+            category.mCategoryName = parser.getAttributeValue("", "name");
             String colourAttr = parser.getAttributeValue("", "colour");
             if (!TextUtils.isEmpty(colourAttr)) {
                 try {
-                    result.mColor = ColorUtils.parseColor(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY);
+                    category.mColor = ColorUtils.parseColor(colourAttr, TEMP_IO_THREAD_FLOAT_ARRAY);
                 } catch (ParseException e) {
                     Log.w(TAG, "Invalid toolbox category colour \"" + colourAttr + "\"");
                 }
             }
+
+            // Load items and sub categories.
             int eventType = parser.next();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
+            PARSER_LOOP: while (eventType != XmlPullParser.END_DOCUMENT) {
                 String tagname = parser.getName();
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
                         if (parser.getName().equalsIgnoreCase("category")) {
-                            result.addSubcategory(BlocklyCategory.fromXml(parser, factory,
-                                workspaceId));
+                            category.addSubcategory(BlocklyCategory.fromXml(parser, factory,
+                                    workspaceId));
                         } else if (parser.getName().equalsIgnoreCase("block")) {
                             BlockItem blockItem = new BlockItem(factory.fromXml(parser));
                             blockItem.getBlock().setEventWorkspaceId(workspaceId);
-                            result.addItem(blockItem);
+                            category.addItem(blockItem);
                         } else if (parser.getName().equalsIgnoreCase("shadow")) {
-                            throw new IllegalArgumentException(
-                                    "Shadow blocks may not be top level toolbox blocks.");
+                            throw new BlockLoadingException(
+                                    "Shadow blocks may not be top level toolbox blocks. " +
+                                    "(Line #" + parser.getLineNumber() + ")");
+                        } else if (parser.getName().equalsIgnoreCase("label")) {
+                            String text = parser.getAttributeValue(null, "text");
+                            if (TextUtils.isEmpty(text)) {
+                                throw new BlockLoadingException(
+                                        "<label> missing text attribute. " +
+                                        "(Line #" + parser.getLineNumber() + ")");
+                            }
+                            category.addItem(new LabelItem(text));
+                        } else if (parser.getName().equalsIgnoreCase("button")) {
+                            String text = parser.getAttributeValue(null, "text");
+                            String callbackKey = parser.getAttributeValue(null, "callbackKey");
+                            if (TextUtils.isEmpty(text) || TextUtils.isEmpty(callbackKey)) {
+                                throw new BlockLoadingException(
+                                        "<button> missing text and/or callbackKey attributes." +
+                                        " (Line #" + parser.getLineNumber() + ")");
+                            }
+                            category.addItem(new ButtonItem(text, callbackKey));
                         }
+                        // TODO: Support <sep> separator
                         break;
                     case XmlPullParser.END_TAG:
                         if (tagname.equalsIgnoreCase("category")) {
-                            return result;
+                            break PARSER_LOOP;
                         }
                         break;
                     default:
@@ -278,7 +293,15 @@ public class BlocklyCategory {
                 }
                 eventType = parser.next();
             }
-            return result;
+
+            // Process custom category.
+            if (customType != null && CUSTOM_CATEGORIES.containsKey(customType)) {
+                category.mCustomType = customType;
+                CUSTOM_CATEGORIES.get(customType).initializeCategory(category);
+            }
+
+            return category;
+
         } catch (IOException | XmlPullParserException e) {
             throw new BlockLoadingException(e);
         }

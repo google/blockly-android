@@ -50,5 +50,5 @@
     <string name="mutator_if_else_else_label">else</string>
     <string name="mutator_done">Done</string>
 
-    <string name="blockly_default_function_name">Do something</string>
+    <string name="blockly_default_function_name">do something</string>
 </resources>
