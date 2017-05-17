@@ -1950,8 +1950,7 @@ public class BlocklyController {
          * Sets the resource to load the toolbox configuration from. This must be an xml resource in
          * the raw directory.
          * <p/>
-         * If this is set, {@link #setToolboxConfiguration(String)} and {@link
-         * #setToolboxConfigurationAsset(String)} may not be set.
+         * If this is set, {@link #setToolboxConfigurationAsset(String)} may not be set.
          *
          * @param toolboxResId The resource id for the toolbox config file.
          * @return this
@@ -1968,8 +1967,7 @@ public class BlocklyController {
          * Sets the asset to load the toolbox configuration from. The asset name must be a path to a
          * file in the assets directory.
          * <p/>
-         * If this is set, {@link #setToolboxConfiguration(String)} and {@link
-         * #setToolboxConfigurationResId(int)} may not be set.
+         * If this is set {@link #setToolboxConfigurationResId(int)} may not be set.
          *
          * @param assetName The asset for the toolbox config file.
          * @return this
