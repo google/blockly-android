@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
+import com.google.blockly.model.DefaultBlocks;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,15 +30,11 @@ import java.util.List;
 public class SimpleActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SimpleActivity";
 
-    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
-            "default/logic_blocks.json",
-            "default/loop_blocks.json",
-            "default/math_blocks.json",
-            "default/text_blocks.json",
-            "default/list_blocks.json",
-            "default/colour_blocks.json",
-            "default/variable_blocks.json"
-    );
+    private static final String SAVE_FILENAME = "simple_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "simple_workspace_temp.xml";
+
+    // Add custom blocks to this list.
+    private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
     private static final List<String> JAVASCRIPT_GENERATORS = Arrays.asList(
         // Custom block generators go here. Default blocks are already included.
         // TODO(#99): Include Javascript defaults when other languages are supported.
@@ -55,7 +52,8 @@ public class SimpleActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "default/toolbox.xml";
+        // Replace with a toolbox that includes application specific blocks.
+        return DefaultBlocks.TOOLBOX_PATH;
     }
 
     @NonNull
@@ -69,5 +67,17 @@ public class SimpleActivity extends AbstractBlocklyActivity {
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceSavePath() {
+        return SAVE_FILENAME;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return AUTOSAVE_FILENAME;
     }
 }

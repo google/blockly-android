@@ -17,6 +17,7 @@ package com.google.blockly.android.ui;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.TestUtils;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
@@ -39,24 +40,27 @@ import static org.mockito.Mockito.mock;
  * Tests for the {@link WorkspaceHelper}.
  */
 public class WorkspaceHelperTest extends BlocklyTestCase {
+    private BlocklyController mMockController;
+    private ConnectionManager mMockConnectionManager;
+
     private WorkspaceHelper mWorkspaceHelper;
     private WorkspaceView mWorkspaceView;
     private BlockViewFactory mViewFactory;
     private BlockFactory mBlockFactory;
 
-    private ConnectionManager mockConnectionManager;
-    private BlockTouchHandler mockTouchHandler;
-
     @Before
     public void setUp() throws Exception {
         configureForThemes();
-        mockConnectionManager = mock(ConnectionManager.class);
-        mockTouchHandler = mock(BlockTouchHandler.class);
+
+        mMockController = mock(BlocklyController.class);
+        mMockConnectionManager = mock(ConnectionManager.class);
         mWorkspaceView = new WorkspaceView(getContext());
         mWorkspaceHelper = new WorkspaceHelper(getContext());
         mViewFactory = new VerticalBlockViewFactory(getContext(), mWorkspaceHelper);
-        // TODO(#435): Replace R.raw.test_blocks
-        mBlockFactory = new BlockFactory(getContext(), new int[] {R.raw.test_blocks});
+        mBlockFactory = new BlockFactory();
+        mBlockFactory.addJsonDefinitions(getContext().getAssets()
+                .open("default/test_blocks.json"));
+        mBlockFactory.setController(mMockController);
     }
 
     // test getParentBlockGroup
@@ -91,7 +95,7 @@ public class WorkspaceHelperTest extends BlocklyTestCase {
         // Add a completely unconnected block.
         blocks.add(mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("statement_no_input")));
 
-        TestUtils.createViews(blocks, mViewFactory, mockConnectionManager, mWorkspaceView);
+        TestUtils.createViews(blocks, mViewFactory, mMockConnectionManager, mWorkspaceView);
 
         assertThat(mWorkspaceHelper.getParentBlockGroup(root))
                 .isSameAs(mWorkspaceHelper.getParentBlockGroup(cur));
@@ -128,7 +132,7 @@ public class WorkspaceHelperTest extends BlocklyTestCase {
         // Add a completely unconnected block.
         blocks.add(mBlockFactory.obtainBlockFrom(new BlockTemplate().ofType("empty_block")));
 
-        TestUtils.createViews(blocks, mViewFactory, mockConnectionManager, mWorkspaceView);
+        TestUtils.createViews(blocks, mViewFactory, mMockConnectionManager, mWorkspaceView);
 
         assertThat(mWorkspaceHelper.getRootBlockGroup(root))
                 .isSameAs(mWorkspaceHelper.getRootBlockGroup(cur));

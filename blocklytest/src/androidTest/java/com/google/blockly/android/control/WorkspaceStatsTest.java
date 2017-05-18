@@ -16,8 +16,8 @@
 package com.google.blockly.android.control;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockDefinition;
@@ -37,7 +37,8 @@ import static org.mockito.Mockito.verify;
 /**
  * Tests for {@link WorkspaceStats}.
  */
-public class WorkspaceStatsTest {
+public class WorkspaceStatsTest extends BlocklyTestCase {
+    private BlocklyController mController;
     private BlockFactory mFactory;
     private WorkspaceStats mStats;
     private ConnectionManager mConnectionManager;
@@ -45,8 +46,11 @@ public class WorkspaceStatsTest {
 
     @Before
     public void setUp() {
-        Context context = InstrumentationRegistry.getTargetContext();
-        mFactory = new BlockFactory();
+        Context context = getContext();
+        mController = new BlocklyController.Builder(context).build();
+        mFactory = mController.getBlockFactory();
+        TestUtils.loadProcedureBlocks(mController);
+        mFactory.setController(mController);
 
         // TODO: Do we need this? We don't use Mockito in this test.
         //       http://stackoverflow.com/a/22402631/152543
@@ -61,15 +65,15 @@ public class WorkspaceStatsTest {
 
     @Test
     public void testCollectProcedureStats() throws BlockLoadingException {
-        Block blockUnderTest = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(
-                TestUtils.getProcedureDefinitionBlockDefinition("test")));
+        Block blockUnderTest = mFactory.obtainBlockFrom(
+                new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE));
 
         mStats.collectStats(blockUnderTest, false);
         verify(mMockProcedureManager).addDefinition(blockUnderTest);
 
         // Add another block referring to the last one.
-        Block procedureReference = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(
-                TestUtils.getProcedureReferenceBlockDefinition("test")));
+        Block procedureReference = mFactory.obtainBlockFrom(
+                new BlockTemplate(ProcedureManager.CALL_NO_RETURN_BLOCK_TYPE));
 
         mStats.collectStats(procedureReference, false);
         verify(mMockProcedureManager).addReference(procedureReference);

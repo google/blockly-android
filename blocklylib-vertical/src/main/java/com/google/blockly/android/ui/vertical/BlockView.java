@@ -27,6 +27,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.Dragger;
@@ -49,6 +50,12 @@ public class BlockView extends AbstractBlockView<InputView> {
 
     private static final float SHADOW_SATURATION_MULTIPLIER = 0.4f;
     private static final float SHADOW_VALUE_MULTIPLIER = 1.2f;
+
+    private static final int UPDATES_THAT_CAUSE_RELOAD_SHAPE_ASSETS =
+            Block.UPDATE_COLOR | Block.UPDATE_IS_DISABLED | Block.UPDATE_IS_SHADOW;
+    private static final int UPDATES_THAT_MIGHT_MODIFY_CHILDREN_OR_SIZE =
+            Block.UPDATE_INPUTS_FIELDS_CONNECTIONS | Block.UPDATE_COMMENT
+                    | Block.UPDATE_INPUTS_INLINE | Block.UPDATE_IS_COLLAPSED | Block.UPDATE_WARNING;
 
     // TODO(#86): Determine from 9-patch measurements.
     private final int mMinBlockWidth;
@@ -153,6 +160,10 @@ public class BlockView extends AbstractBlockView<InputView> {
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         mBlockTopPadding = mPatchManager.computeBlockTopPadding(mBlock);
 
+        if (mIconsView != null) {
+            mIconsView.measure(widthMeasureSpec, heightMeasureSpec);
+        }
+
         if (getBlock().getInputsInline()) {
             measureInlineInputs(widthMeasureSpec, heightMeasureSpec);
         } else {
@@ -203,6 +214,13 @@ public class BlockView extends AbstractBlockView<InputView> {
             xFrom = mBlockViewSize.x - xFrom;
         }
 
+        if (mIconsView != null) {
+            int iconsLeft = rtl ? xFrom - mIconsView.getWidth() : xFrom;
+            mIconsView.layout(iconsLeft, mBlockTopPadding,
+                    iconsLeft + mIconsView.getMeasuredWidth(),
+                    mBlockTopPadding + mIconsView.getMeasuredHeight());
+        }
+
         for (int i = 0; i < mInputViews.size(); i++) {
             int rowTop = mInputLayoutOrigins.get(i).y;
 
@@ -229,6 +247,17 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     /**
+     * Called when a block's inputs, fields, comment, or mutator is/are updated, and thus the
+     * shape may have changed.
+     */
+    @Override
+    protected void onBlockUpdated(@Block.UpdateState int updateMask) {
+        if ((updateMask & UPDATES_THAT_MIGHT_MODIFY_CHILDREN_OR_SIZE) != 0) {
+            mFactory.rebuildBlockView(this);
+        }
+    }
+
+    /**
      * @return true if coordinates provided are on this block or it's inputs.
      */
     @Override
@@ -236,15 +265,11 @@ public class BlockView extends AbstractBlockView<InputView> {
         if (!isInHorizontalRangeOfBlock(x)) {
             return false;
         }
-
-        for (InputView inputView : mInputViews) {
-            if (inputView.isOnFields(
-                x - getXOffset(mHelper.useRtl(), inputView),
-                y - inputView.getTop())) {
+        for (Rect rect : mFillRects) {
+            if (rect.contains(x, y)) {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -334,6 +359,8 @@ public class BlockView extends AbstractBlockView<InputView> {
      */
     private void measureInlineInputs(int widthMeasureSpec, int heightMeasureSpec) {
         int inputViewsSize = mInputViews.size();
+        int firstLineMinHeight = mIconsView == null ? 0 : mIconsView.getMeasuredHeight();
+        int firstLineOffset = mIconsView == null ? 0 : mIconsView.getMeasuredWidth();
 
         // First pass - measure all fields and inputs; compute maximum width of fields and children
         // over all Statement inputs.
@@ -347,14 +374,18 @@ public class BlockView extends AbstractBlockView<InputView> {
                         Math.max(mMaxStatementFieldsWidth, inputView.getTotalFieldWidth());
                 maxStatementChildWidth =
                         Math.max(maxStatementChildWidth, inputView.getTotalChildWidth());
+                if (i == 0) {
+                    mMaxStatementFieldsWidth += firstLineOffset;
+                    maxStatementChildWidth += firstLineOffset;
+                }
             }
         }
 
         // Second pass - compute layout positions and sizes of all inputs.
-        int rowLeft = 0;
+        int rowLeft = firstLineOffset;
         int rowTop = 0;
 
-        int rowHeight = 0;
+        int rowHeight = firstLineMinHeight;
         int maxRowWidth = 0;
 
         mInlineRowWidth.clear();
@@ -371,15 +402,23 @@ public class BlockView extends AbstractBlockView<InputView> {
                 }
 
                 // Force all Statement inputs to have the same field width.
-                inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
+                if (i == 0) {
+                    inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth - firstLineOffset);
+                } else {
+                    inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
+                }
 
                 // New row BEFORE each Statement input.
                 mInlineRowWidth.add(Math.max(rowLeft,
                         mMaxStatementFieldsWidth + mPatchManager.mStatementInputIndent));
 
-                rowTop += rowHeight;
-                rowHeight = 0;
-                rowLeft = 0;
+                // For the very first row don't reset the values before placing the statement.
+                // This will allow the icons to be placed left of the statement.
+                if (i != 0) {
+                    rowTop += rowHeight;
+                    rowHeight = 0;
+                    rowLeft = 0;
+                }
             }
 
             mInputLayoutOrigins.get(i).set(rowLeft, rowTop);
@@ -475,6 +514,8 @@ public class BlockView extends AbstractBlockView<InputView> {
      */
     private void measureExternalInputs(int widthMeasureSpec, int heightMeasureSpec) {
         int maxInputFieldsWidth = mMinBlockWidth;
+        int firstLineMinHeight = mIconsView == null ? 0 : mIconsView.getMeasuredHeight();
+        int firstLineOffset = mIconsView == null ? 0 : mIconsView.getMeasuredWidth();
         // Initialize max Statement width as zero so presence of Statement inputs can be determined
         // later; apply minimum size after that.
         mMaxStatementFieldsWidth = 0;
@@ -491,12 +532,18 @@ public class BlockView extends AbstractBlockView<InputView> {
                 case Input.TYPE_VALUE: {
                     maxInputChildWidth =
                             Math.max(maxInputChildWidth, inputView.getTotalChildWidth());
+                    if (i == 0) {
+                        maxInputChildWidth += firstLineOffset;
+                    }
                     // fall through
                 }
                 default:
                 case Input.TYPE_DUMMY: {
                     maxInputFieldsWidth =
                             Math.max(maxInputFieldsWidth, inputView.getTotalFieldWidth());
+                    if (i == 0) {
+                        maxInputFieldsWidth += firstLineOffset;
+                    }
                     break;
                 }
                 case Input.TYPE_STATEMENT: {
@@ -504,6 +551,10 @@ public class BlockView extends AbstractBlockView<InputView> {
                             Math.max(mMaxStatementFieldsWidth, inputView.getTotalFieldWidth());
                     maxStatementChildWidth =
                             Math.max(maxStatementChildWidth, inputView.getTotalChildWidth());
+                    if (i == 0) {
+                        mMaxStatementFieldsWidth += firstLineOffset;
+                        maxStatementChildWidth += firstLineOffset;
+                    }
                     break;
                 }
             }
@@ -526,19 +577,25 @@ public class BlockView extends AbstractBlockView<InputView> {
             if (inputType == Input.TYPE_STATEMENT) {
                 // If the first input is a Statement, add vertical space above to draw top of
                 // connector just below block top boundary.
+                // Also, subtract the icons offset from the first row's width.
                 if (i == 0) {
                     rowTop += mBlockTopPadding;
+                    inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth - firstLineOffset);
+                } else {
+                    // Force all Statement inputs to have the same field width.
+                    inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
                 }
-
-                // Force all Statement inputs to have the same field width.
-                inputView.setFieldLayoutWidth(mMaxStatementFieldsWidth);
             } else {
                 // Force all Dummy and Value inputs to have the same field width.
-                inputView.setFieldLayoutWidth(maxInputFieldsWidth);
+                if (i == 0) {
+                    inputView.setFieldLayoutWidth(maxInputFieldsWidth - firstLineOffset);
+                } else {
+                    inputView.setFieldLayoutWidth(maxInputFieldsWidth);
+                }
             }
             inputView.measure(widthMeasureSpec, heightMeasureSpec);
 
-            mInputLayoutOrigins.get(i).set(0, rowTop);
+            mInputLayoutOrigins.get(i).set(i == 0 ? firstLineOffset : 0, rowTop);
 
             // If the last input is a Statement, add vertical space below to draw bottom of
             // connector just above block top boundary.
@@ -547,7 +604,11 @@ public class BlockView extends AbstractBlockView<InputView> {
             }
 
             // The block height is the sum of all the row heights.
-            rowTop += inputView.getMeasuredHeight();
+            if (i == 0) {
+                rowTop += Math.max(inputView.getMeasuredHeight(), firstLineMinHeight);
+            } else {
+                rowTop += inputView.getMeasuredHeight();
+            }
         }
 
         // Block content width is the width of the longest row.
@@ -632,6 +693,19 @@ public class BlockView extends AbstractBlockView<InputView> {
         int yTop = 0;
         final NinePatchDrawable topStartDrawable = addTopLeftPatch(isShadow, xTo, yTop);
 
+        // Add a background rect for the icons view if it exists
+        if (mIconsView != null) {
+            int firstInputStart = 0;
+            int firstRowHeight = 0;
+            if (mInputCount != 0) {
+                firstInputStart = mInputLayoutOrigins.get(0).x;
+                firstRowHeight = mInputViews.get(0).getRowHeight();
+            }
+            int rectWidth = Math.max(mIconsView.getWidth(), firstInputStart);
+            int rectHeight = Math.max(mIconsView.getHeight(), firstRowHeight);
+            fillRectBySize(xFrom, mIconsView.getTop(), rectWidth, rectHeight);
+        }
+
         // Position inputs and connectors.
         mInputConnectionHighlightPatches.clear();
         mInputConnectionHighlightPatches.ensureCapacity(mInputCount);
@@ -647,14 +721,16 @@ public class BlockView extends AbstractBlockView<InputView> {
             fillRectBySize(xFrom + inputLayoutOrigin.x, inputLayoutOrigin.y,
                     inputView.getFieldLayoutWidth(), inputView.getRowHeight());
 
-            switch (inputView.getInput().getType()) {
+            int inputType = inputView.getInput().getType();
+            boolean isLastInput = (i + 1 == mInputCount);
+            boolean nextIsStatement = !isLastInput
+                    && mInputViews.get(i + 1).getInput().getType() == Input.TYPE_STATEMENT;
+            boolean isEndOfLine = !mBlock.getInputsInline() || isLastInput
+                    || nextIsStatement;
+
+            switch (inputType) {
                 default:
                 case Input.TYPE_DUMMY: {
-                    boolean isLastInput = (i + 1 == mInputCount);
-                    boolean nextIsStatement = !isLastInput
-                            && mInputViews.get(i + 1).getInput().getType() == Input.TYPE_STATEMENT;
-                    boolean isEndOfLine = !mBlock.getInputsInline() || isLastInput
-                            || nextIsStatement;
                     if (isEndOfLine) {
                         addDummyBoundaryPatch(isShadow, xTo, inputView, inputLayoutOrigin);
                     }
@@ -690,6 +766,16 @@ public class BlockView extends AbstractBlockView<InputView> {
                     break;
                 }
             }
+            // If there's leftover space on the right fill it in with a rect
+            if (inputType != Input.TYPE_STATEMENT && isEndOfLine && mBlock.getInputsInline()) {
+                int start = inputLayoutOrigin.x + inputView.getMeasuredWidth();
+                int width = xTo - start;
+                if (width > 0) {
+                    fillRectBySize(start, inputLayoutOrigin.y, width, inputView.getRowHeight());
+                }
+            }
+
+
         }
 
         // Select and position correct patch for bottom and left-hand side of the block, including

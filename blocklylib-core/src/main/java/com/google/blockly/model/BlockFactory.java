@@ -18,9 +18,11 @@ package com.google.blockly.model;
 import android.content.Context;
 import android.content.res.Resources;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
@@ -51,7 +53,7 @@ import java.util.UUID;
  *
  * <pre>{@code
  * // Add definition.
- * factory.addJsonDefinition(getAssets().open("default/math_blocks.json"));
+ * factory.addJsonDefinitions(getAssets().open("default/math_blocks.json"));
  * // Create blocks.
  * Block pi = factory.obtainBlockFrom(new BlockTemplate().ofType("math_number").withId("PI"));
  * factory.obtainBlockFrom(new BlockTemplate().copyOf(pi).shadow().withId("PI-shadow"));
@@ -65,6 +67,8 @@ public class BlockFactory {
     private final Map<String, BlockExtension> mExtensions = new HashMap<>();
     private final Map<String, WeakReference<Block>> mBlockRefs = new HashMap<>();
 
+    protected BlocklyController mController;
+
     /**
      * The global list of dropdown options available to each field matching the
      * {@link BlockTypeFieldName} key.
@@ -73,37 +77,15 @@ public class BlockFactory {
             mDropdownOptions = new HashMap<>();
 
     /** Default constructor. */
-    public BlockFactory() {}
+    public BlockFactory() {
+    }
 
-    /**
-     * Create a factory with an initial set of blocks from json resources.
-     * Block definitions from resources are not currently passed to generators
-     * (https://github.com/google/blockly-android/issues/525). Instead, use
-     * {@link #addJsonDefinitions(String)} to load from assets.
-     * @deprecated Call default constructor, and prefer block definitions in assets over resources.
-     *
-     * @param context The context for loading resources.
-     * @param rawJsonBlockDefinitionResIds List of raw JSON resources containing block definitions.
-     * @throws IllegalStateException if any block definitions fail to load.
-     */
-    @Deprecated
-    public BlockFactory(Context context, int[] rawJsonBlockDefinitionResIds) {
-        // TODO(#525): Remove deprecation and warning when supported in CodeGenerators.
-        Log.w(TAG, "WARNING: Loading block definitions into BlockFactory from resources does not "
-                + "yet load the definitions into the code generators.");
-
-        Resources resources = context.getResources();
-        try {
-            if (rawJsonBlockDefinitionResIds != null) {
-                for (int i = 0; i < rawJsonBlockDefinitionResIds.length; i++) {
-                    InputStream in = resources.openRawResource(rawJsonBlockDefinitionResIds[i]);
-                    addJsonDefinitions(in);
-                }
-            }
-        } catch (IOException | BlockLoadingException e) {
-            // Resources are assumed to be valid. Throw this error as RuntimeException.
-            throw new IllegalStateException(e.getMessage(), e);
+    public void setController(BlocklyController controller) {
+        if (mController != null && controller != mController) {
+            throw new IllegalStateException(
+                    "BlockFactory is already associated with another BlocklyController.");
         }
+        mController = controller;
     }
 
     /**
@@ -271,15 +253,16 @@ public class BlockFactory {
      * factory. If the {@code definitionName} is not one of the known block types null will be
      * returned instead.
      *
-     * @deprecated Prefer using {@code obtain(new BlockTemplate().ofType(definitionName).withId(id));}
+     * This version is used for testing.
+     * {@code obtain(new BlockTemplate().ofType(definitionName).withId(id));} should be use instead.
      *
      * @param definitionName The name of the block type to create.
      * @param id The id of the block if loaded from XML; null otherwise.
      * @return A new block of that type or null.
      * @throws IllegalArgumentException If id is not null and already refers to a block.
      */
-    @Deprecated
-    public Block obtainBlock(String definitionName, @Nullable String id) {
+    @VisibleForTesting
+    Block obtainBlock(String definitionName, @Nullable String id) {
         // Validate id is available.
         if (id != null && isBlockIdInUse(id)) {
             throw new IllegalArgumentException("Block id \"" + id + "\" already in use.");
@@ -308,11 +291,15 @@ public class BlockFactory {
      * @return A new block, or null if not able to construct it.
      */
     public Block obtainBlockFrom(BlockTemplate template) throws BlockLoadingException {
+        if (mController == null) {
+            throw new IllegalStateException("Must set BlockController before creating block.");
+        }
+
         String id = getCheckedId(template.mId);
 
         // Existing instance not found. Constructing a new Block.
         BlockDefinition definition;
-        boolean isShadow = template.mIsShadow == null ? false : template.mIsShadow;
+        boolean isShadow = (template.mIsShadow == null) ? false : template.mIsShadow;
         Block block;
         if (template.mCopySource != null) {
             try {
@@ -344,7 +331,7 @@ public class BlockFactory {
                 throw new BlockLoadingException(template.toString() + " missing block definition.");
             }
 
-            block = new Block(this, definition, id, isShadow);
+            block = new Block(mController, this, definition, id, isShadow);
         }
 
         // Apply mutable state last.
@@ -437,16 +424,8 @@ public class BlockFactory {
         if (factory == null) {
             throw new BlockLoadingException("Unknown mutator \"" + mutatorId + "\".");
         }
-        if (block.mMutator != null) {
-            throw new BlockLoadingException(
-                    "Mutator \"" + block.mMutatorId + "\" already applied.");
-        }
-        Mutator mutator = factory.newMutator();
-        block.mMutatorId = mutatorId;
-        block.mMutator = mutator;
-        mutator.onAttached(block);
+        block.setMutator(factory.newMutator(mController));
     }
-
 
     /**
      * Applies the named extension to the provided block.
@@ -459,9 +438,9 @@ public class BlockFactory {
         if (extension == null) {
             throw new BlockLoadingException("Unknown extension \"" + extensionId + "\".");
         }
-        Mutator old = block.mMutator;
+        Mutator old = block.getMutator();
         extension.applyTo(block);
-        if (block.mMutator != old) {
+        if (block.getMutator() != old) {
             // Unlike web, Android mutators are not assigned by extensions.
             Log.w(TAG, "Extensions are not allowed to assign mutators. "
                     + "Use Mutator and Mutator.Factory class.");
@@ -698,6 +677,13 @@ public class BlockFactory {
             id = UUID.randomUUID().toString();
         }
         return id;
+    }
+
+    public boolean isDefined(String definitionId) {
+        return mDefinitions.containsKey(definitionId);
+    }
+
+    public void loadBlockDefinitionFromAssets(String procedureBlocksPath) {
     }
 
     /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */

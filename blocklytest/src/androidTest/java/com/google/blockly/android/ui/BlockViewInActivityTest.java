@@ -22,6 +22,7 @@ import android.view.View;
 
 import com.google.blockly.android.TestUtils;
 import com.google.blockly.android.TestWorkspaceViewActivity;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.mock;
 public class BlockViewInActivityTest {
     private TestWorkspaceViewActivity mActivity;
     private Instrumentation mInstrumentation;
+    private BlocklyController mController;
     private BlockFactory mBlockFactory;
     private WorkspaceHelper mHelper;
     private BlockViewFactory mViewFactory;
@@ -74,8 +76,11 @@ public class BlockViewInActivityTest {
         System.setProperty("dexmaker.dexcache", mActivity.getCacheDir().getPath());
         MockitoAnnotations.initMocks(this);
 
-        // TODO(#435): Replace R.raw.test_blocks
-        mBlockFactory = new BlockFactory(mActivity.mThemeWrapper, new int[]{R.raw.test_blocks});
+
+        mController = new BlocklyController.Builder(mActivity.mThemeWrapper)
+                .addBlockDefinitionsFromAsset("default/test_blocks.json")
+                .build();
+        mBlockFactory = mController.getBlockFactory();
         mHelper = mActivity.mWorkspaceHelper;
         mViewFactory = mActivity.mViewFactory;
     }
@@ -90,11 +95,11 @@ public class BlockViewInActivityTest {
             assertThat(mRootBlock).isNotNull();
             mChildInputBlock = mBlockFactory.obtainBlockFrom(
                     new BlockTemplate().ofType("output_no_input"));
-            mRootBlock.getInputByName("TIMES").getConnection()
+            mRootBlock.getInputByName("BOOL").getConnection()
                     .connect(mChildInputBlock.getOutputConnection());
             mChildStatementBlock = mBlockFactory.obtainBlockFrom(
                     new BlockTemplate().ofType("statement_no_input"));
-            mRootBlock.getInputByName("NAME").getConnection()
+            mRootBlock.getInputByName("DO").getConnection()
                     .connect(mChildStatementBlock.getPreviousConnection());
 
             mViewFactory.buildBlockGroupTree(mRootBlock, mMockConnectionManager, null);

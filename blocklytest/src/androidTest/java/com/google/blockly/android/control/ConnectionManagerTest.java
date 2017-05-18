@@ -27,7 +27,9 @@ import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,14 +39,20 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link ConnectionManager}
  */
 public class ConnectionManagerTest {
+    private BlocklyController mMockController;
+
     private BlockFactory factory;
     private ConnectionManager manager;
 
     @Before
-    public void setUp() {
-        factory = new BlockFactory(
-                InstrumentationRegistry.getTargetContext(),
-                new int[] {R.raw.test_blocks});
+    public void setUp() throws IOException, BlockLoadingException {
+        mMockController = Mockito.mock(BlocklyController.class);
+
+        factory = new BlockFactory();
+
+        factory.addJsonDefinitions(InstrumentationRegistry.getTargetContext().getAssets()
+                .open("default/test_blocks.json"));
+        factory.setController(mMockController);
         manager = new ConnectionManager();
     }
 
@@ -149,11 +157,13 @@ public class ConnectionManagerTest {
     public void testIsConnectionAllowedNext() {
         Connection one = createConnection(0, 0,
                 Connection.CONNECTION_TYPE_NEXT, /* shadow */ false);
-        one.setInput(new Input.InputValue("test input", "" /* align */, null /* checks */));
+        one.setInput(new Input.InputValue("test input",
+                null /* fields */, "" /* align */, null /* checks */));
 
         Connection two = createConnection(0, 0,
                 Connection.CONNECTION_TYPE_NEXT, /* shadow */ false);
-        two.setInput(new Input.InputValue("test input", "" /* align */, null /* checks */));
+        two.setInput(new Input.InputValue("test input",
+                null /* fields */, "" /* align */, null /* checks */));
 
         // Don't offer to connect the bottom of a statement block to one that's already connected.
         Connection three = createConnection(0, 0,

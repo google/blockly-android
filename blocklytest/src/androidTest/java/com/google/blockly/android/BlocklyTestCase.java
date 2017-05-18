@@ -16,16 +16,31 @@
 package com.google.blockly.android;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.view.ContextThemeWrapper;
 
 import com.google.blockly.android.ui.vertical.R;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.truth.Truth.assertThat;
+
 /**
  * Base class for Android tests with Mockito.
  */
 public class BlocklyTestCase {
+    protected Looper mTargetMainLooper = null;  // set during configureForUIThread()
+    private Handler mHandler;
+
+    /**
+     * Default timeout of 1 second, which should be plenty for most UI actions.  Anything longer
+     * is an error.  However, to step through this code with a debugger, use a much longer duration.
+     */
+    protected static final long TEST_TIMEOUT_MILLIS = 1000L;
 
     private Context mThemeContext;
 
@@ -36,17 +51,56 @@ public class BlocklyTestCase {
     }
 
     // TODO: Investigate whether use of getContext() (and associated getMainLooper()) fixes the need
-    //       for this Looper.
-    protected void configureForUIThread() throws Exception {
+    //       for Looper.prepare().
+    protected void configureForUIThread() {
         // Espresso support requires AndroidJUnitRunner, and that doesn't run tests on in the main
         // thread (and thus, not in a Looper).  Adding a Looper allows normal unit tests to run
         // correctly.
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
+
+        // Set up the Handler for used by runAndSync()
+        mTargetMainLooper = InstrumentationRegistry.getTargetContext().getMainLooper();
+        mHandler = new Handler(mTargetMainLooper);
     }
 
     protected Context getContext() {
         return mThemeContext != null ? mThemeContext : InstrumentationRegistry.getContext();
+    }
+
+    /**
+     * Runs {@code runnable} on the test thread, and waits until the runnable completes before
+     * returning.
+     * @param runnable The code to run.
+     */
+    protected void runAndSync(final Runnable runnable) {
+        final Throwable[] thrownRef = {null};
+        final CountDownLatch latch = new CountDownLatch(1);
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    runnable.run();
+                } catch (Throwable e) {
+                    thrownRef[0] = e;
+                }
+                latch.countDown();
+            }
+        });
+        awaitTimeout(latch);
+
+        if (thrownRef[0] != null) {
+            throw new IllegalStateException("Unhandled exception in mock main thread.",
+                    thrownRef[0]);
+        }
+    }
+
+    protected void awaitTimeout(CountDownLatch latch) {
+        try {
+            latch.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("Timeout exceeded.", e);
+        }
     }
 }

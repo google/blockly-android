@@ -29,6 +29,7 @@ import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
+import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.IOException;
@@ -44,15 +45,16 @@ import java.util.List;
 public class DevTestsActivity extends BlocklySectionsActivity {
     private static final String TAG = "DevTestsActivity";
 
-    public static final String SAVED_WORKSPACE_FILENAME = "dev_tests_workspace.xml";
+    public static final String SAVE_FILENAME = "dev_tests_workspace.xml";
+
     private static final List<String> BLOCK_DEFINITIONS = Collections.unmodifiableList(
             Arrays.asList(
-                    "default/list_blocks.json",
-                    "default/logic_blocks.json",
-                    "default/loop_blocks.json",
-                    "default/math_blocks.json",
-                    "default/text_blocks.json",
-                    "default/variable_blocks.json",
+                    DefaultBlocks.LIST_BLOCKS_PATH,
+                    DefaultBlocks.LOGIC_BLOCKS_PATH,
+                    DefaultBlocks.LOOP_BLOCKS_PATH,
+                    DefaultBlocks.MATH_BLOCKS_PATH,
+                    DefaultBlocks.TEXT_BLOCKS_PATH,
+                    DefaultBlocks.VARIABLE_BLOCKS_PATH,
                     "default/test_blocks.json",
                     "sample_sections/mock_block_definitions.json"
             ));
@@ -112,16 +114,6 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onLoadWorkspace() {
-        mBlockly.loadWorkspaceFromAppDirSafely(SAVED_WORKSPACE_FILENAME);
-    }
-
-    @Override
-    public void onSaveWorkspace() {
-        mBlockly.saveWorkspaceToAppDirSafely(SAVED_WORKSPACE_FILENAME);
     }
 
     /**
@@ -262,9 +254,23 @@ public class DevTestsActivity extends BlocklySectionsActivity {
         controller.addVariable("tak");
     }
 
-    @NonNull
     @Override
+    protected void onAutosave() {
+        // Dev tests doesn't autosave/restore the user's workspace by default as we load a specific
+        // workspace in onLoadInitialWorkspace.
+        return;
+    }
+
+    @Override
+    protected boolean onAutoload() {
+        // Dev tests doesn't autosave/restore the user's workspace by default as we load a specific
+        // workspace in onLoadInitialWorkspace.
+        return false;
+    }
+
+    @Override
+    @NonNull
     protected String getWorkspaceSavePath() {
-        return "devtests_workspace.xml";
+        return SAVE_FILENAME;
     }
 }

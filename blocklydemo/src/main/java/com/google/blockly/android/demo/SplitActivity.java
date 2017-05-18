@@ -18,19 +18,13 @@ package com.google.blockly.android.demo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
-import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.utils.BlocklyXmlHelper;
-import com.google.blockly.utils.StringOutputStream;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +35,9 @@ import java.util.List;
  */
 public class SplitActivity extends AbstractBlocklyActivity {
     private static final String TAG = "SplitActivity";
+
+    private static final String SAVE_FILENAME = "split_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "split_workspace_temp.xml";
 
     private TextView mGeneratedTextView;
     private Handler mHandler;
@@ -60,27 +57,6 @@ public class SplitActivity extends AbstractBlocklyActivity {
                     });
                 }
             };
-
-    @Override
-    protected void onRunCode() {
-        final StringOutputStream serialized = new StringOutputStream();
-        try {
-            getController().getWorkspace().serializeToXml(serialized);
-            mGeneratedTextView.setText(serialized.toString());
-        } catch (BlocklySerializerException e) {
-            // Not using a string resource because no non-developer should see this.
-            String msg = "Failed to serialize workspace during code generation.";
-            Log.wtf(TAG, msg, e);
-            Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-            throw new IllegalStateException(msg, e);
-        } finally {
-            try {
-                serialized.close();
-            } catch (IOException e) {
-                // Ignore error on close().
-            }
-        }
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -107,7 +83,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
 
     @Override
     protected int getActionBarMenuResId() {
-        return R.menu.turtle_actionbar;
+        return R.menu.split_actionbar;
     }
 
     @NonNull
@@ -167,11 +143,15 @@ public class SplitActivity extends AbstractBlocklyActivity {
         mGeneratedTextView.setMinWidth((int) (maxline * 13 * density));
     }
 
-    @NonNull
     @Override
+    @NonNull
     protected String getWorkspaceSavePath() {
-        // SplitActivity uses the turtle block definitions, and thus shares the same file as
-        // TurtleActivity.
-        return TurtleActivity.SAVED_WORKSPACE_FILENAME;
+        return SAVE_FILENAME;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return AUTOSAVE_FILENAME;
     }
 }

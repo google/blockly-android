@@ -104,7 +104,7 @@ public class BlockTestStrings {
               "<field name=\"text_input\">item</field>" +
             "</block>";
     public static final String SIMPLE_BLOCK_INLINE_BEGINNING =
-            "<block type=\"frankenblock\" id=\"INLINE_START\" inline=\"true\" x=\"37\" y=\"13\">" +
+            "<block inline=\"true\" type=\"frankenblock\" id=\"INLINE_START\" x=\"37\" y=\"13\">" +
               "<field name=\"text_input\">item</field>" +
             "</block>";
     public static final String SIMPLE_BLOCK_INLINE_FALSE =

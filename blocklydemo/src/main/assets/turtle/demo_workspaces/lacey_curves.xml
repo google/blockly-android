@@ -185,7 +185,7 @@
                                                             <block type="turtle_turn">
                                                                 <value name="VALUE">
                                                                     <shadow type="math_number">
-                                                                        <field name="NUM">120.0</field>
+                                                                        <field name="NUM">152.0</field>
                                                                     </shadow>
                                                                 </value>
                                                                 <field name="DIR">turnLeft</field>
@@ -193,7 +193,7 @@
                                                                     <block type="turtle_move">
                                                                         <value name="VALUE">
                                                                             <shadow type="math_number">
-                                                                                <field name="NUM">160.0</field>
+                                                                                <field name="NUM">40.0</field>
                                                                             </shadow>
                                                                         </value>
                                                                         <field name="DIR">moveForward</field>
@@ -201,7 +201,7 @@
                                                                             <block type="turtle_turn">
                                                                                 <value name="VALUE">
                                                                                     <shadow type="math_number">
-                                                                                        <field name="NUM">60.0</field>
+                                                                                        <field name="NUM">28.0</field>
                                                                                     </shadow>
                                                                                 </value>
                                                                                 <field name="DIR">turnLeft</field>

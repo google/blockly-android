@@ -46,6 +46,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -66,12 +67,6 @@ import static org.mockito.Mockito.when;
  * Tests for the {@link Dragger}.
  */
 public class DraggerTest extends BlocklyTestCase {
-    /**
-     * Default timeout of 1 second, which should be plenty for most UI actions.  Anything longer
-     * is an error.  However, to step through this code with a debugger, use a much longer duration.
-     */
-    private static final long TIMEOUT = 1000L;
-
     private Context mMockContext;
     private BlocklyController mMockController;
     private BlockClipDataHelper mMockBlockClipDataHelper;
@@ -81,10 +76,6 @@ public class DraggerTest extends BlocklyTestCase {
     private DragEvent mDragStartedEvent;
     private DragEvent mDragLocationEvent;
     private DragEvent mDropEvent;
-
-    private HandlerThread mThread;
-    private Handler mHandler;
-    private Throwable mExceptionInThread = null;
 
     private ViewPoint mTempViewPoint = new ViewPoint();
     private WorkspaceHelper mWorkspaceHelper;
@@ -133,12 +124,10 @@ public class DraggerTest extends BlocklyTestCase {
     @Before
     public void setUp() throws Exception {
         configureForThemes();
-        mThread = new HandlerThread("DraggerTest");
-        mThread.start();
-        mHandler = new Handler(mThread.getLooper());
+        configureForUIThread();
 
         mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(getContext()));
-        doReturn(mThread.getLooper()).when(mMockContext).getMainLooper();
+        doReturn(mTargetMainLooper).when(mMockContext).getMainLooper();
 
         mMockController = mock(BlocklyController.class);
         mMockBlockClipDataHelper = mock(BlockClipDataHelper.class);
@@ -151,8 +140,15 @@ public class DraggerTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
-                // TODO(#435): Replace R.raw.test_blocks
-                mBlockFactory = new BlockFactory(mMockContext, new int[]{R.raw.test_blocks});
+                mBlockFactory = new BlockFactory();
+
+                try {
+                    mBlockFactory.addJsonDefinitions(mMockContext.getAssets()
+                            .open("default/test_blocks.json"));
+                } catch (IOException | BlockLoadingException e) {
+                    throw new RuntimeException(e);
+                }
+                mBlockFactory.setController(mMockController);
                 mWorkspaceView = new WorkspaceView(mMockContext);
                 mWorkspaceHelper = new WorkspaceHelper(mMockContext);
                 mWorkspaceHelper.setWorkspaceView(mWorkspaceView);
@@ -185,13 +181,8 @@ public class DraggerTest extends BlocklyTestCase {
                 when(mDragLocationEvent.getAction()).thenReturn(DragEvent.ACTION_DRAG_LOCATION);
                 when(mDropEvent.getAction()).thenReturn(DragEvent.ACTION_DROP);
             }
-        }, TIMEOUT);
+        });
 
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        mThread.getLooper().quit();
     }
 
     // This set of tests covers the full sequence of dragging operations.
@@ -393,7 +384,7 @@ public class DraggerTest extends BlocklyTestCase {
                 mDragger.onTouchBlockImpl(
                         Dragger.DRAG_MODE_SLOPPY, mDragHandler, mTouchedView, me, false);
             }
-        }, TIMEOUT);
+        });
     }
 
     private void dragMove() {
@@ -408,10 +399,10 @@ public class DraggerTest extends BlocklyTestCase {
                                 Dragger.DRAG_MODE_SLOPPY, mDragHandler, mTouchedView, me, false))
                         .isTrue();
             }
-        }, TIMEOUT);
+        });
 
         // Allow mDragGroupCreator to run.
-        await(mDragGroupCreatorLatch, TIMEOUT);
+        awaitTimeout(mDragGroupCreatorLatch);
         assertWithMessage("Dragger must call Runnable to construct draggable BlockGroup")
                 .that(mDragGroupCreatorCallCount).isEqualTo(1);
 
@@ -420,7 +411,7 @@ public class DraggerTest extends BlocklyTestCase {
             public void run() {
                 mDragger.getDragEventListener().onDrag(mWorkspaceView, mDragStartedEvent);
             }
-        }, TIMEOUT);
+        });
 
     }
 
@@ -445,37 +436,6 @@ public class DraggerTest extends BlocklyTestCase {
 
                 mDragger.getDragEventListener().onDrag(mWorkspaceView, mDropEvent);
             }
-        }, TIMEOUT);
-    }
-
-    private void runAndSync(final Runnable runnable, long timeoutMilliseconds) {
-        assertThat(mExceptionInThread).isNull();
-
-        final CountDownLatch latch = new CountDownLatch(1);
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    runnable.run();
-                } catch (Throwable e) {
-                    mExceptionInThread = e;
-                }
-                latch.countDown();
-            }
         });
-        await(latch, timeoutMilliseconds);
-
-        if (mExceptionInThread != null) {
-            throw new IllegalStateException("Unhandled exception in mock main thread.",
-                    mExceptionInThread);
-        }
-    }
-
-    private void await(CountDownLatch latch, long timeoutMilliseconds) {
-        try {
-            latch.await(timeoutMilliseconds, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException("Timeout exceeded.", e);
-        }
     }
 }

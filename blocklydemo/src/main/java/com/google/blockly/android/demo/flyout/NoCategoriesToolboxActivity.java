@@ -19,6 +19,9 @@ import java.util.List;
 public class NoCategoriesToolboxActivity extends AbstractBlocklyActivity {
     private static final String TAG = "NoCatsActivity";
 
+    private static final String SAVE_FILENAME = "no_cats_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "no_cats_workspace_temp.xml";
+
     private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
             "default/logic_blocks.json",
             "default/loop_blocks.json",
@@ -72,5 +75,17 @@ public class NoCategoriesToolboxActivity extends AbstractBlocklyActivity {
         // Initialize variable names.
         // TODO: (#22) Remove this override when variables are supported properly
         getController().addVariable("item");
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceSavePath() {
+        return SAVE_FILENAME;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return AUTOSAVE_FILENAME;
     }
 }

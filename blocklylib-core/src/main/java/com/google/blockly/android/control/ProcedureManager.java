@@ -15,26 +15,61 @@
 
 package com.google.blockly.android.control;
 
-import android.support.v4.util.SimpleArrayMap;
+import android.database.DataSetObserver;
+import android.database.Observable;
+import android.support.v4.util.ArrayMap;
 
 import com.google.blockly.model.Block;
-import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldInput;
+import com.google.blockly.model.Mutator;
+import com.google.blockly.model.mutator.AbstractProcedureMutator;
+import com.google.blockly.model.mutator.ProcedureCallMutator;
+import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manages procedure definitions, references and names.
  */
-public class ProcedureManager {
-    public static final String PROCEDURE_DEFINITION_PREFIX = "procedure_def";
-    public static final String PROCEDURE_REFERENCE_PREFIX = "procedure_call";
+public class ProcedureManager extends Observable<DataSetObserver> {
+    public static final String PROCEDURE_NAME_FIELD = "NAME";
 
-    private final SimpleArrayMap<String, List<Block>> mProcedureReferences = new SimpleArrayMap<>();
-    private final SimpleArrayMap<String, Block> mProcedureDefinitions = new SimpleArrayMap<>();
+    public static final String DEFINE_NO_RETURN_BLOCK_TYPE = "procedures_defnoreturn";
+    public static final String DEFINE_WITH_RETURN_BLOCK_TYPE = "procedures_defreturn";
+    public static final String CALL_NO_RETURN_BLOCK_TYPE = "procedures_callnoreturn";
+    public static final String CALL_WITH_RETURN_BLOCK_TYPE = "procedures_callreturn";
+
+    private final ArrayMap<String, List<Block>> mProcedureReferences = new ArrayMap<>();
+    private final ArrayMap<String, Block> mProcedureDefinitions = new ArrayMap<>();
     private final NameManager mProcedureNameManager = new NameManager.ProcedureNameManager();
 
+    private int mCountOfReferencesWithReturn = 0;
+
+    /**
+     * Determines if a block is procedure call.
+     * @param block The block in question.
+     * @return True, if the block type is a recognized type of procedure call.
+     */
+    public static boolean isReference(Block block) {
+        Mutator mutator = block.getMutator();
+        return mutator != null && mutator instanceof ProcedureCallMutator;
+    }
+
+    /**
+     * Determines if a block is procedure definition.
+     * @param block The block in question.
+     * @return True, if the block type is a recognized type of procedure definition.
+     */
+    public static boolean isDefinition(Block block) {
+        Mutator mutator = block.getMutator();
+        return mutator != null && mutator instanceof ProcedureDefinitionMutator;
+    }
+
+    public Map<String, Block> getDefinitionBlocks() {
+        return Collections.unmodifiableMap(mProcedureDefinitions);
+    }
 
     public List<Block> getReferences(String functionName) {
         return mProcedureReferences.get(functionName);
@@ -58,6 +93,9 @@ public class ProcedureManager {
         mProcedureDefinitions.clear();
         mProcedureReferences.clear();
         mProcedureNameManager.clearUsedNames();
+        mCountOfReferencesWithReturn = 0;
+
+        notifyObservers();
     }
 
     /**
@@ -71,6 +109,11 @@ public class ProcedureManager {
         String procedureName = getProcedureName(block);
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).add(block);
+            if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
+                ++mCountOfReferencesWithReturn;
+            }
+
+            notifyObservers();
         } else {
             throw new IllegalStateException(
                     "Tried to add a reference to a procedure that has not been defined.");
@@ -88,6 +131,12 @@ public class ProcedureManager {
         String procedureName = getProcedureName(block);
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).remove(block);
+            if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
+                --mCountOfReferencesWithReturn;
+                assert (mCountOfReferencesWithReturn >= 0);
+            }
+
+            notifyObservers();
         } else {
             throw new IllegalStateException(
                     "Tried to remove a procedure reference that was not in the list of references");
@@ -113,6 +162,8 @@ public class ProcedureManager {
         mProcedureDefinitions.put(procedureName, block);
         mProcedureReferences.put(procedureName, new ArrayList<Block>());
         mProcedureNameManager.addName(procedureName);
+
+        notifyObservers();
     }
 
     /**
@@ -130,6 +181,9 @@ public class ProcedureManager {
             mProcedureReferences.remove(procedureName);
             mProcedureDefinitions.remove(procedureName);
             mProcedureNameManager.remove(procedureName);
+
+            notifyObservers();
+
             return retval;
         } else {
             throw new IllegalStateException(
@@ -137,31 +191,29 @@ public class ProcedureManager {
         }
     }
 
-    public static boolean isReference(Block block) {
-        return block.getType().startsWith(PROCEDURE_REFERENCE_PREFIX);
+    public boolean hasReferenceWithReturn() {
+        return mCountOfReferencesWithReturn > 0;
     }
 
-    public static boolean isDefinition(Block block) {
-        return block.getType().startsWith(PROCEDURE_DEFINITION_PREFIX);
+    protected void notifyObservers() {
+        for (DataSetObserver observer : mObservers) {
+            observer.onChanged();
+        }
     }
 
     private static String getProcedureName(Block block) {
-        Field nameField = block.getFieldByName("name");
-        if (nameField != null) {
-            return ((FieldInput) nameField).getText();
-        } else {
-            throw new IllegalArgumentException(
-                    "Procedure definition block with no procedure name.");
+        Mutator mutator = block.getMutator();
+        if (!(mutator instanceof AbstractProcedureMutator)) {
+            throw new IllegalArgumentException("Block does not contain procedure mutator.");
         }
+        return ((AbstractProcedureMutator) mutator).getProcedureName();
     }
 
     private static void setProcedureName(Block block, String newName) {
-        Field nameField = block.getFieldByName("name");
-        if (nameField != null) {
-            ((FieldInput) nameField).setText(newName);
-        } else {
-            throw new IllegalArgumentException(
-                    "Procedure definition block with no procedure name.");
+        Mutator mutator = block.getMutator();
+        if (!(mutator instanceof AbstractProcedureMutator)) {
+            throw new IllegalArgumentException("Block does not contain procedure mutator.");
         }
+        ((AbstractProcedureMutator) mutator).setProcedureName(newName);
     }
 }

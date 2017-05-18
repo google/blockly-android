@@ -13,12 +13,14 @@
  *  limitations under the License.
  */
 
-package com.google.blockly.android;
+package com.google.blockly.android.control;
 
 import android.support.test.rule.ActivityTestRule;
 
-import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.control.FlyoutController;
+import com.google.blockly.android.BlocklyTestActivity;
+import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.CategorySelectorFragment;
+import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.android.ui.BlockViewFactory;
 
 import org.junit.Before;
@@ -30,12 +32,11 @@ import static org.mockito.Mockito.mock;
 public class FlyoutControllerTest extends BlocklyTestCase {
 
     private FlyoutController mFlyoutController;
-    private FlyoutFragment mToolboxFlyout;
-    private FlyoutFragment mTrashFlyout;
-    private BlockViewFactory mBlockViewFactory;
+    private FlyoutFragment mMockToolboxFlyout;
+    private FlyoutFragment mMockTrashFlyout;
 
     private BlocklyController mController;
-    private CategorySelectorFragment mCategoryFragment;
+    private CategorySelectorFragment mMockCategoryFragment;
     private BlocklyTestActivity mActivity;
 
     @Rule
@@ -46,21 +47,15 @@ public class FlyoutControllerTest extends BlocklyTestCase {
     public void setUp() throws Exception {
         configureForUIThread();
         mActivity = mActivityRule.getActivity();
+        mController = mActivity.getController();
+        mFlyoutController = mController.mFlyoutController;
 
-        mToolboxFlyout = mock(FlyoutFragment.class);
-        mCategoryFragment = mock(CategorySelectorFragment.class);
-        mTrashFlyout = mock(FlyoutFragment.class);
-        mBlockViewFactory = mock(BlockViewFactory.class);
+        mMockToolboxFlyout = mock(FlyoutFragment.class);
+        mMockCategoryFragment = mock(CategorySelectorFragment.class);
+        mMockTrashFlyout = mock(FlyoutFragment.class);
 
-        BlocklyController.Builder bob = new BlocklyController.Builder(mActivity);
-        bob.setBlockViewFactory(mBlockViewFactory);
-        bob.setToolboxUi(mToolboxFlyout, mCategoryFragment);
-        bob.setTrashUi(mTrashFlyout);
-
-        mController = bob.build();
-        mFlyoutController = new FlyoutController(mActivity, mController);
-        mFlyoutController.setToolboxUiComponents(mCategoryFragment, mToolboxFlyout);
-        mFlyoutController.setTrashUi(mTrashFlyout);
+        mController.setToolboxUi(mMockToolboxFlyout, mMockCategoryFragment);
+        mController.setTrashUi(mMockTrashFlyout);
     }
 
     // TODO: test FlyoutController

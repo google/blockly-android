@@ -17,11 +17,13 @@ package com.google.blockly.utils;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
+import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.IOOptions;
 import com.google.blockly.model.Mutator;
@@ -46,11 +48,42 @@ import java.util.List;
  * parsers and serializers as needed.
  */
 public final class BlocklyXmlHelper {
+    public interface XmlContentWriter {
+        void write(XmlSerializer serializer) throws IOException;
+    }
+
     private static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
     private static final XmlPullParserFactory PARSER_FACTORY = createParseFactory();
 
+    // Do Not Instantiate
+    private BlocklyXmlHelper() {}
 
-    private BlocklyXmlHelper() {
+    public static String writeXml(XmlContentWriter contentWriter) throws IOException {
+        StringWriter sw = new StringWriter();
+        writeXml(sw, contentWriter);
+        return sw.toString();
+    }
+
+    public static void writeXml(Writer output, XmlContentWriter writer) throws IOException {
+        try {
+            XmlSerializer serializer = PARSER_FACTORY.newSerializer();
+            serializer.setOutput(output);
+            writer.write(serializer);
+            serializer.flush();
+        } catch (XmlPullParserException e) {
+            throw new IllegalStateException("Unable to construct XmlSerilaizer");
+        }
+    }
+
+    public static void writeXml(OutputStream output, XmlContentWriter writer) throws IOException {
+        try {
+            XmlSerializer serializer = PARSER_FACTORY.newSerializer();
+            serializer.setOutput(output, /* Encoding = default */ null );
+            writer.write(serializer);
+            serializer.flush();
+        } catch (XmlPullParserException e) {
+            throw new IllegalStateException("Unable to construct XmlSerilaizer");
+        }
     }
 
     /**
@@ -59,17 +92,19 @@ public final class BlocklyXmlHelper {
      *
      * @param is The input stream from which to read.
      * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
+     * @param workspaceId The workspaceId to set on all blocks attached to this Category.
      *
      * @return The top-level category in the toolbox.
      * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
      *                               or XmlPullParserException as a root cause.
      */
-    public static BlocklyCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory)
+    public static BlocklyCategory loadToolboxFromXml(InputStream is, BlockFactory blockFactory,
+                                                     String workspaceId)
             throws BlockLoadingException {
         try {
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
             parser.setInput(is, null);
-            return BlocklyCategory.fromXml(parser, blockFactory);
+            return BlocklyCategory.fromXml(parser, blockFactory, workspaceId);
         } catch (XmlPullParserException e) {
             throw new BlockLoadingException(e);
         }
@@ -93,25 +128,6 @@ public final class BlocklyXmlHelper {
     }
 
     /**
-     * Loads a list of top-level Blocks from XML.  Each top-level Block may have many Blocks
-     * contained in it or descending from it.
-     *
-     * @param inputXml The input stream of XML from which to read.
-     * @param blockFactory The BlockFactory for the workspace where the Blocks are being loaded.
-     * @param stats Unused
-     * @param result The List to add the parsed blocks to.
-     *
-     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
-     *                               or XmlPullParserException as a root cause.
-     */
-    @Deprecated
-    public static void loadFromXml(InputStream inputXml, BlockFactory blockFactory,
-                                   WorkspaceStats stats, List<Block> result)
-            throws BlockLoadingException {
-        loadBlocksFromXml(inputXml, null, blockFactory, result);
-    }
-
-    /**
      * Convenience function that creates a new {@link ArrayList}.
      * @param inputXml The input stream of XML from which to read.
      * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
@@ -122,22 +138,6 @@ public final class BlocklyXmlHelper {
         List<Block> result = new ArrayList<>();
         loadBlocksFromXml(inputXml, null, blockFactory, result);
         return result;
-    }
-
-    /**
-     * Convenient version of {@link #loadFromXml(InputStream, BlockFactory, List)} function that
-     * returns results in a newly created a new {@link ArrayList}.
-     * @param inputXml The input stream of XML from which to read.
-     * @param blockFactory The factory object used to create blocks.
-     * @param stats Unused.
-     * @return A list of the root blocks successfully loaded.
-     * @throws BlockLoadingException If any error occurs with the input. It may wrap an IOException
-     *                               or XmlPullParserException as a root cause.
-     */
-    @Deprecated
-    public static List<Block> loadFromXml(InputStream inputXml, BlockFactory blockFactory,
-                                          WorkspaceStats stats) throws BlockLoadingException {
-        return loadFromXml(inputXml, blockFactory);
     }
 
     /**
@@ -229,29 +229,31 @@ public final class BlocklyXmlHelper {
      *
      * @throws BlocklySerializerException
      */
-    public static void writeToXmlImpl(@NonNull List<Block> toSerialize, @Nullable OutputStream os,
-                                      @Nullable Writer writer, @Nullable IOOptions options)
+    public static void writeToXmlImpl(final @NonNull List<Block> toSerialize,
+                                      @Nullable OutputStream os, @Nullable Writer writer,
+                                      @Nullable IOOptions options)
             throws BlocklySerializerException {
-        if (options == null) {
-            options = IOOptions.WRITE_ALL_DATA;
-        }
-        try {
-            XmlSerializer serializer = PARSER_FACTORY.newSerializer();
-            if (os != null) {
-                serializer.setOutput(os, null);
-            } else {
-                serializer.setOutput(writer);
-            }
-            serializer.setPrefix("", XML_NAMESPACE);
-            serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+        final IOOptions finalOptions = options == null ? IOOptions.WRITE_ALL_DATA : options;
+        XmlContentWriter contentWriter = new XmlContentWriter() {
+            @Override
+            public void write(XmlSerializer serializer) throws IOException {
+                serializer.setPrefix("", XML_NAMESPACE);
+                serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
 
-            serializer.startTag(XML_NAMESPACE, "xml");
-            for (int i = 0; i < toSerialize.size(); i++) {
-                toSerialize.get(i).serialize(serializer, true, options);
+                serializer.startTag(XML_NAMESPACE, "xml");
+                for (int i = 0; i < toSerialize.size(); i++) {
+                    toSerialize.get(i).serialize(serializer, true, finalOptions);
+                }
+                serializer.endTag(XML_NAMESPACE, "xml");
             }
-            serializer.endTag(XML_NAMESPACE, "xml");
-            serializer.flush();
-        } catch (XmlPullParserException | IOException e) {
+        };
+        try {
+            if (os != null) {
+                writeXml(os, contentWriter);
+            } else {
+                writeXml(writer, contentWriter);
+            }
+        } catch (IOException e) {
             throw new BlocklySerializerException(e);
         }
     }
@@ -395,14 +397,14 @@ public final class BlocklyXmlHelper {
      * @throws BlockLoadingException
      */
     public static void updateMutator(
-            @NonNull Block block, @NonNull Mutator mutator, @NonNull String mutation)
+            @NonNull Block block, @NonNull Mutator mutator, @Nullable String mutation)
             throws BlockLoadingException
     {
         try {
-            Reader reader = new StringReader(mutation);
+            Reader reader = new StringReader(mutation == null ? "<mutation></mutation>" : mutation);
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
             parser.setInput(reader);
-            mutator.update(block, parser);
+            mutator.update(parser);
         } catch (XmlPullParserException | IOException e) {
             throw new BlockLoadingException("Failed to parse mutation: " + mutation, e);
         }

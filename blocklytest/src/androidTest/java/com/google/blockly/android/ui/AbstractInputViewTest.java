@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 
@@ -51,9 +53,11 @@ public class AbstractInputViewTest extends BlocklyTestCase {
     public void setUp() throws Exception {
         mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         // Use the BlockFactory to make sure we have real inputs.
-        // TODO(#435): Replace R.raw.test_blocks
-        BlockFactory factory = new BlockFactory(InstrumentationRegistry.getContext(),
-                new int[]{R.raw.test_blocks});
+        BlockFactory factory = new BlockFactory();
+        factory.addJsonDefinitions(InstrumentationRegistry.getTargetContext().getAssets()
+                .open("default/test_blocks.json"));
+
+        factory.setController(Mockito.mock(BlocklyController.class));
         Block block = factory.obtainBlockFrom(new BlockTemplate()
                 .ofType("test_block_one_input_each_type"));
         mDummyInput = block.getInputs().get(0);

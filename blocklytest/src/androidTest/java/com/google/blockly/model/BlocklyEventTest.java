@@ -2,6 +2,8 @@ package com.google.blockly.model;
 
 import android.support.test.InstrumentationRegistry;
 
+import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -18,7 +20,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Unit tests for {@link BlocklyEvent} classes.
  */
-public class BlocklyEventTest {
+public class BlocklyEventTest extends BlocklyTestCase {
     private static final String BLOCK_TYPE = "controls_whileUntil";
     private static final String BLOCK_ID = "block";
     private static final String FIELD_NAME = "MODE";
@@ -29,35 +31,32 @@ public class BlocklyEventTest {
     private static final WorkspacePoint NEW_POSITION =
             new WorkspacePoint(NEW_POSITION_X, NEW_POSITION_Y);
 
-    private Workspace mMockWorkspace;
+    private BlocklyController mMockController;
     private BlockFactory mBlockFactory;
     private Block mBlock;
     private Field mField;
 
     @Before
     public void setUp() throws Exception {
-        mMockWorkspace = mock(Workspace.class);
-        // TODO(#435): Replace R.raw.test_blocks
-        mBlockFactory = new BlockFactory(InstrumentationRegistry.getContext(),
-                new int[]{R.raw.test_blocks});
+        configureForUIThread();
+
+        mMockController = Mockito.mock(BlocklyController.class);
+
+        mBlockFactory = new BlockFactory();
+        mBlockFactory.addJsonDefinitions(getContext().getAssets()
+                .open("default/test_blocks.json"));
+        mBlockFactory.setController(mMockController);
         mBlock = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType(BLOCK_TYPE).withId(BLOCK_ID));
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                mBlock.setEventWorkspaceId(WORKSPACE_ID);
+            }
+        });
+
         mField = mBlock.getFieldByName(FIELD_NAME);
         mBlock.setPosition(NEW_POSITION_X, NEW_POSITION_Y);
-
-
-        Mockito.when(mMockWorkspace.getId()).thenReturn(WORKSPACE_ID);
-    }
-
-    @Test
-    public void testChangeEvent_collapsedState() throws JSONException {
-        boolean newValue = mBlock.isCollapsed();
-        boolean oldValue = !newValue;
-        BlocklyEvent.ChangeEvent event =
-                BlocklyEvent.ChangeEvent.newCollapsedStateEvent(mMockWorkspace, mBlock);
-        testChangeEvent(BlocklyEvent.ELEMENT_COLLAPSED, event,
-                        oldValue ? "true" : "false",
-                        newValue ? "true" : "false");
     }
 
     @Test
@@ -65,19 +64,8 @@ public class BlocklyEventTest {
         String oldValue = "old comment";
         String newValue = "new comment";
         BlocklyEvent.ChangeEvent event = BlocklyEvent.ChangeEvent.newCommentTextEvent(
-                mMockWorkspace, mBlock, oldValue, newValue);
+                mBlock, oldValue, newValue);
         testChangeEvent(BlocklyEvent.ELEMENT_COMMENT, event, oldValue, newValue);
-    }
-
-    @Test
-    public void testChangeEvent_disabledState() throws JSONException {
-        boolean newValue = mBlock.isDisabled();
-        boolean oldValue = !newValue;
-        BlocklyEvent.ChangeEvent event =
-                BlocklyEvent.ChangeEvent.newDisabledStateEvent(mMockWorkspace, mBlock);
-        testChangeEvent(BlocklyEvent.ELEMENT_DISABLED, event,
-                oldValue ? "true" : "false",
-                newValue ? "true" : "false");
     }
 
     @Test
@@ -86,7 +74,7 @@ public class BlocklyEventTest {
         String newValue = "WHILE";
         mField.setFromString(newValue);
         BlocklyEvent.ChangeEvent event = BlocklyEvent.ChangeEvent.newFieldValueEvent(
-                mMockWorkspace, mBlock, mField, oldValue, newValue);
+                mBlock, mField, oldValue, newValue);
         testChangeEvent(BlocklyEvent.ELEMENT_FIELD, event, oldValue, newValue);
     }
 
@@ -95,7 +83,7 @@ public class BlocklyEventTest {
         boolean newValue = mBlock.getInputsInline();
         boolean oldValue = !newValue;
         BlocklyEvent.ChangeEvent event =
-                BlocklyEvent.ChangeEvent.newInlineStateEvent(mMockWorkspace, mBlock);
+                BlocklyEvent.ChangeEvent.newInlineStateEvent(mBlock);
         testChangeEvent(BlocklyEvent.ELEMENT_INLINE, event,
                 oldValue ? "true" : "false",
                 newValue ? "true" : "false");
@@ -106,7 +94,7 @@ public class BlocklyEventTest {
         String oldValue = "old mutation";
         String newValue = "new mutation";
         BlocklyEvent.ChangeEvent event = BlocklyEvent.ChangeEvent.newMutateEvent(
-                mMockWorkspace, mBlock, oldValue, newValue);
+                mBlock, oldValue, newValue);
         testChangeEvent(BlocklyEvent.ELEMENT_MUTATE, event, oldValue, newValue);
     }
 
@@ -117,6 +105,7 @@ public class BlocklyEventTest {
         assertThat(event.getTypeId()).isSameAs(BlocklyEvent.TYPE_CHANGE);
         assertThat(event.getTypeName()).isSameAs(BlocklyEvent.TYPENAME_CHANGE);
         assertThat(event.getWorkspaceId()).isEqualTo(WORKSPACE_ID);
+        // TODO(567): Assign the Block's parent/root EventWorkspace, and check against WORKSPACE_ID.
         // Group id is assigned by the BlocklyController, not tested here.
         assertThat(event.getElement()).isEqualTo(element);
         assertThat(event.getOldValue()).isEqualTo(oldValue);
@@ -143,11 +132,11 @@ public class BlocklyEventTest {
 
     @Test
     public void testCreateEvent() throws JSONException, BlockLoadingException {
-        BlocklyEvent.CreateEvent event = new BlocklyEvent.CreateEvent(mMockWorkspace, mBlock);
+        BlocklyEvent.CreateEvent event = new BlocklyEvent.CreateEvent(mBlock);
 
         assertThat(event.getTypeId()).isSameAs(BlocklyEvent.TYPE_CREATE);
         assertThat(event.getTypeName()).isSameAs(BlocklyEvent.TYPENAME_CREATE);
-        assertThat(event.getWorkspaceId()).isEqualTo(WORKSPACE_ID);
+        // TODO(567): Assign the Block's parent/root EventWorkspace, and check against WORKSPACE_ID.
         // Group id is assigned by the BlocklyController, not tested here.
         assertThat(event.getIds().size()).isEqualTo(1);
         assertThat(event.getIds().get(0)).isEqualTo(BLOCK_ID);

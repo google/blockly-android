@@ -14,6 +14,8 @@
  */
 package com.google.blockly.model;
 
+import com.google.blockly.android.BlocklyTestCase;
+import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
@@ -31,22 +33,27 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests {@link Mutator} and related classes.
  */
-public class MutatorTest {
+public class MutatorTest extends BlocklyTestCase {
     private static final String BLOCK_TYPE = "block type";
     private static final String MUTATOR_ID = "mutator_id";
     private static final String STARTING_VALUE = "starting value";
     private static final String UPDATED_ATTR = "updated attrib";
     private static final String UPDATED_TEXT = "updated text";
 
+    BlocklyController mController;
+
     BlockFactory mFactory;
     Mutator.Factory mMutatorFactory;
 
     @Before
     public void setUp() throws BlockLoadingException, IOException {
+        configureForUIThread();
+
         assertThat(STARTING_VALUE).isNotEqualTo(UPDATED_ATTR);
         assertThat(STARTING_VALUE).isNotEqualTo(UPDATED_TEXT);
 
-        mFactory = new BlockFactory();
+        mController = new BlocklyController.Builder(getContext()).build();
+        mFactory = mController.getBlockFactory();
         mFactory.addJsonDefinitions(
                 "[{\"type\": \"" + BLOCK_TYPE + "\","
                 + "\"mutator\": \"" + MUTATOR_ID + "\"}]"
@@ -61,40 +68,72 @@ public class MutatorTest {
      * definition, serialization, and deserialization.
      */
     @Test
-    public void testMutatorLifecycle() throws BlockLoadingException, BlocklySerializerException {
-        Block block = mFactory.obtainBlockFrom(new BlockTemplate().ofType(BLOCK_TYPE));
+    public void testMutatorLifecycle() throws Exception {
+        final Block block = mFactory.obtainBlockFrom(new BlockTemplate().ofType(BLOCK_TYPE));
 
-        ExampleMutator mutator = (ExampleMutator) block.getMutator();
-        assertThat(mutator).isNotNull();
-        assertThat(mutator.mAttrib).isEqualTo(STARTING_VALUE);
-        assertThat(mutator.mText).isEqualTo(STARTING_VALUE);
-        Mockito.verify(mutator).onAttached(block);
+        final Exception[] innerException = {null};  // Runner interface does not support exceptions.
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                ExampleMutator mutator = (ExampleMutator) block.getMutator();
+                assertThat(mutator).isNotNull();
+                assertThat(mutator.mAttrib).isEqualTo(STARTING_VALUE);
+                assertThat(mutator.mText).isEqualTo(STARTING_VALUE);
+                Mockito.verify(mutator).onAttached(block);
 
-        mutator.mAttrib = UPDATED_ATTR;
-        mutator.mText = UPDATED_TEXT;
+                mutator.mAttrib = UPDATED_ATTR;
+                mutator.mText = UPDATED_TEXT;
 
-        String xml = BlocklyXmlHelper.writeBlockToXml(block, IOOptions.WRITE_ALL_BLOCKS_WITHOUT_ID);
-        assertThat(xml).contains(UPDATED_ATTR);
-        assertThat(xml).contains(UPDATED_TEXT);
+                String xml = null;
+                try {
+                    xml = BlocklyXmlHelper.writeBlockToXml(
+                            block, IOOptions.WRITE_ALL_BLOCKS_WITHOUT_ID);
+                } catch (BlocklySerializerException e) {
+                    innerException[0] = e;
+                    return;
+                }
+                assertThat(xml).contains(UPDATED_ATTR);
+                assertThat(xml).contains(UPDATED_TEXT);
 
-        Block blockCopy = BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
-        ExampleMutator mutatorCopy = (ExampleMutator) blockCopy.getMutator();
-        assertThat(mutatorCopy).isNotNull();
-        assertThat(mutatorCopy.mAttrib).isEqualTo(UPDATED_ATTR);
-        assertThat(mutatorCopy.mText).isEqualTo(UPDATED_TEXT);
-        Mockito.verify(mutatorCopy).onAttached(blockCopy);
+                Block blockCopy = null;
+                try {
+                    blockCopy = BlocklyXmlHelper.loadOneBlockFromXml(xml, mFactory);
+                } catch (BlockLoadingException e) {
+                    innerException[0] = e;
+                    return;
+                }
+                ExampleMutator mutatorCopy = (ExampleMutator) blockCopy.getMutator();
+                assertThat(mutatorCopy).isNotNull();
+                assertThat(mutatorCopy.mAttrib).isEqualTo(UPDATED_ATTR);
+                assertThat(mutatorCopy.mText).isEqualTo(UPDATED_TEXT);
+                Mockito.verify(mutatorCopy).onAttached(blockCopy);
+            }
+        });
+
+        if (innerException[0] != null) {
+            throw innerException[0];
+        }
     }
 
     public static class ExampleMutator extends Mutator {
         static class Factory implements Mutator.Factory<ExampleMutator> {
             @Override
-            public ExampleMutator newMutator() {
-                return Mockito.spy(new ExampleMutator());
+            public ExampleMutator newMutator(BlocklyController controller) {
+                return Mockito.spy(new ExampleMutator(this));
+            }
+
+            @Override
+            public String getMutatorId() {
+                return MUTATOR_ID;
             }
         }
 
         String mAttrib = STARTING_VALUE;
         String mText = STARTING_VALUE;
+
+        protected ExampleMutator(Mutator.Factory factory) {
+            super(factory);
+        }
 
         @Override
         public void serialize(XmlSerializer serializer) throws IOException {
@@ -105,7 +144,7 @@ public class MutatorTest {
         }
 
         @Override
-        public void update(Block block, XmlPullParser parser)
+        public void update(XmlPullParser parser)
                 throws IOException, XmlPullParserException {
             // Crude parse
             assertThat(parser.next()).isEqualTo(XmlPullParser.START_TAG);

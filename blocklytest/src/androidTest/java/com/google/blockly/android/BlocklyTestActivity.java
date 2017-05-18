@@ -18,11 +18,13 @@ import android.support.annotation.NonNull;
 import android.view.ContextThemeWrapper;
 
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.android.codegen.LoggingCodeGeneratorCallback;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.android.ui.vertical.R;
+import com.google.blockly.model.DefaultBlocks;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,16 +35,7 @@ import java.util.List;
 public class BlocklyTestActivity extends AbstractBlocklyActivity {
     private static final String TAG = "BlocklyTestActivity";
 
-    private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(new String[]{
-            "default/colour_blocks.json",
-            "default/list_blocks.json",
-            "default/logic_blocks.json",
-            "default/loop_blocks.json",
-            "default/math_blocks.json",
-            "default/text_blocks.json",
-            "default/variable_blocks.json",
-            "default/test_blocks.json"
-    });
+    private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
 
     private static final List<String> BLOCK_GENERATORS = Arrays.asList(new String[] {
             "fake/generator.js"
@@ -61,6 +54,12 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
         return BLOCK_DEFINITIONS;
+    }
+
+    @NonNull
+    @Override
+    protected LanguageDefinition getBlockGeneratorLanguage() {
+        return DefaultBlocks.LANGUAGE_DEFINITION;
     }
 
     @NonNull

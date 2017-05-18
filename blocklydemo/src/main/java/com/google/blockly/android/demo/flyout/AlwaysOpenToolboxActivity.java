@@ -32,7 +32,10 @@ import java.util.List;
  * TODO: Add menu to switch between different layouts.
  */
 public class AlwaysOpenToolboxActivity extends AbstractBlocklyActivity {
-    private static final String TAG = "StyledFlyouts";
+    private static final String TAG = "AlwaysOpenToolbox";
+
+    private static final String SAVE_FILENAME = "always_open_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "always_open_workspace_temp.xml";
 
     private static final List<String> BLOCK_DEFINITIONS = Arrays.asList(
             "default/logic_blocks.json",
@@ -92,5 +95,17 @@ public class AlwaysOpenToolboxActivity extends AbstractBlocklyActivity {
     protected View onCreateContentView(int parentId) {
         View root = getLayoutInflater().inflate(R.layout.styled_content, null);
         return root;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceSavePath() {
+        return SAVE_FILENAME;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return AUTOSAVE_FILENAME;
     }
 }

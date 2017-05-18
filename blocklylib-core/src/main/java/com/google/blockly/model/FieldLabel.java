@@ -54,9 +54,11 @@ public final class FieldLabel extends Field {
      * should not be caused by user input. For user editable text fields use
      * {@link FieldInput} instead.
      */
-    public void setText(String text) {
-        if (!TextUtils.equals(text, mText)) {
-            mText = text;
+    public void setText(String newValue) {
+        if (!TextUtils.equals(newValue, mText)) {
+            String oldText = mText;
+            mText = newValue;
+            fireValueChanged(oldText, mText);
         }
     }
 
@@ -68,5 +70,19 @@ public final class FieldLabel extends Field {
     @Override
     public String getSerializedValue() {
         return ""; // Label fields do not have value.
+    }
+
+    /**
+     * Notify Observers of change, without firing ChangeEvent nor as an event group, since labels
+     * are not really value fields for state changes.
+     *
+     * @param oldText The original label text (not field value).
+     * @param newText The new label text (not field value).
+     */
+    @Override
+    protected void fireValueChanged(final String oldText, final String newText) {
+        for (int i = 0; i < mObservers.size(); i++) {
+            mObservers.get(i).onValueChanged(this, oldText, newText);
+        }
     }
 }

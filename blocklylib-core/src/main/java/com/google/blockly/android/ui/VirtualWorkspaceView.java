@@ -160,6 +160,10 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         return mScrollable;
     }
 
+    public void setDrawGrid(boolean drawGrid){
+        mDrawGrid = drawGrid;
+    }
+
     public void setZoomBehavior(ZoomBehavior zoomBehavior){
         setScrollable(zoomBehavior.isScrollEnabled());
         setScalable(zoomBehavior.isPinchZoomEnabled());

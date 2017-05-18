@@ -19,7 +19,6 @@ import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;
@@ -57,7 +56,7 @@ public class WorkspaceTest extends BlocklyTestCase {
         configureForUIThread();
         Context context = InstrumentationRegistry.getContext();
         BlocklyController.Builder builder = new BlocklyController.Builder(context);
-        builder.addBlockDefinitions(R.raw.test_blocks);
+        builder.addBlockDefinitionsFromAsset("default/test_blocks.json");
         BlocklyController controller = builder.build();
         mWorkspace = controller.getWorkspace();
     }

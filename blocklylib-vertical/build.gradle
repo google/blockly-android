@@ -15,9 +15,8 @@ android {
             minifyEnabled false
         }
     }
-
     lintOptions {
-        abortOnError false
+          abortOnError false
     }
 }
 

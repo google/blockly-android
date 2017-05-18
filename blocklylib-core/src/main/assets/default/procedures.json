@@ -1,0 +1,107 @@
+[
+  {
+    "type": "procedures_defnoreturn",
+    "message0": "to %1 %2",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "NAME",
+        "text": ""
+      },
+      {
+        "type": "field_label",
+        "name": "PARAMS"
+      }
+    ],
+    "mutator": "procedures_defnoreturn_mutator",
+    "colour": "290",
+    "tooltip": "Creates a function with no output.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+  },
+  {
+    "type": "procedures_defreturn",
+    "message0": "to %1 %2",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "NAME",
+        "text": ""
+      },
+      {
+        "type": "field_label",
+        "name": "PARAMS"
+      }
+    ],
+    "message1": "return %1",
+    "args1": [
+      {
+        "type": "input_value",
+        "name": "RETURN",
+        "align": "RIGHT"
+      }
+    ],
+    "mutator": "procedures_defreturn_mutator",
+    "colour": "290",
+    "tooltip": "Creates a function with an output.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+  },
+  {
+    "type": "procedures_callnoreturn",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_label",
+        "name": "NAME"
+      },
+      {
+        "type": "input_dummy",
+        "name": "TOPROW"
+      }
+    ],
+    "mutator": "procedures_callnoreturn_mutator",
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "290",
+    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+  },
+  {
+    "type": "procedures_callreturn",
+    "message0": "%1 %2",
+    "args0": [
+      {
+        "type": "field_label",
+        "name": "NAME"
+      },
+      {
+        "type": "input_dummy",
+        "name": "TOPROW"
+      }
+    ],
+    "mutator": "procedures_callreturn_mutator",
+    "output": null,
+    "colour": "290",
+    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+  },
+  {
+    "type": "procedures_ifreturn",
+    "message0": "if %1 return %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "CONDITION",
+        "check": "Boolean"
+      },
+      {
+        "type": "input_value",
+        "name": "VALUE"
+      }
+    ],
+    "mutator": "procedures_ifreturn_mutator",
+    "inputsInline": true,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "290",
+    "tooltip": "If a value is true, then return a second value.",
+    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+  }
+]

@@ -30,6 +30,9 @@ import java.util.List;
 public class StylesActivity extends AbstractBlocklyActivity {
     private static final String TAG = "StylesActivity";
 
+    private static final String SAVE_FILENAME = "styles_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "styles_workspace_temp.xml";
+
     CodeGenerationRequest.CodeGeneratorCallback mCodeGeneratorCallback =
             new LoggingCodeGeneratorCallback(this, TAG);
 
@@ -58,5 +61,17 @@ public class StylesActivity extends AbstractBlocklyActivity {
     protected CodeGenerationRequest.CodeGeneratorCallback getCodeGenerationCallback() {
         // Uses the same callback for every generation call.
         return mCodeGeneratorCallback;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceSavePath() {
+        return SAVE_FILENAME;
+    }
+
+    @Override
+    @NonNull
+    protected String getWorkspaceAutosavePath() {
+        return AUTOSAVE_FILENAME;
     }
 }

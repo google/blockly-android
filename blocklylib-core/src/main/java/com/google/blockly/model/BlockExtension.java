@@ -17,9 +17,6 @@ package com.google.blockly.model;
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.utils.BlockLoadingException;
 
-import java.util.Collections;
-import java.util.Map;
-
 /**
  * A BlockExtension allows programmatic configuration of blocks, extra initialization, or custom
  * behaviors to be added to blocks. They are also the preferred mechanism to create and set
@@ -27,11 +24,11 @@ import java.util.Map;
  * <p/>
  * BlockExtensions must be registered using {@link BlockFactory#registerExtension}. For convenience,
  * implementations of {@link AbstractBlocklyActivity} can override the
- * {@link AbstractBlocklyActivity#getBlockExtensions()} to register several extensions at start up.
+ * {@link AbstractBlocklyActivity#configureBlockExtensions()} to register several extensions at start up.
  * <p/>
  * All extensions used by the blocks found in {@code src/main/assets/default/} are defined in
- * {@link #STANDARD_EXTENSIONS}, the default return value of
- * {@linkplain AbstractBlocklyActivity#getBlockExtensions()}.
+ * {@link DefaultBlocks#getExtensions()}, the default return value of
+ * {@linkplain AbstractBlocklyActivity#configureBlockExtensions()}.
  * <p/>
  * Block definitions can refer to these extensions two ways. If a extension installs a
  * {@linkplain Mutator} on a block, the block definition should declare its use with the
@@ -43,8 +40,6 @@ import java.util.Map;
  * extensions and mutators</a>.
  */
 public interface BlockExtension {
-    Map<String, BlockExtension> STANDARD_EXTENSIONS = Collections.EMPTY_MAP;  // TODO
-
     /**
      * Applies the extension to the provided block.
      * @param block The block to update

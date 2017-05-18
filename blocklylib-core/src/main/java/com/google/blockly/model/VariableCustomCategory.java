@@ -27,11 +27,13 @@ import com.google.blockly.utils.BlockLoadingException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
- * Class for building {@link BlocklyCategory categories} for variable
+ * Class for building {@link BlocklyCategory categories} for variables blocks.
  */
-public final class VariableCategoryFactory extends CategoryFactory {
+public final class VariableCustomCategory implements CustomCategory {
     private static final String TAG = "VariableCategoryFactory";
 
     public static final String ACTION_CREATE_VARIABLE = "CREATE_VARIABLE";
@@ -46,16 +48,16 @@ public final class VariableCategoryFactory extends CategoryFactory {
     private NameManager mVariableNameManager;
     private BlockFactory mBlockFactory;
 
-    public VariableCategoryFactory(Context context, BlocklyController controller) {
-        mContext = context;
+    public VariableCustomCategory(BlocklyController controller) {
         mController = controller;
+        mContext = controller.getContext();
         mVariableNameManager = mController.getWorkspace().getVariableNameManager();
         mBlockFactory = mController.getBlockFactory();
     }
 
     @Override
-    public BlocklyCategory obtainCategory(String customType) {
-        BlocklyCategory category = new BlocklyCategory();
+    public void initializeCategory(BlocklyCategory category) throws BlockLoadingException {
+        checkRequiredBlocksAreDefined();
         rebuildItems(category);
 
         final WeakReference<BlocklyCategory> catRef = new WeakReference<>(category);
@@ -68,47 +70,67 @@ public final class VariableCategoryFactory extends CategoryFactory {
                     mVariableNameManager.unregisterObserver(this);
                 } else {
                     // Otherwise, update the category's list.
-                    rebuildItems(category);
+                    try {
+                        rebuildItems(category);
+                    } catch (BlockLoadingException e) {
+                        throw new IllegalStateException(e);
+                    }
                 }
             }
         });
-        return category;
     }
 
-    private void rebuildItems(BlocklyCategory category) {
+    private void checkRequiredBlocksAreDefined() throws BlockLoadingException {
+        BlockTemplate[] required = {SET_VAR_TEMPLATE, GET_VAR_TEMPLATE, CHANGE_VAR_TEMPLATE};
+
+        StringBuilder sb = null;
+        for (BlockTemplate template : required) {
+            if (!mBlockFactory.isDefined(template.mTypeName)) {
+                if (sb == null) {
+                    sb = new StringBuilder();
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(template.mTypeName);
+            }
+        }
+        if (sb != null) {
+            throw new BlockLoadingException("Missing block definitions: " + sb.toString());
+        }
+    }
+
+    private void rebuildItems(BlocklyCategory category) throws BlockLoadingException {
+        for (BlocklyCategory.CategoryItem item : category.getItems()) {
+            if (item.getType() == BlocklyCategory.CategoryItem.TYPE_BLOCK) {
+                // Clean up the old views
+                BlocklyCategory.BlockItem blockItem = (BlocklyCategory.BlockItem) item;
+                mController.unlinkViews(blockItem.getBlock());
+            }
+        }
         category.clear();
+
         category.addItem(new BlocklyCategory.ButtonItem(
                 mContext.getString(R.string.create_variable), ACTION_CREATE_VARIABLE));
         SimpleArrayMap<String, String> variables = mVariableNameManager.getUsedNames();
         if (variables.size() == 0) {
             return;
         }
-        try {
-            Block setter = mBlockFactory.obtainBlockFrom(SET_VAR_TEMPLATE);
-            category.addItem(new BlocklyCategory.BlockItem(setter));
-        } catch (BlockLoadingException e) {
-            Log.e(TAG, "Fail to obtain \"" + SET_VAR_TEMPLATE.mTypeName + "\" block.");
-        }
-        try {
-            Block changer = mBlockFactory.obtainBlockFrom(CHANGE_VAR_TEMPLATE);
-            category.addItem(new BlocklyCategory.BlockItem(changer));
-        } catch (BlockLoadingException e) {
-            Log.e(TAG, "Fail to obtain \"" + CHANGE_VAR_TEMPLATE.mTypeName + "\" block.");
-        }
-        ArrayList<String> varNames = new ArrayList<>(variables.size());
+        TreeSet<String> varNames = new TreeSet<>();
         for (int i = 0; i < variables.size(); i++) {
             varNames.add(variables.keyAt(i));
         }
-        Collections.sort(varNames);
+        Block setter = mBlockFactory.obtainBlockFrom(SET_VAR_TEMPLATE);
+        setter.getFieldByName(GET_VAR_FIELD).setFromString(varNames.first());
+        category.addItem(new BlocklyCategory.BlockItem(setter));
 
-        try {
-            for (int i = 0; i < varNames.size(); i++) {
-                Block varBlock = mBlockFactory.obtainBlockFrom(GET_VAR_TEMPLATE);
-                varBlock.getFieldByName(GET_VAR_FIELD).setFromString(varNames.get(i));
-                category.addItem(new BlocklyCategory.BlockItem(varBlock));
-            }
-        } catch (BlockLoadingException e) {
-            Log.e(TAG, "Fail to obtain \"" + GET_VAR_TEMPLATE.mTypeName + "\" block.");
+        Block changer = mBlockFactory.obtainBlockFrom(CHANGE_VAR_TEMPLATE);
+        changer.getFieldByName(GET_VAR_FIELD).setFromString(varNames.first());
+        category.addItem(new BlocklyCategory.BlockItem(changer));
+
+        for (String name : varNames) {
+            Block varBlock = mBlockFactory.obtainBlockFrom(GET_VAR_TEMPLATE);
+            varBlock.getFieldByName(GET_VAR_FIELD).setFromString(name);
+            category.addItem(new BlocklyCategory.BlockItem(varBlock));
         }
     }
 }
