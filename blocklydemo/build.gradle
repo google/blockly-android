@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId "com.google.blockly.demo"
-        minSdkVersion 16
+        minSdkVersion 18
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
