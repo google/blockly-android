@@ -29,16 +29,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
-import com.google.blockly.android.ui.BlockListUI;
-import com.google.blockly.android.ui.CategorySelectorUI;
 import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.clipboard.SingleMimeTypeClipDataHelper;
-import com.google.blockly.android.ui.Dragger;
 import com.google.blockly.android.ui.BlockGroup;
+import com.google.blockly.android.ui.BlockListUI;
 import com.google.blockly.android.ui.BlockTouchHandler;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
+import com.google.blockly.android.ui.CategorySelectorUI;
+import com.google.blockly.android.ui.Dragger;
 import com.google.blockly.android.ui.InputView;
 import com.google.blockly.android.ui.PendingDrag;
 import com.google.blockly.android.ui.ViewPoint;
@@ -52,12 +52,13 @@ import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
 import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
-import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.utils.BlockClickListener;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.ByteArrayInputStream;
@@ -81,6 +82,7 @@ public class BlocklyController {
 
     private static final String SNAPSHOT_BUNDLE_KEY = "com.google.blockly.snapshot";
     private static final String SERIALIZED_WORKSPACE_KEY = "SERIALIZED_WORKSPACE";
+    private BlockClickListener blockClickListener;
 
     /**
      * Callback interface for {@link BlocklyEvent}s.
@@ -180,11 +182,30 @@ public class BlocklyController {
 
         @Override
         public boolean onBlockClicked(PendingDrag pendingDrag) {
-            // TODO(#35): Mark block as focused / selected.
+            try {
+                if(blockClickListener != null) {
+                    blockClickListener.blockClicked(pendingDrag.getTouchedBlockView());
+                }
+            } catch (Exception e) {}
+
             return false;
         }
     };
     private final BlockTouchHandler mTouchHandler;
+
+    public void setBlockClickListener(BlockClickListener bcl) {
+        this.blockClickListener = bcl;
+    }
+
+    public BlockClickListener getBlockClickListener() {
+        return this.blockClickListener;
+    }
+
+    public void copyBlock(Block block) {
+        Block newBlock = block.deepCopy();
+        newBlock.setPosition(block.getPosition().x + 50.0F, block.getPosition().y + 50.0F);
+        this.addRootBlock(newBlock);
+    }
 
     /**
      * Creates a new Controller with Workspace and WorkspaceHelper. Most controllers will require
