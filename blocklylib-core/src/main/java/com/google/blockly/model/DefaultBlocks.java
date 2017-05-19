@@ -6,6 +6,7 @@ import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.android.ui.mutator.IfElseMutatorFragment;
+import com.google.blockly.android.ui.mutator.ProcedureDefinitionMutatorFragment;
 import com.google.blockly.model.mutator.IfElseMutator;
 import com.google.blockly.model.mutator.MathIsDivisibleByMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
@@ -121,7 +122,11 @@ public final class DefaultBlocks {
     public static Map<String, MutatorFragment.Factory> getMutatorUis() {
         if (DEFAULT_MUTATOR_UIS == null) {
             Map<String, MutatorFragment.Factory> temp = new ArrayMap<>();
-            temp.put(IfElseMutator.MUTATOR_ID, new IfElseMutatorFragment.Factory());
+            temp.put(IfElseMutator.MUTATOR_ID, IfElseMutatorFragment.FACTORY);
+            temp.put(ProcedureDefinitionMutator.DEFNORETURN_MUTATOR_ID, // Statement function
+                    ProcedureDefinitionMutatorFragment.FACTORY);
+            temp.put(ProcedureDefinitionMutator.DEFRETURN_MUTATOR_ID, // Value function
+                    ProcedureDefinitionMutatorFragment.FACTORY);
             DEFAULT_MUTATOR_UIS = Collections.unmodifiableMap(temp);
         }
         return DEFAULT_MUTATOR_UIS;
