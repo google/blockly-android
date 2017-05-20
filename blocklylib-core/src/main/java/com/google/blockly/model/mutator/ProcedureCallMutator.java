@@ -58,6 +58,10 @@ public class ProcedureCallMutator extends AbstractProcedureMutator {
         });
     }
 
+    public Input getArgumentInput(int index) {
+        return mBlock.getInputs().get(index + 1); // Skip the top row (procedure name)
+    }
+
     /**
      * Convenience method for invoking a mutation event programmatically, updating the Mutator with
      * the provided values.

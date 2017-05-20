@@ -41,37 +41,14 @@ import static org.mockito.Mockito.mock;
  * Tests for {@link BasicFieldVariableView}.
  */
 public class BasicFieldVariableViewTest extends BlocklyTestCase {
-    /**
-     * Default timeout of 1 second, which should be plenty for all FieldVariableView actions.
-     * Anything longer is an error.  However, to step through this code with a debugger, use
-     * a much longer duration.
-     */
-    private static final long TIMEOUT = 1000L;
-
-    private WorkspaceHelper mMockWorkspaceHelper;
-
     private FieldVariable mFieldVariable;
     private String[] mVariables = new String[] {"var1", "var2", "var3"};
     private NameManager mNameManager;
     private BasicFieldVariableView.VariableViewAdapter mVariableAdapter;
 
-    private Context mMockContext;
-    private HandlerThread mThread;
-    private Looper mLooper;
-    private Handler mHandler;
-    private Throwable mExceptionInThread = null;
-
     @Before
     public void setUp() throws Exception {
         configureForUIThread();
-        mMockWorkspaceHelper = mock(WorkspaceHelper.class);
-        mThread = new HandlerThread("DraggerTest");
-        mThread.start();
-        mLooper = mThread.getLooper();
-        mHandler = new Handler(mLooper);
-
-        mMockContext = mock(Context.class, AdditionalAnswers.delegatesTo(getContext()));
-        doReturn(mLooper).when(mMockContext).getMainLooper();
 
         mFieldVariable = new FieldVariable("field", "var2");
 
@@ -93,7 +70,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
             public void run() {
                 view[0] = makeFieldVariableView();
             }
-        }, TIMEOUT);
+        });
 
         assertThat(mFieldVariable).isSameAs(view[0].getField());
         assertThat(view[0].getCount()).isEqualTo(mVariables.length + 2);
@@ -112,7 +89,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
             public void run() {
                 view.setSelection(2);
             }
-        }, TIMEOUT);
+        });
         assertThat(mFieldVariable.getVariable()).isEqualTo(mVariables[2]);
         assertThat(mFieldVariable.getVariable()).isEqualTo(view.getSelectedItem().toString());
 
@@ -121,7 +98,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
             public void run() {
                 view.setSelection(0);
             }
-        }, TIMEOUT);
+        });
         assertThat(mFieldVariable.getVariable()).isEqualTo(mVariables[0]);
         assertThat(mFieldVariable.getVariable()).isEqualTo(view.getSelectedItem().toString());
 
@@ -130,7 +107,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
             public void run() {
                 view.setSelection(1);
             }
-        }, TIMEOUT);
+        });
         assertThat(mFieldVariable.getVariable()).isEqualTo(mVariables[1]);
         assertThat(mFieldVariable.getVariable()).isEqualTo(view.getSelectedItem().toString());
     }
@@ -144,9 +121,10 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
+                android.util.Log.d("testUpdateViewFromField", "mFieldVariable = " + mFieldVariable);
                 mFieldVariable.setVariable(mVariables[0]);
             }
-        }, TIMEOUT);
+        });
         assertThat(view.getSelectedItem().toString()).isEqualTo(mVariables[0]);
 
         runAndSync(new Runnable() {
@@ -154,7 +132,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
             public void run() {
                 mFieldVariable.setVariable(mVariables[1]);
             }
-        }, TIMEOUT);
+        });
         assertThat(view.getSelectedItem().toString()).isEqualTo(mVariables[1]);
 
         runAndSync(new Runnable() {
@@ -162,54 +140,15 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
             public void run() {
                 mFieldVariable.setVariable(mVariables[2]);
             }
-        }, TIMEOUT);
+        });
         assertThat(view.getSelectedItem().toString()).isEqualTo(mVariables[2]);
     }
 
     @NonNull
     private BasicFieldVariableView makeFieldVariableView() {
-        BasicFieldVariableView view = new BasicFieldVariableView(mMockContext);
+        BasicFieldVariableView view = new BasicFieldVariableView(getContext());
         view.setAdapter(mVariableAdapter);
         view.setField(mFieldVariable);
         return view;
-    }
-
-    private void runAndSync(final Runnable runnable, long timeoutMilliseconds) {
-        assertThat(mExceptionInThread).isNull();
-
-        final CountDownLatch latch = new CountDownLatch(1);
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    runnable.run();
-
-                    // Defer the latch until after all Runnables posted have completed.
-                    // TODO: Consider using MessageQueue.isIdle() (API >= M)
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            latch.countDown();
-                        }
-                    });
-                } catch (Throwable e) {
-                    mExceptionInThread = e;
-                }
-            }
-        });
-        await(latch, timeoutMilliseconds);
-
-        if (mExceptionInThread != null) {
-            throw new IllegalStateException("Unhandled exception in mock main thread.",
-                    mExceptionInThread);
-        }
-    }
-
-    private void await(CountDownLatch latch, long timeoutMilliseconds) {
-        try {
-            latch.await(timeoutMilliseconds, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException("Timeout exceeded.", e);
-        }
     }
 }

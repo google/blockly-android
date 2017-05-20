@@ -3,7 +3,7 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="end"
+    android:layout_gravity="right|end"
     >
     <Button
         android:id="@+id/procedure_argument_add"

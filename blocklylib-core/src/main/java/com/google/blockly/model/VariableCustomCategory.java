@@ -27,6 +27,7 @@ import com.google.blockly.utils.BlockLoadingException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -111,14 +112,11 @@ public final class VariableCustomCategory implements CustomCategory {
 
         category.addItem(new BlocklyCategory.ButtonItem(
                 mContext.getString(R.string.create_variable), ACTION_CREATE_VARIABLE));
-        SimpleArrayMap<String, String> variables = mVariableNameManager.getUsedNames();
-        if (variables.size() == 0) {
+        SortedSet<String> varNames = mVariableNameManager.getUsedNames();
+        if (varNames.size() == 0) {
             return;
         }
-        TreeSet<String> varNames = new TreeSet<>();
-        for (int i = 0; i < variables.size(); i++) {
-            varNames.add(variables.keyAt(i));
-        }
+
         Block setter = mBlockFactory.obtainBlockFrom(SET_VAR_TEMPLATE);
         setter.getFieldByName(GET_VAR_FIELD).setFromString(varNames.first());
         category.addItem(new BlocklyCategory.BlockItem(setter));

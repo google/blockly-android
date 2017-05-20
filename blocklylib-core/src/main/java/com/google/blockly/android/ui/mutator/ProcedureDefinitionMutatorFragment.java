@@ -29,6 +29,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.google.blockly.android.R;
+import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.control.NameManager;
+import com.google.blockly.android.control.ProcedureManager;
+import com.google.blockly.android.control.ProcedureManager.ArgumentUpdate;
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
@@ -55,26 +59,34 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
     private static final int VH_TYPE_ARGUMENT = 1;
     private static final int VH_TYPE_ADD = 2;
 
-    private static final int NEW_ARGUMENT = -1;  // Pseudo-value for ArgumentRef.mOriginalIndex
-
     private static final String NEW_ARGUMENT_NAME = "x";
 
-    private ProcedureDefinitionMutator mMutator;
+    private BlocklyController mController;
+    private NameManager mVariableNameManager;
+    private ProcedureManager mProcedureManager;
+
     private String mProcedureName;
-    private ArrayList<ArgumentRef> mArgumentRefs = new ArrayList<>();
+    private ArrayList<ArgumentUpdate> mArgumentUpdates = new ArrayList<>();
+    private boolean mHasStatementInput = true;
 
     private Adapter mAdapter;
 
+    private EditText mActiveArgNameField = null;
+
     private void init(ProcedureDefinitionMutator mutator) {
-        mMutator = mutator;
+        mController = mutator.getBlock().getController();
+        mVariableNameManager = mController.getWorkspace().getVariableNameManager();
+        mProcedureManager = mController.getWorkspace().getProcedureManager();
+
         mProcedureName = mutator.getProcedureName();
+        mHasStatementInput = mutator.hasStatementInput();
 
         List<String> arguments = mutator.getArgumentList();
         int count = arguments.size();
-        mArgumentRefs.clear();
-        mArgumentRefs.ensureCapacity(count);
+        mArgumentUpdates.clear();
+        mArgumentUpdates.ensureCapacity(count);
         for (int i = 0; i < count; ++i) {
-            mArgumentRefs.add(new ArgumentRef(arguments.get(i), i));
+            mArgumentUpdates.add(new ArgumentUpdate(arguments.get(i), i));
         }
     }
 
@@ -111,9 +123,9 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
     private View.OnClickListener mOnAddClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            ArgumentRef arg = new ArgumentRef(NEW_ARGUMENT_NAME, NEW_ARGUMENT);
-            int argPosition = mArgumentRefs.size();
-            mArgumentRefs.add(arg);
+            ArgumentUpdate arg = new ArgumentUpdate(NEW_ARGUMENT_NAME, ArgumentUpdate.NEW_ARGUMENT);
+            int argPosition = mArgumentUpdates.size();
+            mArgumentUpdates.add(arg);
             mAdapter.notifyItemInserted(argPosition);
         }
     };
@@ -121,27 +133,41 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
     private View.OnClickListener mOnDeleteClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            ArgumentRef arg = (ArgumentRef) v.getTag();  // Set by onBindViewHolder(..)
-            int position = mArgumentRefs.indexOf(arg);
+            ArgumentUpdate arg = (ArgumentUpdate) v.getTag();  // Set by onBindViewHolder(..)
+            int position = mArgumentUpdates.indexOf(arg);
             if (position >= 0) {
-                mArgumentRefs.remove(position);
+                mArgumentUpdates.remove(position);
                 mAdapter.notifyItemRemoved(position);
             }
         }
     };
 
-    private void finishMutation() {
+    private View.OnFocusChangeListener mArgFocusChangeListener = new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+            EditText argNameField = (EditText) v;
+            if (hasFocus) {
+                mActiveArgNameField = argNameField;
+            } else {
+                validateAndApplyArgNameChange(argNameField);
+                mActiveArgNameField = null;
+            }
+        }
+    };
 
+    private void validateAndApplyArgNameChange(EditText argNameField) {
+        ArgumentUpdate arg = (ArgumentUpdate) argNameField.getTag();  // Assign in onBindView
+        String argName = argNameField.getText().toString();
+        argName = mVariableNameManager.makeValidName(argName, arg.getName());
+        String existing = mVariableNameManager.getExisting(argName);
+        arg.setName(existing != null ? existing : argName);
     }
 
-    private static class ArgumentRef {
-        String mName;
-        int mOriginalIndex;
-
-        ArgumentRef(String name, int originalIndex) {
-            mName = name;
-            mOriginalIndex = originalIndex;
+    private void finishMutation() {
+        if (mActiveArgNameField != null) {
+            validateAndApplyArgNameChange(mActiveArgNameField);
         }
+        mProcedureManager.mutateProcedure(mProcedureName, mArgumentUpdates, mHasStatementInput);
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
@@ -171,7 +197,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == mArgumentRefs.size()) {
+            if (position == mArgumentUpdates.size()) {
                 return VH_TYPE_ADD;
             } else {
                 return VH_TYPE_ARGUMENT;
@@ -197,8 +223,10 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
                 holder.mAddButton.setOnClickListener(mOnAddClick);
             }
             if (holder.getItemViewType() == VH_TYPE_ARGUMENT) {
-                ArgumentRef arg = mArgumentRefs.get(position);
-                holder.mArgName.setText(arg.mName);
+                ArgumentUpdate arg = mArgumentUpdates.get(position);
+                holder.mArgName.setText(arg.getName());
+                holder.mArgName.setTag(arg);
+                holder.mArgName.setOnFocusChangeListener(mArgFocusChangeListener);
                 holder.mDeleteButton.setTag(arg);
                 holder.mDeleteButton.setOnClickListener(mOnDeleteClick);
             }
@@ -217,7 +245,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
 
         @Override
         public int getItemCount() {
-            return mArgumentRefs.size() + 1;
+            return mArgumentUpdates.size() + 1;
         }
     }
 }

@@ -46,11 +46,13 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator {
     public static final Mutator.Factory<ProcedureDefinitionMutator> DEFRETURN_FACTORY =
             new Factory(DEFRETURN_MUTATOR_ID);
 
-    private static final String STATEMENT_INPUT_NAME = "STACK";
-    private static final String RETURN_INPUT_NAME = "RETURN";
+    public static final String STATEMENT_INPUT_NAME = "STACK";
+    public static final String RETURN_INPUT_NAME = "RETURN";
+
     private Field.Observer mFieldObserver = null;
 
-    ProcedureDefinitionMutator(Mutator.Factory factory, BlocklyController controller) {
+    ProcedureDefinitionMutator(Mutator.Factory factory,
+                               BlocklyController controller) {
         super(factory, controller);
     }
 
@@ -77,6 +79,13 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator {
                 ((FieldInput) mBlock.getFieldByName(NAME_FIELD)).setText(procName);
             }
         });
+    }
+
+    /**
+     * @return Whether the function is allow to have an input.
+     */
+    public boolean hasStatementInput() {
+        return mHasStatementInput;
     }
 
     /**
