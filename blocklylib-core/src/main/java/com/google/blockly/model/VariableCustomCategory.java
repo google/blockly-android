@@ -16,8 +16,6 @@ package com.google.blockly.model;
 
 import android.content.Context;
 import android.database.DataSetObserver;
-import android.support.v4.util.SimpleArrayMap;
-import android.util.Log;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
@@ -25,11 +23,7 @@ import com.google.blockly.android.control.NameManager;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * Class for building {@link BlocklyCategory categories} for variables blocks.

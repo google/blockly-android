@@ -17,16 +17,18 @@ package com.google.blockly.android.control;
 
 import android.database.DataSetObserver;
 import android.database.Observable;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 import com.google.blockly.model.Block;
+import com.google.blockly.model.Field;
+import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
 import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
-import com.google.blockly.utils.BlockLoadingException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +40,8 @@ import java.util.Map;
  */
 public class ProcedureManager extends Observable<DataSetObserver> {
     private static final String TAG = "ProcedureManager";
+
+    public static final String NAME_FIELD = "name";
 
     /**
      * Describes an update to a procedure argument, with reference to its original ordering.
@@ -234,89 +238,129 @@ public class ProcedureManager extends Observable<DataSetObserver> {
     }
 
     /**
-     * Updates all blocks
-     * @param procedureName
-     * @param argUpdates
-     * @param definitionHasStatementInputs
-     * @throws IllegalArgumentException If any argument name is invalid.
+     * Updates all blocks related to a specific procedure with respect to name, arguments, and
+     * whether the definition can contain a statement sequence. If any of the optional arguments are
+     * null, the existing values from the blocks are used.
+     *
+     * @param originalProcedureName The name of the procedure, before this method.
+     * @param optUpdatedProcedureName An optional updated name of the procedure
+     * @param optArgUpdates An optional list of updated arguments, with reference to their prior
+     *                      argument indices (so they can be renamed).
+     * @param optDefinitionHasStatementInputs An optional boolean to set the presence of the
+     *                                        statement input on the definition block.
+     * @throws IllegalArgumentException If any {@code originalProcedureName} is not found,
+     *                                  if {@code optUpdatedProcedureName} is not a valid procedure
+     *                                  name, or if argument name is invalid.
      */
-    public void mutateProcedure(final String procedureName,
-                                final List<ArgumentUpdate> argUpdates,
-                                final boolean definitionHasStatementInputs)
+    public void mutateProcedure(final String originalProcedureName,
+                                @Nullable String optUpdatedProcedureName,
+                                final @Nullable List<ArgumentUpdate> optArgUpdates,
+                                @Nullable Boolean optDefinitionHasStatementInputs)
     {
-        final Block definition = mProcedureDefinitions.get(procedureName);
+        final Block definition = mProcedureDefinitions.get(originalProcedureName);
+        final ProcedureDefinitionMutator definitionMutator =
+                (ProcedureDefinitionMutator) definition.getMutator();
+        assert definitionMutator != null;
         if (definition == null) {
-            throw new IllegalArgumentException("Unknown procedure \"" + procedureName + "\"");
+            throw new IllegalArgumentException(
+                    "Unknown procedure \"" + originalProcedureName + "\"");
+        }
+        if (optUpdatedProcedureName != null &&
+                !mProcedureNameManager.isValidName(optUpdatedProcedureName)) {
+            throw new IllegalArgumentException(
+                    "Invalid procedure name \"" + optUpdatedProcedureName + "\"");
         }
 
-        final int newArgCount = argUpdates.size();
-        final List<String> newArgs = new ArrayList<>(newArgCount);
-        for (int i = 0; i < newArgCount; ++i) {
-            String argName = argUpdates.get(i).getName();
-            if (!mVariableNameManager.contains(argName)) {
-                mVariableNameManager.addName(argName);
-            }
+        final boolean isRename = optUpdatedProcedureName != null
+                && !originalProcedureName.equals(optUpdatedProcedureName);
+        final String finalProcedureName =
+                isRename ? optUpdatedProcedureName : originalProcedureName;
 
-            if (!mVariableNameManager.isValidName(argName)) {
-                throw new IllegalArgumentException(
-                        "Invalid variable name \"" + argName + "\" " + "(argument #" + i +" )");
+        final boolean hasNewArgs = (optArgUpdates != null);
+        final int newArgCount = hasNewArgs ? optArgUpdates.size() : /* unused */ -1;
+        final List<String> finalArgs = hasNewArgs ?
+                new ArrayList<String>(newArgCount)
+                : definitionMutator.getArgumentList();
+        if (hasNewArgs) {
+            for (int i = 0; i < newArgCount; ++i) {
+                String argName = optArgUpdates.get(i).getName();
+                if (!mVariableNameManager.isValidName(argName)) {
+                    throw new IllegalArgumentException("Invalid variable name \"" + argName + "\" "
+                            + "(argument #" + i + " )");
+                }
+                finalArgs.add(argName);
             }
-            newArgs.add(argName);
         }
+
+        final boolean definitionHasStatementInputs = (optDefinitionHasStatementInputs == null) ?
+                definitionMutator.hasStatementInput()
+                : optDefinitionHasStatementInputs;
+
 
         mController.groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
-                for (String argName : newArgs) {
+                for (String argName : finalArgs) {
                     if (!mVariableNameManager.contains(argName)) {
                         mVariableNameManager.addName(argName);  // TODO: Trigger variable event
                     }
                     // TODO: What if it is a different representation of existing var? "x" vs "X"
                 }
 
-                ProcedureDefinitionMutator definitionMutator =
-                        (ProcedureDefinitionMutator) definition.getMutator();
-                assert definitionMutator != null;
-                definitionMutator.mutate(newArgs, definitionHasStatementInputs);
-
-                // Mutate each procedure call
-                List<Block> disconnectedBlocks = new ArrayList<Block>();
-                for (Block procRef : mProcedureReferences.get(procedureName)) {
-                    ProcedureCallMutator callMutator = (ProcedureCallMutator) procRef.getMutator();
-                    assert callMutator != null;
-                    int oldArgCount = callMutator.getArgumentList().size();
-                    Block[] oldValues = new Block[oldArgCount];
-                    disconnectedBlocks.clear();
-
-                    // Disconnect prior value blocks
-                    for (int i = 0; i < oldArgCount; ++i) {
-                        Input argInput = callMutator.getArgumentInput(i);
-                        Block valueBlock = argInput.getConnectedBlock();
-                        if (valueBlock != null) {
-                            oldValues[i] = valueBlock;
-                            mController.extractBlockAsRoot(valueBlock);
-                            disconnectedBlocks.add(valueBlock);
-                        }
+                definitionMutator.mutate(finalArgs, definitionHasStatementInputs);
+                if (isRename) {
+                    Field nameField = definition.getFieldByName(NAME_FIELD);
+                    if (nameField != null && nameField instanceof FieldInput) {
+                        ((FieldInput) nameField).setText(finalProcedureName);
                     }
+                }
 
-                    callMutator.mutate(procedureName, newArgs);
+                if (isRename || hasNewArgs) {
+                    // Mutate each procedure call
+                    List<Block> disconnectedBlocks = new ArrayList<Block>();
+                    List<Block> procedureCalls = mProcedureReferences.get(originalProcedureName);
+                    for (Block procRef : procedureCalls) {
+                        ProcedureCallMutator callMutator =
+                                (ProcedureCallMutator) procRef.getMutator();
+                        assert callMutator != null;
+                        int oldArgCount = callMutator.getArgumentList().size();
+                        Block[] oldValues = new Block[oldArgCount];
+                        disconnectedBlocks.clear();
 
-                    // Reconnect any blocks to original inputs
-                    for (int i = 0; i < newArgCount; ++i) {
-                        int originalIndex = argUpdates.get(i).getOriginalIndex();
-                        Block originalValue = (originalIndex == ArgumentUpdate.NEW_ARGUMENT) ?
-                                null : oldValues[originalIndex];
-                        if (originalValue != null) {
-                            Input argInput = callMutator.getArgumentInput(i);
-                            mController.connect(
-                                    argInput.getConnection(),
-                                    originalValue.getOutputConnection());
-                            disconnectedBlocks.remove(originalValue);
+                        if (hasNewArgs) {
+                            // Disconnect prior value blocks
+                            for (int i = 0; i < oldArgCount; ++i) {
+                                Input argInput = callMutator.getArgumentInput(i);
+                                Block valueBlock = argInput.getConnectedBlock();
+                                if (valueBlock != null) {
+                                    oldValues[i] = valueBlock;
+                                    mController.extractBlockAsRoot(valueBlock);
+                                    disconnectedBlocks.add(valueBlock);
+                                }
+                            }
                         }
-                    }
 
-                    // TODO: Bump disconnected blocks.
-                    //       Why does mController.bumpBlock() need a second Connection parameter?
+                        callMutator.mutate(finalProcedureName, finalArgs);
+
+                        if (hasNewArgs) {
+                            // Reconnect any blocks to original inputs
+                            for (int i = 0; i < newArgCount; ++i) {
+                                int originalIndex = optArgUpdates.get(i).getOriginalIndex();
+                                Block originalValue =
+                                        (originalIndex == ArgumentUpdate.NEW_ARGUMENT) ?
+                                        null : oldValues[originalIndex];
+                                if (originalValue != null) {
+                                    Input argInput = callMutator.getArgumentInput(i);
+                                    mController.connect(
+                                            argInput.getConnection(),
+                                            originalValue.getOutputConnection());
+                                    disconnectedBlocks.remove(originalValue);
+                                }
+                            }
+                        }
+
+                        // TODO: Bump disconnected blocks. Needs a single param bump method.
+                    }
                 }
             }
         });

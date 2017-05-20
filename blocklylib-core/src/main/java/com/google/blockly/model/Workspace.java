@@ -17,7 +17,6 @@ package com.google.blockly.model;
 
 import android.content.Context;
 import android.support.annotation.RawRes;
-import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;

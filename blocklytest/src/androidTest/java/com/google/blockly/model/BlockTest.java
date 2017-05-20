@@ -17,7 +17,6 @@ package com.google.blockly.model;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.StringOutputStream;

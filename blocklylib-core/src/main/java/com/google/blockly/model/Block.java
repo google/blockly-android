@@ -22,7 +22,6 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;

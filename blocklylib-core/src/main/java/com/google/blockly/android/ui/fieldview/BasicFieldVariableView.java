@@ -20,10 +20,8 @@ import android.database.DataSetObserver;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
@@ -172,7 +170,6 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
                 @Override
                 public void run() {
                     if (mVariableField != null) {
-                        android.util.Log.d("refreshSelection()", "mVariableField = " + mVariableField);
                         setSelection(
                                 mAdapter.getOrCreateVariableIndex(mVariableField.getVariable()));
                     }

@@ -15,27 +15,16 @@
 
 package com.google.blockly.android.ui.fieldview;
 
-import android.content.Context;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.NameManager;
-import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldVariable;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.AdditionalAnswers;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link BasicFieldVariableView}.
@@ -121,7 +110,6 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
-                android.util.Log.d("testUpdateViewFromField", "mFieldVariable = " + mFieldVariable);
                 mFieldVariable.setVariable(mVariables[0]);
             }
         });

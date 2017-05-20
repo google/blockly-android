@@ -17,8 +17,6 @@ package com.google.blockly.android.ui;
 
 import android.content.ClipDescription;
 import android.content.Context;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 import android.util.Pair;
 import android.view.DragEvent;
@@ -28,7 +26,6 @@ import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.clipboard.BlockClipDataHelper;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
-import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.vertical.VerticalBlockViewFactory;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -37,7 +34,6 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
@@ -49,7 +45,6 @@ import org.mockito.stubbing.Answer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;

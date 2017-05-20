@@ -1,10 +1,7 @@
 package com.google.blockly.model;
 
-import android.support.test.InstrumentationRegistry;
-
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
@@ -15,7 +12,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * Unit tests for {@link BlocklyEvent} classes.

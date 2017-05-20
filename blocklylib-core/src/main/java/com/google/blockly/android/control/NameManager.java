@@ -19,12 +19,8 @@ import android.database.DataSetObservable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
-import android.support.v4.util.SimpleArrayMap;
-import android.text.TextUtils;
 
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;

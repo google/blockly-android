@@ -43,7 +43,7 @@ public abstract class AbstractProcedureMutator extends Mutator {
     private static final String TAG = "AbstractProcedureMutator";
 
     // Block components.
-    protected static final String NAME_FIELD = "name";
+    public static final String NAME_FIELD = ProcedureManager.NAME_FIELD;
 
     // Xml strings
     protected static final String ATTR_NAME = "name";

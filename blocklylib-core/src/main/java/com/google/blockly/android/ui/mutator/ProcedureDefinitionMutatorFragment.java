@@ -167,7 +167,10 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
         if (mActiveArgNameField != null) {
             validateAndApplyArgNameChange(mActiveArgNameField);
         }
-        mProcedureManager.mutateProcedure(mProcedureName, mArgumentUpdates, mHasStatementInput);
+        mProcedureManager.mutateProcedure(mProcedureName,
+                /* new name */ null,
+                mArgumentUpdates,
+                mHasStatementInput);
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {

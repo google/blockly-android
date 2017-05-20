@@ -15,8 +15,6 @@
 
 package com.google.blockly.model;
 
-import android.content.Context;
-import android.content.res.Resources;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
