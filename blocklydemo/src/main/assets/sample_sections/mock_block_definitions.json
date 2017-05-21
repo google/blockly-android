@@ -187,8 +187,8 @@
     "helpUrl": "http://www.example.com/"
   },
   {
-    "type": "image-asset",
-    "message0": "Image asset %1",
+    "type": "image-relative",
+    "message0": "Image relative %1",
     "args0": [
       {
         "type": "field_image",
@@ -200,8 +200,21 @@
     ]
   },
   {
-    "type": "image-dataurl",
-    "message0": "Image data url %1",
+    "type": "image-fileuri",
+    "message0": "Image file: URI %1",
+    "args0": [
+      {
+        "type": "field_image",
+        "src": "file:///android_assets/images/led_50px.png",
+        "width": 50,
+        "height": 50,
+        "alt": "*"
+      }
+    ]
+  },
+  {
+    "type": "image-datauri",
+    "message0": "Image data: URI %1",
     "args0": [
       {
         "type": "field_image",

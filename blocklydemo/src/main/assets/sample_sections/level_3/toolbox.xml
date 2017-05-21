@@ -122,8 +122,9 @@
         </block>
     </category>
     <category name="Images">
-        <block type="image-asset"/>
-        <block type="image-dataurl"/>
+        <block type="image-relative"/>
+        <block type="image-fileuri"/>
+        <block type="image-datauri"/>
         <block type="image-small"/>
         <block type="image-large"/>
         <block type="image-missing"/>
