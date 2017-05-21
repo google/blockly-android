@@ -121,5 +121,13 @@
             <field name="NOTE">60</field>
         </block>
     </category>
+    <category name="Images">
+        <block type="image-asset"/>
+        <block type="image-dataurl"/>
+        <block type="image-small"/>
+        <block type="image-large"/>
+        <block type="image-missing"/>
+    </category>
     <category name="Variables" custom="VARIABLE"/>
+    <category name="Variables" custom="FUNCTIONS"/>
 </xml>
