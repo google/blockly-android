@@ -170,8 +170,11 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
     }
 
     protected void updateViewSize() {
-        float density = getContext().getResources().getDisplayMetrics().density;
-        setMinimumWidth((int) Math.ceil(mImageField.getWidth() * density));
-        setMinimumHeight((int) Math.ceil(mImageField.getHeight() * density));
+        // Check for null b/c of https://groups.google.com/d/msg/blockly/lC91XADUiI4/Y0cLRAYQBQAJ
+        if (mImageField != null ) {
+            float density = getContext().getResources().getDisplayMetrics().density;
+            setMinimumWidth((int) Math.ceil(mImageField.getWidth() * density));
+            setMinimumHeight((int) Math.ceil(mImageField.getHeight() * density));
+        }
     }
 }
