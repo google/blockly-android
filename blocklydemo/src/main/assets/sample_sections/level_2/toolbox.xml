@@ -13,7 +13,7 @@
   ~  limitations under the License.
   -->
 
-<toolbox xmlns="http://www.w3.org/1999/xhtml">
+<toolbox>
     <category name="Some blocks">
         <block type="simple_input_output"></block>
         <block type="multiple_input_output"></block>

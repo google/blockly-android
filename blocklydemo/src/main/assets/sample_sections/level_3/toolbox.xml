@@ -13,7 +13,7 @@
   ~  limitations under the License.
   -->
 
-<xml xmlns="http://www.w3.org/1999/xhtml">
+<toolbox>
     <category name="Some blocks">
         <category name="Subcategory">
             <block type="simple_input_output"></block>
@@ -130,4 +130,4 @@
     </category>
     <category name="Variables" custom="VARIABLE"/>
     <category name="Variables" custom="FUNCTIONS"/>
-</xml>
+</toolbox>

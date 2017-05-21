@@ -12,7 +12,7 @@
   ~  See the License for the specific language governing permissions and
   ~  limitations under the License.
   -->
-<toolbox xmlns="http://www.w3.org/1999/xhtml">
+<toolbox>
     <block type="controls_repeat_ext">
         <value name="TIMES">
             <shadow type="math_number">
