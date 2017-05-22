@@ -16,12 +16,9 @@
 package com.google.blockly.android.control;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
-import com.google.blockly.android.test.R;
 import com.google.blockly.android.testui.TestableBlockGroup;
 import com.google.blockly.android.testui.TestableBlockViewFactory;
 import com.google.blockly.android.ui.AbstractBlockView;
@@ -46,8 +43,6 @@ import org.mockito.AdditionalAnswers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;

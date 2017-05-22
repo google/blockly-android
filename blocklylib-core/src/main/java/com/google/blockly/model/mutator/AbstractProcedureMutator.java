@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model.mutator;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
@@ -42,7 +43,7 @@ public abstract class AbstractProcedureMutator extends Mutator {
     private static final String TAG = "AbstractProcedureMutator";
 
     // Block components.
-    protected static final String NAME_FIELD = "name";
+    public static final String NAME_FIELD = ProcedureManager.NAME_FIELD;
 
     // Xml strings
     protected static final String ATTR_NAME = "name";
@@ -92,12 +93,14 @@ public abstract class AbstractProcedureMutator extends Mutator {
      * @return The procedure name associated with this mutator. May be null if not attached to a
      *         block.
      */
-    public @Nullable String getProcedureName() {
+    @Nullable
+    public String getProcedureName() {
         return mProcedureName;
     }
 
     public abstract void setProcedureName(String procName);
 
+    @NonNull
     public List<String> getArgumentList() {
         return Collections.unmodifiableList(mArguments);
     }
@@ -135,17 +138,20 @@ public abstract class AbstractProcedureMutator extends Mutator {
             }
 
             tokenType = parser.next();
-            while (tokenType != XmlPullParser.END_TAG) {
-                if (tokenType == XmlPullParser.TEXT) {
-                    tokenType = parser.next();
-                    continue;
+            while (tokenType != XmlPullParser.END_DOCUMENT) {
+                if (tokenType == XmlPullParser.START_TAG) {
+                    parser.require(XmlPullParser.START_TAG, null, TAG_ARG);
+                    String argName = parser.getAttributeValue(null, ATTR_ARG_NAME);
+                    if (argName == null) {
+                        throw new BlockLoadingException(
+                                "Function argument #" + argNames.size() + " missing name.");
+                    }
+                    argNames.add(argName);
+                } else if (tokenType == XmlPullParser.END_TAG
+                        && parser.getName().equals(TAG_MUTATION)) {
+                    break;
                 }
-                parser.require(XmlPullParser.START_TAG, null, TAG_ARG);
-                String argName = parser.getAttributeValue(null, ATTR_ARG_NAME);
-                if (argName == null) {
-                    throw new BlockLoadingException("Function argument missing name.");
-                }
-                argNames.add(argName);
+                tokenType = parser.next();
             }
         }
         validateBlockForReshape(procedureName, argNames, hasStatementInput);

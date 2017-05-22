@@ -20,7 +20,6 @@ import android.support.annotation.NonNull;
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
-import com.google.blockly.android.test.R;
 import com.google.blockly.android.ui.BlockGroup;
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;

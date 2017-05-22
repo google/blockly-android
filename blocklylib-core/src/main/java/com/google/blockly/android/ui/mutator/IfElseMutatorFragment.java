@@ -37,6 +37,16 @@ import com.google.blockly.model.mutator.IfElseMutator;
  * across activity restarts and should not be included in the back stack.
  */
 public class IfElseMutatorFragment extends MutatorFragment {
+    public static final MutatorFragment.Factory FACTORY =
+            new MutatorFragment.Factory<IfElseMutatorFragment>() {
+                @Override
+                public IfElseMutatorFragment newMutatorFragment(Mutator mutator) {
+                    IfElseMutatorFragment fragment = new IfElseMutatorFragment();
+                    fragment.init((IfElseMutator) mutator);
+                    return fragment;
+                }
+            };
+
     private IfElseMutator mMutator;
     private String mElseIfCountString;
     private int mElseIfCount;
@@ -132,14 +142,5 @@ public class IfElseMutatorFragment extends MutatorFragment {
     private void finishMutation() {
         mMutator.mutate(mElseIfCount, mHasElse);
         dismiss();
-    }
-
-    public static class Factory implements MutatorFragment.Factory {
-        @Override
-        public MutatorFragment newMutatorFragment(Mutator mutator) {
-            IfElseMutatorFragment fragment = new IfElseMutatorFragment();
-            fragment.init((IfElseMutator) mutator);
-            return fragment;
-        }
     }
 }

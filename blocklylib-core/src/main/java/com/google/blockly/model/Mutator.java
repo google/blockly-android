@@ -17,7 +17,6 @@ package com.google.blockly.model;
 import android.support.annotation.Nullable;
 
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -25,8 +24,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * Interface for mutators, platform specific hooks into blocks that manage the {@code <mutation>}

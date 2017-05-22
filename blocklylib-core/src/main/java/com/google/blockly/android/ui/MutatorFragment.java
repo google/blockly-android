@@ -36,8 +36,8 @@ public abstract class MutatorFragment extends DialogFragment {
      * have a factory. The factory can be registered with
      * {@link BlockViewFactory#registerMutatorUi(String, Factory)}.
      */
-    public interface Factory {
-        MutatorFragment newMutatorFragment(Mutator mutator);
+    public interface Factory<T extends MutatorFragment> {
+        T newMutatorFragment(Mutator mutator);
     }
 
     /**

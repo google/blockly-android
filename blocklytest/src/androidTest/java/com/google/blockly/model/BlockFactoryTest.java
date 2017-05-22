@@ -19,7 +19,6 @@ import android.support.test.rule.logging.RuleLoggingUtils;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.test.R;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;

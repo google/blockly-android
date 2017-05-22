@@ -41,6 +41,7 @@
 
     <string name="blockly_clipdata_label_default">Blockly blocks</string>
     <string name="mutator_icon_alt_text">Modify the block\'s shape.</string>
+    <string name="mutator_done">Done</string>
 
     <string name="mutator_if_else_title">Update if else block</string>
     <string name="mutator_if_else_ifelse_count">Number of “if” tests: %d</string>
@@ -48,7 +49,12 @@
     <string name="mutator_if_else_if_label">if</string>
     <string name="mutator_if_else_then_label">do</string>
     <string name="mutator_if_else_else_label">else</string>
-    <string name="mutator_done">Done</string>
+
+    <string name="mutator_procedure_def_title">Function Inputs</string>
+    <string name="mutator_procedure_def_header_format">%1$s with:</string>
 
     <string name="blockly_default_function_name">do something</string>
+    <string name="procedure_argument_name_hint">Argument name</string>
+    <string name="procedure_argument_delete_hint">Delete argument</string>
+    <string name="procedure_argument_add_label">Add argument</string>
 </resources>
