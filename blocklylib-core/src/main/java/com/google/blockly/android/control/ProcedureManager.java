@@ -17,6 +17,7 @@ package com.google.blockly.android.control;
 
 import android.database.DataSetObserver;
 import android.database.Observable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
@@ -252,7 +253,7 @@ public class ProcedureManager extends Observable<DataSetObserver> {
      *                                  if {@code optUpdatedProcedureName} is not a valid procedure
      *                                  name, or if argument name is invalid.
      */
-    public void mutateProcedure(final String originalProcedureName,
+    public void mutateProcedure(final @NonNull String originalProcedureName,
                                 @Nullable String optUpdatedProcedureName,
                                 final @Nullable List<ArgumentUpdate> optArgUpdates,
                                 @Nullable Boolean optDefinitionHasStatementInputs)
