@@ -18,14 +18,12 @@ package com.google.blockly.android.ui.fieldview;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 
-import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.FieldInput;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link BasicFieldInputView}.
@@ -35,14 +33,11 @@ public class BasicFieldInputViewTest {
     private static final String INIT_TEXT_VALUE = "someTextToInitializeInput";
     private static final String SET_TEXT_VALUE = "differentTextToSet";
 
-    private WorkspaceHelper mMockWorkspaceHelper;
-
     // Cannot mock final classes.
     private FieldInput mFieldInput;
 
     @Before
      public void setUp() throws Exception {
-        mMockWorkspaceHelper = mock(WorkspaceHelper.class);
         mFieldInput = new FieldInput("FieldInput", INIT_TEXT_VALUE);
         assertThat(mFieldInput).isNotNull();
     }

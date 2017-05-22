@@ -16,28 +16,22 @@
 package com.google.blockly.android;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
-import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.android.ui.fieldview.FieldView;
 import com.google.blockly.model.Block;
-import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;

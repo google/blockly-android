@@ -23,7 +23,6 @@ import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
 import android.util.Base64;
 import android.util.Log;
-import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldImage;

@@ -16,9 +16,14 @@
 package com.google.blockly.android.control;
 
 import android.database.DataSetObservable;
-import android.support.v4.util.SimpleArrayMap;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.util.ArrayMap;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,11 +34,8 @@ public abstract class NameManager extends DataSetObservable {
     // Regular expression with two groups.  The first lazily looks for any sequence of characters
     // and the second looks for one or more numbers.  So foo2 -> (foo, 2).  f222 -> (f, 222).
     private static final Pattern mRegEx = Pattern.compile("^(.*?)(\\d+)$");
-    protected final SimpleArrayMap<String, String> mUsedNames;
-
-    public NameManager() {
-        mUsedNames = new SimpleArrayMap<>();
-    }
+    protected final SortedSet<String> mUsedNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    protected final ArrayMap<String, String> mCanonicalMap = new ArrayMap<>();
 
     /**
      * Generates a name that is unique within the scope of the current NameManager, based on the
@@ -45,10 +47,15 @@ public abstract class NameManager extends DataSetObservable {
      * @return A unique name.
      */
     public String generateUniqueName(String name, boolean addName) {
-        while (mUsedNames.containsKey(name.toLowerCase())) {
+        while (mCanonicalMap.containsKey(makeCanonical(name))) {
             Matcher matcher = mRegEx.matcher(name);
             if (matcher.matches()) {
-                name = matcher.group(1) + (Integer.parseInt(matcher.group(2)) + 1);
+                // Increment digits suffix, preserving leading zeros. Ex., "var001" => "var002"
+                String digits = matcher.group(2);
+                int newValue = Integer.parseInt(digits) + 1;
+                String newDigits = String.format("%0" + digits.length() +  "d", newValue);
+
+                name = matcher.group(1) + newDigits;
             } else {
                 name = name + "2";
             }
@@ -65,7 +72,7 @@ public abstract class NameManager extends DataSetObservable {
      * @return True if name's lowercase equivalent is in the list.
      */
     public boolean contains(String name) {
-        return mUsedNames.containsKey(name.toLowerCase());
+        return mCanonicalMap.containsKey(makeCanonical(name));
     }
 
     /**
@@ -73,13 +80,6 @@ public abstract class NameManager extends DataSetObservable {
      */
     public int size() {
         return mUsedNames.size();
-    }
-
-    /**
-     * @return The variable name at the index.
-     */
-    public String get(int index) {
-        return mUsedNames.keyAt(index);
     }
 
     /**
@@ -101,18 +101,24 @@ public abstract class NameManager extends DataSetObservable {
      * Adds the name to the list of used names.  Does not check if the name is already there.
      *
      * @param name The name to add.
+     * @throws IllegalArgumentException If the name is not valid.
      */
     public void addName(String name) {
-        if (mUsedNames.put(name.toLowerCase(), "UNUSED") == null) {
+        if (!isValidName(name)) {
+            throw new IllegalArgumentException("Invalid name \"" + name + "\".");
+        }
+        if (mCanonicalMap.put(makeCanonical(name), name) == null) {
+            mUsedNames.add(name);
             notifyChanged();
         }
     }
 
     /**
-     * @return A list of all of the names that have already been used.
+     * @return An alphabetically sorted list of all of the names that have already been used.
+     *         This list is not modifiable, but is backed by the real list and will stay updated.
      */
-    public SimpleArrayMap<String, String> getUsedNames() {
-        return mUsedNames;
+    public SortedSet<String> getUsedNames() {
+        return Collections.unmodifiableSortedSet(mUsedNames);
     }
 
     /**
@@ -131,31 +137,75 @@ public abstract class NameManager extends DataSetObservable {
      * @param toRemove The name to remove.
      */
     public boolean remove(String toRemove) {
-        String result = mUsedNames.remove(toRemove.toLowerCase());
-        if (result != null) {
+        String canonical = makeCanonical(toRemove);
+        if (mCanonicalMap.remove(canonical) != null) {
+            mUsedNames.remove(toRemove);
             notifyChanged();
             return true;
         }
         return false;
     }
 
-    public static final class ProcedureNameManager extends NameManager {
+    public boolean isValidName(@NonNull String name) {
+        if (name.isEmpty() || name.trim().length() != name.length()) {
+            return false;
+        }
+        return true;
+    }
 
-        @Override
-        public String generateExternalName(Set<String> reservedWords, String baseName) {
-            // TODO(fenichel): Implement.
-            return "";
+    public String makeValidName(@NonNull String name, @Nullable String fallbackName) {
+        name = name.trim();
+        if (name.isEmpty()) {
+            return fallbackName;
+        } else {
+            return name;
         }
     }
 
+    /**
+     * Returns the existing name, if the {@code name} will map to the same canonical form.
+     * Otherwise, return the proposedName.
+     * @param name The proposed name.
+     * @return A previous added name that shares the same canonical form. Otherwise return null.
+     */
+    @Nullable
+    public String getExisting(String name) {
+        String existing = mCanonicalMap.get(makeCanonical(name));
+        return (existing == null) ? name : existing;
+    }
+
+    /**
+     * @param name The proposed name
+     * @return The canonical string for the provided name, as used by {@link #mCanonicalMap}.
+     */
+    protected String makeCanonical(@NonNull String name) {
+        return name.toLowerCase();
+    }
+
+    /**
+     * The NameManager for procedure names.
+     */
+    // TODO(602): Move to com.google.blockly.android.codegen.LanguageDefinition
+    public static final class ProcedureNameManager extends NameManager {
+        @Override
+        public String generateExternalName(Set<String> reservedWords, String baseName) {
+            // TODO: Implement.
+            return baseName;
+        }
+    }
+
+    /**
+     * The NameManager for variable names.
+     */
     public static final class VariableNameManager extends NameManager {
         private static final String LETTERS = "ijkmnopqrstuvwxyzabcdefgh"; // no 'l', start at i.
         private String mVariablePrefix;
 
+        // TODO(602): Move to com.google.blockly.android.codegen.LanguageDefinition
         @Override
         public String generateExternalName(Set<String> reservedWords, String baseName) {
-            // TODO(fenichel): Implement.
-            return "";
+            // TODO: Implement.
+            return mVariablePrefix + baseName;
         }
 
         /**
@@ -164,6 +214,7 @@ public abstract class NameManager extends DataSetObservable {
          *
          * @param variablePrefix The prefix to attach.
          */
+        // TODO: Move to com.google.blockly.android.codegen.LanguageDefinition
         public void setVariablePrefix(String variablePrefix) {
             mVariablePrefix = variablePrefix;
         }
@@ -187,9 +238,11 @@ public abstract class NameManager extends DataSetObservable {
                     if (suffix > 1) {
                         newName += suffix;
                     }
-                    if (!mUsedNames.containsKey(newName)) {
+                    String canonical = makeCanonical(newName);  // In case override by subclass.
+                    if (!mCanonicalMap.containsKey(canonical)) {
                         if (addName) {
-                            mUsedNames.put(newName, "UNUSED");
+                            mCanonicalMap.put(canonical, newName);
+                            mUsedNames.add(newName);
                             notifyChanged();
                         }
                         return newName;

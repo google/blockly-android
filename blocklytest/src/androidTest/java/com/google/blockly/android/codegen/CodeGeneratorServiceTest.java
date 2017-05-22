@@ -1,13 +1,11 @@
 package com.google.blockly.android.codegen;
 
 import android.os.Build;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 
 import com.google.blockly.android.BlocklyTestActivity;
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.test.R;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTemplate;

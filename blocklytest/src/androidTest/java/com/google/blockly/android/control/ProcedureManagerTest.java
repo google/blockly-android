@@ -53,7 +53,7 @@ public class ProcedureManagerTest extends BlocklyTestCase {
         BlocklyController mController = new BlocklyController.Builder(getContext()).build();
         mFactory = mController.getBlockFactory();
         TestUtils.loadProcedureBlocks(mController);
-        mProcedureManager = new ProcedureManager();
+        mProcedureManager = mController.getWorkspace().getProcedureManager();
 
         runAndSync(new Runnable() {
             @Override

@@ -17,7 +17,6 @@ package com.google.blockly.model;
 
 import android.content.Context;
 import android.support.annotation.RawRes;
-import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
@@ -32,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -46,11 +46,10 @@ public class Workspace {
     private String mId;
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
-    private final ProcedureManager mProcedureManager = new ProcedureManager();
+    private final ProcedureManager mProcedureManager;
     private final NameManager mVariableNameManager = new NameManager.VariableNameManager();
     private final ConnectionManager mConnectionManager = new ConnectionManager();
-    private final WorkspaceStats mStats =
-            new WorkspaceStats(mVariableNameManager, mProcedureManager, mConnectionManager);
+    private final WorkspaceStats mStats;
 
     private BlocklyCategory mFlyoutCategory;
     private BlocklyCategory mTrashCategory = new BlocklyCategory();
@@ -62,9 +61,7 @@ public class Workspace {
      * @param controller The controller for this Workspace.
      * @param factory The factory used to build blocks in this workspace.
      */
-    public Workspace(Context context, BlocklyController controller,
-            BlockFactory factory) {
-
+    public Workspace(Context context, BlocklyController controller, BlockFactory factory) {
         if (controller == null) {
             throw new IllegalArgumentException("BlocklyController may not be null.");
         }
@@ -73,6 +70,9 @@ public class Workspace {
         mController = controller;
         mBlockFactory = factory;
         mId = UUID.randomUUID().toString();
+
+        mProcedureManager = new ProcedureManager(controller, this);
+        mStats = new WorkspaceStats(mVariableNameManager, mProcedureManager, mConnectionManager);
     }
 
     public String getId() {
@@ -232,14 +232,10 @@ public class Workspace {
         // Successfully deserialized.  Update workspace.
         // TODO: (#22) Add proper variable support.
         // For now just save and restore the list of variables.
-        SimpleArrayMap<String, String> varsMap = mVariableNameManager.getUsedNames();
-        String[] vars = new String[varsMap.size()];
-        for (int i = 0; i < varsMap.size(); i++) {
-            vars[i] = varsMap.keyAt(i);
-        }
+        Set<String> vars = mVariableNameManager.getUsedNames();
         mController.resetWorkspace();
-        for (int i = 0; i < vars.length; i++) {
-            mController.addVariable(vars[i]);
+        for (String varName : vars) {
+            mController.addVariable(varName);
         }
 
         mRootBlocks.addAll(newBlocks);

@@ -21,7 +21,6 @@ import com.google.blockly.android.BlocklyTestActivity;
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.CategorySelectorFragment;
 import com.google.blockly.android.FlyoutFragment;
-import com.google.blockly.android.ui.BlockViewFactory;
 
 import org.junit.Before;
 import org.junit.Rule;

@@ -17,13 +17,10 @@ package com.google.blockly.utils;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
-import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.IOOptions;
 import com.google.blockly.model.Mutator;
