@@ -359,7 +359,7 @@
       },
       {
         "type": "input_statement",
-        "name": "NAME"
+        "name": "DO"
       }
     ],
     "inputsInline": true,
