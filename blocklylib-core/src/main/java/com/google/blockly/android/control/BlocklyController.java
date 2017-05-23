@@ -477,6 +477,10 @@ public class BlocklyController {
         return mModelFactory;
     }
 
+    public BlockViewFactory getBlockViewFactory() {
+        return mViewFactory;
+    }
+
     public WorkspaceHelper getWorkspaceHelper() {
         return mHelper;
     }
