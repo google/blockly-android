@@ -170,8 +170,7 @@ public abstract class NameManager extends DataSetObservable {
      */
     @Nullable
     public String getExisting(String name) {
-        String existing = mCanonicalMap.get(makeCanonical(name));
-        return (existing == null) ? name : existing;
+        return mCanonicalMap.get(makeCanonical(name));
     }
 
     /**
