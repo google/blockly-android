@@ -24,7 +24,11 @@ import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.utils.SimpleArraySet;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -33,6 +37,8 @@ import java.util.List;
 public class WorkspaceStats {
 
     // Maps from variable/procedure names to the blocks/fields where they are referenced.
+    private final SimpleArrayMap<String, List<WeakReference<Block>>> mVariableBlockRefs =
+            new SimpleArrayMap<>();
     private final NameManager mVariableNameManager;
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
@@ -42,19 +48,12 @@ public class WorkspaceStats {
     private final Field.Observer mVariableObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field field, String oldVar, String newVar) {
-            FieldVariable varField = (FieldVariable) field;
             Block block = field.getBlock();
-
+            removeBlockRef(oldVar, block);
             if (newVar == null) {
                 return;
             }
-            list = mVariableReferences.get(newVar);
-            if (list == null) {
-                list = new ArrayList<>();
-                mVariableReferences.put(newVar, list);
-                mVariableNameManager.addName(newVar);
-            }
-            list.add(varField);
+            addAllBlockRefs(block);  // May re-add the block to oldVar, if ref'ed in another field.
         }
     };
     private final List<Connection> mTempConnecitons = new ArrayList<>();
@@ -70,8 +69,22 @@ public class WorkspaceStats {
         return mVariableNameManager;
     }
 
-    public List<FieldVariable> getVariableReference(String variable) {
-        // TODO: Collect from VariableInfos
+    public void getVariableReference(String variable, Collection<Block> outputBlocksThatRefVar) {
+        String canonical = mVariableNameManager.makeCanonical(variable);
+        List<WeakReference<Block>> blocks = mVariableBlockRefs.get(canonical);
+        if (blocks == null) {
+            return;
+        }
+        Iterator<WeakReference<Block>> it = blocks.iterator();
+        while (it.hasNext()) {
+            Block block = it.next().get();
+            if (block == null) {
+                it.remove();
+                continue;
+            } else {
+                outputBlocksThatRefVar.add(block);
+            }
+        }
     }
 
     /**
@@ -83,29 +96,10 @@ public class WorkspaceStats {
      *                  block.
      */
     public void collectStats(Block block, boolean recursive) {
-        if (mProcedureManager.isDefinition(block)) {
-            List<String> args = mProcedureManager.getProcedureArguments(block);
-        }
+        addAllBlockRefs(block);
         for (int i = 0; i < block.getInputs().size(); i++) {
             Input in = block.getInputs().get(i);
             addConnection(in.getConnection(), recursive);
-
-            // Variables and references to them.
-            for (int j = 0; j < in.getFields().size(); j++) {
-                Field field = in.getFields().get(j);
-                if (field.getType() == Field.TYPE_VARIABLE) {
-                    FieldVariable var = (FieldVariable) field;
-                    var.registerObserver(mVariableObserver);
-                    if (mVariableReferences.containsKey(var.getVariable())) {
-                        mVariableReferences.get(var.getVariable()).add(var);
-                    } else {
-                        List<Block> references = new ArrayList<>();
-                        references.add(var);
-                        mVariableReferences.put(var.getVariable(), references);
-                    }
-                    mVariableNameManager.addName(var.getVariable());
-                }
-            }
         }
 
         addConnection(block.getNextConnection(), recursive);
@@ -114,10 +108,6 @@ public class WorkspaceStats {
         addConnection(block.getPreviousConnection(), false);
         addConnection(block.getOutputConnection(), false);
 
-        // Procedures
-        if (mProcedureManager.isDefinition(block)) {
-            mProcedureManager.addDefinition(block);
-        }
         // TODO (fenichel): Procedure calls will only work when mutations work.
         // The mutation will change the name of the block.  I believe that means name field,
         // not type.
@@ -155,7 +145,7 @@ public class WorkspaceStats {
             for (int j = 0; j < fields.size(); j++) {
                 Field field = fields.get(j);
                 if (field instanceof FieldVariable) {
-                    mVariableReferences.get(((FieldVariable)field).getVariable()).remove(field);
+                    mVariableBlockRefs.get(((FieldVariable)field).getVariable()).remove(field);
                 }
             }
             if (input.getConnection() != null && input.getConnection().getTargetBlock() != null) {
@@ -167,7 +157,7 @@ public class WorkspaceStats {
         }
     }
 
-    private SimpleArrayMap<String, String> getCanonicalVariableNamesReferenced(Block block) {
+    private SimpleArraySet<String> getCanonicalVariableNamesReferenced(Block block) {
         mTempVarNames.clear();
 
         if (ProcedureManager.isDefinition(block)) {
@@ -176,8 +166,8 @@ public class WorkspaceStats {
             for (int i = 0; i < argCount; ++i) {
                 String arg = procArgs.get(i);
                 String canonical = mVariableNameManager.makeCanonical(arg);
-                if (!mTempVarNames.containsKey(canonical)) {
-                    mTempVarNames.put(canonical, canonical);
+                if (!mTempVarNames.contains(canonical)) {
+                    mTempVarNames.add(canonical);
                 }
             }
         }
@@ -189,12 +179,61 @@ public class WorkspaceStats {
             for (int j = 0; j < fields.size(); j++) {
                 Field field = fields.get(j);
                 if (field instanceof FieldVariable) {
-                    mTempVarNames.add(((FieldVariable)field).getVariable());
+                    String varName = ((FieldVariable)field).getVariable();
+                    mTempVarNames.add(varName);
                 }
             }
         }
 
         return mTempVarNames;
+    }
+
+    private void addAllBlockRefs(Block block) {
+        if (ProcedureManager.isDefinition(block)) {
+            mProcedureManager.addDefinition(block);
+        }
+
+        SimpleArraySet<String> vars = getCanonicalVariableNamesReferenced(block);
+        int count = vars.size();
+        for (int i = 0; i < count; ++i) {
+            String varName = vars.getAt(i);
+            List<WeakReference<Block>> list = mVariableBlockRefs.get(varName);
+            if (list == null) {
+                list = new ArrayList<>();
+                mVariableBlockRefs.put(varName, list);
+                mVariableNameManager.addName(varName);
+            }
+            addBlockRef(list, block);
+        }
+    }
+
+    private void addBlockRef(List<WeakReference<Block>> list, Block newBlock) {
+        Iterator<WeakReference<Block>> it = list.iterator();
+        while (it.hasNext()) {
+            Block existingBlock = it.next().get();
+            if (existingBlock == null) {
+                it.remove();
+            } else if (existingBlock == newBlock) {
+                return; // Already added.
+            }
+        }
+        list.add(new WeakReference<>(newBlock));
+    }
+
+    private boolean removeBlockRef(String varName, Block block) {
+        String canonical = mVariableNameManager.makeCanonical(varName);
+        List<WeakReference<Block>> list = mVariableBlockRefs.get(canonical);
+        Iterator<WeakReference<Block>> it = list.iterator();
+        while (it.hasNext()) {
+            Block existingBlock = it.next().get();
+            if (existingBlock == block) {
+                it.remove();
+                return true;  // Found and removed.
+            } else if (existingBlock == null) {
+                it.remove();
+            }
+        }
+        return false; // Not found.
     }
 
     private void addConnection(Connection conn, boolean recursive) {

@@ -16,7 +16,46 @@ public final class SimpleArraySet<E> {
         this.mMap = new SimpleArrayMap<>(initialCapacity);
     }
 
+    public int size() {
+        return mMap.size();
+    }
+
+    public void clear() {
+        mMap.clear();
+    }
+
+    public boolean contains(Object o) {
+        return mMap.containsKey(o);
+    }
+
     public boolean add(E e) {
         return mMap.put(e, e) == null;
+    }
+
+
+    public E getAt(int i) {
+        return mMap.keyAt(i);
+    }
+
+    public boolean remove(Object o) {
+        return mMap.remove(o) != null;
+    }
+
+    public E removeAt(int i) {
+        return removeAt(i);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SimpleArraySet<?> other = (SimpleArraySet<?>) o;
+        return mMap.equals(other.mMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return mMap.hashCode();
     }
 }
