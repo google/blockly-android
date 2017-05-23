@@ -270,20 +270,17 @@ public class Workspace {
      * @return The list of fields that are using the given variable.
      */
     public List<FieldVariable> getVariableRefs(String variable) {
-        List<FieldVariable> refs = mStats.getVariableReference(variable);
-        List<FieldVariable> copy = new ArrayList<>(refs == null ? 0 : refs.size());
-        copy.addAll(refs);
-        return copy;
+        return mStats.getVariableReference(variable);
     }
 
     /**
-     * Return the number of times a variable is referenced in this workspace.
+     * Return whether the
      *
      * @param variable The variable to get a ref count for.
      * @return The number of times that variable appears in this workspace.
      */
-    public int getVariableRefCount(String variable) {
-        return mStats.getVariableReference(variable).size();
+    public boolean isVariableInUse(String variable) {
+        return mVariableNameManager.isNameInUse(variable);
     }
 
     /**

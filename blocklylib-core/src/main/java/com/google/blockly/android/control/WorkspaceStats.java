@@ -22,6 +22,7 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
+import com.google.blockly.utils.SimpleArraySet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,20 +33,17 @@ import java.util.List;
 public class WorkspaceStats {
 
     // Maps from variable/procedure names to the blocks/fields where they are referenced.
-    private final SimpleArrayMap<String, List<FieldVariable>> mVariableReferences =
-            new SimpleArrayMap<>();
     private final NameManager mVariableNameManager;
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
+
+    private final SimpleArraySet<String> mTempVarNames = new SimpleArraySet<>();
 
     private final Field.Observer mVariableObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field field, String oldVar, String newVar) {
             FieldVariable varField = (FieldVariable) field;
-            List<FieldVariable> list = mVariableReferences.get(oldVar);
-            if (list != null) {
-                list.remove(varField);
-            }
+            Block block = field.getBlock();
 
             if (newVar == null) {
                 return;
@@ -73,9 +71,7 @@ public class WorkspaceStats {
     }
 
     public List<FieldVariable> getVariableReference(String variable) {
-        return mVariableReferences.containsKey(variable) ?
-            mVariableReferences.get(variable) :
-            new ArrayList<FieldVariable>();
+        // TODO: Collect from VariableInfos
     }
 
     /**
@@ -84,9 +80,12 @@ public class WorkspaceStats {
      *
      * @param block The block to inspect.
      * @param recursive Whether to recursively collect stats for all descendants of the current
-     * block.
+     *                  block.
      */
     public void collectStats(Block block, boolean recursive) {
+        if (mProcedureManager.isDefinition(block)) {
+            List<String> args = mProcedureManager.getProcedureArguments(block);
+        }
         for (int i = 0; i < block.getInputs().size(); i++) {
             Input in = block.getInputs().get(i);
             addConnection(in.getConnection(), recursive);
@@ -100,7 +99,7 @@ public class WorkspaceStats {
                     if (mVariableReferences.containsKey(var.getVariable())) {
                         mVariableReferences.get(var.getVariable()).add(var);
                     } else {
-                        List<FieldVariable> references = new ArrayList<>();
+                        List<Block> references = new ArrayList<>();
                         references.add(var);
                         mVariableReferences.put(var.getVariable(), references);
                     }
@@ -132,7 +131,6 @@ public class WorkspaceStats {
      * These changes will be reflected in the externally owned connection and procedure manager.
      */
     public void clear() {
-        mVariableReferences.clear();
         mProcedureManager.clear();
         mVariableNameManager.clearUsedNames();
         mConnectionManager.clear();
@@ -167,6 +165,36 @@ public class WorkspaceStats {
         if (block.getNextBlock() != null) {
             cleanupStats(block.getNextBlock());
         }
+    }
+
+    private SimpleArrayMap<String, String> getCanonicalVariableNamesReferenced(Block block) {
+        mTempVarNames.clear();
+
+        if (ProcedureManager.isDefinition(block)) {
+            List<String> procArgs = mProcedureManager.getProcedureArguments(block);
+            int argCount = procArgs.size();
+            for (int i = 0; i < argCount; ++i) {
+                String arg = procArgs.get(i);
+                String canonical = mVariableNameManager.makeCanonical(arg);
+                if (!mTempVarNames.containsKey(canonical)) {
+                    mTempVarNames.put(canonical, canonical);
+                }
+            }
+        }
+
+        List<Input> inputs = block.getInputs();
+        for (int i = 0; i < inputs.size(); i++) {
+            Input input = inputs.get(i);
+            List<Field> fields = input.getFields();
+            for (int j = 0; j < fields.size(); j++) {
+                Field field = fields.get(j);
+                if (field instanceof FieldVariable) {
+                    mTempVarNames.add(((FieldVariable)field).getVariable());
+                }
+            }
+        }
+
+        return mTempVarNames;
     }
 
     private void addConnection(Connection conn, boolean recursive) {

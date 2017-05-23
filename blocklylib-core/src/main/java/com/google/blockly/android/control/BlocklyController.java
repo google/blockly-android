@@ -672,7 +672,7 @@ public class BlocklyController {
      * @return True if the variable exists in a workspace, false otherwise.
      */
     public boolean isVariableInUse(String variable) {
-        return mWorkspace.getVariableRefCount(variable) > 0;
+        return mWorkspace.isVariableInUse(variable);
     }
 
     /**
