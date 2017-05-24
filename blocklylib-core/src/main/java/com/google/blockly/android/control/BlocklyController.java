@@ -54,11 +54,13 @@ import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.SimpleArraySet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -1189,6 +1191,7 @@ public class BlocklyController {
      * pending events:
      * <ol>
      *    <li>a change event for each variable field referencing the variable.</li>
+     *    <li>a change mutation event for each procedure block.</li>
      * </ol>
      *
      * @param variable The variable to rename.
@@ -1197,22 +1200,63 @@ public class BlocklyController {
      * @return The new variable name that was saved.
      */
     private String renameVariableImpl(String variable, String newVariable, boolean forced) {
+        NameManager varNameManager = mWorkspace.getVariableNameManager();
+        ProcedureManager procedureManager = mWorkspace.getProcedureManager();
+
         if (!forced && mVariableCallback != null) {
             if (!mVariableCallback.onRenameVariable(variable, newVariable)) {
                 return variable;
             }
         }
-        if (TextUtils.isEmpty(newVariable) || variable == newVariable) {
+        if (variable.equals(newVariable) || !varNameManager.isValidName(variable)) {
             return variable;
         }
         newVariable = addVariableImpl(newVariable, true);
-        List<FieldVariable> varRefs = mWorkspace.getVariableRefs(variable);
-        if (varRefs != null) {
-            for (FieldVariable field : varRefs) {
-                field.setVariable(newVariable);
-                BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
-                        .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
-                addPendingEvent(change);
+
+        String oldCanonical = varNameManager.makeCanonical(variable);
+        mTempBlocks.clear();
+        mWorkspace.getBlocksReferencingVariable(variable, mTempBlocks);
+        SimpleArraySet<String> mutatedProcedureNames = new SimpleArraySet<>();
+        ArrayList<ProcedureManager.ArgumentUpdate> newArgs = new ArrayList<>();
+        int blockCount = mTempBlocks.size();
+        for (int i = 0; i < blockCount; ++i) {
+            Block block = mTempBlocks.get(i);
+
+            String procedureName = ProcedureManager.getProcedureName(block);
+            if (procedureName != null && !mutatedProcedureNames.contains(procedureName)) {
+                List<String> oldArgs = ProcedureManager.getProcedureArguments(block);
+                assert oldArgs != null;
+                int argCount = oldArgs.size();
+                newArgs.clear();
+                newArgs.ensureCapacity(argCount);
+                for (int n = 0; n < argCount; ++n) {
+                    String nthArg = oldArgs.get(n);
+                    if (oldCanonical.equals(varNameManager.makeCanonical(nthArg))) {
+                        newArgs.add(new ProcedureManager.ArgumentUpdate(variable, n));
+                    } else {
+                        newArgs.add(new ProcedureManager.ArgumentUpdate(nthArg, n));
+                    }
+                }
+                // Mutate all the blocks for this procedure.
+                procedureManager.mutateProcedure(procedureName, null, newArgs, null);
+                mutatedProcedureNames.add(procedureName);
+            }
+
+            List<Input> inputs = block.getInputs();
+            int inputCount = inputs.size();
+            for (int n = 0; n < inputCount; ++n) {
+                Input input = inputs.get(n);
+                List<Field> fields = input.getFields();
+                int fieldCount = fields.size();
+                for (int m = 0; m < fieldCount; ++m) {
+                    Field field = fields.get(m);
+                    if (field.getType() == Field.TYPE_VARIABLE) {
+                        ((FieldVariable) field).setVariable(newVariable);
+                        BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
+                                .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
+                        addPendingEvent(change);
+                    }
+                }
             }
         }
 

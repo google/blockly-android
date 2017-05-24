@@ -69,8 +69,13 @@ public class WorkspaceStats {
         return mVariableNameManager;
     }
 
-    public void getVariableReference(String variable, Collection<Block> outputBlocksThatRefVar) {
-        String canonical = mVariableNameManager.makeCanonical(variable);
+    /**
+     * Populates {@code outputBlocks} with the blocks that reference the given variable.
+     * @param varName The name of the variable in question.
+     * @param outputBlocks The collection into which the blocks will be added.
+     */
+    public void getBlocksWithVariable(String varName, Collection<Block> outputBlocks) {
+        String canonical = mVariableNameManager.makeCanonical(varName);
         List<WeakReference<Block>> blocks = mVariableBlockRefs.get(canonical);
         if (blocks == null) {
             return;
@@ -82,7 +87,7 @@ public class WorkspaceStats {
                 it.remove();
                 continue;
             } else {
-                outputBlocksThatRefVar.add(block);
+                outputBlocks.add(block);
             }
         }
     }

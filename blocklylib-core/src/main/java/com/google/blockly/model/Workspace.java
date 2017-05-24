@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 
 import com.google.blockly.android.control.BlocklyController;
@@ -30,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -267,20 +269,13 @@ public class Workspace {
     }
 
     /**
-     * @return The list of fields that are using the given variable.
-     */
-    public List<FieldVariable> getVariableRefs(String variable) {
-        return mStats.getVariableReference(variable);
-    }
-
-    /**
      * Return whether the
      *
      * @param variable The variable to get a ref count for.
      * @return The number of times that variable appears in this workspace.
      */
     public boolean isVariableInUse(String variable) {
-        return mVariableNameManager.isNameInUse(variable);
+        return mVariableNameManager.getExisting(variable) != null;
     }
 
     /**
@@ -289,19 +284,10 @@ public class Workspace {
      * @param variable The variable to get blocks for.
      * @param resultList An optional list to put the results in. This object will be returned if not
      *                   null.
-     * @return A list of all blocks referencing the given variable.
+     * @return {@code resultList} populated with blocks.
      */
-    public List<Block> getBlocksWithVariable(String variable, List<Block> resultList) {
-        List<FieldVariable> refs = mStats.getVariableReference(variable);
-        if (resultList == null) {
-            resultList = new ArrayList<>();
-        }
-        for(FieldVariable field : refs) {
-            Block block = field.getBlock();
-            if (!resultList.contains(block)) {
-                resultList.add(block);
-            }
-        }
+    public List<Block> getBlocksWithVariable(String variable, @Nullable List<Block> resultList) {
+        mStats.getBlocksWithVariable(variable, resultList);
         return resultList;
     }
 

@@ -87,6 +87,20 @@ public class ProcedureManager extends Observable<DataSetObserver> {
     }
 
     /**
+     * If the block is a procedure definition or procedure call/reference, it returns the name of
+     * the procedure.
+     * @param block The block in question.
+     * @return The name of the procedure defined or referenced by the block, if it is a procedure
+     *         block. Otherwise, null.
+     */
+    @Nullable
+    public static String getProcedureName(Block block) {
+        Mutator mutator = block.getMutator();
+        boolean isProcedure = mutator != null && mutator instanceof AbstractProcedureMutator;
+        return isProcedure ? ((AbstractProcedureMutator) mutator).getProcedureName() : null;
+    }
+
+    /**
      * Determines if a block is procedure call.
      * @param block The block in question.
      * @return True, if the block type is a recognized type of procedure call.
@@ -106,6 +120,24 @@ public class ProcedureManager extends Observable<DataSetObserver> {
         return mutator != null && mutator instanceof ProcedureDefinitionMutator;
     }
 
+    /**
+     * If the block is a procedure block, this getProcedureArguments{@code getProcedureArguments}
+     * returns the argument list. Otherwise, it returns null.
+     *
+     * @param block The block queried.
+     * @return The list of argument for defined or referenced by this block, if it is a procedure
+     *         block. Otherwise null;
+     */
+    public static @Nullable List<String> getProcedureArguments(Block block) {
+        Mutator mutator = block.getMutator();
+        if (mutator instanceof AbstractProcedureMutator) {
+            return ((AbstractProcedureMutator) mutator).getArgumentList();
+        } else {
+            return null;
+        }
+    }
+
+
     public Map<String, Block> getDefinitionBlocks() {
         return Collections.unmodifiableMap(mProcedureDefinitions);
     }
@@ -119,7 +151,7 @@ public class ProcedureManager extends Observable<DataSetObserver> {
     }
 
     public boolean containsDefinition(Block block) {
-        return containsDefinition(getProcedureName(block));
+        return mProcedureDefinitions.containsKey(getProcedureNameOrFail(block));
     }
 
     /**
@@ -128,8 +160,8 @@ public class ProcedureManager extends Observable<DataSetObserver> {
      * @return True if the block is referenced one or more times.
      */
     public boolean hasReferences(Block block) {
-        return (mProcedureReferences.get(getProcedureName(block)) != null
-                && !mProcedureReferences.get(getProcedureName(block)).isEmpty());
+        return (mProcedureReferences.get(getProcedureNameOrFail(block)) != null
+                && !mProcedureReferences.get(getProcedureNameOrFail(block)).isEmpty());
     }
 
     public void clear() {
@@ -149,7 +181,7 @@ public class ProcedureManager extends Observable<DataSetObserver> {
      * @throws IllegalStateException if the referenced procedure has not been defined.
      */
     public void addReference(Block block) {
-        String procedureName = getProcedureName(block);
+        String procedureName = getProcedureNameOrFail(block);
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).add(block);
             if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
@@ -171,7 +203,7 @@ public class ProcedureManager extends Observable<DataSetObserver> {
      * @throws IllegalStateException if the referenced procedure has not been defined..
      */
     public void removeReference(Block block) {
-        String procedureName = getProcedureName(block);
+        String procedureName = getProcedureNameOrFail(block);
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).remove(block);
             if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
@@ -194,7 +226,7 @@ public class ProcedureManager extends Observable<DataSetObserver> {
      * @param block A block containing the definition of the procedure to add.
      */
     public void addDefinition(Block block) {
-        String procedureName = getProcedureName(block);
+        String procedureName = getProcedureNameOrFail(block);
         if (mProcedureDefinitions.get(procedureName) == block) {
             throw new IllegalStateException("Tried to add the same block definition twice");
         }
@@ -218,7 +250,7 @@ public class ProcedureManager extends Observable<DataSetObserver> {
      * @return A list of Blocks that referred to the procedure defined by block.
      */
     public List<Block> removeDefinition(Block block) {
-        String procedureName = getProcedureName(block);
+        String procedureName = getProcedureNameOrFail(block);
         if (mProcedureDefinitions.containsKey(procedureName)) {
             List<Block> retval = mProcedureReferences.get(procedureName);
             mProcedureReferences.remove(procedureName);
@@ -390,12 +422,12 @@ public class ProcedureManager extends Observable<DataSetObserver> {
         }
     }
 
-    private static String getProcedureName(Block block) {
-        Mutator mutator = block.getMutator();
-        if (!(mutator instanceof AbstractProcedureMutator)) {
-            throw new IllegalArgumentException("Block does not contain a procedure mutator.");
+    private static String getProcedureNameOrFail(Block block) {
+        String procName = getProcedureName(block);
+        if (procName == null) {
+            throw new IllegalArgumentException("Block does not contain procedure mutator.");
         }
-        return ((AbstractProcedureMutator) mutator).getProcedureName();
+        return procName;
     }
 
     private static void setProcedureName(Block block, String newName) {
