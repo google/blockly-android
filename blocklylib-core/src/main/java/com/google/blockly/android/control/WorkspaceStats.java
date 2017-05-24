@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.control;
 
+import android.support.annotation.Nullable;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.model.Block;
@@ -22,40 +23,67 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
+import com.google.blockly.model.VariableInfo;
 import com.google.blockly.utils.SimpleArraySet;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 /**
  * Tracks information about the Workspace that we want fast access to.
  */
 public class WorkspaceStats {
-
     // Maps from variable/procedure names to the blocks/fields where they are referenced.
-    private final SimpleArrayMap<String, List<WeakReference<Block>>> mVariableBlockRefs =
+    private final SimpleArrayMap<String, VariableInfoImpl> mVariableUsages =
             new SimpleArrayMap<>();
     private final NameManager mVariableNameManager;
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
 
-    private final SimpleArraySet<String> mTempVarNames = new SimpleArraySet<>();
-
     private final Field.Observer mVariableObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field field, String oldVar, String newVar) {
-            Block block = field.getBlock();
-            removeBlockRef(oldVar, block);
-            if (newVar == null) {
-                return;
+            if (oldVar != null) {
+                VariableInfoImpl usages = getVarInfoImpl(oldVar, /* create */ false);
+                usages.removeField((FieldVariable) field);
             }
-            addAllBlockRefs(block);  // May re-add the block to oldVar, if ref'ed in another field.
+            if (newVar != null) {
+                VariableInfoImpl usages = getVarInfoImpl(newVar, /* create */ true);
+                usages.addField((FieldVariable) field);
+            }
         }
     };
+
+    private final ProcedureManager.Observer mProcedureObserver = new ProcedureManager.Observer() {
+        @Override
+        public void onProcedureBlockAdded(String procedureName, Block block) {
+            VariableInfoImpl info = getVarInfoImpl(procedureName, true);
+            info.addProcedure(procedureName);
+        }
+
+        @Override
+        public void onProcedureBlocksRemoved(String procedureName, List<Block> blocks) {
+            VariableInfoImpl info = getVarInfoImpl(procedureName, false);
+            if (info != null) {
+                info.removeProcedure(procedureName);
+            }
+        }
+
+        @Override
+        public void onProcedureMutated(String originalName, String newName) {
+            List<String> args = ProcedureManager.getProcedureArguments()
+
+            // TODO
+        }
+
+        @Override
+        public void onClear() {
+            
+            // TODO
+        }
+    };
+
     private final List<Connection> mTempConnecitons = new ArrayList<>();
 
     public WorkspaceStats(NameManager variableManager, ProcedureManager procedureManager,
@@ -63,33 +91,18 @@ public class WorkspaceStats {
         mVariableNameManager = variableManager;
         mProcedureManager = procedureManager;
         mConnectionManager = connectionManager;
+
+        // TODO: Register arguments of existing procedures. Currently assuming none.
+        mProcedureManager.registerObserver(mProcedureObserver);
     }
 
     public NameManager getVariableNameManager() {
         return mVariableNameManager;
     }
 
-    /**
-     * Populates {@code outputBlocks} with the blocks that reference the given variable.
-     * @param varName The name of the variable in question.
-     * @param outputBlocks The collection into which the blocks will be added.
-     */
-    public void getBlocksWithVariable(String varName, Collection<Block> outputBlocks) {
-        String canonical = mVariableNameManager.makeCanonical(varName);
-        List<WeakReference<Block>> blocks = mVariableBlockRefs.get(canonical);
-        if (blocks == null) {
-            return;
-        }
-        Iterator<WeakReference<Block>> it = blocks.iterator();
-        while (it.hasNext()) {
-            Block block = it.next().get();
-            if (block == null) {
-                it.remove();
-                continue;
-            } else {
-                outputBlocks.add(block);
-            }
-        }
+    @Nullable
+    public VariableInfo getVariableInfo(String varName) {
+        return getVarInfoImpl(varName, false);
     }
 
     /**
@@ -101,10 +114,36 @@ public class WorkspaceStats {
      *                  block.
      */
     public void collectStats(Block block, boolean recursive) {
-        addAllBlockRefs(block);
+        String procedureName = ProcedureManager.getProcedureName(block);
+        if (procedureName != null) {
+            List<String> procedureArgs = ProcedureManager.getProcedureArguments(block);
+            if (procedureArgs != null) {
+                for (String arg : procedureArgs) {
+                    getVarInfoImpl(arg, true).addProcedure(procedureName);
+                }
+            }
+
+            if (ProcedureManager.isDefinition(block)) {
+                mProcedureManager.addDefinition(block);
+            } else {
+                mProcedureManager.addDefinition(block);
+            }
+        }
+
         for (int i = 0; i < block.getInputs().size(); i++) {
-            Input in = block.getInputs().get(i);
-            addConnection(in.getConnection(), recursive);
+            Input input = block.getInputs().get(i);
+            List<Field> fields = input.getFields();
+            int fieldCount = fields.size();
+            for (int j = 0; j < fieldCount; ++j) {
+                Field field = fields.get(j);
+                if (field instanceof FieldVariable) {
+                    FieldVariable varField = (FieldVariable) field;
+                    String varName = varField.getVariable();
+                    getVarInfoImpl(varName, true).addField(varField);
+                    varField.registerObserver(mVariableObserver);
+                }
+            }
+            addConnection(input.getConnection(), recursive);
         }
 
         addConnection(block.getNextConnection(), recursive);
@@ -112,13 +151,6 @@ public class WorkspaceStats {
         // tree.
         addConnection(block.getPreviousConnection(), false);
         addConnection(block.getOutputConnection(), false);
-
-        // TODO (fenichel): Procedure calls will only work when mutations work.
-        // The mutation will change the name of the block.  I believe that means name field,
-        // not type.
-        if (mProcedureManager.isReference(block)) {
-            mProcedureManager.addReference(block);
-        }
     }
 
     /**
@@ -150,7 +182,7 @@ public class WorkspaceStats {
             for (int j = 0; j < fields.size(); j++) {
                 Field field = fields.get(j);
                 if (field instanceof FieldVariable) {
-                    mVariableBlockRefs.get(((FieldVariable)field).getVariable()).remove(field);
+                    removeVarField((FieldVariable) field);
                 }
             }
             if (input.getConnection() != null && input.getConnection().getTargetBlock() != null) {
@@ -162,83 +194,11 @@ public class WorkspaceStats {
         }
     }
 
-    private SimpleArraySet<String> getCanonicalVariableNamesReferenced(Block block) {
-        mTempVarNames.clear();
-
-        if (ProcedureManager.isDefinition(block)) {
-            List<String> procArgs = mProcedureManager.getProcedureArguments(block);
-            int argCount = procArgs.size();
-            for (int i = 0; i < argCount; ++i) {
-                String arg = procArgs.get(i);
-                String canonical = mVariableNameManager.makeCanonical(arg);
-                if (!mTempVarNames.contains(canonical)) {
-                    mTempVarNames.add(canonical);
-                }
-            }
+    private void removeVarField(FieldVariable field) {
+        VariableInfoImpl info = getVarInfoImpl(field.getVariable(), false);
+        if (info != null) {
+            info.removeField(field);
         }
-
-        List<Input> inputs = block.getInputs();
-        for (int i = 0; i < inputs.size(); i++) {
-            Input input = inputs.get(i);
-            List<Field> fields = input.getFields();
-            for (int j = 0; j < fields.size(); j++) {
-                Field field = fields.get(j);
-                if (field instanceof FieldVariable) {
-                    String varName = ((FieldVariable)field).getVariable();
-                    mTempVarNames.add(varName);
-                }
-            }
-        }
-
-        return mTempVarNames;
-    }
-
-    private void addAllBlockRefs(Block block) {
-        if (ProcedureManager.isDefinition(block)) {
-            mProcedureManager.addDefinition(block);
-        }
-
-        SimpleArraySet<String> vars = getCanonicalVariableNamesReferenced(block);
-        int count = vars.size();
-        for (int i = 0; i < count; ++i) {
-            String varName = vars.getAt(i);
-            List<WeakReference<Block>> list = mVariableBlockRefs.get(varName);
-            if (list == null) {
-                list = new ArrayList<>();
-                mVariableBlockRefs.put(varName, list);
-                mVariableNameManager.addName(varName);
-            }
-            addBlockRef(list, block);
-        }
-    }
-
-    private void addBlockRef(List<WeakReference<Block>> list, Block newBlock) {
-        Iterator<WeakReference<Block>> it = list.iterator();
-        while (it.hasNext()) {
-            Block existingBlock = it.next().get();
-            if (existingBlock == null) {
-                it.remove();
-            } else if (existingBlock == newBlock) {
-                return; // Already added.
-            }
-        }
-        list.add(new WeakReference<>(newBlock));
-    }
-
-    private boolean removeBlockRef(String varName, Block block) {
-        String canonical = mVariableNameManager.makeCanonical(varName);
-        List<WeakReference<Block>> list = mVariableBlockRefs.get(canonical);
-        Iterator<WeakReference<Block>> it = list.iterator();
-        while (it.hasNext()) {
-            Block existingBlock = it.next().get();
-            if (existingBlock == block) {
-                it.remove();
-                return true;  // Found and removed.
-            } else if (existingBlock == null) {
-                it.remove();
-            }
-        }
-        return false; // Not found.
     }
 
     private void addConnection(Connection conn, boolean recursive) {
@@ -250,6 +210,138 @@ public class WorkspaceStats {
                     collectStats(recursiveTarget, true);
                 }
             }
+        }
+    }
+
+    private VariableInfoImpl getVarInfoImpl(String varName, boolean create) {
+        String canonical = mVariableNameManager.makeCanonical(varName);
+        VariableInfoImpl usages = mVariableUsages.get(varName);
+        if (usages == null && create) {
+            usages = new VariableInfoImpl(canonical);
+            mVariableUsages.put(canonical, usages);
+        }
+        return usages;
+    }
+
+    public class VariableInfoImpl implements VariableInfo {
+        /** Canonical variable name. */
+        final String mKey;
+        /** FieldVariables that are set to the variable. */
+        ArrayList<WeakReference<FieldVariable>> mFields = null;
+        /** Procedures that use the variable as an argument. */
+        SimpleArraySet<String> mProcedures = null;
+
+        private VariableInfoImpl(String canonicalProcedureName) {
+            mKey = canonicalProcedureName;
+        }
+
+        @Override
+        public int getUsageCount() {
+            return (mFields == null ? 0 : mFields.size()) + getCountOfProceduresUsages();
+        }
+
+        @Override
+        public int getCountOfProceduresUsages() {
+            return mProcedures == null ? 0 : mProcedures.size();
+        }
+
+        @Override
+        public String getProcedureName(int i) {
+            return mProcedures.getAt(i);
+        }
+
+        void addField(FieldVariable newField) {
+            if (mFields == null) {
+                mFields = new ArrayList<>();
+                mFields.add(new WeakReference<>(newField));
+                return;
+            }
+
+            int count = mFields.size();
+            int i = 0;
+            while (i < count) {
+                FieldVariable field = mFields.get(i).get();
+                if (field == newField) {
+                    return;  // Already present.
+                }
+                if (field == null) {
+                    mFields.remove(i);
+                    --count;
+                    continue;  // Don't increment i
+                }
+                ++i;
+            }
+        }
+
+        boolean removeField(FieldVariable newField) {
+            if (mFields == null) {
+                return false;
+            }
+            int count = mFields.size();
+            int i = 0;
+            while (i < count) {
+                FieldVariable field = mFields.get(i).get();
+                if (field == null) {
+                    mFields.remove(i);
+                    continue;  // Don't increment i
+                }
+                if (field == newField) {
+                    mFields.remove(i);
+                    --count;
+                    return true;
+                }
+                ++i;
+            }
+            if (mFields.isEmpty()) {
+                mFields = null;
+                if (mProcedures == null) {
+                    mVariableUsages.remove(mKey);
+                }
+            }
+            return false;
+        }
+
+        boolean addProcedure(String procedureName) {
+            if (mProcedures == null) {
+                mProcedures = new SimpleArraySet<>();
+            }
+            mProcedures.add(procedureName);
+        }
+
+        boolean removeProcedure(String procedureName) {
+            if (mProcedures == null) {
+                return false;
+            }
+            boolean foundAndRemoved = mProcedures.remove(procedureName);
+            if (mProcedures.isEmpty()) {
+                mProcedures = null;
+                if (mFields == null) {
+                    mVariableUsages.remove(mKey);
+                }
+            }
+            return foundAndRemoved;
+        }
+
+        public boolean isProcedureArgument() {
+            return mProcedures != null && !mProcedures.isEmpty();
+        }
+
+        @Override
+        public List<FieldVariable> getFields() {
+            int count = mFields.size();
+            ArrayList<FieldVariable> fields = new ArrayList<>(mFields.size());
+            int i = 0;
+            while (i < count) {
+                FieldVariable field = mFields.get(i).get();
+                if (field == null) {
+                    mFields.remove(i);
+                    --count;
+                    continue;  // Don't increment i
+                }
+                fields.add(field);
+                ++i;
+            }
+            return fields;
         }
     }
 }

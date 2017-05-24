@@ -15,7 +15,6 @@
 
 package com.google.blockly.android.control;
 
-import android.database.DataSetObserver;
 import android.database.Observable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -38,10 +37,17 @@ import java.util.Map;
 /**
  * Manages procedure definitions, references and names.
  */
-public class ProcedureManager extends Observable<DataSetObserver> {
+public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     private static final String TAG = "ProcedureManager";
 
     public static final String NAME_FIELD = "name";
+
+    public interface Observer {
+        void onProcedureBlockAdded(String procedureName, Block block);
+        void onProcedureBlocksRemoved(String procedureName, List<Block> blocks);
+        void onProcedureMutated(String originalName, String newName);
+        void onClear();
+    }
 
     /**
      * Describes the re-indexing of argument order during a procedure mutation. Used to ensure
@@ -170,7 +176,10 @@ public class ProcedureManager extends Observable<DataSetObserver> {
         mProcedureNameManager.clearUsedNames();
         mCountOfReferencesWithReturn = 0;
 
-        notifyObservers();
+        int obsCount = mObservers.size();
+        for (int i = 0; i < obsCount; ++i) {
+            mObservers.get(i).onClear();
+        }
     }
 
     /**
@@ -188,7 +197,10 @@ public class ProcedureManager extends Observable<DataSetObserver> {
                 ++mCountOfReferencesWithReturn;
             }
 
-            notifyObservers();
+            int obsCount = mObservers.size();
+            for (int i = 0; i < obsCount; ++i) {
+                mObservers.get(i).onProcedureBlockAdded(procedureName, block);
+            }
         } else {
             throw new IllegalStateException(
                     "Tried to add a reference to a procedure that has not been defined.");
@@ -211,7 +223,13 @@ public class ProcedureManager extends Observable<DataSetObserver> {
                 assert (mCountOfReferencesWithReturn >= 0);
             }
 
-            notifyObservers();
+            if (!mObservers.isEmpty()) {
+                List<Block> references = Collections.singletonList(block);
+                int obsCount = mObservers.size();
+                for (int i = 0; i < obsCount; ++i) {
+                    mObservers.get(i).onProcedureBlocksRemoved(procedureName, references);
+                }
+            }
         } else {
             throw new IllegalStateException(
                     "Tried to remove a procedure reference that was not in the list of references");
@@ -238,7 +256,10 @@ public class ProcedureManager extends Observable<DataSetObserver> {
         mProcedureReferences.put(procedureName, new ArrayList<Block>());
         mProcedureNameManager.addName(procedureName);
 
-        notifyObservers();
+        int obsCount = mObservers.size();
+        for (int i = 0; i < obsCount; ++i) {
+            mObservers.get(i).onProcedureBlockAdded(procedureName, block);
+        }
     }
 
     /**
@@ -252,14 +273,22 @@ public class ProcedureManager extends Observable<DataSetObserver> {
     public List<Block> removeDefinition(Block block) {
         String procedureName = getProcedureNameOrFail(block);
         if (mProcedureDefinitions.containsKey(procedureName)) {
-            List<Block> retval = mProcedureReferences.get(procedureName);
+            List<Block> references = mProcedureReferences.get(procedureName);
             mProcedureReferences.remove(procedureName);
             mProcedureDefinitions.remove(procedureName);
             mProcedureNameManager.remove(procedureName);
 
-            notifyObservers();
+            if (!mObservers.isEmpty()) {
+                List<Block> blocks = new ArrayList<>(references.size() + 1);
+                blocks.add(block);
+                blocks.addAll(references);
+                int obsCount = mObservers.size();
+                for (int i = 0; i < obsCount; ++i) {
+                    mObservers.get(i).onProcedureBlocksRemoved(procedureName, blocks);
+                }
+            }
 
-            return retval;
+            return references;
         } else {
             throw new IllegalStateException(
                     "Tried to remove an unknown procedure definition");
@@ -364,6 +393,11 @@ public class ProcedureManager extends Observable<DataSetObserver> {
                 }
             }
         });
+
+        int obsCount = mObservers.size();
+        for (int i = 0; i < obsCount; ++i) {
+            mObservers.get(i).onProcedureMutated(originalProcedureName, finalProcedureName);
+        }
     }
 
     /**
@@ -416,13 +450,7 @@ public class ProcedureManager extends Observable<DataSetObserver> {
         return mCountOfReferencesWithReturn > 0;
     }
 
-    protected void notifyObservers() {
-        for (DataSetObserver observer : mObservers) {
-            observer.onChanged();
-        }
-    }
-
-    private static String getProcedureNameOrFail(Block block) {
+    private static @NonNull String getProcedureNameOrFail(Block block) {
         String procName = getProcedureName(block);
         if (procName == null) {
             throw new IllegalArgumentException("Block does not contain procedure mutator.");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,9 @@
 package com.google.blockly.utils;
 
 import android.support.v4.util.SimpleArrayMap;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Set-like wrapper around SimpleArrayMap.
@@ -32,6 +35,10 @@ public final class SimpleArraySet<E> {
 
     public int size() {
         return mMap.size();
+    }
+
+    public boolean isEmpty() {
+        return mMap.isEmpty();
     }
 
     public void clear() {

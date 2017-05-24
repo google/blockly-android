@@ -31,7 +31,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -77,6 +76,9 @@ public class Workspace {
         mStats = new WorkspaceStats(mVariableNameManager, mProcedureManager, mConnectionManager);
     }
 
+    /**
+     * @return The string identifier of this workspace. Used by {@link BlocklyEvent events}.
+     */
     public String getId() {
         return mId;
     }
@@ -269,29 +271,6 @@ public class Workspace {
     }
 
     /**
-     * Return whether the
-     *
-     * @param variable The variable to get a ref count for.
-     * @return The number of times that variable appears in this workspace.
-     */
-    public boolean isVariableInUse(String variable) {
-        return mVariableNameManager.getExisting(variable) != null;
-    }
-
-    /**
-     * Gets all blocks that are using the specified variable.
-     *
-     * @param variable The variable to get blocks for.
-     * @param resultList An optional list to put the results in. This object will be returned if not
-     *                   null.
-     * @return {@code resultList} populated with blocks.
-     */
-    public List<Block> getBlocksWithVariable(String variable, @Nullable List<Block> resultList) {
-        mStats.getBlocksWithVariable(variable, resultList);
-        return resultList;
-    }
-
-    /**
      * Gets the {@link NameManager.VariableNameManager} being used by this workspace. This can be
      * used to get a list of variables in the workspace.
      *
@@ -355,5 +334,14 @@ public class Workspace {
      */
     public boolean hasBlocks() {
         return getRootBlocks().size() > 0;
+    }
+
+    /**
+     * @param variable The variable name in question.
+     * @return The usages of the variable, if any. Otherwise, null.
+     */
+    public @Nullable
+    VariableInfo getVariableInfo(String variable) {
+        return mStats.getVariableInfo(variable);
     }
 }

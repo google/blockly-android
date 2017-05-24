@@ -23,7 +23,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,9 +57,9 @@ import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
+import com.google.blockly.model.VariableInfo;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
-import com.google.blockly.utils.SimpleArraySet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -128,12 +127,13 @@ public class BlocklyController {
     private Dragger mDragger;
     private VariableCallback mVariableCallback = null;
 
+    private List<Block> mTempBlocks = new ArrayList<>();
+
     @VisibleForTesting
     FlyoutController mFlyoutController;
 
     // For use in bumping neighbors; instance variable only to avoid repeated allocation.
     private final ArrayList<Connection> mTempConnections = new ArrayList<>();
-    private final ArrayList<Block> mTempBlocks = new ArrayList<>();
 
     private View.OnClickListener mDismissClickListener = new View.OnClickListener() {
         @Override
@@ -667,24 +667,9 @@ public class BlocklyController {
         }
     }
 
-    /**
-     * Returns true if the specified variable is being used in a workspace.
-     *
-     * @param variable The variable the check.
-     * @return True if the variable exists in a workspace, false otherwise.
-     */
-    public boolean isVariableInUse(String variable) {
-        return mWorkspace.isVariableInUse(variable);
-    }
-
-    /**
-     * Returns the list of blocks that are using the specified variable.
-     *
-     * @param variable The variable to get a list of blocks for.
-     * @return The list of blocks using that variable.
-     */
-    public List<Block> getBlocksWithVariable(String variable) {
-        return mWorkspace.getBlocksWithVariable(variable, null);
+    @Nullable
+    public VariableInfo getVariableInfo(String variable) {
+        return mWorkspace.getVariableInfo(variable);
     }
 
     /**
@@ -1170,17 +1155,32 @@ public class BlocklyController {
      * @return True if the variable was removed, false otherwise.
      */
     private boolean deleteVariableImpl(String variable, boolean forced) {
-        if (!forced && mVariableCallback != null) {
-            if (!mVariableCallback.onDeleteVariable(variable)) {
+        VariableInfo varInfo = getVariableInfo(variable);
+        if (varInfo != null) {
+            if (varInfo.isProcedureArgument()) {
+                if (mVariableCallback != null) {
+                    mVariableCallback.onAlertCannotDeleteProcedureArgument(variable, varInfo);
+                }
                 return false;
             }
-        }
-        if (isVariableInUse(variable)) {
-            mTempBlocks.clear();
-            List<Block> blocks = mWorkspace.getBlocksWithVariable(variable, mTempBlocks);
-            for (int i = 0; i < blocks.size(); i++) {
-                removeBlockAndInputBlocksImpl(blocks.get(i));
+
+            if (!forced && mVariableCallback != null) {
+                if (!mVariableCallback.onDeleteVariable(variable, varInfo)) {
+                    return false;
+                }
             }
+
+            List<FieldVariable> fields = varInfo.getFields();
+            mTempBlocks.clear(); // Visited / removed blocks (in case of block with multiple).
+            int fieldCount = fields.size();
+            for (int i = 0; i < fieldCount; ++i) {
+                Block block = fields.get(i).getBlock();
+                if (!mTempBlocks.contains(block)) {
+                    removeBlockAndInputBlocksImpl(block);
+                    mTempBlocks.add(block);
+                }
+            }
+            mTempBlocks.clear();
         }
         // TODO: (#309) add remove variable event
         return mWorkspace.getVariableNameManager().remove(variable);
@@ -1200,62 +1200,49 @@ public class BlocklyController {
      * @return The new variable name that was saved.
      */
     private String renameVariableImpl(String variable, String newVariable, boolean forced) {
-        NameManager varNameManager = mWorkspace.getVariableNameManager();
-        ProcedureManager procedureManager = mWorkspace.getProcedureManager();
-
         if (!forced && mVariableCallback != null) {
             if (!mVariableCallback.onRenameVariable(variable, newVariable)) {
                 return variable;
             }
         }
-        if (variable.equals(newVariable) || !varNameManager.isValidName(variable)) {
+
+        NameManager varNameManager = mWorkspace.getVariableNameManager();
+        if (variable == newVariable || !varNameManager.isValidName(newVariable)) {
             return variable;
         }
+        String canonicalNewVar = varNameManager.makeCanonical(newVariable);
+
         newVariable = addVariableImpl(newVariable, true);
 
-        String oldCanonical = varNameManager.makeCanonical(variable);
-        mTempBlocks.clear();
-        mWorkspace.getBlocksReferencingVariable(variable, mTempBlocks);
-        SimpleArraySet<String> mutatedProcedureNames = new SimpleArraySet<>();
-        ArrayList<ProcedureManager.ArgumentUpdate> newArgs = new ArrayList<>();
-        int blockCount = mTempBlocks.size();
-        for (int i = 0; i < blockCount; ++i) {
-            Block block = mTempBlocks.get(i);
-
-            String procedureName = ProcedureManager.getProcedureName(block);
-            if (procedureName != null && !mutatedProcedureNames.contains(procedureName)) {
-                List<String> oldArgs = ProcedureManager.getProcedureArguments(block);
-                assert oldArgs != null;
+        VariableInfo oldVarInfo = mWorkspace.getVariableInfo(variable);
+        if (oldVarInfo != null) {
+            ProcedureManager procedureManager = mWorkspace.getProcedureManager();
+            int procCount = oldVarInfo.getCountOfProceduresUsages();
+            ArrayList<ProcedureManager.ArgumentUpdate> newArgs = new ArrayList<>();
+            for (int i = 0; i < procCount; ++i) {
+                String procName = oldVarInfo.getProcedureName(i);
+                Block definition = procedureManager.getDefinitionBlocks().get(procName);
+                List<String> oldArgs = procedureManager.getProcedureArguments(definition);
                 int argCount = oldArgs.size();
+
                 newArgs.clear();
-                newArgs.ensureCapacity(argCount);
-                for (int n = 0; n < argCount; ++n) {
-                    String nthArg = oldArgs.get(n);
-                    if (oldCanonical.equals(varNameManager.makeCanonical(nthArg))) {
-                        newArgs.add(new ProcedureManager.ArgumentUpdate(variable, n));
-                    } else {
-                        newArgs.add(new ProcedureManager.ArgumentUpdate(nthArg, n));
+                for (int j = 0; j < argCount; ++j) {
+                    String argName = oldArgs.get(j);
+                    if (varNameManager.makeCanonical(argName).equals(canonicalNewVar)) {
+                        argName = newVariable;
                     }
+                    newArgs.add(new ProcedureManager.ArgumentUpdate(argName, j));
                 }
-                // Mutate all the blocks for this procedure.
-                procedureManager.mutateProcedure(procedureName, null, newArgs, null);
-                mutatedProcedureNames.add(procedureName);
+                procedureManager.mutateProcedure(procName, null, newArgs, null);
             }
 
-            List<Input> inputs = block.getInputs();
-            int inputCount = inputs.size();
-            for (int n = 0; n < inputCount; ++n) {
-                Input input = inputs.get(n);
-                List<Field> fields = input.getFields();
-                int fieldCount = fields.size();
-                for (int m = 0; m < fieldCount; ++m) {
-                    Field field = fields.get(m);
-                    if (field.getType() == Field.TYPE_VARIABLE) {
-                        ((FieldVariable) field).setVariable(newVariable);
-                        BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
-                                .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
-                        addPendingEvent(change);
-                    }
+            List<FieldVariable> varRefs = oldVarInfo.getFields();
+            if (varRefs != null) {
+                for (FieldVariable field : varRefs) {
+                    field.setVariable(newVariable);
+                    BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
+                            .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
+                    addPendingEvent(change);
                 }
             }
         }
@@ -2158,7 +2145,7 @@ public class BlocklyController {
          * @param variable The variable being deleted.
          * @return True to allow the delete, false to prevent it.
          */
-        public boolean onDeleteVariable(String variable) {
+        public boolean onDeleteVariable(String variable, VariableInfo info) {
             return true;
         }
 
@@ -2188,5 +2175,13 @@ public class BlocklyController {
         public boolean onRenameVariable(String variable, String newVariable) {
             return true;
         }
+
+        /**
+         * Sent when a user attempts to delete a variable that is used as a procedure argument.
+         * @param variableName The name of the variable.
+         * @param info The info for this variable.
+         */
+        public abstract void onAlertCannotDeleteProcedureArgument(
+                String variableName, VariableInfo info);
     }
 }
