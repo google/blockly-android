@@ -24,6 +24,7 @@ import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.FieldLabel;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
+import com.google.blockly.model.ProcedureInfo;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -37,7 +38,8 @@ import java.util.List;
  * This mutator base class supports procedure definition blocks for user-defined procedures
  * ({@code procedures_defreturn} and {@code procedures_defnoreturn} blocks).
  */
-public class ProcedureDefinitionMutator extends AbstractProcedureMutator {
+public class ProcedureDefinitionMutator<Info extends ProcedureInfo, Builder extends ProcedureInfo.Builder<Info>>
+        extends AbstractProcedureMutator<Info, Builder> {
     public static final String DEFNORETURN_MUTATOR_ID = "procedures_defnoreturn_mutator";
     public static final String DEFRETURN_MUTATOR_ID = "procedures_defreturn_mutator";
 
@@ -71,7 +73,6 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator {
      * use the {@link ProcedureManager}.
      * @param procName The new procedure name to reference.
      */
-    @Override
     public void setProcedureName(final String procName) {
         mController.groupAndFireEvents(new Runnable() {
             @Override
@@ -84,51 +85,56 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator {
     /**
      * @return Whether the function is allow to have an input.
      */
-    public boolean hasStatementInput() {
-        return mHasStatementInput;
+    public final boolean hasStatementInput() {
+        return mProcedureInfo.hasStatementInputInDefinition();
     }
 
     /**
      * Convenience method for invoking a mutation event programmatically, updating the Mutator with
      * the provided values.
      *
-     * @param argNames The names of the procedure's arguments.
-     * @param hasStatementInput Whether the procedure definition has an input for statement blocks.
-     *                          Very rarely false for anything other than a
-     *                          {@code procedures_defreturn} blocks.
+     * @param newProcedureInfo The new values that define this procedure.
      */
-    public void mutate(List<String> argNames, boolean hasStatementInput) {
+    public void mutate(Info newProcedureInfo)
+            throws BlockLoadingException {
+
         if (mBlock != null) {
-            String mutation = writeMutationString(null, argNames, hasStatementInput);
+            String mutation = writeMutationString(newProcedureInfo);
             try {
                 mBlock.setMutation(mutation);
             } catch (BlockLoadingException e) {
                 throw new IllegalStateException("Failed to update from new mutation XML.", e);
             }
         } else {
-            mHasStatementInput = hasStatementInput;
-            mArguments.clear();
-            mArguments.addAll(argNames);
+            mProcedureInfo = newProcedureInfo;
         }
     }
 
     @Override
     public void serialize(XmlSerializer serializer) throws IOException {
-        serializeImpl(serializer, null, mArguments, mHasStatementInput);
+        serializeImpl(serializer, null, getArgumentList(), hasStatementInput());
     }
 
     @Override
     protected void onAttached(final Block block) {
         super.onAttached(block);
 
-        mProcedureName = getProcedureName();  // Looked up from block field.
+        // Looked up from block field.
+        FieldInput nameField = (FieldInput) mBlock.getFieldByName(NAME_FIELD);
+        mProcedureInfo = new ProcedureInfo.Builder<>(mProcedureInfo)
+                .setName(nameField.getText())
+                .build();
         mFieldObserver = new Field.Observer() {
             @Override
             public void onValueChanged(Field field, String oldValue, String newValue) {
-                mProcedureName = newValue;
+                ProcedureInfo newInfo = new ProcedureInfo.Builder<>(mProcedureInfo)
+                        .setName(newValue)
+                        .build();
+                int argCount = getArgumentList().size();
+                mProcedureManager.mutateProcedure(oldValue, newInfo);
             }
         };
-        mBlock.getFieldByName(NAME_FIELD).registerObserver(mFieldObserver);
+        nameField.registerObserver(mFieldObserver);
     }
 
     @Override
@@ -141,10 +147,10 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator {
     }
 
     @Override
-    protected void validateBlockForReshape(
-            String procedureName, List<String> argNames, boolean hasStatementInput)
+    protected ProcedureInfo createValidatedProcedureInfo(
+            String ignoredProcedureName, List<String> updatedArgNames, boolean updateHasStatementInput)
             throws BlockLoadingException {
-        if (mHasStatementInput && !hasStatementInput) {
+        if (hasStatementInput() && !hasStatementInput) {
             Input stack = mBlock.getInputByName(STATEMENT_INPUT_NAME);
             if (stack != null && stack.getConnectedBlock() != null) {
                 throw new BlockLoadingException(
@@ -188,6 +194,40 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator {
             newInputs.add(returnInput);
         }
         return newInputs;
+    }
+
+    protected String getArgumentListDescription() {
+        StringBuilder sb = new StringBuilder();
+        List<String> arguments = mProcedureInfo.getArguments();
+        if (!arguments.isEmpty()) {
+            sb.append("with:"); // message BKY_PROCEDURES_BEFORE_PARAMS
+
+            int count = arguments.size();
+            for (int i = 0; i < count; ++i) {
+                if (i == 0) {
+                    sb.append(' ');
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(arguments.get(i));
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
+    protected void serializeImpl(XmlSerializer serializer, ProcedureInfo info)
+            throws IOException {
+        serializer.startTag(null, TAG_MUTATION);
+        if (!info.hasStatementInputInDefinition()) {
+            serializer.attribute(null, ATTR_STATEMENTS, "false");
+        }
+        for (String argName : info.getArguments()) {
+            serializer.startTag(null, TAG_ARG)
+                    .attribute(null, ATTR_ARG_NAME, argName)
+                    .endTag(null, TAG_ARG);
+        }
+        serializer.endTag(null, TAG_MUTATION);
     }
 
     private static class Factory implements Mutator.Factory<ProcedureDefinitionMutator> {

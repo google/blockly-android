@@ -22,6 +22,7 @@ import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldLabel;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
+import com.google.blockly.model.ProcedureInfo;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -150,6 +151,19 @@ public class ProcedureCallMutator extends AbstractProcedureMutator {
         }
 
         return inputs;
+    }
+
+    @Override
+    protected void serializeImpl(XmlSerializer serializer, ProcedureInfo info)
+            throws IOException {
+        serializer.startTag(null, TAG_MUTATION);
+        serializer.attribute(null, ATTR_ARG_NAME, info.getProcedureName());
+        for (String argName : info.getArguments()) {
+            serializer.startTag(null, TAG_ARG)
+                    .attribute(null, ATTR_ARG_NAME, argName)
+                    .endTag(null, TAG_ARG);
+        }
+        serializer.endTag(null, TAG_MUTATION);
     }
 
     private static class Factory implements Mutator.Factory<ProcedureCallMutator> {
