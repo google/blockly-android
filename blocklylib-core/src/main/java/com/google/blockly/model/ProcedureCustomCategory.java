@@ -19,6 +19,7 @@ import android.database.DataSetObserver;
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ProcedureManager;
+import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
 import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import com.google.blockly.utils.BlockLoadingException;
@@ -163,8 +164,8 @@ public class ProcedureCustomCategory implements CustomCategory {
         sortedProcNames.addAll(definitions.keySet());
         for (String procName : sortedProcNames) {
             Block defBlock = definitions.get(procName);
-            List<String> argList =
-                    ((ProcedureDefinitionMutator) defBlock.getMutator()).getArgumentList();
+            ProcedureInfo procedureInfo = ((AbstractProcedureMutator) defBlock.getMutator())
+                    .getProcedureInfo();
             BlockTemplate callBlockTemplate;
             if (defBlock.getType().equals(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE)) {
                 callBlockTemplate = CALL_NO_RETURN_BLOCK_TEMPLATE;  // without return value
@@ -172,7 +173,7 @@ public class ProcedureCustomCategory implements CustomCategory {
                 callBlockTemplate = CALL_WITH_RETURN_BLOCK_TEMPLATE;  // with return value
             }
             Block callBlock = mBlockFactory.obtainBlockFrom(callBlockTemplate);
-            ((ProcedureCallMutator) callBlock.getMutator()).mutate(procName, argList);
+            ((ProcedureCallMutator) callBlock.getMutator()).mutate(procedureInfo);
             category.addItem(new BlocklyCategory.BlockItem(callBlock));
         }
     }

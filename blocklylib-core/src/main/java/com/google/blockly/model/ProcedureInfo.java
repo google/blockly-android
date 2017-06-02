@@ -1,7 +1,15 @@
 package com.google.blockly.model;
 
-import com.google.blockly.android.control.ProcedureManager;
+import android.text.TextUtils;
 
+import com.google.blockly.android.control.ProcedureManager;
+import com.google.blockly.utils.BlockLoadingException;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlSerializer;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,16 +18,29 @@ import java.util.List;
  * Describes a procedure for the {@link ProcedureManager} and procedure mutators.
  */
 public class ProcedureInfo {
+    public static final boolean HAS_STATEMENTS_DEFAULT = true;
+
+    // Xml strings
+    protected static final String ATTR_NAME = "name";
+    protected static final String ATTR_STATEMENTS = "statements";
+    protected static final String TAG_ARG = "arg";
+    protected static final String ATTR_ARG_NAME = "name";
+
+
     final String mName;
     final List<String> mArguments;
-    final boolean mStatementInDefinition;
+    final boolean mDefinitionHasStatementBody;
 
     public ProcedureInfo(String name,
                          List<String> arguments,
                          boolean definitionHasStatements) {
         mName = name;
-        mArguments = Collections.unmodifiableList(new ArrayList<String>(arguments));
-        mStatementInDefinition = definitionHasStatements;
+        mArguments = Collections.unmodifiableList(new ArrayList<>(arguments));
+        mDefinitionHasStatementBody = definitionHasStatements;
+    }
+
+    public ProcedureInfo cloneWithName(String newProcedureName) {
+        return new ProcedureInfo(newProcedureName, mArguments, mDefinitionHasStatementBody);
     }
 
     public String getProcedureName() {
@@ -30,42 +51,64 @@ public class ProcedureInfo {
         return mArguments;
     }
     
-    public boolean hasStatementInputInDefinition() {
-        return mStatementInDefinition;
+    public boolean getDefinitionHasStatementBody() {
+        return mDefinitionHasStatementBody;
     }
 
-    public static class Builder<Info extends ProcedureInfo> {
-        String mName;
-        List<String> mArguments;
-        boolean mStatementInDefinition;
+    public static void serialize(XmlSerializer serializer,
+                                 ProcedureInfo info,
+                                 boolean asDefinition)
+            throws IOException {
+        serializer.startTag(null, Mutator.TAG_MUTATION);
+        if (asDefinition && !info.getDefinitionHasStatementBody()) {
+            serializer.attribute(null, ATTR_STATEMENTS, "false");
+        }
+        for (String argName : info.getArguments()) {
+            serializer.startTag(null, TAG_ARG)
+                    .attribute(null, ATTR_ARG_NAME, argName)
+                    .endTag(null, TAG_ARG);
+        }
+        serializer.endTag(null, Mutator.TAG_MUTATION);
+    }
 
-        public Builder() {
-            // No initialization
+    public static ProcedureInfo parseImpl(XmlPullParser parser)
+            throws BlockLoadingException, IOException, XmlPullParserException {
+        List<String> argNames = new ArrayList<>();
+        String procedureName = null;
+        boolean hasStatementInput = HAS_STATEMENTS_DEFAULT;
+
+        int tokenType = parser.next();
+        if (tokenType != XmlPullParser.END_DOCUMENT) {
+            parser.require(XmlPullParser.START_TAG, null, Mutator.TAG_MUTATION);
+
+            String attrValue = parser.getAttributeValue(null, ATTR_NAME);
+            if (!TextUtils.isEmpty(attrValue)) {
+                procedureName = attrValue;
+            }
+
+            attrValue = parser.getAttributeValue(null, ATTR_STATEMENTS);
+            if (!TextUtils.isEmpty(attrValue)) {
+                hasStatementInput = Boolean.getBoolean(attrValue);
+            }
+
+            tokenType = parser.next();
+            while (tokenType != XmlPullParser.END_DOCUMENT) {
+                if (tokenType == XmlPullParser.START_TAG) {
+                    parser.require(XmlPullParser.START_TAG, null, TAG_ARG);
+                    String argName = parser.getAttributeValue(null, ATTR_ARG_NAME);
+                    if (argName == null) {
+                        throw new BlockLoadingException(
+                                "Function argument #" + argNames.size() + " missing name.");
+                    }
+                    argNames.add(argName);
+                } else if (tokenType == XmlPullParser.END_TAG
+                        && parser.getName().equals(Mutator.TAG_MUTATION)) {
+                    break;
+                }
+                tokenType = parser.next();
+            }
         }
 
-        public Builder(ProcedureInfo other) {
-            mName = other.mName;
-            mArguments = other.mArguments;
-            mStatementInDefinition = other.mStatementInDefinition;
-        }
-
-        public Info build() {
-            return (Info)(new ProcedureInfo(mName, mArguments, mStatementInDefinition));
-        }
-
-        public Builder<Info> setName(String name) {
-            mName = name;
-            return this;
-        }
-
-        public Builder<Info> setArguments(List<String> arguments) {
-            mArguments = arguments;
-            return this;
-        }
-
-        public Builder<Info> setStatementInDefinition(boolean statementInDefinition) {
-            mStatementInDefinition = statementInDefinition;
-            return this;
-        }
+        return new ProcedureInfo(procedureName, argNames, hasStatementInput);
     }
 }

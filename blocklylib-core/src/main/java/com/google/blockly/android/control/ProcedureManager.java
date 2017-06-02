@@ -114,8 +114,12 @@ public class ProcedureManager extends Observable<DataSetObserver> {
         return mProcedureReferences.get(functionName);
     }
 
+    public boolean containsDefinition(String procedureName) {
+        return mProcedureDefinitions.containsKey(procedureName);
+    }
+
     public boolean containsDefinition(Block block) {
-        return mProcedureDefinitions.containsKey(getProcedureName(block));
+        return containsDefinition(getProcedureName(block));
     }
 
     /**
@@ -241,22 +245,23 @@ public class ProcedureManager extends Observable<DataSetObserver> {
      * @throws IllegalArgumentException If any {@code originalProcedureName} is not found,
      *                                  if {@code optUpdatedProcedureName} is not a valid procedure
      *                                  name, or if argument name is invalid.
+     * @throws IllegalStateException If updatedProcedureInfo fails to serialize or deserialize.
      */
     public void mutateProcedure(final @NonNull String originalProcedureName,
                                 final @NonNull ProcedureInfo updatedProcedureInfo,
                                 final @Nullable List<ArgumentIndexUpdate> argIndexUpdates)
     {
         final Block definition = mProcedureDefinitions.get(originalProcedureName);
-        final ProcedureDefinitionMutator definitionMutator =
-                (ProcedureDefinitionMutator) definition.getMutator();
-        assert definitionMutator != null;
         if (definition == null) {
             throw new IllegalArgumentException(
                     "Unknown procedure \"" + originalProcedureName + "\"");
         }
+        final ProcedureDefinitionMutator definitionMutator =
+                (ProcedureDefinitionMutator) definition.getMutator();
+        assert definitionMutator != null;
         final String newProcedureName = updatedProcedureInfo.getProcedureName();
-        final boolean isRename = originalProcedureName.equals(newProcedureName);
-        if (isRename && !mProcedureNameManager.isValidName(newProcedureName)) {
+        final boolean isFuncRename = originalProcedureName.equals(newProcedureName);
+        if (isFuncRename && !mProcedureNameManager.isValidName(newProcedureName)) {
             throw new IllegalArgumentException(
                     "Invalid procedure name \"" + newProcedureName + "\"");
         }
@@ -282,50 +287,43 @@ public class ProcedureManager extends Observable<DataSetObserver> {
                 }
 
                 definitionMutator.mutate(updatedProcedureInfo);
-                if (isRename) {
+                if (isFuncRename) {
                     mProcedureDefinitions.remove(originalProcedureName);
                     mProcedureDefinitions.put(newProcedureName, definition);
                 }
 
                 // Mutate each procedure call
-                List<Block> disconnectedBlocks = new ArrayList<Block>(newArgCount);
                 List<Block> procedureCalls = mProcedureReferences.get(originalProcedureName);
                 for (Block procRef : procedureCalls) {
                     ProcedureCallMutator callMutator =
                             (ProcedureCallMutator) procRef.getMutator();
                     assert callMutator != null;
                     int oldArgCount = callMutator.getArgumentList().size();
-                    Block[] oldValues = new Block[oldArgCount];
-                    disconnectedBlocks.clear();
+                    Block[] oldValues = new Block[oldArgCount];  // Initially all null
 
-                    if (hasNewArgs) {
-                        // Disconnect prior value blocks
-                        for (int i = 0; i < oldArgCount; ++i) {
-                            Input argInput = callMutator.getArgumentInput(i);
-                            Block valueBlock = argInput.getConnectedBlock();
-                            if (valueBlock != null) {
-                                oldValues[i] = valueBlock;
-                                mController.extractBlockAsRoot(valueBlock);
-                                disconnectedBlocks.add(valueBlock);
-                            }
+                    // Disconnect prior value blocks
+                    for (int i = 0; i < oldArgCount; ++i) {
+                        Input argInput = callMutator.getArgumentInput(i);
+                        Block valueBlock = argInput.getConnectedBlock();
+                        if (valueBlock != null) {
+                            oldValues[i] = valueBlock;
+                            mController.extractBlockAsRoot(valueBlock);
                         }
                     }
 
-                    callMutator.mutate(finalProcedureName, finalArgs);
+                    callMutator.mutate(updatedProcedureInfo);
 
-                    if (hasNewArgs) {
-                        // Reconnect any blocks to original inputs
-                        for (int i = 0; i < newArgCount; ++i) {
-                            int originalIndex = optArgUpdates.get(i).getOriginalIndex();
-                            Block originalValue =
-                                    (originalIndex == ArgumentUpdate.NEW_ARGUMENT) ?
-                                    null : oldValues[originalIndex];
+                    // Reconnect any blocks to original inputs
+                    if (argIndexUpdates != null) {
+                        for (int i = 0; i < argIndexUpdates.size(); ++i) {
+                            ArgumentIndexUpdate argumentIndexUpdate = argIndexUpdates.get(i);
+                            Block originalValue = oldValues[argumentIndexUpdate.before];
                             if (originalValue != null) {
-                                Input argInput = callMutator.getArgumentInput(i);
+                                Input argInput =
+                                        callMutator.getArgumentInput(argumentIndexUpdate.after);
                                 mController.connect(
                                         argInput.getConnection(),
                                         originalValue.getOutputConnection());
-                                disconnectedBlocks.remove(originalValue);
                             }
                         }
                     }
@@ -339,29 +337,47 @@ public class ProcedureManager extends Observable<DataSetObserver> {
     /**
      * Convenience form of {@link #mutateProcedure(String, ProcedureInfo, List)} that assumes the
      * arguments maintain their same index.
-     * @param originalProcedureName The name of the procedure, before this method.
+     * @param procedureBlock A procedure block
      * @param updatedProcedureInfo The info with which to update procedure mutators.
      * @throws IllegalArgumentException If the old and new argument counts do not match.
      */
-    public void mutateProcedure(final @NonNull String originalProcedureName,
+    public void mutateProcedure(final @NonNull Block procedureBlock,
                                 final @NonNull ProcedureInfo updatedProcedureInfo) {
+        Mutator mutator = procedureBlock.getMutator();
+        if (!(mutator instanceof  AbstractProcedureMutator)) {
+            throw new IllegalArgumentException("procedureBlock does not have a procedure mutator.");
+        }
+        ProcedureInfo procInfo = ((AbstractProcedureMutator)mutator).getProcedureInfo();
+        if (procInfo == null) {
+            throw new IllegalStateException("No ProcedureInfo for " + mutator);
+        }
+
+        final String originalProcedureName = procInfo.getProcedureName();
         final Block definition = mProcedureDefinitions.get(originalProcedureName);
-        int oldArgCount =
-                ((ProcedureDefinitionMutator) definition.getMutator()).getArgumentList().size();
-        int newArgCount = updatedProcedureInfo.getArguments().size();
-        if (newArgCount != oldArgCount) {
-            throw new IllegalArgumentException(
-                    "Cannot map argument index map with differing argument counts. "+
-                    "(" + oldArgCount + " -> " + newArgCount + ")" );
-        }
-        int i = SAME_INDICES.size();
-        if (i < newArgCount) {
-            while (i < newArgCount) {
-                SAME_INDICES.add(new ArgumentIndexUpdate(i, i));
-                ++i;
+        if (definition == null) {
+            // Unregistered procedure name. Just change this one block.
+            // Probably because the procedure hasn't been connected to the workspace, yet.
+            ((AbstractProcedureMutator) mutator).mutate(updatedProcedureInfo);
+        } else {
+            int oldArgCount =
+                    ((ProcedureDefinitionMutator) definition.getMutator()).getArgumentList().size();
+            int newArgCount = updatedProcedureInfo.getArguments().size();
+            if (newArgCount != oldArgCount) {
+                throw new IllegalArgumentException(
+                        "Cannot map argument index map with differing argument counts. "+
+                        "(" + oldArgCount + " -> " + newArgCount + ")" );
             }
+            int i = SAME_INDICES.size();
+            if (i < newArgCount) {
+                while (i < newArgCount) {
+                    SAME_INDICES.add(new ArgumentIndexUpdate(i, i));
+                    ++i;
+                }
+            }
+            mutateProcedure(originalProcedureName,
+                    updatedProcedureInfo,
+                    SAME_INDICES.subList(0, i));
         }
-        mutateProcedure(originalProcedureName, updatedProcedureInfo, SAME_INDICES.subList(0, i));
     }
 
     public boolean hasReferenceWithReturn() {
@@ -377,16 +393,17 @@ public class ProcedureManager extends Observable<DataSetObserver> {
     private static String getProcedureName(Block block) {
         Mutator mutator = block.getMutator();
         if (!(mutator instanceof AbstractProcedureMutator)) {
-            throw new IllegalArgumentException("Block does not contain procedure mutator.");
+            throw new IllegalArgumentException("Block does not contain a procedure mutator.");
         }
         return ((AbstractProcedureMutator) mutator).getProcedureName();
     }
 
     private static void setProcedureName(Block block, String newName) {
         Mutator mutator = block.getMutator();
-        if (!(mutator instanceof AbstractProcedureMutator)) {
-            throw new IllegalArgumentException("Block does not contain procedure mutator.");
+        if (mutator instanceof AbstractProcedureMutator) {
+            ((AbstractProcedureMutator) mutator).setProcedureName(newName);
+        } else {
+            throw new IllegalArgumentException("Block does not contain a procedure mutator.");
         }
-        ((AbstractProcedureMutator) mutator).setProcedureName(newName);
     }
 }
