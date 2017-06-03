@@ -78,21 +78,45 @@ public class ProcedureCustomCategory implements CustomCategory {
         rebuildItems(category);
 
         final WeakReference<BlocklyCategory> catRef = new WeakReference<>(category);
-        mProcedureManager.registerObserver(new DataSetObserver() {
+        mProcedureManager.registerObserver(new ProcedureManager.Observer() {
             @Override
-            public void onChanged() {
+            public void onProcedureBlockAdded(String procedureName, Block block) {
                 BlocklyCategory category = catRef.get();
-                if (category == null) {
-                    // If the category isn't being used anymore clean up this observer.
-                    mProcedureManager.unregisterObserver(this);
-                } else {
-                    // Otherwise, update the category's list.
-                    try {
-                        rebuildItems(category);
-                    } catch (BlockLoadingException e) {
-                        throw new IllegalStateException(e);
-                    }
+                if (checkCategory(category)) {
+                    throw new Error("Unimplemented");
                 }
+            }
+
+            @Override
+            public void onProcedureBlocksRemoved(String procedureName, List<Block> blocks) {
+                BlocklyCategory category = catRef.get();
+                if (checkCategory(category)) {
+                    throw new Error("Unimplemented");
+                }
+            }
+
+            @Override
+            public void onProcedureMutated(ProcedureInfo oldProcInfo, ProcedureInfo newProcInfo) {
+                BlocklyCategory category = catRef.get();
+                if (checkCategory(category)) {
+                    throw new Error("Unimplemented");
+                }
+            }
+
+            @Override
+            public void onClear() {
+                BlocklyCategory category = catRef.get();
+                if (checkCategory(category)) {
+                    throw new Error("Unimplemented");
+                }
+            }
+
+            private boolean checkCategory(BlocklyCategory category) {
+                if (category == null) {
+                    mProcedureManager.unregisterObserver(this);
+                    return false;
+                }
+                return true;
             }
         });
     }

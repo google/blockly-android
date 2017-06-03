@@ -23,6 +23,7 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
+import com.google.blockly.model.ProcedureInfo;
 import com.google.blockly.model.VariableInfo;
 import com.google.blockly.utils.SimpleArraySet;
 
@@ -35,7 +36,7 @@ import java.util.List;
  */
 public class WorkspaceStats {
     // Maps from variable/procedure names to the blocks/fields where they are referenced.
-    private final SimpleArrayMap<String, VariableInfoImpl> mVariableUsages =
+    private final SimpleArrayMap<String, VariableInfoImpl> mVariableInfoMap =
             new SimpleArrayMap<>();
     private final NameManager mVariableNameManager;
     private final ProcedureManager mProcedureManager;
@@ -71,16 +72,26 @@ public class WorkspaceStats {
         }
 
         @Override
-        public void onProcedureMutated(String originalName, String newName) {
-            List<String> args = ProcedureManager.getProcedureArguments()
-
-            // TODO
+        public void onProcedureMutated(ProcedureInfo oldInfo, ProcedureInfo newInfo) {
+            String oldName = oldInfo.getProcedureName();
+            String newName = newInfo.getProcedureName();
+            if (!newName.equals(oldName)) {
+                int varCount = mVariableInfoMap.size();
+                for (int i = 0; i < varCount; ++i) {
+                    VariableInfoImpl varInfo = mVariableInfoMap.get(i);
+                    varInfo.removeProcedure(oldName);
+                    varInfo.addProcedure(newName);
+                }
+            }
         }
 
         @Override
         public void onClear() {
-            
-            // TODO
+            int varCount = mVariableInfoMap.size();
+            for (int i = 0; i < varCount; ++i) {
+                VariableInfoImpl varInfo = mVariableInfoMap.get(i);
+                varInfo.mProcedures = null;
+            }
         }
     };
 
@@ -199,6 +210,7 @@ public class WorkspaceStats {
         if (info != null) {
             info.removeField(field);
         }
+        field.unregisterObserver(mVariableObserver);
     }
 
     private void addConnection(Connection conn, boolean recursive) {
@@ -215,10 +227,10 @@ public class WorkspaceStats {
 
     private VariableInfoImpl getVarInfoImpl(String varName, boolean create) {
         String canonical = mVariableNameManager.makeCanonical(varName);
-        VariableInfoImpl usages = mVariableUsages.get(varName);
+        VariableInfoImpl usages = mVariableInfoMap.get(varName);
         if (usages == null && create) {
             usages = new VariableInfoImpl(canonical);
-            mVariableUsages.put(canonical, usages);
+            mVariableInfoMap.put(canonical, usages);
         }
         return usages;
     }
@@ -295,13 +307,13 @@ public class WorkspaceStats {
             if (mFields.isEmpty()) {
                 mFields = null;
                 if (mProcedures == null) {
-                    mVariableUsages.remove(mKey);
+                    mVariableInfoMap.remove(mKey);
                 }
             }
             return false;
         }
 
-        boolean addProcedure(String procedureName) {
+        void addProcedure(String procedureName) {
             if (mProcedures == null) {
                 mProcedures = new SimpleArraySet<>();
             }
@@ -316,7 +328,7 @@ public class WorkspaceStats {
             if (mProcedures.isEmpty()) {
                 mProcedures = null;
                 if (mFields == null) {
-                    mVariableUsages.remove(mKey);
+                    mVariableInfoMap.remove(mKey);
                 }
             }
             return foundAndRemoved;

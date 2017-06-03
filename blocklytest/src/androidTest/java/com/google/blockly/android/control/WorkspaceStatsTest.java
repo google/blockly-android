@@ -102,14 +102,9 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
         assertThat(mStats.getVariableNameManager().contains("variable name")).isTrue();
         assertThat(mStats.getVariableNameManager().contains("field name")).isFalse();
 
-        assertThat(mStats.getVariableReference("variable name").size()).isEqualTo(2);
-        assertThat(mStats.getVariableReference("variable name").get(0))
+        assertThat(mStats.getVariableInfo("variable name").getFields().size()).isEqualTo(2);
+        assertThat(mStats.getVariableInfo("variable name").getFields().get(0))
             .isEqualTo(variableReference.getFieldByName("field name"));
-    }
-
-    @Test
-    public void testVariableReferencesNeverNull() {
-        assertThat(mStats.getVariableReference("not a reference")).isNotNull();
     }
 
     @Test

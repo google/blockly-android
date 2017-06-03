@@ -45,7 +45,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     public interface Observer {
         void onProcedureBlockAdded(String procedureName, Block block);
         void onProcedureBlocksRemoved(String procedureName, List<Block> blocks);
-        void onProcedureMutated(String originalName, String newName);
+        void onProcedureMutated(ProcedureInfo oldProcInfo, ProcedureInfo newProcInfo);
         void onClear();
     }
 
@@ -319,7 +319,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
         final ProcedureDefinitionMutator definitionMutator =
                 (ProcedureDefinitionMutator) definition.getMutator();
-        assert definitionMutator != null;
+        final ProcedureInfo oldProcInfo = definitionMutator.getProcedureInfo();
         final String newProcedureName = updatedProcedureInfo.getProcedureName();
         final boolean isFuncRename = originalProcedureName.equals(newProcedureName);
         if (isFuncRename && !mProcedureNameManager.isValidName(newProcedureName)) {
@@ -396,7 +396,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
 
         int obsCount = mObservers.size();
         for (int i = 0; i < obsCount; ++i) {
-            mObservers.get(i).onProcedureMutated(originalProcedureName, finalProcedureName);
+            mObservers.get(i).onProcedureMutated(oldProcInfo, updatedProcedureInfo);
         }
     }
 

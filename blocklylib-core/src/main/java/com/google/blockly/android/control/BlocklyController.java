@@ -53,12 +53,13 @@ import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.Connection;
-import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
+import com.google.blockly.model.ProcedureInfo;
 import com.google.blockly.model.VariableInfo;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.ByteArrayInputStream;
@@ -730,7 +731,7 @@ public class BlocklyController {
 
     /**
      * Attempt to delete a variable from the workspace. If a {@link VariableCallback} is set
-     * {@link VariableCallback#onDeleteVariable(String)} will be called to check if deletion is
+     * {@link VariableCallback#onDeleteVariable} will be called to check if deletion is
      * allowed.
      *
      * @param variable The variable to delete.
@@ -1218,11 +1219,13 @@ public class BlocklyController {
         if (oldVarInfo != null) {
             ProcedureManager procedureManager = mWorkspace.getProcedureManager();
             int procCount = oldVarInfo.getCountOfProceduresUsages();
-            ArrayList<ProcedureManager.ArgumentUpdate> newArgs = new ArrayList<>();
+            ArrayList<String> newArgs = new ArrayList<>();
             for (int i = 0; i < procCount; ++i) {
                 String procName = oldVarInfo.getProcedureName(i);
                 Block definition = procedureManager.getDefinitionBlocks().get(procName);
-                List<String> oldArgs = procedureManager.getProcedureArguments(definition);
+                ProcedureInfo oldProcInfo =
+                        ((AbstractProcedureMutator) definition.getMutator()).getProcedureInfo();
+                List<String> oldArgs = oldProcInfo.getArguments();
                 int argCount = oldArgs.size();
 
                 newArgs.clear();
@@ -1231,9 +1234,13 @@ public class BlocklyController {
                     if (varNameManager.makeCanonical(argName).equals(canonicalNewVar)) {
                         argName = newVariable;
                     }
-                    newArgs.add(new ProcedureManager.ArgumentUpdate(argName, j));
+                    newArgs.add(argName);
                 }
-                procedureManager.mutateProcedure(procName, null, newArgs, null);
+
+                // Mutate the procdure. This will mutate both the definition and the caller
+                procedureManager.mutateProcedure(definition,
+                        new ProcedureInfo(
+                                procName, newArgs, oldProcInfo.getDefinitionHasStatementBody()));
             }
 
             List<FieldVariable> varRefs = oldVarInfo.getFields();
