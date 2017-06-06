@@ -29,6 +29,7 @@ import com.google.blockly.utils.SimpleArraySet;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -125,19 +126,20 @@ public class WorkspaceStats {
      *                  block.
      */
     public void collectStats(Block block, boolean recursive) {
-        String procedureName = ProcedureManager.getProcedureName(block);
-        if (procedureName != null) {
+        boolean isProcedureDef = ProcedureManager.isDefinition(block);
+        if (isProcedureDef || ProcedureManager.isReference(block)) {
             List<String> procedureArgs = ProcedureManager.getProcedureArguments(block);
             if (procedureArgs != null) {
+                String procedureName = ProcedureManager.getProcedureName(block);
                 for (String arg : procedureArgs) {
                     getVarInfoImpl(arg, true).addProcedure(procedureName);
                 }
             }
 
-            if (ProcedureManager.isDefinition(block)) {
+            if (isProcedureDef) {
                 mProcedureManager.addDefinition(block);
             } else {
-                mProcedureManager.addDefinition(block);
+                mProcedureManager.addReference(block);
             }
         }
 
@@ -227,24 +229,44 @@ public class WorkspaceStats {
 
     private VariableInfoImpl getVarInfoImpl(String varName, boolean create) {
         String canonical = mVariableNameManager.makeCanonical(varName);
-        VariableInfoImpl usages = mVariableInfoMap.get(varName);
-        if (usages == null && create) {
-            usages = new VariableInfoImpl(canonical);
-            mVariableInfoMap.put(canonical, usages);
+        VariableInfoImpl varInfo = mVariableInfoMap.get(varName);
+        if (varInfo == null && create) {
+            varInfo = new VariableInfoImpl(canonical, varName);
+            mVariableInfoMap.put(canonical, varInfo);
+            mVariableNameManager.addName(varName);
         }
-        return usages;
+        return varInfo;
+    }
+
+    /**
+     * Attempts to add a variable to the workspace.
+     * @param requestedName The preferred variable name. Usually the user name.
+     * @param allowRename Whether the variable name should be rename
+     * @return The name that was added, if any. May be null if renaming is not allowed.
+     */
+    @Nullable
+    public String addVariable(String requestedName, boolean allowRename) {
+        String finalName = mVariableNameManager.generateUniqueName(requestedName, allowRename);
+        if (finalName != null) {
+            String canonical = mVariableNameManager.makeCanonical(finalName);
+            mVariableInfoMap.put(canonical, new VariableInfoImpl(canonical, finalName));
+        }
+        return finalName;
     }
 
     public class VariableInfoImpl implements VariableInfo {
         /** Canonical variable name. */
-        final String mKey;
+        final String mCanonicalName;
+        /** Display name */
+        final String mDisplayName;
         /** FieldVariables that are set to the variable. */
         ArrayList<WeakReference<FieldVariable>> mFields = null;
         /** Procedures that use the variable as an argument. */
         SimpleArraySet<String> mProcedures = null;
 
-        private VariableInfoImpl(String canonicalProcedureName) {
-            mKey = canonicalProcedureName;
+        private VariableInfoImpl(String canonicalName, String displayName) {
+            mCanonicalName = canonicalName;
+            mDisplayName = displayName;
         }
 
         @Override
@@ -269,6 +291,7 @@ public class WorkspaceStats {
                 return;
             }
 
+            // Search for existing reference to avoid duplicates
             int count = mFields.size();
             int i = 0;
             while (i < count) {
@@ -283,6 +306,8 @@ public class WorkspaceStats {
                 }
                 ++i;
             }
+            // Not found. Add the new field.
+            mFields.add(new WeakReference(newField));
         }
 
         boolean removeField(FieldVariable newField) {
@@ -307,7 +332,7 @@ public class WorkspaceStats {
             if (mFields.isEmpty()) {
                 mFields = null;
                 if (mProcedures == null) {
-                    mVariableInfoMap.remove(mKey);
+                    mVariableInfoMap.remove(mCanonicalName);
                 }
             }
             return false;
@@ -328,7 +353,7 @@ public class WorkspaceStats {
             if (mProcedures.isEmpty()) {
                 mProcedures = null;
                 if (mFields == null) {
-                    mVariableInfoMap.remove(mKey);
+                    mVariableInfoMap.remove(mCanonicalName);
                 }
             }
             return foundAndRemoved;
@@ -340,6 +365,9 @@ public class WorkspaceStats {
 
         @Override
         public List<FieldVariable> getFields() {
+            if (mFields == null) {
+                return Collections.emptyList();
+            }
             int count = mFields.size();
             ArrayList<FieldVariable> fields = new ArrayList<>(mFields.size());
             int i = 0;

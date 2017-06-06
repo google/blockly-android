@@ -1144,8 +1144,9 @@ public class BlocklyController {
                 return null;
             }
         }
+        String finalName = mWorkspace.addVariable(variable, true);
         // TODO: (#309) add new variable event
-        return mWorkspace.getVariableNameManager().generateUniqueName(variable, true);
+        return finalName;
     }
 
     /**
@@ -1153,6 +1154,7 @@ public class BlocklyController {
      *
      * @param variable The variable to remove.
      * @param forced True to force removal even if there's a callback to delegate the action to.
+     *               This will not force the deletion of a procedure argument.
      * @return True if the variable was removed, false otherwise.
      */
     private boolean deleteVariableImpl(String variable, boolean forced) {

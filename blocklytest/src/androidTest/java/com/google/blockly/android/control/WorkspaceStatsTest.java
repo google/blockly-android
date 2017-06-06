@@ -24,6 +24,8 @@ import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.ProcedureInfo;
+import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;

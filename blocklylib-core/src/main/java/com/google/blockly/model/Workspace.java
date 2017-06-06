@@ -344,4 +344,15 @@ public class Workspace {
     VariableInfo getVariableInfo(String variable) {
         return mStats.getVariableInfo(variable);
     }
+
+    /**
+     * Attempts to add a variable to the workspace.
+     * @param requestedName The preferred variable name. Usually the user name.
+     * @param allowRename Whether the variable name should be rename
+     * @return The name that was added, if any. May be null if renaming is not allowed.
+     */
+    @Nullable
+    public String addVariable(String requestedName, boolean allowRename) {
+        return mStats.addVariable(requestedName, allowRename);
+    }
 }

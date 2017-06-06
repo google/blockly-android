@@ -67,7 +67,7 @@ public abstract class AbstractProcedureMutator<Info extends ProcedureInfo> exten
      */
     @Nullable
     public String getProcedureName() {
-        return mProcedureInfo.getProcedureName();
+        return (mProcedureInfo == null) ? null : mProcedureInfo.getProcedureName();
     }
 
     @NonNull
