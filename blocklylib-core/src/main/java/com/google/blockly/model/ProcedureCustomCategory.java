@@ -14,7 +14,6 @@
  */
 package com.google.blockly.model;
 
-import android.database.DataSetObserver;
 import android.util.Log;
 
 import com.google.blockly.android.R;
@@ -22,7 +21,6 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
-import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.lang.ref.WeakReference;

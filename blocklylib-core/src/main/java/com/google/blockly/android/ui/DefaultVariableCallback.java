@@ -20,10 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.model.Block;
 import com.google.blockly.model.VariableInfo;
-
-import java.util.List;
 
 /**
  * Default implementation of {@link BlocklyController.VariableCallback}. It uses

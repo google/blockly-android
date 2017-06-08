@@ -668,9 +668,15 @@ public class BlocklyController {
         }
     }
 
+    /**
+     * Returns the {@link VariableInfo} metadata about a specific variable.
+     * @param variableName The variable queried.
+     * @return The VariableInfo for {@code variableName}, or null if the name does not map to an
+     *         existing variable.
+     */
     @Nullable
-    public VariableInfo getVariableInfo(String variable) {
-        return mWorkspace.getVariableInfo(variable);
+    public VariableInfo getVariableInfo(String variableName) {
+        return mWorkspace.getVariableInfo(variableName);
     }
 
     /**

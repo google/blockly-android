@@ -19,7 +19,6 @@ import android.text.TextUtils;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.model.Field;
-import com.google.blockly.model.FieldInput;
 import com.google.blockly.model.FieldLabel;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
@@ -32,7 +31,6 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

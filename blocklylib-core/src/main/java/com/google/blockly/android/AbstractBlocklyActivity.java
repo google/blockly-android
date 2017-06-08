@@ -366,7 +366,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
             File file = getFileStreamPath(filePath);
             if (!file.delete()) {
-                Log.e(TAG, "Failed to delete corrupted workspace file: " + filePath);
+                Log.e(TAG, "Failed to delete corrupted autoload workspace: " + filePath);
             }
         }
         return false;
