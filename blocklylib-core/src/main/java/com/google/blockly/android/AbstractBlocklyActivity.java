@@ -45,6 +45,7 @@ import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
@@ -353,13 +354,20 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * @return true if a previously saved workspace was loaded, false otherwise.
      */
     protected boolean onAutoload() {
+        String filePath = getWorkspaceAutosavePath();
         try {
-            mBlocklyActivityHelper.loadWorkspaceFromAppDir(getWorkspaceAutosavePath());
+            mBlocklyActivityHelper.loadWorkspaceFromAppDir(filePath);
             return true;
         } catch (FileNotFoundException e) {
             // No workspace was saved previously.
         } catch (BlockLoadingException | IOException e) {
             Log.e(TAG, "Failed to load workspace", e);
+            mBlocklyActivityHelper.getController().resetWorkspace();
+
+            File file = getFileStreamPath(filePath);
+            if (!file.delete()) {
+                Log.e(TAG, "Failed to delete corrupted workspace file: " + filePath);
+            }
         }
         return false;
     }

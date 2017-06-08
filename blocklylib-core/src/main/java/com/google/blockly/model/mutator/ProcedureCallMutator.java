@@ -119,7 +119,12 @@ public class ProcedureCallMutator extends AbstractProcedureMutator<ProcedureInfo
 
     protected ProcedureInfo parseAndValidateMutationXml(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
-        return ProcedureInfo.parseImpl(parser);
+        ProcedureInfo info = ProcedureInfo.parseImpl(parser);
+        if (TextUtils.isEmpty(info.getProcedureName())) {
+            throw new BlockLoadingException(
+                    "No procedure name specified in mutation for " + mBlock);
+        }
+        return info;
     }
 
     @Override
