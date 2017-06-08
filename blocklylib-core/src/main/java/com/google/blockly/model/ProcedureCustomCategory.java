@@ -15,6 +15,7 @@
 package com.google.blockly.model;
 
 import android.database.DataSetObserver;
+import android.util.Log;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
@@ -83,7 +84,7 @@ public class ProcedureCustomCategory implements CustomCategory {
             public void onProcedureBlockAdded(String procedureName, Block block) {
                 BlocklyCategory category = catRef.get();
                 if (checkCategory(category)) {
-                    throw new Error("Unimplemented");
+                    rebuildItemsSafely(category);
                 }
             }
 
@@ -91,7 +92,7 @@ public class ProcedureCustomCategory implements CustomCategory {
             public void onProcedureBlocksRemoved(String procedureName, List<Block> blocks) {
                 BlocklyCategory category = catRef.get();
                 if (checkCategory(category)) {
-                    throw new Error("Unimplemented");
+                    rebuildItemsSafely(category);
                 }
             }
 
@@ -99,7 +100,7 @@ public class ProcedureCustomCategory implements CustomCategory {
             public void onProcedureMutated(ProcedureInfo oldProcInfo, ProcedureInfo newProcInfo) {
                 BlocklyCategory category = catRef.get();
                 if (checkCategory(category)) {
-                    throw new Error("Unimplemented");
+                    rebuildItemsSafely(category);
                 }
             }
 
@@ -107,7 +108,16 @@ public class ProcedureCustomCategory implements CustomCategory {
             public void onClear() {
                 BlocklyCategory category = catRef.get();
                 if (checkCategory(category)) {
-                    throw new Error("Unimplemented");
+                    category.clear();
+                }
+            }
+
+            private void rebuildItemsSafely(BlocklyCategory category) {
+                try {
+                    rebuildItems(category);
+                } catch (BlockLoadingException e) {
+                    category.clear();
+                    Log.w(TAG, "Failed to rebuild ProcedureCustomCategory");
                 }
             }
 

@@ -59,16 +59,23 @@ public class ProcedureInfo {
                                  ProcedureInfo info,
                                  boolean asDefinition)
             throws IOException {
-        serializer.startTag(null, Mutator.TAG_MUTATION);
-        if (asDefinition && !info.getDefinitionHasStatementBody()) {
-            serializer.attribute(null, ATTR_STATEMENTS, "false");
+        serializer.startTag("", Mutator.TAG_MUTATION);
+        if (asDefinition) {
+            if (!info.getDefinitionHasStatementBody()) {
+                serializer.attribute("", ATTR_STATEMENTS, "false");
+            }
+        } else {
+            String procName = info.getProcedureName();
+            if (procName != null) {
+                serializer.attribute("", ATTR_NAME, procName);
+            }
         }
         for (String argName : info.getArguments()) {
-            serializer.startTag(null, TAG_ARG)
-                    .attribute(null, ATTR_ARG_NAME, argName)
-                    .endTag(null, TAG_ARG);
+            serializer.startTag("", TAG_ARG)
+                    .attribute("", ATTR_ARG_NAME, argName)
+                    .endTag("", TAG_ARG);
         }
-        serializer.endTag(null, Mutator.TAG_MUTATION);
+        serializer.endTag("", Mutator.TAG_MUTATION);
     }
 
     public static ProcedureInfo parseImpl(XmlPullParser parser)
