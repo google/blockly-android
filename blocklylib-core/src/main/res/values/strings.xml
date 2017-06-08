@@ -54,6 +54,7 @@
 
     <string name="mutator_procedure_def_title">Function Inputs</string>
     <string name="mutator_procedure_def_header_format">%1$s with:</string>
+    <string name="mutator_procedure_def_before_params">with:</string>
 
     <string name="blockly_default_function_name">do something</string>
     <string name="procedure_argument_name_hint">Argument name</string>

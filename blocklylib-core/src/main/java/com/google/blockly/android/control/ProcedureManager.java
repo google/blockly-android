@@ -42,10 +42,18 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
 
     public static final String NAME_FIELD = "name";
 
+    /** Callback listener for changes regarding procedures on the workspace. */
     public interface Observer {
+        /** Called when a procedure is added to the workspace. */
         void onProcedureBlockAdded(String procedureName, Block block);
+
+        /** Called when a procedure is removed from the workspace. */
         void onProcedureBlocksRemoved(String procedureName, List<Block> blocks);
+
+        /** Called when a procedure name or definition changes. */
         void onProcedureMutated(ProcedureInfo oldProcInfo, ProcedureInfo newProcInfo);
+
+        /** Called when all workspace procedures are removed. */
         void onClear();
     }
 
@@ -59,9 +67,9 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         public final int after;
 
         /**
-         *
-         * @param before
-         * @param after
+         * Constructor for a new ArgumentIndexUpdate.
+         * @param before The argument's index before the change.
+         * @param after The argument's index after the change.
          */
         public ArgumentIndexUpdate(int before, int after) {
             this.before = before;
@@ -87,6 +95,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
 
     private int mCountOfReferencesWithReturn = 0;
 
+    /**
+     * Constructor for a new ProcedureManager.
+     * @param controller The controller managing the provided workspace.
+     * @param workspace The workspace represented (passed in separately from the controller
+     *                  because the workspace constructor probably hasn't finished yet).
+     */
     public ProcedureManager(BlocklyController controller, Workspace workspace) {
         mController = controller;
         mVariableNameManager = workspace.getVariableNameManager();
@@ -319,11 +333,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                 (ProcedureDefinitionMutator) definition.getMutator();
         final ProcedureInfo oldProcInfo = definitionMutator.getProcedureInfo();
         final String newProcedureName = updatedProcedureInfo.getProcedureName();
-        final boolean isFuncRename = originalProcedureName.equals(newProcedureName);
-        if (isFuncRename && !mProcedureNameManager.isValidName(newProcedureName)) {
-            throw new IllegalArgumentException(
-                    "Invalid procedure name \"" + newProcedureName + "\"");
-        }
+        final boolean isFuncRename = !originalProcedureName.equals(newProcedureName);
 
         final List<String> newArgs = updatedProcedureInfo.getArguments();
         final int newArgCount = newArgs.size();
@@ -347,12 +357,19 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
 
                 definitionMutator.mutate(updatedProcedureInfo);
                 if (isFuncRename) {
+                    mProcedureNameManager.remove(originalProcedureName);
                     mProcedureDefinitions.remove(originalProcedureName);
+
+                    mProcedureNameManager.addName(newProcedureName);
                     mProcedureDefinitions.put(newProcedureName, definition);
                 }
 
                 // Mutate each procedure call
                 List<Block> procedureCalls = mProcedureReferences.get(originalProcedureName);
+                if (isFuncRename) {
+                    mProcedureReferences.remove(originalProcedureName);
+                    mProcedureReferences.put(newProcedureName, procedureCalls);
+                }
                 for (Block procRef : procedureCalls) {
                     ProcedureCallMutator callMutator =
                             (ProcedureCallMutator) procRef.getMutator();

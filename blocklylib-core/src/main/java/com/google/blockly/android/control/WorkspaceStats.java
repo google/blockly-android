@@ -91,9 +91,10 @@ public class WorkspaceStats {
             if (!newName.equals(oldName)) {
                 int varCount = mVariableInfoMap.size();
                 for (int i = 0; i < varCount; ++i) {
-                    VariableInfoImpl varInfo = mVariableInfoMap.get(i);
-                    varInfo.removeProcedure(oldName);
-                    varInfo.addProcedure(newName);
+                    VariableInfoImpl varInfo = mVariableInfoMap.valueAt(i);
+                    if (varInfo.removeProcedure(oldName)) {
+                        varInfo.addProcedure(newName);
+                    }
                 }
             }
         }
@@ -254,7 +255,7 @@ public class WorkspaceStats {
     /**
      * Attempts to add a variable to the workspace.
      * @param requestedName The preferred variable name. Usually the user name.
-     * @param allowRename Whether the variable name should be rename
+     * @param allowRename Whether the variable name can be rename.
      * @return The name that was added, if any. May be null if renaming is not allowed.
      */
     @Nullable
@@ -267,7 +268,7 @@ public class WorkspaceStats {
         return finalName;
     }
 
-    public class VariableInfoImpl implements VariableInfo {
+    private class VariableInfoImpl implements VariableInfo {
         /** Canonical variable name. */
         final String mCanonicalName;
         /** Display name */
@@ -323,7 +324,7 @@ public class WorkspaceStats {
             mFields.add(new WeakReference(newField));
         }
 
-        boolean removeField(FieldVariable newField) {
+        boolean removeField(FieldVariable fieldToRemove) {
             if (mFields == null) {
                 return false;
             }
@@ -335,9 +336,8 @@ public class WorkspaceStats {
                     mFields.remove(i);
                     continue;  // Don't increment i
                 }
-                if (field == newField) {
+                if (field == fieldToRemove) {
                     mFields.remove(i);
-                    --count;
                     return true;
                 }
                 ++i;

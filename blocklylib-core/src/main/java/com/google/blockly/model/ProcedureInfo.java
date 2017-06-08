@@ -50,7 +50,7 @@ public class ProcedureInfo {
     public List<String> getArguments() {
         return mArguments;
     }
-    
+
     public boolean getDefinitionHasStatementBody() {
         return mDefinitionHasStatementBody;
     }

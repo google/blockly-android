@@ -21,6 +21,7 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
+import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.lang.ref.WeakReference;
@@ -37,7 +38,7 @@ import java.util.TreeSet;
 public class ProcedureCustomCategory implements CustomCategory {
     private static final String TAG = "ProcedureCategoryFactor";  // 23 chars max
 
-    private static final String NAME = ProcedureManager.PROCEDURE_NAME_FIELD;
+    private static final String NAME_FIELD = ProcedureDefinitionMutator.NAME_FIELD_NAME;
 
     private static final BlockTemplate DEFINE_NO_RETURN_BLOCK_TEMPLATE =
             new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE);
@@ -158,11 +159,11 @@ public class ProcedureCustomCategory implements CustomCategory {
         category.clear();
 
         Block block = mBlockFactory.obtainBlockFrom(DEFINE_NO_RETURN_BLOCK_TEMPLATE);
-        ((FieldInput)block.getFieldByName(NAME)).setText(mDefaultProcedureName);
+        ((FieldInput)block.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
         category.addItem(new BlocklyCategory.BlockItem(block));
 
         block = mBlockFactory.obtainBlockFrom(DEFINE_WITH_RETURN_BLOCK_TEMPLATE);
-        ((FieldInput)block.getFieldByName(NAME)).setText(mDefaultProcedureName);
+        ((FieldInput)block.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
         category.addItem(new BlocklyCategory.BlockItem(block));
 
         if (!mProcedureManager.hasReferenceWithReturn()) {

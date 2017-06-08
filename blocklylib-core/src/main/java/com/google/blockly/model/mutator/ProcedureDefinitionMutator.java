@@ -16,7 +16,9 @@ package com.google.blockly.model.mutator;
 
 import android.text.TextUtils;
 
+import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldInput;
@@ -50,9 +52,11 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
     public static final Mutator.Factory<ProcedureDefinitionMutator> DEFRETURN_FACTORY =
             new Factory(DEFRETURN_MUTATOR_ID);
 
-    public static final String NAME_FIELD_NAME = "NAME";
+    public static final String NAME_FIELD_NAME = ProcedureManager.NAME_FIELD;
     public static final String STATEMENT_INPUT_NAME = "STACK";
     public static final String RETURN_INPUT_NAME = "RETURN";
+
+    private final String mBeforeParams;
 
     private Field.Observer mFieldObserver = null;
     private boolean mUpdatingBlock = false;
@@ -60,6 +64,8 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
     ProcedureDefinitionMutator(Mutator.Factory factory,
                                BlocklyController controller) {
         super(factory, controller);
+        mBeforeParams = controller.getContext().getString(
+                R.string.mutator_procedure_def_before_params);  // BKY_PROCEDURES_BEFORE_PARAMS
     }
 
     @Override
@@ -259,7 +265,7 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         StringBuilder sb = new StringBuilder();
         List<String> arguments = mProcedureInfo.getArguments();
         if (!arguments.isEmpty()) {
-            sb.append("with:"); // message BKY_PROCEDURES_BEFORE_PARAMS
+            sb.append(mBeforeParams);
 
             int count = arguments.size();
             for (int i = 0; i < count; ++i) {
