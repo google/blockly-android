@@ -124,7 +124,7 @@ public abstract class NameManager extends DataSetObservable {
     /**
      * Clear the list of used names.
      */
-    public void clearUsedNames() {
+    public void clear() {
         if (mDisplayNamesSorted.size() != 0) {
             mDisplayNamesSorted.clear();
             notifyChanged();

@@ -171,7 +171,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     public void clear() {
         mProcedureDefinitions.clear();
         mProcedureReferences.clear();
-        mProcedureNameManager.clearUsedNames();
+        mProcedureNameManager.clear();
         mCountOfReferencesWithReturn = 0;
 
         int obsCount = mObservers.size();

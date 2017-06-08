@@ -664,11 +664,9 @@ public class BlockFactory {
      */
     private String getCheckedId(String requested) throws BlockLoadingException {
         if (requested != null) {
-            if (isBlockIdInUse(requested)) {
-                throw new BlockLoadingException(
-                        "Block id \"" + requested + "\" is already in use.");
+            if (!isBlockIdInUse(requested)) {
+                return requested;
             }
-            return requested;
         }
         String id = UUID.randomUUID().toString();
         while(mBlockRefs.containsKey(id)) {  // Exceptionally unlikely, but...
@@ -679,9 +677,6 @@ public class BlockFactory {
 
     public boolean isDefined(String definitionId) {
         return mDefinitions.containsKey(definitionId);
-    }
-
-    public void loadBlockDefinitionFromAssets(String procedureBlocksPath) {
     }
 
     /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */

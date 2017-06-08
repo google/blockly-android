@@ -15,7 +15,6 @@
 
 package com.google.blockly.android.control;
 
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.util.SimpleArrayMap;
 
@@ -104,7 +103,7 @@ public class WorkspaceStats {
         public void onClear() {
             int varCount = mVariableInfoMap.size();
             for (int i = 0; i < varCount; ++i) {
-                VariableInfoImpl varInfo = mVariableInfoMap.get(i);
+                VariableInfoImpl varInfo = mVariableInfoMap.valueAt(i);
                 varInfo.mProcedures = null;
             }
         }
@@ -186,7 +185,7 @@ public class WorkspaceStats {
      */
     public void clear() {
         mProcedureManager.clear();
-        mVariableNameManager.clearUsedNames();
+        mVariableNameManager.clear();
         mConnectionManager.clear();
     }
 
@@ -345,9 +344,6 @@ public class WorkspaceStats {
             }
             if (mFields.isEmpty()) {
                 mFields = null;
-                if (mProcedures == null) {
-                    mVariableInfoMap.remove(mCanonicalName);
-                }
             }
             return false;
         }
@@ -366,9 +362,6 @@ public class WorkspaceStats {
             boolean foundAndRemoved = mProcedures.remove(procedureName);
             if (mProcedures.isEmpty()) {
                 mProcedures = null;
-                if (mFields == null) {
-                    mVariableInfoMap.remove(mCanonicalName);
-                }
             }
             return foundAndRemoved;
         }
