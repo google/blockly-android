@@ -652,8 +652,18 @@ public class BlockFactory {
      * Removes references to previous blocks. This can be used when resetting a workspace to force
      * a cleanup of known block instances.
      */
-    public void clearPriorBlockReferences() {
-        mBlockRefs.clear();
+    public void clearWorkspaceBlockReferences(String workspaceId) {
+        List<String> idsToRemove = new ArrayList<>(mBlockRefs.size());
+        for (String blockId : mBlockRefs.keySet()) {
+            WeakReference<Block> ref = mBlockRefs.get(blockId);
+            Block block = ref.get();
+            if (block == null || workspaceId.equals(block.getEventWorkspaceId())) {
+                idsToRemove.add(blockId);
+            }
+        }
+        for (String id : idsToRemove) {
+            mBlockRefs.remove(id);
+        }
     }
 
     /**

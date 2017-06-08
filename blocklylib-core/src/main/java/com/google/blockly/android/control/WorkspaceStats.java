@@ -65,7 +65,6 @@ public class WorkspaceStats {
                 for (String arg : args) {
                     VariableInfoImpl info = getVarInfoImpl(arg, true);
                     info.addProcedure(procedureName);
-
                 }
             }
         }

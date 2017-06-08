@@ -302,7 +302,7 @@ public class Workspace {
      * necessary new views.
      */
     public void resetWorkspace() {
-        mBlockFactory.clearPriorBlockReferences();
+        mBlockFactory.clearWorkspaceBlockReferences(getId());
         mRootBlocks.clear();
         mStats.clear();
         mTrashCategory.clear();

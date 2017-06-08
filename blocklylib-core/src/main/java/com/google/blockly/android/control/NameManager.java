@@ -127,6 +127,7 @@ public abstract class NameManager extends DataSetObservable {
     public void clear() {
         if (mDisplayNamesSorted.size() != 0) {
             mDisplayNamesSorted.clear();
+            mCanonicalMap.clear();
             notifyChanged();
         }
     }

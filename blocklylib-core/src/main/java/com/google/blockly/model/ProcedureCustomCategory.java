@@ -108,7 +108,7 @@ public class ProcedureCustomCategory implements CustomCategory {
             public void onClear() {
                 BlocklyCategory category = catRef.get();
                 if (checkCategory(category)) {
-                    category.clear();
+                    rebuildItemsSafely(category);
                 }
             }
 
