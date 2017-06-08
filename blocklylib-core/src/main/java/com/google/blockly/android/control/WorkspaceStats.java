@@ -184,6 +184,7 @@ public class WorkspaceStats {
      */
     public void clear() {
         mProcedureManager.clear();
+        mVariableInfoMap.clear();
         mVariableNameManager.clear();
         mConnectionManager.clear();
     }
