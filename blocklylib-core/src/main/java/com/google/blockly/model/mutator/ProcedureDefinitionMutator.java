@@ -14,7 +14,7 @@
  */
 package com.google.blockly.model.mutator;
 
-import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
@@ -55,20 +55,11 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
     public static final String RETURN_INPUT_NAME = "RETURN";
 
     private Field.Observer mFieldObserver = null;
+    private boolean mUpdatingBlock = false;
 
     ProcedureDefinitionMutator(Mutator.Factory factory,
                                BlocklyController controller) {
         super(factory, controller);
-    }
-
-    /**
-     * @return The procedure name associated with this mutator. Will be null if not attached to a
-     *         block.
-     */
-    @Override
-    public @Nullable String getProcedureName() {
-        return mBlock == null ? null
-                : ((FieldInput) mBlock.getFieldByName(NAME_FIELD_NAME)).getText();
     }
 
     @Override
@@ -112,15 +103,15 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
     public ProcedureInfo parseAndValidateMutationXml(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
         ProcedureInfo xmlInfo = ProcedureInfo.parseImpl(parser);
-        if (mBlock == null) {
-            return xmlInfo;
-        } else {
-            // Procedure name on the NAME field take precedence.
+        FieldInput nameField = getNameField();
+        if (TextUtils.isEmpty(xmlInfo.getProcedureName()) && nameField != null) {
+            // Use the name on the field when not specified in the info.
             return new ProcedureInfo(
-                    getProcedureName(),
+                    nameField.getText(),
                     xmlInfo.getArguments(),
                     xmlInfo.getDefinitionHasStatementBody());
         }
+        return xmlInfo;
     }
 
     @Override
@@ -130,39 +121,61 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
 
     @Override
     protected void onAttached(final Block block) {
-        super.onAttached(block);
+        String procedureName = null;
 
         // Update the ProcedureInfo with procedure name from NAME field.
         // In the case of this class, this will not update the mutation
         // serialization, but initializes the value to synch with caller's
         // ProcedureInfo.
         Field field = mBlock.getFieldByName(NAME_FIELD_NAME);
-        if (field != null && field instanceof FieldInput) {
-            FieldInput nameField = (FieldInput)field;
-            String procedureName = nameField.getText(); // same as getProcedureName()
-            if (mProcedureInfo == null) {
-                mProcedureInfo = new ProcedureInfo(
-                        procedureName,
-                        Collections.<String>emptyList(),
-                        ProcedureInfo.HAS_STATEMENTS_DEFAULT);
+        FieldInput nameField = (field instanceof FieldInput) ? (FieldInput)field : null;
+        if (nameField != null) {
+            String blockProcName = nameField.getText();
+            String infoProcName =
+                    (mProcedureInfo == null) ? null : mProcedureInfo.getProcedureName();
+
+            if (!TextUtils.isEmpty(blockProcName) && !blockProcName.equals(infoProcName)) {
+                if (!TextUtils.isEmpty(infoProcName)) {
+                    throw new IllegalStateException(
+                            "Attached to block that already has a differing procedure name.");
+                }
+
+                procedureName = blockProcName;
             } else {
-                mProcedureInfo = new ProcedureInfo(
-                        procedureName,
-                        Collections.<String>emptyList(),
-                        ProcedureInfo.HAS_STATEMENTS_DEFAULT);
+                procedureName = infoProcName;
             }
+        }
+        if (mProcedureInfo == null) {
+            mProcedureInfo = new ProcedureInfo(
+                    procedureName,
+                    Collections.<String>emptyList(),
+                    ProcedureInfo.HAS_STATEMENTS_DEFAULT);
+        } else {
+            mProcedureInfo = new ProcedureInfo(
+                    procedureName,
+                    mProcedureInfo.getArguments(),
+                    mProcedureInfo.getDefinitionHasStatementBody());
+        }
+
+        super.onAttached(block);
+
+        if (nameField != null) {
+            nameField.setText(procedureName);
             mFieldObserver = new Field.Observer() {
                 @Override
                 public void onValueChanged(Field field, String oldValue, String newValue) {
-                    String oldProcedureName = getProcedureName();  // Probably oldValue, but jic
-                    ProcedureInfo newInfo = new ProcedureInfo(
-                            getProcedureName(),
-                            mProcedureInfo.getArguments(),
-                            mProcedureInfo.getDefinitionHasStatementBody());
-                    if (mProcedureManager.containsDefinition(oldProcedureName)) {
-                        mProcedureManager.mutateProcedure(mBlock, newInfo);
-                    } else {
-                        mProcedureInfo = newInfo;
+                    if (!mUpdatingBlock) {
+                        String oldProcedureName = getProcedureName();
+                        ProcedureInfo newInfo = new ProcedureInfo(
+                                newValue,
+                                mProcedureInfo.getArguments(),
+                                mProcedureInfo.getDefinitionHasStatementBody());
+                        if (oldProcedureName != null
+                                && mProcedureManager.containsDefinition(oldProcedureName)) {
+                            mProcedureManager.mutateProcedure(mBlock, newInfo);
+                        } else {
+                            mProcedureInfo = newInfo;
+                        }
                     }
                 }
             };
@@ -198,6 +211,29 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
                     Input.ALIGN_LEFT, null);
         }
         return stackInput;
+    }
+
+    @Override
+    protected void updateBlock() {
+        try {
+            mUpdatingBlock = true;
+            super.updateBlock();
+
+            FieldInput nameField = getNameField();
+            if (mProcedureInfo != null && nameField != null) {
+                nameField.setFromString(mProcedureInfo.getProcedureName());
+            }
+        } finally {
+            mUpdatingBlock = false;
+        }
+    }
+
+    private FieldInput getNameField() {
+        Field field = (mBlock == null) ? null : mBlock.getFieldByName(NAME_FIELD_NAME);
+        if (field instanceof FieldInput) {
+            return (FieldInput) field;
+        }
+        return null;
     }
 
     @Override

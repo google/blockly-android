@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.control;
 
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.util.SimpleArrayMap;
 

@@ -183,8 +183,8 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
             }
         }
 
-        mProcedureManager.mutateProcedure(mProcedureName, new ProcedureInfo(
-                /* procedure name from block field */ null, argNames, mHasStatementInput),
+        mProcedureManager.mutateProcedure(mProcedureName,
+                new ProcedureInfo(mProcedureName, argNames, mHasStatementInput),
                 indexUpdates);
     }
 
@@ -192,8 +192,6 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
         Button mAddButton = null;
         EditText mArgName = null;
         ImageButton mDeleteButton = null;
-
-        ArgumentIndexUpdate mIndexUpdate = null;
 
         public ViewHolder(View view, int viewType) {
             super(view);

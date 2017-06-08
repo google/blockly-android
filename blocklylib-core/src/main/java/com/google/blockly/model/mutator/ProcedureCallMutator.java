@@ -89,9 +89,9 @@ public class ProcedureCallMutator extends AbstractProcedureMutator<ProcedureInfo
         super.updateBlock();
 
         if (mProcedureInfo != null) {  // May be null before <mutation> applied.
-            FieldLabel nameField =
+            FieldLabel nameLabel =
                     (FieldLabel) mBlock.getFieldByName(ProcedureManager.PROCEDURE_NAME_FIELD);
-            nameField.setText(mProcedureInfo.getProcedureName());
+            nameLabel.setText(mProcedureInfo.getProcedureName());
         }
     }
 

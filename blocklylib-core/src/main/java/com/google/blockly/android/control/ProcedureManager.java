@@ -102,7 +102,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     @Nullable
     public static String getProcedureName(Block block) {
         Mutator mutator = block.getMutator();
-        boolean isProcedure = mutator != null && mutator instanceof AbstractProcedureMutator;
+        boolean isProcedure = mutator instanceof AbstractProcedureMutator;
         return isProcedure ? ((AbstractProcedureMutator) mutator).getProcedureName() : null;
     }
 
@@ -112,8 +112,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * @return True, if the block type is a recognized type of procedure call.
      */
     public static boolean isReference(Block block) {
-        Mutator mutator = block.getMutator();
-        return mutator != null && mutator instanceof ProcedureCallMutator;
+        return block.getMutator() instanceof ProcedureCallMutator;
     }
 
     /**
@@ -122,8 +121,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * @return True, if the block type is a recognized type of procedure definition.
      */
     public static boolean isDefinition(Block block) {
-        Mutator mutator = block.getMutator();
-        return mutator != null && mutator instanceof ProcedureDefinitionMutator;
+        return block.getMutator() instanceof ProcedureDefinitionMutator;
     }
 
     /**
@@ -453,7 +451,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     private static @NonNull String getProcedureNameOrFail(Block block) {
         String procName = getProcedureName(block);
         if (procName == null) {
-            throw new IllegalArgumentException("Block does not contain procedure mutator.");
+            throw new IllegalArgumentException("Block does not contain procedure name.");
         }
         return procName;
     }
