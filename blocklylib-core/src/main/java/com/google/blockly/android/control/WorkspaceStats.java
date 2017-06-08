@@ -61,15 +61,28 @@ public class WorkspaceStats {
     private final ProcedureManager.Observer mProcedureObserver = new ProcedureManager.Observer() {
         @Override
         public void onProcedureBlockAdded(String procedureName, Block block) {
-            VariableInfoImpl info = getVarInfoImpl(procedureName, true);
-            info.addProcedure(procedureName);
+            List<String> args = mProcedureManager.getProcedureArguments(block);
+            if (args != null) {
+                for (String arg : args) {
+                    VariableInfoImpl info = getVarInfoImpl(arg, true);
+                    info.addProcedure(procedureName);
+
+                }
+            }
         }
 
         @Override
         public void onProcedureBlocksRemoved(String procedureName, List<Block> blocks) {
-            VariableInfoImpl info = getVarInfoImpl(procedureName, false);
-            if (info != null) {
-                info.removeProcedure(procedureName);
+            for (Block block : blocks) {
+                List<String> args = mProcedureManager.getProcedureArguments(block);
+                if (args != null) {
+                    for (String arg : args) {
+                        VariableInfoImpl info = getVarInfoImpl(procedureName, false);
+                        if (info != null) {
+                            info.removeProcedure(procedureName);
+                        }
+                    }
+                }
             }
         }
 
