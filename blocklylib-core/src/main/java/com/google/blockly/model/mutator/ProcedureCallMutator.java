@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model.mutator;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.google.blockly.android.control.BlocklyController;
@@ -49,10 +50,22 @@ public class ProcedureCallMutator extends AbstractProcedureMutator<ProcedureInfo
     public static final Mutator.Factory<ProcedureCallMutator> CALLRETURN_FACTORY =
             new Factory(CALLRETURN_MUTATOR_ID);
 
+    /**
+     * Constructs a new procedure call block mutator. This can be a
+     * {@code procedures_callnoreturn_mutator} with previous and next connections, or a
+     * {@call procedures_callreturn_mutator} with an output connection.
+     * @param factory The factory that is constructing this mutator.
+     * @param controller The {@link BlocklyController} for this activity.
+     */
     ProcedureCallMutator(Mutator.Factory factory, BlocklyController controller) {
         super(factory, controller);
     }
 
+    /**
+     * This retrieves the block's {@link Input} that represents the nth {@code index} argument.
+     * @param index The index of the argument asked for.
+     * @return The {@link com.google.blockly.model.Input.InputValue} corresponding to the argument.
+     */
     public Input getArgumentInput(int index) {
         return mBlock.getInputs().get(index + 1); // Skip the top row (procedure name)
     }
@@ -61,7 +74,7 @@ public class ProcedureCallMutator extends AbstractProcedureMutator<ProcedureInfo
      * Convenience method for invoking a mutation event programmatically, updating the Mutator with
      * the provided values.
      *
-     * @param procedureInfo The procedure info
+     * @param procedureInfo The procedure info for the mutation.
      */
     public void mutate(ProcedureInfo procedureInfo) {
         if (mBlock != null) {
@@ -76,12 +89,20 @@ public class ProcedureCallMutator extends AbstractProcedureMutator<ProcedureInfo
         }
     }
 
+    /**
+     * Updates the ProcedureInfo with a new name, and updates the name field. This should never be
+     * called directly. Use {@link #setProcedureName(String)} or {@link #mutate(ProcedureInfo)}.
+     * @param newProcedureName The updated name. Cannot be null.
+     */
     @Override
-    protected void setProcedureNameImpl(final String newName) {
-        mProcedureInfo = mProcedureInfo.cloneWithName(newName);
-        ((FieldLabel) mBlock.getFieldByName(NAME_FIELD_NAME)).setText(newName);
+    protected void setProcedureNameImpl(final @NonNull String newProcedureName) {
+        mProcedureInfo = mProcedureInfo.cloneWithName(newProcedureName);
+        ((FieldLabel) mBlock.getFieldByName(NAME_FIELD_NAME)).setText(newProcedureName);
     }
 
+    /**
+     * Updates {@code mBlock} to reflect the current {@link ProcedureInfo}.
+     */
     @Override
     protected void updateBlock() {
         super.updateBlock();
@@ -89,13 +110,18 @@ public class ProcedureCallMutator extends AbstractProcedureMutator<ProcedureInfo
         if (mProcedureInfo != null) {  // May be null before <mutation> applied.
             FieldLabel nameLabel =
                     (FieldLabel) mBlock.getFieldByName(ProcedureManager.PROCEDURE_NAME_FIELD);
-            nameLabel.setText(mProcedureInfo.getProcedureName());
+            if (nameLabel != null) {
+                nameLabel.setText(mProcedureInfo.getProcedureName());
+            }
         }
     }
 
+    /**
+     * @return A new set of {@link Input Inputs} reflecting the current ProcedureInfo state.
+     */
     @Override
     protected List<Input> buildUpdatedInputs() {
-        List<String> arguments = mProcedureInfo.getArguments();
+        List<String> arguments = mProcedureInfo.getArgumentNames();
         final int argCount = arguments.size();
         List<Input> inputs = new ArrayList<>(argCount + 1);
 
@@ -115,10 +141,19 @@ public class ProcedureCallMutator extends AbstractProcedureMutator<ProcedureInfo
         return inputs;
     }
 
+    /**
+     * Updates the block using the mutation in the XML.
+     *
+     * @param parser The parser with the {@code <mutation>} element.
+     * @throws IOException If the input stream fails.
+     * @throws XmlPullParserException If the input is not valid XML.
+     * @throws BlockLoadingException If the input is not a valid procedure mutation, or lacks a
+     *                               procedure name.
+     */
     protected ProcedureInfo parseAndValidateMutationXml(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
         ProcedureInfo info = ProcedureInfo.parseImpl(parser);
-        if (TextUtils.isEmpty(info.getProcedureName())) {
+        if (info.getProcedureName() == null) {
             throw new BlockLoadingException(
                     "No procedure name specified in mutation for " + mBlock);
         }

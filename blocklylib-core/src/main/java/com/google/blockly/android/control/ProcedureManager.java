@@ -89,11 +89,14 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     private final BlocklyController mController;
     private final NameManager mVariableNameManager;
 
-    private final ArrayMap<String, List<Block>> mProcedureReferences = new ArrayMap<>();
+    /** Lists of all procedure calling blocks, keyed by the canonized name string. */
+    private final ArrayMap<String, List<Block>> mProcedureReferences = new ArrayMap<>(); // Set?
+    /** Procedure definition blocks, keyed by the canonized name string. */
     private final ArrayMap<String, Block> mProcedureDefinitions = new ArrayMap<>();
     private final NameManager mProcedureNameManager = new NameManager.ProcedureNameManager();
 
-    private int mCountOfReferencesWithReturn = 0;
+    // Used determine the visibility of procedures_ifreturn block in the ProcedureCustomCategory.
+    private int mCountOfDefinitionsWithReturn = 0;
 
     /**
      * Constructor for a new ProcedureManager.
@@ -149,27 +152,34 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     public static @Nullable List<String> getProcedureArguments(Block block) {
         Mutator mutator = block.getMutator();
         if (mutator instanceof AbstractProcedureMutator) {
-            return ((AbstractProcedureMutator) mutator).getArgumentList();
+            return ((AbstractProcedureMutator) mutator).getArgumentNameList();
         } else {
             return null;
         }
     }
 
 
+    /**
+     * @return All the registered procedure definition blocks, keyed by
+     */
     public Map<String, Block> getDefinitionBlocks() {
         return Collections.unmodifiableMap(mProcedureDefinitions);
     }
 
-    public List<Block> getReferences(String functionName) {
-        return mProcedureReferences.get(functionName);
+    public List<Block> getReferences(String procedureName) {
+        String canonical = mProcedureNameManager.makeCanonical(procedureName);
+        return mProcedureReferences.get(canonical);
     }
 
     public boolean containsDefinition(String procedureName) {
-        return mProcedureDefinitions.containsKey(procedureName);
+        String canonical = mProcedureNameManager.makeCanonical(procedureName);
+        return mProcedureDefinitions.containsKey(canonical);
     }
 
     public boolean containsDefinition(Block block) {
-        return mProcedureDefinitions.containsKey(getProcedureNameOrFail(block));
+        String procName = getProcedureNameOrFail(block);
+        String canonicalProcName = mProcedureNameManager.makeCanonical(procName);
+        return mProcedureDefinitions.containsKey(canonicalProcName);
     }
 
     /**
@@ -178,15 +188,21 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * @return True if the block is referenced one or more times.
      */
     public boolean hasReferences(Block block) {
-        return (mProcedureReferences.get(getProcedureNameOrFail(block)) != null
-                && !mProcedureReferences.get(getProcedureNameOrFail(block)).isEmpty());
+        String procName = getProcedureNameOrFail(block);
+        String canonical = mVariableNameManager.makeCanonical(procName);
+        List<Block> procedureCallingBlocks = mProcedureReferences.get(canonical);
+        return (procedureCallingBlocks != null && !procedureCallingBlocks.isEmpty());
     }
 
+    /**
+     * Removes all tracked procedures from this manager, and notifies all
+     * {@link Observer Observers}.
+     */
     public void clear() {
         mProcedureDefinitions.clear();
         mProcedureReferences.clear();
         mProcedureNameManager.clear();
-        mCountOfReferencesWithReturn = 0;
+        mCountOfDefinitionsWithReturn = 0;
 
         int obsCount = mObservers.size();
         for (int i = 0; i < obsCount; ++i) {
@@ -203,10 +219,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      */
     public void addReference(Block block) {
         String procedureName = getProcedureNameOrFail(block);
-        if (mProcedureReferences.containsKey(procedureName)) {
-            mProcedureReferences.get(procedureName).add(block);
+        String canonical = mProcedureNameManager.makeCanonical(procedureName);
+        List<Block> callingBlocks = mProcedureReferences.get(canonical);
+        if (callingBlocks != null) {
+            callingBlocks.add(block);
             if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
-                ++mCountOfReferencesWithReturn;
+                ++mCountOfDefinitionsWithReturn;
             }
 
             int obsCount = mObservers.size();
@@ -231,8 +249,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         if (mProcedureReferences.containsKey(procedureName)) {
             mProcedureReferences.get(procedureName).remove(block);
             if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
-                --mCountOfReferencesWithReturn;
-                assert (mCountOfReferencesWithReturn >= 0);
+                --mCountOfDefinitionsWithReturn;
+                assert (mCountOfDefinitionsWithReturn >= 0);
             }
 
             if (!mObservers.isEmpty()) {
@@ -257,16 +275,18 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      */
     public void addDefinition(Block block) {
         String procedureName = getProcedureNameOrFail(block);
-        if (mProcedureDefinitions.get(procedureName) == block) {
+        String canonicalProcName = mProcedureNameManager.makeCanonical(procedureName);
+        if (mProcedureDefinitions.get(canonicalProcName) == block) {
             throw new IllegalStateException("Tried to add the same block definition twice");
         }
         if (mProcedureNameManager.contains(procedureName)) {
             procedureName = mProcedureNameManager.generateUniqueName(procedureName, false);
             setProcedureName(block, procedureName);
+            canonicalProcName = mProcedureNameManager.makeCanonical(procedureName);
         }
-        mProcedureDefinitions.put(procedureName, block);
-        mProcedureReferences.put(procedureName, new ArrayList<Block>());
         mProcedureNameManager.addName(procedureName);
+        mProcedureDefinitions.put(canonicalProcName, block);
+        mProcedureReferences.put(canonicalProcName, new ArrayList<Block>());
 
         int obsCount = mObservers.size();
         for (int i = 0; i < obsCount; ++i) {
@@ -284,11 +304,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      */
     public List<Block> removeDefinition(Block block) {
         String procedureName = getProcedureNameOrFail(block);
-        if (mProcedureDefinitions.containsKey(procedureName)) {
-            List<Block> references = mProcedureReferences.get(procedureName);
-            mProcedureReferences.remove(procedureName);
-            mProcedureDefinitions.remove(procedureName);
-            mProcedureNameManager.remove(procedureName);
+        String canonical = mProcedureNameManager.makeCanonical(procedureName);
+        if (mProcedureDefinitions.containsKey(canonical)) {
+            List<Block> references = mProcedureReferences.get(canonical);
+            mProcedureReferences.remove(canonical);
+            mProcedureDefinitions.remove(canonical);
+            mProcedureNameManager.remove(canonical);
 
             if (!mObservers.isEmpty()) {
                 List<Block> blocks = new ArrayList<>(references.size() + 1);
@@ -324,7 +345,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                                 final @NonNull ProcedureInfo updatedProcedureInfo,
                                 final @Nullable List<ArgumentIndexUpdate> argIndexUpdates)
     {
-        final Block definition = mProcedureDefinitions.get(originalProcedureName);
+        final String originalCanonical = mProcedureNameManager.makeCanonical(originalProcedureName);
+        final Block definition = mProcedureDefinitions.get(originalCanonical);
         if (definition == null) {
             throw new IllegalArgumentException(
                     "Unknown procedure \"" + originalProcedureName + "\"");
@@ -333,9 +355,10 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                 (ProcedureDefinitionMutator) definition.getMutator();
         final ProcedureInfo oldProcInfo = definitionMutator.getProcedureInfo();
         final String newProcedureName = updatedProcedureInfo.getProcedureName();
+        final String newCanonicalName = mProcedureNameManager.makeCanonical(newProcedureName);
         final boolean isFuncRename = !originalProcedureName.equals(newProcedureName);
 
-        final List<String> newArgs = updatedProcedureInfo.getArguments();
+        final List<String> newArgs = updatedProcedureInfo.getArgumentNames();
         final int newArgCount = newArgs.size();
         for (int i = 0; i < newArgCount; ++i) {
             String argName = newArgs.get(i);
@@ -357,24 +380,24 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
 
                 definitionMutator.mutate(updatedProcedureInfo);
                 if (isFuncRename) {
-                    mProcedureNameManager.remove(originalProcedureName);
-                    mProcedureDefinitions.remove(originalProcedureName);
+                    mProcedureNameManager.remove(originalCanonical);
+                    mProcedureDefinitions.remove(originalCanonical);
 
                     mProcedureNameManager.addName(newProcedureName);
-                    mProcedureDefinitions.put(newProcedureName, definition);
+                    mProcedureDefinitions.put(newCanonicalName, definition);
                 }
 
                 // Mutate each procedure call
-                List<Block> procedureCalls = mProcedureReferences.get(originalProcedureName);
+                List<Block> procedureCalls = mProcedureReferences.get(originalCanonical);
                 if (isFuncRename) {
-                    mProcedureReferences.remove(originalProcedureName);
-                    mProcedureReferences.put(newProcedureName, procedureCalls);
+                    mProcedureReferences.remove(originalCanonical);
+                    mProcedureReferences.put(newCanonicalName, procedureCalls);
                 }
                 for (Block procRef : procedureCalls) {
                     ProcedureCallMutator callMutator =
                             (ProcedureCallMutator) procRef.getMutator();
                     assert callMutator != null;
-                    int oldArgCount = callMutator.getArgumentList().size();
+                    int oldArgCount = callMutator.getArgumentNameList().size();
                     Block[] oldValues = new Block[oldArgCount];  // Initially all null
 
                     // Disconnect prior value blocks
@@ -434,15 +457,17 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
 
         final String originalProcedureName = procInfo.getProcedureName();
-        final Block definition = mProcedureDefinitions.get(originalProcedureName);
+        final String originalCanonicalProcName =
+                mProcedureNameManager.makeCanonical(originalProcedureName);
+        final Block definition = mProcedureDefinitions.get(originalCanonicalProcName);
         if (definition == null) {
             // Unregistered procedure name. Just change this one block.
             // Probably because the procedure hasn't been connected to the workspace, yet.
             ((AbstractProcedureMutator) mutator).mutate(updatedProcedureInfo);
         } else {
             int oldArgCount =
-                    ((ProcedureDefinitionMutator) definition.getMutator()).getArgumentList().size();
-            int newArgCount = updatedProcedureInfo.getArguments().size();
+                    ((ProcedureDefinitionMutator) definition.getMutator()).getArgumentNameList().size();
+            int newArgCount = updatedProcedureInfo.getArgumentNames().size();
             if (newArgCount != oldArgCount) {
                 throw new IllegalArgumentException(
                         "Cannot map argument index map with differing argument counts. "+
@@ -461,10 +486,21 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
     }
 
-    public boolean hasReferenceWithReturn() {
-        return mCountOfReferencesWithReturn > 0;
+    /**
+     * Returns whether the workspace includes a procedures_defreturn block. Used determine the
+     * visibility of procedures_ifreturn block in the ProcedureCustomCategory.
+     * @return Whether the workspace includes a procedures_defreturn block.
+     */
+    public boolean hasProcedureDefinitionWithReturn() {
+        return mCountOfDefinitionsWithReturn > 0;
     }
 
+    /**
+     * Helper method to retrieve a required procedure name.
+     * @param block The block queried.
+     * @return The block's procedure name.
+     * @throws IllegalArgumentException If the block does not have a procedure name.
+     */
     private static @NonNull String getProcedureNameOrFail(Block block) {
         String procName = getProcedureName(block);
         if (procName == null) {
@@ -473,6 +509,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         return procName;
     }
 
+    /**
+     * Helper method to name or rename a procedure for a single block.
+     * @param block The block to name or rename.
+     * @param newName The new procedure name.
+     * @throws IllegalArgumentException If the block does not have a procedure mutator.
+     */
     private static void setProcedureName(Block block, String newName) {
         Mutator mutator = block.getMutator();
         if (mutator instanceof AbstractProcedureMutator) {

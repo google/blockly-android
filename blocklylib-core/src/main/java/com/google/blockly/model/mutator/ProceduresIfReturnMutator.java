@@ -44,6 +44,10 @@ public class ProceduresIfReturnMutator extends Mutator {
                 }
             };
 
+    /**
+     * Constructs a new {@code procedures_ifreturn_mutator} mutator.
+     * @param factory The factory the constructed this mutator.
+     */
     public ProceduresIfReturnMutator(Factory<ProceduresIfReturnMutator> factory) {
         super(factory);
     }

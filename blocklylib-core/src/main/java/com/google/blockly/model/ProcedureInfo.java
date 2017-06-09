@@ -1,8 +1,11 @@
 package com.google.blockly.model;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.google.blockly.android.control.ProcedureManager;
+import com.google.blockly.model.Input.InputStatement;  // For comment {@link}
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -20,7 +23,7 @@ import java.util.List;
 public class ProcedureInfo {
     public static final boolean HAS_STATEMENTS_DEFAULT = true;
 
-    // Xml strings
+    // XML strings
     protected static final String ATTR_NAME = "name";
     protected static final String ATTR_STATEMENTS = "statements";
     protected static final String TAG_ARG = "arg";
@@ -31,30 +34,59 @@ public class ProcedureInfo {
     final List<String> mArguments;
     final boolean mDefinitionHasStatementBody;
 
-    public ProcedureInfo(String name,
-                         List<String> arguments,
+    /**
+     * Constructs a new ProcedureInfo with the given arguments.
+     * @param name The name of the procedure, or null if not yet defined.
+     * @param argumentNames The list of parameter names, possibly empty.
+     * @param definitionHasStatements Whether the procedure definition includes
+     */
+    public ProcedureInfo(@Nullable String name,
+                         @NonNull List<String> argumentNames,
                          boolean definitionHasStatements) {
         mName = name;
-        mArguments = Collections.unmodifiableList(new ArrayList<>(arguments));
+        mArguments = Collections.unmodifiableList(new ArrayList<>(argumentNames));
         mDefinitionHasStatementBody = definitionHasStatements;
     }
 
+    /**
+     * Constructs a new ProcedureInfo with the same parameters, but a new name.
+     * @param newProcedureName The name to use on the constructed ProcedureInfo.
+     * @return A new ProcedureInfo, reflecting a renamed procedure.
+     */
     public ProcedureInfo cloneWithName(String newProcedureName) {
         return new ProcedureInfo(newProcedureName, mArguments, mDefinitionHasStatementBody);
     }
 
+    /**
+     * @return The name of the procedure.
+     */
     public String getProcedureName() {
         return mName;
     }
 
-    public List<String> getArguments() {
+    /**
+     * @return An ordered list of procedure argument names.
+     */
+    public List<String> getArgumentNames() {
         return mArguments;
     }
 
+    /**
+     * @return True if the procedure's definition should include a {@link Input.InputStatement} for
+     *         the procedure body. Otherwise false.
+     */
     public boolean getDefinitionHasStatementBody() {
         return mDefinitionHasStatementBody;
     }
 
+    /**
+     * Serializes a procedure as a XML &lt;mutation&gt; tag.
+     * @param serializer The serailizer to output to.
+     * @param info The ProcedureInput to serialize
+     * @param asDefinition Whether the output should reflect a procedure definition's mutator, or
+     *                     otherwise a calling mutator.
+     * @throws IOException If the output stream backing the serializer fails.
+     */
     public static void serialize(XmlSerializer serializer,
                                  ProcedureInfo info,
                                  boolean asDefinition)
@@ -70,7 +102,7 @@ public class ProcedureInfo {
                 serializer.attribute("", ATTR_NAME, procName);
             }
         }
-        for (String argName : info.getArguments()) {
+        for (String argName : info.getArgumentNames()) {
             serializer.startTag("", TAG_ARG)
                     .attribute("", ATTR_ARG_NAME, argName)
                     .endTag("", TAG_ARG);

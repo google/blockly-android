@@ -84,7 +84,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
         mProcedureName = mutator.getProcedureName();
         mHasStatementInput = mutator.hasStatementInput();
 
-        List<String> arguments = mutator.getArgumentList();
+        List<String> arguments = mutator.getArgumentNameList();
         int count = arguments.size();
         mArgInfos.clear();
         mArgInfos.ensureCapacity(count);

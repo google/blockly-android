@@ -51,7 +51,23 @@ public abstract class AbstractProcedureMutator<Info extends ProcedureInfo> exten
 
     public abstract void mutate(ProcedureInfo info);
 
-    final public void setProcedureName(String newProcedureName) {
+    /**
+     * Base constructor for subclasses.
+     * @param factory The factory constructing this mutator.
+     * @param controller The {@link BlocklyController} for this activity.
+     */
+    protected AbstractProcedureMutator(Mutator.Factory factory, BlocklyController controller) {
+        super(factory);
+        mController = controller;
+        mProcedureManager = mController.getWorkspace().getProcedureManager();
+    }
+
+    /**
+     * Sets the procedure name for this mutator (and thus {@code mBlock}) when it is not on the
+     * workspace, not managed by the ProcedureManager.
+     * @param newProcedureName The new name to use.
+     */
+    final public void setProcedureName(@NonNull String newProcedureName) {
         String oldName = getProcedureName();
         if (mProcedureManager.getDefinitionBlocks().get(oldName) == mBlock) {
             throw new IllegalStateException(
@@ -70,18 +86,33 @@ public abstract class AbstractProcedureMutator<Info extends ProcedureInfo> exten
         return (mProcedureInfo == null) ? null : mProcedureInfo.getProcedureName();
     }
 
+    /**
+     * @return The list of argument names.
+     */
     @NonNull
-    public final List<String> getArgumentList() {
+    public final List<String> getArgumentNameList() {
         return mProcedureInfo == null ?
                 Collections.<String>emptyList()
-                : mProcedureInfo.getArguments();
+                : mProcedureInfo.getArgumentNames();
     }
 
+    /**
+     * @param serializer The {@link XmlSerializer} to output to.
+     * @throws IOException If the stream backing {@code serializer} fails.
+     */
     @Override
     public final void serialize(XmlSerializer serializer) throws IOException {
         serializeInfo(serializer, mProcedureInfo);
     }
 
+    /**
+     * Updates the block using the mutation in the XML.
+     *
+     * @param parser The parser with the {@code <mutation>} element.
+     * @throws IOException If the input stream fails.
+     * @throws XmlPullParserException If the input is not valid XML.
+     * @throws BlockLoadingException If the input is not a valid procedure mutation.
+     */
     @Override
     public void update(final XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
@@ -95,10 +126,11 @@ public abstract class AbstractProcedureMutator<Info extends ProcedureInfo> exten
     }
 
     /**
-     * TODO
-     * @param newProcedureName The new procedure name to reference.
+     * Updates the ProcedureInfo with a new name, and updates the name field. This should never be
+     * called directly. Use {@link #setProcedureName(String)} or {@link #mutate(ProcedureInfo)}.
+     * @param newProcedureName The updated name. Cannot be null.
      */
-    protected abstract void setProcedureNameImpl(String newProcedureName);
+    protected abstract void setProcedureNameImpl(@NonNull String newProcedureName);
 
     /**
      * Writes an XML mutation string for the provided values.
@@ -117,12 +149,6 @@ public abstract class AbstractProcedureMutator<Info extends ProcedureInfo> exten
         } catch (IOException e) {
             throw new IllegalStateException("Failed to write mutation string.", e);
         }
-    }
-
-    protected AbstractProcedureMutator(Mutator.Factory factory, BlocklyController controller) {
-        super(factory);
-        mController = controller;
-        mProcedureManager = mController.getWorkspace().getProcedureManager();
     }
 
     @Override
@@ -146,5 +172,9 @@ public abstract class AbstractProcedureMutator<Info extends ProcedureInfo> exten
         }
     }
 
+    /**
+     * @return A new list of {@link Input Inputs} with which to {@link Block#reshape reshape} the
+     *         block during mutation.
+     */
     protected abstract List<Input> buildUpdatedInputs();
 }

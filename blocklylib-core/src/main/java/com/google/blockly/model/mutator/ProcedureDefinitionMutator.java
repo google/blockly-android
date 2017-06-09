@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This mutator base class supports procedure definition blocks for user-defined procedures
+ * This mutator class supports procedure definition blocks for user-defined procedures
  * ({@code procedures_defreturn} and {@code procedures_defnoreturn} blocks).
  */
 public class ProcedureDefinitionMutator extends AbstractProcedureMutator<ProcedureInfo> {
@@ -61,6 +61,15 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
     private Field.Observer mFieldObserver = null;
     private boolean mUpdatingBlock = false;
 
+    /**
+     * Constructs a new procedure definition mutator. The same mutator definition is used for both
+     * {@code procedures_defnoreturn_mutator} and {@code procedures_defreturn_mutator}, the latter
+     * used on blocks with an extra {@link com.google.blockly.model.Input.InputValue} for the return
+     * value.
+     *
+     * @param factory The factory object which constructed this mutator
+     * @param controller The BlocklyController for this Activity.
+     */
     ProcedureDefinitionMutator(Mutator.Factory factory,
                                BlocklyController controller) {
         super(factory, controller);
@@ -68,6 +77,10 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
                 R.string.mutator_procedure_def_before_params);  // BKY_PROCEDURES_BEFORE_PARAMS
     }
 
+    /**
+     * Sets the mutator name, including setting the associated name field on the block.
+     * @param newName
+     */
     @Override
     protected void setProcedureNameImpl(final String newName) {
         mProcedureInfo = mProcedureInfo.cloneWithName(newName);
@@ -105,6 +118,14 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         }
     }
 
+    /**
+     * Parses the provided XML into a ProcedureInfo that can parameterize this procedure.
+     * @param parser The XML parser containing the &lt;mutation&gt; tag.
+     * @return A new procedure info object.
+     * @throws IOException If the stream backing the XML parser has a failure.
+     * @throws XmlPullParserException If the stream is not valid XML.
+     * @throws BlockLoadingException If the XML does not contain a proper procedure mutation.
+     */
     @Override
     public ProcedureInfo parseAndValidateMutationXml(XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
@@ -114,17 +135,29 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
             // Use the name on the field when not specified in the info.
             return new ProcedureInfo(
                     nameField.getText(),
-                    xmlInfo.getArguments(),
+                    xmlInfo.getArgumentNames(),
                     xmlInfo.getDefinitionHasStatementBody());
         }
         return xmlInfo;
     }
 
+    /**
+     * This outputs the mutation via the {@code serializer}.
+     * @param serializer The XML serializer
+     * @param info The procedure info to serialize.
+     * @throws IOException If the backing output stream encounters an issue.
+     */
     @Override
     public void serializeInfo(XmlSerializer serializer, ProcedureInfo info) throws IOException {
         ProcedureInfo.serialize(serializer, info, true);
     }
 
+    /**
+     * Called when the mutator is attached to a block. It will make sure the procedure name on the
+     * block's name field is in synch with the mutator's PRocedureInfo, and register a listener on
+     * the name field for future edits.
+     * @param block The block the mutator is attached to.
+     */
     @Override
     protected void onAttached(final Block block) {
         String procedureName = null;
@@ -159,7 +192,7 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         } else {
             mProcedureInfo = new ProcedureInfo(
                     procedureName,
-                    mProcedureInfo.getArguments(),
+                    mProcedureInfo.getArgumentNames(),
                     mProcedureInfo.getDefinitionHasStatementBody());
         }
 
@@ -174,7 +207,7 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
                         String oldProcedureName = getProcedureName();
                         ProcedureInfo newInfo = new ProcedureInfo(
                                 newValue,
-                                mProcedureInfo.getArguments(),
+                                mProcedureInfo.getArgumentNames(),
                                 mProcedureInfo.getDefinitionHasStatementBody());
                         if (oldProcedureName != null
                                 && mProcedureManager.containsDefinition(oldProcedureName)) {
@@ -189,6 +222,10 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         }
     }
 
+    /**
+     * Unregisters the field listener when the mutator is detached from the block.
+     * @param block The block the mutator was formerly attached to.
+     */
     @Override
     protected void onDetached(Block block) {
         if (mFieldObserver != null) {
@@ -198,16 +235,24 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         super.onDetached(block);
     }
 
+    /**
+     * Constructs the block's header {@link Input}. The new header maintains the same name field
+     * instance, but updated {@code PARAMS} argument list.
+     * @return Return a new header {@link Input} reflecting the latest mutator state.
+     */
     protected Input newDefinitionHeader() {
         Input descriptionInput = mBlock.getInputs().get(0);
         List<Field> oldFields = descriptionInput.getFields();
         List<Field> newFields = Arrays.asList(
                 oldFields.get(0),
                 oldFields.get(1),
-                new FieldLabel("PARAMS", getArgumentListDescription()));
+                new FieldLabel("PARAMS", getParametersListDescription()));
         return new Input.InputDummy(null, newFields, Input.ALIGN_LEFT);
     }
 
+    /**
+     * @return An {@link Input} to contain the procedure body statements.
+     */
     protected Input getDefintionStatementsInput() {
         Input stackInput = mBlock.getInputByName(STATEMENT_INPUT_NAME);
         if (stackInput == null) {
@@ -219,6 +264,9 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         return stackInput;
     }
 
+    /**
+     * Updates {@link #mBlock} in response to a mutation, including updating the name field.
+     */
     @Override
     protected void updateBlock() {
         try {
@@ -234,14 +282,9 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         }
     }
 
-    private FieldInput getNameField() {
-        Field field = (mBlock == null) ? null : mBlock.getFieldByName(NAME_FIELD_NAME);
-        if (field instanceof FieldInput) {
-            return (FieldInput) field;
-        }
-        return null;
-    }
-
+    /**
+     * @return A list of Inputs for a block mutation.
+     */
     @Override
     protected List<Input> buildUpdatedInputs() {
         List<Input> newInputs = new ArrayList<>();
@@ -258,12 +301,15 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         return newInputs;
     }
 
-    protected String getArgumentListDescription() {
+    /**
+     * @return A human-readable string describing the procedure's parameters.
+     */
+    protected String getParametersListDescription() {
         if (mProcedureInfo == null) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
-        List<String> arguments = mProcedureInfo.getArguments();
+        List<String> arguments = mProcedureInfo.getArgumentNames();
         if (!arguments.isEmpty()) {
             sb.append(mBeforeParams);
 
@@ -278,6 +324,14 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
             }
         }
         return sb.toString();
+    }
+
+    private FieldInput getNameField() {
+        Field field = (mBlock == null) ? null : mBlock.getFieldByName(NAME_FIELD_NAME);
+        if (field instanceof FieldInput) {
+            return (FieldInput) field;
+        }
+        return null;
     }
 
     private static class Factory implements Mutator.Factory<ProcedureDefinitionMutator> {

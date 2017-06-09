@@ -1233,7 +1233,7 @@ public class BlocklyController {
                 Block definition = procedureManager.getDefinitionBlocks().get(procName);
                 ProcedureInfo oldProcInfo =
                         ((AbstractProcedureMutator) definition.getMutator()).getProcedureInfo();
-                List<String> oldArgs = oldProcInfo.getArguments();
+                List<String> oldArgs = oldProcInfo.getArgumentNames();
                 int argCount = oldArgs.size();
 
                 newArgs.clear();

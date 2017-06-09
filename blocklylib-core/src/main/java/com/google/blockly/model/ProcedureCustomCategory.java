@@ -166,7 +166,7 @@ public class ProcedureCustomCategory implements CustomCategory {
         ((FieldInput)block.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
         category.addItem(new BlocklyCategory.BlockItem(block));
 
-        if (!mProcedureManager.hasReferenceWithReturn()) {
+        if (!mProcedureManager.hasProcedureDefinitionWithReturn()) {
             block = mBlockFactory.obtainBlockFrom(IF_RETURN_TEMPLATE);
             category.addItem(new BlocklyCategory.BlockItem(block));
         }
