@@ -89,6 +89,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     private final BlocklyController mController;
     private final NameManager mVariableNameManager;
 
+    // TODO: These maps use the same key. Merge into a single data structure. Better yet, turn the
+    //       NameManager into a map-like structure, mapping to ProcedureInfo and VariableInfo.
     /** Lists of all procedure calling blocks, keyed by the canonized name string. */
     private final ArrayMap<String, List<Block>> mProcedureReferences = new ArrayMap<>(); // Set?
     /** Procedure definition blocks, keyed by the canonized name string. */
