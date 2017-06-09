@@ -258,7 +258,7 @@ public class WorkspaceStats {
     /**
      * Attempts to add a variable to the workspace.
      * @param requestedName The preferred variable name. Usually the user name.
-     * @param allowRename Whether the variable name can be rename.
+     * @param allowRename Whether the variable name can be renamed.
      * @return The name that was added, if any. May be null if renaming is not allowed.
      */
     @Nullable

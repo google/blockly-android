@@ -154,7 +154,7 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
 
     /**
      * Called when the mutator is attached to a block. It will make sure the procedure name on the
-     * block's name field is in synch with the mutator's PRocedureInfo, and register a listener on
+     * block's name field is in sync with the mutator's PRocedureInfo, and register a listener on
      * the name field for future edits.
      * @param block The block the mutator is attached to.
      */

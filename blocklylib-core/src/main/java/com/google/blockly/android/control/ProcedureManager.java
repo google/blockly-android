@@ -97,7 +97,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     private final ArrayMap<String, Block> mProcedureDefinitions = new ArrayMap<>();
     private final NameManager mProcedureNameManager = new NameManager.ProcedureNameManager();
 
-    // Used determine the visibility of procedures_ifreturn block in the ProcedureCustomCategory.
+    // Used to determine the visibility of procedures_ifreturn block in the ProcedureCustomCategory.
     private int mCountOfDefinitionsWithReturn = 0;
 
     /**
@@ -160,9 +160,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
     }
 
-
     /**
-     * @return All the registered procedure definition blocks, keyed by
+     * @return All the registered procedure definition blocks, keyed by canonical procedure name.
      */
     public Map<String, Block> getDefinitionBlocks() {
         return Collections.unmodifiableMap(mProcedureDefinitions);
