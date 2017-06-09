@@ -14,11 +14,12 @@
  */
 package com.google.blockly.model;
 
-import android.database.DataSetObserver;
+import android.util.Log;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ProcedureManager;
+import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
 import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import com.google.blockly.utils.BlockLoadingException;
@@ -37,7 +38,7 @@ import java.util.TreeSet;
 public class ProcedureCustomCategory implements CustomCategory {
     private static final String TAG = "ProcedureCategoryFactor";  // 23 chars max
 
-    private static final String NAME = ProcedureManager.PROCEDURE_NAME_FIELD;
+    private static final String NAME_FIELD = ProcedureDefinitionMutator.NAME_FIELD_NAME;
 
     private static final BlockTemplate DEFINE_NO_RETURN_BLOCK_TEMPLATE =
             new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE);
@@ -77,21 +78,54 @@ public class ProcedureCustomCategory implements CustomCategory {
         rebuildItems(category);
 
         final WeakReference<BlocklyCategory> catRef = new WeakReference<>(category);
-        mProcedureManager.registerObserver(new DataSetObserver() {
+        mProcedureManager.registerObserver(new ProcedureManager.Observer() {
             @Override
-            public void onChanged() {
+            public void onProcedureBlockAdded(String procedureName, Block block) {
                 BlocklyCategory category = catRef.get();
-                if (category == null) {
-                    // If the category isn't being used anymore clean up this observer.
-                    mProcedureManager.unregisterObserver(this);
-                } else {
-                    // Otherwise, update the category's list.
-                    try {
-                        rebuildItems(category);
-                    } catch (BlockLoadingException e) {
-                        throw new IllegalStateException(e);
-                    }
+                if (checkCategory(category)) {
+                    rebuildItemsSafely(category);
                 }
+            }
+
+            @Override
+            public void onProcedureBlocksRemoved(String procedureName, List<Block> blocks) {
+                BlocklyCategory category = catRef.get();
+                if (checkCategory(category)) {
+                    rebuildItemsSafely(category);
+                }
+            }
+
+            @Override
+            public void onProcedureMutated(ProcedureInfo oldProcInfo, ProcedureInfo newProcInfo) {
+                BlocklyCategory category = catRef.get();
+                if (checkCategory(category)) {
+                    rebuildItemsSafely(category);
+                }
+            }
+
+            @Override
+            public void onClear() {
+                BlocklyCategory category = catRef.get();
+                if (checkCategory(category)) {
+                    rebuildItemsSafely(category);
+                }
+            }
+
+            private void rebuildItemsSafely(BlocklyCategory category) {
+                try {
+                    rebuildItems(category);
+                } catch (BlockLoadingException e) {
+                    category.clear();
+                    Log.w(TAG, "Failed to rebuild ProcedureCustomCategory");
+                }
+            }
+
+            private boolean checkCategory(BlocklyCategory category) {
+                if (category == null) {
+                    mProcedureManager.unregisterObserver(this);
+                    return false;
+                }
+                return true;
             }
         });
     }
@@ -125,14 +159,14 @@ public class ProcedureCustomCategory implements CustomCategory {
         category.clear();
 
         Block block = mBlockFactory.obtainBlockFrom(DEFINE_NO_RETURN_BLOCK_TEMPLATE);
-        ((FieldInput)block.getFieldByName(NAME)).setText(mDefaultProcedureName);
+        ((FieldInput)block.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
         category.addItem(new BlocklyCategory.BlockItem(block));
 
         block = mBlockFactory.obtainBlockFrom(DEFINE_WITH_RETURN_BLOCK_TEMPLATE);
-        ((FieldInput)block.getFieldByName(NAME)).setText(mDefaultProcedureName);
+        ((FieldInput)block.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
         category.addItem(new BlocklyCategory.BlockItem(block));
 
-        if (!mProcedureManager.hasReferenceWithReturn()) {
+        if (!mProcedureManager.hasProcedureDefinitionWithReturn()) {
             block = mBlockFactory.obtainBlockFrom(IF_RETURN_TEMPLATE);
             category.addItem(new BlocklyCategory.BlockItem(block));
         }
@@ -163,8 +197,8 @@ public class ProcedureCustomCategory implements CustomCategory {
         sortedProcNames.addAll(definitions.keySet());
         for (String procName : sortedProcNames) {
             Block defBlock = definitions.get(procName);
-            List<String> argList =
-                    ((ProcedureDefinitionMutator) defBlock.getMutator()).getArgumentList();
+            ProcedureInfo procedureInfo = ((AbstractProcedureMutator) defBlock.getMutator())
+                    .getProcedureInfo();
             BlockTemplate callBlockTemplate;
             if (defBlock.getType().equals(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE)) {
                 callBlockTemplate = CALL_NO_RETURN_BLOCK_TEMPLATE;  // without return value
@@ -172,7 +206,7 @@ public class ProcedureCustomCategory implements CustomCategory {
                 callBlockTemplate = CALL_WITH_RETURN_BLOCK_TEMPLATE;  // with return value
             }
             Block callBlock = mBlockFactory.obtainBlockFrom(callBlockTemplate);
-            ((ProcedureCallMutator) callBlock.getMutator()).mutate(procName, argList);
+            ((ProcedureCallMutator) callBlock.getMutator()).mutate(procedureInfo);
             category.addItem(new BlocklyCategory.BlockItem(callBlock));
         }
     }

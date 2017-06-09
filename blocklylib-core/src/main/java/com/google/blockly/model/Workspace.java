@@ -16,6 +16,7 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 
 import com.google.blockly.android.control.BlocklyController;
@@ -75,6 +76,9 @@ public class Workspace {
         mStats = new WorkspaceStats(mVariableNameManager, mProcedureManager, mConnectionManager);
     }
 
+    /**
+     * @return The string identifier of this workspace. Used by {@link BlocklyEvent events}.
+     */
     public String getId() {
         return mId;
     }
@@ -267,48 +271,6 @@ public class Workspace {
     }
 
     /**
-     * @return The list of fields that are using the given variable.
-     */
-    public List<FieldVariable> getVariableRefs(String variable) {
-        List<FieldVariable> refs = mStats.getVariableReference(variable);
-        List<FieldVariable> copy = new ArrayList<>(refs == null ? 0 : refs.size());
-        copy.addAll(refs);
-        return copy;
-    }
-
-    /**
-     * Return the number of times a variable is referenced in this workspace.
-     *
-     * @param variable The variable to get a ref count for.
-     * @return The number of times that variable appears in this workspace.
-     */
-    public int getVariableRefCount(String variable) {
-        return mStats.getVariableReference(variable).size();
-    }
-
-    /**
-     * Gets all blocks that are using the specified variable.
-     *
-     * @param variable The variable to get blocks for.
-     * @param resultList An optional list to put the results in. This object will be returned if not
-     *                   null.
-     * @return A list of all blocks referencing the given variable.
-     */
-    public List<Block> getBlocksWithVariable(String variable, List<Block> resultList) {
-        List<FieldVariable> refs = mStats.getVariableReference(variable);
-        if (resultList == null) {
-            resultList = new ArrayList<>();
-        }
-        for(FieldVariable field : refs) {
-            Block block = field.getBlock();
-            if (!resultList.contains(block)) {
-                resultList.add(block);
-            }
-        }
-        return resultList;
-    }
-
-    /**
      * Gets the {@link NameManager.VariableNameManager} being used by this workspace. This can be
      * used to get a list of variables in the workspace.
      *
@@ -340,7 +302,7 @@ public class Workspace {
      * necessary new views.
      */
     public void resetWorkspace() {
-        mBlockFactory.clearPriorBlockReferences();
+        mBlockFactory.clearWorkspaceBlockReferences(getId());
         mRootBlocks.clear();
         mStats.clear();
         mTrashCategory.clear();
@@ -372,5 +334,25 @@ public class Workspace {
      */
     public boolean hasBlocks() {
         return getRootBlocks().size() > 0;
+    }
+
+    /**
+     * @param variable The variable name in question.
+     * @return The usages of the variable, if any. Otherwise, null.
+     */
+    public @Nullable
+    VariableInfo getVariableInfo(String variable) {
+        return mStats.getVariableInfo(variable);
+    }
+
+    /**
+     * Attempts to add a variable to the workspace.
+     * @param requestedName The preferred variable name. Usually the user name.
+     * @param allowRename Whether the variable name should be rename
+     * @return The name that was added, if any. May be null if renaming is not allowed.
+     */
+    @Nullable
+    public String addVariable(String requestedName, boolean allowRename) {
+        return mStats.addVariable(requestedName, allowRename);
     }
 }

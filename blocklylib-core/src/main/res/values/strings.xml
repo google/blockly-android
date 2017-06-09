@@ -38,6 +38,8 @@
     <string name="rename_variable_message">Rename variable from "%s"</string>
     <string name="name_variable_positive">OK</string>
     <string name="name_variable_negative">Cancel</string>
+    <!-- Message shown when variable is used as a procedure argument. -->
+    <string name="cannot_delete_variable_procedure">Can\'t delete the variable \"%1$s\" because it\'s part of the definition of the function \"%2$s\".</string>
 
     <string name="blockly_clipdata_label_default">Blockly blocks</string>
     <string name="mutator_icon_alt_text">Modify the block\'s shape.</string>
@@ -52,6 +54,7 @@
 
     <string name="mutator_procedure_def_title">Function Inputs</string>
     <string name="mutator_procedure_def_header_format">%1$s with:</string>
+    <string name="mutator_procedure_def_before_params">with:</string>
 
     <string name="blockly_default_function_name">do something</string>
     <string name="procedure_argument_name_hint">Argument name</string>
