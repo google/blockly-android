@@ -86,6 +86,9 @@ public class WorkspaceStats {
 
         @Override
         public void onProcedureMutated(ProcedureInfo oldInfo, ProcedureInfo newInfo) {
+            // TODO: This clearly doesn't do what it was intended to do with respect to
+            //       argument-only changes (when names don't change).  Need to rewrite and test.
+
             String oldName = oldInfo.getProcedureName();
             String newName = newInfo.getProcedureName();
             if (!newName.equals(oldName)) {
