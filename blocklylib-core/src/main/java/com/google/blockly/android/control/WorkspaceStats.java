@@ -143,6 +143,7 @@ public class WorkspaceStats {
      */
     public void collectStats(Block block, boolean recursive) {
         boolean isProcedureDef = ProcedureManager.isDefinition(block);
+        List<Block> procRefs = new ArrayList<>();
         if (isProcedureDef || ProcedureManager.isReference(block)) {
             List<String> procedureArgs = ProcedureManager.getProcedureArguments(block);
             if (procedureArgs != null) {
@@ -155,9 +156,14 @@ public class WorkspaceStats {
             if (isProcedureDef) {
                 mProcedureManager.addDefinition(block);
             } else {
-                mProcedureManager.addReference(block);
+                procRefs.add(block);
             }
         }
+        // Only register procedure calls/references after all definitions have also been loaded.
+        for (Block procRef : procRefs) {
+            mProcedureManager.addReference(procRef);
+        }
+
 
         for (int i = 0; i < block.getInputs().size(); i++) {
             Input input = block.getInputs().get(i);
