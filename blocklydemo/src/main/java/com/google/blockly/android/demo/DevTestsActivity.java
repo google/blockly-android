@@ -55,6 +55,7 @@ public class DevTestsActivity extends BlocklySectionsActivity {
                     DefaultBlocks.MATH_BLOCKS_PATH,
                     DefaultBlocks.TEXT_BLOCKS_PATH,
                     DefaultBlocks.VARIABLE_BLOCKS_PATH,
+                    DefaultBlocks.PROCEDURE_BLOCKS_PATH,
                     "default/test_blocks.json",
                     "sample_sections/mock_block_definitions.json"
             ));

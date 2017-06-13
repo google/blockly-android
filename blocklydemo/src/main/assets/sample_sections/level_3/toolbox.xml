@@ -129,6 +129,6 @@
         <block type="image-large"/>
         <block type="image-missing"/>
     </category>
-    <category name="Variables" custom="VARIABLE"/>
-    <category name="Variables" custom="FUNCTIONS"/>
+    <category name="Variables" colour="330" custom="VARIABLE"/>
+    <category name="Functions" colour="290" custom="PROCEDURE" />
 </toolbox>
