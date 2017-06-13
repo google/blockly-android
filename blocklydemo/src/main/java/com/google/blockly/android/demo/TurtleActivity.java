@@ -56,6 +56,7 @@ public class TurtleActivity extends BlocklySectionsActivity {
             DefaultBlocks.MATH_BLOCKS_PATH,
             DefaultBlocks.TEXT_BLOCKS_PATH,
             DefaultBlocks.VARIABLE_BLOCKS_PATH,
+            DefaultBlocks.PROCEDURE_BLOCKS_PATH,
             "turtle/turtle_blocks.json"
     );
     static final List<String> TURTLE_BLOCK_GENERATORS = Arrays.asList(

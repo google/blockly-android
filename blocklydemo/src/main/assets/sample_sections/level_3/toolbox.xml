@@ -145,6 +145,6 @@
         <block type="block_color_hex4"/>
         <block type="block_color_hex5"/>
     </category>
-    <category name="Variables" custom="VARIABLE"/>
-    <category name="Functions" custom="FUNCTIONS"/>
+    <category name="Variables" colour="330" custom="VARIABLE"/>
+    <category name="Functions" colour="290" custom="PROCEDURE" />
 </toolbox>

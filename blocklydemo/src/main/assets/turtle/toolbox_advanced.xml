@@ -227,4 +227,5 @@
         <block type="math_random_float"></block>
     </category>
     <category name="Variables" colour="330" custom="VARIABLE"/>
+    <category name="Functions" colour="290" custom="PROCEDURE" />
 </toolbox>
