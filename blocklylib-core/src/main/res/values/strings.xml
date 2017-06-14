@@ -45,12 +45,13 @@
     <string name="mutator_icon_alt_text">Modify the block\'s shape.</string>
     <string name="mutator_done">Done</string>
 
-    <string name="mutator_if_else_title">Update if else block</string>
-    <string name="mutator_if_else_ifelse_count">Number of “if” tests: %d</string>
-    <string name="mutator_if_else_else_count">Final “else” statement?</string>
-    <string name="mutator_if_else_if_label">if</string>
-    <string name="mutator_if_else_then_label">do</string>
-    <string name="mutator_if_else_else_label">else</string>
+    <string name="mutator_ifelse_edit_title">Update if else block</string>
+    <string name="mutator_ifelse_edit_ifelse_count">Number of “if” tests: %d</string>
+    <string name="mutator_ifelse_edit_has_else">Final “else” statement?</string>
+    <string name="mutator_ifelse_label_if">if</string>
+    <string name="mutator_ifelse_label_else_if">else if</string>
+    <string name="mutator_ifelse_label_then">do</string>
+    <string name="mutator_ifelse_label_else">else</string>
 
     <string name="mutator_procedure_def_title">Function Inputs</string>
     <string name="mutator_procedure_def_header_format">%1$s with:</string>
