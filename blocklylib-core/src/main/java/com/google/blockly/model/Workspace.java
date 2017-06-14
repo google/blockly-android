@@ -89,6 +89,8 @@ public class Workspace {
      * @param block The block to add to the root of the workspace.
      * @param isNewBlock Set when the block is new to the workspace (compared to moving it from some
      *                   previous connection).
+ *     @throws IllegalArgumentException If the block or its children are references to undefined
+     *                                  procedures.
      */
     public void addRootBlock(Block block, boolean isNewBlock) {
         if (block == null) {
@@ -103,7 +105,11 @@ public class Workspace {
         mRootBlocks.add(block);
         if (isNewBlock) {
             block.setEventWorkspaceId(getId());
-            mStats.collectStats(block, true);
+            try {
+                mStats.collectStats(block, true);
+            } catch (BlockLoadingException e) {
+                throw new IllegalArgumentException(e);
+            }
         }
     }
 
@@ -243,9 +249,7 @@ public class Workspace {
         }
 
         mRootBlocks.addAll(newBlocks);
-        for (int i = 0; i < mRootBlocks.size(); i++) {
-            mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
-        }
+        mStats.collectStats(newBlocks, true /* recursive */);
     }
 
     /**

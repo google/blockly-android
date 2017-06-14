@@ -72,7 +72,7 @@ public class IfElseMutatorFragment extends MutatorFragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         Resources res = context.getResources();
-        mElseIfCountString = res.getString(R.string.mutator_if_else_ifelse_count);
+        mElseIfCountString = res.getString(R.string.mutator_ifelse_edit_ifelse_count);
     }
 
     @Override
@@ -121,7 +121,7 @@ public class IfElseMutatorFragment extends MutatorFragment {
         });
 
         AlertDialog dialog = new AlertDialog.Builder(getActivity())
-                .setTitle(R.string.mutator_if_else_title)
+                .setTitle(R.string.mutator_ifelse_edit_title)
                 .setPositiveButton(R.string.mutator_done, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

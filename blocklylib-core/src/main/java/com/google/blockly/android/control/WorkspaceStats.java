@@ -25,6 +25,7 @@ import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.ProcedureInfo;
 import com.google.blockly.model.VariableInfo;
+import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.SimpleArraySet;
 
 import java.lang.ref.WeakReference;
@@ -141,45 +142,43 @@ public class WorkspaceStats {
      * @param recursive Whether to recursively collect stats for all descendants of the current
      *                  block.
      */
-    public void collectStats(Block block, boolean recursive) {
-        boolean isProcedureDef = ProcedureManager.isDefinition(block);
-        if (isProcedureDef || ProcedureManager.isReference(block)) {
-            List<String> procedureArgs = ProcedureManager.getProcedureArguments(block);
-            if (procedureArgs != null) {
-                String procedureName = ProcedureManager.getProcedureName(block);
-                for (String arg : procedureArgs) {
-                    getVarInfoImpl(arg, true).addProcedure(procedureName);
-                }
-            }
+    public void collectStats(Block block, boolean recursive) throws BlockLoadingException {
+        collectStats(Collections.singletonList(block), recursive);
+    }
 
-            if (isProcedureDef) {
+    /**
+     * Walks through a list of block and records all Connections, variable references, procedure
+     * definitions and procedure calls.
+     *
+     * @param blocks The list of blocks to inspect.
+     * @param recursive Whether to recursively collect stats for all descendants of the current
+     *                  block.
+     */
+    public void collectStats(List<Block> blocks, boolean recursive) throws BlockLoadingException {
+        int count = blocks.size();
+
+        // Assuming procedure definitions can only occur as root blocks.
+        // Register all definitions before potentially processing any calls to those procedures.
+        for (int i = 0; i < count; ++i) {
+            Block block = blocks.get(i);
+            if (ProcedureManager.isDefinition(block)) {
+                List<String> procedureArgs = ProcedureManager.getProcedureArguments(block);
+                if (procedureArgs != null) {
+                    String procedureName = ProcedureManager.getProcedureName(block);
+                    for (String arg : procedureArgs) {
+                        getVarInfoImpl(arg, true).addProcedure(procedureName);
+                    }
+                }
+
                 mProcedureManager.addDefinition(block);
-            } else {
-                mProcedureManager.addReference(block);
             }
         }
 
-        for (int i = 0; i < block.getInputs().size(); i++) {
-            Input input = block.getInputs().get(i);
-            List<Field> fields = input.getFields();
-            int fieldCount = fields.size();
-            for (int j = 0; j < fieldCount; ++j) {
-                Field field = fields.get(j);
-                if (field instanceof FieldVariable) {
-                    FieldVariable varField = (FieldVariable) field;
-                    String varName = varField.getVariable();
-                    getVarInfoImpl(varName, true).addField(varField);
-                    varField.registerObserver(mVariableObserver);
-                }
-            }
-            addConnection(input.getConnection(), recursive);
-        }
 
-        addConnection(block.getNextConnection(), recursive);
-        // Don't recurse on outputs or previous connections--that's effectively walking back up the
-        // tree.
-        addConnection(block.getPreviousConnection(), false);
-        addConnection(block.getOutputConnection(), false);
+        for (int i = 0; i < count; ++i) {
+            Block block = blocks.get(i);
+            collectConnectionStatsAndProcedureReferences(block, recursive);
+        }
     }
 
     /**
@@ -232,13 +231,52 @@ public class WorkspaceStats {
         field.unregisterObserver(mVariableObserver);
     }
 
-    private void addConnection(Connection conn, boolean recursive) {
+    private void collectConnectionStatsAndProcedureReferences(Block block, boolean recursive)
+            throws BlockLoadingException
+    {
+        if (ProcedureManager.isReference(block)) {
+            String procName = ProcedureManager.getProcedureName(block);
+            if (mProcedureManager.containsDefinition(block)) {
+                mProcedureManager.addReference(block);
+            } else {
+                throw new BlockLoadingException("Undefined procedure name \"" + procName + "\" "
+                        + "in reference block " + block);
+            }
+        }
+
+        List<Input> inputs = block.getInputs();
+        int inputCount = inputs.size();
+        for (int j = 0; j < inputCount; j++) {
+            Input input = block.getInputs().get(j);
+            List<Field> fields = input.getFields();
+            int fieldCount = fields.size();
+            for (int k = 0; k < fieldCount; ++k) {
+                Field field = fields.get(k);
+                if (field instanceof FieldVariable) {
+                    FieldVariable varField = (FieldVariable) field;
+                    String varName = varField.getVariable();
+                    getVarInfoImpl(varName, true).addField(varField);
+                    varField.registerObserver(mVariableObserver);
+                }
+            }
+            collectConnectionStats(input.getConnection(), recursive);
+        }
+
+        collectConnectionStats(block.getNextConnection(), recursive);
+        // Don't recurse on outputs or previous connections--that's effectively walking back up
+        // the tree.
+        collectConnectionStats(block.getPreviousConnection(), false);
+        collectConnectionStats(block.getOutputConnection(), false);
+    }
+
+    private void collectConnectionStats(Connection conn, boolean recursive)
+            throws BlockLoadingException {
         if (conn != null) {
             mConnectionManager.addConnection(conn);
             if (recursive) {
                 Block recursiveTarget = conn.getTargetBlock();
                 if (recursiveTarget != null) {
-                    collectStats(recursiveTarget, true);
+                    collectConnectionStatsAndProcedureReferences(recursiveTarget, true);
                 }
             }
         }
