@@ -15,6 +15,7 @@
 package com.google.blockly.model.mutator;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
@@ -105,14 +106,27 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
      *
      * @param newProcedureInfo The new values that define this procedure.
      */
-    public void mutate(ProcedureInfo newProcedureInfo) {
+    public void mutate(final ProcedureInfo newProcedureInfo) {
         if (mBlock != null) {
-            try {
-                String mutation = writeMutationString(newProcedureInfo);
-                mBlock.setMutation(mutation);
-            } catch (BlockLoadingException e) {
-                throw new IllegalStateException("Failed to update from new mutation XML.", e);
-            }
+            mController.groupAndFireEvents(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mUpdatingBlock = true;
+                        String mutation = writeMutationString(newProcedureInfo);
+                        mBlock.setMutation(mutation);
+                        FieldInput nameField = (FieldInput) mBlock.getFieldByName(NAME_FIELD_NAME);
+                        if (nameField != null) {
+                            nameField.setText(newProcedureInfo.getProcedureName());
+                        }
+                    } catch (BlockLoadingException e) {
+                        throw new IllegalStateException(
+                                "Failed to update from new mutation XML.", e);
+                    } finally {
+                        mUpdatingBlock = false;
+                    }
+                }
+            });
         } else {
             mProcedureInfo = newProcedureInfo;
         }
@@ -203,18 +217,11 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
             mFieldObserver = new Field.Observer() {
                 @Override
                 public void onValueChanged(Field field, String oldValue, String newValue) {
-                    if (!mUpdatingBlock) {
-                        String oldProcedureName = getProcedureName();
-                        ProcedureInfo newInfo = new ProcedureInfo(
-                                newValue,
-                                mProcedureInfo.getArgumentNames(),
-                                mProcedureInfo.getDefinitionHasStatementBody());
-                        if (oldProcedureName != null
-                                && mProcedureManager.containsDefinition(oldProcedureName)) {
-                            mProcedureManager.mutateProcedure(mBlock, newInfo);
-                        } else {
-                            mProcedureInfo = newInfo;
-                        }
+                    ProcedureInfo newInfo = mProcedureInfo.cloneWithName(newValue);
+                    if (mUpdatingBlock) {
+                        mProcedureInfo = newInfo;
+                    } else {
+                        mProcedureManager.mutateProcedure(mBlock, newInfo);
                     }
                 }
             };
@@ -269,16 +276,21 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
      */
     @Override
     protected void updateBlock() {
+        Log.d("ProcedureDef", "updateBlock() Stack trace:", new Throwable());
+        final boolean oldUpdatingBlock = mUpdatingBlock;  // Might be called within mutate(..)
         try {
             mUpdatingBlock = true;
             super.updateBlock();
 
             FieldInput nameField = getNameField();
             if (mProcedureInfo != null && nameField != null) {
+                Log.d("ProcedureDef", "Block " + Integer.toHexString(mBlock.hashCode())
+                        + ": updateBlock(): field name: " + nameField.getText()
+                        + ", new name: " + mProcedureInfo.getProcedureName());
                 nameField.setFromString(mProcedureInfo.getProcedureName());
             }
         } finally {
-            mUpdatingBlock = false;
+            mUpdatingBlock = oldUpdatingBlock;
         }
     }
 

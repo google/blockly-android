@@ -19,6 +19,7 @@ import android.database.Observable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
+import android.util.Log;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
@@ -337,14 +338,16 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * @param originalProcedureName The name of the procedure, before this method.
      * @param updatedProcedureInfo The info with which to update procedure mutators.
      * @param argIndexUpdates A list of mappings from original argument index to new index.
+     * @return The final ProcedureInfo, which may have a different name than requested if there was
+     *         a name collision with a previously defined name.
      * @throws IllegalArgumentException If any {@code originalProcedureName} is not found,
      *                                  if {@code optUpdatedProcedureName} is not a valid procedure
      *                                  name, or if argument name is invalid.
      * @throws IllegalStateException If updatedProcedureInfo fails to serialize or deserialize.
      */
-    public void mutateProcedure(final @NonNull String originalProcedureName,
-                                final @NonNull ProcedureInfo updatedProcedureInfo,
-                                final @Nullable List<ArgumentIndexUpdate> argIndexUpdates)
+    public ProcedureInfo mutateProcedure(final @NonNull String originalProcedureName,
+                                         @NonNull ProcedureInfo updatedProcedureInfo,
+                                         final @Nullable List<ArgumentIndexUpdate> argIndexUpdates)
     {
         final String originalCanonical = mProcedureNameManager.makeCanonical(originalProcedureName);
         final Block definition = mProcedureDefinitions.get(originalCanonical);
@@ -355,11 +358,21 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         final ProcedureDefinitionMutator definitionMutator =
                 (ProcedureDefinitionMutator) definition.getMutator();
         final ProcedureInfo oldProcInfo = definitionMutator.getProcedureInfo();
-        final String newProcedureName = updatedProcedureInfo.getProcedureName();
-        final String newCanonicalName = mProcedureNameManager.makeCanonical(newProcedureName);
-        final boolean isFuncRename = !originalProcedureName.equals(newProcedureName);
+        String newProcedureNameRequested = updatedProcedureInfo.getProcedureName();
+        Log.d(TAG, "Definition "+Integer.toHexString(definition.hashCode())+"\n\tnewProcedureNameRequested = " + newProcedureNameRequested);
+        final boolean isFuncRename = !originalProcedureName.equals(newProcedureNameRequested);
+        Log.d(TAG, "\tisFuncRename = " + isFuncRename);
+        final String newProcedureName = !isFuncRename ? originalProcedureName
+                : mProcedureNameManager.generateUniqueName(newProcedureNameRequested, true);
+        Log.d(TAG, "\tActual newProcedureName = " + newProcedureName);
+        final String newCanonicalName = !isFuncRename ? originalCanonical
+                : mProcedureNameManager.makeCanonical(newProcedureName);
+        final ProcedureInfo updatedProcedureInfoFinal =
+                !isFuncRename || newProcedureName.equals(newProcedureNameRequested)
+                        ? updatedProcedureInfo
+                        : updatedProcedureInfo.cloneWithName(newProcedureName);
 
-        final List<String> newArgs = updatedProcedureInfo.getArgumentNames();
+        final List<String> newArgs = updatedProcedureInfoFinal.getArgumentNames();
         final int newArgCount = newArgs.size();
         for (int i = 0; i < newArgCount; ++i) {
             String argName = newArgs.get(i);
@@ -379,7 +392,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                     // TODO: What if it is a different representation of existing var? "x" vs "X"
                 }
 
-                definitionMutator.mutate(updatedProcedureInfo);
+                definitionMutator.mutate(updatedProcedureInfoFinal);
                 if (isFuncRename) {
                     mProcedureNameManager.remove(originalCanonical);
                     mProcedureDefinitions.remove(originalCanonical);
@@ -411,7 +424,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                         }
                     }
 
-                    callMutator.mutate(updatedProcedureInfo);
+                    callMutator.mutate(updatedProcedureInfoFinal);
 
                     // Reconnect any blocks to original inputs
                     if (argIndexUpdates != null) {
@@ -437,6 +450,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         for (int i = 0; i < obsCount; ++i) {
             mObservers.get(i).onProcedureMutated(oldProcInfo, updatedProcedureInfo);
         }
+
+        return updatedProcedureInfoFinal;
     }
 
     /**
@@ -444,10 +459,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * arguments maintain their same index.
      * @param procedureBlock A procedure block
      * @param updatedProcedureInfo The info with which to update procedure mutators.
+     * @return The final ProcedureInfo, which may have a different name than requested if there was
+     *         a name collision with a previously defined name.
      * @throws IllegalArgumentException If the old and new argument counts do not match.
      */
-    public void mutateProcedure(final @NonNull Block procedureBlock,
-                                final @NonNull ProcedureInfo updatedProcedureInfo) {
+    public ProcedureInfo mutateProcedure(final @NonNull Block procedureBlock,
+                                         final @NonNull ProcedureInfo updatedProcedureInfo) {
         Mutator mutator = procedureBlock.getMutator();
         if (!(mutator instanceof  AbstractProcedureMutator)) {
             throw new IllegalArgumentException("procedureBlock does not have a procedure mutator.");
@@ -458,16 +475,17 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
 
         final String originalProcedureName = procInfo.getProcedureName();
-        final String originalCanonicalProcName =
-                mProcedureNameManager.makeCanonical(originalProcedureName);
-        final Block definition = mProcedureDefinitions.get(originalCanonicalProcName);
+        final Block definition =
+                originalProcedureName == null ? null : mProcedureDefinitions.get(
+                        mProcedureNameManager.makeCanonical(originalProcedureName));
         if (definition == null) {
             // Unregistered procedure name. Just change this one block.
             // Probably because the procedure hasn't been connected to the workspace, yet.
             ((AbstractProcedureMutator) mutator).mutate(updatedProcedureInfo);
+            return updatedProcedureInfo;
         } else {
-            int oldArgCount =
-                    ((ProcedureDefinitionMutator) definition.getMutator()).getArgumentNameList().size();
+            int oldArgCount = ((ProcedureDefinitionMutator) definition.getMutator())
+                    .getArgumentNameList().size();
             int newArgCount = updatedProcedureInfo.getArgumentNames().size();
             if (newArgCount != oldArgCount) {
                 throw new IllegalArgumentException(
@@ -481,9 +499,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                     ++i;
                 }
             }
-            mutateProcedure(originalProcedureName,
-                    updatedProcedureInfo,
-                    SAME_INDICES.subList(0, i));
+            return mutateProcedure(
+                    originalProcedureName, updatedProcedureInfo, SAME_INDICES.subList(0, i));
         }
     }
 
