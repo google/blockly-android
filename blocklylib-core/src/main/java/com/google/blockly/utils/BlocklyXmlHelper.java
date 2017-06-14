@@ -55,7 +55,7 @@ public final class BlocklyXmlHelper {
     }
 
     /** Enable this option to copy XML inputs to logs. (Workspaces only, for now.) */
-    private static final boolean LOG_INPUT_XML = false;
+    private static final boolean LOG_INPUT_XML = true;
 
     private static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
     private static final XmlPullParserFactory PARSER_FACTORY = createParseFactory();
