@@ -16,8 +16,6 @@ package com.google.blockly.utils;
 
 import android.support.v4.util.SimpleArrayMap;
 
-import java.util.ArrayList;
-
 /**
  * Set-like wrapper around SimpleArrayMap.
  */

@@ -112,7 +112,7 @@ public class ProcedureManagerTest extends BlocklyTestCase {
         Set<Block> references =
                 mProcedureManager.removeProcedure(mProcedureDefinition);
         assertThat(references).isNotNull();
-        assertThat(references.size()).isEqualTo(1);
+        assertThat(references.size()).isEqualTo(2); // 1 definition and 1 caller
         assertThat(references.iterator().next()).isEqualTo(mProcedureReference);
 
         assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isFalse();
@@ -139,20 +139,18 @@ public class ProcedureManagerTest extends BlocklyTestCase {
 
     @Test
     public void testAddReferenceToUndefined() throws BlockLoadingException {
-        thrown.expect(IllegalStateException.class);
+        thrown.expect(BlockLoadingException.class);
         mProcedureManager.addReference(mProcedureReference);
     }
 
     @Test
     public void testRemoveNoUndefined() {
-        thrown.expect(IllegalStateException.class);
-        mProcedureManager.removeProcedure(mProcedureDefinition);
+        assertThat(mProcedureManager.removeProcedure(mProcedureDefinition).size()).isEqualTo(0);
     }
 
     @Test
     public void testNoReference() {
-        thrown.expect(IllegalStateException.class);
-        mProcedureManager.removeReference(mProcedureReference);
+        assertThat(mProcedureManager.removeReference(mProcedureReference)).isFalse();
     }
 
     private Block buildCaller(final String procName) throws BlockLoadingException {

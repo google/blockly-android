@@ -45,7 +45,7 @@ public class BasicFieldInputView extends EditText implements FieldView {
         @Override
         public void afterTextChanged(Editable s) {
             if (mInputField != null) {
-                Log.d(TAG, "Block "+Integer.toHexString(mInputField.getBlock().hashCode()) + ": New input view text: " + s);
+                if (mInputField.getBlock() != null) { Log.d(TAG, "Block "+Integer.toHexString(mInputField.getBlock().hashCode()) + ": New input view text: " + s); }
                 mInputField.setText(s.toString());
             }
         }

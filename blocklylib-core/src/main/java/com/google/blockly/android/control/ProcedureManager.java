@@ -83,20 +83,18 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
     }
 
-    private class UserProcedure {
+    private class ProcedureBlocks {
         String mName;
-        ProcedureInfo mInfo;
         Block mDefinition;
         final ArraySet<Block> mReferences = new ArraySet<>();
 
         /**
-         * Constructs a UserProcedure from the provided definition.
+         * Constructs a ProcedureBlocks from the provided definition.
          * @param definitionBlock The block defining the procedure.
          */
-        UserProcedure(Block definitionBlock) {
-            mDefinition = definitionBlock;
-            mInfo = getProcedureInfo(definitionBlock);
+        ProcedureBlocks(Block definitionBlock) {
             mName = getProcedureName(definitionBlock);
+            mDefinition = definitionBlock;
         }
     }
 
@@ -112,13 +110,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     private final BlocklyController mController;
     private final NameManager mVariableNameManager;
 
-    // TODO: These maps use the same key. Merge into a single data structure. Better yet, turn the
-    //       NameManager into a map-like structure, mapping to ProcedureInfo and VariableInfo.
-//    /** Lists of all procedure calling blocks, keyed by the canonized name string. */
-//    private final ArrayMap<String, List<Block>> mProcedureReferences = new ArrayMap<>(); // Set?
-//    /** Procedure definition blocks, keyed by the canonized name string. */
-//    private final ArrayMap<String, Block> mProcedureDefinitions = new ArrayMap<>();
-    private final ArrayMap<String, UserProcedure> mUserProcedures = new ArrayMap<>();
+    // TODO: Make NameManager a map-like interface for ProcedureBlocks and VariableInfo
+    private final ArrayMap<String, ProcedureBlocks> mProcedureBlocks = new ArrayMap<>();
     private final NameManager mProcedureNameManager = new NameManager.ProcedureNameManager();
 
     // Used to determine the visibility of procedures_ifreturn block in the ProcedureCustomCategory.
@@ -214,11 +207,11 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * @return All the registered procedure definition blocks, keyed by procedure name.
      */
     public SimpleArrayMap<String, Block> getDefinitionBlocks() {
-        int count = mUserProcedures.size();
+        int count = mProcedureBlocks.size();
         SimpleArrayMap<String, Block> map = new SimpleArrayMap<>(count);
         for (int i = 0; i < count; ++i) {
-            UserProcedure procedure = mUserProcedures.valueAt(i);
-            map.put(procedure.mName, procedure.mDefinition);
+            ProcedureBlocks procBlocks = mProcedureBlocks.valueAt(i);
+            map.put(procBlocks.mName, procBlocks.mDefinition);
         }
         return map;
     }
@@ -228,8 +221,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      */
     public @Nullable Block getDefinitionBlock(String procedureName) {
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonical);
-        return procedure == null ? null : procedure.mDefinition;
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
+        return procBlocks == null ? null : procBlocks.mDefinition;
     }
 
     /**
@@ -247,14 +240,14 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     public boolean containsDefinition(Block procedureBlock) {
         String procedureName = getProcedureNameOrFail(procedureBlock);
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonical);
-        if (procedure == null) {
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
+        if (procBlocks == null) {
             return false;
         }
         if (isDefinition(procedureBlock)) {
-            return procedure.mDefinition == procedureBlock;
+            return procBlocks.mDefinition == procedureBlock;
         } else {
-            return checkProcedureBlocksMatch(procedure.mDefinition, procedureBlock, false);
+            return checkProcedureBlocksMatch(procBlocks.mDefinition, procedureBlock, false);
         }
     }
 
@@ -268,10 +261,10 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     public boolean isDefinitionReferenced(Block procedureDefBlock) {
         String procedureName = getProcedureNameOrFail(procedureDefBlock);
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonical);
-        return procedure != null
-                && procedure.mDefinition == procedureDefBlock
-                && !procedure.mReferences.isEmpty();
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
+        return procBlocks != null
+                && procBlocks.mDefinition == procedureDefBlock
+                && !procBlocks.mReferences.isEmpty();
     }
 
     /**
@@ -284,8 +277,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     public boolean isReferenceRegistered(Block procedureRefBlock) {
         String procedureName = getProcedureNameOrFail(procedureRefBlock);
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonical);
-        return procedure != null && procedure.mReferences.contains(procedureRefBlock);
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
+        return procBlocks != null && procBlocks.mReferences.contains(procedureRefBlock);
     }
 
     /**
@@ -293,7 +286,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * {@link Observer Observers}.
      */
     public void clear() {
-        mUserProcedures.clear();
+        mProcedureBlocks.clear();
         mProcedureNameManager.clear();
         mCountOfDefinitionsWithReturn = 0;
 
@@ -319,16 +312,16 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
         String procedureName = getProcedureNameOrFail(procedureReferenceBlock);
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonical);
-        if (procedure == null) {
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
+        if (procBlocks == null) {
             throw new BlockLoadingException(
                     "Tried to add a reference to procedure \"" + procedureName
                             + "\" that has not been defined."
                             + "\n\tReference block: " + procedureReferenceBlock);
         }
-        validateProcedureBlocksMatch(procedure.mDefinition, procedureReferenceBlock, false);
+        validateProcedureBlocksMatch(procBlocks.mDefinition, procedureReferenceBlock, false);
         // TODO: validate definition & reference ProcedureInfo match
-        procedure.mReferences.add(procedureReferenceBlock);
+        procBlocks.mReferences.add(procedureReferenceBlock);
     }
 
     protected boolean checkProcedureBlocksMatch(
@@ -417,8 +410,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
         String procedureName = getProcedureNameOrFail(referenceBlock);
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonical);
-        boolean found = procedure != null && procedure.mReferences.remove(referenceBlock);
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
+        boolean found = procBlocks != null && procBlocks.mReferences.remove(referenceBlock);
         if (found) {
             if (referenceBlock.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
                 --mCountOfDefinitionsWithReturn;
@@ -453,17 +446,17 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
         String procedureName = getProcedureNameOrFail(definitionBlock);
         String canonicalProcName = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonicalProcName);
-        if (procedure != null && procedure.mDefinition == definitionBlock) {
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonicalProcName);
+        if (procBlocks != null && procBlocks.mDefinition == definitionBlock) {
             return;  // Nothing to do.
         }
-        if (procedure != null || mProcedureNameManager.contains(procedureName)) {
+        if (procBlocks != null || mProcedureNameManager.contains(procedureName)) {
             procedureName = mProcedureNameManager.generateUniqueName(procedureName, false);
             setProcedureName(definitionBlock, procedureName);
             canonicalProcName = mProcedureNameManager.makeCanonical(procedureName);
         }
         mProcedureNameManager.addName(canonicalProcName);
-        mUserProcedures.put(canonicalProcName, new UserProcedure(definitionBlock));
+        mProcedureBlocks.put(canonicalProcName, new ProcedureBlocks(definitionBlock));
 
         int obsCount = mObservers.size();
         for (int i = 0; i < obsCount; ++i) {
@@ -481,11 +474,11 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      */
     public Set<Block> removeProcedure(String procedureName) {
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonical);
-        if (procedure == null) {
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
+        if (procBlocks == null) {
             return Collections.emptySet();
         }
-        return removeProcedureImpl(canonical, procedure);
+        return removeProcedureImpl(canonical, procBlocks);
     }
 
     /**
@@ -494,44 +487,41 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      *
      * @param procedureBlock A block referencing or defining the procedure to remove.
      * @return A set of Blocks that referred to the procedure defined by block, including the
-     *         procedure definition block.
+     *         procedure definition block. May be empty if the procedure is unregistered.
      */
     public Set<Block> removeProcedure(Block procedureBlock) {
         String procedureName = getProcedureNameOrFail(procedureBlock);
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
-        UserProcedure procedure = mUserProcedures.get(canonical);
-        if (isDefinition(procedureBlock) && procedure.mDefinition != procedureBlock) {
+        ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
+        if (procBlocks == null) {
+            // Unknown procedure
+            return Collections.emptySet();
+        }
+        if (isDefinition(procedureBlock) && procBlocks.mDefinition != procedureBlock) {
             throw new IllegalArgumentException(
                     "Procedure definition block " + procedureBlock + " is not the registered "
-                    +" definition block for procedure \"" + procedure.mName + "\"");
+                            +" definition block for procedure \"" + procBlocks.mName + "\".");
         }
-        if (procedure == null) {
-            throw new IllegalArgumentException("Unknown procedure definition");
-        }
-        if (procedure.mDefinition != procedureBlock) {
-            throw new IllegalArgumentException(procedureBlock.toString() + " is not the definition for "
-                    + "procedure \"" + procedureName + "\".");
-        }
-        return removeProcedureImpl(canonical, procedure);
+        return removeProcedureImpl(canonical, procBlocks);
     }
 
-    private Set<Block> removeProcedureImpl(String canonicalName, UserProcedure procedure) {
-        boolean removedMetadata = mUserProcedures.remove(canonicalName) == procedure;
+    private Set<Block> removeProcedureImpl(String canonicalName, ProcedureBlocks procBlocks) {
+        boolean removedMetadata = mProcedureBlocks.remove(canonicalName) == procBlocks;
         boolean removedName = mProcedureNameManager.remove(canonicalName);
         if(BuildConfig.DEBUG && !removedMetadata) {
-            throw new AssertionError("Failed to find & remove UserProcedure.");
+            throw new AssertionError("Failed to find & remove ProcedureBlocks.");
         }
         if(BuildConfig.DEBUG && !removedName) {
             throw new AssertionError("Failed to find & remove canonical procedure name.");
         }
 
-        ArraySet<Block> blocks = procedure.mReferences;
-        blocks.add(procedure.mDefinition);
+        ArraySet<Block> blocks = procBlocks.mReferences;
+        blocks.add(procBlocks.mDefinition);
         Set<Block> resultBlocks = Collections.unmodifiableSet(blocks);
         if (!mObservers.isEmpty()) {
             int obsCount = mObservers.size();
             for (int i = 0; i < obsCount; ++i) {
-                mObservers.get(i).onProcedureBlocksRemoved(procedure.mName, resultBlocks);
+                mObservers.get(i).onProcedureBlocksRemoved(procBlocks.mName, resultBlocks);
             }
         }
         return resultBlocks;
@@ -557,12 +547,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                                          final @Nullable List<ArgumentIndexUpdate> argIndexUpdates)
     {
         final String originalCanonical = mProcedureNameManager.makeCanonical(originalProcedureName);
-        final UserProcedure procedure = mUserProcedures.get(originalCanonical);
-        if (procedure == null) {
+        final ProcedureBlocks procBlocks = mProcedureBlocks.get(originalCanonical);
+        if (procBlocks == null) {
             throw new IllegalArgumentException(
                     "Unknown procedure \"" + originalProcedureName + "\"");
         }
-        final Block definition = procedure.mDefinition;
+        final Block definition = procBlocks.mDefinition;
         final AbstractProcedureMutator definitionMutator =
                 ((AbstractProcedureMutator<? extends ProcedureInfo>) definition.getMutator());
         final ProcedureInfo oldProcInfo = definitionMutator.getProcedureInfo();
@@ -603,16 +593,16 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                 definitionMutator.mutate(updatedProcedureInfoFinal);
                 if (isFuncRename) {
                     mProcedureNameManager.remove(originalCanonical);
-                    mUserProcedures.remove(originalCanonical);
+                    mProcedureBlocks.remove(originalCanonical);
 
-                    procedure.mName = newProcedureName;
+                    procBlocks.mName = newProcedureName;
 
                     mProcedureNameManager.addName(newCanonicalName);
-                    mUserProcedures.put(newCanonicalName, procedure);
+                    mProcedureBlocks.put(newCanonicalName, procBlocks);
                 }
 
                 // Mutate each procedure call
-                Set<Block> procedureCalls = procedure.mReferences;
+                Set<Block> procedureCalls = procBlocks.mReferences;
                 for (Block procRef : procedureCalls) {
                     ProcedureCallMutator callMutator =
                             (ProcedureCallMutator) procRef.getMutator();
@@ -683,14 +673,14 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         final String originalProcedureName = getProcedureName(procedureBlock);
         final String originalCanonicalName = originalProcedureName == null ? null :
                 mProcedureNameManager.makeCanonical(originalProcedureName);
-        final UserProcedure procedure = originalCanonicalName == null ? null
-                : mUserProcedures.get(originalCanonicalName);
-        if (procedure == null) {
+        final ProcedureBlocks procBlocks = originalCanonicalName == null ? null
+                : mProcedureBlocks.get(originalCanonicalName);
+        if (procBlocks == null) {
             // This procedure is not (yet?) managed by the ProcedureManager.
             ((AbstractProcedureMutator) mutator).mutate(updatedProcedureInfo);
             return updatedProcedureInfo;
         }
-        final Block definition = procedure.mDefinition;
+        final Block definition = procBlocks.mDefinition;
         if (definition == null) {
             // Unregistered procedure name. Just change this one block.
             // Probably because the procedure hasn't been connected to the workspace, yet.
