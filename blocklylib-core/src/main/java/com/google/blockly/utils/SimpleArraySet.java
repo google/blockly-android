@@ -16,6 +16,8 @@ package com.google.blockly.utils;
 
 import android.support.v4.util.SimpleArrayMap;
 
+import java.util.ArrayList;
+
 /**
  * Set-like wrapper around SimpleArrayMap.
  */
@@ -49,7 +51,6 @@ public final class SimpleArraySet<E> {
     public boolean add(E e) {
         return mMap.put(e, e) == null;
     }
-
 
     public E getAt(int i) {
         return mMap.keyAt(i);

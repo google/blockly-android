@@ -28,7 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.List;
+import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -68,10 +68,7 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     public void testAddProcedureDefinition() {
         mProcedureManager.addDefinition(mProcedureDefinition);
         assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isTrue();
-
-        List<Block> references = mProcedureManager.getReferences(PROCEDURE_NAME);
-        assertThat(references).isNotNull();
-        assertThat(references.size()).isEqualTo(0);
+        assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isFalse();
     }
 
     @Test
@@ -93,42 +90,42 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testAddProcedureReference() {
+    public void testAddProcedureReference() throws BlockLoadingException {
         mProcedureManager.addDefinition(mProcedureDefinition);
 
         mProcedureManager.addReference(mProcedureReference);
-        assertThat(mProcedureManager.hasReferences(mProcedureDefinition)).isTrue();
+        assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isTrue();
     }
 
     @Test
     // Remove definition should also remove all references.
-    public void testRemoveProcedureDefinition() {
+    public void testRemoveProcedureDefinition() throws BlockLoadingException {
         mProcedureManager.addDefinition(mProcedureDefinition);
         assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isTrue();
 
-        mProcedureManager.removeDefinition(mProcedureDefinition);
+        mProcedureManager.removeProcedure(mProcedureDefinition);
         assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isFalse();
-        assertThat(mProcedureManager.hasReferences(mProcedureDefinition)).isFalse();
+        assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isFalse();
 
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
-        List<Block> references =
-                mProcedureManager.removeDefinition(mProcedureDefinition);
+        Set<Block> references =
+                mProcedureManager.removeProcedure(mProcedureDefinition);
         assertThat(references).isNotNull();
         assertThat(references.size()).isEqualTo(1);
-        assertThat(references.get(0)).isEqualTo(mProcedureReference);
+        assertThat(references.iterator().next()).isEqualTo(mProcedureReference);
 
         assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isFalse();
-        assertThat(mProcedureManager.hasReferences(mProcedureDefinition)).isFalse();
+        assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isFalse();
     }
 
     @Test
-    public void testRemoveProcedureReference() {
+    public void testRemoveProcedureReference() throws BlockLoadingException {
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
 
         mProcedureManager.removeReference(mProcedureReference);
-        assertThat(mProcedureManager.hasReferences(mProcedureReference)).isFalse();
+        assertThat(mProcedureManager.isReferenceRegistered(mProcedureReference)).isFalse();
     }
 
     @Test
@@ -141,7 +138,7 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testAddReferenceToUndefined() {
+    public void testAddReferenceToUndefined() throws BlockLoadingException {
         thrown.expect(IllegalStateException.class);
         mProcedureManager.addReference(mProcedureReference);
     }
@@ -149,7 +146,7 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     @Test
     public void testRemoveNoUndefined() {
         thrown.expect(IllegalStateException.class);
-        mProcedureManager.removeDefinition(mProcedureDefinition);
+        mProcedureManager.removeProcedure(mProcedureDefinition);
     }
 
     @Test
