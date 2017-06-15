@@ -141,7 +141,7 @@ public final class DefaultBlocks {
         try {
             map.put(PROCEDURE_CATEGORY_NAME, new ProcedureCustomCategory(controller));
         } catch (BlockLoadingException e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("Missing procedure block definitions.", e);
         }
         return Collections.unmodifiableMap(map);
     }
