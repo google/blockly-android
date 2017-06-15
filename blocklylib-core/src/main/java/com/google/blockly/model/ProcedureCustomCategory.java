@@ -70,6 +70,8 @@ public class ProcedureCustomCategory implements CustomCategory {
 
         mDefaultProcedureName = getDefaultProcedureName();
 
+        // The following blocks always exist at the beginning of the category and are invariant to
+        // the workspace contents, unlike procedure references which require matching definitions.
         mDefinitionNoReturn = mBlockFactory.obtainBlockFrom(DEFINE_NO_RETURN_BLOCK_TEMPLATE);
         ((FieldInput)mDefinitionNoReturn.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
 
