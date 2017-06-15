@@ -276,6 +276,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * @param block A block containing the definition of the procedure to add.
      */
     public void addDefinition(Block block) {
+        Log.d(TAG, "addDefinition " + getProcedureName(block) + " block " + Integer.toHexString(block.hashCode()));
+
         String procedureName = getProcedureNameOrFail(block);
         String canonicalProcName = mProcedureNameManager.makeCanonical(procedureName);
         if (mProcedureDefinitions.get(canonicalProcName) == block) {

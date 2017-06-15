@@ -12,6 +12,7 @@ import com.google.blockly.model.mutator.MathIsDivisibleByMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
 import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import com.google.blockly.model.mutator.ProceduresIfReturnMutator;
+import com.google.blockly.utils.BlockLoadingException;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -137,7 +138,11 @@ public final class DefaultBlocks {
         // Don't store this map, because of the reference to the controller.
         Map<String, CustomCategory> map = new ArrayMap<>(2);
         map.put(VARIABLE_CATEGORY_NAME, new VariableCustomCategory(controller));
-        map.put(PROCEDURE_CATEGORY_NAME, new ProcedureCustomCategory(controller));
+        try {
+            map.put(PROCEDURE_CATEGORY_NAME, new ProcedureCustomCategory(controller));
+        } catch (BlockLoadingException e) {
+            throw new IllegalStateException(e);
+        }
         return Collections.unmodifiableMap(map);
     }
 

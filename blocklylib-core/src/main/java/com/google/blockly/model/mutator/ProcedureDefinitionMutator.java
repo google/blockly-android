@@ -145,13 +145,18 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
             throws BlockLoadingException, IOException, XmlPullParserException {
         ProcedureInfo xmlInfo = ProcedureInfo.parseImpl(parser);
         FieldInput nameField = getNameField();
+        Log.d("ProcedureDef", "parseAndValidateMutationXml for block " + Integer.toHexString(mBlock.hashCode()) + ":"
+                + "\n\txmlInfo name=" + xmlInfo.getProcedureName()
+                + "\n\tmProcedureInfo" +(mProcedureInfo==null ? "=null" : " name=" + mProcedureInfo.getProcedureName()));
         if (TextUtils.isEmpty(xmlInfo.getProcedureName()) && nameField != null) {
+            Log.d("ProcedureDef", "\tnameField text=" + nameField.getText());
+            Log.d("ProcedureDef", "\tstack trace", new Throwable());
             // Use the name on the field when not specified in the info.
-            return new ProcedureInfo(
-                    nameField.getText(),
-                    xmlInfo.getArgumentNames(),
-                    xmlInfo.getDefinitionHasStatementBody());
+            return xmlInfo.cloneWithName(nameField.getText());
         }
+
+        Log.d("ProcedureDef", "\tstack trace", new Throwable());
+
         return xmlInfo;
     }
 
@@ -276,7 +281,6 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
      */
     @Override
     protected void updateBlock() {
-        Log.d("ProcedureDef", "updateBlock() Stack trace:", new Throwable());
         final boolean oldUpdatingBlock = mUpdatingBlock;  // Might be called within mutate(..)
         try {
             mUpdatingBlock = true;
@@ -286,7 +290,8 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
             if (mProcedureInfo != null && nameField != null) {
                 Log.d("ProcedureDef", "Block " + Integer.toHexString(mBlock.hashCode())
                         + ": updateBlock(): field name: " + nameField.getText()
-                        + ", new name: " + mProcedureInfo.getProcedureName());
+                        + ", new name: " + mProcedureInfo.getProcedureName()
+                        + "\n\tstack trace", new Throwable());
                 nameField.setFromString(mProcedureInfo.getProcedureName());
             }
         } finally {
