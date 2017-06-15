@@ -56,15 +56,27 @@ public class ProcedureCustomCategory implements CustomCategory {
     protected final Workspace mWorkspace;
     protected final ProcedureManager mProcedureManager;
 
+    protected final Block mDefinitionReturn;
+    protected final Block mDefinitionNoReturn;
+    protected final Block mIfReturn;
+
     protected final String mDefaultProcedureName;
 
-    public ProcedureCustomCategory(BlocklyController controller) {
+    public ProcedureCustomCategory(BlocklyController controller) throws BlockLoadingException {
         mController = controller;
         mBlockFactory = mController.getBlockFactory();
         mWorkspace = mController.getWorkspace();
         mProcedureManager = mWorkspace.getProcedureManager();
 
         mDefaultProcedureName = getDefaultProcedureName();
+
+        mDefinitionNoReturn = mBlockFactory.obtainBlockFrom(DEFINE_NO_RETURN_BLOCK_TEMPLATE);
+        ((FieldInput)mDefinitionNoReturn.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
+
+        mDefinitionReturn = mBlockFactory.obtainBlockFrom(DEFINE_WITH_RETURN_BLOCK_TEMPLATE);
+        ((FieldInput)mDefinitionReturn.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
+
+        mIfReturn = mBlockFactory.obtainBlockFrom(IF_RETURN_TEMPLATE);
     }
 
     public String getDefaultProcedureName() {
@@ -158,17 +170,10 @@ public class ProcedureCustomCategory implements CustomCategory {
     private void rebuildItems(BlocklyCategory category) throws BlockLoadingException {
         category.clear();
 
-        Block block = mBlockFactory.obtainBlockFrom(DEFINE_NO_RETURN_BLOCK_TEMPLATE);
-        ((FieldInput)block.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
-        category.addItem(new BlocklyCategory.BlockItem(block));
-
-        block = mBlockFactory.obtainBlockFrom(DEFINE_WITH_RETURN_BLOCK_TEMPLATE);
-        ((FieldInput)block.getFieldByName(NAME_FIELD)).setText(mDefaultProcedureName);
-        category.addItem(new BlocklyCategory.BlockItem(block));
-
-        if (!mProcedureManager.hasProcedureDefinitionWithReturn()) {
-            block = mBlockFactory.obtainBlockFrom(IF_RETURN_TEMPLATE);
-            category.addItem(new BlocklyCategory.BlockItem(block));
+        category.addItem(new BlocklyCategory.BlockItem(mDefinitionNoReturn));
+        category.addItem(new BlocklyCategory.BlockItem(mDefinitionReturn));
+        if (mProcedureManager.hasProcedureDefinitionWithReturn()) {
+            category.addItem(new BlocklyCategory.BlockItem(mIfReturn));
         }
 
         // Create a call block for each definition.
