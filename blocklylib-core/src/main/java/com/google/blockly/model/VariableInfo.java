@@ -18,16 +18,26 @@ package com.google.blockly.model;
 import java.util.List;
 
 /**
- *
+ * Metadata describing a variable in the Blockly Workspace.
  */
 public interface VariableInfo {
+    /**
+     * @return Whether the variable is used as an argument to a procedure.
+     */
     boolean isProcedureArgument();
 
+    /**
+     * @return The count of number of blocks that are using the variable.
+     */
     int getUsageCount();
 
-    int getCountOfProceduresUsages();
+    /**
+     * @return An immutable list of procedure names that use this variable as an argument.
+     */
+    List<String> getProcedureNames();
 
-    String getProcedureName(int i);
-
+    /**
+     * @return An immutable list of fields that refer to this variable.
+     */
     List<FieldVariable> getFields();
 }

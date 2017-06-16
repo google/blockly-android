@@ -18,7 +18,7 @@
         blockly:closeable="false"
         blockly:scrollOrientation="horizontal"/>
 
-    <!-- This frame contains the workspace and closeable trash. -->
+    <!-- This frame hasName the workspace and closeable trash. -->
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

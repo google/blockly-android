@@ -349,9 +349,9 @@ public class BlockView extends AbstractBlockView<InputView> {
      * <ol>
      * <li>The {@link InputView#measure(int, int)} method has been called for all inputs in
      * this block,</li>
-     * <li>{@link #mBlockViewSize} contains the size of the total size of the block view
+     * <li>{@link #mBlockViewSize} hasName the size of the total size of the block view
      * including all its inputs, and</li>
-     * <li>{@link #mInputLayoutOrigins} contains the layout positions of all inputs within
+     * <li>{@link #mInputLayoutOrigins} hasName the layout positions of all inputs within
      * the block.</li>
      * </ol>
      * </p>
@@ -503,9 +503,9 @@ public class BlockView extends AbstractBlockView<InputView> {
      * <ol>
      * <li>The {@link InputView#measure(int, int)} method has been called for all inputs in
      * this block,</li>
-     * <li>{@link #mBlockViewSize} contains the size of the total size of the block view
+     * <li>{@link #mBlockViewSize} hasName the size of the total size of the block view
      * including all its inputs, and</li>
-     * <li>{@link #mInputLayoutOrigins} contains the layout positions of all inputs within
+     * <li>{@link #mInputLayoutOrigins} hasName the layout positions of all inputs within
      * the block (but note that for external inputs, only the y coordinate of each
      * position is later used for positioning.)</li>
      * </ol>

@@ -252,7 +252,7 @@ public class BlocklyController {
     /**
      * Connects a WorkspaceFragment to this controller.
      *
-     * @param workspaceFragment The fragment that contains the main workspace.
+     * @param workspaceFragment The fragment that hasName the main workspace.
      */
     public void setWorkspaceFragment(@Nullable WorkspaceFragment workspaceFragment) {
         if (workspaceFragment != null && mViewFactory == null) {
@@ -1192,7 +1192,7 @@ public class BlocklyController {
             mTempBlocks.clear();
         }
         // TODO: (#309) add remove variable event
-        return mWorkspace.getVariableNameManager().remove(variable);
+        return mWorkspace.getVariableNameManager().remove(variable) != null;
     }
 
     /**
@@ -1226,10 +1226,11 @@ public class BlocklyController {
         VariableInfo oldVarInfo = mWorkspace.getVariableInfo(variable);
         if (oldVarInfo != null) {
             ProcedureManager procedureManager = mWorkspace.getProcedureManager();
-            int procCount = oldVarInfo.getCountOfProceduresUsages();
+            List<String> procedures = oldVarInfo.getProcedureNames();
+            int procCount = procedures.size();
             ArrayList<String> newArgs = new ArrayList<>();
             for (int i = 0; i < procCount; ++i) {
-                String procName = oldVarInfo.getProcedureName(i);
+                String procName = procedures.get(i);
                 Block definition = procedureManager.getDefinitionBlock(procName);
                 ProcedureInfo oldProcInfo =
                         ((AbstractProcedureMutator) definition.getMutator()).getProcedureInfo();
@@ -1947,7 +1948,7 @@ public class BlocklyController {
          * set of all known blocks, but will not appear in the user's toolbox unless they are also
          * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
          * <p/>
-         * The resource must be a json file in the raw directory. If the file contains blocks that
+         * The resource must be a json file in the raw directory. If the file hasName blocks that
          * were previously defined they will be overridden.
          * <p/>
          * A duplicate block is any block with the same {@link Block#getType() type}.
@@ -1965,7 +1966,7 @@ public class BlocklyController {
          * set of all known blocks, but will not appear in the user's toolbox unless they are also
          * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
          * <p/>
-         * The asset name must be a path to a file in the assets directory. If the file contains
+         * The asset name must be a path to a file in the assets directory. If the file hasName
          * blocks that were previously defined, they will be overridden. A duplicate block is any
          * block with the same {@link Block#getType() type}.
          *

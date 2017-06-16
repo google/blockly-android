@@ -73,7 +73,7 @@ public class NameManagerTest {
 
     @Test
     public void testGenerateVariableName() {
-        NameManager.VariableNameManager nameManager = new NameManager.VariableNameManager();
+        VariableNameManager nameManager = new VariableNameManager();
         assertThat(nameManager.generateVariableName(false /* addName */)).isEqualTo("i");
         assertThat(nameManager.generateVariableName(true /* addName */)).isEqualTo("i");
         assertThat(nameManager.generateVariableName(true /* addName */)).isEqualTo("j");
@@ -93,9 +93,9 @@ public class NameManagerTest {
     @Test
     public void testRemove() {
         mNameManager.addName("foo");
-        assertThat(mNameManager.contains("FOO")).isTrue();
+        assertThat(mNameManager.hasName("FOO")).isTrue();
         mNameManager.remove("Foo");
-        assertThat(mNameManager.contains("foo")).isFalse();
+        assertThat(mNameManager.hasName("foo")).isFalse();
         // Remove something that wasn't there; expect no problems.
         mNameManager.remove("foo");
     }

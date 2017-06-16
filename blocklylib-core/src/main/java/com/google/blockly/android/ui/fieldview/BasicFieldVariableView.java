@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import com.google.blockly.android.R;
 import com.google.blockly.android.control.NameManager;
+import com.google.blockly.android.control.VariableNameManager;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 
@@ -180,7 +181,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
 
     /**
      * An implementation of {@link ArrayAdapter} that wraps the
-     * {@link NameManager.VariableNameManager} to create the variable item views.
+     * {@link VariableNameManager} to create the variable item views.
      */
     public static class VariableViewAdapter extends ArrayAdapter<String> {
         @Retention(RetentionPolicy.SOURCE)

@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.control.NameManager;
+import com.google.blockly.android.control.VariableNameManager;
 import com.google.blockly.model.FieldVariable;
 
 import org.junit.Before;
@@ -41,7 +42,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
 
         mFieldVariable = new FieldVariable("field", "var2");
 
-        mNameManager = new NameManager.VariableNameManager();
+        mNameManager = new VariableNameManager();
         mNameManager.addName("var1");
         mNameManager.addName(mFieldVariable.getVariable());
         mNameManager.addName("var3");

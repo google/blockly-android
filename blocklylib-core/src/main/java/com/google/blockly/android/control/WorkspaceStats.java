@@ -16,6 +16,7 @@
 package com.google.blockly.android.control;
 
 import android.support.annotation.Nullable;
+import android.support.v4.util.ArraySet;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.model.Block;
@@ -39,9 +40,7 @@ import java.util.Set;
  */
 public class WorkspaceStats {
     // Maps from variable/procedure names to the blocks/fields where they are referenced.
-    private final SimpleArrayMap<String, VariableInfoImpl> mVariableInfoMap =
-            new SimpleArrayMap<>();
-    private final NameManager mVariableNameManager;
+    private final VariableNameManager mVariableNameManager;
     private final ProcedureManager mProcedureManager;
     private final ConnectionManager mConnectionManager;
 
@@ -94,9 +93,10 @@ public class WorkspaceStats {
             String oldName = oldInfo.getProcedureName();
             String newName = newInfo.getProcedureName();
             if (!newName.equals(oldName)) {
-                int varCount = mVariableInfoMap.size();
+                int varCount = mVariableNameManager.size();
                 for (int i = 0; i < varCount; ++i) {
-                    VariableInfoImpl varInfo = mVariableInfoMap.valueAt(i);
+                    VariableInfoImpl varInfo =
+                            (VariableInfoImpl) mVariableNameManager.entryAt(i).mValue;
                     if (varInfo.removeProcedure(oldName)) {
                         varInfo.addProcedure(newName);
                     }
@@ -106,19 +106,18 @@ public class WorkspaceStats {
 
         @Override
         public void onClear() {
-            int varCount = mVariableInfoMap.size();
+            int varCount = mVariableNameManager.size();
             for (int i = 0; i < varCount; ++i) {
-                VariableInfoImpl varInfo = mVariableInfoMap.valueAt(i);
-                varInfo.mProcedures = null;
+                ((VariableInfoImpl) mVariableNameManager.entryAt(i).mValue).mProcedures = null;
             }
         }
     };
 
     private final List<Connection> mTempConnecitons = new ArrayList<>();
 
-    public WorkspaceStats(NameManager variableManager, ProcedureManager procedureManager,
+    public WorkspaceStats(ProcedureManager procedureManager,
                           ConnectionManager connectionManager) {
-        mVariableNameManager = variableManager;
+        mVariableNameManager = new VariableNameManagerImpl();
         mProcedureManager = procedureManager;
         mConnectionManager = connectionManager;
 
@@ -126,7 +125,7 @@ public class WorkspaceStats {
         mProcedureManager.registerObserver(mProcedureObserver);
     }
 
-    public NameManager getVariableNameManager() {
+    public NameManager<VariableInfo> getVariableNameManager() {
         return mVariableNameManager;
     }
 
@@ -188,7 +187,6 @@ public class WorkspaceStats {
      */
     public void clear() {
         mProcedureManager.clear();
-        mVariableInfoMap.clear();
         mVariableNameManager.clear();
         mConnectionManager.clear();
     }
@@ -284,12 +282,10 @@ public class WorkspaceStats {
     }
 
     private VariableInfoImpl getVarInfoImpl(String varName, boolean create) {
-        String canonical = mVariableNameManager.makeCanonical(varName);
-        VariableInfoImpl varInfo = mVariableInfoMap.get(varName);
+        VariableInfoImpl varInfo = (VariableInfoImpl) mVariableNameManager.getValueOf(varName);
         if (varInfo == null && create) {
-            varInfo = new VariableInfoImpl(canonical, varName);
-            mVariableInfoMap.put(canonical, varInfo);
-            mVariableNameManager.addName(varName);
+            varInfo = new VariableInfoImpl(varName);
+            mVariableNameManager.put(varName, varInfo);
         }
         return varInfo;
     }
@@ -302,12 +298,12 @@ public class WorkspaceStats {
      */
     @Nullable
     public String addVariable(String requestedName, boolean allowRename) {
-        String finalName = mVariableNameManager.generateUniqueName(requestedName, allowRename);
-        if (finalName != null) {
-            String canonical = mVariableNameManager.makeCanonical(finalName);
-            mVariableInfoMap.put(canonical, new VariableInfoImpl(canonical, finalName));
+        String finalName = mVariableNameManager.generateUniqueName(requestedName);
+        if (requestedName.equals(finalName) || allowRename) {
+            mVariableNameManager.put(finalName, new VariableInfoImpl(finalName));
+            return finalName;
         }
-        return finalName;
+        return null;  // Name already in use, and no renames allowed.
     }
 
     private class VariableInfoImpl implements VariableInfo {
@@ -318,26 +314,22 @@ public class WorkspaceStats {
         /** FieldVariables that are set to the variable. */
         ArrayList<WeakReference<FieldVariable>> mFields = null;
         /** Procedures that use the variable as an argument. */
-        SimpleArraySet<String> mProcedures = null;
+        ArrayList<String> mProcedures = null;
 
-        private VariableInfoImpl(String canonicalName, String displayName) {
-            mCanonicalName = canonicalName;
+        private VariableInfoImpl(String displayName) {
             mDisplayName = displayName;
+            mCanonicalName = mVariableNameManager.makeCanonical(displayName);
         }
 
         @Override
         public int getUsageCount() {
-            return (mFields == null ? 0 : mFields.size()) + getCountOfProceduresUsages();
+            return (mFields == null ? 0 : mFields.size())
+                    + (mProcedures == null ? 0 : mProcedures.size());
         }
 
         @Override
-        public int getCountOfProceduresUsages() {
-            return mProcedures == null ? 0 : mProcedures.size();
-        }
-
-        @Override
-        public String getProcedureName(int i) {
-            return mProcedures.getAt(i);
+        public List<String> getProcedureNames() {
+            return Collections.unmodifiableList(mProcedures);
         }
 
         void addField(FieldVariable newField) {
@@ -392,7 +384,7 @@ public class WorkspaceStats {
 
         void addProcedure(String procedureName) {
             if (mProcedures == null) {
-                mProcedures = new SimpleArraySet<>();
+                mProcedures = new ArrayList<>();
             }
             mProcedures.add(procedureName);
         }
@@ -431,6 +423,47 @@ public class WorkspaceStats {
                 ++i;
             }
             return fields;
+        }
+    }
+
+    /**
+     * The NameManager for variable names.
+     */
+    public class VariableNameManagerImpl extends NameManager<VariableInfo> {
+        private static final String LETTERS = "ijkmnopqrstuvwxyzabcdefgh"; // no 'l', start at i.
+
+        /**
+         * Return a new variable name that is not yet being used. This will try to
+         * generate single letter variable names in the range 'i' to 'z' to start with.
+         * If no unique name is located it will try 'i' to 'z', 'a' to 'h',
+         * then 'i2' to 'z2' etc.  Skip 'l'.
+         *
+         * @return New variable name.
+         */
+        public String generateVariableName() {
+            String newName;
+            int suffix = 1;
+            while (true) {
+                for (int i = 0; i < LETTERS.length(); i++) {
+                    newName = Character.toString(LETTERS.charAt(i));
+                    if (suffix > 1) {
+                        newName += suffix;
+                    }
+                    String canonical = makeCanonical(newName);  // In case override by subclass.
+
+                    // TODO: Compare against reserved words, as well
+                    if (!mCanonicalMap.containsKey(canonical)) {
+                        return newName;
+                    }
+                }
+                suffix++;
+            }
+        }
+
+        public void addProcedureArg(String argName, String newProcedureName) {
+            VariableInfo entry = getValueOf(argName);
+            if (entry == null) {
+            }
         }
     }
 }

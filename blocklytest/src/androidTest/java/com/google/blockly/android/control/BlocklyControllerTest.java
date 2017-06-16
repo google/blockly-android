@@ -1352,8 +1352,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
-                NameManager.VariableNameManager nameManager =
-                        (NameManager.VariableNameManager) mController.getWorkspace()
+                VariableNameManager nameManager =
+                        (VariableNameManager) mController.getWorkspace()
                                 .getVariableNameManager();
 
                 assertThat(mVariableCallback.onCreateVariable).isNull();
@@ -1368,14 +1368,14 @@ public class BlocklyControllerTest extends BlocklyTestCase {
                 mVariableCallback.onCreateVariable = null;
                 mController.addVariable("var1");
                 assertThat(mVariableCallback.onCreateVariable).isNull();
-                assertThat(nameManager.contains("var1")).isTrue();
+                assertThat(nameManager.hasName("var1")).isTrue();
 
                 // Calling requestAddVariable and the callback allows creation
                 mVariableCallback.reset();
                 mVariableCallback.whenOnCreateCalled = true;
                 mController.requestAddVariable("var2");
                 assertThat(mVariableCallback.onCreateVariable).isEqualTo("var2");
-                assertThat(nameManager.contains("var2")).isTrue();
+                assertThat(nameManager.hasName("var2")).isTrue();
             }
         });
     }
@@ -1385,8 +1385,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
-                NameManager.VariableNameManager nameManager =
-                        (NameManager.VariableNameManager) mController.getWorkspace()
+                VariableNameManager nameManager =
+                        (VariableNameManager) mController.getWorkspace()
                                 .getVariableNameManager();
                 mController.addVariable("var1");
                 mController.addVariable("var2");
@@ -1395,22 +1395,22 @@ public class BlocklyControllerTest extends BlocklyTestCase {
                 mVariableCallback.whenOnRenameCalled = false;
                 mController.requestRenameVariable("var1", "var3");
                 assertThat(mVariableCallback.onRenameVariable).isEqualTo("var1");
-                assertThat(nameManager.contains("var3")).isFalse();
-                assertThat(nameManager.contains("var1")).isTrue();
+                assertThat(nameManager.hasName("var3")).isFalse();
+                assertThat(nameManager.hasName("var1")).isTrue();
 
                 // Calling rename with forcing skips the callback
                 mVariableCallback.onRenameVariable = null;
                 mController.renameVariable("var1", "var3");
                 assertThat(mVariableCallback.onRenameVariable).isNull();
-                assertThat(nameManager.contains("var3")).isTrue();
-                assertThat(nameManager.contains("var1")).isFalse();
+                assertThat(nameManager.hasName("var3")).isTrue();
+                assertThat(nameManager.hasName("var1")).isFalse();
 
                 // Calling rename without forcing and the callback allows it
                 mVariableCallback.whenOnRenameCalled = true;
                 mController.requestRenameVariable("var2", "var4");
                 assertThat(mVariableCallback.onRenameVariable).isEqualTo("var2");
-                assertThat(nameManager.contains("var4")).isTrue();
-                assertThat(nameManager.contains("var2")).isFalse();
+                assertThat(nameManager.hasName("var4")).isTrue();
+                assertThat(nameManager.hasName("var2")).isFalse();
 
                 // Verify that we have two variables still
                 assertThat(nameManager.size()).isEqualTo(2);
@@ -1423,8 +1423,8 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         runAndSync(new Runnable() {
             @Override
             public void run() {
-                NameManager.VariableNameManager nameManager =
-                        (NameManager.VariableNameManager) mController.getWorkspace()
+                VariableNameManager nameManager =
+                        (VariableNameManager) mController.getWorkspace()
                                 .getVariableNameManager();
                 mController.addVariable("var3");
                 mController.addVariable("var4");
@@ -1433,19 +1433,19 @@ public class BlocklyControllerTest extends BlocklyTestCase {
                 mVariableCallback.whenOnDeleteCalled = false;
                 mController.requestDeleteVariable("var3");
                 assertThat(mVariableCallback.onDeleteVariable).isEqualTo("var3");
-                assertThat(nameManager.contains("var3")).isTrue();
+                assertThat(nameManager.hasName("var3")).isTrue();
 
                 // Calling delete with forcing skips callback
                 mVariableCallback.onDeleteVariable = null;
                 mController.deleteVariable("var3");
                 assertThat(mVariableCallback.onDeleteVariable).isNull();
-                assertThat(nameManager.contains("var3")).isFalse();
+                assertThat(nameManager.hasName("var3")).isFalse();
 
                 // Calling delete without forcing and callback allows it
                 mVariableCallback.whenOnDeleteCalled = true;
                 mController.requestDeleteVariable("var4");
                 assertThat(mVariableCallback.onDeleteVariable).isEqualTo("var4");
-                assertThat(nameManager.contains("var4")).isFalse();
+                assertThat(nameManager.hasName("var4")).isFalse();
 
                 // Verify that we have no variables left
                 assertThat(nameManager.size()).isEqualTo(0);
