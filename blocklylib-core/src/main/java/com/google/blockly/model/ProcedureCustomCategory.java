@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model;
 
+import android.support.v4.util.SimpleArrayMap;
 import android.util.Log;
 
 import com.google.blockly.android.R;
@@ -25,11 +26,11 @@ import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
 
 /**
  * Class for building {@link BlocklyCategory categories} for procedure blocks (user-defined
@@ -102,7 +103,7 @@ public class ProcedureCustomCategory implements CustomCategory {
             }
 
             @Override
-            public void onProcedureBlocksRemoved(String procedureName, List<Block> blocks) {
+            public void onProcedureBlocksRemoved(String procedureName, Set<Block> blocks) {
                 BlocklyCategory category = catRef.get();
                 if (checkCategory(category)) {
                     rebuildItemsSafely(category);
@@ -179,8 +180,13 @@ public class ProcedureCustomCategory implements CustomCategory {
         }
 
         // Create a call block for each definition.
-        final Map<String, Block> definitions = mProcedureManager.getDefinitionBlocks();
-        SortedSet<String> sortedProcNames = new TreeSet<>(new Comparator<String>() {
+        final SimpleArrayMap<String, Block> definitions = mProcedureManager.getDefinitionBlocks();
+        final int count = definitions.size();
+        List<String> procNames = new ArrayList<>(count);
+        for (int i = 0; i < count; ++i) {
+            procNames.add(definitions.keyAt(i));
+        }
+        Collections.sort(procNames, new Comparator<String>() {
             @Override
             public int compare(String procName1, String procName2) {
                 Block def1 = definitions.get(procName1);
@@ -201,8 +207,7 @@ public class ProcedureCustomCategory implements CustomCategory {
                 return def1.getId().compareTo(def2.getId()); // Last resort, by block id
             }
         });
-        sortedProcNames.addAll(definitions.keySet());
-        for (String procName : sortedProcNames) {
+        for (String procName : procNames) {
             Block defBlock = definitions.get(procName);
             ProcedureInfo procedureInfo = ((AbstractProcedureMutator) defBlock.getMutator())
                     .getProcedureInfo();

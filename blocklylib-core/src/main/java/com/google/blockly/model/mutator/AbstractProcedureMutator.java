@@ -69,7 +69,7 @@ public abstract class AbstractProcedureMutator<Info extends ProcedureInfo> exten
      */
     final public void setProcedureName(@NonNull String newProcedureName) {
         String oldName = getProcedureName();
-        if (mProcedureManager.getDefinitionBlocks().get(oldName) == mBlock) {
+        if (mProcedureManager.containsDefinition(mBlock)) {
             throw new IllegalStateException(
                     "Rename procedure managed by the ProcedureManager "
                             + "using ProcedureManager.mutateProcedure(..).");

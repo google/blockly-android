@@ -32,6 +32,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Tracks information about the Workspace that we want fast access to.
@@ -71,7 +72,7 @@ public class WorkspaceStats {
         }
 
         @Override
-        public void onProcedureBlocksRemoved(String procedureName, List<Block> blocks) {
+        public void onProcedureBlocksRemoved(String procedureName, Set<Block> blocks) {
             for (Block block : blocks) {
                 List<String> args = mProcedureManager.getProcedureArguments(block);
                 if (args != null) {

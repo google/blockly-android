@@ -1230,7 +1230,7 @@ public class BlocklyController {
             ArrayList<String> newArgs = new ArrayList<>();
             for (int i = 0; i < procCount; ++i) {
                 String procName = oldVarInfo.getProcedureName(i);
-                Block definition = procedureManager.getDefinitionBlocks().get(procName);
+                Block definition = procedureManager.getDefinitionBlock(procName);
                 ProcedureInfo oldProcInfo =
                         ((AbstractProcedureMutator) definition.getMutator()).getProcedureInfo();
                 List<String> oldArgs = oldProcInfo.getArgumentNames();

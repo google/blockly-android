@@ -15,7 +15,6 @@
 package com.google.blockly.model.mutator;
 
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ProcedureManager;

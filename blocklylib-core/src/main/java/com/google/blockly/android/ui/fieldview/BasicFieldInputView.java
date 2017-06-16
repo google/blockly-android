@@ -16,6 +16,7 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -44,6 +45,7 @@ public class BasicFieldInputView extends AppCompatEditText implements FieldView 
         @Override
         public void afterTextChanged(Editable s) {
             if (mInputField != null) {
+                if (mInputField.getBlock() != null) { Log.d(TAG, "Block "+Integer.toHexString(mInputField.getBlock().hashCode()) + ": New input view text: " + s); }
                 mInputField.setText(s.toString());
             }
         }
@@ -56,7 +58,7 @@ public class BasicFieldInputView extends AppCompatEditText implements FieldView 
                 Log.w(TAG, "Received text change from unexpected field.");
                 return;
             }
-            if (!TextUtils.equals(newValue, getText())) {
+            if (!isFocused() && !TextUtils.equals(newValue, getText())) {
                 setText(newValue);
             }
         }
@@ -140,5 +142,13 @@ public class BasicFieldInputView extends AppCompatEditText implements FieldView 
     public boolean performClick() {
         Log.d(TAG, "performClick()");
         return super.performClick();
+    }
+
+    @Override
+    protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
+        super.onFocusChanged(focused, direction, previouslyFocusedRect);
+        if (!focused && mInputField != null) {
+            setText(mInputField.getText());
+        }
     }
 }
