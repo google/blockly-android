@@ -18,6 +18,7 @@ package com.google.blockly.android.control;
 import android.database.Observable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.util.ArraySet;
 import android.support.v4.util.SimpleArrayMap;
@@ -85,7 +86,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
 
     private class ProcedureBlocks {
         String mName;
-        Block mDefinition;
+        final Block mDefinition;
         final ArraySet<Block> mReferences = new ArraySet<>();
 
         /**
@@ -178,8 +179,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * {@link ProcedureInfo}. Otherwise, it returns null.
      *
      * @param block The block queried.
-     * @return The list of argument for defined or referenced by this block, if it is a procedure
-     *         block. Otherwise null;
+     * @return The ProcedureInfo with the procedure name and list of arguments defined or referenced
+     *         by this block, if it is a procedure block. Otherwise null.
      */
     public static @Nullable ProcedureInfo getProcedureInfo(Block block) {
         Mutator mutator = block.getMutator();
@@ -228,7 +229,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     /**
      * Queries whether a procedure block contains a matching registered definition block. Similiar
      * to {@link #isProcedureDefined(String)}, except it takes in a procedure block. If the block is
-     * a procedure definition, if ensure the block is the same registered definition block.
+     * a procedure definition, it ensures the block is the same registered definition block.
      *
      * @param procedureBlock A block for the procedure in question, either definition or reference.
      * @return True if the block is the registered definition block for the procedure, or it is a
@@ -274,6 +275,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * @throws IllegalArgumentException If {@code procedureBlock} does not contain a procedure
      *         definition or reference mutator.
      */
+    @VisibleForTesting
     public boolean isReferenceRegistered(Block procedureRefBlock) {
         String procedureName = getProcedureNameOrFail(procedureRefBlock);
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
@@ -320,7 +322,6 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                             + "\n\tReference block: " + procedureReferenceBlock);
         }
         validateProcedureBlocksMatch(procBlocks.mDefinition, procedureReferenceBlock, false);
-        // TODO: validate definition & reference ProcedureInfo match
         procBlocks.mReferences.add(procedureReferenceBlock);
     }
 
