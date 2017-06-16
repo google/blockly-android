@@ -50,7 +50,6 @@ public final class SimpleArraySet<E> {
         return mMap.put(e, e) == null;
     }
 
-
     public E getAt(int i) {
         return mMap.keyAt(i);
     }
