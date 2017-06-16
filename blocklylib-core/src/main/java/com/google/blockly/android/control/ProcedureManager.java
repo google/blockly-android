@@ -317,9 +317,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
         if (procBlocks == null) {
             throw new BlockLoadingException(
-                    "Tried to add a reference to procedure \"" + procedureName
-                            + "\" that has not been defined."
-                            + "\n\tReference block: " + procedureReferenceBlock);
+                    "Tried to add a reference to procedure \"" + procedureName + "\" that has not "
+                    + "been defined.\n\tReference block: " + procedureReferenceBlock);
         }
         validateProcedureBlocksMatch(procBlocks.mDefinition, procedureReferenceBlock, false);
         procBlocks.mReferences.add(procedureReferenceBlock);
