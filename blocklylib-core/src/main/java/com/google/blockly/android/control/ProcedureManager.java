@@ -276,7 +276,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      *         definition or reference mutator.
      */
     @VisibleForTesting
-    public boolean isReferenceRegistered(Block procedureRefBlock) {
+    boolean isReferenceRegistered(Block procedureRefBlock) {
         String procedureName = getProcedureNameOrFail(procedureRefBlock);
         String canonical = mProcedureNameManager.makeCanonical(procedureName);
         ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
@@ -413,11 +413,6 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         ProcedureBlocks procBlocks = mProcedureBlocks.get(canonical);
         boolean found = procBlocks != null && procBlocks.mReferences.remove(referenceBlock);
         if (found) {
-            if (referenceBlock.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
-                --mCountOfDefinitionsWithReturn;
-                assert (mCountOfDefinitionsWithReturn >= 0);
-            }
-
             if (!mObservers.isEmpty()) {
                 Set<Block> references = Collections.singleton(referenceBlock);
                 int obsCount = mObservers.size();
@@ -435,20 +430,23 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
      * block.
      *
      * @param definitionBlock A block containing the definition of the procedure to add.
+     * @return The name of the added procedure, possibly modified from the input definition in the
+     *         case of a naming conflict.
      * @throws IllegalArgumentException If the block is not a procedure definition.
      */
-    public void addDefinition(Block definitionBlock) {
+    public String addDefinition(Block definitionBlock) {
         Log.d(TAG, "addDefinition " + getProcedureName(definitionBlock) + " block "
                 + Integer.toHexString(definitionBlock.hashCode()));
 
         if (!isDefinition(definitionBlock)) {
-            throw new IllegalArgumentException("Block is not a procedure definition: " + definitionBlock);
+            throw new IllegalArgumentException(
+                    "Block is not a procedure definition: " + definitionBlock);
         }
         String procedureName = getProcedureNameOrFail(definitionBlock);
         String canonicalProcName = mProcedureNameManager.makeCanonical(procedureName);
         ProcedureBlocks procBlocks = mProcedureBlocks.get(canonicalProcName);
         if (procBlocks != null && procBlocks.mDefinition == definitionBlock) {
-            return;  // Nothing to do.
+            return procedureName;  // Already registered. Nothing to do.
         }
         if (procBlocks != null || mProcedureNameManager.contains(procedureName)) {
             procedureName = mProcedureNameManager.generateUniqueName(procedureName, false);
@@ -458,10 +456,15 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         mProcedureNameManager.addName(canonicalProcName);
         mProcedureBlocks.put(canonicalProcName, new ProcedureBlocks(definitionBlock));
 
+        if (definitionBlock.getType().equals(DEFINE_WITH_RETURN_BLOCK_TYPE)) {
+            ++mCountOfDefinitionsWithReturn;
+        }
+
         int obsCount = mObservers.size();
         for (int i = 0; i < obsCount; ++i) {
             mObservers.get(i).onProcedureBlockAdded(procedureName, definitionBlock);
         }
+        return procedureName;
     }
 
     /**
@@ -515,6 +518,10 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
             throw new AssertionError("Failed to find & remove canonical procedure name.");
         }
 
+        if (procBlocks.mDefinition.getType().equals(DEFINE_WITH_RETURN_BLOCK_TYPE)) {
+            --mCountOfDefinitionsWithReturn;
+        }
+
         ArraySet<Block> blocks = procBlocks.mReferences;
         blocks.add(procBlocks.mDefinition);
         Set<Block> resultBlocks = Collections.unmodifiableSet(blocks);
@@ -560,7 +567,11 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         Log.d(TAG, "Definition "+Integer.toHexString(definition.hashCode())+"\n\tnewProcedureNameRequested = " + newProcedureNameRequested);
         final boolean isFuncRename = !originalProcedureName.equals(newProcedureNameRequested);
         Log.d(TAG, "\tisFuncRename = " + isFuncRename);
-        final String newProcedureName = !isFuncRename ? originalProcedureName
+        final boolean isFuncRemap =
+                isFuncRename && !originalCanonical.equals(
+                        mProcedureNameManager.makeCanonical(newProcedureNameRequested));
+        Log.d(TAG, "\tisFuncRemap = " + isFuncRemap);
+        final String newProcedureName = !isFuncRemap ? newProcedureNameRequested
                 : mProcedureNameManager.generateUniqueName(newProcedureNameRequested, true);
         Log.d(TAG, "\tActual newProcedureName = " + newProcedureName);
         final String newCanonicalName = !isFuncRename ? originalCanonical
@@ -592,13 +603,15 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
 
                 definitionMutator.mutate(updatedProcedureInfoFinal);
                 if (isFuncRename) {
-                    mProcedureNameManager.remove(originalCanonical);
-                    mProcedureBlocks.remove(originalCanonical);
-
+                    if (isFuncRemap) {
+                        mProcedureNameManager.remove(originalCanonical);
+                        mProcedureBlocks.remove(originalCanonical);
+                    }
                     procBlocks.mName = newProcedureName;
-
-                    mProcedureNameManager.addName(newCanonicalName);
-                    mProcedureBlocks.put(newCanonicalName, procBlocks);
+                    if (isFuncRemap) {
+                        mProcedureNameManager.addName(newCanonicalName);
+                        mProcedureBlocks.put(newCanonicalName, procBlocks);
+                    }
                 }
 
                 // Mutate each procedure call
