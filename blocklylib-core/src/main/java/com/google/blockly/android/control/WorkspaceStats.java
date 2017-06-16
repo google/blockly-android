@@ -17,7 +17,6 @@ package com.google.blockly.android.control;
 
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArraySet;
-import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Connection;
@@ -27,7 +26,6 @@ import com.google.blockly.model.Input;
 import com.google.blockly.model.ProcedureInfo;
 import com.google.blockly.model.VariableInfo;
 import com.google.blockly.utils.BlockLoadingException;
-import com.google.blockly.utils.SimpleArraySet;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -125,7 +123,7 @@ public class WorkspaceStats {
         mProcedureManager.registerObserver(mProcedureObserver);
     }
 
-    public NameManager<VariableInfo> getVariableNameManager() {
+    public VariableNameManager getVariableNameManager() {
         return mVariableNameManager;
     }
 
@@ -314,7 +312,7 @@ public class WorkspaceStats {
         /** FieldVariables that are set to the variable. */
         ArrayList<WeakReference<FieldVariable>> mFields = null;
         /** Procedures that use the variable as an argument. */
-        ArrayList<String> mProcedures = null;
+        ArraySet<String> mProcedures = null;
 
         private VariableInfoImpl(String displayName) {
             mDisplayName = displayName;
@@ -328,8 +326,8 @@ public class WorkspaceStats {
         }
 
         @Override
-        public List<String> getProcedureNames() {
-            return Collections.unmodifiableList(mProcedures);
+        public ArraySet<String> getProcedureNames() {
+            return new ArraySet<>(mProcedures);
         }
 
         void addField(FieldVariable newField) {
@@ -384,7 +382,7 @@ public class WorkspaceStats {
 
         void addProcedure(String procedureName) {
             if (mProcedures == null) {
-                mProcedures = new ArrayList<>();
+                mProcedures = new ArraySet<>();
             }
             mProcedures.add(procedureName);
         }
@@ -405,22 +403,24 @@ public class WorkspaceStats {
         }
 
         @Override
-        public List<FieldVariable> getFields() {
+        public ArraySet<FieldVariable> getFields() {
             if (mFields == null) {
-                return Collections.emptyList();
+                return new ArraySet<>(0);
             }
             int count = mFields.size();
-            ArrayList<FieldVariable> fields = new ArrayList<>(mFields.size());
+            ArraySet<FieldVariable> fields = new ArraySet<>(mFields.size());
+
             int i = 0;
             while (i < count) {
                 FieldVariable field = mFields.get(i).get();
                 if (field == null) {
                     mFields.remove(i);
                     --count;
-                    continue;  // Don't increment i
+                    // Don't increment i
+                } else {
+                    fields.add(field);
+                    ++i;
                 }
-                fields.add(field);
-                ++i;
             }
             return fields;
         }
@@ -429,40 +429,36 @@ public class WorkspaceStats {
     /**
      * The NameManager for variable names.
      */
-    public class VariableNameManagerImpl extends NameManager<VariableInfo> {
-        private static final String LETTERS = "ijkmnopqrstuvwxyzabcdefgh"; // no 'l', start at i.
-
-        /**
-         * Return a new variable name that is not yet being used. This will try to
-         * generate single letter variable names in the range 'i' to 'z' to start with.
-         * If no unique name is located it will try 'i' to 'z', 'a' to 'h',
-         * then 'i2' to 'z2' etc.  Skip 'l'.
-         *
-         * @return New variable name.
-         */
-        public String generateVariableName() {
-            String newName;
-            int suffix = 1;
-            while (true) {
-                for (int i = 0; i < LETTERS.length(); i++) {
-                    newName = Character.toString(LETTERS.charAt(i));
-                    if (suffix > 1) {
-                        newName += suffix;
-                    }
-                    String canonical = makeCanonical(newName);  // In case override by subclass.
-
-                    // TODO: Compare against reserved words, as well
-                    if (!mCanonicalMap.containsKey(canonical)) {
-                        return newName;
-                    }
-                }
-                suffix++;
+    public class VariableNameManagerImpl extends VariableNameManager<VariableInfoImpl> {
+        @Override
+        public boolean addVariable(String variableName) {
+            String canonical = makeCanonical(variableName);
+            NameEntry<VariableInfoImpl> entry = mCanonicalMap.get(canonical);
+            if (entry == null) {
+                entry = new NameEntry<>(variableName, new VariableInfoImpl(variableName));
+                mCanonicalMap. put(canonical, entry);
+                return true;
+            } else {
+                return false;
             }
         }
 
-        public void addProcedureArg(String argName, String newProcedureName) {
-            VariableInfo entry = getValueOf(argName);
+        public boolean addProcedureArg(String argName, String procedureName) {
+            String canonical = makeCanonical(argName);
+            NameEntry<VariableInfoImpl> entry = mCanonicalMap.get(canonical);
             if (entry == null) {
+                entry = new NameEntry<>(argName, new VariableInfoImpl(argName));
+                mCanonicalMap. put(canonical, entry);
+            }
+            if (entry.mValue.mProcedures == null) {
+                entry.mValue.mProcedures = new ArraySet<>();
+            }
+            if (!entry.mValue.mProcedures.contains(procedureName)) {
+                entry.mValue.mProcedures.add(procedureName);
+                notifyChanged();
+                return true;
+            } else {
+                return false;
             }
         }
     }

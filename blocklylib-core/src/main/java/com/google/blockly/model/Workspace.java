@@ -49,7 +49,7 @@ public class Workspace {
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
     private final ProcedureManager mProcedureManager;
-    private final NameManager<VariableInfo> mVariableNameManager;
+    private final VariableNameManager mVariableNameManager;
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats mStats;
 

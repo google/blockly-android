@@ -191,7 +191,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
         public static final int ACTION_RENAME_VARIABLE = 1;
         public static final int ACTION_DELETE_VARIABLE = 2;
 
-        private final NameManager mVariableNameManager;
+        private final VariableNameManager mVariableNameManager;
         private final SortedSet<String> mVars;
         private final String mRenameString;
         private final String mDeleteString;
@@ -201,7 +201,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
          * @param context A context for inflating layouts.
          * @param resource The {@link TextView} layout to use when inflating items.
          */
-        public VariableViewAdapter(Context context, NameManager variableNameManager,
+        public VariableViewAdapter(Context context, VariableNameManager variableNameManager,
                                    @LayoutRes int resource) {
             super(context, resource);
 
@@ -234,7 +234,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
                 // No match found.  Create it.
                 variableName = mVariableNameManager.makeValidName(
                         /* suggested */ variableName, /* fallback */ variableName);
-                mVariableNameManager.addName(variableName);
+                mVariableNameManager.addVariable(variableName);
                 int insertionIndex = getIndexForVarName(variableName);
 
                 notifyDataSetChanged();

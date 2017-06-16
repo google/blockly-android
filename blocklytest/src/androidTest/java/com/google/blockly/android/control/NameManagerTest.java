@@ -28,7 +28,7 @@ public class NameManagerTest {
 
     @Before
      public void setUp() throws Exception {
-        mNameManager = new NameManager.ProcedureNameManager();
+        mNameManager = new NameManager<Object>();
     }
 
     @Test

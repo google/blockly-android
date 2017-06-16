@@ -15,7 +15,9 @@
 
 package com.google.blockly.model;
 
-import java.util.List;
+import android.support.v4.util.ArraySet;
+
+import java.util.Set;
 
 /**
  * Metadata describing a variable in the Blockly Workspace.
@@ -34,10 +36,10 @@ public interface VariableInfo {
     /**
      * @return An immutable list of procedure names that use this variable as an argument.
      */
-    List<String> getProcedureNames();
+    ArraySet<String> getProcedureNames();
 
     /**
      * @return An immutable list of fields that refer to this variable.
      */
-    List<FieldVariable> getFields();
+    ArraySet<FieldVariable> getFields();
 }

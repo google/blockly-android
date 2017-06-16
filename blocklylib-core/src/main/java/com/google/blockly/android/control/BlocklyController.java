@@ -23,6 +23,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
+import android.support.v4.util.ArraySet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -1179,11 +1180,11 @@ public class BlocklyController {
                 }
             }
 
-            List<FieldVariable> fields = varInfo.getFields();
+            ArraySet<FieldVariable> fields = varInfo.getFields();
             mTempBlocks.clear(); // Visited / removed blocks (in case of block with multiple).
             int fieldCount = fields.size();
             for (int i = 0; i < fieldCount; ++i) {
-                Block block = fields.get(i).getBlock();
+                Block block = fields.valueAt(i).getBlock();
                 if (!mTempBlocks.contains(block)) {
                     removeBlockAndInputBlocksImpl(block);
                     mTempBlocks.add(block);
@@ -1226,11 +1227,11 @@ public class BlocklyController {
         VariableInfo oldVarInfo = mWorkspace.getVariableInfo(variable);
         if (oldVarInfo != null) {
             ProcedureManager procedureManager = mWorkspace.getProcedureManager();
-            List<String> procedures = oldVarInfo.getProcedureNames();
+            ArraySet<String> procedures = oldVarInfo.getProcedureNames();
             int procCount = procedures.size();
             ArrayList<String> newArgs = new ArrayList<>();
             for (int i = 0; i < procCount; ++i) {
-                String procName = procedures.get(i);
+                String procName = procedures.valueAt(i);
                 Block definition = procedureManager.getDefinitionBlock(procName);
                 ProcedureInfo oldProcInfo =
                         ((AbstractProcedureMutator) definition.getMutator()).getProcedureInfo();
@@ -1252,10 +1253,11 @@ public class BlocklyController {
                                 procName, newArgs, oldProcInfo.getDefinitionHasStatementBody()));
             }
 
-            List<FieldVariable> varRefs = oldVarInfo.getFields();
-            if (varRefs != null) {
-                for (FieldVariable field : varRefs) {
-                    field.setVariable(newVariable);
+            ArraySet<FieldVariable> varFields = oldVarInfo.getFields();
+            if (varFields != null) {
+                int count = varFields.size();
+                for (int i = 0; i < count; ++i) {
+                    FieldVariable field = varFields.valueAt(i);
                     BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
                             .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
                     addPendingEvent(change);
