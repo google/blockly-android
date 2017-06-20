@@ -92,23 +92,24 @@ public class NameManagerTest {
         VariableNameManager nameManager = new VariableNameManagerTestImpl();
 
         assertThat(nameManager.generateVariableName()).isEqualTo("i");
-        assertThat(nameManager.generateVariableName()).isEqualTo("i");
-        assertThat(nameManager.addVariable("i", false)).isTrue();
+        assertThat(nameManager.generateVariableName()).isEqualTo("i");  // Repeat b/c wasn't added
+        assertThat(nameManager.addVariable("i", false)).isEqualTo("i");
         assertThat(nameManager.generateVariableName()).isEqualTo("j");
-        assertThat(nameManager.addVariable("j", false)).isTrue();
+        assertThat(nameManager.addVariable("j", false)).isEqualTo("j");
         assertThat(nameManager.generateVariableName()).isEqualTo("k");
-        assertThat(nameManager.addVariable("k", false)).isTrue();
+        assertThat(nameManager.addVariable("k", false)).isEqualTo("k");
+        // Skip L
         assertThat(nameManager.generateVariableName()).isEqualTo("m");
-        assertThat(nameManager.addVariable("m", false)).isTrue();
+        assertThat(nameManager.addVariable("m", false)).isEqualTo("m");
 
         for (int i = 0; i < 21; i++) {
             String var = nameManager.generateVariableName();
-            assertThat(nameManager.addVariable(var, false)).isTrue();
+            assertThat(nameManager.addVariable(var, false)).isEqualTo(var);
         }
 
         assertThat(nameManager.generateVariableName()).isEqualTo("i2");
-        assertThat(nameManager.addVariable("i2", false)).isTrue();
-        assertThat(nameManager.addVariable("j2", false)).isTrue();
+        assertThat(nameManager.addVariable("i2", false)).isEqualTo("i2");
+        assertThat(nameManager.addVariable("j2", false)).isEqualTo("j2");
         assertThat(nameManager.generateVariableName()).isEqualTo("k2");
     }
 

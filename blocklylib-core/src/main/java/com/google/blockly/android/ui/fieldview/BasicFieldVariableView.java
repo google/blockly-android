@@ -233,7 +233,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
             } else {
                 // No match found.  Create it.
                 variableName = mVariableNameManager.generateUniqueName(variableName);
-                if (!mVariableNameManager.addVariable(variableName, false)) {
+                if (!mVariableNameManager.addVariable(variableName, false).equals(variableName)) {
                     throw new IllegalStateException("Failed to add with new unique name.");
                 }
                 int insertionIndex = getIndexForVarName(variableName);

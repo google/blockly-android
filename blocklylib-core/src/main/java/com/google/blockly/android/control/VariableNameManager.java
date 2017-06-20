@@ -46,21 +46,18 @@ public abstract class VariableNameManager<VI extends VariableInfo> extends NameM
      * @param allowRenaming Whether the variable name can be renamed.
      * @return The name that was added, if any. May be null if renaming is not allowed.
      */
-    public boolean addVariable(String requestedName, boolean allowRenaming) {
-        String canonical = makeCanonical(requestedName);
-        NameEntry<VI> entry = mCanonicalMap.get(canonical);
-        if (entry == null) {
-            entry = new NameEntry<>(requestedName, newVariableInfo(requestedName));
-            mCanonicalMap. put(canonical, entry);
-            mDisplayNamesSorted.add(requestedName);
-            return true;
+    public String addVariable(String requestedName, boolean allowRenaming) {
+        VI varInfo = getValueOf(requestedName);
+        if (varInfo == null) {
+            varInfo = newVariableInfo(requestedName);
+            put(requestedName, varInfo);
+            return requestedName;
         } else if (allowRenaming) {
             String altName = generateUniqueName(requestedName);
             put(altName, newVariableInfo(altName));
-            mDisplayNamesSorted.add(altName);
-            return true;
+            return altName;
         } else {
-            return false;
+            return null;
         }
     }
 
@@ -71,13 +68,19 @@ public abstract class VariableNameManager<VI extends VariableInfo> extends NameM
      * @param procedureName The name of the procedure that uses it.
      */
     public void addProcedureArg(String argName, String procedureName) {
-        String canonical = makeCanonical(argName);
-        NameEntry<VI> entry = mCanonicalMap.get(canonical);
-        if (entry == null) {
-            entry = new NameEntry<>(argName, newVariableInfo(argName));
-            mCanonicalMap.put(canonical, entry);
+        VI varInfo = getValueOf(argName);
+        if (varInfo == null) {
+            varInfo = newVariableInfo(argName);
+            put(argName, varInfo);
         }
-        markVariableAsProcedureArg(entry.mValue, procedureName);
+        markVariableAsProcedureArg(varInfo, procedureName);
+    }
+
+    public void removeProcedureArg(String varName, String procedureName) {
+        VI varInfo = getValueOf(varName);
+        if (varInfo != null) {
+            unmarkVariableAsProcedureArg(varInfo, procedureName);
+        }
     }
 
     protected abstract VI newVariableInfo(String name);
@@ -85,7 +88,14 @@ public abstract class VariableNameManager<VI extends VariableInfo> extends NameM
     /**
      *
      * @param varInfo
-     * @param procedureArg
+     * @param procedureName
      */
-    protected abstract void markVariableAsProcedureArg(VI varInfo, String procedureArg);
+    protected abstract void markVariableAsProcedureArg(VI varInfo, String procedureName);
+
+    /**
+     *
+     * @param varInfo
+     * @param procedureName
+     */
+    protected abstract void unmarkVariableAsProcedureArg(VI varInfo, String procedureName);
 }

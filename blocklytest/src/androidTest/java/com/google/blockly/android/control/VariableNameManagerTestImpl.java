@@ -22,6 +22,11 @@ public class VariableNameManagerTestImpl
         varInfo.mProcedureNames.add(procedureArg);
     }
 
+    @Override
+    protected void unmarkVariableAsProcedureArg(VariableInfoImpl varInfo, String procedureArg) {
+        varInfo.mProcedureNames.add(procedureArg);
+    }
+
     public static class VariableInfoImpl implements VariableInfo {
         String mDisplayName;
         ArraySet<String> mProcedureNames = new ArraySet<>();

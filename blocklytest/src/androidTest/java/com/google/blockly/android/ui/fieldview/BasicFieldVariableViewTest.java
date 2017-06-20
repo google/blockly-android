@@ -43,9 +43,11 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
         mFieldVariable = new FieldVariable("field", "var2");
 
         mNameManager = new VariableNameManagerTestImpl();
-        assertThat(mNameManager.addVariable("var1", false)).isTrue();
-        assertThat(mNameManager.addVariable(mFieldVariable.getVariable(), false)).isTrue();
-        assertThat(mNameManager.addVariable("var3", false)).isTrue();
+        assertThat(mNameManager.addVariable("var1", false)).isEqualTo("var1");
+
+        String fieldVarName = mFieldVariable.getVariable();
+        assertThat(mNameManager.addVariable(fieldVarName, false)).isEqualTo(fieldVarName);
+        assertThat(mNameManager.addVariable("var3", false)).isEqualTo("var3");
 
         mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(
                 getContext(), mNameManager, android.R.layout.simple_spinner_item);

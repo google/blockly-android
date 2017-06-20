@@ -445,7 +445,17 @@ public class WorkspaceStats {
             if (varInfo.mProcedures == null) {
                 varInfo.mProcedures = new ArraySet<>();
             }
-            varInfo.mProcedures.add(procedureArg);
+            varInfo.mProcedures.add(makeCanonical(procedureArg));
+        }
+
+        @Override
+        protected void unmarkVariableAsProcedureArg(VariableInfoImpl varInfo, String procedureArg) {
+            if (varInfo.mProcedures != null) {
+                varInfo.mProcedures.remove(makeCanonical(procedureArg));
+                if (varInfo.mProcedures.isEmpty()) {
+                    varInfo.mProcedures = null;
+                }
+            }
         }
     }
 }

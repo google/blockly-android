@@ -564,20 +564,29 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                         ? updatedProcedureInfo
                         : updatedProcedureInfo.cloneWithName(newProcedureName);
 
-        final List<String> newArgs = updatedProcedureInfoFinal.getArgumentNames();
-        final int newArgCount = newArgs.size();
+        final List<String> updatedArgList = updatedProcedureInfoFinal.getArgumentNames();
+        final int newArgCount = updatedArgList.size();
         for (int i = 0; i < newArgCount; ++i) {
-            String argName = newArgs.get(i);
+            String argName = updatedArgList.get(i);
             if (!varNameManager.isValidName(argName)) {
                 throw new IllegalArgumentException("Invalid variable name \"" + argName + "\" "
                         + "(argument #" + i + " )");
+            }
+        }
+        final List<String> originalArgList = oldProcInfo.getArgumentNames();
+        final boolean[] origArgRemapped = new boolean[originalArgList.size()];  // initial false
+        if (argIndexUpdates != null) {
+            int count = argIndexUpdates.size();
+            for (int i = 0; i < count; ++i) {
+                int origArgIndex = argIndexUpdates.get(i).before;
+                origArgRemapped[origArgIndex] = true;
             }
         }
 
         mController.groupAndFireEvents(new Runnable() {
             @Override
             public void run() {
-                for (String argName : newArgs) {
+                for (String argName : updatedArgList) {
                     varNameManager.addProcedureArg(argName, newProcedureName);
                 }
 
@@ -629,6 +638,14 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                     }
 
                     // TODO: Bump disconnected blocks. Needs a single param bump method.
+                }
+
+                // Unregister variables that are no longer procedure arguments
+                for (int i = 0; i < origArgRemapped.length; ++i) {
+                    if (!origArgRemapped[i]) {
+                        varNameManager.removeProcedureArg(
+                                originalArgList.get(i), originalProcedureName);
+                    }
                 }
             }
         });
