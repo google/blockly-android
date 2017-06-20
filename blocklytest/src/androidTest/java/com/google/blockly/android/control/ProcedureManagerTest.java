@@ -109,11 +109,11 @@ public class ProcedureManagerTest extends BlocklyTestCase {
 
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
-        Set<Block> references =
+        Set<Block> removedBlocks =
                 mProcedureManager.removeProcedure(mProcedureDefinition);
-        assertThat(references).isNotNull();
-        assertThat(references.size()).isEqualTo(2); // 1 definition and 1 caller
-        assertThat(references.iterator().next()).isEqualTo(mProcedureReference);
+        assertThat(removedBlocks).isNotNull();
+        assertThat(removedBlocks.size()).isEqualTo(2); // 1 definition and 1 caller
+        assertThat(removedBlocks.contains(mProcedureReference)).isTrue();
 
         assertThat(mProcedureManager.containsDefinition(mProcedureDefinition)).isFalse();
         assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isFalse();

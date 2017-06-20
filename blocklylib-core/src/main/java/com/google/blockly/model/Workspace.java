@@ -73,7 +73,7 @@ public class Workspace {
         mBlockFactory = factory;
         mId = UUID.randomUUID().toString();
 
-        mProcedureManager = new ProcedureManager(controller, this);
+        mProcedureManager = new ProcedureManager(controller);
         mStats = new WorkspaceStats(mProcedureManager, mConnectionManager);
         mVariableNameManager = mStats.getVariableNameManager();
     }

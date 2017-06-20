@@ -18,8 +18,8 @@ package com.google.blockly.android.ui.fieldview;
 import android.support.annotation.NonNull;
 
 import com.google.blockly.android.BlocklyTestCase;
-import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.control.VariableNameManager;
+import com.google.blockly.android.control.VariableNameManagerTestImpl;
 import com.google.blockly.model.FieldVariable;
 
 import org.junit.Before;
@@ -33,7 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class BasicFieldVariableViewTest extends BlocklyTestCase {
     private FieldVariable mFieldVariable;
     private String[] mVariables = new String[] {"var1", "var2", "var3"};
-    private NameManager mNameManager;
+    private VariableNameManager mNameManager;
     private BasicFieldVariableView.VariableViewAdapter mVariableAdapter;
 
     @Before
@@ -42,10 +42,10 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
 
         mFieldVariable = new FieldVariable("field", "var2");
 
-        mNameManager = new VariableNameManager();
-        mNameManager.addName("var1");
-        mNameManager.addName(mFieldVariable.getVariable());
-        mNameManager.addName("var3");
+        mNameManager = new VariableNameManagerTestImpl();
+        assertThat(mNameManager.addVariable("var1", false)).isTrue();
+        assertThat(mNameManager.addVariable(mFieldVariable.getVariable(), false)).isTrue();
+        assertThat(mNameManager.addVariable("var3", false)).isTrue();
 
         mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(
                 getContext(), mNameManager, android.R.layout.simple_spinner_item);

@@ -24,6 +24,7 @@ import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.Field;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
@@ -61,8 +62,7 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
         mProcedureManagerSpy = spy(mController.getWorkspace().getProcedureManager());
 
         mConnectionManager = new ConnectionManager();
-        mStats = new WorkspaceStats(
-                new VariableNameManager(), mProcedureManagerSpy, mConnectionManager);
+        mStats = new WorkspaceStats(mProcedureManagerSpy, mConnectionManager);
     }
 
     @Test
@@ -117,8 +117,8 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
         assertThat(mStats.getVariableNameManager().hasName("field name")).isFalse();
 
         assertThat(mStats.getVariableInfo("variable name").getFields().size()).isEqualTo(2);
-        assertThat(mStats.getVariableInfo("variable name").getFields().get(0))
-            .isEqualTo(variableReference.getFieldByName("field name"));
+        assertThat(mStats.getVariableInfo("variable name").getFields()
+                .contains(variableReference.getFieldByName("field name"))).isTrue();
     }
 
     @Test

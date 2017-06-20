@@ -28,8 +28,6 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.ProcedureInfo;
-import com.google.blockly.model.VariableInfo;
-import com.google.blockly.model.Workspace;
 import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
 import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
@@ -109,7 +107,6 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     private static final ArrayList<ArgumentIndexUpdate> SAME_INDICES = new ArrayList<>();
 
     private final BlocklyController mController;
-    private final VariableNameManager mVariableNameManager;
 
     // TODO: Make NameManager a map-like interface for ProcedureBlocks and VariableInfo
     private final NameManager<ProcedureBlocks> mProcedureNameManager = new NameManager<>();
@@ -120,12 +117,9 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
     /**
      * Constructor for a new ProcedureManager.
      * @param controller The controller managing the provided workspace.
-     * @param workspace The workspace represented (passed in separately from the controller
-     *                  because the workspace constructor probably hasn't finished yet).
      */
-    public ProcedureManager(BlocklyController controller, Workspace workspace) {
+    public ProcedureManager(BlocklyController controller) {
         mController = controller;
-        mVariableNameManager = workspace.getVariableNameManager();
     }
 
     /**
@@ -536,6 +530,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                                          @NonNull ProcedureInfo updatedProcedureInfo,
                                          final @Nullable List<ArgumentIndexUpdate> argIndexUpdates)
     {
+        final VariableNameManager varNameManager =
+                mController.getWorkspace().getVariableNameManager();
         final ProcedureBlocks procBlocks = mProcedureNameManager.getValueOf(originalProcedureName);
         if (procBlocks == null) {
             throw new IllegalArgumentException(
@@ -572,7 +568,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         final int newArgCount = newArgs.size();
         for (int i = 0; i < newArgCount; ++i) {
             String argName = newArgs.get(i);
-            if (!mVariableNameManager.isValidName(argName)) {
+            if (!varNameManager.isValidName(argName)) {
                 throw new IllegalArgumentException("Invalid variable name \"" + argName + "\" "
                         + "(argument #" + i + " )");
             }
@@ -582,7 +578,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
             @Override
             public void run() {
                 for (String argName : newArgs) {
-                    mVariableNameManager.addProcedureArg(argName, newProcedureName);
+                    varNameManager.addProcedureArg(argName, newProcedureName);
                 }
 
                 definitionMutator.mutate(updatedProcedureInfoFinal);
@@ -666,7 +662,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         }
 
         final String originalProcedureName = getProcedureName(procedureBlock);
-        final ProcedureBlocks procBlocks = mProcedureNameManager.getValueOf(originalProcedureName);
+        final ProcedureBlocks procBlocks = (originalProcedureName == null) ? null
+                : mProcedureNameManager.getValueOf(originalProcedureName);
         if (procBlocks == null) {
             // This procedure is not (yet?) managed by the ProcedureManager.
             ((AbstractProcedureMutator) mutator).mutate(updatedProcedureInfo);

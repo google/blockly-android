@@ -320,6 +320,11 @@ public class WorkspaceStats {
         }
 
         @Override
+        public String getDisplayName() {
+            return mDisplayName;
+        }
+
+        @Override
         public int getUsageCount() {
             return (mFields == null ? 0 : mFields.size())
                     + (mProcedures == null ? 0 : mProcedures.size());
@@ -431,35 +436,16 @@ public class WorkspaceStats {
      */
     public class VariableNameManagerImpl extends VariableNameManager<VariableInfoImpl> {
         @Override
-        public boolean addVariable(String variableName) {
-            String canonical = makeCanonical(variableName);
-            NameEntry<VariableInfoImpl> entry = mCanonicalMap.get(canonical);
-            if (entry == null) {
-                entry = new NameEntry<>(variableName, new VariableInfoImpl(variableName));
-                mCanonicalMap. put(canonical, entry);
-                return true;
-            } else {
-                return false;
-            }
+        protected VariableInfoImpl newVariableInfo(String varName) {
+            return new VariableInfoImpl(varName);
         }
 
-        public boolean addProcedureArg(String argName, String procedureName) {
-            String canonical = makeCanonical(argName);
-            NameEntry<VariableInfoImpl> entry = mCanonicalMap.get(canonical);
-            if (entry == null) {
-                entry = new NameEntry<>(argName, new VariableInfoImpl(argName));
-                mCanonicalMap. put(canonical, entry);
+        @Override
+        protected void markVariableAsProcedureArg(VariableInfoImpl varInfo, String procedureArg) {
+            if (varInfo.mProcedures == null) {
+                varInfo.mProcedures = new ArraySet<>();
             }
-            if (entry.mValue.mProcedures == null) {
-                entry.mValue.mProcedures = new ArraySet<>();
-            }
-            if (!entry.mValue.mProcedures.contains(procedureName)) {
-                entry.mValue.mProcedures.add(procedureName);
-                notifyChanged();
-                return true;
-            } else {
-                return false;
-            }
+            varInfo.mProcedures.add(procedureArg);
         }
     }
 }

@@ -1473,8 +1473,9 @@ public class BlocklyControllerTest extends BlocklyTestCase {
             @Override
             public void run() {
                 String oldName = "oldName";
-                String newName = "TEST";
+                assertThat(mController.addVariable(oldName)).isNotEmpty();
 
+                String newName = "TEST";
                 String finalName = mController.renameVariable(oldName, newName);
 
                 assertThat(finalName).isEqualTo(newName);

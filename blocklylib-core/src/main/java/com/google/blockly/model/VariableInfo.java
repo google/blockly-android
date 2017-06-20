@@ -23,6 +23,8 @@ import java.util.Set;
  * Metadata describing a variable in the Blockly Workspace.
  */
 public interface VariableInfo {
+    String getDisplayName();
+
     /**
      * @return Whether the variable is used as an argument to a procedure.
      */

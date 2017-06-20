@@ -93,7 +93,7 @@ public class NameManager<T> extends DataSetObservable {
      * @return The value associated with {@code name}, if any. Otherwise null.
      */
     @Nullable
-    public T getValueOf(String name) {
+    public T getValueOf(@NonNull String name) {
         NameEntry<T> entry = mCanonicalMap.get(makeCanonical(name));
         return entry == null ? null : entry.mValue;
     }
@@ -110,9 +110,10 @@ public class NameManager<T> extends DataSetObservable {
      * Adds the name to the list of used names.  Does not check if the name is already there.
      *
      * @param name The name to add.
+     * @param value The value to associate with the name.
      * @throws IllegalArgumentException If the name is not valid.
      */
-    public void put(String name, T value) {
+    public boolean put(String name, T value) {
         if (!isValidName(name)) {
             throw new IllegalArgumentException("Invalid name \"" + name + "\".");
         }
@@ -120,7 +121,24 @@ public class NameManager<T> extends DataSetObservable {
         if (mCanonicalMap.put(canonical, new NameEntry<>(name, value)) == null) {
             mDisplayNamesSorted.add(name);
             notifyChanged();
+            return true;
+        } else {
+            return false;
         }
+    }
+
+    /**
+     * Adds the value to this NameManager, attempting to use {@code nameRequested} as the name.
+     * If the name is already in use, it will use a name from {@link #generateUniqueName}.
+     *
+     * @param nameRequested The requested name to use.
+     * @param value The value to associate with the name.
+     * @throws IllegalArgumentException If the nameRequested is not valid.
+     */
+    public String putUniquely(String nameRequested, T value) {
+        String uniqueName = generateUniqueName(nameRequested);
+        put(uniqueName, value);
+        return uniqueName;
     }
 
     /**
@@ -155,7 +173,7 @@ public class NameManager<T> extends DataSetObservable {
             mDisplayNamesSorted.remove(toRemove);
             notifyChanged();
         }
-        return removed.mValue;
+        return (removed == null) ? null : removed.mValue;
     }
 
     public boolean isValidName(@NonNull String name) {

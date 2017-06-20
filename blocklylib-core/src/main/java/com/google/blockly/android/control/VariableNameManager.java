@@ -1,5 +1,7 @@
 package com.google.blockly.android.control;
 
+import android.support.v4.util.ArraySet;
+
 import com.google.blockly.model.VariableInfo;
 
 /**
@@ -38,6 +40,52 @@ public abstract class VariableNameManager<VI extends VariableInfo> extends NameM
         }
     }
 
-    public abstract boolean addVariable(String variableName);
-    public abstract boolean addProcedureArg(String argName, String procedureName);
+    /**
+     * Attempts to add a variable to the workspace.
+     * @param requestedName The preferred variable name. Usually the user name.
+     * @param allowRenaming Whether the variable name can be renamed.
+     * @return The name that was added, if any. May be null if renaming is not allowed.
+     */
+    public boolean addVariable(String requestedName, boolean allowRenaming) {
+        String canonical = makeCanonical(requestedName);
+        NameEntry<VI> entry = mCanonicalMap.get(canonical);
+        if (entry == null) {
+            entry = new NameEntry<>(requestedName, newVariableInfo(requestedName));
+            mCanonicalMap. put(canonical, entry);
+            mDisplayNamesSorted.add(requestedName);
+            return true;
+        } else if (allowRenaming) {
+            String altName = generateUniqueName(requestedName);
+            put(altName, newVariableInfo(altName));
+            mDisplayNamesSorted.add(altName);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Associated the variable {@code argName} with {@code procedureName}, creating the variable if
+     * necessary.
+     * @param argName The name of the procedure argument.
+     * @param procedureName The name of the procedure that uses it.
+     */
+    public void addProcedureArg(String argName, String procedureName) {
+        String canonical = makeCanonical(argName);
+        NameEntry<VI> entry = mCanonicalMap.get(canonical);
+        if (entry == null) {
+            entry = new NameEntry<>(argName, newVariableInfo(argName));
+            mCanonicalMap.put(canonical, entry);
+        }
+        markVariableAsProcedureArg(entry.mValue, procedureName);
+    }
+
+    protected abstract VI newVariableInfo(String name);
+
+    /**
+     *
+     * @param varInfo
+     * @param procedureArg
+     */
+    protected abstract void markVariableAsProcedureArg(VI varInfo, String procedureArg);
 }

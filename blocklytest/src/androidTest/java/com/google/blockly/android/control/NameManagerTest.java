@@ -24,47 +24,62 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link NameManager}.
  */
 public class NameManagerTest {
-    private NameManager mNameManager;
+    private NameManager<String> mNameManager;
 
     @Before
      public void setUp() throws Exception {
-        mNameManager = new NameManager<Object>();
+        mNameManager = new NameManager<>();
     }
 
     @Test
     public void testGenerateUniqueName() throws Exception {
-        String name1 = mNameManager.generateUniqueName("string", true /* addName */);
-        assertThat(mNameManager.generateUniqueName("string", true /* addName */))
+        String name1 = mNameManager.putUniquely("string", "string value");
+        assertThat(mNameManager.generateUniqueName("string"))
                 .isNotEqualTo(name1);
 
-        assertThat(mNameManager.generateUniqueName("foo", true /* addName */)).isEqualTo("foo");
-        assertThat(mNameManager.generateUniqueName("foo", true /* addName */)).isEqualTo("foo2");
-        assertThat(mNameManager.generateUniqueName("foo2", true /* addName */)).isEqualTo("foo3");
-        assertThat(mNameManager.generateUniqueName("222", true /* addName */)).isEqualTo("222");
-        assertThat(mNameManager.generateUniqueName("222", true /* addName */)).isEqualTo("223");
+        assertThat(mNameManager.generateUniqueName("foo")).isEqualTo("foo");
+        assertThat(mNameManager.put("foo", "foo value")).isTrue();
+        assertThat(mNameManager.generateUniqueName("foo")).isEqualTo("foo2");
+        assertThat(mNameManager.put("foo2", "foo2 value")).isTrue();
+        assertThat(mNameManager.generateUniqueName("foo2")).isEqualTo("foo3");
+        assertThat(mNameManager.generateUniqueName("222")).isEqualTo("222");
+        assertThat(mNameManager.put("222", "222 value")).isTrue();
+        assertThat(mNameManager.generateUniqueName("222")).isEqualTo("223");
     }
 
     @Test
-    public void testGenerateUniqueNameCaseInsensitive() {
-        assertThat(mNameManager.generateUniqueName("FOO", true /* addName */)).isEqualTo("FOO");
+    public void testGenerateUniqueNamePreservesCase() {
+        assertThat(mNameManager.generateUniqueName("FOO")).isEqualTo("FOO");
+        assertThat(mNameManager.generateUniqueName("bar")).isEqualTo("bar");
+
+        assertThat(mNameManager.put("FOO", "FOO value")).isTrue();
+        assertThat(mNameManager.put("bar", "bar")).isTrue();
+
+        String altFoo = mNameManager.generateUniqueName("FOO");
+        assertThat(altFoo).isNotEqualTo("FOO");
+        assertThat(altFoo).startsWith("FOO");
+        String altBar = mNameManager.generateUniqueName("bar");
+        assertThat(altBar).isNotEqualTo("bar");
+        assertThat(altBar).startsWith("bar");
     }
 
     @Test
     public void testCaseInsensitive() {
-        String name1 = mNameManager.generateUniqueName("string", true /* addName */);
-        String name2 = mNameManager.generateUniqueName("String", true /* addName */);
+        String name1 = mNameManager.putUniquely("string", "value1");
+        String name2 = mNameManager.putUniquely("String", "value2");
         assertThat(name2).isNotEqualTo(name1);
         assertThat(name2.toLowerCase()).isNotEqualTo(name1.toLowerCase());
     }
 
     @Test
     public void testListFunctions() {
-        mNameManager.addName("foo");
+        assertThat(mNameManager.put("foo", "foo value")).isTrue();
         assertThat(mNameManager.getUsedNames().size()).isEqualTo(1);
-        mNameManager.generateUniqueName("bar", true /* addName */);
+
+        mNameManager.putUniquely("bar", "bar value");
         assertThat(mNameManager.getUsedNames().size()).isEqualTo(2);
 
-        mNameManager.generateUniqueName("bar", false /* addName */);
+        assertThat(mNameManager.put("bar", "another bar value")).isFalse();
         assertThat(mNameManager.getUsedNames().size()).isEqualTo(2);
 
         mNameManager.clear();
@@ -73,30 +88,38 @@ public class NameManagerTest {
 
     @Test
     public void testGenerateVariableName() {
-        VariableNameManager nameManager = new VariableNameManager();
-        assertThat(nameManager.generateVariableName(false /* addName */)).isEqualTo("i");
-        assertThat(nameManager.generateVariableName(true /* addName */)).isEqualTo("i");
-        assertThat(nameManager.generateVariableName(true /* addName */)).isEqualTo("j");
-        assertThat(nameManager.generateVariableName(true /* addName */)).isEqualTo("k");
-        assertThat(nameManager.generateVariableName(true /* addName */)).isEqualTo("m");
+        //  TODO: Replace this with the implementation inside WorkspaceStats.
+        VariableNameManager nameManager = new VariableNameManagerTestImpl();
+
+        assertThat(nameManager.generateVariableName()).isEqualTo("i");
+        assertThat(nameManager.generateVariableName()).isEqualTo("i");
+        assertThat(nameManager.addVariable("i", false)).isTrue();
+        assertThat(nameManager.generateVariableName()).isEqualTo("j");
+        assertThat(nameManager.addVariable("j", false)).isTrue();
+        assertThat(nameManager.generateVariableName()).isEqualTo("k");
+        assertThat(nameManager.addVariable("k", false)).isTrue();
+        assertThat(nameManager.generateVariableName()).isEqualTo("m");
+        assertThat(nameManager.addVariable("m", false)).isTrue();
 
         for (int i = 0; i < 21; i++) {
-            nameManager.generateVariableName(true /* addName */);
+            String var = nameManager.generateVariableName();
+            assertThat(nameManager.addVariable(var, false)).isTrue();
         }
 
-        assertThat(nameManager.generateVariableName(true /* addName */)).isEqualTo("i2");
-
-        nameManager.addName("j2");
-        assertThat(nameManager.generateVariableName(true /* addName */)).isEqualTo("k2");
+        assertThat(nameManager.generateVariableName()).isEqualTo("i2");
+        assertThat(nameManager.addVariable("i2", false)).isTrue();
+        assertThat(nameManager.addVariable("j2", false)).isTrue();
+        assertThat(nameManager.generateVariableName()).isEqualTo("k2");
     }
 
     @Test
     public void testRemove() {
-        mNameManager.addName("foo");
+        mNameManager.put("foo", "foo value");
         assertThat(mNameManager.hasName("FOO")).isTrue();
         mNameManager.remove("Foo");
         assertThat(mNameManager.hasName("foo")).isFalse();
         // Remove something that wasn't there; expect no problems.
         mNameManager.remove("foo");
     }
+
 }

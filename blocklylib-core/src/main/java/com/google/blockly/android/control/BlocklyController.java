@@ -1204,27 +1204,25 @@ public class BlocklyController {
      *    <li>a change mutation event for each procedure block.</li>
      * </ol>
      *
-     * @param variable The variable to rename.
-     * @param newVariable The new name for the variable.
+     * @param originalName The variable to rename.
+     * @param newName The new name for the variable.
      * @param forced True to skip the variable callback check and rename the variable immediately.
      * @return The new variable name that was saved.
      */
-    private String renameVariableImpl(String variable, String newVariable, boolean forced) {
+    private String renameVariableImpl(String originalName, String newName, boolean forced) {
         if (!forced && mVariableCallback != null) {
-            if (!mVariableCallback.onRenameVariable(variable, newVariable)) {
-                return variable;
+            if (!mVariableCallback.onRenameVariable(originalName, newName)) {
+                return originalName;
             }
         }
 
         NameManager varNameManager = mWorkspace.getVariableNameManager();
-        if (variable == newVariable || !varNameManager.isValidName(newVariable)) {
-            return variable;
+        if (originalName == newName || !varNameManager.isValidName(newName)) {
+            return originalName;
         }
-        String canonicalNewVar = varNameManager.makeCanonical(newVariable);
+        newName = addVariableImpl(newName, true);
 
-        newVariable = addVariableImpl(newVariable, true);
-
-        VariableInfo oldVarInfo = mWorkspace.getVariableInfo(variable);
+        VariableInfo oldVarInfo = mWorkspace.getVariableInfo(originalName);
         if (oldVarInfo != null) {
             ProcedureManager procedureManager = mWorkspace.getProcedureManager();
             ArraySet<String> procedures = oldVarInfo.getProcedureNames();
@@ -1241,8 +1239,8 @@ public class BlocklyController {
                 newArgs.clear();
                 for (int j = 0; j < argCount; ++j) {
                     String argName = oldArgs.get(j);
-                    if (varNameManager.makeCanonical(argName).equals(canonicalNewVar)) {
-                        argName = newVariable;
+                    if (argName.equals(originalName)) {
+                        argName = newName;
                     }
                     newArgs.add(argName);
                 }
@@ -1259,14 +1257,14 @@ public class BlocklyController {
                 for (int i = 0; i < count; ++i) {
                     FieldVariable field = varFields.valueAt(i);
                     BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
-                            .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
+                            .newFieldValueEvent(field.getBlock(), field, originalName, newName);
                     addPendingEvent(change);
                 }
             }
         }
 
-        deleteVariableImpl(variable, true);
-        return newVariable;
+        deleteVariableImpl(originalName, true);
+        return newName;
     }
 
     /**
