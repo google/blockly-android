@@ -553,8 +553,8 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         Log.d(TAG, "\tsFuncRename = " + isFuncRename + "; isFuncRemap = " + isFuncRemap);
         final String newProcedureName;
         if (isFuncRemap) {
-            newProcedureName = mProcedureNameManager.generateUniqueName(newProcedureNameRequested);
-            mProcedureNameManager.put(newProcedureName, procBlocks);
+            newProcedureName =
+                    mProcedureNameManager.putUniquely(newProcedureNameRequested, procBlocks);
         } else {
             newProcedureName = newProcedureNameRequested;
         }
