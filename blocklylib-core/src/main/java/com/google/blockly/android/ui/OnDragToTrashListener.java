@@ -46,7 +46,7 @@ public class OnDragToTrashListener implements View.OnDragListener {
     }
 
     /**
-     * Check whether the drag hasName a block dragged out of the a WorkspaceView within the current
+     * Check whether the drag contains a block dragged out of the a WorkspaceView within the current
      * Activity.
      *
      * @param event The DragEvent to check.

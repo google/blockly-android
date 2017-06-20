@@ -353,7 +353,7 @@ public class WorkspaceHelper {
 
 
     /**
-     * Find the highest {@link BlockGroup} in the hierarchy that hasName this {@link BlockView}.
+     * Find the highest {@link BlockGroup} in the hierarchy that contains this {@link BlockView}.
      *
      * @param blockView The BlockView to start searching from.
      *
@@ -386,11 +386,11 @@ public class WorkspaceHelper {
     }
 
     /**
-     * Finds the closest BlockView that hasName the {@code descendantView} as a child or further
+     * Finds the closest BlockView that contains the {@code descendantView} as a child or further
      * descendant.
      *
      * @param descendantView The contained {@code view}.
-     * @return The closest BlockView that hasName the {@code descendantView}.
+     * @return The closest BlockView that contains the {@code descendantView}.
      */
     @Nullable
     public BlockView getClosestAncestorBlockView(View descendantView) {

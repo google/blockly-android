@@ -253,7 +253,7 @@ public class BlocklyController {
     /**
      * Connects a WorkspaceFragment to this controller.
      *
-     * @param workspaceFragment The fragment that hasName the main workspace.
+     * @param workspaceFragment The fragment that contains the main workspace.
      */
     public void setWorkspaceFragment(@Nullable WorkspaceFragment workspaceFragment) {
         if (workspaceFragment != null && mViewFactory == null) {
@@ -1948,7 +1948,7 @@ public class BlocklyController {
          * set of all known blocks, but will not appear in the user's toolbox unless they are also
          * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
          * <p/>
-         * The resource must be a json file in the raw directory. If the file hasName blocks that
+         * The resource must be a json file in the raw directory. If the file contains blocks that
          * were previously defined they will be overridden.
          * <p/>
          * A duplicate block is any block with the same {@link Block#getType() type}.
@@ -1966,7 +1966,7 @@ public class BlocklyController {
          * set of all known blocks, but will not appear in the user's toolbox unless they are also
          * defined in the toolbox configuration via {@link #setToolboxConfigurationResId(int)}.
          * <p/>
-         * The asset name must be a path to a file in the assets directory. If the file hasName
+         * The asset name must be a path to a file in the assets directory. If the file contains
          * blocks that were previously defined, they will be overridden. A duplicate block is any
          * block with the same {@link Block#getType() type}.
          *

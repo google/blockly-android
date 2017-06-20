@@ -8,7 +8,6 @@ import com.google.blockly.model.VariableInfo;
 
 /**
  * Basic implementation of a VariableNameManager.
- * TODO: Replace this with the implementation inside WorkspaceStats.
  */
 public class VariableNameManagerTestImpl
         extends VariableNameManager<VariableNameManagerTestImpl.VariableInfoImpl> {

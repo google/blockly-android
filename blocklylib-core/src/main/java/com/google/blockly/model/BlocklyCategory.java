@@ -196,7 +196,7 @@ public class BlocklyCategory {
     }
 
     /**
-     * @return True if this category hasName no blocks or subcategories, false otherwise.
+     * @return True if this category contains no blocks or subcategories, false otherwise.
      */
     public boolean isEmpty() {
         return mSubcategories.isEmpty() && mItems.isEmpty();
@@ -364,7 +364,7 @@ public class BlocklyCategory {
     }
 
     /**
-     * Flyout item that hasName a stack blocks.
+     * Flyout item that contains a stack blocks.
      */
     public static class BlockItem extends CategoryItem {
         private final Block mBlock;
