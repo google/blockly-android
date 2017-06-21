@@ -61,5 +61,38 @@ public abstract class VariableNameManager<VI extends VariableInfo> extends NameM
         }
     }
 
-    protected abstract VI newVariableInfo(String name);
+    /**
+     * Associates the variable {@code argName} with {@code procedureName}, creating the variable if
+     * necessary.
+     * @param argName The name of the procedure argument.
+     * @param procedureName The name of the procedure that uses it.
+     */
+    public void addProcedureArg(String argName, String procedureName) {
+        VI varInfo = getValueOf(argName);
+        if (varInfo == null) {
+            varInfo = newVariableInfo(argName);
+            put(argName, varInfo);
+        }
+        varInfo.setUseAsProcedureArgument(procedureName);
+    }
+
+    /**
+     * Removed any association between the variable {@code argName} with {@code procedureName}. This
+     * does not remove the variable, if its role as a procedure argument was the last know use.
+     * @param varName The name of the variable that was once a procedure argument.
+     * @param procedureName The name of the procedure that no longer uses it.
+     */
+    public void removeProcedureArg(String varName, String procedureName) {
+        VI varInfo = getValueOf(varName);
+        if (varInfo != null) {
+            varInfo.removeUseAsProcedureArgument(procedureName);
+        }
+    }
+
+    /**
+     * Constructs a new VariableInfo object with the given name
+     * @param varName The name fo the variable to create.
+     * @return The VariableInfo object.
+     */
+    protected abstract VI newVariableInfo(String varName);
 }

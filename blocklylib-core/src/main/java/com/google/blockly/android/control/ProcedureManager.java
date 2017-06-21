@@ -531,7 +531,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                                          @NonNull ProcedureInfo updatedProcedureInfo,
                                          final @Nullable List<ArgumentIndexUpdate> argIndexUpdates)
     {
-        final VariableNameManager<VariableInfo> varNameManager =
+        final VariableNameManager varNameManager =
                 mController.getWorkspace().getVariableNameManager();
         final ProcedureBlocks procBlocks = mProcedureNameManager.getValueOf(originalProcedureName);
         if (procBlocks == null) {
@@ -575,12 +575,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
             }
         }
         final List<String> originalArgList = oldProcInfo.getArgumentNames();
-        final boolean[] origArgRemapped = new boolean[originalArgList.size()];  // initial false
+        final boolean[] origArgReused = new boolean[originalArgList.size()];  // initial false
         if (argIndexUpdates != null) {
             int count = argIndexUpdates.size();
             for (int i = 0; i < count; ++i) {
                 int origArgIndex = argIndexUpdates.get(i).before;
-                origArgRemapped[origArgIndex] = true;
+                origArgReused[origArgIndex] = true;
             }
         }
 
@@ -588,12 +588,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
             @Override
             public void run() {
                 for (String argName : updatedArgList) {
-                    VariableInfo newArgInfo = varNameManager.getValueOf(argName);
-                    if (newArgInfo == null) {
-                        newArgInfo = varNameManager.newVariableInfo(argName);
-                        varNameManager.put(argName, newArgInfo);
-                    }
-                    newArgInfo.setUseAsProcedureArgument(newProcedureName);
+                    varNameManager.addProcedureArg(argName, newProcedureName);
                 }
 
                 definitionMutator.mutate(updatedProcedureInfoFinal);
@@ -647,12 +642,10 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                 }
 
                 // Unregister variables that are no longer procedure arguments
-                for (int i = 0; i < origArgRemapped.length; ++i) {
-                    if (!origArgRemapped[i]) {
-                        VariableInfo oldArgInfo = varNameManager.getValueOf(originalArgList.get(i));
-                        if (oldArgInfo != null) {
-                            oldArgInfo.removeUseAsProcedureArgument(originalProcedureName);
-                        }
+                for (int i = 0; i < origArgReused.length; ++i) {
+                    if (!origArgReused[i]) {
+                        varNameManager.removeProcedureArg(
+                                originalArgList.get(i), originalProcedureName);
                     }
                 }
             }
