@@ -111,6 +111,7 @@ public class NameManager<T> extends DataSetObservable {
      *
      * @param name The name to add.
      * @param value The value to associate with the name.
+     * @return True if this name is new, wasn't previously in use. Otherwise, returns false.
      * @throws IllegalArgumentException If the name is not valid.
      */
     public boolean put(String name, T value) {
@@ -133,6 +134,7 @@ public class NameManager<T> extends DataSetObservable {
      *
      * @param nameRequested The requested name to use.
      * @param value The value to associate with the name.
+     * @return The final name used to store V.
      * @throws IllegalArgumentException If the nameRequested is not valid.
      */
     public String putUniquely(String nameRequested, T value) {
@@ -202,7 +204,7 @@ public class NameManager<T> extends DataSetObservable {
     @Nullable
     public String getDisplayName(String varName) {
         NameEntry<T> existingEntry = mCanonicalMap.get(makeCanonical(varName));
-        return existingEntry == null ? varName : existingEntry.mDisplayName;
+        return existingEntry == null ? null : existingEntry.mDisplayName;
     }
 
     /**
