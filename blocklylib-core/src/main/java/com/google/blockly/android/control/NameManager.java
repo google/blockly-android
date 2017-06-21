@@ -134,7 +134,7 @@ public class NameManager<T> extends DataSetObservable {
      *
      * @param nameRequested The requested name to use.
      * @param value The value to associate with the name.
-     * @return The final name used to store V.
+     * @return The final name used to store the value.
      * @throws IllegalArgumentException If the nameRequested is not valid.
      */
     public String putUniquely(String nameRequested, T value) {

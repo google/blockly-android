@@ -89,10 +89,10 @@ public abstract class VariableNameManager<VI extends VariableInfo> extends NameM
     }
 
     /**
-     * Removed any association between the variable {@code argName} with {@code procedureName}. This
-     * does not remove the variable, if its role as a procedure argument was the last know use.
-     * @param varName The name of the variable that was once a procedure argument.
-     * @param procedureName The name of the procedure that no longer uses it.
+     * Removes any association between the variable {@code argName} with {@code procedureName}. This
+     * does not remove the variable even if its role as a procedure argument was the last know use.
+     * @param varName The name of the variable that was being referenced by the procedure.
+     * @param procedureName The name of the procedure that is no longer referencing the variable.
      */
     public void removeProcedureArg(String varName, String procedureName) {
         VI varInfo = getValueOf(varName);
@@ -103,7 +103,7 @@ public abstract class VariableNameManager<VI extends VariableInfo> extends NameM
 
     /**
      * Constructs a new VariableInfo object with the given name
-     * @param varName The name fo the variable to create.
+     * @param varName The name of the variable to create.
      * @return The VariableInfo object.
      */
     protected abstract VI newVariableInfo(String varName);
