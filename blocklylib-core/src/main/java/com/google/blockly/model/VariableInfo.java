@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,6 @@
 package com.google.blockly.model;
 
 import android.support.v4.util.ArraySet;
-
-import java.util.Set;
 
 /**
  * Metadata describing a variable in the Blockly Workspace.

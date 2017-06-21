@@ -193,16 +193,16 @@ public class NameManager<T> extends DataSetObservable {
     }
 
     /**
-     * Returns the existing name, if the {@code name} will map to the same canonical form.
-     * Otherwise, returns null.
-     * @param proposedName The proposed name.
+     * Returns the display name for an existing variable, if the {@code name} will map to the same
+     * canonical form. Otherwise, returns null.
+     * @param varName The proposed name.
      * @return A previous added display name that shares the same canonical form.
      *         Otherwise return null.
      */
     @Nullable
-    public String getExisting(String proposedName) {
-        NameEntry<T> existingEntry = mCanonicalMap.get(makeCanonical(proposedName));
-        return existingEntry == null ? proposedName : existingEntry.mDisplayName;
+    public String getDisplayName(String varName) {
+        NameEntry<T> existingEntry = mCanonicalMap.get(makeCanonical(varName));
+        return existingEntry == null ? varName : existingEntry.mDisplayName;
     }
 
     /**

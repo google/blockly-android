@@ -26,7 +26,6 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.control.VariableNameManager;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
@@ -227,7 +226,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
          * @return The index of the variable.
          */
         public int getOrCreateVariableIndex(String variableName) {
-            String existing = mVariableNameManager.getExisting(variableName);
+            String existing = mVariableNameManager.getDisplayName(variableName);
             if (existing != null) {
                 return getIndexForVarName(existing);
             } else {

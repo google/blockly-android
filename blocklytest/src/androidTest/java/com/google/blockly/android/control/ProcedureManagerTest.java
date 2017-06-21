@@ -180,17 +180,17 @@ public class ProcedureManagerTest extends BlocklyTestCase {
         assertThat(mProcedureManager.isProcedureDefined(procName)).isTrue();
         for (String arg : args) {
             assertThat(mVariableManager.hasName(arg)).isTrue();
-            assertThat(mVariableManager.getExisting(arg)).isEqualTo(arg);
+            assertThat(mVariableManager.getDisplayName(arg)).isEqualTo(arg);
         }
     }
 
     @Test
-    public void testMutationAddsArgs() throws BlockLoadingException {
+    public void testProcedureMutationAddsArgs() throws BlockLoadingException {
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
         assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isTrue();
 
-        final String[] args = { "first", "second"};
+        final String[] args = {"FiRsT", "sEcOnD"};
         for (String arg : args) {
             assertThat(mVariableManager.hasName(arg)).isFalse();
         }
@@ -222,11 +222,11 @@ public class ProcedureManagerTest extends BlocklyTestCase {
         assertThat(refInfo.getArgumentNames()).hasSize(1);
         assertThat(refInfo.getArgumentNames().get(0)).isEqualTo(args[0]);
         assertThat(mVariableManager.hasName(args[0])).isTrue();
+        assertThat(mVariableManager.getDisplayName(args[0])).isEqualTo(args[0]);
         assertThat(mVariableManager.hasName(args[1])).isFalse();
         assertThat(mVariableManager.getUsedNames()).contains(args[0]);
         assertThat(mVariableManager.getUsedNames()).doesNotContain(args[1]);
         assertThat(onChangeCallbackCallCount[0]).isEqualTo(1);
-
 
         // Mutate via the reference block, adding the second argument
         final ProcedureInfo secondMutatedInfo =
@@ -247,19 +247,20 @@ public class ProcedureManagerTest extends BlocklyTestCase {
         assertThat(refInfo.getArgumentNames().get(1)).isEqualTo(args[1]);
         assertThat(mVariableManager.hasName(args[0])).isTrue();
         assertThat(mVariableManager.hasName(args[1])).isTrue();
+        assertThat(mVariableManager.getDisplayName(args[1])).isEqualTo(args[1]);
         assertThat(mVariableManager.getUsedNames()).contains(args[0]);
         assertThat(mVariableManager.getUsedNames()).contains(args[1]);
         assertThat(onChangeCallbackCallCount[0]).isEqualTo(2);
     }
 
     @Test
-    public void testMutationRemovesArgs() throws BlockLoadingException {
+    public void testProcedureMutationRemovesArgs() throws BlockLoadingException {
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
         assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isTrue();
 
         // Setup and preconditions
-        final String[] args = { "first", "second"};
+        final String[] args = {"FiRsT", "sEcOnD"};
         final ProcedureInfo addArgs =
                 new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(args), true);
         runAndSync(new Runnable() {
@@ -318,13 +319,13 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testDeleteProcedureArguments() throws BlockLoadingException {
+    public void testDeletesVariablesThatAreProcedureArguments() throws BlockLoadingException {
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
         assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isTrue();
 
         // Setup and preconditions
-        final String[] args = {"first", "second"};
+        final String[] args = {"FiRsT", "sEcOnD"};
         final ProcedureInfo addArgs =
                 new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(args), true);
         runAndSync(new Runnable() {
@@ -360,39 +361,125 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testRenameProcedureArguments() throws BlockLoadingException {
+    public void testProcedureMutationRenamesArguments() throws BlockLoadingException {
         mProcedureManager.addDefinition(mProcedureDefinition);
         mProcedureManager.addReference(mProcedureReference);
         assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isTrue();
 
-        // Setup and preconditions
-        final String[] args = {"first", "second"};
-        final ProcedureInfo addArgs =
-                new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(args), true);
         runAndSync(new Runnable() {
             @Override
             public void run() {
+                // Setup and preconditions
+                final String[] initialArgNames = {"FiRsT", "sEcOnD"};
+                final ProcedureInfo addArgs =
+                        new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(initialArgNames), true);
                 mProcedureManager.mutateProcedure(
                         PROCEDURE_NAME, addArgs, Collections.EMPTY_LIST);
 
-                assertThat(mVariableManager.hasName(args[0])).isTrue();
-                assertThat(mVariableManager.hasName(args[1])).isTrue();
+                // TODO: Add blocks to the workspace and connect arguments to the caller block
 
-                // Mutate to zero arguments
-                final ProcedureInfo noArgInfo =
-                        new ProcedureInfo(PROCEDURE_NAME, Collections.<String>emptyList(), true);
+                ProcedureInfo defInfo =
+                        ((AbstractProcedureMutator) mProcedureDefinition.getMutator())
+                                .getProcedureInfo();
+                ProcedureInfo refInfo =
+                        ((AbstractProcedureMutator) mProcedureReference.getMutator())
+                                .getProcedureInfo();
+                assertThat(mVariableManager.getDisplayName(initialArgNames[0]))
+                        .isEqualTo(initialArgNames[0]);
+                assertThat(mVariableManager.getDisplayName(initialArgNames[1]))
+                        .isEqualTo(initialArgNames[1]);
+                assertThat(defInfo.getArgumentNames().get(0)).isEqualTo(initialArgNames[0]);
+                assertThat(defInfo.getArgumentNames().get(1)).isEqualTo(initialArgNames[1]);
+                assertThat(refInfo.getArgumentNames().get(0)).isEqualTo(initialArgNames[0]);
+                assertThat(refInfo.getArgumentNames().get(1)).isEqualTo(initialArgNames[1]);
+
+                // Mutate to new names arguments
+                final String[] renamedArgs = {"pRemIère", "seCOndE"};
+                assertThat(renamedArgs[0]).isNotEqualTo(initialArgNames[0]);
+                assertThat(renamedArgs[1]).isNotEqualTo(initialArgNames[1]);
+                final ProcedureInfo renamedArgsInfo =
+                        new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(renamedArgs), true);
                 mProcedureManager.mutateProcedure(
-                        PROCEDURE_NAME, noArgInfo, Collections.EMPTY_LIST);
+                        PROCEDURE_NAME, renamedArgsInfo,
+                        buildArgUpdates(new int[][] {{0, 0}, {1, 1}}));  // Same place
 
                 // Still exists
-                assertThat(mVariableManager.hasName(args[0])).isTrue();
-                assertThat(mVariableManager.hasName(args[1])).isTrue();
+                assertThat(mVariableManager.hasName(initialArgNames[0])).isTrue();
+                assertThat(mVariableManager.hasName(initialArgNames[1])).isTrue();
 
-                // And now we can delete them
-                assertThat(mController.requestDeleteVariable(args[0])).isTrue();
-                assertThat(mController.requestDeleteVariable(args[1])).isTrue();
-                assertThat(mVariableManager.hasName(args[0])).isFalse();
-                assertThat(mVariableManager.hasName(args[1])).isFalse();
+                // But the new names are in use
+                defInfo = ((AbstractProcedureMutator) mProcedureDefinition.getMutator())
+                        .getProcedureInfo();
+                refInfo = ((AbstractProcedureMutator) mProcedureReference.getMutator())
+                        .getProcedureInfo();
+                assertThat(mVariableManager.getDisplayName(renamedArgs[0]))
+                        .isEqualTo(renamedArgs[0]);
+                assertThat(mVariableManager.getDisplayName(renamedArgs[1]))
+                        .isEqualTo(renamedArgs[1]);
+                assertThat(defInfo.getArgumentNames().get(0)).isEqualTo(renamedArgs[0]);
+                assertThat(defInfo.getArgumentNames().get(1)).isEqualTo(renamedArgs[1]);
+                assertThat(refInfo.getArgumentNames().get(0)).isEqualTo(renamedArgs[0]);
+                assertThat(refInfo.getArgumentNames().get(1)).isEqualTo(renamedArgs[1]);
+
+                // TODO: Test that caller arg values remain connected
+            }
+        });
+    }
+
+    @Test
+    public void testProcedureMutationReordersArguments() throws BlockLoadingException {
+        mProcedureManager.addDefinition(mProcedureDefinition);
+        mProcedureManager.addReference(mProcedureReference);
+        assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isTrue();
+
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                // Setup and preconditions
+                final String[] initialArgNames = {"FiRsT", "sEcOnD"};
+                final ProcedureInfo addArgs =
+                        new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(initialArgNames), true);
+                mProcedureManager.mutateProcedure(
+                        PROCEDURE_NAME, addArgs, Collections.EMPTY_LIST);
+
+                // TODO: Add blocks to the workspace and connect arguments to the caller block
+
+                ProcedureInfo defInfo =
+                        ((AbstractProcedureMutator) mProcedureDefinition.getMutator())
+                                .getProcedureInfo();
+                ProcedureInfo refInfo =
+                        ((AbstractProcedureMutator) mProcedureReference.getMutator())
+                                .getProcedureInfo();
+                assertThat(mVariableManager.getDisplayName(initialArgNames[0]))
+                        .isEqualTo(initialArgNames[0]);
+                assertThat(mVariableManager.getDisplayName(initialArgNames[1]))
+                        .isEqualTo(initialArgNames[1]);
+                assertThat(defInfo.getArgumentNames().get(0)).isEqualTo(initialArgNames[0]);
+                assertThat(defInfo.getArgumentNames().get(1)).isEqualTo(initialArgNames[1]);
+                assertThat(refInfo.getArgumentNames().get(0)).isEqualTo(initialArgNames[0]);
+                assertThat(refInfo.getArgumentNames().get(1)).isEqualTo(initialArgNames[1]);
+
+                // Mutate to new names arguments
+                final String[] reorderedArgs = {initialArgNames[1], initialArgNames[0]};
+                assertThat(reorderedArgs[0]).isNotEqualTo(initialArgNames[0]);
+                assertThat(reorderedArgs[1]).isNotEqualTo(initialArgNames[1]);
+                final ProcedureInfo renamedArgsInfo =
+                        new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(reorderedArgs), true);
+                mProcedureManager.mutateProcedure(
+                        PROCEDURE_NAME, renamedArgsInfo,
+                        buildArgUpdates(new int[][] {{0, 1}, {1, 0}}));  // Reordering!!
+
+                // But the reordered names are in use
+                defInfo = ((AbstractProcedureMutator) mProcedureDefinition.getMutator())
+                        .getProcedureInfo();
+                refInfo = ((AbstractProcedureMutator) mProcedureReference.getMutator())
+                        .getProcedureInfo();
+                assertThat(defInfo.getArgumentNames().get(0)).isEqualTo(reorderedArgs[0]);
+                assertThat(defInfo.getArgumentNames().get(1)).isEqualTo(reorderedArgs[1]);
+                assertThat(refInfo.getArgumentNames().get(0)).isEqualTo(reorderedArgs[0]);
+                assertThat(refInfo.getArgumentNames().get(1)).isEqualTo(reorderedArgs[1]);
+
+                // TODO: Test that caller arg values are connected in the new order
             }
         });
     }
