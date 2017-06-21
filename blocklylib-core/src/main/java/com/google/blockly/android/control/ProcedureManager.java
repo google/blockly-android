@@ -28,6 +28,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.ProcedureInfo;
+import com.google.blockly.model.VariableInfo;
 import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
 import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
@@ -530,7 +531,7 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                                          @NonNull ProcedureInfo updatedProcedureInfo,
                                          final @Nullable List<ArgumentIndexUpdate> argIndexUpdates)
     {
-        final VariableNameManager varNameManager =
+        final VariableNameManager<VariableInfo> varNameManager =
                 mController.getWorkspace().getVariableNameManager();
         final ProcedureBlocks procBlocks = mProcedureNameManager.getValueOf(originalProcedureName);
         if (procBlocks == null) {
@@ -587,7 +588,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
             @Override
             public void run() {
                 for (String argName : updatedArgList) {
-                    varNameManager.addProcedureArg(argName, newProcedureName);
+                    VariableInfo newArgInfo = varNameManager.getValueOf(argName);
+                    if (newArgInfo == null) {
+                        newArgInfo = varNameManager.newVariableInfo(argName);
+                        varNameManager.put(argName, newArgInfo);
+                    }
+                    newArgInfo.setUseAsProcedureArgument(newProcedureName);
                 }
 
                 definitionMutator.mutate(updatedProcedureInfoFinal);
@@ -643,8 +649,10 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
                 // Unregister variables that are no longer procedure arguments
                 for (int i = 0; i < origArgRemapped.length; ++i) {
                     if (!origArgRemapped[i]) {
-                        varNameManager.removeProcedureArg(
-                                originalArgList.get(i), originalProcedureName);
+                        VariableInfo oldArgInfo = varNameManager.getValueOf(originalArgList.get(i));
+                        if (oldArgInfo != null) {
+                            oldArgInfo.removeUseAsProcedureArgument(originalProcedureName);
+                        }
                     }
                 }
             }

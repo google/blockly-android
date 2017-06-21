@@ -335,6 +335,22 @@ public class WorkspaceStats {
             return new ArraySet<>(mProcedures);
         }
 
+        @Override
+        public void setUseAsProcedureArgument(String procedureName) {
+            if (mProcedures == null) {
+                mProcedures = new ArraySet<>();
+            }
+            mProcedures.add(procedureName.toLowerCase());
+        }
+
+        @Override
+        public void removeUseAsProcedureArgument(String procedureName) {
+            mProcedures.remove(procedureName.toLowerCase());
+            if (mProcedures.isEmpty()) {
+                mProcedures = null;
+            }
+        }
+
         void addField(FieldVariable newField) {
             if (mFields == null) {
                 mFields = new ArrayList<>();
@@ -438,24 +454,6 @@ public class WorkspaceStats {
         @Override
         protected VariableInfoImpl newVariableInfo(String varName) {
             return new VariableInfoImpl(varName);
-        }
-
-        @Override
-        protected void markVariableAsProcedureArg(VariableInfoImpl varInfo, String procedureArg) {
-            if (varInfo.mProcedures == null) {
-                varInfo.mProcedures = new ArraySet<>();
-            }
-            varInfo.mProcedures.add(makeCanonical(procedureArg));
-        }
-
-        @Override
-        protected void unmarkVariableAsProcedureArg(VariableInfoImpl varInfo, String procedureArg) {
-            if (varInfo.mProcedures != null) {
-                varInfo.mProcedures.remove(makeCanonical(procedureArg));
-                if (varInfo.mProcedures.isEmpty()) {
-                    varInfo.mProcedures = null;
-                }
-            }
         }
     }
 }

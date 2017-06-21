@@ -195,11 +195,11 @@ public class ProcedureManagerTest extends BlocklyTestCase {
             assertThat(mVariableManager.hasName(arg)).isFalse();
         }
 
-        final List<Long> changeTimestamps = new ArrayList<>();
+        final int[] onChangeCallbackCallCount = { 0 };
         mVariableManager.registerObserver(new DataSetObserver() {
             @Override
             public void onChanged() {
-                changeTimestamps.add(System.currentTimeMillis());
+                ++onChangeCallbackCallCount[0];
             }
         });
 
@@ -218,18 +218,17 @@ public class ProcedureManagerTest extends BlocklyTestCase {
         ProcedureInfo refInfo =
                 ((AbstractProcedureMutator) mProcedureReference.getMutator()).getProcedureInfo();
         assertThat(defInfo.getArgumentNames()).hasSize(1);
-        assertThat(defInfo.getArgumentNames()).contains(args[0]);
+        assertThat(defInfo.getArgumentNames().get(0)).isEqualTo(args[0]);
         assertThat(refInfo.getArgumentNames()).hasSize(1);
-        assertThat(refInfo.getArgumentNames()).contains(args[0]);
+        assertThat(refInfo.getArgumentNames().get(0)).isEqualTo(args[0]);
         assertThat(mVariableManager.hasName(args[0])).isTrue();
         assertThat(mVariableManager.hasName(args[1])).isFalse();
         assertThat(mVariableManager.getUsedNames()).contains(args[0]);
         assertThat(mVariableManager.getUsedNames()).doesNotContain(args[1]);
-        assertThat(changeTimestamps).hasSize(1);
+        assertThat(onChangeCallbackCallCount[0]).isEqualTo(1);
 
 
         // Mutate via the reference block, adding the second argument
-        changeTimestamps.clear();
         final ProcedureInfo secondMutatedInfo =
                 new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(args[0], args[1]), true);
         runAndSync(new Runnable() {
@@ -243,14 +242,14 @@ public class ProcedureManagerTest extends BlocklyTestCase {
         defInfo = ((AbstractProcedureMutator) mProcedureDefinition.getMutator()).getProcedureInfo();
         refInfo = ((AbstractProcedureMutator) mProcedureReference.getMutator()).getProcedureInfo();
         assertThat(defInfo.getArgumentNames()).hasSize(2);
-        assertThat(defInfo.getArgumentNames()).contains(args[1]);
+        assertThat(defInfo.getArgumentNames().get(1)).isEqualTo(args[1]);
         assertThat(refInfo.getArgumentNames()).hasSize(2);
-        assertThat(refInfo.getArgumentNames()).contains(args[1]);
+        assertThat(refInfo.getArgumentNames().get(1)).isEqualTo(args[1]);
         assertThat(mVariableManager.hasName(args[0])).isTrue();
         assertThat(mVariableManager.hasName(args[1])).isTrue();
         assertThat(mVariableManager.getUsedNames()).contains(args[0]);
         assertThat(mVariableManager.getUsedNames()).contains(args[1]);
-        assertThat(changeTimestamps).hasSize(1);
+        assertThat(onChangeCallbackCallCount[0]).isEqualTo(2);
     }
 
     @Test
@@ -337,6 +336,44 @@ public class ProcedureManagerTest extends BlocklyTestCase {
                 // Can't delete
                 assertThat(mController.requestDeleteVariable(args[0])).isFalse();
                 assertThat(mController.requestDeleteVariable(args[1])).isFalse();
+
+                assertThat(mVariableManager.hasName(args[0])).isTrue();
+                assertThat(mVariableManager.hasName(args[1])).isTrue();
+
+                // Mutate to zero arguments
+                final ProcedureInfo noArgInfo =
+                        new ProcedureInfo(PROCEDURE_NAME, Collections.<String>emptyList(), true);
+                mProcedureManager.mutateProcedure(
+                        PROCEDURE_NAME, noArgInfo, Collections.EMPTY_LIST);
+
+                // Still exists
+                assertThat(mVariableManager.hasName(args[0])).isTrue();
+                assertThat(mVariableManager.hasName(args[1])).isTrue();
+
+                // And now we can delete them
+                assertThat(mController.requestDeleteVariable(args[0])).isTrue();
+                assertThat(mController.requestDeleteVariable(args[1])).isTrue();
+                assertThat(mVariableManager.hasName(args[0])).isFalse();
+                assertThat(mVariableManager.hasName(args[1])).isFalse();
+            }
+        });
+    }
+
+    @Test
+    public void testRenameProcedureArguments() throws BlockLoadingException {
+        mProcedureManager.addDefinition(mProcedureDefinition);
+        mProcedureManager.addReference(mProcedureReference);
+        assertThat(mProcedureManager.isDefinitionReferenced(mProcedureDefinition)).isTrue();
+
+        // Setup and preconditions
+        final String[] args = {"first", "second"};
+        final ProcedureInfo addArgs =
+                new ProcedureInfo(PROCEDURE_NAME, Arrays.asList(args), true);
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                mProcedureManager.mutateProcedure(
+                        PROCEDURE_NAME, addArgs, Collections.EMPTY_LIST);
 
                 assertThat(mVariableManager.hasName(args[0])).isTrue();
                 assertThat(mVariableManager.hasName(args[1])).isTrue();

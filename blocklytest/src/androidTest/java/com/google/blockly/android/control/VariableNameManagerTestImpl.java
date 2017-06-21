@@ -16,16 +16,6 @@ public class VariableNameManagerTestImpl
         return new VariableInfoImpl(name);
     }
 
-    @Override
-    protected void markVariableAsProcedureArg(VariableInfoImpl varInfo, String procedureArg) {
-        varInfo.mProcedureNames.add(procedureArg);
-    }
-
-    @Override
-    protected void unmarkVariableAsProcedureArg(VariableInfoImpl varInfo, String procedureArg) {
-        varInfo.mProcedureNames.add(procedureArg);
-    }
-
     public static class VariableInfoImpl implements VariableInfo {
         String mDisplayName;
         ArraySet<String> mProcedureNames = new ArraySet<>();
@@ -57,6 +47,16 @@ public class VariableNameManagerTestImpl
         @Override
         public ArraySet<FieldVariable> getFields() {
             return new ArraySet<>();
+        }
+
+        @Override
+        public void setUseAsProcedureArgument(String procedureName) {
+            mProcedureNames.add(procedureName);
+        }
+
+        @Override
+        public void removeUseAsProcedureArgument(String procedureName) {
+            mProcedureNames.remove(procedureName);
         }
     }
 }

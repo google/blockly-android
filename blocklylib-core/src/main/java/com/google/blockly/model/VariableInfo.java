@@ -44,4 +44,16 @@ public interface VariableInfo {
      * @return An immutable list of fields that refer to this variable.
      */
     ArraySet<FieldVariable> getFields();
+
+    /**
+     * Marks this variable as an argument in the named procedure.
+     * @param procedureName
+     */
+    void setUseAsProcedureArgument(String procedureName);
+
+    /**
+     * Remove this variable as an argument in the named procedure.
+     * @param procedureName
+     */
+    void removeUseAsProcedureArgument(String procedureName);
 }

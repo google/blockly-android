@@ -282,7 +282,7 @@ public class Workspace {
      *
      * @return The name manager for variables in this workspace.
      */
-    public VariableNameManager getVariableNameManager() {
+    public VariableNameManager<VariableInfo> getVariableNameManager() {
         return mVariableNameManager;
     }
 
