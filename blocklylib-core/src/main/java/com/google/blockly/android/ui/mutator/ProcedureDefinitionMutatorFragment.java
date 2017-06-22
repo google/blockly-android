@@ -159,7 +159,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
         ArgInfo argInfo = (ArgInfo) argNameField.getTag();
         String newName = argNameField.getText().toString();
         newName = mVariableNameManager.makeValidName(newName, null);
-        if (newName != null && mVariableNameManager.getExisting(newName) == null) {
+        if (newName != null && mVariableNameManager.getDisplayName(newName) == null) {
             argInfo.name = newName;
         }
     }

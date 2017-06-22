@@ -24,6 +24,7 @@ import com.google.blockly.model.BlockDefinition;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.Connection;
+import com.google.blockly.model.Field;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONException;
@@ -61,8 +62,7 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
         mProcedureManagerSpy = spy(mController.getWorkspace().getProcedureManager());
 
         mConnectionManager = new ConnectionManager();
-        mStats = new WorkspaceStats(
-                new NameManager.VariableNameManager(), mProcedureManagerSpy, mConnectionManager);
+        mStats = new WorkspaceStats(mProcedureManagerSpy, mConnectionManager);
     }
 
     @Test
@@ -113,12 +113,12 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
         Block variableReference = mFactory.obtainBlockFrom(new BlockTemplate().fromDefinition(def));
         mStats.collectStats(variableReference, false);
 
-        assertThat(mStats.getVariableNameManager().contains("variable name")).isTrue();
-        assertThat(mStats.getVariableNameManager().contains("field name")).isFalse();
+        assertThat(mStats.getVariableNameManager().hasName("variable name")).isTrue();
+        assertThat(mStats.getVariableNameManager().hasName("field name")).isFalse();
 
         assertThat(mStats.getVariableInfo("variable name").getFields().size()).isEqualTo(2);
-        assertThat(mStats.getVariableInfo("variable name").getFields().get(0))
-            .isEqualTo(variableReference.getFieldByName("field name"));
+        assertThat(mStats.getVariableInfo("variable name").getFields()
+                .contains(variableReference.getFieldByName("field name"))).isTrue();
     }
 
     @Test
@@ -171,8 +171,8 @@ public class WorkspaceStatsTest extends BlocklyTestCase {
         childBlock.getPreviousConnection().connect(middleTestBlock.getNextConnection());
 
         mStats.collectStats(middleTestBlock, true);
-        assertThat(mStats.getVariableNameManager().contains("variable on child")).isTrue();
-        assertThat(mStats.getVariableNameManager().contains("variable on parent")).isFalse();
+        assertThat(mStats.getVariableNameManager().hasName("variable on child")).isTrue();
+        assertThat(mStats.getVariableNameManager().hasName("variable on parent")).isFalse();
         assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_INPUT).isEmpty())
                 .isTrue();
         assertThat(mConnectionManager.getConnections(Connection.CONNECTION_TYPE_OUTPUT).isEmpty())

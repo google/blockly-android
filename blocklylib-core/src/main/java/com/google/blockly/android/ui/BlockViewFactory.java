@@ -29,6 +29,7 @@ import com.google.blockly.android.FlyoutFragment;
 import com.google.blockly.android.WorkspaceFragment;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.control.NameManager;
+import com.google.blockly.android.control.VariableNameManager;
 import com.google.blockly.android.ui.fieldview.BasicFieldAngleView;
 import com.google.blockly.android.ui.fieldview.BasicFieldCheckboxView;
 import com.google.blockly.android.ui.fieldview.BasicFieldColorView;
@@ -78,7 +79,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     /**
      * Name manager for the list of variables in this instance of Blockly.
      */
-    protected NameManager mVariableNameManager;
+    protected VariableNameManager mVariableNameManager;
     /**
      * The callback to use for views that can request changes to the list of variables.
      */
@@ -129,7 +130,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
      *
      * @param variableNameManager The name manager for the variables in the associated workspace.
      */
-    public void setVariableNameManager(NameManager variableNameManager) {
+    public void setVariableNameManager(VariableNameManager variableNameManager) {
         mVariableNameManager = variableNameManager;
     }
 

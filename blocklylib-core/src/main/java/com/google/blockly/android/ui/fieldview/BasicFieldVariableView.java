@@ -26,7 +26,7 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.google.blockly.android.R;
-import com.google.blockly.android.control.NameManager;
+import com.google.blockly.android.control.VariableNameManager;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
 
@@ -180,7 +180,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
 
     /**
      * An implementation of {@link ArrayAdapter} that wraps the
-     * {@link NameManager.VariableNameManager} to create the variable item views.
+     * {@link VariableNameManager} to create the variable item views.
      */
     public static class VariableViewAdapter extends ArrayAdapter<String> {
         @Retention(RetentionPolicy.SOURCE)
@@ -190,7 +190,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
         public static final int ACTION_RENAME_VARIABLE = 1;
         public static final int ACTION_DELETE_VARIABLE = 2;
 
-        private final NameManager mVariableNameManager;
+        private final VariableNameManager mVariableNameManager;
         private final SortedSet<String> mVars;
         private final String mRenameString;
         private final String mDeleteString;
@@ -200,7 +200,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
          * @param context A context for inflating layouts.
          * @param resource The {@link TextView} layout to use when inflating items.
          */
-        public VariableViewAdapter(Context context, NameManager variableNameManager,
+        public VariableViewAdapter(Context context, VariableNameManager variableNameManager,
                                    @LayoutRes int resource) {
             super(context, resource);
 
@@ -226,14 +226,15 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
          * @return The index of the variable.
          */
         public int getOrCreateVariableIndex(String variableName) {
-            String existing = mVariableNameManager.getExisting(variableName);
+            String existing = mVariableNameManager.getDisplayName(variableName);
             if (existing != null) {
                 return getIndexForVarName(existing);
             } else {
                 // No match found.  Create it.
-                variableName = mVariableNameManager.makeValidName(
-                        /* suggested */ variableName, /* fallback */ variableName);
-                mVariableNameManager.addName(variableName);
+                variableName = mVariableNameManager.generateUniqueName(variableName);
+                if (!mVariableNameManager.addVariable(variableName, false).equals(variableName)) {
+                    throw new IllegalStateException("Failed to add with new unique name.");
+                }
                 int insertionIndex = getIndexForVarName(variableName);
 
                 notifyDataSetChanged();
