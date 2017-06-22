@@ -91,11 +91,11 @@ public abstract class VariableNameManager<VI extends VariableInfo> extends NameM
     /**
      * Removes any association between the variable {@code argName} with {@code procedureName}. This
      * does not remove the variable even if its role as a procedure argument was the last know use.
-     * @param varName The name of the variable that was being referenced by the procedure.
+     * @param argName The name of the variable that was being referenced by the procedure.
      * @param procedureName The name of the procedure that is no longer referencing the variable.
      */
-    public void removeProcedureArg(String varName, String procedureName) {
-        VI varInfo = getValueOf(varName);
+    public void removeProcedureArg(String argName, String procedureName) {
+        VI varInfo = getValueOf(argName);
         if (varInfo != null) {
             varInfo.removeUseAsProcedureArgument(procedureName);
         }
