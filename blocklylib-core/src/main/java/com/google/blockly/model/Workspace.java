@@ -23,6 +23,7 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.android.control.ProcedureManager;
+import com.google.blockly.android.control.VariableNameManager;
 import com.google.blockly.android.control.WorkspaceStats;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
@@ -48,7 +49,7 @@ public class Workspace {
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
     private final ProcedureManager mProcedureManager;
-    private final NameManager mVariableNameManager = new NameManager.VariableNameManager();
+    private final VariableNameManager mVariableNameManager;
     private final ConnectionManager mConnectionManager = new ConnectionManager();
     private final WorkspaceStats mStats;
 
@@ -72,8 +73,9 @@ public class Workspace {
         mBlockFactory = factory;
         mId = UUID.randomUUID().toString();
 
-        mProcedureManager = new ProcedureManager(controller, this);
-        mStats = new WorkspaceStats(mVariableNameManager, mProcedureManager, mConnectionManager);
+        mProcedureManager = new ProcedureManager(controller);
+        mStats = new WorkspaceStats(mProcedureManager, mConnectionManager);
+        mVariableNameManager = mStats.getVariableNameManager();
     }
 
     /**
@@ -275,12 +277,12 @@ public class Workspace {
     }
 
     /**
-     * Gets the {@link NameManager.VariableNameManager} being used by this workspace. This can be
+     * Gets the {@link VariableNameManager} being used by this workspace. This can be
      * used to get a list of variables in the workspace.
      *
      * @return The name manager for variables in this workspace.
      */
-    public NameManager getVariableNameManager() {
+    public VariableNameManager<VariableInfo> getVariableNameManager() {
         return mVariableNameManager;
     }
 

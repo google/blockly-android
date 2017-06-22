@@ -74,7 +74,7 @@ public interface BlockView {
 
     /**
      * Gets the screen location of a touch, assuming that the view transforms will be in the
-     * {@link WorkspaceView} that contains this view.
+     * {@link WorkspaceView} that hasName this view.
      *
      * @param event The touch event in question
      * @param locationOut The array to store the results.

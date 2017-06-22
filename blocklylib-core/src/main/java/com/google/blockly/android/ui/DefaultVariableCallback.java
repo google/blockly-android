@@ -90,7 +90,7 @@ public class DefaultVariableCallback extends BlocklyController.VariableCallback 
     @Override
     public void onAlertCannotDeleteProcedureArgument(String variableName, VariableInfo varInfo) {
         // TODO: Use Blockly message CANNOT_DELETE_VARIABLE_PROCEDURE from TranslationManager
-        String procedureName = varInfo.getProcedureName(0);
+        String procedureName = varInfo.getProcedureNames().valueAt(0);
         new AlertDialog.Builder(mActivity)
                 .setMessage(mActivity.getString(
                         R.string.cannot_delete_variable_procedure, variableName, procedureName))
