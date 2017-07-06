@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 /**
- * An array of colorful buttons, used either to run code or edit code.
+ * An array of colorful buttons, with some instructional text.
  */
 public class ButtonsFragment extends Fragment {
     @Nullable
