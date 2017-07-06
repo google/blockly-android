@@ -8,15 +8,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 /**
- * An array of colorful buttons, with some instructional text.
+ * An array of colorful buttons, with some instructional text and an "Edit" menu option.
  */
-public class ButtonsFragment extends Fragment {
+public class EditFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(
             LayoutInflater inflater,
             @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.buttons_fragment, container);
+        return inflater.inflate(R.layout.edit_fragment, null);
     }
 }
