@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Codelab</string>
+    <string name="edit_instructions">Tap any button to edit its code.\nWhen complete, press back.</string>
+    <string name="action_edit">Edit</string>
+</resources>
