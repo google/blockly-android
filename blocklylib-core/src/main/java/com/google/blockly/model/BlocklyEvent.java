@@ -604,11 +604,10 @@ public abstract class BlocklyEvent {
         /**
          * Constructs a {@link MoveEvent} signifying the movement of a block on the workspace.
          *
-         * @param workspace The workspace containing the moved blocks.
          * @param block The root block of the move, while it is still in its original position.
          */
-        public MoveEvent(@NonNull Workspace workspace, @NonNull Block block) {
-            super(TYPE_MOVE, workspace.getId(), null, block.getId());
+        public MoveEvent(@NonNull Block block) {
+            super(TYPE_MOVE, block.getEventWorkspaceId(), null, block.getId());
 
             Connection parentConnection = block.getParentConnection();
             if (parentConnection == null) {
@@ -761,36 +760,35 @@ public abstract class BlocklyEvent {
         private final String mOldValue;
         private final String mNewValue;
 
-        public UIEvent newBlockClickedEvent(@NonNull Workspace workspace, @NonNull Block block) {
+        public UIEvent newBlockClickedEvent(@NonNull Block block) {
             return new UIEvent(ELEMENT_CLICK, block, null, null);
         }
 
-        public UIEvent newBlockCommentEvent(@NonNull Workspace workspace, @NonNull Block block,
+        public UIEvent newBlockCommentEvent(@NonNull Block block,
                                             boolean openedBefore, boolean openedAfter) {
             return new UIEvent(ELEMENT_COMMENT_OPEN, block,
                     openedBefore ? "true" : "false", openedAfter ? "true" : "false");
         }
 
-        public UIEvent newBlockMutatorEvent(@NonNull Workspace workspace, @NonNull Block block,
+        public UIEvent newBlockMutatorEvent(@NonNull Block block,
                                             boolean openedBefore, boolean openedAfter) {
             return new UIEvent(ELEMENT_MUTATOR_OPEN, block,
                     openedBefore ? "true" : "false", openedAfter ? "true" : "false");
         }
 
-        public UIEvent newBlockSelectedEvent(@NonNull Workspace workspace, @NonNull Block block,
+        public UIEvent newBlockSelectedEvent(@NonNull Block block,
                                             boolean selectedBefore, boolean selectedAfter) {
             return new UIEvent(ELEMENT_SELECTED, block,
                                selectedBefore ? "true" : "false", selectedAfter ? "true" : "false");
         }
 
-        public UIEvent newBlockWarningEvent(@NonNull Workspace workspace, @NonNull Block block,
+        public UIEvent newBlockWarningEvent(@NonNull Block block,
                                             boolean openedBefore, boolean openedAfter) {
             return new UIEvent(ELEMENT_WARNING_OPEN, block,
                     openedBefore ? "true" : "false", openedAfter ? "true" : "false");
         }
 
-        public UIEvent newToolboxCategoryEvent(@NonNull Workspace workspace,
-                                               @Nullable String oldValue,
+        public UIEvent newToolboxCategoryEvent(@Nullable String oldValue,
                                                @Nullable String newValue) {
             return new UIEvent(ELEMENT_CATEGORY, null, oldValue, newValue);
         }
