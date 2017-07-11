@@ -1355,7 +1355,7 @@ public class BlocklyController {
     private void connectToStatementImpl(Connection parentStatementConnection, Block toConnect) {
         // Store the state of toConnect in its original location.
         // TODO: (#342) move the event up to the impl method
-        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(mWorkspace, toConnect);
+        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(toConnect);
 
         Block remainderBlock = parentStatementConnection.getTargetBlock();
         BlocklyEvent.MoveEvent remainderMove = null;
@@ -1367,7 +1367,7 @@ public class BlocklyController {
                 remainderBlock = null;
             } else {
                 // Store the original location of the remainder.
-                remainderMove = new BlocklyEvent.MoveEvent(mWorkspace, remainderBlock);
+                remainderMove = new BlocklyEvent.MoveEvent(remainderBlock);
 
                 // Disconnect the remainder and we'll reattach it below
                 parentStatementConnection.disconnect();
@@ -1575,7 +1575,7 @@ public class BlocklyController {
         }
         // TODO: Document when this call valid but the root is not already part of the workspace.
         boolean isPartOfWorkspace = mWorkspace.isRootBlock(rootBlock);
-        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(getWorkspace(), block);
+        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(block);
         BlocklyEvent.MoveEvent remainderEvent = null;
 
         BlockView bv = mHelper.getView(block);
@@ -1586,7 +1586,7 @@ public class BlocklyController {
         BlockGroup remainderGroup = null;
         if (reattachNext && block.getNextBlock() != null) {
             remainderBlock = block.getNextBlock();
-            remainderEvent = new BlocklyEvent.MoveEvent(getWorkspace(), remainderBlock);
+            remainderEvent = new BlocklyEvent.MoveEvent(remainderBlock);
 
             remainderGroup = (bg == null) ? null :
                     bg.extractBlocksAsNewGroup(remainderBlock);
