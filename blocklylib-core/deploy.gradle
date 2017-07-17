@@ -1,0 +1,65 @@
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+def properties = new Properties()
+properties.load(new FileInputStream(project.file("../deploy.properties")))
+
+version=properties.version
+group=properties.groupId
+
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            packaging 'aar'
+
+            group properties.groupId
+            artifactId project.name
+            version properties.version
+        }
+    }
+}
+
+/**
+ * Bintray closure needed to run the buntrayUpload task.
+ *
+ * Usage:
+ * ./gradlew bintrayUpload -PbintrayUser=YOUR_BINTRAY_USER_ID -PbintrayApiKey=YOUR_BINTRAY_API_KEY
+ *
+ * Or set BINTRAY_USER and BINTRAY_API_KEY environment variables before calling:
+ * ./gradlew bintrayUpload.)
+ *
+ * The Bintray User ID and API key can be added to your system environment variables as BINTRAY_USER
+ * and BINTRAY_API_KEY respectively, and the command could be reduced to:
+ * ./gradlew bintrayUpload
+ */
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser')
+            : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey')
+            : System.getenv('BINTRAY_API_KEY')
+
+    configurations = ['archives']
+    pkg {
+        userOrg = properties.bintrayUserOrg
+        repo = properties.bintrayRepo
+        name = project.name
+        desc = '''\
+Blockly for Android provides a block-based code editor to Android apps.
+This library provides the core classes, including models, view base classes, and basic Android integration.
+'''
+        websiteUrl = properties.siteUrl
+        vcsUrl = properties.githubUrl + '.git'
+        issueTrackerUrl = properties.githubUrl + '/issues'
+        licenses = properties.licenses
+        labels = ['Android', 'Blockly']
+        publicDownloadNumbers = true
+        publish = true
+        version {
+            name = properties.version
+        }
+    }
+}
+
+artifacts {
+    archives sourcesJar
+}
