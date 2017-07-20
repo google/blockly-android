@@ -33,7 +33,7 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 
-// TODO: Fix JavaDoc compilation, and then update deployment artifacts.
+// TODO(#632): Fix JavaDoc compilation, and then update deployment artifacts.
 //task javadoc(type: Javadoc) {
 //    source = android.sourceSets.main.java.srcDirs
 //    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
