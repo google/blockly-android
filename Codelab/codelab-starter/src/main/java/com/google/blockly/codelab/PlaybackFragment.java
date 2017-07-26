@@ -14,12 +14,12 @@ import android.view.ViewGroup;
  * A fragment to playback the scripts associated with each button.
  */
 public class PlaybackFragment extends Fragment {
-    private AudioFilePlayer mAudioFilePlayer;
+    private MultiFileAudioPlayer mMultiFileAudioPlayer;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAudioFilePlayer = new AudioFilePlayer(getContext());
+        mMultiFileAudioPlayer = new MultiFileAudioPlayer(getContext());
         setHasOptionsMenu(true);
     }
 
@@ -61,20 +61,20 @@ public class PlaybackFragment extends Fragment {
 
     @Override
     public void onStop() {
-        mAudioFilePlayer.stop();
+        mMultiFileAudioPlayer.stop();
         super.onStop();
     }
 
     /**
      * Helper function to construct a new {@link View.OnClickListener} that plays
-     * one of the {@link AudioFilePlayer}'s audio files.
+     * one of the {@link MultiFileAudioPlayer}'s audio files.
      * @return A new View.OnClickListener.
      */
     private View.OnClickListener buildPlayOnClick(final int n) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mAudioFilePlayer.playSound(AudioFilePlayer.AUDIO_FILES.get(n), null);
+                mMultiFileAudioPlayer.playSound(MultiFileAudioPlayer.AUDIO_FILES.get(n), null);
             }
         };
     }
