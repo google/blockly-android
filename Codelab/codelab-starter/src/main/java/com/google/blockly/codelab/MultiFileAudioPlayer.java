@@ -2,188 +2,128 @@ package com.google.blockly.codelab;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.media.MediaPlayer;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
-import android.util.Log;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * A polyphonic audio file player with with an asynchronous callback for each file played.
+ * Only supports a preselected set of files with known, hardcoded durations
  */
 public class MultiFileAudioPlayer {
     private static final String TAG = "AudioFilePlayer";
 
+    /**
+     * The effective duration of the piano not audio files.
+     * The actual durations of the notes range from 718 to 918 milliseconds.
+     * However, to implement a good cadence, we'll treat all of them as having
+     * the same duration. We'll even treat them as shorter to give overlap.
+     */
+    private static final Long NOTE_MILLISECONDS = 660L;
+
     public interface PlaySoundCallback {
-        void onComplete();
-        void onError(Throwable e);
+        void onComplete(SoundFile soundFile);
+        void onError(SoundFile soundFile);
     }
 
     private final Context mContext;
-    private boolean mReady = true;
-
-    /** Map of filenames to MediaPlayers that have the filename loaded but are not yet playing. */
-    private Map<String, ArrayList<AudioFilePlayer>> mInactivePlayers = new ArrayMap<>();
-    /** List of all active MediaPlayers. */
-    private List<AudioFilePlayer> mActivePlayers = new ArrayList<>();
+    private final Handler mMainHandler;
+    private final SoundPool mSoundPool;
 
     /** Audio files located in the <code>assets/sounds/</code> directory. */
-    public static List<String> AUDIO_FILES = Collections.unmodifiableList(Arrays.asList(
-            "c4.m4a",
-            "d4.m4a",
-            "e4.m4a",
-            "f4.m4a",
-            "g4.m4a",
-            "a5.m4a",
-            "b5.m4a",
-            "c5.m4a",
-            "horn.wav",
-            "success.wav",
-            "whistle.wav",
-            "yeah.mp3"
-    ));
+    public final ArrayMap<String, SoundFile> mSoundFiles = new ArrayMap<>();
 
     public MultiFileAudioPlayer(Context context) {
         mContext = context;
+        mMainHandler = new Handler(context.getMainLooper());
 
-        // Maybe prepare one of each audio files (as long as there aren't too many.
+        AudioAttributes audioAttrs = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .build();
+        mSoundPool = new SoundPool.Builder()
+                .setAudioAttributes(audioAttrs)
+                .setMaxStreams(9)  // One per button
+                .build();
+
+        mSoundFiles.put("C4", new SoundFile("C4", "c4.m4a", NOTE_MILLISECONDS));
+        mSoundFiles.put("D4", new SoundFile("D4", "d4.m4a", NOTE_MILLISECONDS));
+        mSoundFiles.put("E4", new SoundFile("E4", "e4.m4a", NOTE_MILLISECONDS));
+        mSoundFiles.put("F4", new SoundFile("F4", "f4.m4a", NOTE_MILLISECONDS));
+        mSoundFiles.put("G4", new SoundFile("G4", "g4.m4a", NOTE_MILLISECONDS));
+        mSoundFiles.put("A5", new SoundFile("A5", "a5.m4a", NOTE_MILLISECONDS));
+        mSoundFiles.put("B5", new SoundFile("B5", "b5.m4a", NOTE_MILLISECONDS));
+        mSoundFiles.put("C5", new SoundFile("C5", "c5.m4a", NOTE_MILLISECONDS));
+        mSoundFiles.put("Horn", new SoundFile("Horn", "horn.wav", 707L));
+        mSoundFiles.put("Success", new SoundFile("Success", "success.wav", 2275L));
+        mSoundFiles.put("Whistle", new SoundFile("Whistle", "whistle.wav", 928L));
+        mSoundFiles.put("Yeah!", new SoundFile("Yeah!", "yeah.mp3", 1175L));
     }
 
     /**
      * Plays the named audio file, with a callback notifying when the file is complete.
-     * @param filename The name of the file found in <code>assets/sounds/</code>.
+     * @param id The identifying short name of the sound file.
      * @param callback Called when the audio file completes, or the file loading errors.
      */
-    public void playSound(final String filename, @Nullable final PlaySoundCallback callback) {
-        try {
-            findOrCreatePlayer(filename, callback);
-        } catch (IOException e) {
+    public void playSound(final String id, @Nullable final PlaySoundCallback callback) {
+        final SoundFile sound = mSoundFiles.get(id);
+        if (sound == null) {
+            throw new IllegalArgumentException("Unknown file \"" + id + "\".");
+        }
+        if (!sound.play()) {
             if (callback != null) {
-                callback.onError(e);
-            } else {
-                Log.e(TAG, "Failed to load file \"" + filename + "\"", e);
+                callback.onError(sound);
             }
+            return;
+        }
+
+        if (callback != null) {
+            mMainHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onComplete(sound);
+                }
+            }, sound.duration);
         }
     }
 
     /**
      * Stops all audio and releases all MediaPlayers.
      */
-    public void stop() {
-        mReady = false;
-        for (MediaPlayer player : mActivePlayers) {
-            player.stop();
-            player.release();
-        }
-        mActivePlayers.clear();
-
-        for (String filename: mInactivePlayers.keySet()) {
-            for (MediaPlayer player : mInactivePlayers.get(filename)) {
-                player.release();
-            }
-        }
-        mInactivePlayers.clear();
+    public void pause() {
+        mSoundPool.autoPause();
     }
 
-    /**
-     * Finds an inactive MediaPlayer with the requested file, possibly creating a new one.
-     * @param filename The audio file to load from <code>assets/sounds/</code>.
-     * @param callback The callback when the audio file is ready.
-     * @throws IOException If the file fails to load.
-     */
-    private void findOrCreatePlayer(
-            final String filename, @Nullable final PlaySoundCallback callback)
-            throws IOException {
-        mReady = true;
-        ArrayList<AudioFilePlayer> list = mInactivePlayers.get(filename);
-        if (list == null) {
-            list = new ArrayList<>();
-            mInactivePlayers.put(filename, list);
-        }
-
-        if (list.isEmpty()) {
-            AudioFilePlayer filePlayer = new AudioFilePlayer(filename, true, callback);
-        } else {
-            // Pop the last one off the list.
-            AudioFilePlayer filePlayer = list.remove(list.size() - 1);
-            filePlayer.mExternalCallback = callback;
-            filePlayer.start();
-        }
+    public void resume() {
+        mSoundPool.autoResume();
     }
 
-    private class AudioFilePlayer extends MediaPlayer
-            implements MediaPlayer.OnPreparedListener,MediaPlayer.OnCompletionListener,
-                    MediaPlayer.OnErrorListener {
-        private String mFilename;
-        private boolean mAutoStart;
-        PlaySoundCallback mExternalCallback = null;
+    class SoundFile {
+        final String shortName;
+        final String filename;
+        final long duration;
+        private final int id;
 
-        AudioFilePlayer(String filename, boolean autoStart, PlaySoundCallback callback)
-                throws IOException {
-            super();
+        SoundFile(String shortName, String filename, long duration) {
+            this.shortName = shortName;
+            this.filename = filename;
+            this.duration = duration;
 
-            mFilename = filename;
-            mAutoStart = autoStart;
-            mExternalCallback = callback;
-            setOnCompletionListener(this);
-            setOnPreparedListener(this);
-            setOnErrorListener(this);
-
-            AssetFileDescriptor afd = mContext.getAssets().openFd("sounds/" + filename);
-            setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-            afd.close();
-
-            prepareAsync();
-        }
-
-        @Override
-        public void onPrepared(MediaPlayer mp) {
-            if (mAutoStart) {
-                mAutoStart = false;
-                start();
-            } else {
-                addToInactiveList();
+            try {
+                AssetFileDescriptor afd = mContext.getAssets().openFd("sounds/" + filename);
+                this.id = mSoundPool.load(afd, 1);
+                afd.close();
+            } catch (IOException e) {
+                throw new IllegalStateException("Error loading sound file \"" + filename + "\"", e);
             }
         }
 
-        @Override
-        public void onCompletion(MediaPlayer mp) {
-            if (mExternalCallback != null) {
-                PlaySoundCallback callback = mExternalCallback;
-                mExternalCallback = null;
-                callback.onComplete();
-            }
-            if (mReady) {
-                addToInactiveList();  // Ready to start from the beginning again.
-            }
-        }
-
-        @Override
-        public boolean onError(MediaPlayer mp, int what, int extra) {
-            String msg = "AudioFilePlayer \"" + mFilename + "\": " +
-                    "what: " + what + ", extra: " + extra;
-            Log.e(TAG, msg);
-            if (mExternalCallback != null) {
-                mExternalCallback.onError(new Exception(msg));
-            }
-            mExternalCallback = null;
-            // Do not add back to mInactivePlayers
-            return false;
-        }
-
-        private void addToInactiveList() {
-            ArrayList<AudioFilePlayer> audioFilePlayers = mInactivePlayers.get(mFilename);
-            if (audioFilePlayers == null) {
-                audioFilePlayers = new ArrayList<>();
-                mInactivePlayers.put(mFilename, audioFilePlayers);
-            }
-            audioFilePlayers.add(this);
+        public boolean play() {
+            return mSoundPool.play(id, 1f, 1f, 1, 0, 1f) != 0;
         }
     }
 }
