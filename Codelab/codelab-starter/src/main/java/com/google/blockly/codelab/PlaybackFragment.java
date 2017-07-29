@@ -32,15 +32,15 @@ public class PlaybackFragment extends Fragment {
         ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.buttons, null);
 
         // Each button plays a different file.
-        rootView.findViewById(R.id.button1).setOnClickListener(buildPlayOnClick(1));
-        rootView.findViewById(R.id.button2).setOnClickListener(buildPlayOnClick(2));
-        rootView.findViewById(R.id.button3).setOnClickListener(buildPlayOnClick(3));
-        rootView.findViewById(R.id.button4).setOnClickListener(buildPlayOnClick(4));
-        rootView.findViewById(R.id.button5).setOnClickListener(buildPlayOnClick(5));
-        rootView.findViewById(R.id.button6).setOnClickListener(buildPlayOnClick(6));
-        rootView.findViewById(R.id.button7).setOnClickListener(buildPlayOnClick(7));
-        rootView.findViewById(R.id.button8).setOnClickListener(buildPlayOnClick(8));
-        rootView.findViewById(R.id.button9).setOnClickListener(buildPlayOnClick(9));
+        rootView.findViewById(R.id.button1).setOnClickListener(buildPlayOnClick("C4"));
+        rootView.findViewById(R.id.button2).setOnClickListener(buildPlayOnClick("D4"));
+        rootView.findViewById(R.id.button3).setOnClickListener(buildPlayOnClick("E4"));
+        rootView.findViewById(R.id.button4).setOnClickListener(buildPlayOnClick("F4"));
+        rootView.findViewById(R.id.button5).setOnClickListener(buildPlayOnClick("G4"));
+        rootView.findViewById(R.id.button6).setOnClickListener(buildPlayOnClick("A5"));
+        rootView.findViewById(R.id.button7).setOnClickListener(buildPlayOnClick("B5"));
+        rootView.findViewById(R.id.button8).setOnClickListener(buildPlayOnClick("C5"));
+        rootView.findViewById(R.id.button9).setOnClickListener(buildPlayOnClick("Success"));
 
         return rootView;
     }
@@ -60,9 +60,15 @@ public class PlaybackFragment extends Fragment {
     }
 
     @Override
-    public void onStop() {
-        mMultiFileAudioPlayer.stop();
-        super.onStop();
+    public void onPause() {
+        mMultiFileAudioPlayer.pause();
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        mMultiFileAudioPlayer.resume();
+        super.onResume();
     }
 
     /**
@@ -70,11 +76,11 @@ public class PlaybackFragment extends Fragment {
      * one of the {@link MultiFileAudioPlayer}'s audio files.
      * @return A new View.OnClickListener.
      */
-    private View.OnClickListener buildPlayOnClick(final int n) {
+    private View.OnClickListener buildPlayOnClick(final String soundId) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMultiFileAudioPlayer.playSound(MultiFileAudioPlayer.AUDIO_FILES.get(n), null);
+                mMultiFileAudioPlayer.playSound(soundId, null);
             }
         };
     }

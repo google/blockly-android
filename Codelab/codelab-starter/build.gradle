@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.google.blockly.codelab"
-        minSdkVersion 19
+        minSdkVersion 21  // Because of SoundPool.Builder
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
