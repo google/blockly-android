@@ -47,7 +47,7 @@ public class MultiFileAudioPlayer {
                 .build();
         mSoundPool = new SoundPool.Builder()
                 .setAudioAttributes(audioAttrs)
-                .setMaxStreams(9)  // One per button
+                .setMaxStreams(18)  // 2x number of buttons, because of overlap at start/end
                 .build();
 
         mSoundFiles.put("C4", new SoundFile("C4", "c4.m4a", NOTE_MILLISECONDS));
