@@ -121,7 +121,7 @@ public abstract class Input implements Cloneable {
      * @param align The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
-    public Input(@Nullable String name, @InputType int type, @Nullable List<Field> fields,
+    public Input(@Nullable String name, @InputType int type, @Nullable List<? extends Field> fields,
                  @Alignment int align, Connection connection) {
         mName = name;
         mType = type;
@@ -143,7 +143,7 @@ public abstract class Input implements Cloneable {
      * @param alignString The alignment for fields in this input (left, right, center).
      * @param connection (Optional) The connection for this input, if any..
      */
-    protected Input(String name, @InputType int type, @Nullable List<Field> fields,
+    protected Input(String name, @InputType int type, @Nullable List<? extends Field> fields,
                     @Nullable String alignString, @Nullable Connection connection) {
         this(name, type, fields, stringToAlignment(alignString), connection);
     }
@@ -444,13 +444,13 @@ public abstract class Input implements Cloneable {
      */
     public static final class InputValue extends Input implements Cloneable {
 
-        public InputValue(@NonNull String name, @Nullable List<Field> fields,
+        public InputValue(@NonNull String name, @Nullable List<? extends Field> fields,
                           @Nullable String alignString, @Nullable String[] checks) {
             super(name, TYPE_VALUE, fields, alignString,
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));
         }
 
-        public InputValue(@NonNull String name, @Nullable List<Field> fields, @Alignment int align,
+        public InputValue(@NonNull String name, @Nullable List<? extends Field> fields, @Alignment int align,
                           @Nullable String[] checks) {
             super(name, TYPE_VALUE, fields, align,
                     new Connection(Connection.CONNECTION_TYPE_INPUT, checks));

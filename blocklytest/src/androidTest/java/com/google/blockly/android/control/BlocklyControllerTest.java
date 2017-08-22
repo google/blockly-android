@@ -21,7 +21,6 @@ import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
-import com.google.blockly.android.test.R;
 import com.google.blockly.android.testui.TestableBlockGroup;
 import com.google.blockly.android.testui.TestableBlockViewFactory;
 import com.google.blockly.android.ui.AbstractBlockView;
@@ -37,6 +36,7 @@ import com.google.blockly.model.BlockTestStrings;
 import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
+import com.google.blockly.model.VariableInfo;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.utils.BlockLoadingException;
 
@@ -82,7 +82,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         }
     };
 
-    MockVariableCallback mVariableCallback = new MockVariableCallback();
+    StubVariableCallback mVariableCallback = new StubVariableCallback();
 
     @Before
     public void setUp() throws Exception {
@@ -1507,6 +1507,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
 
     @Test
     public void testRemoveVariable() throws BlockLoadingException {
+        configureForUIThread();
         final Block set1 = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("set_variable").withId("first block"));
         final Block set2 = mBlockFactory.obtainBlockFrom(
@@ -1707,7 +1708,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         }
     }
 
-    private static class MockVariableCallback extends BlocklyController.VariableCallback {
+    private static class StubVariableCallback extends BlocklyController.VariableCallback {
         String onDeleteVariable = null;
         String onCreateVariable = null;
         String onRenameVariable = null;
@@ -1717,7 +1718,7 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         boolean whenOnRenameCalled = true;
 
         @Override
-        public boolean onDeleteVariable(String variable) {
+        public boolean onDeleteVariable(String variable,  VariableInfo info) {
             onDeleteVariable = variable;
             return whenOnDeleteCalled;
         }
@@ -1732,6 +1733,11 @@ public class BlocklyControllerTest extends BlocklyTestCase {
         public boolean onRenameVariable(String variable, String newVariable) {
             onRenameVariable = variable;
             return whenOnRenameCalled;
+        }
+
+        @Override
+        public void onAlertCannotDeleteProcedureArgument(String variableName, VariableInfo info) {
+            // Do nothing
         }
 
         public void reset() {

@@ -53,6 +53,8 @@ public class NameVariableDialogTest extends BlocklyTestCase {
 
   @Test
   public void dialogShowsOldVariableNameWhenRenaming() throws Exception {
+    testTimeoutMs *= 5;  // Allow longer time for dialog interaction test
+
     String variableName = "oldVariableName";
 
     mNameVariableDialogFragment.setVariable(
@@ -63,6 +65,8 @@ public class NameVariableDialogTest extends BlocklyTestCase {
 
   @Test
   public void dialogShowsGenericTextForNewVariable() throws Exception {
+    testTimeoutMs *= 5;  // Allow longer time for dialog interaction test
+
     mNameVariableDialogFragment.setVariable("", mock(NameVariableDialog.Callback.class), false);
     mNameVariableDialogFragment.show(mActivity.getSupportFragmentManager(), "CreateFragment");
     onView(withId(R.id.description)).check(matches(withText("New variable name")));

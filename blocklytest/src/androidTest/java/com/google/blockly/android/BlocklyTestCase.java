@@ -40,9 +40,10 @@ public class BlocklyTestCase {
      * Default timeout of 1 second, which should be plenty for most UI actions.  Anything longer
      * is an error.  However, to step through this code with a debugger, use a much longer duration.
      */
-    protected static final long TEST_TIMEOUT_MILLIS = 1000L;
+    protected static final long DEFAULT_TEST_TIMEOUT_MILLIS = 1000L;
 
     private Context mThemeContext;
+    protected long testTimeoutMs = DEFAULT_TEST_TIMEOUT_MILLIS;
 
     protected void configureForThemes() {
         mThemeContext = new ContextThemeWrapper(getContext(), R.style.BlocklyVerticalTheme);
@@ -85,7 +86,15 @@ public class BlocklyTestCase {
                 } catch (Throwable e) {
                     thrownRef[0] = e;
                 }
-                latch.countDown();
+
+                // Defer the latch until after all posted Runnables have completed.
+                // TODO: Consider using MessageQueue.isIdle() (API >= M)
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        latch.countDown();
+                    }
+                });
             }
         });
         awaitTimeout(latch);
@@ -98,7 +107,7 @@ public class BlocklyTestCase {
 
     protected void awaitTimeout(CountDownLatch latch) {
         try {
-            latch.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+            latch.await(testTimeoutMs, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw new IllegalStateException("Timeout exceeded.", e);
         }

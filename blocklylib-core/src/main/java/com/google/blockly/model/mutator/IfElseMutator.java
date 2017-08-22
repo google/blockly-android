@@ -77,6 +77,7 @@ public class IfElseMutator extends Mutator {
     private boolean mElseStatement = false;
 
     private String mIfLabel;
+    private String mElseIfLabel;
     private String mThenLabel;
     private String mElseLabel;
 
@@ -93,9 +94,14 @@ public class IfElseMutator extends Mutator {
 
         mController = controller;
         // TODO: Replace with Blockly string table/TranslationsManager call
-        mIfLabel = context.getString(R.string.mutator_if_else_if_label);
-        mThenLabel = context.getString(R.string.mutator_if_else_then_label);
-        mElseLabel = context.getString(R.string.mutator_if_else_else_label);
+        mIfLabel =  // BKY_CONTROLS_IF_MSG_IF
+                context.getString(R.string.mutator_ifelse_label_if);
+        mThenLabel =  // BKY_CONTROLS_IF_MSG_THEN
+                context.getString(R.string.mutator_ifelse_label_then);
+        mElseIfLabel =  // BKY_CONTROLS_IF_MSG_ELSEIF
+                context.getString(R.string.mutator_ifelse_label_else_if);
+        mElseLabel =  // BKY_CONTROLS_IF_MSG_ELSE
+                context.getString(R.string.mutator_ifelse_label_else);
     }
 
     @Override
@@ -196,7 +202,7 @@ public class IfElseMutator extends Mutator {
             } else {
                 // IFi value input
                 List<Field> fields = new ArrayList<>();
-                fields.add(new FieldLabel(null, mIfLabel));
+                fields.add(new FieldLabel(null, mElseIfLabel));
                 Input.InputValue ifInput = new Input.InputValue(IF_INPUT_PREFIX + i, fields, ALIGN,
                         CHECKS);
                 newInputs.add(ifInput);

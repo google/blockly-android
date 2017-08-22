@@ -11,7 +11,7 @@
             android:id="@+id/if_else_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/mutator_if_else_ifelse_count"
+            android:text="@string/mutator_ifelse_edit_ifelse_count"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:layout_weight="1"/>
         <ImageView
@@ -33,7 +33,7 @@
             android:id="@+id/else_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/mutator_if_else_else_count"
+            android:text="@string/mutator_ifelse_edit_has_else"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:layout_weight="1"/>
         <CheckBox

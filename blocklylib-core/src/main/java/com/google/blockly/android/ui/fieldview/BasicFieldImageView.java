@@ -23,7 +23,6 @@ import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
 import android.util.Base64;
 import android.util.Log;
-import android.widget.ImageView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldImage;
@@ -35,7 +34,16 @@ import java.net.URL;
 import java.util.regex.Pattern;
 
 /**
- * Renders an image bitmap.
+ * Renders an image bitmap. The FieldImage source can be any of the following:
+ * <ul>
+ *     <li>{@code http:} or {@code https:} URL</li>
+ *     <li>{@code data:} URI</li>
+ *     <li>{@code file:///android_assets/} URL</li>
+ *     <li>A relative path in the project's {@code assets/} directory</li>
+ * </ul>
+ * <p/>
+ * Any image format recognized by the Android device's BitmapFactory is valid. Usually this is a
+ * {@code .jpg} or {@code .png}.
  */
 public class BasicFieldImageView extends android.support.v7.widget.AppCompatImageView implements
         FieldView {
@@ -108,9 +116,8 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
 
     /**
      * Asynchronously load and set image bitmap.
-     * <p/>
-     * If a bitmap cannot be read from the given source, a default bitmap is set instead.
      */
+    // TODO(#44): Provide a default image if the image loading fails.
     protected void startLoadingImage() {
         final String source = mImageField.getSource();
 
@@ -171,8 +178,13 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
     }
 
     protected void updateViewSize() {
-        float density = getContext().getResources().getDisplayMetrics().density;
-        setMinimumWidth((int) Math.ceil(mImageField.getWidth() * density));
-        setMinimumHeight((int) Math.ceil(mImageField.getHeight() * density));
+        // Check for null b/c of https://groups.google.com/d/msg/blockly/lC91XADUiI4/Y0cLRAYQBQAJ
+        if (mImageField != null ) {
+            float density = getContext().getResources().getDisplayMetrics().density;
+            int pxWidth = (int) Math.ceil(mImageField.getWidth() * density);
+            int pxHeight = (int) Math.ceil(mImageField.getHeight() * density);
+            setMinimumWidth(pxWidth);
+            setMinimumHeight(pxHeight);
+        }
     }
 }

@@ -50,30 +50,13 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     public void setUp() throws Exception {
         this.configureForUIThread();
 
-        BlocklyController mController = new BlocklyController.Builder(getContext()).build();
+        mController = new BlocklyController.Builder(getContext()).build();
         mFactory = mController.getBlockFactory();
         TestUtils.loadProcedureBlocks(mController);
-        mProcedureManager = new ProcedureManager();
+        mProcedureManager = mController.getWorkspace().getProcedureManager();
 
-        runAndSync(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mProcedureDefinition = mFactory.obtainBlockFrom(
-                            new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE));
-                    ((FieldInput) mProcedureDefinition.getFieldByName("NAME"))
-                            .setText(PROCEDURE_NAME);
-
-                    mProcedureReference = mFactory.obtainBlockFrom(
-                            new BlockTemplate(ProcedureManager.CALL_NO_RETURN_BLOCK_TYPE)
-                                    .withMutation("<mutation name=\"" + PROCEDURE_NAME + "\"/>"));
-                    ((FieldLabel) mProcedureReference.getFieldByName("NAME"))
-                            .setText(PROCEDURE_NAME);
-                } catch (BlockLoadingException e) {
-                    throw new IllegalStateException(e);
-                }
-            }
-        });
+        mProcedureDefinition = buildNoReturnDefinition(PROCEDURE_NAME);
+        mProcedureReference = buildCaller(PROCEDURE_NAME);
 
         assertThat(mProcedureDefinition).isNotNull();
         assertThat(mProcedureReference).isNotNull();
@@ -174,5 +157,41 @@ public class ProcedureManagerTest extends BlocklyTestCase {
     public void testNoReference() {
         thrown.expect(IllegalStateException.class);
         mProcedureManager.removeReference(mProcedureReference);
+    }
+
+    private Block buildCaller(final String procName) throws BlockLoadingException {
+        final Block[] result = {null};
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Block block = mFactory.obtainBlockFrom(
+                            new BlockTemplate(ProcedureManager.CALL_NO_RETURN_BLOCK_TYPE)
+                                    .withMutation("<mutation name=\"" + procName + "\"/>"));
+                    result[0] = block;
+                } catch (BlockLoadingException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
+        return result[0];
+    }
+
+    private Block buildNoReturnDefinition(final String procName) throws BlockLoadingException {
+        final Block[] result = { null };
+        runAndSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Block block = mFactory.obtainBlockFrom(
+                            new BlockTemplate(ProcedureManager.DEFINE_NO_RETURN_BLOCK_TYPE)
+                                .withMutation("<mutation name=\"" + procName + "\"/>"));
+                    result[0] = block;
+                } catch (BlockLoadingException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
+        return result[0];
     }
 }

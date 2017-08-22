@@ -16,8 +16,8 @@
 package com.google.blockly.model;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
-import android.support.v4.util.SimpleArrayMap;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ConnectionManager;
@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -46,11 +47,10 @@ public class Workspace {
     private String mId;
 
     private final ArrayList<Block> mRootBlocks = new ArrayList<>();
-    private final ProcedureManager mProcedureManager = new ProcedureManager();
+    private final ProcedureManager mProcedureManager;
     private final NameManager mVariableNameManager = new NameManager.VariableNameManager();
     private final ConnectionManager mConnectionManager = new ConnectionManager();
-    private final WorkspaceStats mStats =
-            new WorkspaceStats(mVariableNameManager, mProcedureManager, mConnectionManager);
+    private final WorkspaceStats mStats;
 
     private BlocklyCategory mFlyoutCategory;
     private BlocklyCategory mTrashCategory = new BlocklyCategory();
@@ -62,9 +62,7 @@ public class Workspace {
      * @param controller The controller for this Workspace.
      * @param factory The factory used to build blocks in this workspace.
      */
-    public Workspace(Context context, BlocklyController controller,
-            BlockFactory factory) {
-
+    public Workspace(Context context, BlocklyController controller, BlockFactory factory) {
         if (controller == null) {
             throw new IllegalArgumentException("BlocklyController may not be null.");
         }
@@ -73,8 +71,14 @@ public class Workspace {
         mController = controller;
         mBlockFactory = factory;
         mId = UUID.randomUUID().toString();
+
+        mProcedureManager = new ProcedureManager(controller, this);
+        mStats = new WorkspaceStats(mVariableNameManager, mProcedureManager, mConnectionManager);
     }
 
+    /**
+     * @return The string identifier of this workspace. Used by {@link BlocklyEvent events}.
+     */
     public String getId() {
         return mId;
     }
@@ -85,6 +89,8 @@ public class Workspace {
      * @param block The block to add to the root of the workspace.
      * @param isNewBlock Set when the block is new to the workspace (compared to moving it from some
      *                   previous connection).
+ *     @throws IllegalArgumentException If the block or its children are references to undefined
+     *                                  procedures.
      */
     public void addRootBlock(Block block, boolean isNewBlock) {
         if (block == null) {
@@ -99,7 +105,11 @@ public class Workspace {
         mRootBlocks.add(block);
         if (isNewBlock) {
             block.setEventWorkspaceId(getId());
-            mStats.collectStats(block, true);
+            try {
+                mStats.collectStats(block, true);
+            } catch (BlockLoadingException e) {
+                throw new IllegalArgumentException(e);
+            }
         }
     }
 
@@ -232,20 +242,14 @@ public class Workspace {
         // Successfully deserialized.  Update workspace.
         // TODO: (#22) Add proper variable support.
         // For now just save and restore the list of variables.
-        SimpleArrayMap<String, String> varsMap = mVariableNameManager.getUsedNames();
-        String[] vars = new String[varsMap.size()];
-        for (int i = 0; i < varsMap.size(); i++) {
-            vars[i] = varsMap.keyAt(i);
-        }
+        Set<String> vars = mVariableNameManager.getUsedNames();
         mController.resetWorkspace();
-        for (int i = 0; i < vars.length; i++) {
-            mController.addVariable(vars[i]);
+        for (String varName : vars) {
+            mController.addVariable(varName);
         }
 
         mRootBlocks.addAll(newBlocks);
-        for (int i = 0; i < mRootBlocks.size(); i++) {
-            mStats.collectStats(mRootBlocks.get(i), true /* recursive */);
-        }
+        mStats.collectStats(newBlocks, true /* recursive */);
     }
 
     /**
@@ -268,48 +272,6 @@ public class Workspace {
      */
     public BlockFactory getBlockFactory() {
         return mBlockFactory;
-    }
-
-    /**
-     * @return The list of fields that are using the given variable.
-     */
-    public List<FieldVariable> getVariableRefs(String variable) {
-        List<FieldVariable> refs = mStats.getVariableReference(variable);
-        List<FieldVariable> copy = new ArrayList<>(refs == null ? 0 : refs.size());
-        copy.addAll(refs);
-        return copy;
-    }
-
-    /**
-     * Return the number of times a variable is referenced in this workspace.
-     *
-     * @param variable The variable to get a ref count for.
-     * @return The number of times that variable appears in this workspace.
-     */
-    public int getVariableRefCount(String variable) {
-        return mStats.getVariableReference(variable).size();
-    }
-
-    /**
-     * Gets all blocks that are using the specified variable.
-     *
-     * @param variable The variable to get blocks for.
-     * @param resultList An optional list to put the results in. This object will be returned if not
-     *                   null.
-     * @return A list of all blocks referencing the given variable.
-     */
-    public List<Block> getBlocksWithVariable(String variable, List<Block> resultList) {
-        List<FieldVariable> refs = mStats.getVariableReference(variable);
-        if (resultList == null) {
-            resultList = new ArrayList<>();
-        }
-        for(FieldVariable field : refs) {
-            Block block = field.getBlock();
-            if (!resultList.contains(block)) {
-                resultList.add(block);
-            }
-        }
-        return resultList;
     }
 
     /**
@@ -344,7 +306,7 @@ public class Workspace {
      * necessary new views.
      */
     public void resetWorkspace() {
-        mBlockFactory.clearPriorBlockReferences();
+        mBlockFactory.clearWorkspaceBlockReferences(getId());
         mRootBlocks.clear();
         mStats.clear();
         mTrashCategory.clear();
@@ -376,5 +338,25 @@ public class Workspace {
      */
     public boolean hasBlocks() {
         return getRootBlocks().size() > 0;
+    }
+
+    /**
+     * @param variable The variable name in question.
+     * @return The usages of the variable, if any. Otherwise, null.
+     */
+    public @Nullable
+    VariableInfo getVariableInfo(String variable) {
+        return mStats.getVariableInfo(variable);
+    }
+
+    /**
+     * Attempts to add a variable to the workspace.
+     * @param requestedName The preferred variable name. Usually the user name.
+     * @param allowRename Whether the variable name should be rename
+     * @return The name that was added, if any. May be null if renaming is not allowed.
+     */
+    @Nullable
+    public String addVariable(String requestedName, boolean allowRename) {
+        return mStats.addVariable(requestedName, allowRename);
     }
 }
