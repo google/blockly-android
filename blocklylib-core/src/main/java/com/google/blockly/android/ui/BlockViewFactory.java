@@ -529,4 +529,8 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
     public interface MutatorToggleListener {
         void onMutatorToggled(Block block);
     }
+
+    public Context getContext() {
+        return mContext;
+    }
 }

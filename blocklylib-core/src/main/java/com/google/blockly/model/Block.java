@@ -116,6 +116,7 @@ public class Block extends Observable<Block.Observer> {
     private boolean mCollapsed = false;
     private boolean mDisabled = false;
     private boolean mInputsInline = false;
+    private boolean mStartHat = false;
 
     // Keep track of whether inputsInline has ever been changed.
     private boolean mInputsInlineModified = false;
@@ -160,6 +161,8 @@ public class Block extends Observable<Block.Observer> {
 
         mInputsInline = definition.isInputsInlineDefault();
         mInputsInlineModified = false;
+
+        mStartHat = definition.isStartHatDefault();
 
         mPosition = new WorkspacePoint(0, 0);
         setShadow(isShadow);
@@ -557,6 +560,13 @@ public class Block extends Observable<Block.Observer> {
      */
     public boolean getInputsInline() {
         return mInputsInline;
+    }
+
+    /**
+     * @return The state of the flag for displaying block hats.
+     */
+    public boolean getStartHat() {
+        return mStartHat;
     }
 
     /**

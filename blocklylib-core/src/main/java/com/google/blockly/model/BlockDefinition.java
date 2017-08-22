@@ -53,6 +53,7 @@ public final class BlockDefinition {
     private final @Nullable String[] mPreviousChecks;
     private final @Nullable String[] mNextChecks;
     private final boolean mInputsInlineDefault;
+    private final boolean mStartHatDefault;
 
     private final @Nullable String mMutatorName;
     private final @NonNull List<String> mExtensionNames;
@@ -106,6 +107,7 @@ public final class BlockDefinition {
 
             mColor = parseColour(logPrefix, mJson);
             mInputsInlineDefault = parseInputsInline(logPrefix, mJson);
+            mStartHatDefault = parseStartHat(logPrefix,mJson);
 
             mMutatorName = json.has("mutator") ? json.getString("mutator") : null;
             mExtensionNames = parseExtensions(json);
@@ -266,6 +268,13 @@ public final class BlockDefinition {
     }
 
     /**
+     * @return True if new blocks should display hats. Otherwise, false.
+     */
+    public boolean isStartHatDefault() {
+        return mStartHatDefault;
+    }
+
+    /**
      * @return The name of the {@link BlockExtension} (if any) which will add a {@link Mutator}
      *         to all Block instances of this type. Otherwise, null.
      */
@@ -318,6 +327,26 @@ public final class BlockDefinition {
             }
         }
         return color;
+    }
+
+    /**
+     * Parses the JSON "startHat" attribute.
+     * @param warningPrefix A prefix for errors, including the block type if available.
+     * @param json The JSON representation of the block definition.
+     * @return The int representation of the opaque color.
+     */
+    private static boolean parseStartHat(String warningPrefix, JSONObject json) {
+        boolean startHat = false;
+        if (json.has("startHat")) {
+            try {
+                startHat = json.getBoolean("startHat");
+            } catch (JSONException e) {
+                // Not a boolean.
+                Log.w(TAG, warningPrefix + "Invalid startHat: " + json.opt("startHat"));
+                // Leave value false.
+            }
+        }
+        return startHat;
     }
 
     /**

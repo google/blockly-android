@@ -115,9 +115,14 @@ public class BlockView extends AbstractBlockView<InputView> {
         super(context, helper, factory, block, inputViews, connectionManager, touchHandler);
 
         mTouchHandler = touchHandler;
-        mPatchManager = factory.getPatchManager();  // Shortcut.
+        if (!block.getStartHat()) {
+            mPatchManager = factory.getPatchManager();  // Shortcut.
+        }
+        else {
+            mPatchManager = new PatchManager(factory.getContext(), helper.useRtl(), true);
+        }
         mMinBlockWidth = (int) context.getResources().getDimension(R.dimen.min_block_width);
-        mUseHat = factory.isBlockHatsEnabled();
+        mUseHat = factory.isBlockHatsEnabled() || block.getStartHat();
 
         setClickable(true);
         setFocusable(true);
