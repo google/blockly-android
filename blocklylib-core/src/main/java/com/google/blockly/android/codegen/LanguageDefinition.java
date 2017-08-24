@@ -4,8 +4,8 @@ package com.google.blockly.android.codegen;
  * Defines the core language file to be used in code generation. To be used by the generator
  * Blockly needs to know the path to the file and the object that has the generator
  * functions. For example: {"javascript_compressed.js", "Blockly.JavaScript"}.
- * TODO (#378): Add the list of reserved keywords to the language definition.
  */
+// TODO (#378): Add the list of reserved keywords to the language definition.
 public class LanguageDefinition {
     /**
      * Standard definition for the JavaScript language generator.

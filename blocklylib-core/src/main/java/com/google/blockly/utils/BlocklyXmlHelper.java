@@ -17,6 +17,7 @@ package com.google.blockly.utils;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
@@ -30,8 +31,10 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -45,9 +48,14 @@ import java.util.List;
  * parsers and serializers as needed.
  */
 public final class BlocklyXmlHelper {
+    private static final String TAG = "BlocklyXmlHelper";
+
     public interface XmlContentWriter {
         void write(XmlSerializer serializer) throws IOException;
     }
+
+    /** Enable this option to copy XML inputs to logs. (Workspaces only, for now.) */
+    private static final boolean LOG_INPUT_XML = false;
 
     private static final String XML_NAMESPACE = "http://www.w3.org/1999/xhtml";
     private static final XmlPullParserFactory PARSER_FACTORY = createParseFactory();
@@ -425,6 +433,21 @@ public final class BlocklyXmlHelper {
         StringReader reader = null;
         try {
             XmlPullParser parser = PARSER_FACTORY.newPullParser();
+            if (LOG_INPUT_XML) {
+                if (inStream != null) {
+                    StringBuilder sb = new StringBuilder();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(inStream));
+                    String line = br.readLine();
+                    while (line != null) {
+                        sb.append(line).append('\n');
+                        line = br.readLine();
+                    }
+                    br.close();
+                    inStream = null;
+                    inString = sb.toString();
+                }
+                Log.d(TAG, "BlocklyXmlHelper.loadBlocksFromXml()\n" + inString);
+            }
             if (inStream != null) {
                 parser.setInput(inStream, null);
             } else {

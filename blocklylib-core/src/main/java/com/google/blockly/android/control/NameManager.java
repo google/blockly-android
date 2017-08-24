@@ -34,7 +34,7 @@ public abstract class NameManager extends DataSetObservable {
     // Regular expression with two groups.  The first lazily looks for any sequence of characters
     // and the second looks for one or more numbers.  So foo2 -> (foo, 2).  f222 -> (f, 222).
     private static final Pattern mRegEx = Pattern.compile("^(.*?)(\\d+)$");
-    protected final SortedSet<String> mUsedNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    protected final SortedSet<String> mDisplayNamesSorted = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
     protected final ArrayMap<String, String> mCanonicalMap = new ArrayMap<>();
 
     /**
@@ -79,7 +79,7 @@ public abstract class NameManager extends DataSetObservable {
      * @return The number of names that have been used.
      */
     public int size() {
-        return mUsedNames.size();
+        return mDisplayNamesSorted.size();
     }
 
     /**
@@ -108,7 +108,7 @@ public abstract class NameManager extends DataSetObservable {
             throw new IllegalArgumentException("Invalid name \"" + name + "\".");
         }
         if (mCanonicalMap.put(makeCanonical(name), name) == null) {
-            mUsedNames.add(name);
+            mDisplayNamesSorted.add(name);
             notifyChanged();
         }
     }
@@ -118,15 +118,16 @@ public abstract class NameManager extends DataSetObservable {
      *         This list is not modifiable, but is backed by the real list and will stay updated.
      */
     public SortedSet<String> getUsedNames() {
-        return Collections.unmodifiableSortedSet(mUsedNames);
+        return Collections.unmodifiableSortedSet(mDisplayNamesSorted);
     }
 
     /**
      * Clear the list of used names.
      */
-    public void clearUsedNames() {
-        if (mUsedNames.size() != 0) {
-            mUsedNames.clear();
+    public void clear() {
+        if (mDisplayNamesSorted.size() != 0) {
+            mDisplayNamesSorted.clear();
+            mCanonicalMap.clear();
             notifyChanged();
         }
     }
@@ -139,7 +140,7 @@ public abstract class NameManager extends DataSetObservable {
     public boolean remove(String toRemove) {
         String canonical = makeCanonical(toRemove);
         if (mCanonicalMap.remove(canonical) != null) {
-            mUsedNames.remove(toRemove);
+            mDisplayNamesSorted.remove(toRemove);
             notifyChanged();
             return true;
         }
@@ -241,7 +242,7 @@ public abstract class NameManager extends DataSetObservable {
                     if (!mCanonicalMap.containsKey(canonical)) {
                         if (addName) {
                             mCanonicalMap.put(canonical, newName);
-                            mUsedNames.add(newName);
+                            mDisplayNamesSorted.add(newName);
                             notifyChanged();
                         }
                         return newName;

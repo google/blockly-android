@@ -23,7 +23,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +56,10 @@ import com.google.blockly.model.Connection;
 import com.google.blockly.model.FieldVariable;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
+import com.google.blockly.model.ProcedureInfo;
+import com.google.blockly.model.VariableInfo;
 import com.google.blockly.model.Workspace;
+import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.utils.BlockLoadingException;
 
 import java.io.ByteArrayInputStream;
@@ -126,12 +128,13 @@ public class BlocklyController {
     private Dragger mDragger;
     private VariableCallback mVariableCallback = null;
 
+    private List<Block> mTempBlocks = new ArrayList<>();
+
     @VisibleForTesting
     FlyoutController mFlyoutController;
 
     // For use in bumping neighbors; instance variable only to avoid repeated allocation.
     private final ArrayList<Connection> mTempConnections = new ArrayList<>();
-    private final ArrayList<Block> mTempBlocks = new ArrayList<>();
 
     private View.OnClickListener mDismissClickListener = new View.OnClickListener() {
         @Override
@@ -477,6 +480,10 @@ public class BlocklyController {
         return mModelFactory;
     }
 
+    public BlockViewFactory getBlockViewFactory() {
+        return mViewFactory;
+    }
+
     public WorkspaceHelper getWorkspaceHelper() {
         return mHelper;
     }
@@ -662,23 +669,14 @@ public class BlocklyController {
     }
 
     /**
-     * Returns true if the specified variable is being used in a workspace.
-     *
-     * @param variable The variable the check.
-     * @return True if the variable exists in a workspace, false otherwise.
+     * Returns the {@link VariableInfo} metadata about a specific variable.
+     * @param variableName The variable queried.
+     * @return The VariableInfo for {@code variableName}, or null if the name does not map to an
+     *         existing variable.
      */
-    public boolean isVariableInUse(String variable) {
-        return mWorkspace.getVariableRefCount(variable) > 0;
-    }
-
-    /**
-     * Returns the list of blocks that are using the specified variable.
-     *
-     * @param variable The variable to get a list of blocks for.
-     * @return The list of blocks using that variable.
-     */
-    public List<Block> getBlocksWithVariable(String variable) {
-        return mWorkspace.getBlocksWithVariable(variable, null);
+    @Nullable
+    public VariableInfo getVariableInfo(String variableName) {
+        return mWorkspace.getVariableInfo(variableName);
     }
 
     /**
@@ -739,7 +737,7 @@ public class BlocklyController {
 
     /**
      * Attempt to delete a variable from the workspace. If a {@link VariableCallback} is set
-     * {@link VariableCallback#onDeleteVariable(String)} will be called to check if deletion is
+     * {@link VariableCallback#onDeleteVariable} will be called to check if deletion is
      * allowed.
      *
      * @param variable The variable to delete.
@@ -1152,8 +1150,9 @@ public class BlocklyController {
                 return null;
             }
         }
+        String finalName = mWorkspace.addVariable(variable, true);
         // TODO: (#309) add new variable event
-        return mWorkspace.getVariableNameManager().generateUniqueName(variable, true);
+        return finalName;
     }
 
     /**
@@ -1161,20 +1160,36 @@ public class BlocklyController {
      *
      * @param variable The variable to remove.
      * @param forced True to force removal even if there's a callback to delegate the action to.
+     *               This will not force the deletion of a procedure argument.
      * @return True if the variable was removed, false otherwise.
      */
     private boolean deleteVariableImpl(String variable, boolean forced) {
-        if (!forced && mVariableCallback != null) {
-            if (!mVariableCallback.onDeleteVariable(variable)) {
+        VariableInfo varInfo = getVariableInfo(variable);
+        if (varInfo != null) {
+            if (varInfo.isProcedureArgument()) {
+                if (mVariableCallback != null) {
+                    mVariableCallback.onAlertCannotDeleteProcedureArgument(variable, varInfo);
+                }
                 return false;
             }
-        }
-        if (isVariableInUse(variable)) {
-            mTempBlocks.clear();
-            List<Block> blocks = mWorkspace.getBlocksWithVariable(variable, mTempBlocks);
-            for (int i = 0; i < blocks.size(); i++) {
-                removeBlockAndInputBlocksImpl(blocks.get(i));
+
+            if (!forced && mVariableCallback != null) {
+                if (!mVariableCallback.onDeleteVariable(variable, varInfo)) {
+                    return false;
+                }
             }
+
+            List<FieldVariable> fields = varInfo.getFields();
+            mTempBlocks.clear(); // Visited / removed blocks (in case of block with multiple).
+            int fieldCount = fields.size();
+            for (int i = 0; i < fieldCount; ++i) {
+                Block block = fields.get(i).getBlock();
+                if (!mTempBlocks.contains(block)) {
+                    removeBlockAndInputBlocksImpl(block);
+                    mTempBlocks.add(block);
+                }
+            }
+            mTempBlocks.clear();
         }
         // TODO: (#309) add remove variable event
         return mWorkspace.getVariableNameManager().remove(variable);
@@ -1185,6 +1200,7 @@ public class BlocklyController {
      * pending events:
      * <ol>
      *    <li>a change event for each variable field referencing the variable.</li>
+     *    <li>a change mutation event for each procedure block.</li>
      * </ol>
      *
      * @param variable The variable to rename.
@@ -1198,17 +1214,51 @@ public class BlocklyController {
                 return variable;
             }
         }
-        if (TextUtils.isEmpty(newVariable) || variable == newVariable) {
+
+        NameManager varNameManager = mWorkspace.getVariableNameManager();
+        if (variable == newVariable || !varNameManager.isValidName(newVariable)) {
             return variable;
         }
+        String canonicalNewVar = varNameManager.makeCanonical(newVariable);
+
         newVariable = addVariableImpl(newVariable, true);
-        List<FieldVariable> varRefs = mWorkspace.getVariableRefs(variable);
-        if (varRefs != null) {
-            for (FieldVariable field : varRefs) {
-                field.setVariable(newVariable);
-                BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
-                        .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
-                addPendingEvent(change);
+
+        VariableInfo oldVarInfo = mWorkspace.getVariableInfo(variable);
+        if (oldVarInfo != null) {
+            ProcedureManager procedureManager = mWorkspace.getProcedureManager();
+            int procCount = oldVarInfo.getCountOfProceduresUsages();
+            ArrayList<String> newArgs = new ArrayList<>();
+            for (int i = 0; i < procCount; ++i) {
+                String procName = oldVarInfo.getProcedureName(i);
+                Block definition = procedureManager.getDefinitionBlocks().get(procName);
+                ProcedureInfo oldProcInfo =
+                        ((AbstractProcedureMutator) definition.getMutator()).getProcedureInfo();
+                List<String> oldArgs = oldProcInfo.getArgumentNames();
+                int argCount = oldArgs.size();
+
+                newArgs.clear();
+                for (int j = 0; j < argCount; ++j) {
+                    String argName = oldArgs.get(j);
+                    if (varNameManager.makeCanonical(argName).equals(canonicalNewVar)) {
+                        argName = newVariable;
+                    }
+                    newArgs.add(argName);
+                }
+
+                // Mutate the procdure. This will mutate both the definition and the caller
+                procedureManager.mutateProcedure(definition,
+                        new ProcedureInfo(
+                                procName, newArgs, oldProcInfo.getDefinitionHasStatementBody()));
+            }
+
+            List<FieldVariable> varRefs = oldVarInfo.getFields();
+            if (varRefs != null) {
+                for (FieldVariable field : varRefs) {
+                    field.setVariable(newVariable);
+                    BlocklyEvent.ChangeEvent change = BlocklyEvent.ChangeEvent
+                            .newFieldValueEvent(field.getBlock(), field, variable, newVariable);
+                    addPendingEvent(change);
+                }
             }
         }
 
@@ -1305,7 +1355,7 @@ public class BlocklyController {
     private void connectToStatementImpl(Connection parentStatementConnection, Block toConnect) {
         // Store the state of toConnect in its original location.
         // TODO: (#342) move the event up to the impl method
-        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(mWorkspace, toConnect);
+        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(toConnect);
 
         Block remainderBlock = parentStatementConnection.getTargetBlock();
         BlocklyEvent.MoveEvent remainderMove = null;
@@ -1317,7 +1367,7 @@ public class BlocklyController {
                 remainderBlock = null;
             } else {
                 // Store the original location of the remainder.
-                remainderMove = new BlocklyEvent.MoveEvent(mWorkspace, remainderBlock);
+                remainderMove = new BlocklyEvent.MoveEvent(remainderBlock);
 
                 // Disconnect the remainder and we'll reattach it below
                 parentStatementConnection.disconnect();
@@ -1525,7 +1575,7 @@ public class BlocklyController {
         }
         // TODO: Document when this call valid but the root is not already part of the workspace.
         boolean isPartOfWorkspace = mWorkspace.isRootBlock(rootBlock);
-        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(getWorkspace(), block);
+        BlocklyEvent.MoveEvent moveEvent = new BlocklyEvent.MoveEvent(block);
         BlocklyEvent.MoveEvent remainderEvent = null;
 
         BlockView bv = mHelper.getView(block);
@@ -1536,7 +1586,7 @@ public class BlocklyController {
         BlockGroup remainderGroup = null;
         if (reattachNext && block.getNextBlock() != null) {
             remainderBlock = block.getNextBlock();
-            remainderEvent = new BlocklyEvent.MoveEvent(getWorkspace(), remainderBlock);
+            remainderEvent = new BlocklyEvent.MoveEvent(remainderBlock);
 
             remainderGroup = (bg == null) ? null :
                     bg.extractBlocksAsNewGroup(remainderBlock);
@@ -2110,7 +2160,7 @@ public class BlocklyController {
          * @param variable The variable being deleted.
          * @return True to allow the delete, false to prevent it.
          */
-        public boolean onDeleteVariable(String variable) {
+        public boolean onDeleteVariable(String variable, VariableInfo info) {
             return true;
         }
 
@@ -2140,5 +2190,13 @@ public class BlocklyController {
         public boolean onRenameVariable(String variable, String newVariable) {
             return true;
         }
+
+        /**
+         * Sent when a user attempts to delete a variable that is used as a procedure argument.
+         * @param variableName The name of the variable.
+         * @param info The info for this variable.
+         */
+        public abstract void onAlertCannotDeleteProcedureArgument(
+                String variableName, VariableInfo info);
     }
 }

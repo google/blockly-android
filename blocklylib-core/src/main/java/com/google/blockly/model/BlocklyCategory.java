@@ -381,8 +381,8 @@ public class BlocklyCategory {
 
     /**
      * Flyout item representing a clickable button, such as "Add Variable".
-     * TODO (#503): Support style and callback spec
      */
+    // TODO (#503): Support style and callback spec
     public static class ButtonItem extends CategoryItem {
         private final String mText;
         private final String mAction;
@@ -403,8 +403,8 @@ public class BlocklyCategory {
 
     /**
      * Flyout item representing a label between groups of blocks.
-     * TODO (#503): Support styling
      */
+    // TODO (#503): Support styling
     public static class LabelItem extends CategoryItem {
         private final String mText;
 

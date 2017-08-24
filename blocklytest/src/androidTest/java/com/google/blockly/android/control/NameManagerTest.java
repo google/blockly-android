@@ -67,7 +67,7 @@ public class NameManagerTest {
         mNameManager.generateUniqueName("bar", false /* addName */);
         assertThat(mNameManager.getUsedNames().size()).isEqualTo(2);
 
-        mNameManager.clearUsedNames();
+        mNameManager.clear();
         assertThat(mNameManager.getUsedNames().isEmpty()).isTrue();
     }
 

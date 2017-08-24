@@ -16,13 +16,13 @@ package com.google.blockly.model.mutator;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.ProcedureManager;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
+import com.google.blockly.model.ProcedureInfo;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 
@@ -31,7 +31,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,54 +38,43 @@ import java.util.List;
  * Base class for all procedure definition and procedure call mutators, providing a base
  * implementation of the mutation state variables and related I/O.
  */
-public abstract class AbstractProcedureMutator extends Mutator {
+public abstract class AbstractProcedureMutator<Info extends ProcedureInfo> extends Mutator {
     private static final String TAG = "AbstractProcedureMutator";
-
-    // Block components.
-    public static final String NAME_FIELD = ProcedureManager.NAME_FIELD;
-
-    // Xml strings
-    protected static final String ATTR_NAME = "name";
-    protected static final String ATTR_STATEMENTS = "statements";
-    protected static final String TAG_ARG = "arg";
-    protected static final String ATTR_ARG_NAME = "name";
-
-    /**
-     * Writes an XML mutation string for the provided values.
-     *
-     * @param optProcedureName The name of the procedure
-     * @param argNames The names of the procedure's arguments.
-     * @param optHasStatementInput Whether the procedure definition has an input for statement
-     *                             blocks. Very rarely false for anything other than a
-     *                             {@code procedures_defreturn} blocks.
-     * @return Serialized XML {@code <mutation>} tag, encoding the values.
-     */
-    protected static String writeMutationString(final @Nullable String optProcedureName,
-                                                final List<String> argNames,
-                                                final @Nullable Boolean optHasStatementInput) {
-        try {
-            return BlocklyXmlHelper.writeXml(new BlocklyXmlHelper.XmlContentWriter() {
-                @Override
-                public void write(XmlSerializer serializer) throws IOException {
-                    serializeImpl(serializer, optProcedureName, argNames, optHasStatementInput);
-                }
-            });
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to write mutation string.", e);
-        }
-    }
 
     protected final BlocklyController mController;
     protected final ProcedureManager mProcedureManager;
+    protected Info mProcedureInfo = null;
 
-    protected String mProcedureName = null;
-    protected List<String> mArguments = Collections.emptyList();
-    protected boolean mHasStatementInput = true;
+    public final ProcedureInfo getProcedureInfo() {
+        return mProcedureInfo;
+    }
 
+    public abstract void mutate(ProcedureInfo info);
+
+    /**
+     * Base constructor for subclasses.
+     * @param factory The factory constructing this mutator.
+     * @param controller The {@link BlocklyController} for this activity.
+     */
     protected AbstractProcedureMutator(Mutator.Factory factory, BlocklyController controller) {
         super(factory);
         mController = controller;
         mProcedureManager = mController.getWorkspace().getProcedureManager();
+    }
+
+    /**
+     * Sets the procedure name for this mutator (and thus {@code mBlock}) when it is not on the
+     * workspace, not managed by the ProcedureManager.
+     * @param newProcedureName The new name to use.
+     */
+    final public void setProcedureName(@NonNull String newProcedureName) {
+        String oldName = getProcedureName();
+        if (mProcedureManager.getDefinitionBlocks().get(oldName) == mBlock) {
+            throw new IllegalStateException(
+                    "Rename procedure managed by the ProcedureManager "
+                            + "using ProcedureManager.mutateProcedure(..).");
+        }
+        setProcedureNameImpl(newProcedureName);
     }
 
     /**
@@ -95,21 +83,72 @@ public abstract class AbstractProcedureMutator extends Mutator {
      */
     @Nullable
     public String getProcedureName() {
-        return mProcedureName;
+        return (mProcedureInfo == null) ? null : mProcedureInfo.getProcedureName();
     }
 
-    public abstract void setProcedureName(String procName);
-
+    /**
+     * @return The list of argument names.
+     */
     @NonNull
-    public List<String> getArgumentList() {
-        return Collections.unmodifiableList(mArguments);
+    public final List<String> getArgumentNameList() {
+        return mProcedureInfo == null ?
+                Collections.<String>emptyList()
+                : mProcedureInfo.getArgumentNames();
     }
 
+    /**
+     * @param serializer The {@link XmlSerializer} to output to.
+     * @throws IOException If the stream backing {@code serializer} fails.
+     */
     @Override
-    public void update(XmlPullParser parser)
+    public final void serialize(XmlSerializer serializer) throws IOException {
+        serializeInfo(serializer, mProcedureInfo);
+    }
+
+    /**
+     * Updates the block using the mutation in the XML.
+     *
+     * @param parser The parser with the {@code <mutation>} element.
+     * @throws IOException If the input stream fails.
+     * @throws XmlPullParserException If the input is not valid XML.
+     * @throws BlockLoadingException If the input is not a valid procedure mutation.
+     */
+    @Override
+    public void update(final XmlPullParser parser)
             throws BlockLoadingException, IOException, XmlPullParserException {
-        parseMutationXml(parser);  // Includes validation
-        updateBlock();
+        mProcedureInfo = parseAndValidateMutationXml(parser);
+        mController.groupAndFireEvents(new Runnable() {
+            @Override
+            public void run() {
+                updateBlock();  // May fire events if block fields are updated (NAME, in particular)
+            }
+        });
+    }
+
+    /**
+     * Updates the ProcedureInfo with a new name, and updates the name field. This should never be
+     * called directly. Use {@link #setProcedureName(String)} or {@link #mutate(ProcedureInfo)}.
+     * @param newProcedureName The updated name. Cannot be null.
+     */
+    protected abstract void setProcedureNameImpl(@NonNull String newProcedureName);
+
+    /**
+     * Writes an XML mutation string for the provided values.
+     *
+     * @param procedureInfo The procedure info to write.
+     * @return Serialized XML {@code <mutation>} tag, encoding the values.
+     */
+    protected String writeMutationString(final Info procedureInfo) {
+        try {
+            return BlocklyXmlHelper.writeXml(new BlocklyXmlHelper.XmlContentWriter() {
+                @Override
+                public void write(XmlSerializer serializer) throws IOException {
+                    serializeInfo(serializer, procedureInfo);
+                }
+            });
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to write mutation string.", e);
+        }
     }
 
     @Override
@@ -117,106 +156,25 @@ public abstract class AbstractProcedureMutator extends Mutator {
         updateBlock();
     }
 
-    protected void parseMutationXml(XmlPullParser parser)
-            throws BlockLoadingException, IOException, XmlPullParserException {
-        List<String> argNames = new ArrayList<>();
-        String procedureName = mProcedureName;
-        boolean hasStatementInput = true;
-
-        int tokenType = parser.next();
-        if (tokenType != XmlPullParser.END_DOCUMENT) {
-            parser.require(XmlPullParser.START_TAG, null, TAG_MUTATION);
-
-            String attrValue = parser.getAttributeValue(null, ATTR_NAME);
-            if (!TextUtils.isEmpty(attrValue)) {
-                procedureName = attrValue;
-            }
-
-            attrValue = parser.getAttributeValue(null, ATTR_STATEMENTS);
-            if (!TextUtils.isEmpty(attrValue)) {
-                hasStatementInput = Boolean.getBoolean(attrValue);
-            }
-
-            tokenType = parser.next();
-            while (tokenType != XmlPullParser.END_DOCUMENT) {
-                if (tokenType == XmlPullParser.START_TAG) {
-                    parser.require(XmlPullParser.START_TAG, null, TAG_ARG);
-                    String argName = parser.getAttributeValue(null, ATTR_ARG_NAME);
-                    if (argName == null) {
-                        throw new BlockLoadingException(
-                                "Function argument #" + argNames.size() + " missing name.");
-                    }
-                    argNames.add(argName);
-                } else if (tokenType == XmlPullParser.END_TAG
-                        && parser.getName().equals(TAG_MUTATION)) {
-                    break;
-                }
-                tokenType = parser.next();
-            }
-        }
-        validateBlockForReshape(procedureName, argNames, hasStatementInput);
-        mProcedureName = procedureName;
-        mArguments = argNames;
-        mHasStatementInput = hasStatementInput;
-    }
-
-    /**
-     * Checks that it is possible to apply the provided mutation state on the current block.
-     * For example, inputs that will disappear are not connected.
-     *
-     * @param argNames The proposed names of the procedure's arguments.
-     * @param hasStatementInput Whether the procedure definition has an input for statement blocks.
-     *                          Very rarely false for anything other than a
-     *                          {@code procedures_defreturn} blocks.
-     */
-    protected abstract void validateBlockForReshape(
-            String procedureName, List<String> argNames, boolean hasStatementInput)
-            throws BlockLoadingException;
+    // Input/output methods are protected because the creation of differs.
+    // Could become an extension point for supporting other procedure/mutators types
+    protected abstract void serializeInfo(XmlSerializer serializer, Info info)
+            throws IOException;
+    protected abstract Info parseAndValidateMutationXml(XmlPullParser parser)
+            throws BlockLoadingException, IOException, XmlPullParserException;
 
     /**
      * Applies the mutation to {@code mBlock}.
      */
     protected void updateBlock() {
-        mBlock.reshape(buildUpdatedInputs());
+        if (mProcedureInfo != null) {
+            mBlock.reshape(buildUpdatedInputs());
+        }
     }
 
+    /**
+     * @return A new list of {@link Input Inputs} with which to {@link Block#reshape reshape} the
+     *         block during mutation.
+     */
     protected abstract List<Input> buildUpdatedInputs();
-
-    protected String getArgumentListDescription() {
-        StringBuilder sb = new StringBuilder();
-        if (!mArguments.isEmpty()) {
-            sb.append("with:"); // message BKY_PROCEDURES_BEFORE_PARAMS
-
-            int count = mArguments.size();
-            for (int i = 0; i < count; ++i) {
-                if (i == 0) {
-                    sb.append(' ');
-                } else {
-                    sb.append(", ");
-                }
-                sb.append(mArguments.get(i));
-            }
-        }
-        return sb.toString();
-    }
-
-    static void serializeImpl(XmlSerializer serializer,
-                              @Nullable String optProcedureName,
-                              List<String> argNames,
-                              @Nullable Boolean optHasStatementInput)
-            throws IOException {
-        serializer.startTag(null, TAG_MUTATION);
-        if (optProcedureName != null) {
-            serializer.attribute(null, ATTR_ARG_NAME, optProcedureName);
-        }
-        if (optHasStatementInput != null && !optHasStatementInput) {
-            serializer.attribute(null, ATTR_STATEMENTS, "false");
-        }
-        for (String argName : argNames) {
-            serializer.startTag(null, TAG_ARG)
-                    .attribute(null, ATTR_ARG_NAME, argName)
-                    .endTag(null, TAG_ARG);
-        }
-        serializer.endTag(null, TAG_MUTATION);
-    }
 }
