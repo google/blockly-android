@@ -17,7 +17,7 @@ package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.support.v13.view.ViewCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatTextView;
 import android.text.Editable;
 import android.text.TextWatcher;
