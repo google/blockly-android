@@ -15,14 +15,12 @@
 package com.google.blockly.android.ui;
 
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 
+import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
-import com.google.blockly.android.ui.DeleteVariableDialog;
-import com.google.blockly.android.ui.NameVariableDialog;
-import com.google.blockly.model.Block;
-
-import java.util.List;
+import com.google.blockly.model.VariableInfo;
 
 /**
  * Default implementation of {@link BlocklyController.VariableCallback}. It uses
@@ -55,19 +53,20 @@ public class DefaultVariableCallback extends BlocklyController.VariableCallback 
     }
 
     @Override
-    public boolean onDeleteVariable(String variable) {
-        if (!mController.isVariableInUse(variable)) {
+    public boolean onDeleteVariable(String variableName, VariableInfo variableInfo) {
+        if (variableInfo.getUsageCount() == 0) {
             return true;
         }
-        List<Block> blocks = mController.getBlocksWithVariable(variable);
-        if (blocks.size() == 1) {
+
+        int usageCount = variableInfo.getUsageCount();
+        if (usageCount == 1) {
             // For one block just let the controller delete it.
             return true;
         }
 
         DeleteVariableDialog deleteVariableDialog = newDeleteVariableDialog();
         deleteVariableDialog.setController(mController);
-        deleteVariableDialog.setVariable(variable, blocks.size());
+        deleteVariableDialog.setVariable(variableName, usageCount);
         deleteVariableDialog.show(mActivity.getSupportFragmentManager(), "DeleteVariable");
         return false;
     }
@@ -86,6 +85,16 @@ public class DefaultVariableCallback extends BlocklyController.VariableCallback 
         nameVariableDialog.setVariable(variable, mCreateCallback, false);
         nameVariableDialog.show(mActivity.getSupportFragmentManager(), "CreateVariable");
         return false;
+    }
+
+    @Override
+    public void onAlertCannotDeleteProcedureArgument(String variableName, VariableInfo varInfo) {
+        // TODO: Use Blockly message CANNOT_DELETE_VARIABLE_PROCEDURE from TranslationManager
+        String procedureName = varInfo.getProcedureName(0);
+        new AlertDialog.Builder(mActivity)
+                .setMessage(mActivity.getString(
+                        R.string.cannot_delete_variable_procedure, variableName, procedureName))
+                .show();
     }
 
     @NonNull

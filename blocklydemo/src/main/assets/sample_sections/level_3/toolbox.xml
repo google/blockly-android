@@ -13,7 +13,7 @@
   ~  limitations under the License.
   -->
 
-<xml xmlns="http://www.w3.org/1999/xhtml">
+<toolbox>
     <category name="Some blocks">
         <category name="Subcategory">
             <block type="simple_input_output"></block>
@@ -121,5 +121,14 @@
             <field name="NOTE">60</field>
         </block>
     </category>
+    <category name="Images">
+        <block type="image-relative"/>
+        <block type="image-fileuri"/>
+        <block type="image-datauri"/>
+        <block type="image-small"/>
+        <block type="image-large"/>
+        <block type="image-missing"/>
+    </category>
     <category name="Variables" custom="VARIABLE"/>
-</xml>
+    <category name="Variables" custom="FUNCTIONS"/>
+</toolbox>
