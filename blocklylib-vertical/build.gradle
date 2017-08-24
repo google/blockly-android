@@ -18,6 +18,7 @@ android {
     lintOptions {
           abortOnError false
     }
+    publishNonDefault false
 }
 
 dependencies {
@@ -26,3 +27,22 @@ dependencies {
     compile 'com.android.support:appcompat-v7:26.0.1'
     compile project(':blocklylib-core')
 }
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+// TODO(#632): Fix JavaDoc compilation, and then update deployment artifacts.
+//task javadoc(type: Javadoc) {
+//    source = android.sourceSets.main.java.srcDirs
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//}
+
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+//    classifier = 'javadoc'
+//    from javadoc.destinationDir
+//    // options.encoding = 'UTF-8'
+//}
+
+apply from: 'deploy.gradle'
