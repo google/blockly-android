@@ -27,5 +27,4 @@ before_script:
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 script:
-  - export ANDROID_NDK_HOME=/usr/local/android-sdk/ndk-bundle
-  - bash ./gradlew build connectedCheck 
+  - bash ./gradlew build connectedCheck
