@@ -9,15 +9,17 @@
 # By default, this is assumed to be ../web.
 
 
-web_blockly_path="../web"
-core_assets_path="blocklylib-core/src/main/assets"
+WEB_BLOCKLY_PATH="../web"
+CORE_ASSETS_PATH="blocklylib-core/src/main/assets"
+DEMO_ASSETS_PATH="blocklydemo/src/main/assets"
 
 # space delimited source/destination filename pairs
 FILES=(\
-  "blockly_compressed.js ${core_assets_path}/blockly_compressed.js"\
-  "blocks_compressed.js ${core_assets_path}/blocks_compressed.js"\
-  "javascript_compressed.js ${core_assets_path}/javascript_compressed.js"\
-  "msg/js/en.js ${core_assets_path}/msg/js/en.js"
+  "blockly_compressed.js ${CORE_ASSETS_PATH}/blockly_compressed.js"\
+  "blocks_compressed.js ${CORE_ASSETS_PATH}/blocks_compressed.js"\
+  "javascript_compressed.js ${CORE_ASSETS_PATH}/javascript_compressed.js"\
+  "msg/js/en.js ${CORE_ASSETS_PATH}/msg/js/en.js"\
+  "lua_compressed.js ${DEMO_ASSETS_PATH}/lua/lua_compressed.js"
 )
 
 ERROR_RUN_AT_ROOT=1
@@ -32,7 +34,7 @@ fi
 if [[ ! -z $1 ]]; then
   # Strip the trailing slash, and make sure it is a directory
   if [ -d ${1%/} ]; then
-    web_blockly_path=${1%/}
+    WEB_BLOCKLY_PATH=${1%/}
   else
     >&2 echo "Unknown directory: ${1}"
     exit $ERROR_DIR_NOT_FOUND
@@ -41,7 +43,7 @@ fi
 
 found_files=true
 for i in "${FILES[@]}"; do
-  files=(${web_blockly_path}/$i)
+  files=(${WEB_BLOCKLY_PATH}/$i)
   src=${files[0]}
   dest=${files[1]}
   if [[ ! -r $src ]]; then
@@ -55,7 +57,7 @@ if [ ! $found_files = true ]; then
 fi
 
 for i in "${FILES[@]}"; do
-  files=(${web_blockly_path}/$i)
+  files=(${WEB_BLOCKLY_PATH}/$i)
   src=${files[0]}
   dest=${files[1]}
   echo "cp $src $dest"
