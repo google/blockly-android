@@ -63,7 +63,7 @@ import java.util.List;
  * returns true, the activity will attempt to load a prior workspace from the instance state
  * bundle.  If no workspace is loaded, it defers to {@link #onLoadInitialWorkspace}.
  * <p/>
- * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
+ * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()} and
  * {@link #getToolboxContentsXmlPath()}. Alternate {@link BlockViewFactory}s are supported via
  * {@link BlocklyActivityHelper#onCreateBlockViewFactory}. An initial workspace can be loaded during
  * {@link #onLoadInitialWorkspace()}.
@@ -126,31 +126,6 @@ public abstract class AbstractBlocklyFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(getActionBarMenuResId(), menu);
-
-        MenuItem.OnMenuItemClickListener  onMenuItemClickListener =
-                new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        return onOptionsItemSelected(menuItem);
-                    }
-                };
-
-        MenuItem save = menu.findItem(R.id.action_save);
-        if (save != null) {
-            save.setOnMenuItemClickListener(onMenuItemClickListener);
-        }
-        MenuItem load = menu.findItem(R.id.action_load);
-        if (load != null) {
-            load.setOnMenuItemClickListener(onMenuItemClickListener);
-        }
-        MenuItem clear = menu.findItem(R.id.action_clear);
-        if (clear != null) {
-            clear.setOnMenuItemClickListener(onMenuItemClickListener);
-        }
-        MenuItem run = menu.findItem(R.id.action_clear);
-        if (run != null) {
-            clear.setOnMenuItemClickListener(onMenuItemClickListener);
-        }
     }
 
     /**
@@ -247,6 +222,13 @@ public abstract class AbstractBlocklyFragment extends Fragment {
         mBlocklyActivityHelper.onStop();
     }
 
+    /**
+     * Handles the processing of Blockly's standard toolbar / actionbar menu items for this
+     * workspace.
+     * @param item One of Blockly's standard toolbar / actionbar menu items.
+     * @return True if the item is recognized and the event was consumed. Otherwise false.
+     */
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
