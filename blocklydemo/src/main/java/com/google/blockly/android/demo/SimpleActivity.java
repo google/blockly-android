@@ -69,7 +69,6 @@ public class SimpleActivity extends AbstractBlocklyActivity {
         return mCodeGeneratorCallback;
     }
 
-
     /**
      * Optional override of the save path, since this demo Activity has multiple Blockly
      * configurations.
