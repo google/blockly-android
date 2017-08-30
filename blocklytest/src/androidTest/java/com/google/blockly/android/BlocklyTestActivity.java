@@ -70,7 +70,7 @@ public class BlocklyTestActivity extends AbstractBlocklyActivity {
 
     @Override
     public BlocklyActivityHelper onCreateActivityHelper() {
-        return new BlocklyActivityHelper(this) {
+        return new BlocklyActivityHelper(this, this.getSupportFragmentManager()) {
             @Override
             public BlockViewFactory onCreateBlockViewFactory(WorkspaceHelper workspaceHelper) {
                 return new VerticalBlockViewFactory(

@@ -36,6 +36,17 @@
         </activity>
 
         <activity
+            android:name=".SimpleFragmentHostActivity"
+            android:label="@string/simple_fragment_name"
+            android:taskAffinity="com.google.blockly.SimpleFragmentHostActivity"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".LuaActivity"
             android:label="@string/lua_activity_name"
             android:taskAffinity="com.google.blockly.LuaActivity"
