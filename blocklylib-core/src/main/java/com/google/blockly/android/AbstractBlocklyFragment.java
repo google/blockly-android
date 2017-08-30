@@ -1,20 +1,38 @@
+/*
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.google.blockly.android;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.blockly.android.codegen.CodeGenerationRequest;
 import com.google.blockly.android.codegen.LanguageDefinition;
 import com.google.blockly.android.control.BlocklyController;
+import com.google.blockly.android.ui.BlockViewFactory;
 import com.google.blockly.android.ui.MutatorFragment;
 import com.google.blockly.model.BlockExtension;
 import com.google.blockly.model.BlocklySerializerException;
@@ -29,6 +47,35 @@ import java.io.IOException;
 import java.util.List;
 
 
+/**
+ * Base class for a Blockly fragment containing the workspace, toolbar, and trash flyout.
+ * <p/>
+ * By default, it uses the {@code blockly_unified_workspace} layout, but this can be changed by
+ * overriding {@link #onCreateSubViews}. Afterwards, a {@link BlocklyActivityHelper}
+ * is constructed to help initialize the Blockly fragments, controller, and supporting UI. If
+ * overriding {@link #onCreateSubViews} without {@code unified_blockly_workspace.xml} or
+ * otherwise using standard blockly fragment and view ids ({@link R.id#blockly_workspace},
+ * {@link R.id#blockly_toolbox_ui}, {@link R.id#blockly_trash_ui}, etc.), override
+ * {@link #onCreateActivityHelper()} and {@link BlocklyActivityHelper#onFindFragments}
+ * appropriately.
+ * <p/>
+ * Once the controller and fragments are configured, if {@link #checkAllowRestoreBlocklyState}
+ * returns true, the activity will attempt to load a prior workspace from the instance state
+ * bundle.  If no workspace is loaded, it defers to {@link #onLoadInitialWorkspace}.
+ * <p/>
+ * Configure the workspace by providing definitions for {@link #getBlockDefinitionsJsonPaths()},
+ * {@link #getToolboxContentsXmlPath()}. Alternate {@link BlockViewFactory}s are supported via
+ * {@link BlocklyActivityHelper#onCreateBlockViewFactory}. An initial workspace can be loaded during
+ * {@link #onLoadInitialWorkspace()}.
+ * <p/>
+ * The block definitions can be updated at any time by calling {@link #resetBlockFactory()},
+ * which triggers another call to {@link #getBlockDefinitionsJsonPaths()}.  Similarly, The toolbox
+ * can be reloaded by calling  {@link #reloadToolbox()}, which triggers another call to
+ * {@link #getToolboxContentsXmlPath()}.
+ * <p/>
+ * By default, this fragment generates its own menu options. This can be disabled by calling
+ * {@code setHasOptionsMenu(false)} or customized by overriding {@link #onCreateOptionsMenu}.
+ */
 public abstract class AbstractBlocklyFragment extends Fragment {
     private static final String TAG = "AbstractBlocklyFragment";
 
@@ -66,7 +113,44 @@ public abstract class AbstractBlocklyFragment extends Fragment {
             onLoadInitialWorkspace();
         }
 
+        setHasOptionsMenu(true);
+
         return mRootView;
+    }
+
+    /**
+     * Constructions action bar menu items for this workspace.
+     * @param menu The menu in the host toolbar or action bar.
+     * @param inflater The activity's {@link MenuInflater}.
+     */
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(getActionBarMenuResId(), menu);
+
+        MenuItem.OnMenuItemClickListener  onMenuItemClickListener =
+                new MenuItem.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem menuItem) {
+                        return onOptionsItemSelected(menuItem);
+                    }
+                };
+
+        MenuItem save = menu.findItem(R.id.action_save);
+        if (save != null) {
+            save.setOnMenuItemClickListener(onMenuItemClickListener);
+        }
+        MenuItem load = menu.findItem(R.id.action_load);
+        if (load != null) {
+            load.setOnMenuItemClickListener(onMenuItemClickListener);
+        }
+        MenuItem clear = menu.findItem(R.id.action_clear);
+        if (clear != null) {
+            clear.setOnMenuItemClickListener(onMenuItemClickListener);
+        }
+        MenuItem run = menu.findItem(R.id.action_clear);
+        if (run != null) {
+            clear.setOnMenuItemClickListener(onMenuItemClickListener);
+        }
     }
 
     /**
@@ -80,7 +164,8 @@ public abstract class AbstractBlocklyFragment extends Fragment {
 
     /**
      * Called when the user clicks the load action.  Default implementation delegates handling to
-     * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
+     * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)} using
+     * {@link #getWorkspaceSavePath()}..
      */
     public void onLoadWorkspace() {
         mBlocklyActivityHelper.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
@@ -160,6 +245,33 @@ public abstract class AbstractBlocklyFragment extends Fragment {
     public void onStop() {
         super.onStop();
         mBlocklyActivityHelper.onStop();
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if (id == R.id.action_save) {
+            onSaveWorkspace();
+            return true;
+        } else if (id == R.id.action_load) {
+            onLoadWorkspace();
+            return true;
+        } else if (id == R.id.action_clear) {
+            onClearWorkspace();
+            return true;
+        } else if (id == R.id.action_run) {
+            if (getController().getWorkspace().hasBlocks()) {
+                onRunCode();
+            } else {
+                Log.i(TAG, "No blocks in workspace. Skipping run request.");
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

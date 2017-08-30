@@ -61,7 +61,7 @@ import java.util.List;
  * overriding {@link #onCreateContentView} without {@code unified_blockly_workspace.xml} or
  * otherwise using standard blockly fragment and view ids ({@link R.id#blockly_workspace},
  * {@link R.id#blockly_toolbox_ui}, {@link R.id#blockly_trash_ui}, etc.), override
- * {@link #onCreateActivityHelper()} and {@link BlocklyActivityHelper#onCreateFragments()}
+ * {@link #onCreateActivityHelper()} and {@link BlocklyActivityHelper#onFindFragments}
  * appropriately.
  * <p/>
  * Once the controller and fragments are configured, if {@link #checkAllowRestoreBlocklyState}
@@ -175,7 +175,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
 
     /**
      * Called when the user clicks the load action.  Default implementation delegates handling to
-     * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)}.
+     * {@link BlocklyActivityHelper#loadWorkspaceFromAppDir(String)} using
+     * {@link #getWorkspaceSavePath()}.
      */
     public void onLoadWorkspace() {
         mBlocklyActivityHelper.loadWorkspaceFromAppDirSafely(getWorkspaceSavePath());
