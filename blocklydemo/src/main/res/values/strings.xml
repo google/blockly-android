@@ -18,7 +18,8 @@
     <string name="level_1">Level 1</string>
     <string name="level_2">Level 2</string>
     <string name="level_3">Level 3</string>
-    <string name="simple_activity_name">Blockly Simple</string>
+    <string name="simple_activity_name">Blockly Simple Activtiy</string>
+    <string name="simple_fragment_name">Blockly Simple Fragment</string>
     <string name="lua_activity_name">Blockly Lua</string>
     <string name="no_categories_toolbox_activity_name">No Categories Toolbox</string>
     <string name="always_open_toolbox_activity_name">Always Open Toolbox</string>

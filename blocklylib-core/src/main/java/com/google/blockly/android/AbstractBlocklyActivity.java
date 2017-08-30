@@ -260,7 +260,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
      * Create a {@link BlocklyActivityHelper} to use for this Activity.
      */
     protected BlocklyActivityHelper onCreateActivityHelper() {
-        return new BlocklyActivityHelper(this);
+        return new BlocklyActivityHelper(this, this.getSupportFragmentManager());
     }
 
     /** Propagate lifecycle event to BlocklyActivityHelper. */

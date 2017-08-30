@@ -58,7 +58,7 @@ import java.util.Map;
 /**
  * Class to facilitate Blockly setup on an Activity.
  *
- * {@link BlocklyActivityHelper#onCreateFragments()} looks for
+ * {@link BlocklyActivityHelper#onFindFragments} looks for
  * the {@link WorkspaceFragment}, the toolbox's {@link BlockListUI}, and the trash's
  * {@link BlockListUI} via fragment ids {@link R.id#blockly_workspace},
  * {@link R.id#blockly_toolbox_ui}, and {@link R.id#blockly_trash_ui}, respectively.
@@ -108,7 +108,25 @@ public class BlocklyActivityHelper {
      * Creates the activity helper and initializes Blockly. Must be called during
      * {@link Activity#onCreate}. Executes the following sequence of calls during initialization:
      * <ul>
-     *     <li>{@link #onCreateFragments} to find fragments</li>
+     *     <li>{@link #onFindFragments} to find fragments</li>
+     *     <li>{@link #onCreateBlockViewFactory}</li>
+     * </ul>
+     * Subclasses should override those methods to configure the Blockly environment.
+     *
+     * @throws IllegalStateException If error occurs during initialization. Assumes all initial
+     *                               compile-time assets are known to be valid.
+     * @deprecated Use {@link #BlocklyActivityHelper(AppCompatActivity, FragmentManager)}
+     */
+    @Deprecated
+    public BlocklyActivityHelper(AppCompatActivity activity) {
+        this(activity, activity.getSupportFragmentManager());
+    }
+
+    /**
+     * Creates the activity helper and initializes Blockly. Must be called during
+     * {@link Activity#onCreate}. Executes the following sequence of calls during initialization:
+     * <ul>
+     *     <li>{@link #onFindFragments} to find fragments</li>
      *     <li>{@link #onCreateBlockViewFactory}</li>
      * </ul>
      * Subclasses should override those methods to configure the Blockly environment.
@@ -116,10 +134,10 @@ public class BlocklyActivityHelper {
      * @throws IllegalStateException If error occurs during initialization. Assumes all initial
      *                               compile-time assets are known to be valid.
      */
-    public BlocklyActivityHelper(AppCompatActivity activity) {
+    public BlocklyActivityHelper(AppCompatActivity activity, FragmentManager fragmentManager) {
         mActivity = activity;
 
-        onCreateFragments();
+        onFindFragments(fragmentManager);
         if (mWorkspaceFragment == null) {
             throw new IllegalStateException("mWorkspaceFragment is null");
         }
@@ -425,8 +443,7 @@ public class BlocklyActivityHelper {
      * This methods is always called once from the constructor before {@link #mController} is
      * instantiated.
      */
-    protected void onCreateFragments() {
-        FragmentManager fragmentManager = mActivity.getSupportFragmentManager();
+    protected void onFindFragments(FragmentManager fragmentManager) {
         mWorkspaceFragment = (WorkspaceFragment)
                 fragmentManager.findFragmentById(R.id.blockly_workspace);
         mToolboxBlockList = (BlockListUI) fragmentManager
