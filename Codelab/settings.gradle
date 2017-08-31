@@ -1,1 +1,1 @@
-include ':codelab-starter'
+include ':MusicMaker-starter', ':MusicMaker-step1-Blockly'
