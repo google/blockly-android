@@ -1,1 +1,1 @@
-include ':MusicMaker-starter', ':MusicMaker-step1-Blockly'
+include ':MusicMaker-starter', ':MusicMaker-step1-Blockly', ':MusicMaker-step2-Scripting'

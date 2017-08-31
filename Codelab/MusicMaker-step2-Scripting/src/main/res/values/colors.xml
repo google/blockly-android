@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="buttonColor1">#EF5350</color><!-- Red 400 -->
+    <color name="buttonColor2">#9CCC65</color><!-- Light Green 400 -->
+    <color name="buttonColor3">#5C6BC0</color><!-- Indigo 400 -->
+    <color name="buttonColor4">#FFEE58</color><!-- Yellow 400 -->
+    <color name="buttonColor5">#FF7043</color><!-- Deep Orange 400 -->
+    <color name="buttonColor6">#8D6E63</color><!-- Brown 400 -->
+    <color name="buttonColor7">#7E57C2</color><!-- Deep Purple 400 -->
+    <color name="buttonColor8">#42A5F5</color><!-- Blue 400 -->
+    <color name="buttonColor9">#EC407A</color><!-- Pink 400 -->
+</resources>
