@@ -63,12 +63,22 @@ public class StylesActivity extends AbstractBlocklyActivity {
         return mCodeGeneratorCallback;
     }
 
+    /**
+     * Optional override of the save path, since this demo Activity has multiple Blockly
+     * configurations.
+     * @return Workspace save path used by this Activity.
+     */
     @Override
     @NonNull
     protected String getWorkspaceSavePath() {
         return SAVE_FILENAME;
     }
 
+    /**
+     * Optional override of the auto-save path, since this demo Activity has multiple Blockly
+     * configurations.
+     * @return Workspace auto-save path used by this Activity.
+     */
     @Override
     @NonNull
     protected String getWorkspaceAutosavePath() {
