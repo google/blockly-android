@@ -107,7 +107,7 @@ public final class BlockDefinition {
 
             mColor = parseColour(logPrefix, mJson);
             mInputsInlineDefault = parseInputsInline(logPrefix, mJson);
-            mStartHatDefault = parseStartHat(logPrefix,mJson);
+            mStartHatDefault = parseStartHat(logPrefix,mJson).equalsIgnoreCase("cap");
 
             mMutatorName = json.has("mutator") ? json.getString("mutator") : null;
             mExtensionNames = parseExtensions(json);
@@ -330,19 +330,19 @@ public final class BlockDefinition {
     }
 
     /**
-     * Parses the JSON "startHat" attribute.
+     * Parses the JSON "hat" attribute.
      * @param warningPrefix A prefix for errors, including the block type if available.
      * @param json The JSON representation of the block definition.
      * @return The int representation of the opaque color.
      */
-    private static boolean parseStartHat(String warningPrefix, JSONObject json) {
-        boolean startHat = false;
-        if (json.has("startHat")) {
+    private static String parseStartHat(String warningPrefix, JSONObject json) {
+        String startHat = "none";
+        if (json.has("hat")) {
             try {
-                startHat = json.getBoolean("startHat");
+                startHat = json.getString("hat");
             } catch (JSONException e) {
                 // Not a boolean.
-                Log.w(TAG, warningPrefix + "Invalid startHat: " + json.opt("startHat"));
+                Log.w(TAG, warningPrefix + "Invalid startHat: " + json.opt("hat"));
                 // Leave value false.
             }
         }
