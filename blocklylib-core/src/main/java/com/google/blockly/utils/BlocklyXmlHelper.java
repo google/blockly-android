@@ -22,6 +22,7 @@ import android.util.Log;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlocklyCategory;
+import com.google.blockly.model.BlocklyEvent;
 import com.google.blockly.model.BlocklySerializerException;
 import com.google.blockly.model.IOOptions;
 import com.google.blockly.model.Mutator;

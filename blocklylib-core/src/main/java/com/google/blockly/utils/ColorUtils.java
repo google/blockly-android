@@ -34,8 +34,8 @@ public class ColorUtils {
     public static final int ALPHA_OPAQUE = 255;
 
     public static final int DEFAULT_BLOCK_HUE = 0;
-    public static final float DEFAULT_BLOCK_SATURATION = 0.45f;
-    public static final float DEFAULT_BLOCK_VALUE = 0.65f;
+    public static final float DEFAULT_BLOCK_SATURATION = 1.00f;
+    public static final float DEFAULT_BLOCK_VALUE = 0.75f;
     public static final int DEFAULT_BLOCK_COLOR = getBlockColorForHue(DEFAULT_BLOCK_HUE, null);
 
     /**

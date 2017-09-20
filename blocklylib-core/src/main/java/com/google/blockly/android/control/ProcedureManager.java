@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.control;
 
+import android.database.DataSetObserver;
 import android.database.Observable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -523,5 +524,6 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
         } else {
             throw new IllegalArgumentException("Block does not contain a procedure mutator.");
         }
+        ((AbstractProcedureMutator) mutator).setProcedureName(newName);
     }
 }

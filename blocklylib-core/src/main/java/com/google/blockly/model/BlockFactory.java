@@ -689,6 +689,9 @@ public class BlockFactory {
         return mDefinitions.containsKey(definitionId);
     }
 
+    public void loadBlockDefinitionFromAssets(String procedureBlocksPath) {
+    }
+
     /** Child blocks for a named input. Used by {@link XmlBlockTemplate}. */
     private static class InputValue {
         /** The name of the input */

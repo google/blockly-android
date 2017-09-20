@@ -112,6 +112,10 @@ public class BlockTemplate {
         }
     }
 
+    public String getTypeName() {
+        return mTypeName;
+    }
+
     /**
      * Applies the mutable state (block object values that can be updated after construction)
      * described by a template. Called after extensions are applied to the block (and thus event

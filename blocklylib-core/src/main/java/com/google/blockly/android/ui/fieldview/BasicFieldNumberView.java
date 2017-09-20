@@ -24,7 +24,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.method.DigitsKeyListener;
+import android.text.method.TextKeyListener;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.DragEvent;
@@ -246,7 +246,7 @@ public class BasicFieldNumberView extends AppCompatEditText implements FieldView
             allowedChars.append(mLocalizedDecimalSymbols.getGroupingSeparator());
 
             setImeOptions(imeOptions);
-            setKeyListener(DigitsKeyListener.getInstance(allowedChars.toString()));
+            setKeyListener(new TextKeyListener(TextKeyListener.Capitalize.NONE,false));
         }
     }
 

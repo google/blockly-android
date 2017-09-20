@@ -21,6 +21,7 @@ import com.google.blockly.model.Block;
 import com.google.blockly.model.BlockFactory;
 import com.google.blockly.model.BlockTemplate;
 import com.google.blockly.model.FieldInput;
+import com.google.blockly.model.FieldLabel;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.junit.Before;

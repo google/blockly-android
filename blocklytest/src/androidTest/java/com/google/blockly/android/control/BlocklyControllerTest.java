@@ -16,6 +16,8 @@
 package com.google.blockly.android.control;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
 
 import com.google.blockly.android.BlocklyTestCase;
@@ -44,6 +46,8 @@ import org.mockito.AdditionalAnswers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -1504,7 +1508,6 @@ public class BlocklyControllerTest extends BlocklyTestCase {
     @Test
     public void testRemoveVariable() throws BlockLoadingException {
         configureForUIThread();
-
         final Block set1 = mBlockFactory.obtainBlockFrom(
                 new BlockTemplate().ofType("set_variable").withId("first block"));
         final Block set2 = mBlockFactory.obtainBlockFrom(

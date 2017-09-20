@@ -17,6 +17,7 @@ package com.google.blockly.android;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.view.ContextThemeWrapper;
@@ -25,6 +26,8 @@ import com.google.blockly.android.ui.vertical.R;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Base class for Android tests with Mockito.

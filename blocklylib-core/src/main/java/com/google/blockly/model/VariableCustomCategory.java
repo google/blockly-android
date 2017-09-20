@@ -24,6 +24,7 @@ import com.google.blockly.utils.BlockLoadingException;
 
 import java.lang.ref.WeakReference;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Class for building {@link BlocklyCategory categories} for variables blocks.

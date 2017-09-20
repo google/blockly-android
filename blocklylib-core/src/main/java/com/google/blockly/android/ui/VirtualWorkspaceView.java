@@ -691,4 +691,9 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         mTempRect.bottom = (int) Math.ceil(mTempRect.bottom * mViewScale);
         return mTempRect;
     }
+
+    public void setGridColor(int color) {
+        mGridRenderer.setGridColor(color);
+				mGridRenderer.updateGridBitmap(mViewScale);
+    }
 }
