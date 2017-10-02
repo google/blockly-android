@@ -235,7 +235,7 @@ public class BasicFieldNumberView extends AppCompatEditText implements FieldView
                 allowedChars.append("e");
             }
 
-            if (mNumberField.getMinimumValue() < 0) {
+            if (!mNumberField.hasMinimum() || mNumberField.getMinimumValue() < 0) {
                 imeOptions |= InputType.TYPE_NUMBER_FLAG_SIGNED;
                 allowedChars.append("-");
             }
