@@ -29,9 +29,13 @@ import org.junit.Test;
 public class BasicFieldNumberViewTest extends BlocklyTestCase {
 
     private static final double INITIAL_POS_INT = 5d;
-    private static final double INITIAL_POS_DECIMAL = 3.1415d;
     private static final double INITIAL_SIGNED_INT = -5d;
-    private static final double INITIAL_SIGNED_DECIMAL = -3.1415d;
+    private static final double INITIAL_POS_DECIMAL = Math.PI;
+    private static final double INITIAL_SIGNED_DECIMAL = -Math.PI;
+
+    /** The decimal string equivalent of {@link Math#PI}. */
+    private static final String PI_STRING = "3.141592653589793";
+
 
     // Cannot mock final classes.
     private FieldNumber mFieldPosInt;
@@ -79,19 +83,20 @@ public class BasicFieldNumberViewTest extends BlocklyTestCase {
         assertThat(view.getText().toString())
                 .isEqualTo("5");
 
-        view.setField(mFieldPosDecimal);
-        assertThat(view.getField()).isSameAs(mFieldPosDecimal);
-        assertThat(view.getText().toString())
-                .isEqualTo("3.1415");
-
         view.setField(mFieldSignedInt);
         assertThat(view.getField()).isSameAs(mFieldSignedInt);
         assertThat(view.getText().toString())
                 .isEqualTo("-5");
 
+        // The following is the maximum precision presentation of PI with a double.
+        view.setField(mFieldPosDecimal);
+        assertThat(view.getField()).isSameAs(mFieldPosDecimal);
+        assertThat(view.getText().toString())
+                .isEqualTo(PI_STRING);
+
         view.setField(mFieldSignedDecimal);
         assertThat(view.getField()).isSameAs(mFieldSignedDecimal);
         assertThat(view.getText().toString())
-                .isEqualTo("-3.1415");
+                .isEqualTo("-" + PI_STRING);
     }
 }

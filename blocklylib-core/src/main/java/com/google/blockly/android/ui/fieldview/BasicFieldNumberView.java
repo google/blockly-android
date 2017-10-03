@@ -163,6 +163,7 @@ public class BasicFieldNumberView extends AppCompatEditText implements FieldView
                 // Replace empty string with value closest to zero.
                 mNumberField.setValue(0);
             }
+            updateLocalizedNumberFormatIfConstraintsChanged();
             setText(mLocalizedNumberFormat.format(mNumberField.getValue()));
             setTextValid(true);
         }

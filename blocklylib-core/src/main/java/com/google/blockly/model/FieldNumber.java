@@ -41,15 +41,15 @@ public final class FieldNumber extends Field {
     private static final DecimalFormatSymbols PERIOD_AS_DECIMAL =
             new DecimalFormatSymbols(new Locale("en", "us"));
     /**
-     * This formatter is used by fields without precision, and to count precision's significant
-     * digits past the decimal point.  Unlike {@link Double#toString}, it displays as many
-     * fractional digits as possible.
+     * This formatter is used by fields without precision or grouping punctuation. It is used to
+     * count precision's significant digits past the decimal point.  Unlike {@link Double#toString},
+     * it displays as many fractional digits as possible.
      */
     private static final DecimalFormat NAIVE_DECIMAL_FORMAT;
     static {
         // Force as many significant digits as possible in a naive decimal format, using the period
         // as the decimal.
-        char[] sigDigts = new char[100];
+        char[] sigDigts = new char[324];  // Double.MIN_VALUE approx. 4.9E-324
         Arrays.fill(sigDigts, '#');
         NAIVE_DECIMAL_FORMAT
                 = new DecimalFormat(new StringBuffer("0.").append(sigDigts).toString(),
@@ -205,7 +205,9 @@ public final class FieldNumber extends Field {
      */
     public NumberFormat getNumberFormatForLocale(Locale locale) {
         if (!hasPrecision()) {
-            return NumberFormat.getInstance(locale);
+            NumberFormat localizedNumFormat = NumberFormat.getInstance(locale);
+            localizedNumFormat.setMaximumFractionDigits(324);  // Double.MIN_VALUE approx. 4.9E-324
+            return localizedNumFormat;
         }
         if (mIntegerPrecision) {
             return NumberFormat.getIntegerInstance(locale);
@@ -216,13 +218,11 @@ public final class FieldNumber extends Field {
         if (decimalChar == -1) {
             return NumberFormat.getIntegerInstance(locale);
         }
-
         int significantDigits = precisionStr.length() - decimalChar;
-        StringBuilder sb = new StringBuilder("0.");
-        char[] sigDigitsFormat = new char[significantDigits];
-        Arrays.fill(sigDigitsFormat, '#');
-        sb.append(sigDigitsFormat);
-        return new DecimalFormat(sb.toString(), new DecimalFormatSymbols(locale));
+
+        NumberFormat localizedNumFormat = NumberFormat.getInstance(locale);
+        localizedNumFormat.setMaximumFractionDigits(significantDigits);
+        return localizedNumFormat;
     }
 
     /**
