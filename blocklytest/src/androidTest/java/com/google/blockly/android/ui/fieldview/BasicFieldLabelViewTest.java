@@ -39,7 +39,7 @@ public class BasicFieldLabelViewTest extends BlocklyTestCase {
 
         final BasicFieldLabelView view = new BasicFieldLabelView(getContext());
         view.setField(mFieldLabel);
-        assertThat(mFieldLabel).isSameAs(view.getField());
+        assertThat(view.getField()).isSameAs(mFieldLabel);
         assertThat(view.getText().toString())
                 .isEqualTo(INIT_TEXT_VALUE);  // Fails without .toString()
     }
