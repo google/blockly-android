@@ -33,8 +33,11 @@ public class BasicFieldNumberViewTest extends BlocklyTestCase {
     private static final double INITIAL_POS_DECIMAL = Math.PI;
     private static final double INITIAL_SIGNED_DECIMAL = -Math.PI;
 
-    /** The decimal string equivalent of {@link Math#PI}. */
-    private static final String PI_STRING = "3.141592653589793";
+    /**
+     * A regex to match the decimal string equivalent of {@link Math#PI}, accounting for minor
+     * platform variations. (Don't ask me why.)
+     */
+    private static final String PI_STRING_REGEX = "3\\.141592653589793?";
 
 
     // Cannot mock final classes.
@@ -91,12 +94,10 @@ public class BasicFieldNumberViewTest extends BlocklyTestCase {
         // The following is the maximum precision presentation of PI with a double.
         view.setField(mFieldPosDecimal);
         assertThat(view.getField()).isSameAs(mFieldPosDecimal);
-        assertThat(view.getText().toString())
-                .isEqualTo(PI_STRING);
+        assertThat(view.getText().toString()).matches(PI_STRING_REGEX);
 
         view.setField(mFieldSignedDecimal);
         assertThat(view.getField()).isSameAs(mFieldSignedDecimal);
-        assertThat(view.getText().toString())
-                .isEqualTo("-" + PI_STRING);
+        assertThat(view.getText().toString()).matches("-" + PI_STRING_REGEX);
     }
 }
