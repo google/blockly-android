@@ -33,6 +33,7 @@ android {
 dependencies {
     androidTestCompile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
+    compile 'com.android.support:multidex:1.0.1'
     androidTestCompile 'com.google.truth:truth:0.31'
     androidTestCompile 'com.android.support:appcompat-v7:26.0.2'
     compile project(':blocklylib-vertical')
