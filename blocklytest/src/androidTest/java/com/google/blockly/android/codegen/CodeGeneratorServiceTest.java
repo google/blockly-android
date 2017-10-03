@@ -122,10 +122,9 @@ public class CodeGeneratorServiceTest extends BlocklyTestCase {
         String xml = toXml(block);
         String url = CodeGeneratorService.buildCodeGenerationUrl(xml, "Blockly.JavaScript");
 
-        Matcher matcher = Pattern.compile("javascript:generate\\('(.*)', Blockly.JavaScript\\);")
-                .matcher(url);
-        assertThat(matcher.matches()).isTrue();
-        String jsString = matcher.group(1);
+        Pattern urlPattern = Pattern.compile("javascript:generate\\('(.*)', Blockly.JavaScript\\);");
+        assertThat(url).matches(urlPattern);
+        String jsString = urlPattern.matcher(url).group(1);
         assertThat(jsString.contains("apostrophe%20%27%20end")).isTrue();
     }
 
