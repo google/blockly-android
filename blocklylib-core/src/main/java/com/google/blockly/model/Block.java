@@ -752,6 +752,13 @@ public class Block extends Observable<Block.Observer> {
             serializer.attribute(null, "inline", Boolean.toString(mInputsInline));
         }
 
+        // Serialize the mutator state before the inputs. The web code used by the code generator
+        // loads XML elements in order, and the mutation may update the available inputs or fields
+        // before the values are assigned.
+        if (mMutator != null) {
+            mMutator.serialize(serializer);
+        }
+
         for (int i = 0; i < mInputList.size(); i++) {
             if (mInputList.get(i) != null) {
                 mInputList.get(i).serialize(serializer, options);
@@ -762,10 +769,6 @@ public class Block extends Observable<Block.Observer> {
             serializer.startTag(null, "next");
             getNextBlock().serialize(serializer, false, options);
             serializer.endTag(null, "next");
-        }
-
-        if (mMutator != null) {
-            mMutator.serialize(serializer);
         }
 
         serializer.endTag(null, mIsShadow ? "shadow" : "block");
