@@ -263,5 +263,130 @@
         "alt": "*"
       }
     ]
+  },
+  {
+    "type": "test_with_lots_of_network_icons",
+    "message0": "Lots of network icons: %1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %16 %17 %18",
+    "args0": [
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/A.png",
+        "width": 32,
+        "height": 32,
+        "alt": "twit"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/B.png",
+        "width": 32,
+        "height": 32,
+        "alt": "G+"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/C.png",
+        "width": 32,
+        "height": 32,
+        "alt": "LinkedIn"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/D.png",
+        "width": 32,
+        "height": 32,
+        "alt": "Facebook"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/E.png",
+        "width": 32,
+        "height": 32,
+        "alt": "twit"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/F.png",
+        "width": 32,
+        "height": 32,
+        "alt": "G+"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/G.png",
+        "width": 32,
+        "height": 32,
+        "alt": "LinkedIn"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/H.png",
+        "width": 32,
+        "height": 32,
+        "alt": "Facebook"
+      },
+      {
+        "type": "input_dummy"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/A.png",
+        "width": 32,
+        "height": 32,
+        "alt": "twit"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/B.png",
+        "width": 32,
+        "height": 32,
+        "alt": "G+"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/C.png",
+        "width": 32,
+        "height": 32,
+        "alt": "LinkedIn"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/D.png",
+        "width": 32,
+        "height": 32,
+        "alt": "Facebook"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/E.png",
+        "width": 32,
+        "height": 32,
+        "alt": "twit"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/F.png",
+        "width": 32,
+        "height": 32,
+        "alt": "G+"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/G.png",
+        "width": 32,
+        "height": 32,
+        "alt": "LinkedIn"
+      },
+      {
+        "type": "field_image",
+        "src": "http://google.github.io/blockly-android/H.png",
+        "width": 32,
+        "height": 32,
+        "alt": "Facebook"
+      }
+    ],
+    "colour": 230
   }
 ]
