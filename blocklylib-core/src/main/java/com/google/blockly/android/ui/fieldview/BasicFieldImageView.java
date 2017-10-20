@@ -57,11 +57,15 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
     protected final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field field, String newValue, String oldValue) {
-            String source = mImageField.getSource();
-            if (source.equals(mImageSrc)) {
-                updateViewSize();
-            } else {
-                startLoadingImage(source);
+            synchronized (mImageFieldLock) {
+                if (mImageField == field) {
+                    String source = mImageField.getSource();
+                    if (source.equals(mImageSrc)) {
+                        updateViewSize();
+                    } else {
+                        startLoadingImage(source);
+                    }
+                }
             }
         }
     };

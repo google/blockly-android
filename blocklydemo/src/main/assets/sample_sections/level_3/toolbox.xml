@@ -136,5 +136,5 @@
         <block type="test_with_lots_of_network_icons"/>
     </category>
     <category name="Variables" custom="VARIABLE"/>
-    <category name="Variables" custom="FUNCTIONS"/>
+    <category name="Functions" custom="FUNCTIONS"/>
 </toolbox>
