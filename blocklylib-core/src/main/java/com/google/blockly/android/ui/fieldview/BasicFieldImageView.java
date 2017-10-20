@@ -198,7 +198,10 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
         // Check for null b/c of https://groups.google.com/d/msg/blockly/lC91XADUiI4/Y0cLRAYQBQAJ
         // Synchronize ImageField update. Issues #678.
         synchronized (mImageFieldLock) {
-            if (mImageField != null) {
+            if (mImageField == null) {
+                setMinimumWidth(0);
+                setMinimumHeight(0);
+            } else {
                 float density = getContext().getResources().getDisplayMetrics().density;
                 int pxWidth = (int) Math.ceil(mImageField.getWidth() * density);
                 int pxHeight = (int) Math.ceil(mImageField.getHeight() * density);
