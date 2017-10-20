@@ -122,7 +122,7 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
     /**
      * Asynchronously load and set image bitmap.
      */
-    @Deprecated // 2017 Oct 19
+    @Deprecated // Use startLoadingImage(String) below. Deprecated 2017 Oct 19.
     protected void startLoadingImage() {
         startLoadingImage(mImageField.getSource());
     }
