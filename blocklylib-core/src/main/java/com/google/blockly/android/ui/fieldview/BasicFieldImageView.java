@@ -19,6 +19,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.support.annotation.UiThread;
 import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
 import android.util.Base64;
@@ -56,16 +57,21 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
     protected final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field field, String newValue, String oldValue) {
-            String source = mImageField.getSource();
-            if (source.equals(mImageSrc)) {
-                updateViewSize();
-            } else {
-                startLoadingImage();
+            synchronized (mImageFieldLock) {
+                if (mImageField == field) {
+                    String source = mImageField.getSource();
+                    if (source.equals(mImageSrc)) {
+                        updateViewSize();
+                    } else {
+                        startLoadingImage(source);
+                    }
+                }
             }
         }
     };
 
     protected FieldImage mImageField;
+    protected Object mImageFieldLock = new Object();
     protected String mImageSrc = null;
 
     /**
@@ -85,6 +91,7 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
         super(context, attrs, defStyleAttr);
     }
 
+    @UiThread
     @Override
     public void setField(Field field) {
         FieldImage imageField = (FieldImage) field;
@@ -92,15 +99,17 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
             return;
         }
 
-        if (mImageField != null) {
-            mImageField.unregisterObserver(mFieldObserver);
-        }
-        mImageField = imageField;
-        if (mImageField != null) {
-            startLoadingImage();
-            mImageField.registerObserver(mFieldObserver);
-        } else {
-            // TODO(#44): Set image to default 'no image' default
+        synchronized (mImageFieldLock) {
+            if (mImageField != null) {
+                mImageField.unregisterObserver(mFieldObserver);
+            }
+            mImageField = imageField;
+            if (mImageField != null) {
+                startLoadingImage(mImageField.getSource());
+                mImageField.registerObserver(mFieldObserver);
+            } else {
+                // TODO(#44): Set image to default 'no image' default
+            }
         }
     }
 
@@ -117,10 +126,17 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
     /**
      * Asynchronously load and set image bitmap.
      */
-    // TODO(#44): Provide a default image if the image loading fails.
+    @Deprecated // Use startLoadingImage(String) below. Deprecated 2017 Oct 19.
     protected void startLoadingImage() {
-        final String source = mImageField.getSource();
+        startLoadingImage(mImageField.getSource());
+    }
 
+    /**
+     * Asynchronously load and set image bitmap from the specified source string.
+     * @param source The URI source of the image.
+     */
+    // TODO(#44): Provide a default image if the image loading fails.
+    protected void startLoadingImage(final String source) {
         // Do I/O in the background
         new AsyncTask<String, Void, Bitmap>() {
             @Override
@@ -177,14 +193,21 @@ public class BasicFieldImageView extends android.support.v7.widget.AppCompatImag
         }
     }
 
+    @UiThread
     protected void updateViewSize() {
         // Check for null b/c of https://groups.google.com/d/msg/blockly/lC91XADUiI4/Y0cLRAYQBQAJ
-        if (mImageField != null ) {
-            float density = getContext().getResources().getDisplayMetrics().density;
-            int pxWidth = (int) Math.ceil(mImageField.getWidth() * density);
-            int pxHeight = (int) Math.ceil(mImageField.getHeight() * density);
-            setMinimumWidth(pxWidth);
-            setMinimumHeight(pxHeight);
+        // Synchronize ImageField update. Issues #678.
+        synchronized (mImageFieldLock) {
+            if (mImageField == null) {
+                setMinimumWidth(0);
+                setMinimumHeight(0);
+            } else {
+                float density = getContext().getResources().getDisplayMetrics().density;
+                int pxWidth = (int) Math.ceil(mImageField.getWidth() * density);
+                int pxHeight = (int) Math.ceil(mImageField.getHeight() * density);
+                setMinimumWidth(pxWidth);
+                setMinimumHeight(pxHeight);
+            }
         }
     }
 }

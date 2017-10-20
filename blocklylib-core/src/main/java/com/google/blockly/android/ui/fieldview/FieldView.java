@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.ui.fieldview;
 
+import android.support.annotation.UiThread;
 import android.view.View;
 
 import com.google.blockly.model.Field;
@@ -37,10 +38,12 @@ public interface FieldView {
      *
      * @param field The field backing this view.
      */
+    @UiThread
     void setField(Field field);
 
     /**
      * Disconnect the model from this view.
      */
+    @UiThread
     void unlinkField();
 }
