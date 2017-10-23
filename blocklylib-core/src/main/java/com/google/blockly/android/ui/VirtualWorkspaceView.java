@@ -590,22 +590,16 @@ public class VirtualWorkspaceView extends NonPropagatingViewGroup {
         return mGridRenderer.getGridSpacing();
     }
 
-    public void setGridSpacing(Integer gridSpacing) {
-        if (gridSpacing != null) {
-            mGridRenderer.setGridSpacing(gridSpacing);
-        }
+    public void setGridSpacing(int gridSpacing) {
+        mGridRenderer.setGridSpacing(gridSpacing);
     }
 
-    public void setGridColor(Integer gridColor) {
-        if (gridColor != null) {
-            mGridRenderer.setGridColor(gridColor);
-        }
+    public void setGridColor(int gridColor) {
+        mGridRenderer.setGridColor(gridColor);
     }
 
-    public void setGridDotRadius(Integer gridDotRadius) {
-        if (gridDotRadius != null) {
-            mGridRenderer.setGridDotRadius(gridDotRadius);
-        }
+    public void setGridDotRadius(int gridDotRadius) {
+        mGridRenderer.setGridDotRadius(gridDotRadius);
     }
 
     private class TapGestureListener extends GestureDetector.SimpleOnGestureListener {

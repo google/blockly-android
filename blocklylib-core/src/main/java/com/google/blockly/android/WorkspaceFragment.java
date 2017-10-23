@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.VirtualWorkspaceView;
+import com.google.blockly.android.ui.WorkspaceGridRenderer;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Workspace;
 
@@ -56,9 +57,9 @@ public class WorkspaceFragment extends Fragment {
     private WorkspaceView mWorkspaceView;
 
     private boolean mDrawGrid = true;
-    private Integer mGridColor = null;
-    private Integer mGridSpacing = null;
-    private Integer mGridDotRadius = null;
+    private int mGridColor;
+    private int mGridSpacing;
+    private int mGridDotRadius;
 
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
@@ -68,18 +69,12 @@ public class WorkspaceFragment extends Fragment {
         try {
             mDrawGrid = a.getBoolean(R.styleable.WorkspaceFragment_drawGrid,
                     mDrawGrid);
-            if (a.hasValue(R.styleable.WorkspaceFragment_gridColor)) {
-                mGridColor =
-                        a.getInt(R.styleable.WorkspaceFragment_gridColor, 0);
-            }
-            if (a.hasValue(R.styleable.WorkspaceFragment_gridSpacing)) {
-                mGridSpacing =
-                        a.getInt(R.styleable.WorkspaceFragment_gridSpacing, 0);
-            }
-            if (a.hasValue(R.styleable.WorkspaceFragment_gridDotRadius)) {
-                mGridDotRadius =
-                        a.getInt(R.styleable.WorkspaceFragment_gridDotRadius, 0);
-            }
+            mGridColor = a.getInt(R.styleable.WorkspaceFragment_gridColor,
+                    WorkspaceGridRenderer.DEFAULT_GRID_COLOR);
+            mGridSpacing = a.getInt(R.styleable.WorkspaceFragment_gridSpacing,
+                    WorkspaceGridRenderer.DEFAULT_GRID_SPACING);
+            mGridDotRadius = a.getInt(R.styleable.WorkspaceFragment_gridDotRadius,
+                    WorkspaceGridRenderer.DEFAULT_GRID_RADIUS);
         } finally {
             a.recycle();
         }
