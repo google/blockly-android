@@ -56,6 +56,9 @@ public class WorkspaceFragment extends Fragment {
     private WorkspaceView mWorkspaceView;
 
     private boolean mDrawGrid = true;
+    private Integer mGridColor = null;
+    private Integer mGridSpacing = null;
+    private Integer mGridDotRadius = null;
 
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
@@ -65,6 +68,18 @@ public class WorkspaceFragment extends Fragment {
         try {
             mDrawGrid = a.getBoolean(R.styleable.WorkspaceFragment_drawGrid,
                     mDrawGrid);
+            if (a.hasValue(R.styleable.WorkspaceFragment_gridColor)) {
+                mGridColor =
+                        a.getInt(R.styleable.WorkspaceFragment_gridColor, 0);
+            }
+            if (a.hasValue(R.styleable.WorkspaceFragment_gridSpacing)) {
+                mGridSpacing =
+                        a.getInt(R.styleable.WorkspaceFragment_gridSpacing, 0);
+            }
+            if (a.hasValue(R.styleable.WorkspaceFragment_gridDotRadius)) {
+                mGridDotRadius =
+                        a.getInt(R.styleable.WorkspaceFragment_gridDotRadius, 0);
+            }
         } finally {
             a.recycle();
         }
@@ -79,6 +94,7 @@ public class WorkspaceFragment extends Fragment {
         mVirtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
+        configureWorkspaceLayout(mVirtualWorkspaceView);
 
         if (mController != null) {
             mVirtualWorkspaceView.setZoomBehavior(
@@ -87,6 +103,12 @@ public class WorkspaceFragment extends Fragment {
         mVirtualWorkspaceView.setDrawGrid(mDrawGrid);
 
         return rootView;
+    }
+
+    private void configureWorkspaceLayout(VirtualWorkspaceView virtualWorkspaceView) {
+        virtualWorkspaceView.setGridColor(mGridColor);
+        virtualWorkspaceView.setGridSpacing(mGridSpacing);
+        virtualWorkspaceView.setGridDotRadius(mGridDotRadius);
     }
 
     /**
