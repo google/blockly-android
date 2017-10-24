@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.ui.BlockView;
 import com.google.blockly.android.ui.VirtualWorkspaceView;
+import com.google.blockly.android.ui.WorkspaceGridRenderer;
 import com.google.blockly.android.ui.WorkspaceView;
 import com.google.blockly.model.Workspace;
 
@@ -56,6 +57,9 @@ public class WorkspaceFragment extends Fragment {
     private WorkspaceView mWorkspaceView;
 
     private boolean mDrawGrid = true;
+    private int mGridColor;
+    private int mGridSpacing;
+    private int mGridDotRadius;
 
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
@@ -65,6 +69,12 @@ public class WorkspaceFragment extends Fragment {
         try {
             mDrawGrid = a.getBoolean(R.styleable.WorkspaceFragment_drawGrid,
                     mDrawGrid);
+            mGridColor = a.getInt(R.styleable.WorkspaceFragment_gridColor,
+                    WorkspaceGridRenderer.DEFAULT_GRID_COLOR);
+            mGridSpacing = a.getInt(R.styleable.WorkspaceFragment_gridSpacing,
+                    WorkspaceGridRenderer.DEFAULT_GRID_SPACING);
+            mGridDotRadius = a.getInt(R.styleable.WorkspaceFragment_gridDotRadius,
+                    WorkspaceGridRenderer.DEFAULT_GRID_RADIUS);
         } finally {
             a.recycle();
         }
@@ -79,6 +89,7 @@ public class WorkspaceFragment extends Fragment {
         mVirtualWorkspaceView =
                 (VirtualWorkspaceView) rootView.findViewById(R.id.virtual_workspace);
         mWorkspaceView = (WorkspaceView) rootView.findViewById(R.id.workspace);
+        configureWorkspaceLayout(mVirtualWorkspaceView);
 
         if (mController != null) {
             mVirtualWorkspaceView.setZoomBehavior(
@@ -87,6 +98,12 @@ public class WorkspaceFragment extends Fragment {
         mVirtualWorkspaceView.setDrawGrid(mDrawGrid);
 
         return rootView;
+    }
+
+    private void configureWorkspaceLayout(VirtualWorkspaceView virtualWorkspaceView) {
+        virtualWorkspaceView.setGridColor(mGridColor);
+        virtualWorkspaceView.setGridSpacing(mGridSpacing);
+        virtualWorkspaceView.setGridDotRadius(mGridDotRadius);
     }
 
     /**

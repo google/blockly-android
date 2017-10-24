@@ -46,7 +46,10 @@
     </declare-styleable>
 
     <declare-styleable name="WorkspaceFragment">
-        <attr name="drawGrid" format="boolean"/>
+        <attr name="drawGrid" format="boolean" />
+        <attr name="gridColor" format="color" />
+        <attr name="gridSpacing" format="integer" />
+        <attr name="gridDotRadius" format="integer" />
     </declare-styleable>
 
     <!-- Styles for flyouts. TODO RENAME. -->

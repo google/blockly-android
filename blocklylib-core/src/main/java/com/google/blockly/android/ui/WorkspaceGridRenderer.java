@@ -26,11 +26,11 @@ import android.graphics.Shader;
  * Renders the workspace coordinate grid.
  */
 // TODO(#134): Make this a drawable. Assign as a background.
-class WorkspaceGridRenderer {
+public class WorkspaceGridRenderer {
     // Constants for drawing the coordinate grid.
-    private static final int GRID_SPACING = 48;
-    private static final int GRID_COLOR = 0xffa0a0a0;
-    private static final int GRID_RADIUS = 2;
+    public static final int DEFAULT_GRID_SPACING = 48;
+    public static final int DEFAULT_GRID_COLOR = 0xffa0a0a0;
+    public static final int DEFAULT_GRID_RADIUS = 2;
 
     // Fields for grid drawing.
     private final Paint mGridPaint = new Paint();
@@ -38,20 +38,35 @@ class WorkspaceGridRenderer {
     private final Rect mTempRect = new Rect();
     private Bitmap mGridBitmap;
 
+    private int mGridSpacing = DEFAULT_GRID_SPACING;
+    private int mGridRadius = DEFAULT_GRID_RADIUS;
+
     WorkspaceGridRenderer() {
-        mCirclePaint.setColor(GRID_COLOR);
+        mCirclePaint.setColor(DEFAULT_GRID_COLOR);
     }
 
     /** @return Current grid spacing in pixels. */
     int getGridSpacing() {
-        return GRID_SPACING;
+        return mGridSpacing;
+    }
+
+    void setGridSpacing(int mGridSpacing) {
+        this.mGridSpacing = mGridSpacing;
+    }
+
+    void setGridColor(int gridColor) {
+        mCirclePaint.setColor(gridColor);
+    }
+
+    void setGridDotRadius(int gridDotRadius) {
+        mGridRadius = gridDotRadius;
     }
 
     /**
      * Using the current view scale, create a bitmap tiling shader to render the workspace grid.
      */
     void updateGridBitmap(float viewScale) {
-        int gridSpacing = (int) (GRID_SPACING * viewScale);
+        int gridSpacing = (int) (mGridSpacing * viewScale);
 
         // For some reason, reusing the same Bitmap via Bitmap.reconfigure() leads to bad rendering,
         // so recycle existing Bitmap and create a new one instead.
@@ -61,7 +76,7 @@ class WorkspaceGridRenderer {
         mGridBitmap = Bitmap.createBitmap(gridSpacing, gridSpacing, Bitmap.Config.ARGB_8888);
 
         Canvas bitmapCanvas = new Canvas(mGridBitmap);
-        bitmapCanvas.drawCircle(GRID_RADIUS, GRID_RADIUS, GRID_RADIUS, mCirclePaint);
+        bitmapCanvas.drawCircle(mGridRadius, mGridRadius, mGridRadius, mCirclePaint);
 
         mGridPaint.setShader(
                 new BitmapShader(mGridBitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT));
@@ -77,7 +92,7 @@ class WorkspaceGridRenderer {
      * @param offsetY Vertical grid offset; this is the vertical view scroll offset.
      */
     void drawGrid(Canvas canvas, int width, int height, int offsetX, int offsetY) {
-        mTempRect.set(offsetX - GRID_RADIUS, offsetY - GRID_RADIUS,
+        mTempRect.set(offsetX - mGridRadius, offsetY - mGridRadius,
                 width + offsetX, height + offsetY);
         canvas.drawRect(mTempRect, mGridPaint);
     }
