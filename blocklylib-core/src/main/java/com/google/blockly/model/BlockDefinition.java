@@ -44,6 +44,7 @@ public final class BlockDefinition {
 
     // TODO(#542): Parse into List<InputDefinition> and discard JSON. Include FieldDropdown.Options.
     private final @NonNull JSONObject mJson;  // Saved to parse inputs and field at creation time.
+    private final @Nullable JSONObject mStyle; // Ideally, this would be immutable.
     private final @NonNull String mTypeName;
     private final int mColor;
     private final boolean mHasOutput;
@@ -113,6 +114,8 @@ public final class BlockDefinition {
             throw new BlockLoadingException(
                     "Cannot load BlockDefinition \"" + mTypeName + "\" from JSON.", e);
         }
+
+        mStyle = mJson.optJSONObject("style");
     }
 
     /**
@@ -280,6 +283,14 @@ public final class BlockDefinition {
     @NonNull
     public List<String> getExtensionNames() {
         return mExtensionNames;
+    }
+
+    /**
+     * @return The style definition JSON for this block type.
+     */
+    @Nullable
+    public JSONObject getStyleJson() {
+        return mStyle;
     }
 
     /**

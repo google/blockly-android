@@ -27,6 +27,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.blockly.android.control.ConnectionManager;
 import com.google.blockly.android.ui.Dragger;
@@ -37,6 +38,8 @@ import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,10 +48,14 @@ import java.util.List;
  */
 @SuppressLint("ViewConstructor")
 public class BlockView extends AbstractBlockView<InputView> {
+    private static final String TAG = "Vertical BlockView";
     private static final boolean DEBUG = false;
 
     private static final float SHADOW_SATURATION_MULTIPLIER = 0.4f;
     private static final float SHADOW_VALUE_MULTIPLIER = 1.2f;
+
+    private static final String STYLE_KEY_HAT = "hat";
+    private static final String HAT_CAP = "cap";
 
     private static final int UPDATES_THAT_CAUSE_RELOAD_SHAPE_ASSETS =
             Block.UPDATE_COLOR | Block.UPDATE_IS_DISABLED | Block.UPDATE_IS_SHADOW;
@@ -85,7 +92,7 @@ public class BlockView extends AbstractBlockView<InputView> {
     @Nullable private Rect mNextFillRect = null;
     private ColorFilter mBlockColorFilter;
     private final Paint mFillPaint = new Paint();
-    private final boolean mUseHat;
+    private final boolean mUseCap;
     private int mBlockTopPadding;
 
     private final Rect tempRect = new Rect(); // Only use in main thread functions.
@@ -116,7 +123,7 @@ public class BlockView extends AbstractBlockView<InputView> {
         mTouchHandler = touchHandler;
         mPatchManager = factory.getPatchManager();  // Shortcut.
         mMinBlockWidth = (int) context.getResources().getDimension(R.dimen.min_block_width);
-        mUseHat = factory.isBlockHatsEnabled();
+        mUseCap = isBlockCapEnabled(factory, block);
 
         setClickable(true);
         setFocusable(true);
@@ -157,7 +164,7 @@ public class BlockView extends AbstractBlockView<InputView> {
     // TODO(#144): Move to AbstractBlockView, using abstract methods for calls. After #133
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        mBlockTopPadding = mPatchManager.computeBlockTopPadding(mBlock);
+        mBlockTopPadding = mPatchManager.computeBlockTopPadding(this);
 
         if (mIconsView != null) {
             mIconsView.measure(widthMeasureSpec, heightMeasureSpec);
@@ -246,6 +253,13 @@ public class BlockView extends AbstractBlockView<InputView> {
     }
 
     /**
+     * @return Whether this block is a start block rendered with a rounded "cap" styled hat.
+     */
+    public boolean hasCap() {
+        return mUseCap;
+    }
+
+    /**
      * Called when a block's inputs, fields, comment, or mutator is/are updated, and thus the
      * shape may have changed.
      */
@@ -270,6 +284,31 @@ public class BlockView extends AbstractBlockView<InputView> {
             }
         }
         return false;
+    }
+
+    /**
+     * Reads the configuration and style to determine if the block has a "cap" style hat.
+     * Currently, a cap (rounded top) is the only type of hat supported.
+     * @param factory The view factory.
+     * @param block The block.
+     * @return Whether the block should have a cap.
+     */
+    protected boolean isBlockCapEnabled(VerticalBlockViewFactory factory, Block block) {
+        // Are hat enabled globally for all start blocks? (Older config.)
+        if (factory.isBlockHatsEnabled()) {
+            return true;
+        }
+        JSONObject style = block.getStyle();
+        if (style == null) {
+            return false;
+        }
+        String hatStyle = style.optString(STYLE_KEY_HAT);
+        if (hatStyle != null && hatStyle.equalsIgnoreCase(HAT_CAP)) {
+            return true;
+        } else {
+            Log.w(TAG, "Unrecognized hat style: " + hatStyle);
+            return false;
+        }
     }
 
     /**
@@ -851,7 +890,7 @@ public class BlockView extends AbstractBlockView<InputView> {
                     mPatchManager.getPatchDrawable(R.drawable.top_start_output_border);
             mOutputConnectorHighlightPatch =
                     mPatchManager.getPatchDrawable(R.drawable.top_start_output_connection);
-        } else if (mUseHat) {
+        } else if (mUseCap) {
             topStartDrawable = getColoredPatchDrawable(
                     isShadow ? R.drawable.top_start_hat_shadow : R.drawable.top_start_hat);
             topStartBorderDrawable =

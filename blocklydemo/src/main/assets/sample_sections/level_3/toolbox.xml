@@ -22,6 +22,7 @@
             <block type="statement_statement_input"></block>
             <block type="statement_value_input"></block>
         </category>
+        <block type="styled_event_cap"></block>
         <block type="statement_no_input"></block>
         <block type="output_no_input"></block>
         <block type="statement_no_next"></block>

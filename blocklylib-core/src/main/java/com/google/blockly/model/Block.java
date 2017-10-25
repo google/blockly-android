@@ -28,6 +28,7 @@ import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
 import com.google.blockly.utils.ColorUtils;
 
+import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
@@ -94,6 +95,7 @@ public class Block extends Observable<Block.Observer> {
     private final String mId;
     private final String mType;
     private boolean mIsShadow;
+    private JSONObject mStyle = null;  // WARNING: Often a mutable object shared by all blocks.
 
     // Set by BlockFactory.applyMutator(). May only be set once.
     private Mutator mMutator = null;
@@ -147,6 +149,7 @@ public class Block extends Observable<Block.Observer> {
         mId = id;
 
         mType = definition.getTypeName();
+        mStyle = definition.getStyleJson();
         mColor = definition.getColor();
 
         reshape(definition.createInputList(factory),
@@ -269,6 +272,13 @@ public class Block extends Observable<Block.Observer> {
                 next.addAllBlockIds(outList);
             }
         }
+    }
+
+    /**
+     * @return The style definition for this block.
+     */
+    public JSONObject getStyle() {
+        return mStyle;
     }
 
     /**
