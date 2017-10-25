@@ -54,8 +54,8 @@ public class BlockView extends AbstractBlockView<InputView> {
     private static final float SHADOW_SATURATION_MULTIPLIER = 0.4f;
     private static final float SHADOW_VALUE_MULTIPLIER = 1.2f;
 
-    private static final String STYLE_HAT_KEY = "hat";
-    private static final String HAT_STYLE_CAP = "cap";
+    private static final String STYLE_KEY_HAT = "hat";
+    private static final String HAT_CAP = "cap";
 
     private static final int UPDATES_THAT_CAUSE_RELOAD_SHAPE_ASSETS =
             Block.UPDATE_COLOR | Block.UPDATE_IS_DISABLED | Block.UPDATE_IS_SHADOW;
@@ -302,8 +302,8 @@ public class BlockView extends AbstractBlockView<InputView> {
         if (style == null) {
             return false;
         }
-        String hatStyle = style.optString(STYLE_HAT_KEY);
-        if (hatStyle != null && hatStyle.equalsIgnoreCase(HAT_STYLE_CAP)) {
+        String hatStyle = style.optString(STYLE_KEY_HAT);
+        if (hatStyle != null && hatStyle.equalsIgnoreCase(HAT_CAP)) {
             return true;
         } else {
             Log.w(TAG, "Unrecognized hat style: " + hatStyle);
