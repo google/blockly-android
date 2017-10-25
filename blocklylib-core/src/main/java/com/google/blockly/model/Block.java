@@ -95,7 +95,7 @@ public class Block extends Observable<Block.Observer> {
     private final String mId;
     private final String mType;
     private boolean mIsShadow;
-    private JSONObject mStyle = null;
+    private JSONObject mStyle = null;  // WARNING: Often a mutable object shared by all blocks.
 
     // Set by BlockFactory.applyMutator(). May only be set once.
     private Mutator mMutator = null;
