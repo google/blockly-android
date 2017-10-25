@@ -1,52 +1,56 @@
 <xml xmlns="http://www.w3.org/1999/xhtml">
-    <block type="dummy" id="first_dummy_block_id" x="5" y="5">
-        <value name="input2">
-            <block type="valueInput" id="first_value_input_id">
-                <value name="input">
-                    <block type="simpleValue" id="5384f567-272f-47b6-9261-b6f57abd964f" />
-                </value>
-            </block>
-        </value>
-        <field name="checkbox!">true</field>
-        <field name="label2">180</field>
-        <field name="date!">2015-03-19</field>
-        <field name="dropdown">value1</field>
-        <statement name="input6">
-            <block type="statement" id="first_statement_block_id" />
-        </statement>
-        <field name="DO">loop</field>
-        <field name="color">#ff0000</field>
-        <field name="input text">initial wide field of text</field>
-        <field name="DO">another loop</field>
+    <block type="styled_event_cap" x="5" y="5">
         <next>
-            <block type="dummy" id="second_dummy_block_id" inline="true">
+            <block type="dummy" id="first_dummy_block_id">
+                <value name="input2">
+                    <block type="valueInput" id="first_value_input_id">
+                        <value name="input">
+                            <block type="simpleValue" id="5384f567-272f-47b6-9261-b6f57abd964f" />
+                        </value>
+                    </block>
+                </value>
                 <field name="checkbox!">true</field>
                 <field name="label2">180</field>
                 <field name="date!">2015-03-19</field>
                 <field name="dropdown">value1</field>
                 <statement name="input6">
-                    <block type="statement" id="second_statement_block_id" />
+                    <block type="statement" id="first_statement_block_id" />
                 </statement>
                 <field name="DO">loop</field>
                 <field name="color">#ff0000</field>
                 <field name="input text">initial wide field of text</field>
                 <field name="DO">another loop</field>
                 <next>
-                    <block type="dummy" id="third_dummy_block_id" inline="true">
+                    <block type="dummy" id="second_dummy_block_id" inline="true">
                         <field name="checkbox!">true</field>
                         <field name="label2">180</field>
                         <field name="date!">2015-03-19</field>
                         <field name="dropdown">value1</field>
+                        <statement name="input6">
+                            <block type="statement" id="second_statement_block_id" />
+                        </statement>
                         <field name="DO">loop</field>
                         <field name="color">#ff0000</field>
                         <field name="input text">initial wide field of text</field>
                         <field name="DO">another loop</field>
+                        <next>
+                            <block type="dummy" id="third_dummy_block_id" inline="true">
+                                <field name="checkbox!">true</field>
+                                <field name="label2">180</field>
+                                <field name="date!">2015-03-19</field>
+                                <field name="dropdown">value1</field>
+                                <field name="DO">loop</field>
+                                <field name="color">#ff0000</field>
+                                <field name="input text">initial wide field of text</field>
+                                <field name="DO">another loop</field>
+                            </block>
+                        </next>
                     </block>
                 </next>
             </block>
         </next>
     </block>
-    <block type="outer" id="outer_block_id" x="400" y="70">
+    <block type="outer" id="outer_block_id" x="500" y="140">
         <value name="input2">
             <block type="inner" id="inner_block_id">
                 <value name="input3">
@@ -55,5 +59,5 @@
             </block>
         </value>
     </block>
-    <block type="statement-only" id="statement_only_block_id" x="500" y="370" />
+    <block type="statement-only" id="statement_only_block_id" x="800" y="400" />
 </xml>

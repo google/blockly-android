@@ -388,5 +388,14 @@
       }
     ],
     "colour": 230
+  },
+  {
+    "type": "styled_event_cap",
+    "message0": "Hat block (event)",
+    "nextStatement": null,
+    "colour": 330,
+    "style": {
+      "hat": "cap"
+    }
   }
 ]
