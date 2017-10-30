@@ -78,8 +78,6 @@ public class ColorUtils {
      */
     public static int parseColor(@NonNull String str, @Nullable float[] tempHsvArray)
             throws ParseException {
-        Integer result = null;
-
         char firstChar = str.charAt(0);
         if (firstChar == '#' && str.length() == 7) {
             try {
