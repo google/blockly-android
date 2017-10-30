@@ -141,6 +141,7 @@
         <block type="block_color_hex2"/>
         <block type="block_color_hex3"/>
         <label text="Bad examples"></label>
+        <block type="block_no_color"/>
         <block type="block_color_hex4"/>
         <block type="block_color_hex5"/>
     </category>

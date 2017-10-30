@@ -492,6 +492,10 @@
     "colour": "#010101"
   },
   {
+    "type": "block_no_color",
+    "message0": "Block color: unset"
+  },
+  {
     "type": "block_color_hex4",
     "message0": "Block color: #RRGGBBAA (invalid)",
     "colour": "#992aff99"
