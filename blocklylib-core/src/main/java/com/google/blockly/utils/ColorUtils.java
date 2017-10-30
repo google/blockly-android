@@ -95,7 +95,7 @@ public class ColorUtils {
                 throw new ParseException("Invalid color hue: " + str, 0);
             }
         } else {
-            // Maybe other color formats? 3 digit hex, CSS color functions, etc.return result;
+            // Maybe other color formats? 3 digit hex, CSS color functions, etc.
             throw new ParseException("Unrecognized color format: " + str, 0);
         }
     }
