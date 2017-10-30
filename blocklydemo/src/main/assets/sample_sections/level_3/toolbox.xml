@@ -136,6 +136,14 @@
         <block type="test_with_lots_of_network_icons"/>
         <block type="test_with_lots_of_network_icons"/>
     </category>
+    <category name="Colors">
+        <block type="block_color_hex1"/>
+        <block type="block_color_hex2"/>
+        <block type="block_color_hex3"/>
+        <label text="Bad examples"></label>
+        <block type="block_color_hex4"/>
+        <block type="block_color_hex5"/>
+    </category>
     <category name="Variables" custom="VARIABLE"/>
     <category name="Functions" custom="FUNCTIONS"/>
 </toolbox>
