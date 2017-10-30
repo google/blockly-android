@@ -78,26 +78,24 @@ public class ColorUtils {
      */
     public static int parseColor(@NonNull String str, @Nullable float[] tempHsvArray)
             throws ParseException {
-        Integer result = null;
-
         char firstChar = str.charAt(0);
         if (firstChar == '#' && str.length() == 7) {
             try {
-                result = Integer.parseInt(str.substring(1, 7), 16);
-            } catch (NumberFormatException e) {
+                return Color.parseColor(str);
+            } catch (IllegalArgumentException e) {
                 throw new ParseException("Invalid hex color: " + str, 0);
             }
-            return result;
         } else if (Character.isDigit(firstChar) && str.length() <= 3) {
             try {
                 int hue = Integer.parseInt(str);
-                result = getBlockColorForHue(hue, tempHsvArray);
+                return getBlockColorForHue(hue, tempHsvArray);
             } catch (NumberFormatException e) {
                 throw new ParseException("Invalid color hue: " + str, 0);
             }
+        } else {
+            // Maybe other color formats? 3 digit hex, CSS color functions, etc.
+            throw new ParseException("Unrecognized color format: " + str, 0);
         }
-        // Maybe other color formats? 3 digit hex, CSS color functions, etc.
-        return result;
     }
 
     /**
