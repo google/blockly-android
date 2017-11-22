@@ -185,7 +185,7 @@ public class Dragger {
                         // NOTE: This event position does not respect view scale.
 
                         BlockView rootDraggedBlockView = mPendingDrag.getRootDraggedBlockView();
-                        if(rootDraggedBlockView.getBlock().isMovable()) {
+                        if (rootDraggedBlockView.getBlock().isMovable()) {
                             BlockGroup dragGroup = mPendingDrag.getDragGroup();
                             if (dragGroup.getParent() == mWorkspaceView) {
                                 // Hide the view on the workspace
