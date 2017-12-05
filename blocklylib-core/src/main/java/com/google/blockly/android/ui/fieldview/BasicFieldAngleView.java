@@ -40,8 +40,9 @@ public class BasicFieldAngleView extends AppCompatTextView implements FieldView 
         @Override
         public void onValueChanged(Field angleField, String oldValue, String newValue) {
             if (BuildConfig.DEBUG && !(angleField == mAngleField)) {
-                throw new AssertionError(String.format("angleField (%s) must match mAngleField (%s)",
-                        angleField, mAngleField));
+                throw new AssertionError(
+                        String.format("angleField (%s) must match mAngleField (%s)",
+                            angleField, mAngleField));
             }
 
             String curDisplayText = removeSymbol(getText().toString());
