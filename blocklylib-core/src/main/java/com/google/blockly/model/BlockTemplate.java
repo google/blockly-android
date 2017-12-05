@@ -433,8 +433,12 @@ public class BlockTemplate {
      * @return This block template, for chaining.
      */
     BlockTemplate withFieldValue(String fieldName, String value) {
-        assert(!TextUtils.isEmpty(fieldName));
-        assert(!TextUtils.isEmpty(value));
+        if (TextUtils.isEmpty(fieldName)) {
+            throw new IllegalArgumentException("fieldName must be defined, non-empty.");
+        }
+        if (value == null) {
+            throw new IllegalArgumentException("fieldName must be defined.");
+        }
         if (mFieldValues == null) {
             mFieldValues = new ArrayList<>();
         }
