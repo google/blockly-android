@@ -30,4 +30,7 @@ allprojects {
             options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
         }
     }
+
+
+    apply plugin: 'checkstyle'
 }
