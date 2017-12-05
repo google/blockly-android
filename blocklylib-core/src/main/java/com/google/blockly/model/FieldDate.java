@@ -27,6 +27,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Adds a date picker to an Input. Dates must be in the format "YYYY-MM-DD"
@@ -35,7 +36,7 @@ public final class FieldDate extends Field {
     private static final String TAG = "FieldDate";
 
     // Date format used for serialization.
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     private final Date mDate = new Date();
 
