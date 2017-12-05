@@ -22,7 +22,6 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
@@ -574,11 +573,6 @@ public class WorkspaceHelper {
      * @param resources The context resources to get the RTL setting from.
      */
     private void updateRtl(Resources resources) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            mRtl = resources.getConfiguration().getLayoutDirection()
-                    == View.LAYOUT_DIRECTION_RTL;
-        } else {
-            mRtl = false;  // RTL not supported.
-        }
+        mRtl = resources.getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
     }
 }
