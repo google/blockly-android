@@ -30,19 +30,19 @@ import java.lang.annotation.RetentionPolicy;
 public final class Rotation {
 
     /** Child is not rotated. */
-    public static final int NONE = 0;
+    public static final int NONE = 1 << 1;
 
     /** Child is always rotated clockwise, so its top is on the right. */
-    public static final int CLOCKWISE = 1;
+    public static final int CLOCKWISE = 1 << 2;
 
     /** Child is always rotated counter-clockwise, so its top is on the left. */
-    public static final int COUNTER_CLOCKWISE = 2;
+    public static final int COUNTER_CLOCKWISE = 1 << 3;
 
     /** Rotation flag bit mask for clockwise or counter-clockwise directions. */
     public static final int ROTATION_DIRECTION_MASK = CLOCKWISE | COUNTER_CLOCKWISE;
 
-    /** Rotation flag bit field to mark LTR/RTL aware roations. */
-    public static final int RTL_AWARE_BIT = 0x10;
+    /** Rotation flag bit field to mark LTR/RTL aware rotations. */
+    public static final int RTL_AWARE_BIT = 1 << 4;
 
     /** Child is rotated clockwise in LTR, and counter-clockwise in RTL. */
     public static final int ADAPTIVE_CLOCKWISE = RTL_AWARE_BIT | CLOCKWISE;
