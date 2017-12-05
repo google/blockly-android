@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -179,7 +180,7 @@ public abstract class NameManager extends DataSetObservable {
      * @return The canonical string for the provided name, as used by {@link #mCanonicalMap}.
      */
     protected String makeCanonical(@NonNull String name) {
-        return name.toLowerCase();
+        return name.toLowerCase(Locale.getDefault());
     }
 
     /**
