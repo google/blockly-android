@@ -19,11 +19,11 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.google.blockly.android.R;
 
@@ -39,7 +39,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  * opened (pending drop during drag).  The TrashCanView assumes both drawables are the same size, so
  * the overall view will not change size when the state changes.
  */
-public class TrashCanView extends ImageView {
+public class TrashCanView extends AppCompatImageView {
     private static final String TAG = "TrashCanView";
 
     @Retention(SOURCE)
