@@ -17,9 +17,9 @@ package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.v7.widget.AppCompatSpinner;
 import android.util.AttributeSet;
 import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 
 import com.google.blockly.android.R;
 import com.google.blockly.model.Field;
@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Renders a dropdown field as part of a Block.
  */
-public class BasicFieldDropdownView extends Spinner implements FieldView {
+public class BasicFieldDropdownView extends AppCompatSpinner implements FieldView {
     private static final String TAG = "BasicFieldDropdownView";
 
     private Field.Observer mFieldObserver = new Field.Observer() {

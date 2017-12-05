@@ -16,13 +16,13 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.DragEvent;
-import android.widget.EditText;
 
 import com.google.blockly.android.ui.WorkspaceHelper;
 import com.google.blockly.model.Field;
@@ -31,7 +31,7 @@ import com.google.blockly.model.FieldInput;
 /**
  * Renders editable text as part of a {@link com.google.blockly.android.ui.InputView}.
  */
-public class BasicFieldInputView extends EditText implements FieldView {
+public class BasicFieldInputView extends AppCompatEditText implements FieldView {
     private static final String TAG = "BasicFieldInputView";
 
     private final TextWatcher mWatcher = new TextWatcher() {

@@ -16,8 +16,8 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.util.AttributeSet;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 
 import com.google.blockly.model.Field;
@@ -26,7 +26,7 @@ import com.google.blockly.model.FieldCheckbox;
 /**
  * Renders a checkbox as part of a BlockView.
  */
-public class BasicFieldCheckboxView extends CheckBox implements FieldView {
+public class BasicFieldCheckboxView extends AppCompatCheckBox implements FieldView {
     protected final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field field, String oldStrValue, String newStrValue) {

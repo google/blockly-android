@@ -16,8 +16,8 @@
 package com.google.blockly.android.ui.fieldview;
 
 import android.content.Context;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
-import android.widget.TextView;
 
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldLabel;
@@ -25,7 +25,7 @@ import com.google.blockly.model.FieldLabel;
 /**
  * Renders text as part of a BlockView.
  */
-public class BasicFieldLabelView extends TextView implements FieldView {
+public class BasicFieldLabelView extends AppCompatTextView implements FieldView {
     protected final Field.Observer mFieldObserver = new Field.Observer() {
         @Override
         public void onValueChanged(Field field, String oldValue, String newValue) {
