@@ -14,6 +14,7 @@
  */
 package com.google.blockly.model;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
@@ -432,6 +433,8 @@ public class BlockTemplate {
      * @return This block template, for chaining.
      */
     BlockTemplate withFieldValue(String fieldName, String value) {
+        assert(!TextUtils.isEmpty(fieldName));
+        assert(!TextUtils.isEmpty(value));
         if (mFieldValues == null) {
             mFieldValues = new ArrayList<>();
         }
