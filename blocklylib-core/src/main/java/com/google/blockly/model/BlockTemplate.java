@@ -17,6 +17,7 @@ package com.google.blockly.model;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.blockly.android.BuildConfig;
 import com.google.blockly.utils.BlockLoadingException;
 
 import org.json.JSONObject;
@@ -433,8 +434,10 @@ public class BlockTemplate {
      * @return This block template, for chaining.
      */
     BlockTemplate withFieldValue(String fieldName, String value) {
-        assert(!TextUtils.isEmpty(fieldName));
-        assert(!TextUtils.isEmpty(value));
+        if (BuildConfig.DEBUG && (TextUtils.isEmpty(fieldName) || TextUtils.isEmpty(value))) {
+            throw new AssertionError(String.format("Neither fieldName (%s) nor value (%s) may be blank",
+                    fieldName, value));
+        }
         if (mFieldValues == null) {
             mFieldValues = new ArrayList<>();
         }

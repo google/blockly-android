@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
+import com.google.blockly.android.BuildConfig;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
@@ -32,6 +33,7 @@ import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -251,7 +253,12 @@ public class ProcedureManager extends Observable<ProcedureManager.Observer> {
             mProcedureReferences.get(procedureName).remove(block);
             if (block.getType().equals(CALL_WITH_RETURN_BLOCK_TYPE)) {
                 --mCountOfDefinitionsWithReturn;
-                assert (mCountOfDefinitionsWithReturn >= 0);
+
+                if (BuildConfig.DEBUG && mCountOfDefinitionsWithReturn < 0) {
+                    throw new AssertionError(String.format(Locale.ROOT,
+                            "mCountOfDefinitionsWithReturn (%d) must not be negative",
+                            mCountOfDefinitionsWithReturn));
+                }
             }
 
             if (!mObservers.isEmpty()) {
