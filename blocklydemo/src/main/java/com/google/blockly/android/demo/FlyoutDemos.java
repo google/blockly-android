@@ -52,12 +52,12 @@ public class FlyoutDemos extends Activity{
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+        public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
             ((TextView) holder.itemView).setText(mRes.getText(DEMO_NAMES[position]));
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(FlyoutDemos.this, DEMO_TARGETS[position]);
+                    Intent intent = new Intent(FlyoutDemos.this, DEMO_TARGETS[holder.getAdapterPosition()]);
                     startActivity(intent);
                 }
             });
