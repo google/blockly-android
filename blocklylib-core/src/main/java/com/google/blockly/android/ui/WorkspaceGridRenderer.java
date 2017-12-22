@@ -31,6 +31,7 @@ public class WorkspaceGridRenderer {
     public static final int DEFAULT_GRID_SPACING = 48;
     public static final int DEFAULT_GRID_COLOR = 0xffa0a0a0;
     public static final int DEFAULT_GRID_RADIUS = 2;
+    public static final int DEFAULT_BACKGROUND_COLOR = 0xffffff;
 
     // Fields for grid drawing.
     private final Paint mGridPaint = new Paint();

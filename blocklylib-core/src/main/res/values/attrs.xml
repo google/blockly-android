@@ -50,6 +50,7 @@
         <attr name="gridColor" format="color" />
         <attr name="gridSpacing" format="integer" />
         <attr name="gridDotRadius" format="integer" />
+        <attr name="backgroundColor" format="color" />
     </declare-styleable>
 
     <!-- Styles for flyouts. TODO RENAME. -->
