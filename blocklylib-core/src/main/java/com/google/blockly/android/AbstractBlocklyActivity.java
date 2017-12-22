@@ -55,7 +55,7 @@ import java.util.List;
  * navigation menu.
  * <p/>
  * The default layout is filled with a workspace and the toolbox and trash each configured as
- * fly-out views.  Everything below the {@link ActionBar} can be replaced by overriding
+ * fly-out views.  Everything below the {@link #mActionBar} can be replaced by overriding
  * {@link #onCreateContentView}. After {@link #onCreateContentView}, a {@link BlocklyActivityHelper}
  * is constructed to help initialize the Blockly fragments, controller, and supporting UI. If
  * overriding {@link #onCreateContentView} without {@code unified_blockly_workspace.xml} or
@@ -386,14 +386,14 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected void onInitBlankWorkspace() {}
 
     /**
-     * @return The id of the menu resource used to populate the {@link ActionBar}.
+     * @return The id of the menu resource used to populate the {@link #mActionBar}.
      */
     protected int getActionBarMenuResId() {
         return R.menu.blockly_default_actionbar;
     }
 
     /**
-     * @return The name to show in the {@link ActionBar}.  Defaults to the activity name.
+     * @return The name to show in the {@link #mActionBar}.  Defaults to the activity name.
      */
     @NonNull
     protected CharSequence getWorkspaceTitle() {
@@ -630,7 +630,7 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     }
 
     /**
-     * Restores the {@link ActionBar} contents when the navigation window closes, per <a
+     * Restores the {@link #mActionBar} contents when the navigation window closes, per <a
      * href="http://developer.android.com/design/material/index.html">Material design
      * guidelines</a>.
      */
