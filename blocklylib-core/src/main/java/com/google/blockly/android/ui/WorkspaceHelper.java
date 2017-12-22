@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.ui;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -571,8 +572,11 @@ public class WorkspaceHelper {
     /**
      * Updates the current RTL state for the app.
      *
+     * Lint Suppressed as plan is to support down to API 16.
+     *
      * @param resources The context resources to get the RTL setting from.
      */
+    @SuppressLint("ObsoleteSdkInt")
     private void updateRtl(Resources resources) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             mRtl = resources.getConfiguration().getLayoutDirection()

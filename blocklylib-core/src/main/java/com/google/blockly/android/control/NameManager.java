@@ -15,6 +15,7 @@
 
 package com.google.blockly.android.control;
 
+import android.annotation.SuppressLint;
 import android.database.DataSetObservable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -178,6 +179,7 @@ public abstract class NameManager extends DataSetObservable {
      * @param name The proposed name
      * @return The canonical string for the provided name, as used by {@link #mCanonicalMap}.
      */
+    @SuppressLint("DefaultLocale")
     protected String makeCanonical(@NonNull String name) {
         return name.toLowerCase();
     }
