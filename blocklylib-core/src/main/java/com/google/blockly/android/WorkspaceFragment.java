@@ -60,6 +60,7 @@ public class WorkspaceFragment extends Fragment {
     private int mGridColor;
     private int mGridSpacing;
     private int mGridDotRadius;
+    private int mBackgroundColor;
 
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
@@ -75,6 +76,8 @@ public class WorkspaceFragment extends Fragment {
                     WorkspaceGridRenderer.DEFAULT_GRID_SPACING);
             mGridDotRadius = a.getInt(R.styleable.WorkspaceFragment_gridDotRadius,
                     WorkspaceGridRenderer.DEFAULT_GRID_RADIUS);
+            mBackgroundColor = a.getInt(R.styleable.WorkspaceFragment_backgroundColor,
+                    WorkspaceGridRenderer.DEFAULT_BACKGROUND_COLOR);
         } finally {
             a.recycle();
         }
@@ -104,6 +107,7 @@ public class WorkspaceFragment extends Fragment {
         virtualWorkspaceView.setGridColor(mGridColor);
         virtualWorkspaceView.setGridSpacing(mGridSpacing);
         virtualWorkspaceView.setGridDotRadius(mGridDotRadius);
+        virtualWorkspaceView.setBackgroundColor(mBackgroundColor);
     }
 
     /**
