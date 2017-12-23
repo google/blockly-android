@@ -31,11 +31,9 @@ import static com.google.common.truth.Truth.assertWithMessage;
  */
 public class FieldNumberTest {
     private static final String FIELD_NAME = "FIELD_NAME";
-
-    private FieldNumber mField;
-
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+    private FieldNumber mField;
 
     @Before
     public void setUp() throws Exception {
@@ -49,11 +47,40 @@ public class FieldNumberTest {
     }
 
     @Test
+    public void testConstructorWithAllConstraints() {
+        FieldNumber field = new FieldNumber(FIELD_NAME, -1.0, 1.0, 0.1);
+
+        assertThat(field.getName()).isEqualTo(FIELD_NAME);
+        assertThat(field.getMinimumValue()).isEqualTo(-1.0);
+        assertThat(field.getMaximumValue()).isEqualTo(1.0);
+        assertThat(field.getPrecision()).isEqualTo(0.1);
+
+        assertThat(field.hasMinimum()).isTrue();
+        assertThat(field.hasMaximum()).isTrue();
+        assertThat(field.hasPrecision()).isTrue();
+    }
+
+    @Test
+    public void testConstructorWithPartialConstraints() {
+        FieldNumber field = new FieldNumber(FIELD_NAME, FieldNumber.NO_CONSTRAINT,
+                FieldNumber.NO_CONSTRAINT, 0.1);
+
+        assertThat(field.getName()).isEqualTo(FIELD_NAME);
+        assertThat(field.getMinimumValue()).isNaN();
+        assertThat(field.getMaximumValue()).isNaN();
+        assertThat(field.getPrecision()).isEqualTo(0.1);
+
+        assertThat(field.hasMinimum()).isFalse();
+        assertThat(field.hasMaximum()).isFalse();
+        assertThat(field.hasPrecision()).isTrue();
+    }
+
+    @Test
     public void testConstraintDefaults() {
         // Before assignment
-        assertThat(Double.isNaN(mField.getMinimumValue())).isTrue();
-        assertThat(Double.isNaN(mField.getMaximumValue())).isTrue();
-        assertThat(Double.isNaN(mField.getPrecision())).isTrue();
+        assertThat(mField.getMinimumValue()).isNaN();
+        assertThat(mField.getMaximumValue()).isNaN();
+        assertThat(mField.getPrecision()).isNaN();
 
         assertThat(mField.hasMaximum()).isFalse();
         assertThat(mField.hasMinimum()).isFalse();
@@ -112,27 +139,27 @@ public class FieldNumberTest {
     @Test
     public void testSetConstraints_SpecialValues() {
         mField.setConstraints(Double.NaN, 1.0, 0.1);
-        assertThat(Double.isNaN(mField.getMinimumValue())).isTrue();
+        assertThat(mField.getMinimumValue()).isNaN();
         assertThat(mField.hasMinimum()).isFalse();
         assertThat(mField.hasMaximum()).isTrue();
 
         mField.setConstraints(Double.NEGATIVE_INFINITY, 1.0, 0.1);
-        assertThat(Double.isNaN(mField.getMinimumValue())).isTrue();
+        assertThat(mField.getMinimumValue()).isNaN();
         assertThat(mField.hasMinimum()).isFalse();
         assertThat(mField.hasMaximum()).isTrue();
 
         mField.setConstraints(-1.0, Double.NaN, 0.1);
-        assertThat(Double.isNaN(mField.getMaximumValue())).isTrue();
+        assertThat(mField.getMaximumValue()).isNaN();
         assertThat(mField.hasMinimum()).isTrue();
         assertThat(mField.hasMaximum()).isFalse();
 
         mField.setConstraints(-1.0, Double.POSITIVE_INFINITY, 0.1);
-        assertThat(Double.isNaN(mField.getMaximumValue())).isTrue();
+        assertThat(mField.getMaximumValue()).isNaN();
         assertThat(mField.hasMinimum()).isTrue();
         assertThat(mField.hasMaximum()).isFalse();
 
         mField.setConstraints(-1.0, 1.0, Double.NaN);
-        assertThat(Double.isNaN(mField.getPrecision())).isTrue();
+        assertThat(mField.getPrecision()).isNaN();
         assertThat(mField.hasMinimum()).isTrue();
         assertThat(mField.hasMaximum()).isTrue();
         assertThat(mField.hasPrecision()).isFalse();
