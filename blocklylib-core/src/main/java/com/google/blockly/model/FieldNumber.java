@@ -75,6 +75,11 @@ public final class FieldNumber extends Field {
         super(name, TYPE_NUMBER);
     }
 
+    public FieldNumber(String name, double min, double max, double precision) {
+        this(name);
+        setConstraints(min, max, precision);
+    }
+
     public static FieldNumber fromJson(JSONObject json) throws BlockLoadingException {
         String name = json.optString("name", null);
         if (name == null) {
