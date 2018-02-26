@@ -33,10 +33,11 @@ public class ColorUtils {
     public static final Pattern SIX_DIGIT_HEX_PATTERN = Pattern.compile("\\#([0-9A-Fa-f]{6})");
     public static final int ALPHA_OPAQUE = 255;
 
+    /** @deprecated */
     public static final int DEFAULT_BLOCK_HUE = 0;
-    public static final float DEFAULT_BLOCK_SATURATION = 0f;
-    public static final float DEFAULT_BLOCK_VALUE = 0f;
-    public static final int DEFAULT_BLOCK_COLOR = 0;
+    public static final float DEFAULT_BLOCK_SATURATION = 0.45f;
+    public static final float DEFAULT_BLOCK_VALUE = 0.65f;
+    public static final int DEFAULT_BLOCK_COLOR = Color.BLACK;
 
     /**
      * Parses a string as an opaque color, either as a decimal hue (example: {@code 330}) using a
