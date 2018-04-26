@@ -37,8 +37,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:27.1.1'
-    compile project(':blocklylib-vertical')
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation project(':blocklylib-vertical')
 }
