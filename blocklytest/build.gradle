@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.0'
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         minSdkVersion 18
@@ -31,17 +31,17 @@ android {
 }
 
 dependencies {
-    androidTestCompile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:multidex:1.0.2'
-    androidTestCompile 'com.google.truth:truth:0.31'
-    androidTestCompile 'com.android.support:appcompat-v7:27.0.0'
-    compile project(':blocklylib-vertical')
+    implementation 'junit:junit:4.12'
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation project(':blocklylib-vertical')
+    androidTestImplementation 'com.google.truth:truth:0.31'
+    androidTestImplementation 'com.android.support:appcompat-v7:27.1.1'
     // For UI testing with Espresso.
-    androidTestCompile 'com.android.support.test:runner:1.0.1'
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:3.0.1'
-    androidTestCompile 'com.android.support.test.espresso:espresso-contrib:3.0.1'
-    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
-    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-contrib:3.0.2'
+    androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
+    androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
 }
 
