@@ -239,6 +239,9 @@ public class CategoryTabs extends RecyclerView {
                     onCategoryClicked(category);
                 }
             });
+            ViewCompat.setBackgroundTintList(holder.mLabel,
+                    ColorStateList.valueOf(category.getColor()));
+            ViewCompat.setBackgroundTintMode(holder.mLabel, PorterDuff.Mode.OVERLAY);
         }
 
         @Override
