@@ -1,8 +1,8 @@
-<!--<div class="warning" style="background: #fff9c4; border: solid 2 #cbc693">-->
-**The blockly-android project is _no longer actively developed_ by the Google Blockly team.
-We will continue to review and accept pull requests.  If you are looking to create a new
-Blockly-based app, we recommend using the [web version](http://github.com/google/blockly)
-in a WebView.  We have also create an
+**The blockly-android project is _no longer actively developed_ by the
+Google Blockly team. We will continue to review and accept pull requests.
+If you are looking to create a new Blockly-based app, we recommend using
+the [web version](http://github.com/google/blockly) in a WebView.  We
+have also create an
 [Android Studio demonstration project](https://github.com/google/blockly/tree/develop/demos/mobile/android)
 that does exactly this.**
 
