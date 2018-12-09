@@ -145,7 +145,6 @@ public class FlyoutFragment extends Fragment implements BlockListUI {
         mFlyoutView = inflater.inflate(layout, null);
 
         RecyclerView recyclerView = (RecyclerView) mFlyoutView.findViewById(R.id.block_list_view);
-        recyclerView.setHasFixedSize(true);
         mRecyclerHelper = new BlockRecyclerViewHelper(recyclerView, getContext());
         mRecyclerHelper.setScrollOrientation(mScrollOrientation);
         return mFlyoutView;
