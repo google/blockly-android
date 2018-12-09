@@ -310,8 +310,7 @@
         "check": "String"
       }
     ],
-    "previousStatement": null,
-    "nextStatement": null,
+    "output": "String",
     "colour": 160,
     "tooltip": "Prompt for user for some text or a number.",
     "helpUrl": "https://github.com/google/blockly/wiki/Text#getting-input-from-the-user",
