@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -23,18 +23,7 @@ android {
 
 dependencies {
     testImplementation 'junit:junit:4.12'
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    // TODO(#736):
-    // "compile" is deprecated, has a warning, and needs to be replaced by the
-    //     end of 2018.
-    // "api" compiles but doesn't expose the BlocklyTheme when uploaded to jcenter.
-    // "implementation" fails to compile with errors such as:
-    //     error: cannot find symbol
-    //     import com.google.blockly.android.AbstractBlocklyActivity;
-    //                                      ^
-    //       symbol:   class AbstractBlocklyActivity
-    //       location: package com.google.blockly.android
-    compile project(':blocklylib-core')
+    api project(':blocklylib-core')
 }
 
 task sourcesJar(type: Jar) {
