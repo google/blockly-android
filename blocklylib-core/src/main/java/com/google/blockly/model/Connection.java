@@ -410,6 +410,24 @@ public class Connection implements Cloneable {
         return false;
     }
 
+
+    public static boolean checksMatch(Connection source,Connection target){
+        if(source.mConnectionChecks == null || target.mConnectionChecks == null) {
+            return true;
+        }
+
+        for (int i = 0; i < source.mConnectionChecks.length; i++){
+            for (int j = 0; j < target.mConnectionChecks.length; j++) {
+                if (TextUtils.equals(source.mConnectionChecks[i], target.mConnectionChecks[j])) {
+                    return true;
+                }
+            }
+
+        }
+
+        return false;
+    }
+
     public static Connection cloneConnection(Connection conn) {
         if (conn == null) {
             return null;
