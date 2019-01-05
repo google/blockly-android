@@ -37,3 +37,22 @@ Want to contribute? Great! First, read [our guidelines for contributors][7].
 [5]: https://groups.google.com/forum/#!forum/blockly "Blockly developer forum"
 [6]: https://developers.google.com/blockly/registration "Blockly developer registration form"
 [7]: https://github.com/google/blockly-android/blob/master/CONTRIBUTING.md "Contributor guidelines"
+
+**How to use Bleeding Edge**
+
+1. Add JitPack to your ```build.gradle``` with:
+
+```gradle
+allprojects {
+    repositories {
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+2. Add Blockly for Android to your dependecies in ```build.gradle```:
+
+```gradle
+dependencies {
+    implementation 'com.github.google:blockly-android:develop-SNAPSHOT'
+}
+```
