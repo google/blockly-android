@@ -45,7 +45,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
     private static final List<String> LUA_GENERATORS = Arrays.asList();
 
     private static final LanguageDefinition LUA_LANGUAGE_DEF
-            = new LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua");
+            = LanguageDefinition.LUA_LANGUAGE_DEFINITION;
 
     private TextView mGeneratedTextView;
     private Handler mHandler;

@@ -11,7 +11,31 @@ public class LanguageDefinition {
      * Standard definition for the JavaScript language generator.
      */
     public final static LanguageDefinition JAVASCRIPT_LANGUAGE_DEFINITION
-            = new LanguageDefinition("javascript_compressed.js", "Blockly.JavaScript");
+            = new LanguageDefinition("generators/javascript_compressed.js", "Blockly.JavaScript");
+
+    /**
+     * Standard definition for the Lua language generator.
+     */
+    public final static LanguageDefinition LUA_LANGUAGE_DEFINITION
+            = new LanguageDefinition("generators/lua_compressed.js", "Blockly.Lua");
+
+    /**
+     * Standard definition for the Lua language generator.
+     */
+    public final static LanguageDefinition PHP_LANGUAGE_DEFINITION
+            = new LanguageDefinition("generators/php_compressed.js", "Blockly.PHP");
+
+    /**
+     * Standard definition for the Lua language generator.
+     */
+    public final static LanguageDefinition PYTHON_LANGUAGE_DEFINITION
+            = new LanguageDefinition("generators/python_compressed.js", "Blockly.Python");
+
+    /**
+     * Standard definition for the Lua language generator.
+     */
+    public final static LanguageDefinition DART_LANGUAGE_DEFINITION
+            = new LanguageDefinition("generators/dart_compressed.js", "Blockly.Dart");
 
     /**
      * The path to the language generation file relative to
