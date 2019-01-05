@@ -71,7 +71,7 @@ public class CodeGeneratorServiceTest extends BlocklyTestCase {
         final CodeGenerationRequest request = new CodeGenerationRequest(
                 SIMPLE_WORKSPACE_XML,
                 mCallback,
-                new LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua"),
+                LanguageDefinition.LUA_LANGUAGE_DEFINITION,
                 Arrays.asList(new String[] {"default/test_blocks.json"}),
                 Arrays.asList(new String[] {"lua/generators/test_blocks.js"}));
         mManager.requestCodeGeneration(request);
