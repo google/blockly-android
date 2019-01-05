@@ -58,6 +58,39 @@
         </activity>
 
         <activity
+            android:name=".DartActivity"
+            android:label="@string/dart_activity_name"
+            android:taskAffinity="com.google.blockly.DartActivity"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".PHPActivity"
+            android:label="@string/php_activity_name"
+            android:taskAffinity="com.google.blockly.PHPActivity"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".PythonActivity"
+            android:label="@string/python_activity_name"
+            android:taskAffinity="com.google.blockly.PythonActivity"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".DevTestsActivity"
             android:label="@string/dev_activity_name"
             android:theme="@style/StylesDemoTheme"
