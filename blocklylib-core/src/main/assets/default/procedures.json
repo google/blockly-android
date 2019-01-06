@@ -1,6 +1,7 @@
 [
   {
     "type": "procedures_defnoreturn",
+    "compileWebDefinition": true,
     "message0": "to %1 %2",
     "args0": [
       {
@@ -20,6 +21,7 @@
   },
   {
     "type": "procedures_defreturn",
+    "compileWebDefinition": true,
     "message0": "to %1 %2",
     "args0": [
       {
@@ -47,6 +49,7 @@
   },
   {
     "type": "procedures_callnoreturn",
+    "compileWebDefinition": true,
     "message0": "%1 %2",
     "args0": [
       {
@@ -66,6 +69,7 @@
   },
   {
     "type": "procedures_callreturn",
+    "compileWebDefinition": true,
     "message0": "%1 %2",
     "args0": [
       {
@@ -84,6 +88,7 @@
   },
   {
     "type": "procedures_ifreturn",
+    "compileWebDefinition": true,
     "message0": "if %1 return %2",
     "args0": [
       {

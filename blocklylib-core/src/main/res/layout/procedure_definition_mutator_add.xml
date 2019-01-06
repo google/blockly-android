@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="right|end"
-    >
-    <Button
+    android:layout_gravity="right|end">
+
+    <ImageButton
         android:id="@+id/procedure_argument_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/procedure_argument_add_label"
-        />
-</LinearLayout>
+        android:layout_centerInParent="false"
+        android:layout_centerHorizontal="true"
+        android:contentDescription="@string/procedure_argument_add_label"
+        android:src="@drawable/ic_add_black_24dp" />
+</RelativeLayout>

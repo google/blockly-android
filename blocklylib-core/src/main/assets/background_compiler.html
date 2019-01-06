@@ -40,8 +40,10 @@
                 var jsonArr = JSON.parse(definitions);
                 for (var index = 0; index < jsonArr.length; index++) {
                     var elem = jsonArr[index];
-                    Blockly.Blocks[elem.type] = {
-                        init: init_factory(elem)
+                    if (!Blockly.Blocks[elem.type] || !elem.compileWebDefinition) {
+                        Blockly.Blocks[elem.type] = {
+                            init: init_factory(elem)
+                        }
                     }
                 }
             }

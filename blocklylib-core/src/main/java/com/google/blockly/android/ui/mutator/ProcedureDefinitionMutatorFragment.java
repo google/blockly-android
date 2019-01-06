@@ -189,7 +189,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
-        Button mAddButton = null;
+        ImageButton mAddButton = null;
         EditText mArgName = null;
         ImageButton mDeleteButton = null;
 
@@ -197,7 +197,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
             super(view);
 
             if (viewType == VH_TYPE_ADD) {
-                mAddButton = (Button) view.findViewById(R.id.procedure_argument_add);
+                mAddButton = (ImageButton) view.findViewById(R.id.procedure_argument_add);
             } else
             if (viewType == VH_TYPE_ARGUMENT) {
                 mArgName = (EditText) view.findViewById(R.id.procedure_argument_name);
@@ -232,6 +232,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
             } else {
                 throw new IllegalStateException("Unrecognized view type " + viewType);
             }
+            view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             return new ViewHolder(view, viewType);
         }
 
