@@ -15,12 +15,12 @@ import java.util.List;
 class FieldAdapter<T> extends ArrayAdapter<T> {
     private AppCompatSpinner mSpinner;
 
-    public FieldAdapter(@NonNull Context context, int resource, @NonNull List<T> objects, AppCompatSpinner mSpinner) {
+    public FieldAdapter(@NonNull Context context, int resource, @NonNull List<T> objects, @Nullable AppCompatSpinner mSpinner) {
         super(context, resource, objects);
         this.mSpinner = mSpinner;
     }
 
-    public FieldAdapter(@NonNull Context context, int resource, AppCompatSpinner mSpinner) {
+    public FieldAdapter(@NonNull Context context, int resource, @Nullable AppCompatSpinner mSpinner) {
         super(context, resource);
         this.mSpinner = mSpinner;
     }
@@ -31,7 +31,7 @@ class FieldAdapter<T> extends ArrayAdapter<T> {
         StringWriter stackTrace = new StringWriter();
         PrintWriter printer = new PrintWriter(stackTrace);
         new RuntimeException().printStackTrace(printer);
-        if (stackTrace.toString().contains("at android.widget.Spinner.measureContentWidth")) {
+        if (mSpinner != null && stackTrace.toString().contains("at android.widget.Spinner.measureContentWidth")) {
             return super.getView(mSpinner.getSelectedItemPosition(), convertView, parent);
         } else {
             return super.getView(position, convertView, parent);
