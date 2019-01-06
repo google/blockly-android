@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 
 class FieldAdapter<T> extends ArrayAdapter<T> {
@@ -20,13 +22,19 @@ class FieldAdapter<T> extends ArrayAdapter<T> {
 
     public FieldAdapter(@NonNull Context context, int resource, AppCompatSpinner mSpinner) {
         super(context, resource);
-
         this.mSpinner = mSpinner;
     }
 
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        return super.getView(mSpinner.getSelectedItemPosition(), convertView, parent);
+        StringWriter stackTrace = new StringWriter();
+        PrintWriter printer = new PrintWriter(stackTrace);
+        new RuntimeException().printStackTrace(printer);
+        if (stackTrace.toString().contains("at android.widget.Spinner.measureContentWidth")) {
+            return super.getView(mSpinner.getSelectedItemPosition(), convertView, parent);
+        } else {
+            return super.getView(position, convertView, parent);
+        }
     }
 }

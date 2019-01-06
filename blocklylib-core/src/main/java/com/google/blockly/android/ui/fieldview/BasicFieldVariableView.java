@@ -38,7 +38,7 @@ import java.util.SortedSet;
 /**
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
-public class BasicFieldVariableView extends android.support.v7.widget.AppCompatSpinner
+public class BasicFieldVariableView extends AppCompatSpinner
         implements FieldView, VariableChangeView {
     protected Field.Observer mFieldObserver = new Field.Observer() {
         @Override
