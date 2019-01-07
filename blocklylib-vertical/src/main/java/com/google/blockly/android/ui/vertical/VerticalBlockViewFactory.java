@@ -17,6 +17,7 @@ package com.google.blockly.android.ui.vertical;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.v7.widget.AppCompatSpinner;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -153,7 +154,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
             }
             case Field.TYPE_VARIABLE: {
                 BasicFieldVariableView varView = (BasicFieldVariableView) fieldView;
-                varView.setAdapter(getVariableAdapter());
+                varView.setAdapter(getVariableAdapter(varView));
                 varView.setVariableRequestCallback(mVariableCallback);
                 break;
             }
@@ -167,7 +168,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
     }
 
     @Override
-    protected SpinnerAdapter getVariableAdapter() {
+    protected SpinnerAdapter getVariableAdapter(AppCompatSpinner mSpinner) {
         if (mVariableNameManager == null) {
             throw new IllegalStateException("NameManager must be set before variable field is "
                     + "instantiated.");
@@ -175,7 +176,7 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
         if (mVariableAdapter == null) {
             BasicFieldVariableView.VariableViewAdapter
                     adapter = new BasicFieldVariableView.VariableViewAdapter(
-                            mContext, mVariableNameManager, R.layout.default_spinner_closed_item);
+                            mContext, mVariableNameManager, R.layout.default_spinner_closed_item, mSpinner);
             adapter.setDropDownViewResource(R.layout.default_spinner_dropdown_item);
             mVariableAdapter = adapter;
         }

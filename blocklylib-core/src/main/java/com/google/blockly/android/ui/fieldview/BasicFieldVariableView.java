@@ -20,6 +20,7 @@ import android.database.DataSetObserver;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
+import android.support.v7.widget.AppCompatSpinner;
 import android.util.AttributeSet;
 import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
@@ -37,7 +38,7 @@ import java.util.SortedSet;
 /**
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
-public class BasicFieldVariableView extends android.support.v7.widget.AppCompatSpinner
+public class BasicFieldVariableView extends AppCompatSpinner
         implements FieldView, VariableChangeView {
     protected Field.Observer mFieldObserver = new Field.Observer() {
         @Override
@@ -182,7 +183,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
      * An implementation of {@link ArrayAdapter} that wraps the
      * {@link NameManager.VariableNameManager} to create the variable item views.
      */
-    public static class VariableViewAdapter extends ArrayAdapter<String> {
+    public static class VariableViewAdapter extends FieldAdapter<String> {
         @Retention(RetentionPolicy.SOURCE)
         @IntDef({ACTION_SELECT_VARIABLE, ACTION_RENAME_VARIABLE, ACTION_DELETE_VARIABLE})
         public @interface VariableAdapterType{}
@@ -201,8 +202,8 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
          * @param resource The {@link TextView} layout to use when inflating items.
          */
         public VariableViewAdapter(Context context, NameManager variableNameManager,
-                                   @LayoutRes int resource) {
-            super(context, resource);
+                                   @LayoutRes int resource, AppCompatSpinner mSpinner) {
+            super(context, resource, mSpinner);
 
             mVariableNameManager = variableNameManager;
             mVars = mVariableNameManager.getUsedNames();

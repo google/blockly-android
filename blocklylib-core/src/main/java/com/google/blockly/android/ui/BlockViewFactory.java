@@ -20,6 +20,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.AppCompatSpinner;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -402,7 +403,7 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
             }
             case Field.TYPE_VARIABLE: {
                 BasicFieldVariableView fieldVariableView = new BasicFieldVariableView(mContext);
-                fieldVariableView.setAdapter(getVariableAdapter());
+                fieldVariableView.setAdapter(getVariableAdapter(fieldVariableView));
                 fieldVariableView.setField(field);
                 fieldVariableView.setVariableRequestCallback(mVariableCallback);
                 return fieldVariableView;
@@ -419,14 +420,14 @@ public abstract class BlockViewFactory<BlockView extends com.google.blockly.andr
         }
     }
 
-    protected SpinnerAdapter getVariableAdapter() {
+    protected SpinnerAdapter getVariableAdapter(AppCompatSpinner mSpinner) {
         if (mVariableNameManager == null) {
             throw new IllegalStateException("NameManager must be set before variable field is "
                     + "instantiated.");
         }
         if (mVariableAdapter == null) {
             mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(
-                    mContext, mVariableNameManager, android.R.layout.simple_spinner_item);
+                    mContext, mVariableNameManager, android.R.layout.simple_spinner_item, mSpinner);
         }
         return mVariableAdapter;
     }
