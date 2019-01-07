@@ -83,6 +83,7 @@ public class IfElseMutatorFragment extends MutatorFragment {
         mElseIfCountView = (TextView) contentView.findViewById(R.id.if_else_count);
         updateCountString();
 
+        final ImageView iv = (ImageView) contentView.findViewById(R.id.add_else_if);
         mRemoveElseIfButton = (ImageView) contentView.findViewById(R.id.remove_else_if);
         mRemoveElseIfButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,6 +92,8 @@ public class IfElseMutatorFragment extends MutatorFragment {
                 if (mElseIfCount <= 0) {
                     mElseIfCount = 0;
                     mRemoveElseIfButton.setEnabled(false);
+                } else if (mElseIfCount < 98) {
+                    iv.setEnabled(true);
                 }
                 updateCountString();
             }
@@ -99,15 +102,18 @@ public class IfElseMutatorFragment extends MutatorFragment {
             mRemoveElseIfButton.setEnabled(false);
         }
 
-        ImageView iv = (ImageView) contentView.findViewById(R.id.add_else_if);
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mElseIfCount++;
-                if (!mRemoveElseIfButton.isEnabled()) {
-                    mRemoveElseIfButton.setEnabled(true);
+                if (mElseIfCount >= 98) {
+                    iv.setEnabled(false);
+                } else {
+                    mElseIfCount++;
+                    if (!mRemoveElseIfButton.isEnabled()) {
+                        mRemoveElseIfButton.setEnabled(true);
+                    }
+                    updateCountString();
                 }
-                updateCountString();
             }
         });
 
