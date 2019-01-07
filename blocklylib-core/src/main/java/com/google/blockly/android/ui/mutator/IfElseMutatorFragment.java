@@ -77,6 +77,10 @@ public class IfElseMutatorFragment extends MutatorFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if (mMutator == null) {
+            dismiss();
+        }
+
         LayoutInflater helium = LayoutInflater.from(getContext());
         View contentView = helium.inflate(R.layout.if_else_mutator_dialog, null, false);
 
@@ -98,17 +102,20 @@ public class IfElseMutatorFragment extends MutatorFragment {
                 updateCountString();
             }
         });
-        if (mElseIfCount == 0) {
+        if (mElseIfCount <= 0) {
             mRemoveElseIfButton.setEnabled(false);
+        } else if (mElseIfCount >= 98) {
+            iv.setEnabled(false);
         }
 
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mElseIfCount >= 98) {
+                mElseIfCount++;
+                if (mElseIfCount >= 99) {
+                    mElseIfCount = 98;
                     iv.setEnabled(false);
                 } else {
-                    mElseIfCount++;
                     if (!mRemoveElseIfButton.isEnabled()) {
                         mRemoveElseIfButton.setEnabled(true);
                     }
