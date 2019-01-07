@@ -200,10 +200,36 @@ public class BasicFieldVariableView extends AppCompatSpinner
          * @param variableNameManager The name manager containing the variables.
          * @param context A context for inflating layouts.
          * @param resource The {@link TextView} layout to use when inflating items.
+         * @param mSpinner Spinner this is being used in
          */
         public VariableViewAdapter(Context context, NameManager variableNameManager,
                                    @LayoutRes int resource, AppCompatSpinner mSpinner) {
             super(context, resource, mSpinner);
+
+            mVariableNameManager = variableNameManager;
+            mVars = mVariableNameManager.getUsedNames();
+
+            mRenameString = context.getString(R.string.rename_variable);
+            mDeleteString = context.getString(R.string.delete_variable);
+            refreshVariables();
+            variableNameManager.registerObserver(new DataSetObserver() {
+                @Override
+                public void onChanged() {
+                    refreshVariables();
+                }
+            });
+        }
+
+        /**
+         * This constructor is for compatibility reasons, or for whe it is not in a Spinner.
+         *
+         * @param variableNameManager The name manager containing the variables.
+         * @param context A context for inflating layouts.
+         * @param resource The {@link TextView} layout to use when inflating items.
+         */
+        public VariableViewAdapter(Context context, NameManager variableNameManager,
+                @LayoutRes int resource) {
+            super(context, resource, null);
 
             mVariableNameManager = variableNameManager;
             mVars = mVariableNameManager.getUsedNames();

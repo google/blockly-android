@@ -28,9 +28,11 @@ class FieldAdapter<T> extends ArrayAdapter<T> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        // Generate Stack Trace
         StringWriter stackTrace = new StringWriter();
         PrintWriter printer = new PrintWriter(stackTrace);
         new RuntimeException().printStackTrace(printer);
+        // Use Stack Trace To Check if Method is being Called By android.widget.Spinner.measureContentWidth (fixes #735)
         if (mSpinner != null && stackTrace.toString().contains("at android.widget.Spinner.measureContentWidth")) {
             return super.getView(mSpinner.getSelectedItemPosition(), convertView, parent);
         } else {

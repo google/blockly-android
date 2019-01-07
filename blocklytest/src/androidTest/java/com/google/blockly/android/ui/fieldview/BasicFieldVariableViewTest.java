@@ -47,7 +47,7 @@ public class BasicFieldVariableViewTest extends BlocklyTestCase {
         mNameManager.addName("var3");
 
         mVariableAdapter = new BasicFieldVariableView.VariableViewAdapter(
-                getContext(), mNameManager, android.R.layout.simple_spinner_item, null);
+                getContext(), mNameManager, android.R.layout.simple_spinner_item);
     }
 
     // Verify object instantiation.
