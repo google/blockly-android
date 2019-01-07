@@ -12,6 +12,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 
+/**
+ * Common Code for Field DropDown Adapters
+ * This makes a Spinner's width, the width of the currently selected item, not a one size fits all.
+ */
 class FieldAdapter<T> extends ArrayAdapter<T> {
     private AppCompatSpinner mSpinner;
 

@@ -229,20 +229,7 @@ public class BasicFieldVariableView extends AppCompatSpinner
          */
         public VariableViewAdapter(Context context, NameManager variableNameManager,
                 @LayoutRes int resource) {
-            super(context, resource, null);
-
-            mVariableNameManager = variableNameManager;
-            mVars = mVariableNameManager.getUsedNames();
-
-            mRenameString = context.getString(R.string.rename_variable);
-            mDeleteString = context.getString(R.string.delete_variable);
-            refreshVariables();
-            variableNameManager.registerObserver(new DataSetObserver() {
-                @Override
-                public void onChanged() {
-                    refreshVariables();
-                }
-            });
+            this(context, variableNameManager, resource, null);
         }
 
         /**
