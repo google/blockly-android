@@ -43,6 +43,28 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 
+task getBlockly {
+    def files = [
+            'blockly_compressed.js': 'src/main/assets/blockly_compressed.js',
+            'blocks_compressed.js': 'src/main/assets/blocks_compressed.js',
+            'javascript_compressed.js': 'src/main/assets/generators/javascript_compressed.js',
+            'lua_compressed.js': 'src/main/assets/generators/lua_compressed.js',
+            'php_compressed.js': 'src/main/assets/generators/php_compressed.js',
+            'python_compressed.js': 'src/main/assets/generators/python_compressed.js',
+            'dart_compressed.js': 'src/main/assets/generators/dart_compressed.js',
+            'msg/js/en.js': 'src/main/assets/msg/js/en.js'
+    ]
+    for (Map.Entry<String, Object> entry : files.entrySet()) {
+        def file = new File(projectDir, entry.getValue())
+        file.getParentFile().mkdirs()
+        if (!file.exists()) {
+            new URL('https://raw.githubusercontent.com/google/blockly/master/' + entry.getKey()).withInputStream{ i -> file.withOutputStream{ it << i }}
+        }
+    }
+}
+
+tasks.withType(JavaCompile) { compileTask -> compileTask.dependsOn getBlockly }
+
 // TODO(#632): Fix JavaDoc compilation, and then update deployment artifacts.
 //task javadoc(type: Javadoc) {
 //    source = android.sourceSets.main.java.srcDirs

@@ -35,17 +35,17 @@ import java.util.List;
  * Demo activity that programmatically adds a view to split the screen between the Blockly workspace
  * and an arbitrary other view or fragment.
  */
-public class LuaActivity extends AbstractBlocklyActivity {
-    private static final String TAG = "LuaActivity";
+public class DartActivity extends AbstractBlocklyActivity {
+    private static final String TAG = "DartActivity";
 
     private static final String SAVE_FILENAME = "lua_workspace.xml";
     private static final String AUTOSAVE_FILENAME = "lua_workspace_temp.xml";
     // Add custom blocks to this list.
     private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
-    private static final List<String> LUA_GENERATORS = Arrays.asList();
+    private static final List<String> DART_GENERATORS = Arrays.asList();
 
-    private static final LanguageDefinition LUA_LANGUAGE_DEF
-            = LanguageDefinition.LUA_LANGUAGE_DEFINITION;
+    private static final LanguageDefinition DART_LANGUAGE_DEF
+            = LanguageDefinition.DART_LANGUAGE_DEFINITION;
 
     private TextView mGeneratedTextView;
     private Handler mHandler;
@@ -103,7 +103,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected LanguageDefinition getBlockGeneratorLanguage() {
-        return LUA_LANGUAGE_DEF;
+        return DART_LANGUAGE_DEF;
     }
 
     @NonNull
@@ -115,7 +115,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected List<String> getGeneratorsJsPaths() {
-        return LUA_GENERATORS;
+        return DART_GENERATORS;
     }
 
     @NonNull

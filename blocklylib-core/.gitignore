@@ -1,1 +1,4 @@
 /build
+/src/main/assets/*_compressed.js
+/src/main/assets/generators
+/src/main/assets/msg/js/en.js
