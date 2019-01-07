@@ -38,8 +38,8 @@ import java.util.List;
 public class PythonActivity extends AbstractBlocklyActivity {
     private static final String TAG = "PythonActivity";
 
-    private static final String SAVE_FILENAME = "lua_workspace.xml";
-    private static final String AUTOSAVE_FILENAME = "lua_workspace_temp.xml";
+    private static final String SAVE_FILENAME = "python_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "python_workspace_temp.xml";
     // Add custom blocks to this list.
     private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
     private static final List<String> PYTHON_GENERATORS = Arrays.asList();

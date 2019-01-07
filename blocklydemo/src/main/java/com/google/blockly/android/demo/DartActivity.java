@@ -38,8 +38,8 @@ import java.util.List;
 public class DartActivity extends AbstractBlocklyActivity {
     private static final String TAG = "DartActivity";
 
-    private static final String SAVE_FILENAME = "lua_workspace.xml";
-    private static final String AUTOSAVE_FILENAME = "lua_workspace_temp.xml";
+    private static final String SAVE_FILENAME = "dart_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "dart_workspace_temp.xml";
     // Add custom blocks to this list.
     private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
     private static final List<String> DART_GENERATORS = Arrays.asList();

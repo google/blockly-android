@@ -38,8 +38,8 @@ import java.util.List;
 public class PHPActivity extends AbstractBlocklyActivity {
     private static final String TAG = "PHPActivity";
 
-    private static final String SAVE_FILENAME = "lua_workspace.xml";
-    private static final String AUTOSAVE_FILENAME = "lua_workspace_temp.xml";
+    private static final String SAVE_FILENAME = "php_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "php_workspace_temp.xml";
     // Add custom blocks to this list.
     private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
     private static final List<String> PHP_GENERATORS = Arrays.asList();
