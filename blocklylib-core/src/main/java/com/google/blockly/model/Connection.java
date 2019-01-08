@@ -410,6 +410,33 @@ public class Connection implements Cloneable {
         return false;
     }
 
+
+    /***
+     * Checks if the two connection types match,
+     * and returns true if the connection is empty or if their type contains the same.
+     * Otherwise return false,
+     *
+     * @param source one of the connections that will be checked.
+     * @param target another connection that will be checked.
+     * @return check result
+     */
+    public static boolean checksMatch(Connection source,Connection target){
+        if(source.mConnectionChecks == null || target.mConnectionChecks == null) {
+            return true;
+        }
+
+        for (int i = 0; i < source.mConnectionChecks.length; i++){
+            for (int j = 0; j < target.mConnectionChecks.length; j++) {
+                if (TextUtils.equals(source.mConnectionChecks[i], target.mConnectionChecks[j])) {
+                    return true;
+                }
+            }
+
+        }
+
+        return false;
+    }
+
     public static Connection cloneConnection(Connection conn) {
         if (conn == null) {
             return null;
