@@ -411,6 +411,15 @@ public class Connection implements Cloneable {
     }
 
 
+    /***
+     * Checks if the two connection types match,
+     * and returns true if the connection is empty or if their type contains the same.
+     * Otherwise return false,
+     *
+     * @param source one of the connections that will be checked.
+     * @param target another connection that will be checked.
+     * @return check result
+     */
     public static boolean checksMatch(Connection source,Connection target){
         if(source.mConnectionChecks == null || target.mConnectionChecks == null) {
             return true;
