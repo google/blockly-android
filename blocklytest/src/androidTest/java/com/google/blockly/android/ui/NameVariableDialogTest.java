@@ -14,61 +14,98 @@
  */
 package com.google.blockly.android.ui;
 
+import android.app.Dialog;
+import android.os.Bundle;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.widget.TextView;
 
 import com.google.blockly.android.BlocklyTestActivity;
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
 
-import org.hamcrest.core.StringContains;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import java.util.concurrent.CountDownLatch;
+
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
 public class NameVariableDialogTest extends BlocklyTestCase {
 
-  private NameVariableDialog mNameVariableDialogFragment;
-  private BlocklyTestActivity mActivity;
+    @Rule
+    public final ActivityTestRule<BlocklyTestActivity> mActivityRule = new ActivityTestRule<>(
+            BlocklyTestActivity.class);
 
-  @Rule
-  public final ActivityTestRule<BlocklyTestActivity> mActivityRule =
-      new ActivityTestRule<>(BlocklyTestActivity.class);
+    private NameVariableDialog mNameVariableDialogFragment;
+    private BlocklyTestActivity mActivity;
 
-  @Before
-  public void setUp() throws Exception {
-    configureForUIThread();
-    mNameVariableDialogFragment = new NameVariableDialog();
+    private CountDownLatch latch;
+    private String description;
 
-    mActivity = mActivityRule.getActivity();
-  }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-  @Test
-  public void dialogShowsOldVariableNameWhenRenaming() throws Exception {
-    testTimeoutMs *= 5;  // Allow longer time for dialog interaction test
+    public void countDown() {
+        latch.countDown();
+    }
 
-    String variableName = "oldVariableName";
+    /**
+     * Custom Dialog that calls a callback when R.id.description is set.
+     */
+    public static class TestDialog extends NameVariableDialog {
+        private NameVariableDialogTest mTest;
+        public TestDialog(NameVariableDialogTest mTest) {
+            super();
+            this.mTest = mTest;
+        }
 
-    mNameVariableDialogFragment.setVariable(
-            variableName, mock(NameVariableDialog.Callback.class), true);
-    mNameVariableDialogFragment.show(mActivity.getSupportFragmentManager(), "RenameFragment");
-    onView(withId(R.id.description)).check(matches(withText(new StringContains(variableName))));
-  }
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceBundle) {
+            Dialog dialog = super.onCreateDialog(savedInstanceBundle);
 
-  @Test
-  public void dialogShowsGenericTextForNewVariable() throws Exception {
-    testTimeoutMs *= 5;  // Allow longer time for dialog interaction test
+            mTest.setDescription(((TextView) nameView.findViewById(R.id.description)).getText().toString());
+            mTest.countDown();
 
-    mNameVariableDialogFragment.setVariable("", mock(NameVariableDialog.Callback.class), false);
-    mNameVariableDialogFragment.show(mActivity.getSupportFragmentManager(), "CreateFragment");
-    onView(withId(R.id.description)).check(matches(withText("New variable name")));
-  }
+            return dialog;
+        }
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        configureForUIThread();
+        mNameVariableDialogFragment = new TestDialog(this);
+
+        mActivity = mActivityRule.getActivity();
+    }
+
+    @Test
+    public void dialogShowsOldVariableNameWhenRenaming() throws Exception {
+        testTimeoutMs *= 5;  // Allow longer time for dialog interaction test
+
+        String variableName = "oldVariableName";
+
+        mNameVariableDialogFragment.setVariable(variableName,
+                mock(NameVariableDialog.Callback.class), true);
+        latch = new CountDownLatch(1);
+        mNameVariableDialogFragment.show(mActivity.getSupportFragmentManager(), "RenameFragment");
+        latch.await();
+        assertEquals(String.format(mActivity.getString(R.string.rename_variable_message), variableName), description);
+    }
+
+    @Test
+    public void dialogShowsGenericTextForNewVariable() throws Exception {
+        testTimeoutMs *= 5;  // Allow longer time for dialog interaction test
+
+        mNameVariableDialogFragment.setVariable("", mock(NameVariableDialog.Callback.class), false);
+        latch = new CountDownLatch(1);
+        mNameVariableDialogFragment.show(mActivity.getSupportFragmentManager(), "CreateFragment");
+        latch.await();
+        assertEquals(mActivity.getString(R.string.name_variable_message), description);
+    }
 }

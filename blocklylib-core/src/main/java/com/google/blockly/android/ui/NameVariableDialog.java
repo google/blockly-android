@@ -35,11 +35,12 @@ public class NameVariableDialog extends DialogFragment {
     private DialogInterface.OnClickListener mListener;
     private EditText mNameEditText;
     private boolean mIsRename;
+    View nameView;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceBundle) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View nameView = inflater.inflate(R.layout.name_variable_view, null);
+        nameView = inflater.inflate(R.layout.name_variable_view, null);
         mNameEditText = (EditText) nameView.findViewById(R.id.name);
         mNameEditText.setText(mVariable);
 
