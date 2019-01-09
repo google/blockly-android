@@ -63,7 +63,7 @@
       {
         "type": "field_variable",
         "name": "VAR",
-        "variable": "i"
+        "variable": null
       },
       {
         "type": "input_value",
@@ -101,7 +101,7 @@
       {
         "type": "field_variable",
         "name": "VAR",
-        "variable": "i"
+        "variable": null
       },
       {
         "type": "input_value",
