@@ -14,6 +14,7 @@
  */
 package com.google.blockly.android.ui.mutator;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -23,7 +24,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -189,7 +189,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
-        Button mAddButton = null;
+        ImageButton mAddButton = null;
         EditText mArgName = null;
         ImageButton mDeleteButton = null;
 
@@ -197,7 +197,7 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
             super(view);
 
             if (viewType == VH_TYPE_ADD) {
-                mAddButton = (Button) view.findViewById(R.id.procedure_argument_add);
+                mAddButton = (ImageButton) view.findViewById(R.id.procedure_argument_add);
             } else
             if (viewType == VH_TYPE_ARGUMENT) {
                 mArgName = (EditText) view.findViewById(R.id.procedure_argument_name);
@@ -232,6 +232,8 @@ public class ProcedureDefinitionMutatorFragment extends MutatorFragment {
             } else {
                 throw new IllegalStateException("Unrecognized view type " + viewType);
             }
+            view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ActionBar.LayoutParams.WRAP_CONTENT));
             return new ViewHolder(view, viewType);
         }
 
