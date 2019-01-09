@@ -4,7 +4,9 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:paddingStart="?dialogPreferredPadding"
-              android:paddingEnd="?dialogPreferredPadding">
+              android:paddingEnd="?dialogPreferredPadding"
+              android:paddingRight="?dialogPreferredPadding"
+              android:paddingLeft="?dialogPreferredPadding">
 
     <LinearLayout
         android:layout_width="match_parent"
