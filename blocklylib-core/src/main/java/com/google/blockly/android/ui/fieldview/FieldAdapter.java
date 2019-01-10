@@ -8,8 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 
 /**
@@ -29,15 +27,26 @@ class FieldAdapter<T> extends ArrayAdapter<T> {
         this.mSpinner = mSpinner;
     }
 
+    private boolean isMeasuringContent() {
+        if (mSpinner != null) {
+            // Generate Stack Trace
+            StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
+            // Use Stack Trace To Check if Method is being Called By android.widget.Spinner.measureContentWidth (fixes #735)
+            for (int i = 0; i < stackTrace.length; i++) {
+                if (stackTrace[i].toString().contains("android.widget.Spinner.measureContentWidth")) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return false;
+        }
+    }
+
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        // Generate Stack Trace
-        StringWriter stackTrace = new StringWriter();
-        PrintWriter printer = new PrintWriter(stackTrace);
-        new RuntimeException().printStackTrace(printer);
-        // Use Stack Trace To Check if Method is being Called By android.widget.Spinner.measureContentWidth (fixes #735)
-        if (mSpinner != null && stackTrace.toString().contains("at android.widget.Spinner.measureContentWidth")) {
+        if (isMeasuringContent()) {
             return super.getView(mSpinner.getSelectedItemPosition(), convertView, parent);
         } else {
             return super.getView(position, convertView, parent);
