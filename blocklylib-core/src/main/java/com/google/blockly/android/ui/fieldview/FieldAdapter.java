@@ -27,7 +27,7 @@ class FieldAdapter<T> extends ArrayAdapter<T> {
         this.mSpinner = mSpinner;
     }
 
-    private boolean isMeasuringContent() {
+    private boolean isMeasuringContentWidth() {
         if (mSpinner != null) {
             // Generate Stack Trace
             StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -46,7 +46,7 @@ class FieldAdapter<T> extends ArrayAdapter<T> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        if (isMeasuringContent()) {
+        if (isMeasuringContentWidth()) {
             return super.getView(mSpinner.getSelectedItemPosition(), convertView, parent);
         } else {
             return super.getView(position, convertView, parent);
