@@ -19,7 +19,7 @@
  */
 
 /**
- * @fileoverview Generating Python for test blocks.
+ * @fileoverview Generating Dart for test blocks.
  */
 'use strict';
 
