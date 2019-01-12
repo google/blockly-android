@@ -19,6 +19,16 @@ android {
           abortOnError false
     }
     publishNonDefault false
+
+    flavorDimensions 'blockly'
+    productFlavors {
+        full {
+            dimension 'blockly'
+        }
+        lite {
+            dimension 'blockly'
+        }
+    }
 }
 
 dependencies {

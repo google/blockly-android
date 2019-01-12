@@ -28,6 +28,13 @@ android {
     lintOptions {
           abortOnError false
     }
+
+    flavorDimensions 'blockly'
+    productFlavors {
+        full {
+            dimension 'blockly'
+        }
+    }
 }
 
 dependencies {
