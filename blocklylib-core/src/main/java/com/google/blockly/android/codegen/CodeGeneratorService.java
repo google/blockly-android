@@ -85,7 +85,7 @@ public class CodeGeneratorService extends Service {
                 handleRequest();
             }
         });
-        mWebview.loadUrl("about:blank");
+        mWebview.loadUrl(BLOCKLY_COMPILER_PAGE);
     }
 
     @Nullable

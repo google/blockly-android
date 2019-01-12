@@ -19,7 +19,7 @@
  */
 
 /**
- * @fileoverview Generating Python for test blocks.
+ * @fileoverview Generating PHP for test blocks.
  */
 'use strict';
 

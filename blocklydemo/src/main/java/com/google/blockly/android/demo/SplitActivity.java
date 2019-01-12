@@ -52,7 +52,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
                         @Override
                         public void run() {
                             mGeneratedTextView.setText(generatedCode);
-                            updateTextMinWidth();
+                            DemoUtil.updateTextMinWidth(mGeneratedTextView, SplitActivity.this);
                         }
                     });
                 }
@@ -74,7 +74,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
     protected View onCreateContentView(int parentId) {
         View root = getLayoutInflater().inflate(R.layout.split_content, null);
         mGeneratedTextView = (TextView) root.findViewById(R.id.generated_code);
-        updateTextMinWidth();
+        DemoUtil.updateTextMinWidth(mGeneratedTextView, this);
 
         mNoCodeText = mGeneratedTextView.getText().toString(); // Capture initial value.
 
@@ -117,30 +117,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
     public void onClearWorkspace() {
         super.onClearWorkspace();
         mGeneratedTextView.setText(mNoCodeText);
-        updateTextMinWidth();
-    }
-
-    /**
-     * Estimate the pixel size of the longest line of text, and set that to the TextView's minimum
-     * width.
-     */
-    private void updateTextMinWidth() {
-        String text = mGeneratedTextView.getText().toString();
-        int maxline = 0;
-        int start = 0;
-        int index = text.indexOf('\n', start);
-        while (index > 0) {
-            maxline = Math.max(maxline, index - start);
-            start = index + 1;
-            index = text.indexOf('\n', start);
-        }
-        int remainder = text.length() - start;
-        if (remainder > 0) {
-            maxline = Math.max(maxline, remainder);
-        }
-
-        float density = getResources().getDisplayMetrics().density;
-        mGeneratedTextView.setMinWidth((int) (maxline * 13 * density));
+        DemoUtil.updateTextMinWidth(mGeneratedTextView, this);
     }
 
     /**
