@@ -21,13 +21,13 @@ android {
     productFlavors {
         full {
             dimension 'blockly'
-            versionNameSuffix '-full'
         }
         lite {
             dimension 'blockly'
-            versionNameSuffix '-lite'
         }
     }
+
+    defaultPublishConfig 'fullRelease'
 
     sourceSets {
         lite {

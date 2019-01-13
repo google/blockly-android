@@ -58,10 +58,12 @@ if (android.productFlavors.size() > 0) {
             return
         }
 
+        def bundleTask = tasks["bundle${variant.name.capitalize()}Aar"]
+
         artifacts {
-            archives(variant.getPackageLibrary().archivePath) {
+            archives(bundleTask.archivePath) {
                 classifier variant.flavorName
-                builtBy variant.getPackageLibrary()
+                builtBy bundleTask
                 name = project.name
             }
         }

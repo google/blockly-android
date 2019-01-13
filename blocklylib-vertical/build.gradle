@@ -19,6 +19,8 @@ android {
           abortOnError false
     }
 
+    defaultPublishConfig 'fullRelease'
+
     flavorDimensions 'blockly'
     productFlavors {
         full {
