@@ -18,7 +18,6 @@ android {
     lintOptions {
           abortOnError false
     }
-    publishNonDefault false
 
     flavorDimensions 'blockly'
     productFlavors {

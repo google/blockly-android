@@ -4,20 +4,8 @@ apply plugin: 'com.github.dcendents.android-maven'
 def properties = new Properties()
 properties.load(new FileInputStream(project.file("../deploy.properties")))
 
-version=properties.version
-group=properties.groupId
-
-install {
-    repositories.mavenInstaller {
-        pom.project {
-            packaging 'aar'
-
-            group properties.groupId
-            artifactId project.name
-            version properties.version
-        }
-    }
-}
+version = properties.version
+group = properties.groupId
 
 /**
  * Bintray closure needed to run the buntrayUpload task.
@@ -62,4 +50,20 @@ This library provides the core classes, including models, view base classes, and
 
 artifacts {
     archives sourcesJar
+}
+
+if (android.productFlavors.size() > 0) {
+    android.libraryVariants.all { variant ->
+        if (variant.name.toLowerCase().contains("debug")) {
+            return
+        }
+
+        artifacts {
+            archives(variant.getPackageLibrary().archivePath) {
+                classifier variant.flavorName
+                builtBy variant.getPackageLibrary()
+                name = project.name
+            }
+        }
+    }
 }
