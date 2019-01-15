@@ -19,7 +19,7 @@ android {
           abortOnError false
     }
 
-    defaultPublishConfig 'fullRelease'
+    defaultPublishConfig 'liteRelease'
 
     flavorDimensions 'blockly'
     productFlavors {

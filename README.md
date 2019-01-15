@@ -36,7 +36,7 @@ Add one of the following dependencies to your application's `build.gradle`.
 
 ```gradle
 dependencies {
-    // Default (Full)
+    // Default (Lite)
     implementation 'com.google.blockly.android:blocklylib-vertical:<Blockly Version>'
     // Full Version (All code lanuage generators)
     implementation 'com.google.blockly.android:blocklylib-vertical:<Blockly Version>:full@aar'

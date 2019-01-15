@@ -27,7 +27,7 @@ android {
         }
     }
 
-    defaultPublishConfig 'fullRelease'
+    defaultPublishConfig 'liteRelease'
 
     sourceSets {
         lite {
