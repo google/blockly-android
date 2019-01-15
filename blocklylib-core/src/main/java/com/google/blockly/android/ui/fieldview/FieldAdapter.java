@@ -28,6 +28,7 @@ class FieldAdapter<T> extends ArrayAdapter<T> {
     }
 
     private boolean isMeasuringContentWidth() {
+        // TODO: Find lightweight solution to detecting measurement pass.
         if (mSpinner != null) {
             // Generate Stack Trace
             StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
