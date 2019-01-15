@@ -9,10 +9,10 @@
         "text": "0"
       }
     ],
-    "colour": 230,
+    "colour": "%{BKY_MATH_HUE}",
     "output": "Number",
-    "tooltip": "A number.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Number"
+    "helpUrl": "%{BKY_MATH_NUMBER_HELPURL}",
+    "tooltip": "%{BKY_MATH_NUMBER_TOOLTIP}"
   },
   {
     "type": "math_number_hundredths",
@@ -25,10 +25,10 @@
         "text": "3.14"
       }
     ],
-    "colour": 230,
+    "colour": "%{BKY_MATH_HUE}",
     "output": "Number",
-    "tooltip": "A number.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Number"
+    "tooltip": "%{BKY_MATH_NUMBER_HELPURL}",
+    "helpUrl": "%{BKY_MATH_NUMBER_TOOLTIP}"
   },
   {
     "type": "math_arithmetic",
@@ -43,11 +43,11 @@
         "type": "field_dropdown",
         "name": "OP",
         "options": [
-          ["+", "ADD"],
-          ["-", "MINUS"],
-          ["×", "MULTIPLY"],
-          ["÷", "DIVIDE"],
-          ["^", "POWER"]
+          ["%{BKY_MATH_ADDITION_SYMBOL}", "ADD"],
+          ["%{BKY_MATH_SUBTRACTION_SYMBOL}", "MINUS"],
+          ["%{BKY_MATH_MULTIPLICATION_SYMBOL}", "MULTIPLY"],
+          ["%{BKY_MATH_DIVISION_SYMBOL}", "DIVIDE"],
+          ["%{BKY_MATH_POWER_SYMBOL}", "POWER"]
         ]
       },
       {
@@ -58,8 +58,8 @@
     ],
     "inputsInline": true,
     "output": "Number",
-    "colour": 230,
-    "helpUrl": "https://en.wikipedia.org/wiki/Arithmetic"
+    "colour": "%{BKY_MATH_HUE}",
+    "helpUrl": "%{BKY_MATH_ARITHMETIC_HELPURL}"
   },
   {
     "type": "math_single",
@@ -69,8 +69,8 @@
         "type": "field_dropdown",
         "name": "OP",
         "options": [
-          ["square root", "ROOT"],
-          ["absolute", "ABS"],
+          ["%{BKY_MATH_SINGLE_OP_ROOT}", "ROOT"],
+          ["%{BKY_MATH_SINGLE_OP_ABSOLUTE}", "ABS"],
           ["-", "NEG"],
           ["ln", "LN"],
           ["log10", "LOG10"],
@@ -85,8 +85,8 @@
       }
     ],
     "output": "Number",
-    "colour": 230,
-    "helpUrl": "https://en.wikipedia.org/wiki/Square_root"
+    "colour": "%{BKY_MATH_HUE}",
+    "helpUrl": "%{BKY_MATH_SINGLE_HELPURL}"
   },
   {
     "type": "math_trig",
@@ -96,12 +96,12 @@
         "type": "field_dropdown",
         "name": "OP",
         "options": [
-          ["sin", "SIN"],
-          ["cos", "COS"],
-          ["tan", "TAN"],
-          ["asin", "ASIN"],
-          ["acos", "ACOS"],
-          ["atan", "ATAN"]
+          ["%{BKY_MATH_TRIG_SIN}", "SIN"],
+          ["%{BKY_MATH_TRIG_COS}", "COS"],
+          ["%{BKY_MATH_TRIG_TAN}", "TAN"],
+          ["%{BKY_MATH_TRIG_ASIN}", "ASIN"],
+          ["%{BKY_MATH_TRIG_ACOS}", "ACOS"],
+          ["%{BKY_MATH_TRIG_ATAN}", "ATAN"]
         ]
       },
       {
@@ -111,8 +111,8 @@
       }
     ],
     "output": "Number",
-    "colour": 230,
-    "helpUrl": "https://en.wikipedia.org/wiki/Trigonometric_functions"
+    "colour": "%{BKY_MATH_HUE}",
+    "helpUrl": "%{BKY_MATH_TRIG_HELPURL}"
   },
   {
     "type": "math_constant",
@@ -124,25 +124,21 @@
         "options": [
           ["\u03c0", "PI"],
           ["e", "E"],
-          [
-            "\u03c6", "GOLDEN_RATIO"],
-          [
-            "sqrt(2)", "SQRT2"],
-          [
-            "sqrt(\u00bd)", "SQRT1_2"],
-          [
-            "\u221e", "INFINITY"]
+          ["\u03c6", "GOLDEN_RATIO"],
+          ["sqrt(2)", "SQRT2"],
+          ["sqrt(\u00bd)", "SQRT1_2"],
+          ["\u221e", "INFINITY"]
         ]
       }
     ],
     "output": "Number",
-    "colour": 230,
-    "tooltip": "Return one of the common constants: π (3.141…), e (2.718…), φ (1.618…), sqrt(2) (1.414…), sqrt(½) (0.707…), or ∞ (infinity).",
-    "helpUrl": "https://en.wikipedia.org/wiki/Mathematical_constant"
+    "colour": "%{BKY_MATH_HUE}",
+    "tooltip": "%{BKY_MATH_CONSTANT_TOOLTIP}",
+    "helpUrl": "%{BKY_MATH_CONSTANT_HELPURL}"
   },
   {
     "type": "math_number_property",
-    "message0": "%1 is %2",
+    "message0": "%1 %2",
     "args0": [
       {
         "type": "input_value",
@@ -153,31 +149,30 @@
         "type": "field_dropdown",
         "name": "PROPERTY",
         "options": [
-          ["even", "EVEN"],
-          ["odd", "ODD"],
-          ["prime", "PRIME"],
-          ["whole", "WHOLE"],
-          ["positive", "POSITIVE"],
-          ["negative", "NEGATIVE"],
-          ["divisible by", "DIVISIBLE_BY"]
+          ["%{BKY_MATH_IS_EVEN}", "EVEN"],
+          ["%{BKY_MATH_IS_ODD}", "ODD"],
+          ["%{BKY_MATH_IS_PRIME}", "PRIME"],
+          ["%{BKY_MATH_IS_WHOLE}", "WHOLE"],
+          ["%{BKY_MATH_IS_POSITIVE}", "POSITIVE"],
+          ["%{BKY_MATH_IS_NEGATIVE}", "NEGATIVE"],
+          ["%{BKY_MATH_IS_DIVISIBLE_BY}", "DIVISIBLE_BY"]
         ]
       }
     ],
     "inputsInline": true,
-    "colour": 230,
+    "colour": "%{BKY_MATH_HUE}",
     "output": "Boolean",
-    "tooltip": "Check if a number is an even, odd, prime, whole, positive, or negative. Returns true or false.",
-    "TODO(#376)": "https://github.com/google/blockly-android/issues/376",
-    "mutator": "math_is_divisibleby_mutator"
+    "tooltip": "%{BKY_MATH_IS_TOOLTIP}",
+    "TODO(#376)": "https://github.com/google/blockly-android/issues/376"
   },
   {
     "type": "math_change",
-    "message0": "change %1 by %2",
+    "message0": "%{BKY_MATH_CHANGE_TITLE}",
     "args0": [
       {
         "type": "field_variable",
         "name": "VAR",
-        "variable": "item"
+        "variable": "%{BKY_MATH_CHANGE_TITLE_ITEM}"
       },
       {
         "type": "input_value",
@@ -187,8 +182,8 @@
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": 330,
-    "helpUrl": "https://en.wikipedia.org/wiki/Programming_idiom#Incrementing_a_counter"
+    "colour": "%{BKY_VARIABLES_HUE}",
+    "helpUrl": "%{BKY_MATH_CHANGE_HELPURL}"
   },
   {
     "type": "math_round",
@@ -198,9 +193,9 @@
         "type": "field_dropdown",
         "name": "OP",
         "options": [
-          ["round", "ROUND"],
-          ["round up", "ROUNDUP"],
-          ["round down", "ROUNDDOWN"]
+          ["%{BKY_MATH_ROUND_OPERATOR_ROUND}", "ROUND"],
+          ["%{BKY_MATH_ROUND_OPERATOR_ROUNDUP}", "ROUNDUP"],
+          ["%{BKY_MATH_ROUND_OPERATOR_ROUNDDOWN}", "ROUNDDOWN"]
         ]
       },
       {
@@ -210,13 +205,13 @@
       }
     ],
     "output": "Number",
-    "colour": 230,
-    "tooltip": "Round a number up or down.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Rounding"
+    "colour": "%{BKY_MATH_HUE}",
+    "tooltip": "%{BKY_MATH_ROUND_TOOLTIP}",
+    "helpUrl": "%{BKY_MATH_ROUND_HELPURL}"
   },
   {
     "type": "math_modulo",
-    "message0": "remainder of %1 ÷ %2",
+    "message0": "%{BKY_MATH_MODULO_TITLE}",
     "args0": [
       {
         "type": "input_value",
@@ -231,13 +226,13 @@
     ],
     "inputsInline": true,
     "output": "Number",
-    "colour": 230,
-    "tooltip": "Return the remainder from dividing the two numbers.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Modulo_operation"
+    "colour": "%{BKY_MATH_HUE}",
+    "tooltip": "%{BKY_MATH_MODULO_TOOLTIP}",
+    "helpUrl": "%{BKY_MATH_MODULO_HELPURL}"
   },
   {
     "type": "math_constrain",
-    "message0": "constrain %1 low %2 high %3",
+    "message0": "%{BKY_MATH_CONSTRAIN_TITLE}",
     "args0": [
       {
         "type": "input_value",
@@ -257,13 +252,13 @@
     ],
     "inputsInline": true,
     "output": "Number",
-    "colour": 230,
-    "tooltip": "Constrain a number to be between the specified limits (inclusive).",
-    "helpUrl": "https://en.wikipedia.org/wiki/Clamping_%28graphics%29"
+    "colour": "%{BKY_MATH_HUE}",
+    "tooltip": "%{BKY_MATH_CONSTRAIN_TOOLTIP}",
+    "helpUrl": "%{BKY_MATH_CONSTRAIN_HELPURL}"
   },
   {
     "type": "math_random_int",
-    "message0": "random integer from %1 to %2",
+    "message0": "%{BKY_MATH_RANDOM_INT_TITLE}",
     "args0": [
       {
         "type": "input_value",
@@ -278,16 +273,16 @@
     ],
     "inputsInline": true,
     "output": "Number",
-    "colour": 230,
-    "tooltip": "Return a random integer between the two specified limits, inclusive.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Random_number_generation"
+    "colour": "%{BKY_MATH_HUE}",
+    "tooltip": "%{BKY_MATH_RANDOM_INT_TOOLTIP}",
+    "helpUrl": "%{BKY_MATH_RANDOM_INT_HELPURL}"
   },
   {
     "type": "math_random_float",
-    "message0": "random fraction",
+    "message0": "%{BKY_MATH_RANDOM_FLOAT_TITLE_RANDOM}",
     "output": "Number",
-    "colour": 230,
-    "tooltip": "Return a random fraction between 0.0 (inclusive) and 1.0 (exclusive).",
-    "helpUrl": "https://en.wikipedia.org/wiki/Random_number_generation"
+    "colour": "%{BKY_MATH_HUE}",
+    "tooltip": "%{BKY_MATH_RANDOM_FLOAT_TOOLTIP}",
+    "helpUrl": "%{BKY_MATH_RANDOM_FLOAT_HELPURL}"
   }
 ]

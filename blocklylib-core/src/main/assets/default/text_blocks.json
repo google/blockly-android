@@ -24,18 +24,18 @@
       }
     ],
     "output": "String",
-    "colour": 160,
-    "tooltip": "A letter, word, or line of text.",
-    "helpUrl": "https://en.wikipedia.org/wiki/String_(computer_science)"
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_TEXT_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_TEXT_HELPURL}"
   },
   {
     "type": "text_append",
-    "message0": "to %1 append text %2",
+    "message0": "%{BKY_TEXT_APPEND_TITLE}",
     "args0": [
       {
         "type": "field_variable",
         "name": "VAR",
-        "variable": "item"
+        "variable": "%{BKY_TEXT_APPEND_VARIABLE}"
       },
       {
         "type": "input_value",
@@ -44,13 +44,14 @@
       }
     ],
     "output": "String",
-    "colour": 160,
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#text-modification",
+    "colour": "%{BKY_TEXTS_HUE}",
+    "helpUrl": "%{TEXT_APPEND_HELPURL}",
+    "tooltip": "%{TEXT_APPEND_TOOLTIP}",
     "TODO(#386)": "https://github.com/google/blockly-android/issues/386"
   },
   {
     "type": "text_length",
-    "message0": "length of %1",
+    "message0": "%{BKY_TEXT_LENGTH_TITLE}",
     "args0": [
       {
         "type": "input_value",
@@ -59,13 +60,13 @@
       }
     ],
     "output": "Number",
-    "colour": 160,
-    "tooltip": "Returns the number of letters (including spaces) in the provided text.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#text-modification"
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_LENGTH_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_LENGTH_HELPURL}"
   },
   {
     "type": "text_isEmpty",
-    "message0": "%1 is empty",
+    "message0": "%{BKY_TEXT_ISEMPTY_TITLE}",
     "args0": [
       {
         "type": "input_value",
@@ -75,13 +76,13 @@
     ],
     "inputsInline": true,
     "output": "Boolean",
-    "colour": 160,
-    "tooltip": "Returns true if the provided text is empty.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#checking-for-empty-text"
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_ISEMPTY_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_ISEMPTY_HELPURL}"
   },
   {
     "type": "text_indexOf",
-    "message0": "in text %1 find %2 occurrence of text %3",
+    "message0": "%{BKY_TEXT_INDEXOF_TITLE}",
     "args0": [
       {
         "type": "input_value",
@@ -93,11 +94,11 @@
         "name": "END",
         "options": [
           [
-            "first",
+            "%{BKY_TEXT_INDEXOF_OPERATOR_FIRST}",
             "FIRST"
           ],
           [
-            "last",
+            "%{BKY_TEXT_INDEXOF_OPERATOR_LAST}",
             "LAST"
           ]
         ]
@@ -110,13 +111,13 @@
     ],
     "inputsInline": true,
     "output": "Number",
-    "colour": 160,
-    "tooltip": "Returns the index of the first/last occurrence of the first text in the second text. Returns %1 if text is not found.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#finding-text"
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_INDEXOF_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_INDEXOF_HELPURL}"
   },
   {
     "type": "text_charAt",
-    "message0": "in text %1 get %2 %3",
+    "message0": "%{BKY_TEXT_CHARAT_TITLE} %3",
     "args0": [
       {
         "type": "input_value",
@@ -128,11 +129,11 @@
         "name": "WHERE",
         "options": [
           [
-            "letter #",
+            "%{BKY_TEXT_CHARAT_FROM_START}",
             "FROM_START"
           ],
           [
-            "letter # from end",
+            "%{BKY_TEXT_CHARAT_FROM_END}",
             "FROM_END"
           ]
         ]
@@ -145,14 +146,14 @@
     ],
     "inputsInline": true,
     "output": "String",
-    "colour": 160,
-    "tooltip": "Returns the letter at the specified position.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#extracting-text",
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_CHARAT_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_CHARAT_HELPURL}",
     "TODO(#390)": "https://github.com/google/blockly-android/issues/390"
   },
   {
     "type": "text_getSubstring",
-    "message0": "in text %1 get substring from %2 %3 to %4 %5",
+    "message0": "%{BKY_TEXT_GET_SUBSTRING_INPUT_IN_TEXT} %1 %2 %3 %4 %5",
     "args0": [
       {
         "type": "input_value",
@@ -164,11 +165,11 @@
         "name": "WHERE1",
         "options": [
           [
-            "letter #",
+            "%{BKY_TEXT_GET_SUBSTRING_START_FROM_START}",
             "FROM_START"
           ],
           [
-            "letter # from end",
+            "%{BKY_TEXT_GET_SUBSTRING_START_FROM_END}",
             "FROM_END"
           ]
         ]
@@ -183,11 +184,11 @@
         "name": "WHERE2",
         "options": [
           [
-            "letter #",
+            "%{BKY_TEXT_GET_SUBSTRING_END_FROM_START}",
             "FROM_START"
           ],
           [
-            "letter # from end",
+            "%{BKY_TEXT_GET_SUBSTRING_END_FROM_END}",
             "FROM_END"
           ]
         ]
@@ -200,29 +201,29 @@
     ],
     "inputsInline": true,
     "output": "String",
-    "colour": 160,
-    "tooltip": "Returns a specified portion of the text.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#extracting-a-region-of-text",
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_GET_SUBSTRING_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_CHARAT_HELPURL}",
     "TODO(#391)": "https://github.com/google/blockly-android/issues/391"
   },
   {
     "type": "text_changeCase",
-    "message0": "to %1 %2",
+    "message0": "%1 %2",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "CASE",
         "options": [
           [
-            "UPPER CASE",
+            "%{BKY_TEXT_CHANGECASE_OPERATOR_UPPERCASE}",
             "UPPERCASE"
           ],
           [
-            "lower case",
+            "%{BKY_TEXT_CHANGECASE_OPERATOR_LOWERCASE}",
             "LOWERCASE"
           ],
           [
-            "Title Case",
+            "%{BKY_TEXT_CHANGECASE_OPERATOR_TITLECASE}",
             "TITLECASE"
           ]
         ]
@@ -234,28 +235,28 @@
       }
     ],
     "output": "String",
-    "colour": 160,
-    "tooltip": "Return a copy of the text in a different case.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#adjusting-text-case"
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_CHANGECASE_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_CHANGECASE_HELPURL}"
   },
   {
     "type": "text_trim",
-    "message0": "trim spaces from %1 of %2",
+    "message0": "%1 %2",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "MODE",
         "options": [
           [
-            "both sides",
+            "%{BKY_TEXT_TRIM_OPERATOR_BOTH}",
             "BOTH"
           ],
           [
-            "left side",
+            "%{BKY_TEXT_TRIM_OPERATOR_LEFT}",
             "LEFT"
           ],
           [
-            "right side",
+            "%{BKY_TEXT_TRIM_OPERATOR_RIGHT}",
             "RIGHT"
           ]
         ]
@@ -267,13 +268,13 @@
       }
     ],
     "output": "String",
-    "colour": 160,
-    "tooltip": "Return a copy of the text with spaces removed from one or both ends.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#trimming-removing-spaces"
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_TRIM_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_TRIM_HELPURL}"
   },
   {
     "type": "text_print",
-    "message0": "print %1",
+    "message0": "%{BKY_TEXT_PRINT_TITLE}",
     "args0": [
       {
         "type": "input_value",
@@ -282,24 +283,24 @@
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": 160,
-    "tooltip": "Print the specified text, number or other value.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#printing-text"
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_PRINT_TOOLTIP}",
+    "helpUrl": "%{BKY_TEXT_PRINT_HELPURL}"
   },
   {
     "type": "text_prompt_ext",
-    "message0": "prompt for %1 with message %2",
+    "message0": "%1 %2",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "TYPE",
         "options": [
           [
-            "text",
+            "%{BKY_TEXT_PROMPT_TYPE_TEXT}",
             "TEXT"
           ],
           [
-            "number",
+            "%{BKY_TEXT_PROMPT_TYPE_NUMBER}",
             "NUMBER"
           ]
         ]
@@ -311,9 +312,9 @@
       }
     ],
     "output": "String",
-    "colour": 160,
-    "tooltip": "Prompt for user for some text or a number.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Text#getting-input-from-the-user",
+    "colour": "%{BKY_TEXTS_HUE}",
+    "tooltip": "%{BKY_TEXT_PROMPT_TOOLTIP_TEXT}",
+    "helpUrl": "%{BKY_TEXT_PROMPT_HELPURL}",
     "TODO(#394)": "https://github.com/google/blockly-android/issues/394"
   }
 ]

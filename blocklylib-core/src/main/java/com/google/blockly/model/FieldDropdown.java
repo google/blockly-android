@@ -214,7 +214,7 @@ public final class FieldDropdown extends Field {
                 }
                 if (option != null && option.length() == 2) {
                     try {
-                        String displayName = option.getString(0);
+                        String displayName = BlockFactory.translate(option.getString(0));
                         String value = option.getString(1);
                         if (TextUtils.isEmpty(value)) {
                             throw new BlockLoadingException("Option values may not be empty");

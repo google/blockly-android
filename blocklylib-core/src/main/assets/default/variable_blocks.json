@@ -1,27 +1,27 @@
 [
   {
     "type": "variables_get",
-    "message0": "get %1",
+    "message0": "%1",
     "args0": [
       {
-        "type": "field_variable",
-        "name": "VAR",
-        "variable": "item"
+      "type": "field_variable",
+      "name": "VAR",
+      "variable": "%{BKY_VARIABLES_DEFAULT_NAME}"
       }
     ],
     "output": null,
-    "colour": 330,
-    "tooltip": "Returns the value of this variable.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Variables#get"
+    "colour": "%{BKY_VARIABLES_HUE}",
+    "tooltip": "%{BKY_VARIABLES_GET_TOOLTIP}",
+    "helpUrl": "%{BKY_VARIABLES_GET_HELPURL}"
   },
   {
     "type": "variables_set",
-    "message0": "set %1 to %2",
+    "message0": "%{BKY_VARIABLES_SET}",
     "args0": [
       {
         "type": "field_variable",
         "name": "VAR",
-        "variable": "item"
+        "variable": "%{BKY_VARIABLES_DEFAULT_NAME}"
       },
       {
         "type": "input_value",
@@ -30,9 +30,8 @@
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "inputsInline": true,
-    "colour": 330,
-    "tooltip": "Sets this variable to be equal to the input.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Variables#set"
+    "colour": "%{BKY_VARIABLES_HUE}",
+    "tooltip": "%{BKY_VARIABLES_SET_TOOLTIP}",
+    "helpUrl": "%{BKY_VARIABLES_SET_HELPURL}"
   }
 ]

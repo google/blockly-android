@@ -10,22 +10,21 @@
       }
     ],
     "output": "Colour",
-    "colour": 20,
-    "tooltip": "Choose a colour from the palette.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Color"
+    "colour": "%{BKY_COLOUR_HUE}",
+    "helpUrl": "%{BKY_COLOUR_PICKER_HELPURL}",
+    "tooltip": "%{BKY_COLOUR_PICKER_TOOLTIP}"
   },
   {
     "type": "colour_random",
-    "message0": "random colour",
-    "args0": [],
-    "output": null,
-    "colour": 20,
-    "tooltip": "Choose a colour at random.",
-    "helpUrl": "http://randomcolour.com"
+    "message0": "%{BKY_COLOUR_RANDOM_TITLE}",
+    "output": "Colour",
+    "colour": "%{BKY_COLOUR_HUE}",
+    "helpUrl": "%{BKY_COLOUR_RANDOM_HELPURL}",
+    "tooltip": "%{BKY_COLOUR_RANDOM_TOOLTIP}"
   },
   {
     "type": "colour_rgb",
-    "message0": "colour with red %1 green %2 blue %3",
+    "message0": "%{BKY_COLOUR_RGB_TITLE} %{BKY_COLOUR_RGB_RED} %1 %{BKY_COLOUR_RGB_GREEN} %2 %{BKY_COLOUR_RGB_BLUE} %3",
     "args0": [
       {
         "type": "input_value",
@@ -47,13 +46,13 @@
       }
     ],
     "output": "Colour",
-    "colour": 20,
-    "tooltip": "Create a colour with the specified amount of red, green, and blue. All values must be between 0 and 100.",
-    "helpUrl": "http://www.december.com/html/spec/colorper.html"
+    "colour": "%{BKY_COLOUR_HUE}",
+    "tooltip": "%{BKY_COLOUR_RGB_TOOLTIP}",
+    "helpUrl": "%{BKY_COLOUR_RGB_TOOLTIP}"
   },
   {
     "type": "colour_blend",
-    "message0": "blend colour 1 %1 colour 2 %2 ratio %3",
+    "message0": "%{BKY_COLOUR_BLEND_TITLE} %{BKY_COLOUR_BLEND_COLOUR1} %1 %{BKY_COLOUR_BLEND_COLOUR2} %2 %{BKY_COLOUR_BLEND_RATIO} %3",
     "args0": [
       {
         "type": "input_value",
@@ -75,8 +74,8 @@
       }
     ],
     "output": null,
-    "colour": 20,
-    "tooltip": "Blends two colours together with a given ratio (0.0 - 1.0).",
-    "helpUrl": "http://meyerweb.com/eric/tools/color-blend/"
+    "colour": "%{BKY_COLOUR_HUE}",
+    "tooltip": "%{BKY_COLOUR_BLEND_TOOLTIP}",
+    "helpUrl": "%{BKY_COLOUR_BLEND_HELPURL}"
   }
 ]

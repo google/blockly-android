@@ -178,7 +178,7 @@ public final class BlockDefinition {
             if (!mJson.has(messageKey)) {
                 break;
             }
-            String message = mJson.optString(messageKey);
+            String message = BlockFactory.translate(mJson.optString(messageKey));
             JSONArray args = mJson.optJSONArray(argsKey);
             if (args == null) {
                 // If there's no args for this message use an empty array.
@@ -258,7 +258,7 @@ public final class BlockDefinition {
             }
         }
 
-        return  inputs;
+        return inputs;
     }
 
     /**
@@ -316,7 +316,7 @@ public final class BlockDefinition {
         if (json.has("colour")) {
             boolean validColor = false;
             try {
-                String colourString = json.getString("colour");
+                String colourString = BlockFactory.translate(json.getString("colour"));
                 color = ColorUtils.parseColor(colourString, null, -1);
                 validColor = (color != -1);
             } catch (JSONException e) {

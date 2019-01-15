@@ -37,7 +37,7 @@ public final class FieldVariable extends Field {
         if (TextUtils.isEmpty(name)) {
             throw new BlockLoadingException("field_variable \"name\" attribute must not be empty.");
         }
-        return new FieldVariable(name, json.optString("variable", "item"));
+        return new FieldVariable(name, BlockFactory.translate(json.optString("variable", "item")));
     }
 
     @Override

@@ -1,7 +1,7 @@
 [
   {
     "type": "procedures_defnoreturn",
-    "message0": "to %1 %2",
+    "message0": "%{BKY_PROCEDURES_DEFNORETURN_TITLE} %1 %2",
     "args0": [
       {
         "type": "field_input",
@@ -14,13 +14,13 @@
       }
     ],
     "mutator": "procedures_defnoreturn_mutator",
-    "colour": "290",
-    "tooltip": "Creates a function with no output.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+    "colour": "%{BKY_PROCEDURES_HUE}",
+    "tooltip": "%{BKY_PROCEDURES_DEFNORETURN_TOOLTIP}",
+    "helpUrl": "%{BKY_PROCEDURES_DEFNORETURN_HELPURL}"
   },
   {
     "type": "procedures_defreturn",
-    "message0": "to %1 %2",
+    "message0": "%{BKY_PROCEDURES_DEFRETURN_TITLE} %1 %2",
     "args0": [
       {
         "type": "field_input",
@@ -32,7 +32,7 @@
         "name": "PARAMS"
       }
     ],
-    "message1": "return %1",
+    "message1": "%{BKY_PROCEDURES_DEFRETURN_RETURN} %1",
     "args1": [
       {
         "type": "input_value",
@@ -41,9 +41,9 @@
       }
     ],
     "mutator": "procedures_defreturn_mutator",
-    "colour": "290",
-    "tooltip": "Creates a function with an output.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+    "colour": "%{BKY_PROCEDURES_HUE}",
+    "tooltip": "%{BKY_PROCEDURES_DEFRETURN_TOOLTIP}",
+    "helpUrl": "%{BKY_PROCEDURES_DEFRETURN_HELPURL}"
   },
   {
     "type": "procedures_callnoreturn",
@@ -61,8 +61,8 @@
     "mutator": "procedures_callnoreturn_mutator",
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "290",
-    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+    "colour": "%{BKY_PROCEDURES_HUE}",
+    "helpUrl": "%{BKY_PROCEDURES_CALLNORETURN_HELPURL}"
   },
   {
     "type": "procedures_callreturn",
@@ -79,12 +79,12 @@
     ],
     "mutator": "procedures_callreturn_mutator",
     "output": null,
-    "colour": "290",
-    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+    "colour": "%{BKY_PROCEDURES_HUE}",
+    "helpUrl": "%{BKY_PROCEDURES_CALLRETURN_HELPURL}"
   },
   {
     "type": "procedures_ifreturn",
-    "message0": "if %1 return %2",
+    "message0": "%{BKY_CONTROLS_IF_MSG_IF} %1 %{BKY_PROCEDURES_DEFRETURN_RETURN} %2",
     "args0": [
       {
         "type": "input_value",
@@ -100,8 +100,8 @@
     "inputsInline": true,
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "290",
-    "tooltip": "If a value is true, then return a second value.",
-    "helpUrl": "https://en.wikipedia.org/wiki/Subroutine"
+    "colour": "%{BKY_PROCEDURES_HUE}",
+    "tooltip": "%{BKY_PROCEDURES_IFRETURN_TOOLTIP}",
+    "helpUrl": "%{BKY_PROCEDURES_IFRETURN_HELPURL}"
   }
 ]

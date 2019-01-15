@@ -30,6 +30,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.blockly.utils.SelectedLanuage;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -259,6 +261,11 @@ public class CodeGeneratorService extends Service {
                 mAllBlocks = allBlocks.toString();
                 return mAllBlocks;
             }
+        }
+
+        @JavascriptInterface
+        public String getLang() {
+            return SelectedLanuage.getLang();
         }
     }
 
