@@ -14,6 +14,7 @@ import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
+import com.google.blockly.utils.LangUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -94,14 +95,10 @@ public class IfElseMutator extends Mutator {
 
         mController = controller;
         // TODO: Replace with Blockly string table/TranslationsManager call
-        mIfLabel =  // BKY_CONTROLS_IF_MSG_IF
-                context.getString(R.string.mutator_ifelse_label_if);
-        mThenLabel =  // BKY_CONTROLS_IF_MSG_THEN
-                context.getString(R.string.mutator_ifelse_label_then);
-        mElseIfLabel =  // BKY_CONTROLS_IF_MSG_ELSEIF
-                context.getString(R.string.mutator_ifelse_label_else_if);
-        mElseLabel =  // BKY_CONTROLS_IF_MSG_ELSE
-                context.getString(R.string.mutator_ifelse_label_else);
+        mIfLabel = LangUtils.interpolate("%{BKY_CONTROLS_IF_MSG_IF}");
+        mThenLabel = LangUtils.interpolate("%{BKY_CONTROLS_IF_MSG_THEN}");
+        mElseIfLabel = LangUtils.interpolate("%{BKY_CONTROLS_IF_MSG_ELSEIF}");
+        mElseLabel = LangUtils.interpolate("%{BKY_CONTROLS_IF_MSG_ELSE}");
     }
 
     @Override

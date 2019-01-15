@@ -60,11 +60,23 @@ public class LangUtils {
      * @param context Context
      */
     public static void generateLang(Context context) {
+        generateLang(context, getLang());
+    }
+
+    /**
+     * Generate Map of translations.
+     * @param context Context
+     */
+    private static void generateLang(Context context, String lang) {
+        if (!lang.equals("en")) {
+            generateLang(context, "en");
+        }
+
         StringBuilder out = new StringBuilder();
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(
-                    new InputStreamReader(context.getAssets().open("msg/js/" + LangUtils.getLang() + ".js")));
+                    new InputStreamReader(context.getAssets().open("msg/js/" + lang + ".js")));
 
             String line;
             while ((line = reader.readLine()) != null) {
@@ -83,7 +95,7 @@ public class LangUtils {
             }
         }
 
-        String[] lines = out.toString().split(";\n");
+        String[] lines = out.toString().split("\n");
         for (int i = 0; i < lines.length; i++) {
             lines[i] = lines[i].trim();
             if (lines[i].startsWith("Blockly.Msg[\"")) {
