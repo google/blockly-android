@@ -30,7 +30,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.google.blockly.utils.SelectedLanuage;
+import com.google.blockly.utils.LangUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -265,7 +265,7 @@ public class CodeGeneratorService extends Service {
 
         @JavascriptInterface
         public String getLang() {
-            return SelectedLanuage.getLang();
+            return LangUtils.getLang();
         }
     }
 

@@ -24,7 +24,7 @@ import android.util.Log;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
-import com.google.blockly.utils.SelectedLanuage;
+import com.google.blockly.utils.LangUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -78,75 +78,9 @@ public class BlockFactory {
     protected final HashMap<BlockTypeFieldName, WeakReference<FieldDropdown.Options>>
             mDropdownOptions = new HashMap<>();
 
-    /**
-     * A Map Containing Translations
-     */
-    private static Map<String, String> langMap = new HashMap<>();
-
-    /**
-     * Translate a String using Blockly Web's Translation Files
-     * @param value Input Value
-     * @return Translated String
-     */
-    public static String translate(String value) {
-        for (Map.Entry<String, String> entry : langMap.entrySet()) {
-            while (value.contains(entry.getKey())) {
-                value = value.replace(entry.getKey(), entry.getValue());
-            }
-        }
-        return value;
-    }
-
     /** Default constructor. */
     public BlockFactory(Context context) {
-        StringBuilder out = new StringBuilder();
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(
-                    new InputStreamReader(context.getAssets().open("msg/js/" + SelectedLanuage.getLang() + ".js")));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                out.append(line);
-                out.append('\n');
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        String[] lines = out.toString().split(";\n");
-        for (int i = 0; i < lines.length; i++) {
-            lines[i] = lines[i].trim();
-            if (lines[i].startsWith("Blockly.Msg[\"")) {
-                boolean alias = false;
-
-                lines[i] = lines[i].substring("Blockly.Msg[\"".length());
-                String name = lines[i].substring(0, lines[i].indexOf('"'));
-                if (lines[i].contains("\"] = \"")) {
-                    lines[i] = lines[i].substring(lines[i].indexOf("\"] = \"") + "\"] = \"".length() - 1);
-                } else {
-                    lines[i] = lines[i].substring(lines[i].indexOf("\"] = Blockly.Msg[\"") + "\"] = Blockly.Msg[\"".length() - 1);
-                    alias = true;
-                }
-                String value = lines[i].substring(1, lines[i].lastIndexOf('"'));
-                if (alias) {
-                    if (langMap.get("%{BKY_" + value + "}") == null) {
-                        throw new RuntimeException(value + " is not defined.");
-                    } else {
-                        value = langMap.get("%{BKY_" + value + "}");
-                    }
-                }
-                langMap.put("%{BKY_" + name + "}", value);
-            }
-        }
+        LangUtils.generateLang(context);
     }
 
     public void setController(BlocklyController controller) {
