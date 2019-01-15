@@ -23,8 +23,6 @@
     <string name="toast_workspace_load_failed">Failed to load workspace.</string>
 
     <string name="blockly_toolbox_default_category_name">Blocks</string>
-    <string name="rename_variable">Rename variable\u2026"</string>
-    <string name="delete_variable">Delete variable\u2026"</string>
     <string name="create_variable">New variable</string>
     <string name="delete_variable_title">Delete variable</string>
     <!-- Confirmation message shown if a user is deleting a variable with more than 1 block that

@@ -29,12 +29,13 @@ import com.google.blockly.android.R;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
+import com.google.blockly.utils.LangUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.SortedSet;
 
-/**
+/**`
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
 public class BasicFieldVariableView extends android.support.v7.widget.AppCompatSpinner
@@ -207,8 +208,8 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
             mVariableNameManager = variableNameManager;
             mVars = mVariableNameManager.getUsedNames();
 
-            mRenameString = context.getString(R.string.rename_variable);
-            mDeleteString = context.getString(R.string.delete_variable);
+            mRenameString = LangUtils.interpolate("%{BKY_RENAME_VARIABLE}");
+            mDeleteString = LangUtils.interpolate("%{BKY_DELETE_VARIABLE}").replace("%1", ""); // TODO: Get Selected Variable (Depends on #758)
             refreshVariables();
             variableNameManager.registerObserver(new DataSetObserver() {
                 @Override

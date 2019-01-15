@@ -21,6 +21,7 @@ import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.SortedSet;
@@ -104,8 +105,7 @@ public final class VariableCustomCategory implements CustomCategory {
         }
         category.clear();
 
-        category.addItem(new BlocklyCategory.ButtonItem(
-                mContext.getString(R.string.create_variable), ACTION_CREATE_VARIABLE));
+        category.addItem(new BlocklyCategory.ButtonItem(LangUtils.interpolate("%{BKY_NEW_VARIABLE}"), ACTION_CREATE_VARIABLE));
         SortedSet<String> varNames = mVariableNameManager.getUsedNames();
         if (varNames.size() == 0) {
             return;
