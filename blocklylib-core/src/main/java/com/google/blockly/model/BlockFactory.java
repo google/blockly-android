@@ -32,10 +32,8 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,8 +77,7 @@ public class BlockFactory {
             mDropdownOptions = new HashMap<>();
 
     /** Default constructor. */
-    public BlockFactory(Context context) {
-        LangUtils.generateLang(context);
+    public BlockFactory() {
     }
 
     public void setController(BlocklyController controller) {
