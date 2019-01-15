@@ -163,7 +163,8 @@
     "colour": "%{BKY_MATH_HUE}",
     "output": "Boolean",
     "tooltip": "%{BKY_MATH_IS_TOOLTIP}",
-    "TODO(#376)": "https://github.com/google/blockly-android/issues/376"
+    "TODO(#376)": "https://github.com/google/blockly-android/issues/376",
+    "mutator": "math_is_divisibleby_mutator"
   },
   {
     "type": "math_change",
