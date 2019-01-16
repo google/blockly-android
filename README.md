@@ -30,6 +30,21 @@ support the Blockly community.
 
 Want to contribute? Great! First, read [our guidelines for contributors][7].
 
+### How To Use
+
+Add one of the following dependencies to your application's `build.gradle`.
+
+```gradle
+dependencies {
+    // Default (Lite)
+    implementation 'com.google.blockly.android:blocklylib-vertical:<Blockly Version>'
+    // Full Version (All code lanuage generators)
+    implementation 'com.google.blockly.android:blocklylib-vertical:<Blockly Version>:full@aar'
+    // Lite Version (Only JavaScript)
+    implementation 'com.google.blockly.android:blocklylib-vertical:<Blockly Version>:lite@aar'
+}
+```
+
 [1]: https://developer.google.com/blockly/ "Blockly documentation"
 [2]: https://github.com/google/blockly-android "Blockly for Android repository on GitHub"
 [3]: https://developer.google.com/blockly/guides/get-started/android "Blockly for Android developer tutorial"
@@ -37,3 +52,4 @@ Want to contribute? Great! First, read [our guidelines for contributors][7].
 [5]: https://groups.google.com/forum/#!forum/blockly "Blockly developer forum"
 [6]: https://developers.google.com/blockly/registration "Blockly developer registration form"
 [7]: https://github.com/google/blockly-android/blob/master/CONTRIBUTING.md "Contributor guidelines"
+

@@ -20,11 +20,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for CodeGeneratorService
@@ -37,7 +39,6 @@ public class CodeGeneratorServiceTest extends BlocklyTestCase {
 
     private BlockFactory mBlockFactory;
     private BlocklyController mMockController;
-    private CodeGenerationRequest.CodeGeneratorCallback mCallback;
     private CodeGeneratorManager mManager;
     private BlocklyTestActivity mActivity;
 
@@ -48,12 +49,11 @@ public class CodeGeneratorServiceTest extends BlocklyTestCase {
     @Before
     public void setUp() throws Exception {
         mMockController = Mockito.mock(BlocklyController.class);
-        mCallback = Mockito.mock(CodeGenerationRequest.CodeGeneratorCallback.class);
 
         configureForUIThread();
 
         mActivity = mActivityRule.getActivity();
-        // TODO(#435): Replace R.raw.test_blocks
+
         mBlockFactory = new BlockFactory();
         mBlockFactory.addJsonDefinitions(mActivity.getAssets().open("default/test_blocks.json"));
         mBlockFactory.setController(mMockController);
@@ -67,17 +67,108 @@ public class CodeGeneratorServiceTest extends BlocklyTestCase {
     }
 
     @Test
-    public void testLuaGeneration() {
+    public void testJavascriptGeneration() throws InterruptedException {
+        final StringBuilder callbackData = new StringBuilder();
+        final CountDownLatch latch = new CountDownLatch(1);
         final CodeGenerationRequest request = new CodeGenerationRequest(
                 SIMPLE_WORKSPACE_XML,
-                mCallback,
-                new LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua"),
-                Arrays.asList(new String[] {"default/test_blocks.json"}),
-                Arrays.asList(new String[] {"lua/generators/test_blocks.js"}));
+                new CodeGenerationRequest.CodeGeneratorCallback() {
+                    @Override
+                    public void onFinishCodeGeneration(String generatedCode) {
+                        callbackData.append(generatedCode);
+                        latch.countDown();
+                    }
+                },
+                LanguageDefinition.JAVASCRIPT_LANGUAGE_DEFINITION,
+                Collections.singletonList("default/test_blocks.json"),
+                Collections.singletonList("generators/test_javascript.js"));
         mManager.requestCodeGeneration(request);
-        // TODO Figure out why Travis doesn't work with this test.
-//        Mockito.verify(mCallback, Mockito.timeout(8000))
-//                .onFinishCodeGeneration("local _ = 'test'\n");
+        latch.await();
+        assertEquals("'test';", callbackData.toString().trim());
+    }
+
+    @Test
+    public void testLuaGeneration() throws InterruptedException {
+        final StringBuilder callbackData = new StringBuilder();
+        final CountDownLatch latch = new CountDownLatch(1);
+        final CodeGenerationRequest request = new CodeGenerationRequest(
+                SIMPLE_WORKSPACE_XML,
+                new CodeGenerationRequest.CodeGeneratorCallback() {
+                    @Override
+                    public void onFinishCodeGeneration(String generatedCode) {
+                        callbackData.append(generatedCode);
+                        latch.countDown();
+                    }
+                },
+                LanguageDefinition.LUA_LANGUAGE_DEFINITION,
+                Collections.singletonList("default/test_blocks.json"),
+                Collections.singletonList("generators/test_lua.js"));
+        mManager.requestCodeGeneration(request);
+        latch.await();
+        assertEquals("local _ = 'test'", callbackData.toString().trim());
+    }
+
+    @Test
+    public void testPythonGeneration() throws InterruptedException {
+        final StringBuilder callbackData = new StringBuilder();
+        final CountDownLatch latch = new CountDownLatch(1);
+        final CodeGenerationRequest request = new CodeGenerationRequest(
+                SIMPLE_WORKSPACE_XML,
+                new CodeGenerationRequest.CodeGeneratorCallback() {
+                    @Override
+                    public void onFinishCodeGeneration(String generatedCode) {
+                        callbackData.append(generatedCode);
+                        latch.countDown();
+                    }
+                },
+                LanguageDefinition.PYTHON_LANGUAGE_DEFINITION,
+                Collections.singletonList("default/test_blocks.json"),
+                Collections.singletonList("generators/test_python.js"));
+        mManager.requestCodeGeneration(request);
+        latch.await();
+        assertEquals("'test'", callbackData.toString().trim());
+    }
+
+    @Test
+    public void testPHPGeneration() throws InterruptedException {
+        final StringBuilder callbackData = new StringBuilder();
+        final CountDownLatch latch = new CountDownLatch(1);
+        final CodeGenerationRequest request = new CodeGenerationRequest(
+                SIMPLE_WORKSPACE_XML,
+                new CodeGenerationRequest.CodeGeneratorCallback() {
+                    @Override
+                    public void onFinishCodeGeneration(String generatedCode) {
+                        callbackData.append(generatedCode);
+                        latch.countDown();
+                    }
+                },
+                LanguageDefinition.PHP_LANGUAGE_DEFINITION,
+                Collections.singletonList("default/test_blocks.json"),
+                Collections.singletonList("generators/test_php.js"));
+        mManager.requestCodeGeneration(request);
+        latch.await();
+        assertEquals("'test';", callbackData.toString().trim());
+    }
+
+    @Test
+    public void testDartGeneration() throws InterruptedException {
+        final StringBuilder callbackData = new StringBuilder();
+        final CountDownLatch latch = new CountDownLatch(1);
+        final CodeGenerationRequest request = new CodeGenerationRequest(
+                SIMPLE_WORKSPACE_XML,
+                new CodeGenerationRequest.CodeGeneratorCallback() {
+                    @Override
+                    public void onFinishCodeGeneration(String generatedCode) {
+                        callbackData.append(generatedCode);
+                        latch.countDown();
+                    }
+                },
+                LanguageDefinition.DART_LANGUAGE_DEFINITION,
+                Collections.singletonList("default/test_blocks.json"),
+                Collections.singletonList("generators/test_dart.js"));
+        mManager.requestCodeGeneration(request);
+        latch.await();
+        assertEquals("main() {\n  'test';\n}", callbackData.toString().trim());
     }
 
     /**

@@ -1,6 +1,7 @@
 [
   {
     "type": "procedures_defnoreturn",
+    "useWebDefinition": true,
     "message0": "%{BKY_PROCEDURES_DEFNORETURN_TITLE} %1 %2",
     "args0": [
       {
@@ -20,6 +21,7 @@
   },
   {
     "type": "procedures_defreturn",
+    "useWebDefinition": true,
     "message0": "%{BKY_PROCEDURES_DEFRETURN_TITLE} %1 %2",
     "args0": [
       {
@@ -47,6 +49,7 @@
   },
   {
     "type": "procedures_callnoreturn",
+    "useWebDefinition": true,
     "message0": "%1 %2",
     "args0": [
       {
@@ -66,6 +69,7 @@
   },
   {
     "type": "procedures_callreturn",
+    "useWebDefinition": true,
     "message0": "%1 %2",
     "args0": [
       {
@@ -84,6 +88,7 @@
   },
   {
     "type": "procedures_ifreturn",
+    "useWebDefinition": true,
     "message0": "%{BKY_CONTROLS_IF_MSG_IF} %1 %{BKY_PROCEDURES_DEFRETURN_RETURN} %2",
     "args0": [
       {

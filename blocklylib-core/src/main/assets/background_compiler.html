@@ -45,8 +45,11 @@
                 var jsonArr = JSON.parse(definitions);
                 for (var index = 0; index < jsonArr.length; index++) {
                     var elem = jsonArr[index];
-                    Blockly.Blocks[elem.type] = {
-                        init: init_factory(elem)
+                    // Custom Property To Fix #740
+                    if (!Blockly.Blocks[elem.type] || !elem.useWebDefinition) {
+                        Blockly.Blocks[elem.type] = {
+                            init: init_factory(elem)
+                        }
                     }
                 }
             }
