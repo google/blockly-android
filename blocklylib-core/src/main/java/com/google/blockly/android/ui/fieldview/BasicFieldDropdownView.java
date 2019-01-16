@@ -93,7 +93,7 @@ public class BasicFieldDropdownView extends AppCompatSpinner implements FieldVie
         if (mDropdownField != null) {
             List<String> items = mDropdownField.getDisplayNames();
             ArrayAdapter<String> adapter =
-                    new ArrayAdapter<>(getContext(), mItemLayout, items);
+                    new FieldAdapter<>(getContext(), mItemLayout, items, this);
             adapter.setDropDownViewResource(mItemDropdownLayout);
             setAdapter(adapter);
             if (items.size() > 0) {
