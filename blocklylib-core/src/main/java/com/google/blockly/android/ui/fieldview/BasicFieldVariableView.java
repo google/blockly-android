@@ -195,7 +195,7 @@ public class BasicFieldVariableView extends AppCompatSpinner
         private final NameManager mVariableNameManager;
         private final SortedSet<String> mVars;
         private final String mRenameString;
-        private final String mDeleteString;
+        private AppCompatSpinner mSpinner;
 
         /**
          * @param variableNameManager The name manager containing the variables.
@@ -206,12 +206,11 @@ public class BasicFieldVariableView extends AppCompatSpinner
         public VariableViewAdapter(Context context, NameManager variableNameManager,
                                    @LayoutRes int resource, AppCompatSpinner mSpinner) {
             super(context, resource, mSpinner);
+            this.mSpinner = mSpinner;
 
             mVariableNameManager = variableNameManager;
             mVars = mVariableNameManager.getUsedNames();
 
-            mRenameString = LangUtils.interpolate("%{BKY_RENAME_VARIABLE}");
-            mDeleteString = LangUtils.interpolate("%{BKY_DELETE_VARIABLE}").replace("%1", ""); // TODO: Get Selected Variable (Depends on #758)
             refreshVariables();
             variableNameManager.registerObserver(new DataSetObserver() {
                 @Override
@@ -219,6 +218,7 @@ public class BasicFieldVariableView extends AppCompatSpinner
                     refreshVariables();
                 }
             });
+            mRenameString = LangUtils.interpolate("%{BKY_RENAME_VARIABLE}");
         }
 
         /**
@@ -287,7 +287,7 @@ public class BasicFieldVariableView extends AppCompatSpinner
             if (index == count) {
                 return mRenameString;
             } else {
-                return mDeleteString;
+                return LangUtils.interpolate("%{BKY_DELETE_VARIABLE}").replace("%1", mSpinner != null && mSpinner.getSelectedItemPosition() != -1 ? getItem(mSpinner.getSelectedItemPosition()) : "");
             }
         }
 

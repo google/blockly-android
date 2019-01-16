@@ -4,9 +4,9 @@
     "message0": "%1",
     "args0": [
       {
-      "type": "field_variable",
-      "name": "VAR",
-      "variable": "%{BKY_VARIABLES_DEFAULT_NAME}"
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "%{BKY_VARIABLES_DEFAULT_NAME}"
       }
     ],
     "output": null,
