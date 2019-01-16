@@ -120,6 +120,8 @@ public class CategoryView extends RelativeLayout {
         mCategoryTabs.setVisibility(View.VISIBLE);
         setCurrentCategory(mCloseable ? null : subcats.get(0));
         mCategoryTabs.setTapSelectedDeselects(mCloseable);
+
+        updateCategoryColors(topLevelCategory);
     }
 
     public void setCurrentCategory(@Nullable BlocklyCategory category) {
