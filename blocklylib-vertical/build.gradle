@@ -18,7 +18,18 @@ android {
     lintOptions {
           abortOnError false
     }
-    publishNonDefault false
+
+    defaultPublishConfig 'liteRelease'
+
+    flavorDimensions 'blockly'
+    productFlavors {
+        full {
+            dimension 'blockly'
+        }
+        lite {
+            dimension 'blockly'
+        }
+    }
 }
 
 dependencies {

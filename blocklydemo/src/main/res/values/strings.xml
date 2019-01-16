@@ -21,6 +21,9 @@
     <string name="simple_activity_name">Blockly Simple Activtiy</string>
     <string name="simple_fragment_name">Blockly Simple Fragment</string>
     <string name="lua_activity_name">Blockly Lua</string>
+    <string name="dart_activity_name">Blockly Dart</string>
+    <string name="php_activity_name">Blockly PHP</string>
+    <string name="python_activity_name">Blockly Python</string>
     <string name="no_categories_toolbox_activity_name">No Categories Toolbox</string>
     <string name="always_open_toolbox_activity_name">Always Open Toolbox</string>
     <string name="dev_activity_name">Blockly Dev Tests</string>
