@@ -31,7 +31,7 @@
           android:orderInCategory="91" app:showAsAction="never"/>
     <item android:id="@+id/action_spaghetti" android:title="@string/action_spaghetti"
           android:orderInCategory="92" app:showAsAction="never"/>
-    <item android:id="@+id/action_create_variable" android:title="@string/create_variable"
+    <item android:id="@+id/action_create_variable" android:title="%{BKY_NEW_VARIABLE}"
           android:orderInCategory="93" app:showAsAction="never" />
 
 </menu>

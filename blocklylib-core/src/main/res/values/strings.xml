@@ -23,21 +23,6 @@
     <string name="toast_workspace_load_failed">Failed to load workspace.</string>
 
     <string name="blockly_toolbox_default_category_name">Blocks</string>
-    <string name="create_variable">New variable</string>
-    <string name="delete_variable_title">Delete variable</string>
-    <!-- Confirmation message shown if a user is deleting a variable with more than 1 block that
-         uses it. -->
-    <string name="delete_variable_confirm">Delete variable %1$s and %2$d blocks using it?</string>
-    <string name="delete_variable_positive">Delete</string>
-    <string name="delete_variable_negative">Cancel</string>
-    <!-- Message shown when creating or renaming a variable. -->
-    <string name="name_variable_title">Variable name</string>
-    <string name="name_variable_message">New variable name</string>
-    <string name="rename_variable_message">Rename variable from "%s"</string>
-    <string name="name_variable_positive">OK</string>
-    <string name="name_variable_negative">Cancel</string>
-    <!-- Message shown when variable is used as a procedure argument. -->
-    <string name="cannot_delete_variable_procedure">Can\'t delete the variable \"%1$s\" because it\'s part of the definition of the function \"%2$s\".</string>
 
     <string name="blockly_clipdata_label_default">Blockly blocks</string>
     <string name="mutator_icon_alt_text">Modify the block\'s shape.</string>
@@ -50,7 +35,6 @@
     <string name="mutator_procedure_def_title">Function Inputs</string>
     <string name="mutator_procedure_def_header_format">%1$s with:</string>
 
-    <string name="blockly_default_function_name">do something</string>
     <string name="procedure_argument_name_hint">Argument name</string>
     <string name="procedure_argument_delete_hint">Delete argument</string>
     <string name="procedure_argument_add_label">Add argument</string>

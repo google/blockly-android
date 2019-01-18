@@ -31,6 +31,7 @@ import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.Block;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,6 +75,9 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean isShown = super.onCreateOptionsMenu(menu);
+        for (int i = 0; i < menu.size(); i++) {
+            menu.getItem(i).setTitle(LangUtils.interpolate(menu.getItem(i).getTitle().toString()));
+        }
         if (isShown) {
             ZoomBehavior zb = getController().getWorkspaceHelper().getZoomBehavior();
 
@@ -211,7 +215,6 @@ public class DevTestsActivity extends BlocklySectionsActivity {
     protected int getActionBarMenuResId() {
         return R.menu.dev_actionbar;
     }
-
 
     @NonNull
     @Override

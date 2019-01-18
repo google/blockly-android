@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.blockly.android.R;
+import com.google.blockly.utils.LangUtils;
 
 /**
  * Default dialog window shown when creating or renaming a variable in the workspace.
@@ -44,17 +45,19 @@ public class NameVariableDialog extends DialogFragment {
         mNameEditText = (EditText) nameView.findViewById(R.id.name);
         mNameEditText.setText(mVariable);
 
+        TextView description = (TextView) nameView.findViewById(R.id.description);
         if (mIsRename) {
-            TextView description = (TextView) nameView.findViewById(R.id.description);
             description.setText(
-                String.format(getString(R.string.rename_variable_message), mVariable));
+                LangUtils.interpolate("%{BKY_RENAME_VARIABLE_TITLE}").replace("%1", mVariable));
+        } else {
+            description.setText(LangUtils.interpolate("%{BKY_NEW_VARIABLE_TITLE}"));
         }
 
         AlertDialog.Builder bob = new AlertDialog.Builder(getActivity());
-        bob.setTitle(R.string.name_variable_title);
+        bob.setTitle(LangUtils.interpolate("%{BKY_IOS_VARIABLES_VARIABLE_NAME}"));
         bob.setView(nameView);
-        bob.setPositiveButton(R.string.name_variable_positive, mListener);
-        bob.setNegativeButton(R.string.name_variable_negative, mListener);
+        bob.setPositiveButton(LangUtils.interpolate("%{BKY_IOS_OK}"), mListener);
+        bob.setNegativeButton(LangUtils.interpolate("%{BKY_IOS_CANCEL}"), mListener);
         return bob.create();
     }
 
