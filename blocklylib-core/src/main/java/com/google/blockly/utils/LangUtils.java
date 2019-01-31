@@ -72,6 +72,7 @@ public class LangUtils {
             generateLang(context, "en");
         }
 
+        // Attempt to override language string table. Missing values will default to English loaded above.
         StringBuilder out = new StringBuilder();
         BufferedReader reader = null;
         try {

@@ -35,7 +35,6 @@ public class DeleteVariableDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceBundle) {
         AlertDialog.Builder bob = new AlertDialog.Builder(getActivity());
-        android.util.Log.d("Dialog", LangUtils.interpolate("%{BKY_DELETE_VARIABLE}"));
         bob.setTitle(LangUtils.interpolate("%{BKY_DELETE_VARIABLE}")
                 .replace("%1", mVariable));
         bob.setMessage(LangUtils.interpolate("%{BKY_DELETE_VARIABLE_CONFIRMATION}")

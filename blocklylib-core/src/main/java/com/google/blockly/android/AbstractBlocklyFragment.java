@@ -85,6 +85,13 @@ public abstract class AbstractBlocklyFragment extends Fragment {
 
     /**
      * Override to use a different language File in ms/js (Defaults to "en")
+     *
+     * Blockly two letter language codes differ slightly than the Android recognized set.
+     * While the vast majority of users will not have an issue, some edge dialects may differ.
+     * See files (and filenames) in https://github.com/google/blockly/tree/master/msg/js for the
+     * latest available set.
+     *
+     * @return Selected Language
      */
     public String getLang() {
         return "en";

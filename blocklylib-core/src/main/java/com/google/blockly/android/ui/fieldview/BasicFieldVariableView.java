@@ -36,7 +36,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.SortedSet;
 
-/**`
+/**
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
 public class BasicFieldVariableView extends AppCompatSpinner

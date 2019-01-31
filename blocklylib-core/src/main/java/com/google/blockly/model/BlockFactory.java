@@ -15,7 +15,6 @@
 
 package com.google.blockly.model;
 
-import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
@@ -24,7 +23,6 @@ import android.util.Log;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.BlocklyXmlHelper;
-import com.google.blockly.utils.LangUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
