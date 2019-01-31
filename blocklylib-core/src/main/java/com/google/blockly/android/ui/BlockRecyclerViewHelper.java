@@ -252,8 +252,7 @@ public class BlockRecyclerViewHelper {
 
         @Override
         public BlockViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            BlockViewHolder holder = new BlockViewHolder(mContext);
-            return holder;
+            return new BlockViewHolder(mContext);
         }
 
         @Override
