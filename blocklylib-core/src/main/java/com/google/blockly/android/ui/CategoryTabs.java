@@ -162,24 +162,15 @@ public class CategoryTabs extends RecyclerView {
         if (mCurrentCategory == category) {
             return;
         }
-        if (mCurrentCategory != null) {
-            // Deselect the old tab.
-            TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
-            if (vh != null && mLabelAdapter != null) {  // Tab might not be rendered or visible yet.
-                // Update style. Don't use notifyItemChanged(..), due to a resulting UI flash.
-                mLabelAdapter.onSelectionChanged(
-                        vh.mLabel, vh.mCategory, vh.getAdapterPosition(), false);
-            }
-        }
+        BlocklyCategory oldCategory = mCurrentCategory;
         mCurrentCategory = category;
+        if (oldCategory != null) {
+            // Deselect the old tab.
+            mAdapter.notifyItemChanged(mCategories.indexOf(oldCategory));
+        }
         if (mCurrentCategory != null && mLabelAdapter != null) {
             // Select the new tab.
-            TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
-            if (vh != null) {  // Tab might not be rendered or visible yet.
-                // Update style. Don't use notifyItemChanged(..), due to a resulting UI flash.
-                mLabelAdapter.onSelectionChanged(
-                        vh.mLabel, vh.mCategory, vh.getAdapterPosition(), true);
-            }
+            mAdapter.notifyItemChanged(mCategories.indexOf(category));
         }
     }
 
