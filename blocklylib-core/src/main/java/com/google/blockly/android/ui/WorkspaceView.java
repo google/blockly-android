@@ -59,10 +59,6 @@ public class WorkspaceView extends NonPropagatingViewGroup {
         mTouchSlop = touchSlop;
     }
 
-    public BlocklyController getController() {
-        return mController;
-    }
-
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
