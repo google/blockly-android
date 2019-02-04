@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -214,7 +215,7 @@ public final class FieldDropdown extends Field {
                 }
                 if (option != null && option.length() == 2) {
                     try {
-                        String displayName = option.getString(0);
+                        String displayName = LangUtils.interpolate(option.getString(0));
                         String value = option.getString(1);
                         if (TextUtils.isEmpty(value)) {
                             throw new BlockLoadingException("Option values may not be empty");

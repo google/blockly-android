@@ -23,6 +23,7 @@ import android.widget.TextView;
 import com.google.blockly.android.BlocklyTestActivity;
 import com.google.blockly.android.BlocklyTestCase;
 import com.google.blockly.android.test.R;
+import com.google.blockly.utils.LangUtils;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -95,7 +96,7 @@ public class NameVariableDialogTest extends BlocklyTestCase {
         latch = new CountDownLatch(1);
         mNameVariableDialogFragment.show(mActivity.getSupportFragmentManager(), "RenameFragment");
         latch.await();
-        assertEquals(String.format(mActivity.getString(R.string.rename_variable_message), variableName), description);
+        assertEquals(LangUtils.interpolate("%{BKY_RENAME_VARIABLE_TITLE}").replace("%1", variableName), description);
     }
 
     @Test
@@ -106,6 +107,6 @@ public class NameVariableDialogTest extends BlocklyTestCase {
         latch = new CountDownLatch(1);
         mNameVariableDialogFragment.show(mActivity.getSupportFragmentManager(), "CreateFragment");
         latch.await();
-        assertEquals(mActivity.getString(R.string.name_variable_message), description);
+        assertEquals(LangUtils.interpolate("%{BKY_NEW_VARIABLE_TITLE}"), description);
     }
 }

@@ -61,6 +61,7 @@ import com.google.blockly.model.VariableInfo;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -247,6 +248,8 @@ public class BlocklyController {
         mTouchHandler = mDragger.buildSloppyBlockTouchHandler(mWorkspaceDragHandler);
 
         mFlyoutController = new FlyoutController(this);
+
+        LangUtils.generateLang(mContext);
     }
 
     /**

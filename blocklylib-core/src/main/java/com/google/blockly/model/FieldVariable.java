@@ -18,6 +18,7 @@ package com.google.blockly.model;
 import android.text.TextUtils;
 
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import org.json.JSONObject;
 
@@ -37,7 +38,7 @@ public final class FieldVariable extends Field {
         if (TextUtils.isEmpty(name)) {
             throw new BlockLoadingException("field_variable \"name\" attribute must not be empty.");
         }
-        return new FieldVariable(name, json.optString("variable", "item"));
+        return new FieldVariable(name, LangUtils.interpolate(json.optString("variable", "item")));
     }
 
     @Override

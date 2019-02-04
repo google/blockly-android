@@ -1,15 +1,15 @@
 [
   {
     "type": "lists_create_empty",
-    "message0": "create empty list",
+    "message0": "%{BKY_LISTS_CREATE_EMPTY_TITLE}",
     "output": "Array",
-    "colour": 260,
-    "tooltip": "Returns a list, of length 0, containing no data records.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Lists#create-empty-list"
+    "colour": "%{BKY_LISTS_HUE}",
+    "tooltip": "%{BKY_LISTS_CREATE_EMPTY_TOOLTIP}",
+    "helpUrl": "%{BKY_LISTS_CREATE_EMPTY_HELPURL}"
   },
   {
     "type": "lists_repeat",
-    "message0": "create list with item %1 repeated %2 times",
+    "message0": "%{BKY_LISTS_REPEAT_TITLE}",
     "args0": [
       {
         "type": "input_value",
@@ -23,44 +23,60 @@
     ],
     "inputsInline": true,
     "output": "Array",
-    "colour": 260,
-    "tooltip": "Creates a list consisting of the given value repeated the specified number of times.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Lists#create-list-with"
+    "colour": "%{BKY_LISTS_HUE}",
+    "tooltip": "%{BKY_LISTS_REPEAT_TOOLTIP}",
+    "helpUrl": "%{BKY_LISTS_REPEAT_HELPURL}"
   },
   {
-    "type": "lists_length",
-    "message0": "length of %1",
+    "type": "lists_reverse",
+    "message0": "%{BKY_LISTS_REVERSE_MESSAGE0}",
     "args0": [
       {
         "type": "input_value",
-        "name": "VALUE",
-        "check": ['String', 'Array']
+        "name": "LIST",
+        "check": "Array"
       }
     ],
-    "output": 'Number',
-    "colour": 260,
-    "tooltip": "Returns the length of a list.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Lists#length-of"
+    "output": "Array",
+    "inputsInline": true,
+    "colour": "%{BKY_LISTS_HUE}",
+    "tooltip": "%{BKY_LISTS_REVERSE_TOOLTIP}",
+    "helpUrl": "%{BKY_LISTS_REVERSE_HELPURL}"
   },
   {
     "type": "lists_isEmpty",
-    "message0": "%1 is empty",
+    "message0": "%{BKY_LISTS_ISEMPTY_TITLE}",
     "args0": [
       {
         "type": "input_value",
         "name": "VALUE",
-        "check": ['String', 'Array']
+        "check": ["String", "Array"]
       }
     ],
-    "output": 'Boolean',
     "inputsInline": true,
-    "colour": 260,
-    "tooltip": "Returns true if the list is empty.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Lists#is-empty"
+    "output": "Boolean",
+    "colour": "%{BKY_LISTS_HUE}",
+    "tooltip": "%{BKY_LISTS_ISEMPTY_TOOLTIP}",
+    "helpUrl": "%{BKY_LISTS_ISEMPTY_HELPURL}"
+  },
+  {
+    "type": "lists_length",
+    "message0": "%{BKY_LISTS_LENGTH_TITLE}",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": ["String", "Array"]
+      }
+    ],
+    "output": "Number",
+    "colour": "%{BKY_LISTS_HUE}",
+    "tooltip": "%{BKY_LISTS_LENGTH_TOOLTIP}",
+    "helpUrl": "%{BKY_LISTS_LENGTH_HELPURL}"
   },
   {
     "type": "lists_indexOf",
-    "message0": "in list %1 find %2 occurence of item %3",
+    "message0": "%{BKY_LISTS_INLIST} %1 %2 %3",
     "args0": [
       {
         "type": "input_value",
@@ -71,8 +87,8 @@
         "type": "field_dropdown",
         "name": "END",
         "options": [
-          ["first", "FIRST"],
-          ["last", "LAST"]
+          ["%{BKY_LISTS_INDEX_OF_FIRST}", "FIRST"],
+          ["%{BKY_LISTS_INDEX_OF_LAST}", "LAST"]
         ]
       },
       {
@@ -82,14 +98,14 @@
     ],
     "inputsInline": true,
     "output": "Number",
-    "colour": 260,
+    "colour": "%{BKY_LISTS_HUE}",
     "tooltip": "Returns the index of the first/last occurrence of the item in the list. Returns -1 if item is not found.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list",
+    "helpUrl": "%{BKY_LISTS_INDEX_OF_HELPURL}",
     "TODO(#379)": "https://github.com/google/blockly-android/issues/379"
   },
   {
     "type": "lists_getIndex",
-    "message0": "in list %1 %2 %3 %4",
+    "message0": "%{BKY_LISTS_GET_INDEX_INPUT_IN_LIST} %1 %2 %3 %4",
     "args0": [
       {
         "type": "input_value",
@@ -100,35 +116,35 @@
         "type": "field_dropdown",
         "name": "MODE",
         "options": [
-          ["get", "GET"],
-          ["get and remove", "GET_REMOVE"]
+          ["%{BKY_LISTS_GET_INDEX_GET}", "GET"],
+          ["%{BKY_LISTS_GET_INDEX_GET_REMOVE}", "GET_REMOVE"]
         ]
       },
       {
         "type": "field_dropdown",
         "name": "WHERE",
         "options": [
-          ["#", "FROM_START"],
-          ["# from end", "FROM_END"]
+          ["%{BKY_LISTS_GET_INDEX_FROM_START}", "FROM_START"],
+          ["%{BKY_LISTS_GET_INDEX_FROM_END}", "FROM_END"]
         ]
       },
       {
         "type": "input_value",
-        "name": "AT",
+        "name": "NAME",
         "check": "Number"
       }
     ],
     "inputsInline": true,
     "output": null,
-    "colour": 260,
-    "helpUrl": "https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list",
+    "colour": "%{BKY_LISTS_HUE}",
+    "helpUrl": "%{BKY_LISTS_GET_INDEX_HELPURL}",
     "TODO(#380)": "https://github.com/google/blockly-android/issues/380",
     "TODO(#381)": "https://github.com/google/blockly-android/issues/381",
     "TODO(#383)": "https://github.com/google/blockly-android/issues/383"
   },
   {
     "type": "lists_setIndex",
-    "message0": "in list %1 %2 %3 %4 as %5",
+    "message0": "%{BKY_LISTS_SET_INDEX_INPUT_IN_LIST} %1 %2 %3 %4 as %5",
     "args0": [
       {
         "type": "input_value",
@@ -139,16 +155,16 @@
         "type": "field_dropdown",
         "name": "MODE",
         "options": [
-          ["set", "SET"],
-          ["insert at","INSERT"]
+          ["%{BKY_LISTS_SET_INDEX_SET}", "SET"],
+          ["%{BKY_LISTS_SET_INDEX_INSERT}","INSERT"]
         ]
       },
       {
         "type": "field_dropdown",
         "name": "WHERE",
         "options": [
-          ["#", "FROM_START"],
-          ["# from end","FROM_END"]
+          ["%{BKY_LISTS_GET_INDEX_FROM_START}", "FROM_START"],
+          ["%{BKY_LISTS_GET_INDEX_FROM_END}","FROM_END"]
         ]
       },
       {
@@ -164,14 +180,15 @@
     "inputsInline": true,
     "previousStatement": null,
     "nextStatement": null,
-    "colour": 260,
-    "helpUrl": "https://github.com/google/blockly/wiki/Lists#getting-a-sublist",
+    "colour": "%{BKY_LISTS_HUE}",
+    "tooltip": "%{BKY_LISTS_SET_INDEX_TOOLTIP}",
+    "helpUrl": "%{BKY_LISTS_SET_INDEX_HELPURL}",
     "TODO(#381)": "https://github.com/google/blockly-android/issues/381",
     "TODO(#383)": "https://github.com/google/blockly-android/issues/383"
   },
   {
     "type": "lists_getSublist",
-    "message0": "in list %1 get sub-list from %2 %3 to %4 %5",
+    "message0": "%{BKY_LISTS_GET_SUBLIST_INPUT_IN_LIST} %1 %2 %3 %4 %5",
     "args0": [
       {
         "type": "input_value",
@@ -182,8 +199,8 @@
         "type": "field_dropdown",
         "name": "WHERE1",
         "options": [
-          ["#", "FROM_START"],
-          ["# from end","FROM_END"]
+          ["%{BKY_LISTS_GET_SUBLIST_START_FROM_START}", "FROM_START"],
+          ["%{BKY_LISTS_GET_SUBLIST_START_FROM_END}","FROM_END"]
         ]
       },
       {
@@ -195,8 +212,8 @@
         "type": "field_dropdown",
         "name": "WHERE2",
         "options": [
-          ["#", "FROM_START"],
-          ["# from end", "FROM_END"]
+          ["%{BKY_LISTS_GET_SUBLIST_END_FROM_START}", "FROM_START"],
+          ["%{BKY_LISTS_GET_SUBLIST_END_FROM_END}", "FROM_END"]
         ]
       },
       {
@@ -207,28 +224,28 @@
     ],
     "inputsInline": true,
     "output": "Array",
-    "colour": 260,
-    "tooltip": "Creates a copy of the specified portion of a list."
+    "colour": "%{BKY_LISTS_HUE}",
+    "tooltip": "%{BKY_LISTS_GET_SUBLIST_TOOLTIP}"
   },
   {
     "type": "lists_sort",
-    "message0": "sort %1 %2 %3",
+    "message0": "%{BKY_LISTS_SORT_TITLE}",
     "args0": [
       {
         "type": "field_dropdown",
         "name": "TYPE",
         "options": [
-          ["numeric","NUMERIC"],
-          ["alphabetic", "TEXT"],
-          ["alphabetic, ignore case", "IGNORE_CASE"]
+          ["%{BKY_LISTS_SORT_TYPE_NUMERIC}","NUMERIC"],
+          ["%{BKY_LISTS_SORT_TYPE_TEXT}", "TEXT"],
+          ["%{BKY_LISTS_SORT_TYPE_IGNORECASE}", "IGNORE_CASE"]
         ]
       },
       {
         "type": "field_dropdown",
         "name": "DIRECTION",
         "options": [
-          ["ascending", "1"],
-          ["descending", "-1"]
+          ["%{BKY_LISTS_SORT_ORDER_ASCENDING}", "1"],
+          ["%{BKY_LISTS_SORT_ORDER_DESCENDING}", "-1"]
         ]
       },
       {
@@ -238,8 +255,8 @@
       }
     ],
     "output": "Array",
-    "colour": 260,
-    "tooltip": "Sort a copy of a list.",
-    "helpUrl": "https://github.com/google/blockly/wiki/Lists#sorting-a-list"
+    "colour": "%{BKY_LISTS_HUE}",
+    "tooltip": "%{BKY_LISTS_SORT_TOOLTIP}",
+    "helpUrl": "%{BKY_LISTS_SORT_HELPURL}"
   }
 ]

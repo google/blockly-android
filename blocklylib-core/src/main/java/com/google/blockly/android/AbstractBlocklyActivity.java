@@ -44,6 +44,7 @@ import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -245,6 +246,8 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        LangUtils.setLang(getLang());
+
         onCreateActivityRootView();
         mBlocklyActivityHelper = onCreateActivityHelper();
         if (mBlocklyActivityHelper == null) {
@@ -261,6 +264,20 @@ public abstract class AbstractBlocklyActivity extends AppCompatActivity {
         if (!loadedPriorInstance) {
             onLoadInitialWorkspace();
         }
+    }
+
+    /**
+     * Override to use a different language File in ms/js (Defaults to "en")
+     *
+     * Blockly two letter language codes differ slightly than the Android recognized set.
+     * While the vast majority of users will not have an issue, some edge dialects may differ.
+     * See files (and filenames) in https://github.com/google/blockly/tree/master/msg/js for the
+     * latest available set.
+     *
+     * @return Selected Language
+     */
+    public String getLang() {
+        return "en";
     }
 
     /**

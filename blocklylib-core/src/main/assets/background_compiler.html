@@ -8,6 +8,14 @@
     <script src="msg/js/en.js"></script>
     <!-- Load the app's block definitions and generated code from the correct files.-->
     <script>
+        // Attempt to override language string table. Missing values will default to English loaded above.
+        if (BlocklyJavascriptInterface.getLang() !== 'en') {
+            var script = document.createElement('script');
+            script.setAttribute('type', 'text/javascript');
+            script.setAttribute('src', 'msg/js/' + BlocklyJavascriptInterface.getLang() + '.js');
+            document.head.appendChild(script);
+        }
+
         function import_generator_language(filename) {
             if (!!filename) {
                 var script = document.createElement('script');

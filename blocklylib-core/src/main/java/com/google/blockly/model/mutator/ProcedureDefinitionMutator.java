@@ -27,6 +27,7 @@ import com.google.blockly.model.Input;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.model.ProcedureInfo;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -73,8 +74,7 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
     ProcedureDefinitionMutator(Mutator.Factory factory,
                                BlocklyController controller) {
         super(factory, controller);
-        mBeforeParams = controller.getContext().getString(
-                R.string.mutator_procedure_def_before_params);  // BKY_PROCEDURES_BEFORE_PARAMS
+        mBeforeParams = LangUtils.interpolate("%{BKY_PROCEDURES_BEFORE_PARAMS}");
     }
 
     /**
@@ -257,8 +257,9 @@ public class ProcedureDefinitionMutator extends AbstractProcedureMutator<Procedu
         Input stackInput = mBlock.getInputByName(STATEMENT_INPUT_NAME);
         if (stackInput == null) {
             stackInput = new Input.InputStatement(STATEMENT_INPUT_NAME,
-                    // Placeholder for message BKY_PROCEDURES_DEF[NO]RETURN_DO
-                    Arrays.<Field>asList(new FieldLabel(null, "")),
+                    Arrays.<Field>asList(new FieldLabel(null, LangUtils.interpolate(
+                            mBlock.getInputByName(RETURN_INPUT_NAME) != null ? "%{BKY_PROCEDURES_DEFRETURN_DO}" : "%{BKY_PROCEDURES_DEFNORETURN_DO}"
+                    ))),
                     Input.ALIGN_LEFT, null);
         }
         return stackInput;

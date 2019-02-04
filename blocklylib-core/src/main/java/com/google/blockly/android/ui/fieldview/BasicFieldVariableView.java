@@ -30,6 +30,7 @@ import com.google.blockly.android.R;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
+import com.google.blockly.utils.LangUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -194,7 +195,7 @@ public class BasicFieldVariableView extends AppCompatSpinner
         private final NameManager mVariableNameManager;
         private final SortedSet<String> mVars;
         private final String mRenameString;
-        private final String mDeleteString;
+        private AppCompatSpinner mSpinner;
 
         /**
          * @param variableNameManager The name manager containing the variables.
@@ -205,12 +206,11 @@ public class BasicFieldVariableView extends AppCompatSpinner
         public VariableViewAdapter(Context context, NameManager variableNameManager,
                                    @LayoutRes int resource, AppCompatSpinner mSpinner) {
             super(context, resource, mSpinner);
+            this.mSpinner = mSpinner;
 
             mVariableNameManager = variableNameManager;
             mVars = mVariableNameManager.getUsedNames();
 
-            mRenameString = context.getString(R.string.rename_variable);
-            mDeleteString = context.getString(R.string.delete_variable);
             refreshVariables();
             variableNameManager.registerObserver(new DataSetObserver() {
                 @Override
@@ -218,6 +218,7 @@ public class BasicFieldVariableView extends AppCompatSpinner
                     refreshVariables();
                 }
             });
+            mRenameString = LangUtils.interpolate("%{BKY_RENAME_VARIABLE}");
         }
 
         /**
@@ -286,7 +287,7 @@ public class BasicFieldVariableView extends AppCompatSpinner
             if (index == count) {
                 return mRenameString;
             } else {
-                return mDeleteString;
+                return LangUtils.interpolate("%{BKY_DELETE_VARIABLE}").replace("%1", mSpinner != null && mSpinner.getSelectedItemPosition() != -1 ? getItem(mSpinner.getSelectedItemPosition()) : "");
             }
         }
 
