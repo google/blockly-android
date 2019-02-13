@@ -210,7 +210,11 @@ public class VerticalBlockViewFactory extends BlockViewFactory<BlockView, InputV
                 }
             }
         };
-        return buildIconFieldView(listener, com.google.blockly.android.R.drawable.mutator_icon_24dp);
+        if (!block.getController().getWorkspace().isRootBlock(block.getRootBlock())) {
+            return buildIconFieldView(null, com.google.blockly.android.R.drawable.mutator_icon_24dp);
+        } else {
+            return buildIconFieldView(listener, com.google.blockly.android.R.drawable.mutator_icon_24dp);
+        }
     }
 
     protected View buildIconFieldView(View.OnClickListener listener, int resId) {
