@@ -276,6 +276,9 @@ public class BasicFieldVariableView extends AppCompatSpinner
 
         @Override
         public String getItem(int index) {
+            if (index == -1) {
+                index = 0;
+            }
             int count = super.getCount();
             if (index >= count + 2 || index < 0) {
                 throw new IndexOutOfBoundsException("There is no item at index " + index

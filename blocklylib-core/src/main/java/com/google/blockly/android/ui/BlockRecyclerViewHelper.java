@@ -27,6 +27,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -277,6 +278,9 @@ public class BlockRecyclerViewHelper {
                             block, mConnectionManager, mTouchHandler);
                 } else {
                     bg.setTouchHandler(mTouchHandler);
+                }
+                if (bg.getParent() != null) {
+                    ((ViewManager) bg.getParent()).removeView(bg);
                 }
                 holder.mContainer.addView(bg, new FrameLayout.LayoutParams(
                         RelativeLayout.LayoutParams.WRAP_CONTENT,
