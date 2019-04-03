@@ -8,6 +8,14 @@
     <script src="msg/js/en.js"></script>
     <!-- Load the app's block definitions and generated code from the correct files.-->
     <script>
+        // Attempt to override language string table. Missing values will default to English loaded above.
+        if (BlocklyJavascriptInterface.getLang() !== 'en') {
+            var script = document.createElement('script');
+            script.setAttribute('type', 'text/javascript');
+            script.setAttribute('src', 'msg/js/' + BlocklyJavascriptInterface.getLang() + '.js');
+            document.head.appendChild(script);
+        }
+
         function import_generator_language(filename) {
             if (!!filename) {
                 var script = document.createElement('script');
@@ -40,8 +48,11 @@
                 var jsonArr = JSON.parse(definitions);
                 for (var index = 0; index < jsonArr.length; index++) {
                     var elem = jsonArr[index];
-                    Blockly.Blocks[elem.type] = {
-                        init: init_factory(elem)
+                    // Custom Property To Fix #740
+                    if (!Blockly.Blocks[elem.type] || !elem.useWebDefinition) {
+                        Blockly.Blocks[elem.type] = {
+                            init: init_factory(elem)
+                        }
                     }
                 }
             }

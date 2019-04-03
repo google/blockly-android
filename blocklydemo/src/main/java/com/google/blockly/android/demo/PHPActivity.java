@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Google Inc. All Rights Reserved.
+ *  Copyright 2017 Google Inc. All Rights Reserved.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -24,20 +24,28 @@ import android.widget.TextView;
 
 import com.google.blockly.android.AbstractBlocklyActivity;
 import com.google.blockly.android.codegen.CodeGenerationRequest;
+import com.google.blockly.android.codegen.LanguageDefinition;
+import com.google.blockly.model.DefaultBlocks;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
 /**
  * Demo activity that programmatically adds a view to split the screen between the Blockly workspace
- * and an arbitrary other view or fragment.
+ * and an arbitrary other view or fragment and generates PHP code.
  */
-public class SplitActivity extends AbstractBlocklyActivity {
-    private static final String TAG = "SplitActivity";
+public class PHPActivity extends AbstractBlocklyActivity {
+    private static final String TAG = "PHPActivity";
 
-    private static final String SAVE_FILENAME = "split_workspace.xml";
-    private static final String AUTOSAVE_FILENAME = "split_workspace_temp.xml";
+    private static final String SAVE_FILENAME = "php_workspace.xml";
+    private static final String AUTOSAVE_FILENAME = "php_workspace_temp.xml";
+    // Add custom blocks to this list.
+    private static final List<String> BLOCK_DEFINITIONS = DefaultBlocks.getAllBlockDefinitions();
+    private static final List<String> PHP_GENERATORS = Arrays.asList();
+
+    private static final LanguageDefinition PHP_LANGUAGE_DEF
+            = LanguageDefinition.PHP_LANGUAGE_DEFINITION;
 
     private TextView mGeneratedTextView;
     private Handler mHandler;
@@ -52,7 +60,7 @@ public class SplitActivity extends AbstractBlocklyActivity {
                         @Override
                         public void run() {
                             mGeneratedTextView.setText(generatedCode);
-                            DemoUtil.updateTextMinWidth(mGeneratedTextView, SplitActivity.this);
+                            DemoUtil.updateTextMinWidth(mGeneratedTextView, PHPActivity.this);
                         }
                     });
                 }
@@ -89,21 +97,25 @@ public class SplitActivity extends AbstractBlocklyActivity {
     @NonNull
     @Override
     protected List<String> getBlockDefinitionsJsonPaths() {
-        return TurtleActivity.TURTLE_BLOCK_DEFINITIONS;
+        return BLOCK_DEFINITIONS;
+    }
+
+    @NonNull
+    @Override
+    protected LanguageDefinition getBlockGeneratorLanguage() {
+        return PHP_LANGUAGE_DEF;
     }
 
     @NonNull
     @Override
     protected String getToolboxContentsXmlPath() {
-        return "turtle/toolbox_advanced.xml";
+        return DefaultBlocks.TOOLBOX_PATH;
     }
 
     @NonNull
     @Override
     protected List<String> getGeneratorsJsPaths() {
-        List<String> paths = new ArrayList<String>(1);
-        paths.add("turtle/generators.js");
-        return paths;
+        return PHP_GENERATORS;
     }
 
     @NonNull

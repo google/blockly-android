@@ -23,6 +23,7 @@ import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.model.mutator.ProcedureCallMutator;
 import com.google.blockly.model.mutator.ProcedureDefinitionMutator;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.Comparator;
@@ -68,8 +69,7 @@ public class ProcedureCustomCategory implements CustomCategory {
     }
 
     public String getDefaultProcedureName() {
-        // TODO: Get from translation manager.
-        return mController.getContext().getString(R.string.blockly_default_function_name);
+        return LangUtils.interpolate("%{BKY_PROCEDURES_DEFNORETURN_PROCEDURE}");
     }
 
     @Override

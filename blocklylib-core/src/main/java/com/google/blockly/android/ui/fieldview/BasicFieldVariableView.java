@@ -20,6 +20,7 @@ import android.database.DataSetObserver;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
+import android.support.v7.widget.AppCompatSpinner;
 import android.util.AttributeSet;
 import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
@@ -29,6 +30,7 @@ import com.google.blockly.android.R;
 import com.google.blockly.android.control.NameManager;
 import com.google.blockly.model.Field;
 import com.google.blockly.model.FieldVariable;
+import com.google.blockly.utils.LangUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -37,7 +39,7 @@ import java.util.SortedSet;
 /**
  * Renders a dropdown field containing the workspace's variables as part of a Block.
  */
-public class BasicFieldVariableView extends android.support.v7.widget.AppCompatSpinner
+public class BasicFieldVariableView extends AppCompatSpinner
         implements FieldView, VariableChangeView {
     protected Field.Observer mFieldObserver = new Field.Observer() {
         @Override
@@ -182,7 +184,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
      * An implementation of {@link ArrayAdapter} that wraps the
      * {@link NameManager.VariableNameManager} to create the variable item views.
      */
-    public static class VariableViewAdapter extends ArrayAdapter<String> {
+    public static class VariableViewAdapter extends FieldAdapter<String> {
         @Retention(RetentionPolicy.SOURCE)
         @IntDef({ACTION_SELECT_VARIABLE, ACTION_RENAME_VARIABLE, ACTION_DELETE_VARIABLE})
         public @interface VariableAdapterType{}
@@ -193,22 +195,22 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
         private final NameManager mVariableNameManager;
         private final SortedSet<String> mVars;
         private final String mRenameString;
-        private final String mDeleteString;
+        private AppCompatSpinner mSpinner;
 
         /**
          * @param variableNameManager The name manager containing the variables.
          * @param context A context for inflating layouts.
          * @param resource The {@link TextView} layout to use when inflating items.
+         * @param mSpinner Spinner this is being used in
          */
         public VariableViewAdapter(Context context, NameManager variableNameManager,
-                                   @LayoutRes int resource) {
-            super(context, resource);
+                                   @LayoutRes int resource, AppCompatSpinner mSpinner) {
+            super(context, resource, mSpinner);
+            this.mSpinner = mSpinner;
 
             mVariableNameManager = variableNameManager;
             mVars = mVariableNameManager.getUsedNames();
 
-            mRenameString = context.getString(R.string.rename_variable);
-            mDeleteString = context.getString(R.string.delete_variable);
             refreshVariables();
             variableNameManager.registerObserver(new DataSetObserver() {
                 @Override
@@ -216,6 +218,19 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
                     refreshVariables();
                 }
             });
+            mRenameString = LangUtils.interpolate("%{BKY_RENAME_VARIABLE}");
+        }
+
+        /**
+         * This constructor is for compatibility reasons, or for whe it is not in a Spinner.
+         *
+         * @param variableNameManager The name manager containing the variables.
+         * @param context A context for inflating layouts.
+         * @param resource The {@link TextView} layout to use when inflating items.
+         */
+        public VariableViewAdapter(Context context, NameManager variableNameManager,
+                @LayoutRes int resource) {
+            this(context, variableNameManager, resource, null);
         }
 
         /**
@@ -261,6 +276,9 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
 
         @Override
         public String getItem(int index) {
+            if (index == -1) {
+                index = 0;
+            }
             int count = super.getCount();
             if (index >= count + 2 || index < 0) {
                 throw new IndexOutOfBoundsException("There is no item at index " + index
@@ -272,7 +290,7 @@ public class BasicFieldVariableView extends android.support.v7.widget.AppCompatS
             if (index == count) {
                 return mRenameString;
             } else {
-                return mDeleteString;
+                return LangUtils.interpolate("%{BKY_DELETE_VARIABLE}").replace("%1", mSpinner != null && mSpinner.getSelectedItemPosition() != -1 ? getItem(mSpinner.getSelectedItemPosition()) : "");
             }
         }
 

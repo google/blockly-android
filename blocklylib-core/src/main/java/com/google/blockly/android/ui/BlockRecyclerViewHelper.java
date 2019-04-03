@@ -27,6 +27,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -66,13 +67,32 @@ public class BlockRecyclerViewHelper {
     private BlocklyCategory mCurrentCategory;
     private BlockTouchHandler mTouchHandler;
 
-    public BlockRecyclerViewHelper(RecyclerView recyclerView, Context context) {
+    private static final int BLOCK_HEIGHT_PADDING = 10;
+
+    public BlockRecyclerViewHelper(RecyclerView recyclerView, final Context context) {
         mRecyclerView = recyclerView;
         mContext = context;
         mHelium = LayoutInflater.from(mContext);
         mAdapter = new Adapter();
         mCategoryCb = new CategoryCallback();
         mLayoutManager = new LinearLayoutManager(context);
+
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                int height = 0;
+                for (int i = 0; i < mAdapter.getItemCount(); i++) {
+                    BlockViewHolder holder = mAdapter.onCreateViewHolder(null, mAdapter.getItemViewType(i));
+                    mAdapter.onBindViewHolder(holder, i);
+                    holder.mContainer.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                    if (holder.mContainer.getMeasuredHeight() > height) {
+                        height = holder.mContainer.getMeasuredHeight();
+                    }
+                    mAdapter.onViewRecycled(holder);
+                }
+                mRecyclerView.setMinimumHeight(height + BLOCK_HEIGHT_PADDING);
+            }
+        });
 
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
@@ -131,6 +151,7 @@ public class BlockRecyclerViewHelper {
         }
         mCurrentCategory = category;
         mAdapter.notifyDataSetChanged();
+
         if (mCurrentCategory != null) {
             mCurrentCategory.setCallback(mCategoryCb);
         }
@@ -257,6 +278,9 @@ public class BlockRecyclerViewHelper {
                             block, mConnectionManager, mTouchHandler);
                 } else {
                     bg.setTouchHandler(mTouchHandler);
+                }
+                if (bg.getParent() != null) {
+                    ((ViewManager) bg.getParent()).removeView(bg);
                 }
                 holder.mContainer.addView(bg, new FrameLayout.LayoutParams(
                         RelativeLayout.LayoutParams.WRAP_CONTENT,

@@ -40,6 +40,7 @@ import com.google.blockly.model.CustomCategory;
 import com.google.blockly.model.DefaultBlocks;
 import com.google.blockly.model.Mutator;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -83,6 +84,20 @@ public abstract class AbstractBlocklyFragment extends Fragment {
     protected BlocklyActivityHelper mBlocklyActivityHelper = null;
 
     /**
+     * Override to use a different language File in ms/js (Defaults to "en")
+     *
+     * Blockly two letter language codes differ slightly than the Android recognized set.
+     * While the vast majority of users will not have an issue, some edge dialects may differ.
+     * See files (and filenames) in https://github.com/google/blockly/tree/master/msg/js for the
+     * latest available set.
+     *
+     * @return Selected Language
+     */
+    public String getLang() {
+        return "en";
+    }
+
+    /**
      * Creates the activity's views and subfragments (via {@link #onCreateSubViews}, and then
      * initializes Blockly via {@link #onCreateActivityHelper()}, using the values from
      * {@link #getBlockDefinitionsJsonPaths} and {@link #getToolboxContentsXmlPath}.
@@ -95,6 +110,8 @@ public abstract class AbstractBlocklyFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
+        LangUtils.setLang(getLang());
+
         mRootView = onCreateSubViews(inflater);
         mBlocklyActivityHelper = onCreateActivityHelper();
 

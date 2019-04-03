@@ -1,3 +1,11 @@
+**The blockly-android project is _no longer actively developed_ by the
+Google Blockly team. We will continue to review and accept pull requests.
+If you are looking to create a new Blockly-based app, we recommend using
+the [web version](http://github.com/google/blockly) in a WebView.  We
+have also create an
+[Android Studio demonstration project](https://github.com/google/blockly/tree/develop/demos/mobile/android)
+that does exactly this.**
+
 [Blockly][1] is a library for building drag-and-drop visual editors for
 JavaScript and other programming languages.  [Blockly for Android][2] is
 a developer preview of Blockly's editor built with standard Android
@@ -22,6 +30,21 @@ support the Blockly community.
 
 Want to contribute? Great! First, read [our guidelines for contributors][7].
 
+### How To Use
+
+Add one of the following dependencies to your application's `build.gradle`.
+
+```gradle
+dependencies {
+    // Default (Lite)
+    implementation 'com.google.blockly.android:blocklylib-vertical:<Blockly Version>'
+    // Full Version (All code lanuage generators)
+    implementation 'com.google.blockly.android:blocklylib-vertical:<Blockly Version>:full@aar'
+    // Lite Version (Only JavaScript)
+    implementation 'com.google.blockly.android:blocklylib-vertical:<Blockly Version>:lite@aar'
+}
+```
+
 [1]: https://developer.google.com/blockly/ "Blockly documentation"
 [2]: https://github.com/google/blockly-android "Blockly for Android repository on GitHub"
 [3]: https://developer.google.com/blockly/guides/get-started/android "Blockly for Android developer tutorial"
@@ -29,3 +52,4 @@ Want to contribute? Great! First, read [our guidelines for contributors][7].
 [5]: https://groups.google.com/forum/#!forum/blockly "Blockly developer forum"
 [6]: https://developers.google.com/blockly/registration "Blockly developer registration form"
 [7]: https://github.com/google/blockly-android/blob/master/CONTRIBUTING.md "Contributor guidelines"
+

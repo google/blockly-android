@@ -21,6 +21,7 @@ import android.util.Log;
 
 import com.google.blockly.utils.BlockLoadingException;
 import com.google.blockly.utils.ColorUtils;
+import com.google.blockly.utils.LangUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -178,7 +179,7 @@ public final class BlockDefinition {
             if (!mJson.has(messageKey)) {
                 break;
             }
-            String message = mJson.optString(messageKey);
+            String message = LangUtils.interpolate(mJson.optString(messageKey));
             JSONArray args = mJson.optJSONArray(argsKey);
             if (args == null) {
                 // If there's no args for this message use an empty array.
@@ -258,7 +259,7 @@ public final class BlockDefinition {
             }
         }
 
-        return  inputs;
+        return inputs;
     }
 
     /**
@@ -316,7 +317,7 @@ public final class BlockDefinition {
         if (json.has("colour")) {
             boolean validColor = false;
             try {
-                String colourString = json.getString("colour");
+                String colourString = LangUtils.interpolate(json.getString("colour"));
                 color = ColorUtils.parseColor(colourString, null, -1);
                 validColor = (color != -1);
             } catch (JSONException e) {

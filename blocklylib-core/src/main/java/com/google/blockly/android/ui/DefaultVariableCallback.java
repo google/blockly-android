@@ -18,9 +18,9 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 
-import com.google.blockly.android.R;
 import com.google.blockly.android.control.BlocklyController;
 import com.google.blockly.model.VariableInfo;
+import com.google.blockly.utils.LangUtils;
 
 /**
  * Default implementation of {@link BlocklyController.VariableCallback}. It uses
@@ -89,11 +89,10 @@ public class DefaultVariableCallback extends BlocklyController.VariableCallback 
 
     @Override
     public void onAlertCannotDeleteProcedureArgument(String variableName, VariableInfo varInfo) {
-        // TODO: Use Blockly message CANNOT_DELETE_VARIABLE_PROCEDURE from TranslationManager
         String procedureName = varInfo.getProcedureName(0);
         new AlertDialog.Builder(mActivity)
-                .setMessage(mActivity.getString(
-                        R.string.cannot_delete_variable_procedure, variableName, procedureName))
+                .setMessage(LangUtils.interpolate(
+                        "%{BKY_CANNOT_DELETE_VARIABLE_PROCEDURE}").replace("%1", variableName).replace("%2", procedureName))
                 .show();
     }
 

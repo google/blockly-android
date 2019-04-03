@@ -33,7 +33,7 @@ import java.util.List;
 
 /**
  * Demo activity that programmatically adds a view to split the screen between the Blockly workspace
- * and an arbitrary other view or fragment.
+ * and an arbitrary other view or fragment and generates Lua code.
  */
 public class LuaActivity extends AbstractBlocklyActivity {
     private static final String TAG = "LuaActivity";
@@ -45,7 +45,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
     private static final List<String> LUA_GENERATORS = Arrays.asList();
 
     private static final LanguageDefinition LUA_LANGUAGE_DEF
-            = new LanguageDefinition("lua/lua_compressed.js", "Blockly.Lua");
+            = LanguageDefinition.LUA_LANGUAGE_DEFINITION;
 
     private TextView mGeneratedTextView;
     private Handler mHandler;
@@ -60,7 +60,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
                         @Override
                         public void run() {
                             mGeneratedTextView.setText(generatedCode);
-                            updateTextMinWidth();
+                            DemoUtil.updateTextMinWidth(mGeneratedTextView, LuaActivity.this);
                         }
                     });
                 }
@@ -82,7 +82,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
     protected View onCreateContentView(int parentId) {
         View root = getLayoutInflater().inflate(R.layout.split_content, null);
         mGeneratedTextView = (TextView) root.findViewById(R.id.generated_code);
-        updateTextMinWidth();
+        DemoUtil.updateTextMinWidth(mGeneratedTextView, this);
 
         mNoCodeText = mGeneratedTextView.getText().toString(); // Capture initial value.
 
@@ -129,30 +129,7 @@ public class LuaActivity extends AbstractBlocklyActivity {
     public void onClearWorkspace() {
         super.onClearWorkspace();
         mGeneratedTextView.setText(mNoCodeText);
-        updateTextMinWidth();
-    }
-
-    /**
-     * Estimate the pixel size of the longest line of text, and set that to the TextView's minimum
-     * width.
-     */
-    private void updateTextMinWidth() {
-        String text = mGeneratedTextView.getText().toString();
-        int maxline = 0;
-        int start = 0;
-        int index = text.indexOf('\n', start);
-        while (index > 0) {
-            maxline = Math.max(maxline, index - start);
-            start = index + 1;
-            index = text.indexOf('\n', start);
-        }
-        int remainder = text.length() - start;
-        if (remainder > 0) {
-            maxline = Math.max(maxline, remainder);
-        }
-
-        float density = getResources().getDisplayMetrics().density;
-        mGeneratedTextView.setMinWidth((int) (maxline * 13 * density));
+        DemoUtil.updateTextMinWidth(mGeneratedTextView, this);
     }
 
     /**

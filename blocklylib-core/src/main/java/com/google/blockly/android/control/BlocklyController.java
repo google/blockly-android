@@ -61,6 +61,7 @@ import com.google.blockly.model.VariableInfo;
 import com.google.blockly.model.Workspace;
 import com.google.blockly.model.mutator.AbstractProcedureMutator;
 import com.google.blockly.utils.BlockLoadingException;
+import com.google.blockly.utils.LangUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -247,6 +248,8 @@ public class BlocklyController {
         mTouchHandler = mDragger.buildSloppyBlockTouchHandler(mWorkspaceDragHandler);
 
         mFlyoutController = new FlyoutController(this);
+
+        LangUtils.generateLang(mContext);
     }
 
     /**
@@ -1531,7 +1534,7 @@ public class BlocklyController {
             // single place it could be reconnected to. The previousTarget will replace a shadow if
             // one was present.
             Connection lastInputConnection = child.getLastUnconnectedInputConnection();
-            if (lastInputConnection == null) {
+            if (lastInputConnection == null || !Connection.checksMatch(lastInputConnection,previousTargetConnection)) {
                 // Bump and add back to root.
                 BlockGroup previousTargetGroup =
                         mHelper.getParentBlockGroup(previousTargetBlock);

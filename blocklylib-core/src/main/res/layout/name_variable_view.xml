@@ -2,26 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content">
+              android:layout_height="wrap_content"
+              android:paddingStart="?dialogPreferredPadding"
+              android:paddingEnd="?dialogPreferredPadding"
+              android:paddingRight="?dialogPreferredPadding"
+              android:paddingLeft="?dialogPreferredPadding">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/name_variable_message"
         android:id="@+id/description"
-        android:layout_gravity="left"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="16dp"/>
+        android:layout_gravity="left|start" />
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/name"
         android:layout_gravity="center_horizontal"
-        android:singleLine="true"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="16dp"/>
+        android:singleLine="true" />
 </LinearLayout>

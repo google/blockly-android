@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -14,6 +14,27 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+        }
+    }
+
+    flavorDimensions 'blockly'
+    productFlavors {
+        full {
+            dimension 'blockly'
+        }
+        lite {
+            dimension 'blockly'
+        }
+    }
+
+    defaultPublishConfig 'liteRelease'
+
+    sourceSets {
+        lite {
+            assets.srcDirs = ['src/lite/assets']
+        }
+        full {
+            assets.srcDirs = ['src/lite/assets', 'src/full/assets']
         }
     }
 
@@ -28,19 +49,57 @@ android {
     lintOptions {
           abortOnError false
     }
-    publishNonDefault false
 }
 
 dependencies {
-    implementation 'com.android.support:support-v4:27.1.1'
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:recyclerview-v7:27.1.1'
-    implementation 'com.android.support:support-annotations:27.1.1'
+    api 'com.android.support:support-v4:28.0.0'
+    api 'com.android.support:appcompat-v7:28.0.0'
+    api 'com.android.support:recyclerview-v7:28.0.0'
+    api 'com.android.support:support-annotations:28.0.0'
 }
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
+}
+
+task getBlocklyTask {
+    getBlockly()
+}
+
+def getBlockly() {
+    def files = [
+            'blockly_compressed.js': 'assets/blockly_compressed.js',
+            'blocks_compressed.js': 'assets/blocks_compressed.js',
+            'javascript_compressed.js': 'assets/generators/javascript_compressed.js',
+            'lua_compressed.js': 'assets/generators/lua_compressed.js',
+            'php_compressed.js': 'assets/generators/php_compressed.js',
+            'python_compressed.js': 'assets/generators/python_compressed.js',
+            'dart_compressed.js': 'assets/generators/dart_compressed.js',
+            'msg/js/en.js': 'assets/msg/js/en.js'
+    ]
+    def liteFiles = [
+            'blockly_compressed.js',
+            'blocks_compressed.js',
+            'javascript_compressed.js',
+            'msg/js/en.js'
+    ]
+    for (Map.Entry<String, Object> entry : files.entrySet()) {
+        def path = 'src/full/' + entry.getValue()
+        if (liteFiles.contains(entry.getKey())) {
+            path = 'src/lite/' + entry.getValue()
+        }
+        def file = new File(projectDir, path)
+        file.getParentFile().mkdirs()
+        def downloadFile = true
+        if (downloadFile && !file.exists()) {
+            new URL('https://raw.githubusercontent.com/google/blockly/' + project.properties['blockly.stableCommit'] + '/' + entry.getKey()).withInputStream{ i -> file.withOutputStream{ it << i }}
+        }
+    }
+}
+
+tasks.withType(JavaCompile) { compileTask ->
+    compileTask.dependsOn getBlocklyTask
 }
 
 // TODO(#632): Fix JavaDoc compilation, and then update deployment artifacts.

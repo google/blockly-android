@@ -16,8 +16,11 @@
 package com.google.blockly.android.ui;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.PorterDuff;
 import android.support.annotation.Nullable;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
@@ -159,24 +162,15 @@ public class CategoryTabs extends RecyclerView {
         if (mCurrentCategory == category) {
             return;
         }
-        if (mCurrentCategory != null) {
-            // Deselect the old tab.
-            TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
-            if (vh != null && mLabelAdapter != null) {  // Tab might not be rendered or visible yet.
-                // Update style. Don't use notifyItemChanged(..), due to a resulting UI flash.
-                mLabelAdapter.onSelectionChanged(
-                        vh.mLabel, vh.mCategory, vh.getAdapterPosition(), false);
-            }
-        }
+        BlocklyCategory oldCategory = mCurrentCategory;
         mCurrentCategory = category;
+        if (oldCategory != null) {
+            // Deselect the old tab.
+            mAdapter.notifyItemChanged(mCategories.indexOf(oldCategory));
+        }
         if (mCurrentCategory != null && mLabelAdapter != null) {
             // Select the new tab.
-            TabLabelHolder vh = getTabLabelHolder(mCurrentCategory);
-            if (vh != null) {  // Tab might not be rendered or visible yet.
-                // Update style. Don't use notifyItemChanged(..), due to a resulting UI flash.
-                mLabelAdapter.onSelectionChanged(
-                        vh.mLabel, vh.mCategory, vh.getAdapterPosition(), true);
-            }
+            mAdapter.notifyItemChanged(mCategories.indexOf(category));
         }
     }
 
@@ -239,6 +233,10 @@ public class CategoryTabs extends RecyclerView {
                     onCategoryClicked(category);
                 }
             });
+            Integer catColor = category.getColor();
+            ViewCompat.setBackgroundTintList(holder.mLabel,
+                    catColor == null ? null : ColorStateList.valueOf(catColor));
+            ViewCompat.setBackgroundTintMode(holder.mLabel, PorterDuff.Mode.OVERLAY);
         }
 
         @Override
